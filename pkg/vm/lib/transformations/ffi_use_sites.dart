@@ -62,16 +62,12 @@ void transformLibraries(
       hierarchy,
       diagnosticReporter,
       referenceFromIndex,
-      ffiTransformerData.replacedGetters,
-      ffiTransformerData.replacedSetters,
       ffiTransformerData.emptyCompounds);
   libraries.forEach(transformer.visitLibrary);
 }
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
 class _FfiUseSiteTransformer extends FfiTransformer {
-  final Map<Field, Procedure> replacedGetters;
-  final Map<Field, Procedure> replacedSetters;
   final Set<Class> emptyCompounds;
   StaticTypeContext _staticTypeContext;
 
@@ -87,8 +83,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      this.replacedGetters,
-      this.replacedSetters,
       this.emptyCompounds)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex) {}
@@ -143,31 +137,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final result = super.visitProcedure(node);
     _staticTypeContext = null;
     return result;
-  }
-
-  @override
-  visitPropertyGet(PropertyGet node) {
-    super.visitPropertyGet(node);
-
-    final Procedure replacedWith = replacedGetters[node.interfaceTarget];
-    if (replacedWith != null) {
-      node = PropertyGet(node.receiver, replacedWith.name, replacedWith);
-    }
-
-    return node;
-  }
-
-  @override
-  visitPropertySet(PropertySet node) {
-    super.visitPropertySet(node);
-
-    final Procedure replacedWith = replacedSetters[node.interfaceTarget];
-    if (replacedWith != null) {
-      node = PropertySet(
-          node.receiver, replacedWith.name, node.value, replacedWith);
-    }
-
-    return node;
   }
 
   @override

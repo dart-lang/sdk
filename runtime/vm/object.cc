@@ -143,6 +143,7 @@ BoolPtr Object::false_ = static_cast<BoolPtr>(RAW_NULL);
 ClassPtr Object::class_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::dynamic_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::void_class_ = static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::type_parameters_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::type_arguments_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::patch_class_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::function_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -785,6 +786,9 @@ void Object::Init(IsolateGroup* isolate_group) {
   }
 
   // Allocate the remaining VM internal classes.
+  cls = Class::New<TypeParameters, RTN::TypeParameters>(isolate_group);
+  type_parameters_class_ = cls.ptr();
+
   cls = Class::New<TypeArguments, RTN::TypeArguments>(isolate_group);
   type_arguments_class_ = cls.ptr();
 
@@ -1236,6 +1240,7 @@ void Object::Cleanup() {
   class_class_ = static_cast<ClassPtr>(RAW_NULL);
   dynamic_class_ = static_cast<ClassPtr>(RAW_NULL);
   void_class_ = static_cast<ClassPtr>(RAW_NULL);
+  type_parameters_class_ = static_cast<ClassPtr>(RAW_NULL);
   type_arguments_class_ = static_cast<ClassPtr>(RAW_NULL);
   patch_class_class_ = static_cast<ClassPtr>(RAW_NULL);
   function_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -1336,6 +1341,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(dynamic, Dynamic);
   SET_CLASS_NAME(void, Void);
+  SET_CLASS_NAME(type_parameters, TypeParameters);
   SET_CLASS_NAME(type_arguments, TypeArguments);
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
@@ -2169,6 +2175,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
     object_store->set_null_type(type);
+    cls.set_declaration_type(type);
     ASSERT(type.IsNullable());
 
     // Consider removing when/if Null becomes an ordinary class.
@@ -3152,7 +3159,7 @@ void Class::set_library(const Library& value) const {
   untag()->set_library(value.ptr());
 }
 
-void Class::set_type_parameters(const TypeArguments& value) const {
+void Class::set_type_parameters(const TypeParameters& value) const {
   ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
          is_prefinalized());
   untag()->set_type_parameters(value.ptr());
@@ -3187,11 +3194,11 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
     }
     return 0;
   }
-  if (type_parameters() == TypeArguments::null()) {
+  if (type_parameters() == TypeParameters::null()) {
     return 0;
   }
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
-  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  TypeParameters& type_params = thread->TypeParametersHandle();
   type_params = type_parameters();
   return type_params.Length();
 }
@@ -3289,31 +3296,13 @@ intptr_t Class::NumTypeArguments() const {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-static TypeArgumentsPtr InstantiateTypeArgumentsToBounds(
-    Thread* thread,
-    const TypeArguments& parameters) {
-  ASSERT(thread != nullptr);
-  if (parameters.IsNull()) {
-    return Object::empty_type_arguments().ptr();
-  }
-  auto const zone = thread->zone();
-  const auto& result = TypeArguments::Handle(
-      zone, TypeArguments::New(parameters.Length(), Heap::kNew));
-  auto& param = TypeParameter::Handle(zone);
-  auto& type = AbstractType::Handle(zone);
-  for (intptr_t i = 0, n = parameters.Length(); i < n; i++) {
-    param ^= parameters.TypeAt(i);
-    type = param.default_argument();
-    ASSERT(type.IsFinalized());
-    result.SetTypeAt(i, type);
-  }
-  return result.Canonicalize(thread);
-}
-
 TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
   const auto& type_params =
-      TypeArguments::Handle(thread->zone(), type_parameters());
-  return InstantiateTypeArgumentsToBounds(thread, type_params);
+      TypeParameters::Handle(thread->zone(), type_parameters());
+  if (type_params.IsNull()) {
+    return Object::empty_type_arguments().ptr();
+  }
+  return type_params.defaults();
 }
 
 ClassPtr Class::SuperClass(bool original_classes) const {
@@ -3341,28 +3330,19 @@ void Class::set_super_type(const AbstractType& value) const {
   untag()->set_super_type(value.ptr());
 }
 
-TypeParameterPtr Class::LookupTypeParameter(const String& type_name) const {
-  ASSERT(!type_name.IsNull());
-  Thread* thread = Thread::Current();
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
-  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  TypeArguments& type_params = thread->TypeArgumentsHandle();
-  TypeParameter& type_param = thread->TypeParameterHandle();
-  String& type_param_name = thread->StringHandle();
-
-  type_params = type_parameters();
-  if (!type_params.IsNull()) {
-    const intptr_t num_type_params = type_params.Length();
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type_param ^= type_params.TypeAt(i);
-      type_param_name = type_param.name();
-      if (type_param_name.Equals(type_name)) {
-        return type_param.ptr();
-      }
-    }
+TypeParameterPtr Class::TypeParameterAt(intptr_t index,
+                                        Nullability nullability) const {
+  ASSERT(index >= 0 && index < NumTypeParameters());
+  const TypeParameters& type_params = TypeParameters::Handle(type_parameters());
+  const TypeArguments& bounds = TypeArguments::Handle(type_params.bounds());
+  const AbstractType& bound = AbstractType::Handle(
+      bounds.IsNull() ? Type::DynamicType() : bounds.TypeAt(index));
+  TypeParameter& type_param = TypeParameter::Handle(
+      TypeParameter::New(*this, 0, index, bound, nullability));
+  if (is_type_finalized()) {
+    type_param ^= ClassFinalizer::FinalizeType(type_param);
   }
-  return TypeParameter::null();
+  return type_param.ptr();
 }
 
 UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
@@ -3403,9 +3383,7 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
   // parameterized, introduce a new type_arguments field.
   if (host_type_args_field_offset == kNoTypeArguments) {
     ASSERT(target_type_args_field_offset == RTN::Class::kNoTypeArguments);
-    const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
-    if (!type_params.IsNull()) {
-      ASSERT(type_params.Length() > 0);
+    if (IsGeneric()) {
       // The instance needs a type_arguments field.
       host_type_args_field_offset = host_offset;
       target_type_args_field_offset = target_offset;
@@ -4869,6 +4847,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::Never().ToCString();
     case kClassCid:
       return Symbols::Class().ToCString();
+    case kTypeParametersCid:
+      return Symbols::TypeParameters().ToCString();
     case kTypeArgumentsCid:
       return Symbols::TypeArguments().ToCString();
     case kPatchClassCid:
@@ -5195,9 +5175,18 @@ TypePtr Class::DeclarationType() const {
     // DeclarationType without checking its nullability. Therefore, we
     // consistently cache the kNonNullable version of the type.
     // The exception is type Null which is stored as kNullable.
+    TypeArguments& type_args = TypeArguments::Handle();
+    const intptr_t num_type_params = NumTypeParameters();
+    if (num_type_params > 0) {
+      type_args = TypeArguments::New(num_type_params);
+      TypeParameter& type_param = TypeParameter::Handle();
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param = TypeParameterAt(i);
+        type_args.SetTypeAt(i, type_param);
+      }
+    }
     Type& type =
-        Type::Handle(Type::New(*this, TypeArguments::Handle(type_parameters()),
-                               Nullability::kNonNullable));
+        Type::Handle(Type::New(*this, type_args, Nullability::kNonNullable));
     type ^= ClassFinalizer::FinalizeType(type);
     set_declaration_type(type);
     return type.ptr();
@@ -6019,6 +6008,191 @@ bool Class::RequireCanonicalTypeErasureOfConstants(Zone* zone) const {
   }
   set.Release();
   return result;
+}
+
+intptr_t TypeParameters::Length() const {
+  if (IsNull() || untag()->names() == Array::null()) return 0;
+  return Smi::Value(untag()->names()->untag()->length());
+}
+
+void TypeParameters::set_names(const Array& value) const {
+  ASSERT(!value.IsNull());
+  untag()->set_names(value.ptr());
+}
+
+StringPtr TypeParameters::NameAt(intptr_t index) const {
+  const Array& names_array = Array::Handle(names());
+  return String::RawCast(names_array.At(index));
+}
+
+void TypeParameters::SetNameAt(intptr_t index, const String& value) const {
+  const Array& names_array = Array::Handle(names());
+  names_array.SetAt(index, value);
+}
+
+void TypeParameters::set_flags(const Array& value) const {
+  untag()->set_flags(value.ptr());
+}
+
+void TypeParameters::set_bounds(const TypeArguments& value) const {
+  // A null value represents a vector of dynamic.
+  untag()->set_bounds(value.ptr());
+}
+
+AbstractTypePtr TypeParameters::BoundAt(intptr_t index) const {
+  const TypeArguments& upper_bounds = TypeArguments::Handle(bounds());
+  return upper_bounds.IsNull() ? Type::DynamicType()
+                               : upper_bounds.TypeAt(index);
+}
+
+void TypeParameters::SetBoundAt(intptr_t index,
+                                const AbstractType& value) const {
+  const TypeArguments& upper_bounds = TypeArguments::Handle(bounds());
+  upper_bounds.SetTypeAt(index, value);
+}
+
+bool TypeParameters::AllDynamicBounds() const {
+  return bounds() == TypeArguments::null();
+}
+
+void TypeParameters::set_defaults(const TypeArguments& value) const {
+  // The null value represents a vector of dynamic.
+  untag()->set_defaults(value.ptr());
+}
+
+AbstractTypePtr TypeParameters::DefaultAt(intptr_t index) const {
+  const TypeArguments& default_type_args = TypeArguments::Handle(defaults());
+  return default_type_args.IsNull() ? Type::DynamicType()
+                                    : default_type_args.TypeAt(index);
+}
+
+void TypeParameters::SetDefaultAt(intptr_t index,
+                                  const AbstractType& value) const {
+  const TypeArguments& default_type_args = TypeArguments::Handle(defaults());
+  default_type_args.SetTypeAt(index, value);
+}
+
+bool TypeParameters::AllDynamicDefaults() const {
+  return defaults() == TypeArguments::null();
+}
+
+void TypeParameters::AllocateFlags(Heap::Space space) const {
+  const intptr_t len = (Length() + kFlagsPerSmiMask) >> kFlagsPerSmiShift;
+  const Array& flags_array = Array::Handle(Array::New(len, space));
+  // Initialize flags to 0.
+  const Smi& zero = Smi::Handle(Smi::New(0));
+  for (intptr_t i = 0; i < len; i++) {
+    flags_array.SetAt(i, zero);
+  }
+  set_flags(flags_array);
+}
+
+void TypeParameters::OptimizeFlags() const {
+  if (untag()->flags() == Array::null()) return;  // Already optimized.
+  const intptr_t len = (Length() + kFlagsPerSmiMask) >> kFlagsPerSmiShift;
+  const Array& flags_array = Array::Handle(flags());
+  const Smi& zero = Smi::Handle(Smi::New(0));
+  for (intptr_t i = 0; i < len; i++) {
+    if (flags_array.At(i) != zero.ptr()) return;
+  }
+  set_flags(Object::null_array());
+}
+
+bool TypeParameters::IsGenericCovariantImplAt(intptr_t index) const {
+  if (untag()->flags() == Array::null()) return false;
+  const intptr_t flag = Smi::Value(
+      Smi::RawCast(Array::Handle(flags()).At(index >> kFlagsPerSmiShift)));
+  return (flag >> (index & kFlagsPerSmiMask)) != 0;
+}
+
+void TypeParameters::SetIsGenericCovariantImplAt(intptr_t index,
+                                                 bool value) const {
+  const Array& flg = Array::Handle(flags());
+  intptr_t flag = Smi::Value(Smi::RawCast(flg.At(index >> kFlagsPerSmiShift)));
+  if (value) {
+    flag |= 1 << (index % kFlagsPerSmiMask);
+  } else {
+    flag &= ~(1 << (index % kFlagsPerSmiMask));
+  }
+  flg.SetAt(index >> kFlagsPerSmiShift, Smi::Handle(Smi::New(flag)));
+}
+
+void TypeParameters::Print(Thread* thread,
+                           Zone* zone,
+                           bool are_class_type_parameters,
+                           intptr_t base,
+                           NameVisibility name_visibility,
+                           BaseTextBuffer* printer) const {
+  String& name = String::Handle(zone);
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t num_type_params = Length();
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    if (are_class_type_parameters) {
+      name = NameAt(i);
+      printer->AddString(name.ToCString());
+    } else {
+      printer->AddString(TypeParameter::CanonicalNameCString(
+          are_class_type_parameters, base, base + i));
+    }
+    if (!AllDynamicBounds()) {
+      type = BoundAt(i);
+      // Do not print default bound or non-nullable Object bound in weak mode.
+      if (!type.IsNull() &&
+          (!type.IsObjectType() ||
+           (thread->isolate_group()->null_safety() && type.IsNonNullable()))) {
+        printer->AddString(" extends ");
+        type.PrintName(name_visibility, printer);
+        if (FLAG_show_internal_names && !AllDynamicDefaults()) {
+          type = DefaultAt(i);
+          if (!type.IsNull() && !type.IsDynamicType()) {
+            printer->AddString(" defaults to ");
+            type.PrintName(name_visibility, printer);
+          }
+        }
+      }
+    }
+    if (i != num_type_params - 1) {
+      printer->AddString(", ");
+    }
+  }
+}
+
+const char* TypeParameters::ToCString() const {
+  if (IsNull()) {
+    return "TypeParameters: null";
+  }
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  ZoneTextBuffer buffer(zone);
+  buffer.AddString("TypeParameters: ");
+  Print(thread, zone, true, 0, kInternalName, &buffer);
+  return buffer.buffer();
+}
+
+TypeParametersPtr TypeParameters::New(Heap::Space space) {
+  ASSERT(Object::type_parameters_class() != Class::null());
+  ObjectPtr ptr = Object::Allocate(TypeParameters::kClassId,
+                                   TypeParameters::InstanceSize(), space,
+                                   /*compressed*/ false);
+  return static_cast<TypeParametersPtr>(ptr);
+}
+
+TypeParametersPtr TypeParameters::New(intptr_t count, Heap::Space space) {
+  const TypeParameters& result =
+      TypeParameters::Handle(TypeParameters::New(space));
+  // Create an [ Array ] of [ String ] objects to represent the names.
+  // Create a [ TypeArguments ] vector representing the bounds.
+  // Create a [ TypeArguments ] vector representing the defaults.
+  // Create an [ Array ] of [ Smi] objects to represent the flags.
+  const Array& names_array = Array::Handle(Array::New(count, space));
+  result.set_names(names_array);
+  TypeArguments& type_args = TypeArguments::Handle();
+  type_args = TypeArguments::New(count, Heap::kNew);  // Will get canonicalized.
+  result.set_bounds(type_args);
+  type_args = TypeArguments::New(count, Heap::kNew);  // Will get canonicalized.
+  result.set_defaults(type_args);
+  result.AllocateFlags(space);  // Will get optimized.
+  return result.ptr();
 }
 
 intptr_t TypeArguments::ComputeNullability() const {
@@ -7145,97 +7319,47 @@ void Function::set_parent_function(const Function& value) const {
 TypeArgumentsPtr Function::InstantiateToBounds(
     Thread* thread,
     DefaultTypeArgumentsKind* kind_out) const {
-  if (CachesDefaultTypeArguments()) {
-    // Always use the cached version, even if the type parameters are null,
-    // to catch cases where the cache isn't properly initialized.
-    return default_type_arguments(kind_out);
-  }
-  // No cached version, so just retrieve from the type parameters and return
-  // a canonicalized version..
-  if (type_parameters() == TypeArguments::null()) {
+  if (type_parameters() == TypeParameters::null()) {
     if (kind_out != nullptr) {
       *kind_out = DefaultTypeArgumentsKind::kIsInstantiated;
     }
     return Object::empty_type_arguments().ptr();
   }
-  auto& result = TypeArguments::Handle(thread->zone(), type_parameters());
-  result = InstantiateTypeArgumentsToBounds(thread, result);
+  auto& type_params = TypeParameters::Handle(thread->zone(), type_parameters());
+  auto& result = TypeArguments::Handle(thread->zone(), type_params.defaults());
   if (kind_out != nullptr) {
-    // We just return is/is not instantiated if the value isn't cached, as
-    // the other checks may be more overhead at runtime than just doing the
-    // instantiation.
-    *kind_out = result.IsNull() || result.IsInstantiated()
-                    ? DefaultTypeArgumentsKind::kIsInstantiated
-                    : DefaultTypeArgumentsKind::kNeedsInstantiation;
+    if (IsClosureFunction()) {
+      *kind_out = default_type_arguments_kind();
+    } else {
+      // We just return is/is not instantiated if the value isn't cached, as
+      // the other checks may be more overhead at runtime than just doing the
+      // instantiation.
+      *kind_out = result.IsNull() || result.IsInstantiated()
+                      ? DefaultTypeArgumentsKind::kIsInstantiated
+                      : DefaultTypeArgumentsKind::kNeedsInstantiation;
+    }
   }
   return result.ptr();
 }
 
-void Function::UpdateCachedDefaultTypeArguments(Thread* thread) const {
-  auto const zone = thread->zone();
-  auto& closure_function = Function::Handle(zone);
-  if (HasImplicitClosureFunction()) {
-    closure_function = ImplicitClosureFunction();
-  }
-  if (CachesDefaultTypeArguments()) {
-    auto defaults = &Object::empty_type_arguments();
-    const FunctionType& sig = FunctionType::Handle(zone, signature());
-    if (sig.NumTypeParameters(thread) > 0) {
-      const auto& params = TypeArguments::Handle(zone, sig.type_parameters());
-      const intptr_t num_params = params.Length();
-      auto& new_defaults = TypeArguments::Handle(
-          zone, TypeArguments::New(num_params, Heap::kNew));
-      // Only canonicalize the result if all the default arguments have been
-      // canonicalized, to avoid premature canonicalization of the arguments.
-      bool all_canonical = true;
-      auto& type = AbstractType::Handle(zone);
-      for (intptr_t i = 0; i < num_params; i++) {
-        type = params.TypeAt(i);
-        type = TypeParameter::Cast(type).default_argument();
-        if (!type.IsCanonical()) {
-          all_canonical = false;
-        }
-        new_defaults.SetTypeAt(i, type);
-      }
-      if (all_canonical) {
-        new_defaults = new_defaults.Canonicalize(thread);
-      }
-      defaults = &new_defaults;
-    }
-    set_default_type_arguments(*defaults);
-    if (!closure_function.IsNull()) {
-      closure_function.set_default_type_arguments(*defaults);
-    }
-  } else if (!closure_function.IsNull()) {
-    closure_function.UpdateCachedDefaultTypeArguments(thread);
-  }
-}
-
-TypeArgumentsPtr Function::default_type_arguments(
-    DefaultTypeArgumentsKind* kind_out) const {
-  if (!CachesDefaultTypeArguments()) {
+Function::DefaultTypeArgumentsKind Function::default_type_arguments_kind()
+    const {
+  if (!IsClosureFunction()) {
     UNREACHABLE();
   }
   const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
   ASSERT(!closure_data.IsNull());
-  if (kind_out != nullptr) {
-    *kind_out = closure_data.default_type_arguments_kind();
-  }
-  return closure_data.default_type_arguments();
+  return closure_data.default_type_arguments_kind();
 }
 
-void Function::set_default_type_arguments(const TypeArguments& value) const {
-  if (!CachesDefaultTypeArguments()) {
+void Function::set_default_type_arguments_kind(
+    Function::DefaultTypeArgumentsKind value) const {
+  if (!IsClosureFunction()) {
     UNREACHABLE();
   }
   const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
   ASSERT(!closure_data.IsNull());
-  auto kind = DefaultTypeArgumentsKindFor(value);
-  ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
-  closure_data.set_default_type_arguments_kind(kind);
-  // We could just store null for the ksharesFunction/kSharesInstantiator cases,
-  // assuming all clients retrieve the DefaultTypeArgumentsKind to distinguish.
-  closure_data.set_default_type_arguments(value);
+  closure_data.set_default_type_arguments_kind(value);
 }
 
 Function::DefaultTypeArgumentsKind Function::DefaultTypeArgumentsKindFor(
@@ -7514,8 +7638,30 @@ void Function::set_signature(const FunctionType& value) const {
   untag()->set_signature(value.ptr());
   if (!value.IsNull()) {
     ASSERT(NumImplicitParameters() == value.num_implicit_parameters());
-    UpdateCachedDefaultTypeArguments(Thread::Current());
+    if (IsClosureFunction() && value.IsGeneric()) {
+      const TypeParameters& type_params =
+          TypeParameters::Handle(value.type_parameters());
+      const TypeArguments& defaults =
+          TypeArguments::Handle(type_params.defaults());
+      auto kind = DefaultTypeArgumentsKindFor(defaults);
+      ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
+      set_default_type_arguments_kind(kind);
+    }
   }
+}
+
+TypeParameterPtr FunctionType::TypeParameterAt(intptr_t index,
+                                               Nullability nullability) const {
+  ASSERT(index >= 0 && index < NumTypeParameters());
+  const TypeParameters& type_params = TypeParameters::Handle(type_parameters());
+  const AbstractType& bound = AbstractType::Handle(type_params.BoundAt(index));
+  TypeParameter& type_param = TypeParameter::Handle(
+      TypeParameter::New(Object::null_class(), NumParentTypeArguments(),
+                         NumParentTypeArguments() + index, bound, nullability));
+  if (IsFinalized()) {
+    type_param ^= ClassFinalizer::FinalizeType(type_param);
+  }
+  return type_param.ptr();
 }
 
 void FunctionType::set_result_type(const AbstractType& value) const {
@@ -7705,7 +7851,7 @@ void FunctionType::FinalizeNameArrays(const Function& function) const {
   }
 }
 
-void FunctionType::set_type_parameters(const TypeArguments& value) const {
+void FunctionType::set_type_parameters(const TypeParameters& value) const {
   untag()->set_type_parameters(value.ptr());
 }
 
@@ -7749,11 +7895,11 @@ void Function::SetNumTypeParameters(intptr_t value) const {
 }
 
 intptr_t FunctionType::NumTypeParameters(Thread* thread) const {
-  if (type_parameters() == TypeArguments::null()) {
+  if (type_parameters() == TypeParameters::null()) {
     return 0;
   }
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
-  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  REUSABLE_TYPE_PARAMETERS_HANDLESCOPE(thread);
+  TypeParameters& type_params = thread->TypeParametersHandle();
   type_params = type_parameters();
   // We require null to represent a non-generic signature.
   ASSERT(type_params.Length() != 0);
@@ -7766,45 +7912,10 @@ intptr_t Function::NumParentTypeArguments() const {
   return FunctionType::Handle(signature()).NumParentTypeArguments();
 }
 
-TypeParameterPtr Function::LookupTypeParameter(const String& type_name,
-                                               intptr_t* function_level) const {
-  ASSERT(!type_name.IsNull());
-  Thread* thread = Thread::Current();
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
-  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  TypeArguments& type_params = thread->TypeArgumentsHandle();
-  TypeParameter& type_param = thread->TypeParameterHandle();
-  String& type_param_name = thread->StringHandle();
-  Function& function = thread->FunctionHandle();
-
-  function = this->ptr();
-  while (!function.IsNull()) {
-    if (function.signature() != FunctionType::null()) {
-      type_params = function.type_parameters();
-      if (!type_params.IsNull()) {
-        const intptr_t num_type_params = type_params.Length();
-        for (intptr_t i = 0; i < num_type_params; i++) {
-          type_param ^= type_params.TypeAt(i);
-          type_param_name = type_param.name();
-          if (type_param_name.Equals(type_name)) {
-            return type_param.ptr();
-          }
-        }
-      }
-    }
-    if (function.IsImplicitClosureFunction()) {
-      // The parent function is not the enclosing function, but the closurized
-      // function with identical type parameters.
-      break;
-    }
-    function = function.parent_function();
-    if (function_level != NULL) {
-      (*function_level)--;
-    }
-  }
-  return TypeParameter::null();
+TypeParameterPtr Function::TypeParameterAt(intptr_t index,
+                                           Nullability nullability) const {
+  const FunctionType& sig = FunctionType::Handle(signature());
+  return sig.TypeParameterAt(index, nullability);
 }
 
 void Function::set_kind(UntaggedFunction::Kind value) const {
@@ -8086,7 +8197,6 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
     const Function& function,
     const Instance& receiver,
     const TypeArguments& instantiator_type_args,
-    const TypeArguments& type_params,
     const Array& args,
     const ArgumentsDescriptor& args_desc) {
   ASSERT(!function.IsNull());
@@ -8218,11 +8328,10 @@ ObjectPtr Function::DoArgumentTypesMatch(
     receiver ^= args.At(args_desc.FirstArgIndex());
   }
 
-  const auto& params = TypeArguments::Handle(zone, type_parameters());
   const auto& function_type_arguments = TypeArguments::Handle(
       zone, RetrieveFunctionTypeArguments(thread, zone, *this, receiver,
-                                          instantiator_type_arguments, params,
-                                          args, args_desc));
+                                          instantiator_type_arguments, args,
+                                          args_desc));
   return Function::DoArgumentTypesMatch(
       args, args_desc, instantiator_type_arguments, function_type_arguments);
 }
@@ -8248,23 +8357,29 @@ ObjectPtr Function::DoArgumentTypesMatch(
     const intptr_t kNumParentTypeArgs = NumParentTypeArguments();
     ASSERT(function_type_arguments.HasCount(kNumParentTypeArgs +
                                             kNumLocalTypeArgs));
-    const auto& params = TypeArguments::Handle(zone, type_parameters());
-    auto& parameter = TypeParameter::Handle(zone);
-    auto& type = AbstractType::Handle(zone);
-    auto& bound = AbstractType::Handle(zone);
-    for (intptr_t i = 0; i < kNumLocalTypeArgs; i++) {
-      parameter ^= params.TypeAt(i);
-      type = parameter.ptr();
-      bound = parameter.bound();
-      // Only perform non-covariant checks where the bound is not the top type.
-      if (parameter.IsGenericCovariantImpl() || bound.IsTopTypeForSubtyping()) {
-        continue;
-      }
-      if (!AbstractType::InstantiateAndTestSubtype(&type, &bound,
-                                                   instantiator_type_arguments,
-                                                   function_type_arguments)) {
-        const auto& name = String::Handle(zone, parameter.name());
-        return Error::RawCast(ThrowTypeError(token_pos(), type, bound, name));
+    const auto& params = TypeParameters::Handle(zone, type_parameters());
+    // No checks are needed if all bounds are dynamic.
+    if (!params.AllDynamicBounds()) {
+      auto& param = AbstractType::Handle(zone);
+      auto& bound = AbstractType::Handle(zone);
+      for (intptr_t i = 0; i < kNumLocalTypeArgs; i++) {
+        bound = params.BoundAt(i);
+        // Only perform non-covariant checks where the bound is not
+        // the top type.
+        if (params.IsGenericCovariantImplAt(i) ||
+            bound.IsTopTypeForSubtyping()) {
+          continue;
+        }
+        param = TypeParameterAt(i);
+        if (!AbstractType::InstantiateAndTestSubtype(
+                &param, &bound, instantiator_type_arguments,
+                function_type_arguments)) {
+          const auto& names = Array::Handle(zone, params.names());
+          auto& name = String::Handle(zone);
+          name ^= names.At(i);
+          return Error::RawCast(
+              ThrowTypeError(token_pos(), param, bound, name));
+        }
       }
     }
   } else {
@@ -8484,49 +8599,35 @@ AbstractTypePtr FunctionType::InstantiateFrom(
       FunctionType::New(remaining_parent_type_params, nullability(), space));
   AbstractType& type = AbstractType::Handle(zone);
 
-  // Copy the type parameters and instantiate their bounds (if necessary).
+  // Copy the type parameters and instantiate their bounds and defaults.
   if (!delete_type_parameters) {
-    const TypeArguments& type_params =
-        TypeArguments::Handle(zone, type_parameters());
+    const TypeParameters& type_params =
+        TypeParameters::Handle(zone, type_parameters());
     if (!type_params.IsNull()) {
-      TypeArguments& instantiated_type_params = TypeArguments::Handle(zone);
-      TypeParameter& type_param = TypeParameter::Handle(zone);
-      String& param_name = String::Handle(zone);
-      for (intptr_t i = 0; i < type_params.Length(); ++i) {
-        type_param ^= type_params.TypeAt(i);
-        ASSERT(type_param.index() == num_parent_type_args + i);
-        type = type_param.bound();
-        if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
-          type = type.InstantiateFrom(instantiator_type_arguments,
-                                      function_type_arguments,
-                                      num_free_fun_type_params, space, trail);
-          // A returned null type indicates a failed instantiation in dead code
-          // that must be propagated up to the caller, the optimizing compiler.
-          if (type.IsNull()) {
-            return FunctionType::null();
-          }
-          ASSERT(type_param.IsFinalized());
-          param_name = type_param.name();
-          type_param = TypeParameter::New(
-              Object::null_class(), type_param.base(), type_param.index(),
-              param_name, type, type_param.IsGenericCovariantImpl(),
-              type_param.nullability());
-          type_param.SetIsFinalized();
-          if (instantiated_type_params.IsNull()) {
-            instantiated_type_params = TypeArguments::New(type_params.Length());
-            for (intptr_t j = 0; j < i; ++j) {
-              type = type_params.TypeAt(j);
-              instantiated_type_params.SetTypeAt(j, type);
-            }
-          }
-          instantiated_type_params.SetTypeAt(i, type_param);
-        } else if (!instantiated_type_params.IsNull()) {
-          instantiated_type_params.SetTypeAt(i, type_param);
-        }
+      const TypeParameters& sig_type_params =
+          TypeParameters::Handle(zone, TypeParameters::New());
+      // No need to set names that are ignored in a signature, however, the
+      // length of the names array defines the number of type parameters.
+      sig_type_params.set_names(Array::Handle(zone, type_params.names()));
+      sig_type_params.set_flags(Array::Handle(zone, type_params.flags()));
+      TypeArguments& type_args = TypeArguments::Handle(zone);
+      type_args = type_params.bounds();
+      if (!type_args.IsNull() &&
+          !type_args.IsInstantiated(kAny, num_free_fun_type_params)) {
+        type_args = type_args.InstantiateFrom(
+            instantiator_type_arguments, function_type_arguments,
+            num_free_fun_type_params, space, trail);
       }
-      sig.set_type_parameters(instantiated_type_params.IsNull()
-                                  ? type_params
-                                  : instantiated_type_params);
+      sig_type_params.set_bounds(type_args);
+      type_args = type_params.defaults();
+      if (!type_args.IsNull() &&
+          !type_args.IsInstantiated(kAny, num_free_fun_type_params)) {
+        type_args = type_args.InstantiateFrom(
+            instantiator_type_arguments, function_type_arguments,
+            num_free_fun_type_params, space, trail);
+      }
+      sig_type_params.set_defaults(type_args);
+      sig.set_type_parameters(sig_type_params);
     }
   }
 
@@ -8609,20 +8710,56 @@ bool FunctionType::HasSameTypeParametersAndBounds(const FunctionType& other,
     return false;
   }
   if (num_type_params > 0) {
-    const TypeArguments& type_params =
-        TypeArguments::Handle(zone, type_parameters());
+    const TypeParameters& type_params =
+        TypeParameters::Handle(zone, type_parameters());
     ASSERT(!type_params.IsNull());
-    const TypeArguments& other_type_params =
-        TypeArguments::Handle(zone, other.type_parameters());
+    const TypeParameters& other_type_params =
+        TypeParameters::Handle(zone, other.type_parameters());
     ASSERT(!other_type_params.IsNull());
-    TypeParameter& type_param = TypeParameter::Handle(zone);
-    TypeParameter& other_type_param = TypeParameter::Handle(zone);
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type_param ^= type_params.TypeAt(i);
-      other_type_param ^= other_type_params.TypeAt(i);
-      if (!type_param.IsEquivalent(other_type_param, kind, trail)) {
+    if (kind == TypeEquality::kInSubtypeTest) {
+      if (!type_params.AllDynamicBounds() ||
+          !other_type_params.AllDynamicBounds()) {
+        AbstractType& bound = AbstractType::Handle(zone);
+        AbstractType& other_bound = AbstractType::Handle(zone);
+        for (intptr_t i = 0; i < num_type_params; i++) {
+          bound = type_params.BoundAt(i);
+          other_bound = other_type_params.BoundAt(i);
+          // Bounds that are mutual subtypes are considered equal.
+          if (!bound.IsSubtypeOf(other_bound, Heap::kOld) ||
+              !other_bound.IsSubtypeOf(bound, Heap::kOld)) {
+            return false;
+          }
+        }
+      }
+    } else {
+      if (NumParentTypeArguments() != other.NumParentTypeArguments()) {
         return false;
       }
+      const TypeArguments& bounds =
+          TypeArguments::Handle(zone, type_params.bounds());
+      const TypeArguments& other_bounds =
+          TypeArguments::Handle(zone, other_type_params.bounds());
+      if (!bounds.IsEquivalent(other_bounds, kind, trail)) {
+        return false;
+      }
+      if (kind == TypeEquality::kCanonical) {
+        // Compare default arguments.
+        const TypeArguments& defaults =
+            TypeArguments::Handle(zone, type_params.defaults());
+        const TypeArguments& other_defaults =
+            TypeArguments::Handle(zone, other_type_params.defaults());
+        if (defaults.IsNull()) {
+          if (!other_defaults.IsNull()) {
+            return false;
+          }
+        } else if (!defaults.IsEquivalent(other_defaults, kind, trail)) {
+          return false;
+        }
+      }
+    }
+    // Compare flags (IsGenericCovariantImpl).
+    if (!Array::Equals(type_params.flags(), other_type_params.flags())) {
+      return false;
     }
   }
   return true;
@@ -8814,11 +8951,6 @@ FunctionPtr Function::New(const FunctionType& signature,
     // in new space.
     ASSERT(space == Heap::kOld);
   }
-  if (result.CachesDefaultTypeArguments()) {
-    // Make sure the default type arguments are set consistently with the
-    // function type parameters (currently null).
-    result.set_default_type_arguments(Object::empty_type_arguments());
-  }
 
   // Force-optimized functions are not debuggable because they cannot
   // deoptimize.
@@ -8934,9 +9066,8 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   // Its implicit closure function therefore has no generic parent function
   // either. That is why it is safe to simply copy the type parameters.
   closure_signature.set_type_parameters(
-      TypeArguments::Handle(zone, type_parameters()));
+      TypeParameters::Handle(zone, type_parameters()));
   closure_function.SetNumTypeParameters(NumTypeParameters());
-  closure_function.UpdateCachedDefaultTypeArguments(thread);
 
   // Set closure function's result type to this result type.
   closure_signature.set_result_type(AbstractType::Handle(zone, result_type()));
@@ -9170,39 +9301,15 @@ void FunctionType::Print(NameVisibility name_visibility,
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  const TypeArguments& type_params =
-      TypeArguments::Handle(zone, type_parameters());
+  const TypeParameters& type_params =
+      TypeParameters::Handle(zone, type_parameters());
   if (!type_params.IsNull()) {
-    const intptr_t num_type_params = type_params.Length();
-    ASSERT(num_type_params > 0);
-    TypeParameter& type_param = TypeParameter::Handle(zone);
-    String& name = String::Handle(zone);
-    AbstractType& bound = AbstractType::Handle(zone);
     printer->AddString("<");
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type_param ^= type_params.TypeAt(i);
-      name = type_param.name();
-      printer->AddString(name.ToCString());
-      bound = type_param.bound();
-      // Do not print default bound or non-nullable Object bound in weak mode.
-      if (!bound.IsNull() &&
-          (!bound.IsObjectType() ||
-           (isolate_group->null_safety() && bound.IsNonNullable()))) {
-        printer->AddString(" extends ");
-        bound.PrintName(name_visibility, printer);
-        if (FLAG_show_internal_names) {
-          bound = type_param.default_argument();
-          if (!bound.IsNull() && !bound.IsDynamicType()) {
-            printer->AddString(" defaults to ");
-            bound.PrintName(name_visibility, printer);
-          }
-        }
-      }
-      if (i < num_type_params - 1) {
-        printer->AddString(", ");
-      }
-    }
+    const intptr_t base = NumParentTypeArguments();
+    const bool kIsClassTypeParameter = false;
+    // Type parameter names are meaningless after canonicalization.
+    type_params.Print(thread, zone, kIsClassTypeParameter, base,
+                      name_visibility, printer);
     printer->AddString(">");
   }
   printer->AddString("(");
@@ -9250,13 +9357,16 @@ bool FunctionType::IsInstantiated(Genericity genericity,
       return false;
     }
   }
-  TypeArguments& type_params = TypeArguments::Handle(type_parameters());
-  TypeParameter& type_param = TypeParameter::Handle();
-  for (intptr_t i = 0; i < type_params.Length(); ++i) {
-    type_param ^= type_params.TypeAt(i);
-    type = type_param.bound();
-    if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
-      return false;
+  const intptr_t num_type_params = NumTypeParameters();
+  if (num_type_params > 0) {
+    TypeParameters& type_params = TypeParameters::Handle(type_parameters());
+    if (!type_params.AllDynamicBounds()) {
+      for (intptr_t i = 0; i < type_params.Length(); ++i) {
+        type = type_params.BoundAt(i);
+        if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
+          return false;
+        }
+      }
     }
   }
   return true;
@@ -9950,10 +10060,6 @@ void FunctionType::set_num_implicit_parameters(intptr_t value) const {
                       value, *original));
 }
 
-void ClosureData::set_default_type_arguments(const TypeArguments& value) const {
-  untag()->set_default_type_arguments(value.ptr());
-}
-
 ClosureData::DefaultTypeArgumentsKind ClosureData::default_type_arguments_kind()
     const {
   return LoadNonPointer(&untag()->default_type_arguments_kind_);
@@ -9988,13 +10094,6 @@ const char* ClosureData::ToCString() const {
   }
   buffer.Printf(" implicit_static_closure: 0x%" Px "",
                 static_cast<uword>(implicit_static_closure()));
-  buffer.AddString(" default_type_arguments: ");
-  if (default_type_arguments() == TypeArguments::null()) {
-    buffer.AddString("null");
-  } else {
-    buffer.AddString(
-        TypeArguments::Handle(zone, default_type_arguments()).ToCString());
-  }
   return buffer.buffer();
 }
 
@@ -11556,15 +11655,9 @@ void Script::set_url(const String& value) const {
   untag()->set_url(value.ptr());
 }
 
-#if defined(DART_PRECOMPILER)
-void Script::set_resolved_url(const Object& value) const {
-  untag()->set_resolved_url(value.ptr());
-}
-#else
 void Script::set_resolved_url(const String& value) const {
   untag()->set_resolved_url(value.ptr());
 }
-#endif
 
 void Script::set_source(const String& value) const {
   untag()->set_source(value.ptr());
@@ -19584,16 +19677,9 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
   } else {
     const intptr_t len = (*trail)->length();
     ASSERT((len % 2) == 0);
-    const bool this_is_typeref = IsTypeRef();
-    const bool buddy_is_typeref = buddy.IsTypeRef();
-    // Note that at least one of 'this' and 'buddy' should be a typeref, with
-    // one exception, when the class of the 'this' type implements the 'call'
-    // method, thereby possibly creating a recursive type (see regress_29405).
     for (intptr_t i = 0; i < len; i += 2) {
-      if ((((*trail)->At(i).ptr() == this->ptr()) ||
-           (buddy_is_typeref && (*trail)->At(i).Equals(*this))) &&
-          (((*trail)->At(i + 1).ptr() == buddy.ptr()) ||
-           (this_is_typeref && (*trail)->At(i + 1).Equals(buddy)))) {
+      if ((*trail)->At(i).ptr() == this->ptr() &&
+          (*trail)->At(i + 1).ptr() == buddy.ptr()) {
         return true;
       }
     }
@@ -19705,7 +19791,8 @@ void AbstractType::PrintName(NameVisibility name_visibility,
   Class& cls = Class::Handle(zone);
   if (IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(*this);
-    printer->AddString(String::Handle(type_param.name()).ToCString());
+    // Type parameter names are meaningless after canonicalization.
+    printer->AddString(type_param.CanonicalNameCString());
     printer->AddString(NullabilitySuffix(name_visibility));
     return;
   }
@@ -19943,10 +20030,6 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
     ASSERT(bound.IsFinalized());
-    // Avoid cycles with F-bounded types.
-    if (TestAndAddBuddyToTrail(&trail, other)) {
-      return true;
-    }
     if (bound.IsSubtypeOf(other, space, trail)) {
       return true;
     }
@@ -20773,12 +20856,12 @@ uword FunctionType::ComputeHash() const {
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_type_params = NumTypeParameters();
   if (num_type_params > 0) {
-    const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type = type_params.TypeAt(i);
-      type = TypeParameter::Cast(type).bound();
-      result = CombineHashes(result, type.Hash());
-    }
+    const TypeParameters& type_params =
+        TypeParameters::Handle(type_parameters());
+    const TypeArguments& bounds = TypeArguments::Handle(type_params.bounds());
+    result = CombineHashes(result, bounds.Hash());
+    // Since the default arguments are ignored when comparing two generic
+    // function types for type equality, the hash does not depend on them.
   }
   type = result_type();
   result = CombineHashes(result, type.Hash());
@@ -20867,17 +20950,20 @@ const char* Type::ToCString() const {
 }
 
 bool FunctionType::IsRecursive(TrailPtr trail) const {
-  AbstractType& type = AbstractType::Handle();
-  const intptr_t num_type_params = NumTypeParameters();
-  if (num_type_params > 0) {
-    const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type = type_params.TypeAt(i);
-      if (type.IsRecursive(trail)) {
-        return true;
-      }
+  if (IsGeneric()) {
+    const TypeParameters& type_params =
+        TypeParameters::Handle(type_parameters());
+    TypeArguments& type_args = TypeArguments::Handle();
+    type_args = type_params.bounds();
+    if (type_args.IsRecursive(trail)) {
+      return true;
+    }
+    type_args = type_params.defaults();
+    if (type_args.IsRecursive(trail)) {
+      return true;
     }
   }
+  AbstractType& type = AbstractType::Handle();
   type = result_type();
   if (type.IsRecursive(trail)) {
     return true;
@@ -20902,23 +20988,23 @@ bool FunctionType::RequireConstCanonicalTypeErasure(Zone* zone,
     // its signature.
     return false;
   }
-  AbstractType& type = AbstractType::Handle(zone);
   const intptr_t num_type_params = NumTypeParameters();
   if (num_type_params > 0) {
-    const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
-    TypeParameter& type_param = TypeParameter::Handle(zone);
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type_param ^= type_params.TypeAt(i);
-      type = type_param.bound();
-      if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
-        return true;
-      }
-      type = type_param.default_argument();
-      if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
-        return true;
-      }
+    const TypeParameters& type_params =
+        TypeParameters::Handle(type_parameters());
+    TypeArguments& type_args = TypeArguments::Handle();
+    type_args = type_params.bounds();
+    if (type_args.RequireConstCanonicalTypeErasure(zone, 0, num_type_params,
+                                                   trail)) {
+      return true;
+    }
+    type_args = type_params.defaults();
+    if (type_args.RequireConstCanonicalTypeErasure(zone, 0, num_type_params,
+                                                   trail)) {
+      return true;
     }
   }
+  AbstractType& type = AbstractType::Handle(zone);
   type = result_type();
   if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
     return true;
@@ -20940,18 +21026,19 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread,
   if (IsCanonical()) {
 #ifdef DEBUG
     // Verify that all fields are allocated in old space and are canonical.
-    AbstractType& type = AbstractType::Handle(zone);
-    const intptr_t num_type_params = NumTypeParameters();
-    if (num_type_params > 0) {
-      const TypeArguments& type_params =
-          TypeArguments::Handle(zone, type_parameters());
+    if (IsGeneric()) {
+      const TypeParameters& type_params =
+          TypeParameters::Handle(zone, type_parameters());
       ASSERT(type_params.IsOld());
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type = type_params.TypeAt(i);
-        ASSERT(type.IsOld());
-        ASSERT(type.IsCanonical());
-      }
+      TypeArguments& type_args = TypeArguments::Handle(zone);
+      type_args = type_params.bounds();
+      ASSERT(type_args.IsOld());
+      ASSERT(type_args.IsCanonical());
+      type_args = type_params.defaults();
+      ASSERT(type_args.IsOld());
+      ASSERT(type_args.IsCanonical());
     }
+    AbstractType& type = AbstractType::Handle(zone);
     type = result_type();
     ASSERT(type.IsOld());
     ASSERT(type.IsCanonical());
@@ -20979,19 +21066,22 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread,
   if (sig.IsNull()) {
     // The function type was not found in the table. It is not canonical yet.
     // Canonicalize its type parameters and types.
-    const intptr_t num_type_params = NumTypeParameters();
-    if (num_type_params > 0) {
-      const TypeArguments& type_params =
-          TypeArguments::Handle(zone, type_parameters());
+    if (IsGeneric()) {
+      const TypeParameters& type_params =
+          TypeParameters::Handle(zone, type_parameters());
       ASSERT(type_params.IsOld());
-      TypeParameter& type_param = TypeParameter::Handle(zone);
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param ^= type_params.TypeAt(i);
-        if (!type_param.IsCanonical()) {
-          type_param ^= type_param.Canonicalize(thread, trail);
-          type_params.SetTypeAt(i, type_param);
-          SetHash(0);
-        }
+      TypeArguments& type_args = TypeArguments::Handle(zone);
+      type_args = type_params.bounds();
+      if (!type_args.IsCanonical()) {
+        type_args = type_args.Canonicalize(thread, trail);
+        type_params.set_bounds(type_args);
+        SetHash(0);
+      }
+      type_args = type_params.defaults();
+      if (!type_args.IsCanonical()) {
+        type_args = type_args.Canonicalize(thread, trail);
+        type_params.set_defaults(type_args);
+        SetHash(0);
       }
     }
     AbstractType& type = AbstractType::Handle(zone);
@@ -21143,7 +21233,7 @@ AbstractTypePtr TypeRef::InstantiateFrom(
 }
 
 void TypeRef::set_type(const AbstractType& value) const {
-  ASSERT(value.IsNull() || value.IsType() || value.IsFunctionType());
+  ASSERT(!value.IsTypeRef());
   untag()->set_type(value.ptr());
 }
 
@@ -21194,7 +21284,14 @@ uword TypeRef::Hash() const {
   //    type arguments are set).
   const AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull());
-  uint32_t result = ref_type.type_class_id();
+  uint32_t result;
+  if (ref_type.IsTypeParameter()) {
+    result = TypeParameter::Cast(ref_type).parameterized_class_id();
+    result = CombineHashes(result, TypeParameter::Cast(ref_type).index());
+  } else {
+    ASSERT(ref_type.IsType() || ref_type.IsFunctionType());
+    result = ref_type.type_class_id();
+  }
   // A legacy type should have the same hash as its non-nullable version to be
   // consistent with the definition of type equality in Dart code.
   Nullability ref_type_nullability = ref_type.nullability();
@@ -21250,11 +21347,6 @@ void TypeParameter::SetIsBeingFinalized() const {
       UntaggedTypeParameter::BeingFinalizedBit::update(true, untag()->flags_));
 }
 
-void TypeParameter::SetGenericCovariantImpl(bool value) const {
-  set_flags(UntaggedTypeParameter::GenericCovariantImplBit::update(
-      value, untag()->flags_));
-}
-
 void TypeParameter::set_nullability(Nullability value) const {
   StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
 }
@@ -21294,15 +21386,9 @@ bool TypeParameter::IsInstantiated(Genericity genericity,
   }
   // Although the type parameter is instantiated, its bound may not be.
   const AbstractType& upper_bound = AbstractType::Handle(bound());
-  ASSERT(!upper_bound.IsTypeRef());
-  if (upper_bound.IsTypeParameter() || upper_bound.IsFunctionType() ||
-      upper_bound.arguments() != TypeArguments::null()) {
-    // Use trail to break cycles created by bound referring to type parameter.
-    if (!TestAndAddToTrail(&trail) &&
-        !upper_bound.IsInstantiated(genericity, num_free_fun_type_params,
-                                    trail)) {
-      return false;
-    }
+  if (!upper_bound.IsInstantiated(genericity, num_free_fun_type_params,
+                                  trail)) {
+    return false;
   }
   return true;
 }
@@ -21353,34 +21439,11 @@ bool TypeParameter::IsEquivalent(const Instance& other,
           index() != other_type_param.index()) {
         return false;
       }
-      // Compare bounds.
-      if (TestAndAddBuddyToTrail(&trail, other_type_param)) {
-        return true;
-      }
       AbstractType& type = AbstractType::Handle(bound());
       AbstractType& other_type = AbstractType::Handle(other_type_param.bound());
       if (!type.IsEquivalent(other_type, kind, trail)) {
         return false;
       }
-      if (kind == TypeEquality::kCanonical) {
-        // Compare names.
-        if (name() != other_type_param.name()) {
-          return false;
-        }
-        // Compare default arguments.
-        type = default_argument();
-        other_type = other_type_param.default_argument();
-        if (type.IsNull()) {
-          if (!other_type.IsNull()) {
-            return false;
-          }
-        } else if (!type.IsEquivalent(other_type, kind, trail)) {
-          return false;
-        }
-      }
-    }
-    if (IsGenericCovariantImpl() != other_type_param.IsGenericCovariantImpl()) {
-      return false;
     }
   } else {
     if (!other_type_param.IsClassTypeParameter()) {
@@ -21393,18 +21456,13 @@ bool TypeParameter::IsEquivalent(const Instance& other,
         return false;
       }
       if (base() != other_type_param.base() ||
-          index() != other_type_param.index() ||
-          name() != other_type_param.name()) {
+          index() != other_type_param.index()) {
         return false;
       }
     } else {
       if (index() != other_type_param.index()) {
         return false;
       }
-    }
-    // Compare bounds.
-    if (TestAndAddBuddyToTrail(&trail, other_type_param)) {
-      return true;
     }
     AbstractType& upper_bound = AbstractType::Handle(bound());
     AbstractType& other_type_param_upper_bound =
@@ -21441,16 +21499,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
 }
 
 bool TypeParameter::IsRecursive(TrailPtr trail) const {
-  if (TestAndAddToTrail(&trail)) {
-    return true;
-  }
-  AbstractType& type = AbstractType::Handle();
-  type = bound();
-  if (type.IsRecursive(trail)) {
-    return true;
-  }
-  type = default_argument();
-  if (type.IsRecursive(trail)) {
+  if (AbstractType::Handle(bound()).IsRecursive(trail)) {
     return true;
   }
   return false;
@@ -21494,19 +21543,9 @@ void TypeParameter::set_index(intptr_t value) const {
   StoreNonPointer(&untag()->index_, value);
 }
 
-void TypeParameter::set_name(const String& value) const {
-  ASSERT(value.IsSymbol());
-  untag()->set_name(value.ptr());
-}
-
 void TypeParameter::set_bound(const AbstractType& value) const {
   ASSERT(!IsCanonical());
   untag()->set_bound(value.ptr());
-}
-
-void TypeParameter::set_default_argument(const AbstractType& value) const {
-  ASSERT(!IsCanonical());
-  untag()->set_default_argument(value.ptr());
 }
 
 AbstractTypePtr TypeParameter::GetFromTypeArguments(
@@ -21534,13 +21573,6 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
       AbstractType& upper_bound = AbstractType::Handle(bound());
       if (!upper_bound.IsInstantiated(kAny, num_free_fun_type_params,
                                       nullptr)) {
-        // Use trail to break cycles created by bound referring to type param.
-        // The instantiation trail must contain pairs, so add itself as buddy.
-        if (TestAndAddBuddyToTrail(&trail, *this)) {
-          // If the type parameter is already in the trail, it is returned
-          // unchanged here and will be processed when returning from recursion.
-          return ptr();
-        }
         upper_bound = upper_bound.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
             num_free_fun_type_params, space, trail);
@@ -21590,13 +21622,9 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
   if (IsCanonical()) {
 #ifdef DEBUG
     // Verify that all fields are allocated in old space and are canonical.
-    AbstractType& type = AbstractType::Handle(zone);
-    type = bound();
-    ASSERT(type.IsOld());
-    ASSERT(type.IsCanonical());
-    type = default_argument();
-    ASSERT(type.IsOld());
-    ASSERT(type.IsCanonical());
+    const AbstractType& upper_bound = AbstractType::Handle(zone, bound());
+    ASSERT(upper_bound.IsOld());
+    ASSERT(upper_bound.IsCanonical() || upper_bound.IsTypeRef());
 #endif
     return this->ptr();
   }
@@ -21611,33 +21639,15 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
     ASSERT(object_store->canonical_type_parameters() == table.Release().ptr());
   }
   if (type_parameter.IsNull()) {
-    // The type parameter was not found in the table. It is not canonical yet.
-    // Canonicalize its bound and default argument.
-    // However, if the type parameter is already being canonicalized, it is part
-    // of a cycle via its bound. Return it now and let the caller finish
-    // canonicalizing it.
-    if (TestAndAddToTrail(&trail)) {
-      return ptr();
-    }
-    AbstractType& type = AbstractType::Handle(zone);
-    type = bound();
-    type = type.Canonicalize(thread, trail);
+    AbstractType& upper_bound = AbstractType::Handle(zone, bound());
+    upper_bound = upper_bound.Canonicalize(thread, trail);
     if (IsCanonical()) {
-      // Canonicalizing bound or default argument canonicalized this type
-      // parameter as a side effect.
+      // Canonicalizing the bound canonicalized this type parameter
+      // as a side effect.
       ASSERT(IsRecursive());  // Self-referring bound or default argument.
       return ptr();
     }
-    set_bound(type);
-    type = default_argument();
-    type = type.Canonicalize(thread, trail);
-    if (IsCanonical()) {
-      // Canonicalizing bound or default argument canonicalized this type
-      // parameter as a side effect.
-      ASSERT(IsRecursive());  // Self-referring bound or default argument.
-      return this->ptr();
-    }
-    set_default_argument(type);
+    set_bound(upper_bound);
     // Check to see if the type parameter got added to canonical table as part
     // of the canonicalization of its bound and default argument.
     SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
@@ -21663,6 +21673,9 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
 
 #if defined(DEBUG)
 bool TypeParameter::CheckIsCanonical(Thread* thread) const {
+  if (IsRecursive()) {
+    return true;
+  }
   Zone* zone = thread->zone();
   auto isolate_group = thread->isolate_group();
 
@@ -21682,23 +21695,10 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
 uword TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized() || IsBeingFinalized());  // Bound may not be finalized.
   uint32_t result = parameterized_class_id();
-  // Hashing the bound reduces collisions, but may also create cycles.
-  // Therefore, we only hash the type_class_id of the bound,
-  // and do not use its full hash, as we do for TypeRef.
   const AbstractType& upper_bound = AbstractType::Handle(bound());
-  if (upper_bound.IsTypeParameter()) {
-    ASSERT(upper_bound.IsFinalized() || upper_bound.IsBeingFinalized());
-    result = CombineHashes(result, TypeParameter::Cast(upper_bound).index());
-  } else {
-    // Note that the bound may not be finalized yet.
-    result = CombineHashes(result, upper_bound.type_class_id());
-  }
-  // Since the default argument is ignored when comparing two generic function
-  // types for type equality, the hash does not depend on it.
-  result = CombineHashes(result, IsGenericCovariantImpl() ? 1 : 0);
+  result = CombineHashes(result, upper_bound.Hash());  // May be a TypeRef.
   result = CombineHashes(result, base());
   result = CombineHashes(result, index());
-  result = CombineHashes(result, String::Handle(name()).Hash());
   // A legacy type should have the same hash as its non-nullable version to be
   // consistent with the definition of type equality in Dart code.
   Nullability type_param_nullability = nullability();
@@ -21721,21 +21721,16 @@ TypeParameterPtr TypeParameter::New() {
 TypeParameterPtr TypeParameter::New(const Class& parameterized_class,
                                     intptr_t base,
                                     intptr_t index,
-                                    const String& name,
                                     const AbstractType& bound,
-                                    bool is_generic_covariant_impl,
                                     Nullability nullability) {
   Zone* Z = Thread::Current()->zone();
   const TypeParameter& result = TypeParameter::Handle(Z, TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
   result.set_base(base);
   result.set_index(index);
-  result.set_name(name);
   result.set_bound(bound);
-  result.set_default_argument(Object::dynamic_type());
   result.set_flags(0);
   result.set_nullability(nullability);
-  result.SetGenericCovariantImpl(is_generic_covariant_impl);
   result.SetHash(0);
 
   result.SetTypeTestingStub(
@@ -21747,12 +21742,28 @@ void TypeParameter::set_flags(uint8_t flags) const {
   StoreNonPointer(&untag()->flags_, flags);
 }
 
-const char* TypeParameter::ToCString() const {
+const char* TypeParameter::CanonicalNameCString(bool is_class_type_parameter,
+                                                intptr_t base,
+                                                intptr_t index) {
   Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ZoneTextBuffer printer(zone);
+  ZoneTextBuffer printer(thread->zone());
+  const char* base_fmt = is_class_type_parameter ? "C%" Pd : "F%" Pd;
+  const char* index_fmt = is_class_type_parameter ? "X%" Pd : "Y%" Pd;
+  if (base != 0) {
+    printer.Printf(base_fmt, base);
+  }
+  printer.Printf(index_fmt, index - base);
+  return printer.buffer();
+}
+
+const char* TypeParameter::ToCString() const {
+  if (IsNull()) {
+    return "TypeParameter: null";
+  }
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
   printer.Printf("TypeParameter: ");
-  printer.AddString(String::Handle(zone, name()).ToCString());
+  printer.AddString(CanonicalNameCString());
   printer.AddString(NullabilitySuffix(kInternalName));
   printer.Printf("; bound: ");
   const AbstractType& upper_bound = AbstractType::Handle(bound());
@@ -21760,15 +21771,6 @@ const char* TypeParameter::ToCString() const {
     printer.AddString("<null>");
   } else {
     upper_bound.PrintName(kInternalName, &printer);
-  }
-  if (FLAG_show_internal_names) {
-    printer.Printf("; default: ");
-    const AbstractType& default_arg = AbstractType::Handle(default_argument());
-    if (default_arg.IsNull()) {
-      printer.AddString("<null>");
-    } else {
-      default_arg.PrintName(kInternalName, &printer);
-    }
   }
   return printer.buffer();
 }

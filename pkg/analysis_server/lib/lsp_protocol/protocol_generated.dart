@@ -244,7 +244,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   /// contain the index of the change that failed. This property is only
   /// available if the client signals a `failureHandlingStrategy` in its client
   /// capabilities.
-  final num? failedChange;
+  final int? failedChange;
 
   /// An optional textual description for why the edit was not applied. This may
   /// be used by the server for diagnostic logging or to provide a suitable
@@ -293,8 +293,8 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       }
       reporter.push('failedChange');
       try {
-        if (obj['failedChange'] != null && !(obj['failedChange'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['failedChange'] != null && !(obj['failedChange'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -506,18 +506,18 @@ class CallHierarchyIncomingCallsParams
     final item = CallHierarchyItem.fromJson(json['item']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CallHierarchyIncomingCallsParams(
         item: item,
         workDoneToken: workDoneToken,
@@ -528,10 +528,10 @@ class CallHierarchyIncomingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -567,9 +567,9 @@ class CallHierarchyIncomingCallsParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -578,9 +578,9 @@ class CallHierarchyIncomingCallsParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1021,18 +1021,18 @@ class CallHierarchyOutgoingCallsParams
     final item = CallHierarchyItem.fromJson(json['item']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CallHierarchyOutgoingCallsParams(
         item: item,
         workDoneToken: workDoneToken,
@@ -1043,10 +1043,10 @@ class CallHierarchyOutgoingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -1082,9 +1082,9 @@ class CallHierarchyOutgoingCallsParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1093,9 +1093,9 @@ class CallHierarchyOutgoingCallsParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1145,11 +1145,11 @@ class CallHierarchyPrepareParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return CallHierarchyPrepareParams(
         textDocument: textDocument,
         position: position,
@@ -1163,7 +1163,7 @@ class CallHierarchyPrepareParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -1214,9 +1214,9 @@ class CallHierarchyPrepareParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -1376,16 +1376,16 @@ class CancelParams implements ToJsonable {
 
   CancelParams({required this.id});
   static CancelParams fromJson(Map<String, dynamic> json) {
-    final id = json['id'] is num
-        ? Either2<num, String>.t1(json['id'])
+    final id = json['id'] is int
+        ? Either2<int, String>.t1(json['id'])
         : (json['id'] is String
-            ? Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['id'])
+            : (throw '''${json['id']} was not one of (int, String)'''));
     return CancelParams(id: id);
   }
 
   /// The request id to cancel.
-  final Either2<num, String> id;
+  final Either2<int, String> id;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -1405,8 +1405,8 @@ class CancelParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['id'] is int || obj['id'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -3465,18 +3465,18 @@ class CodeActionParams
     final context = CodeActionContext.fromJson(json['context']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CodeActionParams(
         textDocument: textDocument,
         range: range,
@@ -3490,7 +3490,7 @@ class CodeActionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The range for which the command was invoked.
   final Range range;
@@ -3499,7 +3499,7 @@ class CodeActionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -3571,9 +3571,9 @@ class CodeActionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -3582,9 +3582,9 @@ class CodeActionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -4094,18 +4094,18 @@ class CodeLensParams
     final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CodeLensParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -4114,13 +4114,13 @@ class CodeLensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -4156,9 +4156,9 @@ class CodeLensParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -4167,9 +4167,9 @@ class CodeLensParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -4752,18 +4752,18 @@ class ColorPresentationParams
     final range = Range.fromJson(json['range']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return ColorPresentationParams(
         textDocument: textDocument,
         color: color,
@@ -4777,7 +4777,7 @@ class ColorPresentationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The range where the color would be inserted. Serves as a context.
   final Range range;
@@ -4786,7 +4786,7 @@ class ColorPresentationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -4858,9 +4858,9 @@ class ColorPresentationParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -4869,9 +4869,9 @@ class ColorPresentationParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -6666,18 +6666,18 @@ class CompletionParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return CompletionParams(
         context: context,
         textDocument: textDocument,
@@ -6692,7 +6692,7 @@ class CompletionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -6701,7 +6701,7 @@ class CompletionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -6768,9 +6768,9 @@ class CompletionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -6779,9 +6779,9 @@ class CompletionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -7648,18 +7648,18 @@ class DeclarationParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DeclarationParams(
         textDocument: textDocument,
         position: position,
@@ -7669,7 +7669,7 @@ class DeclarationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -7678,7 +7678,7 @@ class DeclarationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -7732,9 +7732,9 @@ class DeclarationParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -7743,9 +7743,9 @@ class DeclarationParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -8062,18 +8062,18 @@ class DefinitionParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DefinitionParams(
         textDocument: textDocument,
         position: position,
@@ -8083,7 +8083,7 @@ class DefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -8092,7 +8092,7 @@ class DefinitionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -8146,9 +8146,9 @@ class DefinitionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -8157,9 +8157,9 @@ class DefinitionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -9880,18 +9880,18 @@ class DocumentColorParams
     final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentColorParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -9900,13 +9900,13 @@ class DocumentColorParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -9942,9 +9942,9 @@ class DocumentColorParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -9953,9 +9953,9 @@ class DocumentColorParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -10354,11 +10354,11 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
     final options = FormattingOptions.fromJson(json['options']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return DocumentFormattingParams(
         textDocument: textDocument,
         options: options,
@@ -10372,7 +10372,7 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10423,9 +10423,9 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -10824,18 +10824,18 @@ class DocumentHighlightParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentHighlightParams(
         textDocument: textDocument,
         position: position,
@@ -10845,7 +10845,7 @@ class DocumentHighlightParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -10854,7 +10854,7 @@ class DocumentHighlightParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -10908,9 +10908,9 @@ class DocumentHighlightParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -10919,9 +10919,9 @@ class DocumentHighlightParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -11356,18 +11356,18 @@ class DocumentLinkParams
     final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentLinkParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -11376,13 +11376,13 @@ class DocumentLinkParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -11418,9 +11418,9 @@ class DocumentLinkParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -11429,9 +11429,9 @@ class DocumentLinkParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -12173,11 +12173,11 @@ class DocumentRangeFormattingParams
     final options = FormattingOptions.fromJson(json['options']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return DocumentRangeFormattingParams(
         textDocument: textDocument,
         range: range,
@@ -12195,7 +12195,7 @@ class DocumentRangeFormattingParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -12264,9 +12264,9 @@ class DocumentRangeFormattingParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -13065,18 +13065,18 @@ class DocumentSymbolParams
     final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return DocumentSymbolParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -13085,13 +13085,13 @@ class DocumentSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -13127,9 +13127,9 @@ class DocumentSymbolParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -13138,9 +13138,9 @@ class DocumentSymbolParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -13298,10 +13298,10 @@ class ErrorCodes {
   const ErrorCodes(this._value);
   const ErrorCodes.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Defined by JSON RPC
@@ -13511,11 +13511,11 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return ExecuteCommandParams(
         command: command, arguments: arguments, workDoneToken: workDoneToken);
   }
@@ -13527,7 +13527,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   final String command;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -13574,9 +13574,9 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -13929,7 +13929,7 @@ class FileEvent implements ToJsonable {
   }
 
   /// The change type.
-  final num type;
+  final int type;
 
   /// The file's URI.
   final String uri;
@@ -13970,8 +13970,8 @@ class FileEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['type'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['type'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -14593,12 +14593,12 @@ class FoldingRange implements ToJsonable {
 
   /// The zero-based character offset before the folded range ends. If not
   /// defined, defaults to the length of the end line.
-  final num? endCharacter;
+  final int? endCharacter;
 
   /// The zero-based end line of the range to fold. The folded area ends with
   /// the line's last character. To be valid, the end must be zero or larger and
   /// smaller than the number of lines in the document.
-  final num endLine;
+  final int endLine;
 
   /// Describes the kind of the folding range such as `comment` or `region`. The
   /// kind is used to categorize folding ranges and used by commands like 'Fold
@@ -14608,12 +14608,12 @@ class FoldingRange implements ToJsonable {
 
   /// The zero-based character offset from where the folded range starts. If not
   /// defined, defaults to the length of the start line.
-  final num? startCharacter;
+  final int? startCharacter;
 
   /// The zero-based start line of the range to fold. The folded area starts
   /// after the line's last character. To be valid, the end must be zero or
   /// larger and smaller than the number of lines in the document.
-  final num startLine;
+  final int startLine;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -14643,8 +14643,8 @@ class FoldingRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['startLine'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['startLine'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -14652,8 +14652,8 @@ class FoldingRange implements ToJsonable {
       }
       reporter.push('startCharacter');
       try {
-        if (obj['startCharacter'] != null && !(obj['startCharacter'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['startCharacter'] != null && !(obj['startCharacter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -14669,8 +14669,8 @@ class FoldingRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['endLine'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['endLine'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -14678,8 +14678,8 @@ class FoldingRange implements ToJsonable {
       }
       reporter.push('endCharacter');
       try {
-        if (obj['endCharacter'] != null && !(obj['endCharacter'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['endCharacter'] != null && !(obj['endCharacter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -14761,7 +14761,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   /// The maximum number of folding ranges that the client prefers to receive
   /// per document. The value serves as a hint, servers are free to follow the
   /// limit.
-  final num? rangeLimit;
+  final int? rangeLimit;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -14791,8 +14791,8 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       }
       reporter.push('rangeLimit');
       try {
-        if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -14946,18 +14946,18 @@ class FoldingRangeParams
     final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return FoldingRangeParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -14966,13 +14966,13 @@ class FoldingRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -15008,9 +15008,9 @@ class FoldingRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -15019,9 +15019,9 @@ class FoldingRangeParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -15208,7 +15208,7 @@ class FormattingOptions implements ToJsonable {
   final bool insertSpaces;
 
   /// Size of a tab in spaces.
-  final num tabSize;
+  final int tabSize;
 
   /// Trim all newlines after the final newline at the end of the file.
   ///  @since 3.15.0
@@ -15246,8 +15246,8 @@ class FormattingOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['tabSize'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['tabSize'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -15587,11 +15587,11 @@ class HoverParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return HoverParams(
         textDocument: textDocument,
         position: position,
@@ -15605,7 +15605,7 @@ class HoverParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -15656,9 +15656,9 @@ class HoverParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -15950,18 +15950,18 @@ class ImplementationParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return ImplementationParams(
         textDocument: textDocument,
         position: position,
@@ -15971,7 +15971,7 @@ class ImplementationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -15980,7 +15980,7 @@ class ImplementationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -16034,9 +16034,9 @@ class ImplementationParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -16045,9 +16045,9 @@ class ImplementationParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -16238,11 +16238,11 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         ?.toList();
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return InitializeParams(
         processId: processId,
         clientInfo: clientInfo,
@@ -16278,7 +16278,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   /// the process has not been started by another process. If the parent process
   /// is not alive then the server should exit (see exit notification) its
   /// process.
-  final num? processId;
+  final int? processId;
 
   /// The rootPath of the workspace. Is null if no folder is open.
   ///  @deprecated in favour of `rootUri`.
@@ -16293,7 +16293,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final String? trace;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   /// The workspace folders configured in the client when the server starts.
   /// This property is only available if the client supports workspace folders.
@@ -16340,8 +16340,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['processId'] != null && !(obj['processId'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['processId'] != null && !(obj['processId'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -16433,9 +16433,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -17114,11 +17114,11 @@ class LinkedEditingRangeParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return LinkedEditingRangeParams(
         textDocument: textDocument,
         position: position,
@@ -17132,7 +17132,7 @@ class LinkedEditingRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -17183,9 +17183,9 @@ class LinkedEditingRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -18820,18 +18820,18 @@ class MonikerParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return MonikerParams(
         textDocument: textDocument,
         position: position,
@@ -18841,7 +18841,7 @@ class MonikerParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -18850,7 +18850,7 @@ class MonikerParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -18904,9 +18904,9 @@ class MonikerParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -18915,9 +18915,9 @@ class MonikerParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -19171,7 +19171,7 @@ class OptionalVersionedTextDocumentIdentifier
   ///
   /// The version number of a document will increase after each change,
   /// including undo/redo. The number doesn't need to be consecutive.
-  final num? version;
+  final int? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -19188,8 +19188,8 @@ class OptionalVersionedTextDocumentIdentifier
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['version'] != null && !(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['version'] != null && !(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -19422,17 +19422,17 @@ class PartialResultParams implements ToJsonable {
     }
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return PartialResultParams(partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -19447,9 +19447,9 @@ class PartialResultParams implements ToJsonable {
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -19696,17 +19696,17 @@ class ProgressParams<T> implements ToJsonable {
 
   ProgressParams({required this.token, this.value});
   static ProgressParams<T> fromJson<T>(Map<String, dynamic> json) {
-    final token = json['token'] is num
-        ? Either2<num, String>.t1(json['token'])
+    final token = json['token'] is int
+        ? Either2<int, String>.t1(json['token'])
         : (json['token'] is String
-            ? Either2<num, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['token'])
+            : (throw '''${json['token']} was not one of (int, String)'''));
     final value = json['value'];
     return ProgressParams<T>(token: token, value: value);
   }
 
   /// The progress token provided by the client or server.
-  final Either2<num, String> token;
+  final Either2<int, String> token;
 
   /// The progress data.
   final dynamic value;
@@ -19730,8 +19730,8 @@ class ProgressParams<T> implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is num || obj['token'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['token'] is int || obj['token'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -20026,7 +20026,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   /// Optional the version number of the document the diagnostics are published
   /// for.
   ///  @since 3.15.0
-  final num? version;
+  final int? version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -20059,8 +20059,8 @@ class PublishDiagnosticsParams implements ToJsonable {
       }
       reporter.push('version');
       try {
-        if (obj['version'] != null && !(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['version'] != null && !(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -20497,18 +20497,18 @@ class ReferenceParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return ReferenceParams(
         context: context,
         textDocument: textDocument,
@@ -20521,7 +20521,7 @@ class ReferenceParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -20530,7 +20530,7 @@ class ReferenceParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -20602,9 +20602,9 @@ class ReferenceParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -20613,9 +20613,9 @@ class ReferenceParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -21567,11 +21567,11 @@ class RenameParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return RenameParams(
         newName: newName,
         textDocument: textDocument,
@@ -21590,7 +21590,7 @@ class RenameParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -21659,9 +21659,9 @@ class RenameParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -21821,11 +21821,11 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       this.params,
       required this.jsonrpc});
   static RequestMessage fromJson(Map<String, dynamic> json) {
-    final id = json['id'] is num
-        ? Either2<num, String>.t1(json['id'])
+    final id = json['id'] is int
+        ? Either2<int, String>.t1(json['id'])
         : (json['id'] is String
-            ? Either2<num, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['id'])
+            : (throw '''${json['id']} was not one of (int, String)'''));
     final method = Method.fromJson(json['method']);
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
@@ -21834,7 +21834,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   /// The request id.
-  final Either2<num, String> id;
+  final Either2<int, String> id;
   final String jsonrpc;
 
   /// The method to be invoked.
@@ -21866,8 +21866,8 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['id'] is int || obj['id'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -22093,11 +22093,11 @@ class ResponseMessage implements Message, ToJsonable {
   static ResponseMessage fromJson(Map<String, dynamic> json) {
     final id = json['id'] == null
         ? null
-        : (json['id'] is num
-            ? Either2<num, String>.t1(json['id'])
+        : (json['id'] is int
+            ? Either2<int, String>.t1(json['id'])
             : (json['id'] is String
-                ? Either2<num, String>.t2(json['id'])
-                : (throw '''${json['id']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['id'])
+                : (throw '''${json['id']} was not one of (int, String)''')));
     final result = json['result'];
     final error =
         json['error'] != null ? ResponseError.fromJson(json['error']) : null;
@@ -22110,7 +22110,7 @@ class ResponseMessage implements Message, ToJsonable {
   final ResponseError? error;
 
   /// The request id.
-  final Either2<num, String>? id;
+  final Either2<int, String>? id;
   final String jsonrpc;
 
   /// The result of a request. This member is REQUIRED on success. This member
@@ -22139,8 +22139,8 @@ class ResponseMessage implements Message, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (obj['id'] != null && !((obj['id'] is int || obj['id'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -22493,18 +22493,18 @@ class SelectionRangeParams
         ?.toList();
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SelectionRangeParams(
         textDocument: textDocument,
         positions: positions,
@@ -22514,7 +22514,7 @@ class SelectionRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The positions inside the text document.
   final List<Position> positions;
@@ -22523,7 +22523,7 @@ class SelectionRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -22579,9 +22579,9 @@ class SelectionRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -22590,9 +22590,9 @@ class SelectionRangeParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -23469,18 +23469,18 @@ class SemanticTokensDeltaParams
     final previousResultId = json['previousResultId'];
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SemanticTokensDeltaParams(
         textDocument: textDocument,
         previousResultId: previousResultId,
@@ -23490,7 +23490,7 @@ class SemanticTokensDeltaParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The result id of a previous response. The result Id can either point to a
   /// full response or a delta response depending on what was received last.
@@ -23500,7 +23500,7 @@ class SemanticTokensDeltaParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -23554,9 +23554,9 @@ class SemanticTokensDeltaParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -23565,9 +23565,9 @@ class SemanticTokensDeltaParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -23688,19 +23688,19 @@ class SemanticTokensEdit implements ToJsonable {
   static SemanticTokensEdit fromJson(Map<String, dynamic> json) {
     final start = json['start'];
     final deleteCount = json['deleteCount'];
-    final data = json['data']?.map((item) => item)?.cast<num>()?.toList();
+    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
     return SemanticTokensEdit(
         start: start, deleteCount: deleteCount, data: data);
   }
 
   /// The elements to insert.
-  final List<num>? data;
+  final List<int>? data;
 
   /// The count of elements to remove.
-  final num deleteCount;
+  final int deleteCount;
 
   /// The start offset of the edit.
-  final num start;
+  final int start;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -23724,8 +23724,8 @@ class SemanticTokensEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['start'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['start'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -23741,8 +23741,8 @@ class SemanticTokensEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['deleteCount'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['deleteCount'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -23752,8 +23752,8 @@ class SemanticTokensEdit implements ToJsonable {
       try {
         if (obj['data'] != null &&
             !((obj['data'] is List &&
-                (obj['data'].every((item) => item is num))))) {
-          reporter.reportError('must be of type List<num>');
+                (obj['data'].every((item) => item is int))))) {
+          reporter.reportError('must be of type List<int>');
           return false;
         }
       } finally {
@@ -23772,7 +23772,7 @@ class SemanticTokensEdit implements ToJsonable {
         other.runtimeType == SemanticTokensEdit) {
       return start == other.start &&
           deleteCount == other.deleteCount &&
-          listEqual(data, other.data, (num a, num b) => a == b) &&
+          listEqual(data, other.data, (int a, int b) => a == b) &&
           true;
     }
     return false;
@@ -24152,18 +24152,18 @@ class SemanticTokensParams
     final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SemanticTokensParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -24172,13 +24172,13 @@ class SemanticTokensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -24214,9 +24214,9 @@ class SemanticTokensParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -24225,9 +24225,9 @@ class SemanticTokensParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -24272,11 +24272,11 @@ class SemanticTokensPartialResult implements ToJsonable {
 
   SemanticTokensPartialResult({required this.data});
   static SemanticTokensPartialResult fromJson(Map<String, dynamic> json) {
-    final data = json['data']?.map((item) => item)?.cast<num>()?.toList();
+    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
     return SemanticTokensPartialResult(data: data);
   }
 
-  final List<num> data;
+  final List<int> data;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -24297,8 +24297,8 @@ class SemanticTokensPartialResult implements ToJsonable {
           return false;
         }
         if (!((obj['data'] is List &&
-            (obj['data'].every((item) => item is num))))) {
-          reporter.reportError('must be of type List<num>');
+            (obj['data'].every((item) => item is int))))) {
+          reporter.reportError('must be of type List<int>');
           return false;
         }
       } finally {
@@ -24315,7 +24315,7 @@ class SemanticTokensPartialResult implements ToJsonable {
   bool operator ==(Object other) {
     if (other is SemanticTokensPartialResult &&
         other.runtimeType == SemanticTokensPartialResult) {
-      return listEqual(data, other.data, (num a, num b) => a == b) && true;
+      return listEqual(data, other.data, (int a, int b) => a == b) && true;
     }
     return false;
   }
@@ -24346,18 +24346,18 @@ class SemanticTokensRangeParams
     final range = Range.fromJson(json['range']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return SemanticTokensRangeParams(
         textDocument: textDocument,
         range: range,
@@ -24367,7 +24367,7 @@ class SemanticTokensRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The range the semantic tokens are requested for.
   final Range range;
@@ -24376,7 +24376,7 @@ class SemanticTokensRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -24430,9 +24430,9 @@ class SemanticTokensRangeParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -24441,9 +24441,9 @@ class SemanticTokensRangeParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -26776,7 +26776,7 @@ class SignatureHelp implements ToJsonable {
   /// parameters it is ignored. In future version of the protocol this property
   /// might become mandatory to better express the active parameter if the
   /// active signature does have any.
-  final num? activeParameter;
+  final int? activeParameter;
 
   /// The active signature. If omitted or the value lies outside the range of
   /// `signatures` the value defaults to zero or is ignore if the
@@ -26787,7 +26787,7 @@ class SignatureHelp implements ToJsonable {
   ///
   /// In future version of the protocol this property might become mandatory to
   /// better express this.
-  final num? activeSignature;
+  final int? activeSignature;
 
   /// One or more signatures. If no signatures are available the signature help
   /// request should return `null`.
@@ -26829,8 +26829,8 @@ class SignatureHelp implements ToJsonable {
       reporter.push('activeSignature');
       try {
         if (obj['activeSignature'] != null &&
-            !(obj['activeSignature'] is num)) {
-          reporter.reportError('must be of type num');
+            !(obj['activeSignature'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -26839,8 +26839,8 @@ class SignatureHelp implements ToJsonable {
       reporter.push('activeParameter');
       try {
         if (obj['activeParameter'] != null &&
-            !(obj['activeParameter'] is num)) {
-          reporter.reportError('must be of type num');
+            !(obj['activeParameter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -27480,11 +27480,11 @@ class SignatureHelpParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return SignatureHelpParams(
         context: context,
         textDocument: textDocument,
@@ -27505,7 +27505,7 @@ class SignatureHelpParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -27569,9 +27569,9 @@ class SignatureHelpParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -27837,7 +27837,7 @@ class SignatureInformation implements ToJsonable {
   ///
   /// If provided, this is used in place of `SignatureHelp.activeParameter`.
   ///  @since 3.16.0
-  final num? activeParameter;
+  final int? activeParameter;
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
   /// but can be omitted.
@@ -27911,8 +27911,8 @@ class SignatureInformation implements ToJsonable {
       reporter.push('activeParameter');
       try {
         if (obj['activeParameter'] != null &&
-            !(obj['activeParameter'] is num)) {
-          reporter.reportError('must be of type num');
+            !(obj['activeParameter'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -29137,7 +29137,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
   /// The optional length of the range that got replaced.
   ///  @deprecated use range instead.
-  final num? rangeLength;
+  final int? rangeLength;
 
   /// The new text for the provided range.
   final String text;
@@ -29173,8 +29173,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
       }
       reporter.push('rangeLength');
       try {
-        if (obj['rangeLength'] != null && !(obj['rangeLength'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['rangeLength'] != null && !(obj['rangeLength'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -29513,7 +29513,7 @@ class TextDocumentItem implements ToJsonable {
 
   /// The version number of this document (it will increase after each change,
   /// including undo/redo).
-  final num version;
+  final int version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -29570,8 +29570,8 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -30655,18 +30655,18 @@ class TypeDefinitionParams
     final position = Position.fromJson(json['position']);
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return TypeDefinitionParams(
         textDocument: textDocument,
         position: position,
@@ -30676,7 +30676,7 @@ class TypeDefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
   final Position position;
@@ -30685,7 +30685,7 @@ class TypeDefinitionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -30739,9 +30739,9 @@ class TypeDefinitionParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -30750,9 +30750,9 @@ class TypeDefinitionParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -31129,7 +31129,7 @@ class VersionedTextDocumentIdentifier
   ///
   /// The version number of a document will increase after each change,
   /// including undo/redo. The number doesn't need to be consecutive.
-  final num version;
+  final int version;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31150,8 +31150,8 @@ class VersionedTextDocumentIdentifier
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['version'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['version'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -31372,7 +31372,7 @@ class WorkDoneProgressBegin implements ToJsonable {
   ///
   /// The value should be steadily rising. Clients are free to ignore values
   /// that are not following this rule. The value range is [0, 100]
-  final num? percentage;
+  final int? percentage;
 
   /// Mandatory title of the progress operation. Used to briefly inform about
   /// the kind of operation being performed.
@@ -31452,8 +31452,8 @@ class WorkDoneProgressBegin implements ToJsonable {
       }
       reporter.push('percentage');
       try {
-        if (obj['percentage'] != null && !(obj['percentage'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['percentage'] != null && !(obj['percentage'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -31502,16 +31502,16 @@ class WorkDoneProgressCancelParams implements ToJsonable {
 
   WorkDoneProgressCancelParams({required this.token});
   static WorkDoneProgressCancelParams fromJson(Map<String, dynamic> json) {
-    final token = json['token'] is num
-        ? Either2<num, String>.t1(json['token'])
+    final token = json['token'] is int
+        ? Either2<int, String>.t1(json['token'])
         : (json['token'] is String
-            ? Either2<num, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['token'])
+            : (throw '''${json['token']} was not one of (int, String)'''));
     return WorkDoneProgressCancelParams(token: token);
   }
 
   /// The token to be used to report progress.
-  final Either2<num, String> token;
+  final Either2<int, String> token;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31531,8 +31531,8 @@ class WorkDoneProgressCancelParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is num || obj['token'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['token'] is int || obj['token'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -31572,16 +31572,16 @@ class WorkDoneProgressCreateParams implements ToJsonable {
 
   WorkDoneProgressCreateParams({required this.token});
   static WorkDoneProgressCreateParams fromJson(Map<String, dynamic> json) {
-    final token = json['token'] is num
-        ? Either2<num, String>.t1(json['token'])
+    final token = json['token'] is int
+        ? Either2<int, String>.t1(json['token'])
         : (json['token'] is String
-            ? Either2<num, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (num, String)'''));
+            ? Either2<int, String>.t2(json['token'])
+            : (throw '''${json['token']} was not one of (int, String)'''));
     return WorkDoneProgressCreateParams(token: token);
   }
 
   /// The token to be used to report progress.
-  final Either2<num, String> token;
+  final Either2<int, String> token;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31601,8 +31601,8 @@ class WorkDoneProgressCreateParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is num || obj['token'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+        if (!((obj['token'] is int || obj['token'] is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -31956,16 +31956,16 @@ class WorkDoneProgressParams implements ToJsonable {
     }
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     return WorkDoneProgressParams(workDoneToken: workDoneToken);
   }
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -31980,9 +31980,9 @@ class WorkDoneProgressParams implements ToJsonable {
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -32059,7 +32059,7 @@ class WorkDoneProgressReport implements ToJsonable {
   ///
   /// The value should be steadily rising. Clients are free to ignore values
   /// that are not following this rule. The value range is [0, 100]
-  final num? percentage;
+  final int? percentage;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -32115,8 +32115,8 @@ class WorkDoneProgressReport implements ToJsonable {
       }
       reporter.push('percentage');
       try {
-        if (obj['percentage'] != null && !(obj['percentage'] is num)) {
-          reporter.reportError('must be of type num');
+        if (obj['percentage'] != null && !(obj['percentage'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -33197,18 +33197,18 @@ class WorkspaceSymbolParams
     final query = json['query'];
     final workDoneToken = json['workDoneToken'] == null
         ? null
-        : (json['workDoneToken'] is num
-            ? Either2<num, String>.t1(json['workDoneToken'])
+        : (json['workDoneToken'] is int
+            ? Either2<int, String>.t1(json['workDoneToken'])
             : (json['workDoneToken'] is String
-                ? Either2<num, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['workDoneToken'])
+                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
     final partialResultToken = json['partialResultToken'] == null
         ? null
-        : (json['partialResultToken'] is num
-            ? Either2<num, String>.t1(json['partialResultToken'])
+        : (json['partialResultToken'] is int
+            ? Either2<int, String>.t1(json['partialResultToken'])
             : (json['partialResultToken'] is String
-                ? Either2<num, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
+                ? Either2<int, String>.t2(json['partialResultToken'])
+                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
     return WorkspaceSymbolParams(
         query: query,
         workDoneToken: workDoneToken,
@@ -33217,14 +33217,14 @@ class WorkspaceSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<num, String>? partialResultToken;
+  final Either2<int, String>? partialResultToken;
 
   /// A query string to filter symbols by. Clients may send an empty string here
   /// to request all symbols.
   final String query;
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<num, String>? workDoneToken;
+  final Either2<int, String>? workDoneToken;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -33260,9 +33260,9 @@ class WorkspaceSymbolParams
       reporter.push('workDoneToken');
       try {
         if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is num ||
+            !((obj['workDoneToken'] is int ||
                 obj['workDoneToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -33271,9 +33271,9 @@ class WorkspaceSymbolParams
       reporter.push('partialResultToken');
       try {
         if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is num ||
+            !((obj['partialResultToken'] is int ||
                 obj['partialResultToken'] is String))) {
-          reporter.reportError('must be of type Either2<num, String>');
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {

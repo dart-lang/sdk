@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "13f010c4047c4c7d52afe67ecc57ebc415ea4ea8",
+  "co19_rev": "055b5c984613ec1b8ef76516db3ea99fee63acb9",
   "co19_2_rev": "f7f583366396cb1457e58c9bfb6d6e53dc21d741",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
@@ -80,9 +80,10 @@ vars = {
   "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",
   "boringssl_rev" : "1607f54fed72c6589d560254626909a64124f091",
   "browser-compat-data_tag": "v1.0.22",
+  "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
   "chrome_rev" : "19997",
-  "cli_util_rev" : "fd1b716e8a350a454e01ae56df540293d31ff6c8",
+  "cli_util_rev" : "50cc840b146615899e97b892578848401b2028d5",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "9967dcd3d7645db6de48d5abfab3018bb0c84236",
   "convert_rev": "a60156c6efd653657c8926b5788219ed609917d7",
@@ -105,8 +106,8 @@ vars = {
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
   "chromedriver_tag": "83.0.4103.39",
-  "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
   "dartdoc_rev" : "505f163f7cb48e917503e4a23fbff1227e08b263",
+  "devtools_rev" : "12ad5341ae0a275042c84a4e7be9a6c98db65612",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
@@ -123,7 +124,7 @@ vars = {
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_rev": "5ec32a2e0e99dedcef5b3237f93167cd22c2da50",
+  "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
   "linter_tag": "1.4.0",
   "logging_rev": "e2f633b543ef89c54688554b15ca3d7e425b86a2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
@@ -246,7 +247,7 @@ deps = {
   Var("dart_root") + "/third_party/devtools": {
       "packages": [{
           "package": "dart/third_party/flutter/devtools",
-          "version": "revision:6729ec62c3548839018c32fa711756202431ccf7",
+          "version": "git_revision:" + Var("devtools_rev"),
       }],
       "dep_type": "cipd",
   },
@@ -319,6 +320,9 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
+  Var("dart_root") + "/third_party/pkg/browser_launcher":
+      Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
+
   Var("dart_root") + "/third_party/tcmalloc/gperftools":
       Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
       "@" + Var("gperftools_revision"),
@@ -335,9 +339,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_rev"),
-  Var("dart_root") + "/third_party/pkg/browser_launcher":
-      Var("dart_git") + "browser_launcher.git" +
-      "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":

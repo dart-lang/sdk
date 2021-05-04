@@ -499,7 +499,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
     final request = RequestMessage(
-      id: Either2<num, String>.t1(1),
+      id: Either2<int, String>.t1(1),
       method: Method.initialize,
       params: params,
       jsonrpc: jsonRpcVersion,

@@ -460,6 +460,7 @@ class Object {
   static ClassPtr class_class() { return class_class_; }
   static ClassPtr dynamic_class() { return dynamic_class_; }
   static ClassPtr void_class() { return void_class_; }
+  static ClassPtr type_parameters_class() { return type_parameters_class_; }
   static ClassPtr type_arguments_class() { return type_arguments_class_; }
   static ClassPtr patch_class_class() { return patch_class_class_; }
   static ClassPtr function_class() { return function_class_; }
@@ -774,13 +775,14 @@ class Object {
   static BoolPtr true_;
   static BoolPtr false_;
 
-  static ClassPtr class_class_;           // Class of the Class vm object.
-  static ClassPtr dynamic_class_;         // Class of the 'dynamic' type.
-  static ClassPtr void_class_;            // Class of the 'void' type.
-  static ClassPtr type_arguments_class_;  // Class of TypeArguments vm object.
-  static ClassPtr patch_class_class_;     // Class of the PatchClass vm object.
-  static ClassPtr function_class_;        // Class of the Function vm object.
-  static ClassPtr closure_data_class_;    // Class of ClosureData vm obj.
+  static ClassPtr class_class_;            // Class of the Class vm object.
+  static ClassPtr dynamic_class_;          // Class of the 'dynamic' type.
+  static ClassPtr void_class_;             // Class of the 'void' type.
+  static ClassPtr type_parameters_class_;  // Class of TypeParameters vm object.
+  static ClassPtr type_arguments_class_;   // Class of TypeArguments vm object.
+  static ClassPtr patch_class_class_;      // Class of the PatchClass vm object.
+  static ClassPtr function_class_;         // Class of the Function vm object.
+  static ClassPtr closure_data_class_;     // Class of ClosureData vm obj.
   static ClassPtr ffi_trampoline_data_class_;  // Class of FfiTrampolineData
                                                // vm obj.
   static ClassPtr field_class_;                // Class of the Field vm object.
@@ -1103,21 +1105,22 @@ class Class : public Object {
   LibraryPtr library() const { return untag()->library(); }
   void set_library(const Library& value) const;
 
-  // The type parameters (and their bounds) are specified as an array of
-  // TypeParameter.
-  TypeArgumentsPtr type_parameters() const {
+  // The formal type parameters and their bounds (no defaults), are specified as
+  // an object of type TypeParameters.
+  TypeParametersPtr type_parameters() const {
     ASSERT(is_declaration_loaded());
     return untag()->type_parameters();
   }
-  void set_type_parameters(const TypeArguments& value) const;
+  void set_type_parameters(const TypeParameters& value) const;
   intptr_t NumTypeParameters(Thread* thread) const;
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
   }
 
-  // Return a TypeParameter if the type_name is a type parameter of this class.
-  // Return null otherwise.
-  TypeParameterPtr LookupTypeParameter(const String& type_name) const;
+  // Return the type parameter declared at index.
+  TypeParameterPtr TypeParameterAt(
+      intptr_t index,
+      Nullability nullability = Nullability::kNonNullable) const;
 
   // The type argument vector is flattened and includes the type arguments of
   // the super class.
@@ -2614,9 +2617,9 @@ class Function : public Object {
   // are packed into SMIs, but omitted if they're 0.
   bool IsRequiredAt(intptr_t index) const;
 
-  // The type parameters (and their bounds) are specified as an array of
-  // TypeParameter stored in the signature. They are part of the function type.
-  TypeArgumentsPtr type_parameters() const {
+  // The formal type parameters, their bounds, and defaults, are specified as an
+  // object of type TypeParameters stored in the signature.
+  TypeParametersPtr type_parameters() const {
     return untag()->signature()->untag()->type_parameters();
   }
 
@@ -2635,12 +2638,10 @@ class Function : public Object {
     return NumParentTypeArguments() + NumTypeParameters();
   }
 
-  // Return a TypeParameter if the type_name is a type parameter of this
-  // function or of one of its parent functions.
-  // Unless NULL, adjust function_level accordingly (in and out parameter).
-  // Return null otherwise.
-  TypeParameterPtr LookupTypeParameter(const String& type_name,
-                                       intptr_t* function_level) const;
+  // Return the type parameter declared at index.
+  TypeParameterPtr TypeParameterAt(
+      intptr_t index,
+      Nullability nullability = Nullability::kNonNullable) const;
 
   // Return true if this function declares type parameters.
   // Generic dispatchers only set the number without actual type parameters.
@@ -2735,21 +2736,9 @@ class Function : public Object {
       Thread* thread,
       DefaultTypeArgumentsKind* kind_out = nullptr) const;
 
-  // Whether this function should have a cached type arguments vector for the
-  // instantiated-to-bounds version of the type parameters.
-  bool CachesDefaultTypeArguments() const { return IsClosureFunction(); }
-
-  // Updates the cached default type arguments vector for this function if it
-  // caches and for its implicit closure function if it has one. If the
-  // default arguments are all canonical, the cached default type arguments
-  // vector is canonicalized. Should be run any time the type parameters vector
-  // is changed or if the default arguments of any type parameters are updated.
-  void UpdateCachedDefaultTypeArguments(Thread* thread) const;
-
-  // These are only usable for functions that cache the default type arguments.
-  TypeArgumentsPtr default_type_arguments(
-      DefaultTypeArgumentsKind* kind_out = nullptr) const;
-  void set_default_type_arguments(const TypeArguments& value) const;
+  // Only usable for closure functions.
+  DefaultTypeArgumentsKind default_type_arguments_kind() const;
+  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
 
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
@@ -3787,9 +3776,6 @@ class ClosureData : public Object {
     return RoundedAllocationSize(sizeof(UntaggedClosureData));
   }
 
-  static intptr_t default_type_arguments_offset() {
-    return OFFSET_OF(UntaggedClosureData, default_type_arguments_);
-  }
   static intptr_t default_type_arguments_kind_offset() {
     return OFFSET_OF(UntaggedClosureData, default_type_arguments_kind_);
   }
@@ -3815,11 +3801,6 @@ class ClosureData : public Object {
     return untag()->closure<std::memory_order_acquire>();
   }
   void set_implicit_static_closure(const Instance& closure) const;
-
-  TypeArgumentsPtr default_type_arguments() const {
-    return untag()->default_type_arguments();
-  }
-  void set_default_type_arguments(const TypeArguments& value) const;
 
   DefaultTypeArgumentsKind default_type_arguments_kind() const;
   void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
@@ -4222,7 +4203,7 @@ class Field : public Object {
   // Returns false if any value read from this field is guaranteed to be
   // not null.
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
-  // kInvalidCid (non-nullable) instead of boolean. This is done to simplify
+  // kIllegalCid (non-nullable) instead of boolean. This is done to simplify
   // guarding sequence in the generated code.
   bool is_nullable() const;
   void set_is_nullable(bool val) const {
@@ -4531,11 +4512,7 @@ class Script : public Object {
   void SetCachedMaxPosition(intptr_t value) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_PRECOMPILER)
-  void set_resolved_url(const Object& value) const;
-#else
   void set_resolved_url(const String& value) const;
-#endif
   void set_source(const String& value) const;
   void set_load_timestamp(int64_t value) const;
   ArrayPtr debug_positions() const;
@@ -7487,6 +7464,90 @@ class LibraryPrefix : public Instance {
   friend class Class;
 };
 
+// TypeParameters represents a list of formal type parameters with their bounds
+// and their default values as calculated by CFE.
+class TypeParameters : public Object {
+ public:
+  intptr_t Length() const;
+
+  static intptr_t names_offset() {
+    return OFFSET_OF(UntaggedTypeParameters, names_);
+  }
+  StringPtr NameAt(intptr_t index) const;
+  void SetNameAt(intptr_t index, const String& value) const;
+
+  static intptr_t flags_offset() {
+    return OFFSET_OF(UntaggedTypeParameters, flags_);
+  }
+
+  static intptr_t bounds_offset() {
+    return OFFSET_OF(UntaggedTypeParameters, bounds_);
+  }
+  AbstractTypePtr BoundAt(intptr_t index) const;
+  void SetBoundAt(intptr_t index, const AbstractType& value) const;
+  bool AllDynamicBounds() const;
+
+  static intptr_t defaults_offset() {
+    return OFFSET_OF(UntaggedTypeParameters, defaults_);
+  }
+  AbstractTypePtr DefaultAt(intptr_t index) const;
+  void SetDefaultAt(intptr_t index, const AbstractType& value) const;
+  bool AllDynamicDefaults() const;
+
+  // The isGenericCovariantImpl bits are packed into SMIs in the flags array,
+  // but omitted if they're 0.
+  bool IsGenericCovariantImplAt(intptr_t index) const;
+  void SetIsGenericCovariantImplAt(intptr_t index, bool value) const;
+
+  // The number of flags per Smi should be a power of 2 in order to simplify the
+  // generated code accessing the flags array.
+#if !defined(DART_COMPRESSED_POINTERS)
+  static const intptr_t kFlagsPerSmiShift = kBitsPerWordLog2 - 1;
+#else
+  static const intptr_t kFlagsPerSmiShift = kBitsPerWordLog2 - 2;
+#endif
+  static const intptr_t kFlagsPerSmi = 1LL << kFlagsPerSmiShift;
+  COMPILE_ASSERT(kFlagsPerSmi < kSmiBits);
+  static const intptr_t kFlagsPerSmiMask = kFlagsPerSmi - 1;
+
+  void Print(Thread* thread,
+             Zone* zone,
+             bool are_class_type_parameters,
+             intptr_t base,
+             NameVisibility name_visibility,
+             BaseTextBuffer* printer) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedTypeParameters));
+  }
+
+  static TypeParametersPtr New(Heap::Space space = Heap::kOld);
+  static TypeParametersPtr New(intptr_t count, Heap::Space space = Heap::kOld);
+
+ private:
+  ArrayPtr names() const { return untag()->names(); }
+  void set_names(const Array& value) const;
+  ArrayPtr flags() const { return untag()->flags(); }
+  void set_flags(const Array& value) const;
+  TypeArgumentsPtr bounds() const { return untag()->bounds(); }
+  void set_bounds(const TypeArguments& value) const;
+  TypeArgumentsPtr defaults() const { return untag()->defaults(); }
+  void set_defaults(const TypeArguments& value) const;
+
+  // Allocate and initialize the flags array to zero.
+  void AllocateFlags(Heap::Space space) const;
+  // Reset the flags array to null if all flags are zero.
+  void OptimizeFlags() const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameters, Object);
+  friend class Class;
+  friend class ClassFinalizer;
+  friend class Function;
+  friend class FunctionType;
+  friend class Object;
+  friend class Precompiler;
+};
+
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Instance {
  public:
@@ -8311,12 +8372,19 @@ class FunctionType : public AbstractType {
   }
 
   // Reexported so they can be used by the flow graph builders.
+  using PackedNumParentTypeArguments =
+      UntaggedFunctionType::PackedNumParentTypeArguments;
   using PackedHasNamedOptionalParameters =
       UntaggedFunctionType::PackedHasNamedOptionalParameters;
   using PackedNumFixedParameters =
       UntaggedFunctionType::PackedNumFixedParameters;
   using PackedNumOptionalParameters =
       UntaggedFunctionType::PackedNumOptionalParameters;
+
+  // Return the type parameter declared at index.
+  TypeParameterPtr TypeParameterAt(
+      intptr_t index,
+      Nullability nullability = Nullability::kNonNullable) const;
 
   AbstractTypePtr result_type() const { return untag()->result_type(); }
   void set_result_type(const AbstractType& value) const;
@@ -8373,12 +8441,12 @@ class FunctionType : public AbstractType {
   // parameters don't have flags.
   static intptr_t NameArrayLengthIncludingFlags(intptr_t num_parameters);
 
-  // The type parameters (and their bounds) are specified as an array of
-  // TypeParameter.
-  TypeArgumentsPtr type_parameters() const {
+  // The formal type parameters, their bounds, and defaults, are specified as an
+  // object of type TypeParameters.
+  TypeParametersPtr type_parameters() const {
     return untag()->type_parameters();
   }
-  void set_type_parameters(const TypeArguments& value) const;
+  void set_type_parameters(const TypeParameters& value) const;
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(UntaggedFunctionType, type_parameters_);
   }
@@ -8540,11 +8608,6 @@ class TypeParameter : public AbstractType {
     return UntaggedTypeParameter::BeingFinalizedBit::decode(untag()->flags_);
   }
   virtual void SetIsBeingFinalized() const;
-  bool IsGenericCovariantImpl() const {
-    return UntaggedTypeParameter::GenericCovariantImplBit::decode(
-        untag()->flags_);
-  }
-  void SetGenericCovariantImpl(bool value) const;
   static intptr_t flags_offset() {
     return OFFSET_OF(UntaggedTypeParameter, flags_);
   }
@@ -8579,20 +8642,11 @@ class TypeParameter : public AbstractType {
     return OFFSET_OF(UntaggedTypeParameter, index_);
   }
 
-  StringPtr name() const { return untag()->name(); }
-  static intptr_t name_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, name_);
-  }
   AbstractTypePtr bound() const { return untag()->bound(); }
   void set_bound(const AbstractType& value) const;
   static intptr_t bound_offset() {
     return OFFSET_OF(UntaggedTypeParameter, bound_);
   }
-
-  AbstractTypePtr default_argument() const {
-    return untag()->default_argument();
-  }
-  void set_default_argument(const AbstractType& value) const;
 
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
@@ -8629,6 +8683,15 @@ class TypeParameter : public AbstractType {
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments) const;
 
+  // Return a constructed name for this nameless type parameter.
+  const char* CanonicalNameCString() const {
+    return CanonicalNameCString(IsClassTypeParameter(), base(), index());
+  }
+
+  static const char* CanonicalNameCString(bool is_class_type_parameter,
+                                          intptr_t base,
+                                          intptr_t index);
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedTypeParameter));
   }
@@ -8637,9 +8700,7 @@ class TypeParameter : public AbstractType {
   static TypeParameterPtr New(const Class& parameterized_class,
                               intptr_t base,
                               intptr_t index,
-                              const String& name,
                               const AbstractType& bound,
-                              bool is_generic_covariant_impl,
                               Nullability nullability);
 
  private:
@@ -8996,6 +9057,8 @@ class String : public Instance {
     ASSERT(Smi::New(0) == nullptr);
     return GetCachedHash(ptr()) != 0;
   }
+
+  bool IsRecursive() const { return false; }  // Required by HashSet templates.
 
   static intptr_t hash_offset() {
 #if defined(HASH_IN_OBJECT_HEADER)

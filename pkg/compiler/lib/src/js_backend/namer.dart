@@ -419,15 +419,7 @@ class Namer extends ModularNamer {
     return _jsReserved;
   }
 
-  final String lazyGetterPrefix = r'$get$';
-  final String superPrefix = r'super$';
-  final String metadataField = '@';
   final String stubNameField = r'$stubName';
-  final String reflectionInfoField = r'$reflectionInfo';
-  final String reflectionNameField = r'$reflectionName';
-  final String metadataIndexField = r'$metadataIndex';
-  final String methodsWithOptionalArgumentsField =
-      r'$methodsWithOptionalArguments';
 
   @override
   final FixedNames fixedNames;
@@ -436,25 +428,16 @@ class Namer extends ModularNamer {
   static const String _callPrefixDollar = r'call$';
 
   static final jsAst.Name _literalDollar = new StringBackedName(r'$');
-  static final jsAst.Name literalPlus = new StringBackedName('+');
   static final jsAst.Name _literalDynamic = new StringBackedName("dynamic");
 
   jsAst.Name _literalGetterPrefix;
   jsAst.Name _literalSetterPrefix;
-
-  jsAst.Name _staticsPropertyName;
-
-  jsAst.Name get staticsPropertyName =>
-      _staticsPropertyName ??= new StringBackedName('static');
 
   jsAst.Name _rtiFieldJsName;
 
   @override
   jsAst.Name get rtiFieldJsName =>
       _rtiFieldJsName ??= new StringBackedName(fixedNames.rtiName);
-
-  // Name of property in a class description for the native dispatch metadata.
-  final String nativeSpecProperty = '%';
 
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
@@ -564,15 +547,8 @@ class Namer extends ModularNamer {
 
   NativeData get _nativeData => _closedWorld.nativeData;
 
-  String get deferredMetadataName => 'deferredMetadata';
-  String get deferredTypesName => 'deferredTypes';
-  String get isolateName => 'Isolate';
-  String get isolatePropertiesName => r'$isolateProperties';
   jsAst.Name get noSuchMethodName => invocationName(Selectors.noSuchMethod_);
 
-  /// Some closures must contain their name. The name is stored in
-  /// [STATIC_CLOSURE_NAME_NAME].
-  String get STATIC_CLOSURE_NAME_NAME => r'$name';
   String get closureInvocationSelectorName => Identifiers.call;
   bool get shouldMinify => false;
 
@@ -969,22 +945,6 @@ class Namer extends ModularNamer {
       internalGlobals[name] = newName;
     }
     return _newReference(newName);
-  }
-
-  /// Returns the property name to use for a compiler-owner global variable,
-  /// i.e. one that does not correspond to any element but is used as a utility
-  /// global by code generation.
-  ///
-  /// [name] functions as both the proposed name for the global, and as a key
-  /// identifying the global. The [name] must not contain `$` symbols, since
-  /// the [Namer] uses those names internally.
-  ///
-  /// This provides an easy mechanism of avoiding a name-clash with user-space
-  /// globals, although the callers of must still take care not to accidentally
-  /// pass in the same [name] for two different internal globals.
-  jsAst.Name internalGlobal(String name) {
-    assert(!name.contains(r'$'));
-    return _disambiguateInternalGlobal(name);
   }
 
   /// Generates a unique key for [library].
@@ -1492,18 +1452,6 @@ class Namer extends ModularNamer {
   // The name of the variable used to offset function signatures in deferred
   // parts with the fast-startup emitter.
   String get typesOffsetName => r'typesOffset';
-
-  Map<FunctionType, jsAst.Name> functionTypeNameMap = {};
-
-  FunctionTypeNamer _functionTypeNamer;
-
-  jsAst.Name getFunctionTypeName(FunctionType functionType) {
-    return functionTypeNameMap.putIfAbsent(functionType, () {
-      _functionTypeNamer ??= new FunctionTypeNamer();
-      String proposedName = _functionTypeNamer.computeName(functionType);
-      return getFreshName(instanceScope, proposedName);
-    });
-  }
 
   @override
   jsAst.Name operatorIs(ClassEntity element) {
@@ -2123,80 +2071,6 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
     hash = _MASK & (hash + (((_MASK >> 3) & hash) << 3));
     hash = hash & (hash >> 11);
     return _MASK & (hash + (((_MASK >> 15) & hash) << 15));
-  }
-}
-
-class FunctionTypeNamer extends BaseDartTypeVisitor {
-  StringBuffer sb;
-
-  FunctionTypeNamer();
-
-  String computeName(DartType type) {
-    sb = new StringBuffer();
-    visit(type);
-    return sb.toString();
-  }
-
-  @override
-  visit(DartType type, [_]) {
-    type.accept(this, null);
-  }
-
-  @override
-  visitType(DartType type, _) {}
-
-  @override
-  visitInterfaceType(InterfaceType type, _) {
-    sb.write(type.element.name);
-  }
-
-  @override
-  visitTypeVariableType(TypeVariableType type, _) {
-    sb.write(type.element.name);
-  }
-
-  bool _isSimpleFunctionType(FunctionType type) {
-    if (type.returnType is! DynamicType) return false;
-    if (!type.optionalParameterTypes.isEmpty) return false;
-    if (!type.namedParameterTypes.isEmpty) return false;
-    for (DartType parameter in type.parameterTypes) {
-      if (parameter is! DynamicType) return false;
-    }
-    return true;
-  }
-
-  @override
-  visitFunctionType(FunctionType type, _) {
-    if (_isSimpleFunctionType(type)) {
-      sb.write('args${type.parameterTypes.length}');
-      return;
-    }
-    visit(type.returnType);
-    sb.write('_');
-    for (DartType parameter in type.parameterTypes) {
-      sb.write('_');
-      visit(parameter);
-    }
-    bool first = false;
-    for (DartType parameter in type.optionalParameterTypes) {
-      if (!first) {
-        sb.write('_');
-      }
-      sb.write('_');
-      visit(parameter);
-      first = true;
-    }
-    if (!type.namedParameterTypes.isEmpty) {
-      first = false;
-      for (DartType parameter in type.namedParameterTypes) {
-        if (!first) {
-          sb.write('_');
-        }
-        sb.write('_');
-        visit(parameter);
-        first = true;
-      }
-    }
   }
 }
 

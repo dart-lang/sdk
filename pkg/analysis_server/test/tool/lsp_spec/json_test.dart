@@ -20,7 +20,7 @@ void main() {
 
     test('returns correct output for union types', () {
       final message = RequestMessage(
-          id: Either2<num, String>.t1(1),
+          id: Either2<int, String>.t1(1),
           method: Method.shutdown,
           jsonrpc: 'test');
       final output = json.encode(message.toJson());
@@ -113,7 +113,7 @@ void main() {
     });
 
     test('ResponseMessage does not include an error with a result', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final result = 'my result';
       final resp =
           ResponseMessage(id: id, result: result, jsonrpc: jsonRpcVersion);
@@ -302,7 +302,7 @@ void main() {
     });
 
     test('ResponseMessage can include a null result', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final resp = ResponseMessage(id: id, jsonrpc: jsonRpcVersion);
       final jsonMap = resp.toJson();
       expect(jsonMap, contains('result'));
@@ -310,7 +310,7 @@ void main() {
     });
 
     test('ResponseMessage does not include a result for an error', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final error =
           ResponseError(code: ErrorCodes.ParseError, message: 'Error');
       final resp =
@@ -321,7 +321,7 @@ void main() {
     });
 
     test('ResponseMessage throws if both result and error are non-null', () {
-      final id = Either2<num, String>.t1(1);
+      final id = Either2<int, String>.t1(1);
       final result = 'my result';
       final error =
           ResponseError(code: ErrorCodes.ParseError, message: 'Error');

@@ -62,6 +62,14 @@ void recordTypes(List<AstNode> types) {
 
 TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses = false}) {
   if (type is Type) {
+    // The LSP spec contains type aliases for `integer` and `uinteger` that map
+    // into the `number` type, with comments stating they must be integers. To
+    // preserve the improved typing, do _not_ resolve them to the `number`
+    // type.
+    if (type.name == 'integer' || type.name == 'uinteger') {
+      return type;
+    }
+
     final alias = _typeAliases[type.name];
     // Only follow the type if we're not an enum, or we wanted to follow enums.
     if (alias != null &&

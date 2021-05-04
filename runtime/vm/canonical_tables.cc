@@ -40,11 +40,6 @@ bool MetadataMapTraits::IsMatch(const Object& a, const Object& b) {
     const Object& owner_b = Object::Handle(Field::Cast(b).Owner());
     return IsMatch(owner_a, owner_b);
   } else if (a.IsTypeParameter() && b.IsTypeParameter()) {
-    const String& name_a = String::Handle(TypeParameter::Cast(a).name());
-    const String& name_b = String::Handle(TypeParameter::Cast(b).name());
-    if (!name_a.Equals(name_b)) {
-      return false;
-    }
     if (TypeParameter::Cast(a).index() != TypeParameter::Cast(b).index() ||
         TypeParameter::Cast(a).base() != TypeParameter::Cast(b).base()) {
       return false;

@@ -77,7 +77,7 @@ BreakpointLocation::BreakpointLocation(
       requested_column_number_(requested_column_number),
       code_token_pos_(TokenPosition::kNoSource) {
   ASSERT(scripts.length() > 0);
-  ASSERT(token_pos_.IsReal());
+  ASSERT(token_pos.IsReal());
   for (intptr_t i = 0; i < scripts.length(); ++i) {
     scripts_.Add(scripts.At(i).ptr());
   }
@@ -134,8 +134,8 @@ void BreakpointLocation::SetResolved(const Function& func,
   ASSERT(!IsLatent());
   ASSERT(token_pos.IsWithin(func.token_pos(), func.end_token_pos()));
   ASSERT(func.is_debuggable());
-  token_pos_ = token_pos;
-  end_token_pos_ = token_pos;
+  token_pos_.store(token_pos);
+  end_token_pos_.store(token_pos);
   code_token_pos_ = token_pos;
 }
 
@@ -1328,20 +1328,19 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
     intptr_t num_vars = function().NumTypeArguments();
     type_params_names.Grow(num_vars);
     type_params_names.SetLength(num_vars);
-    TypeArguments& type_params = TypeArguments::Handle();
-    TypeParameter& type_param = TypeParameter::Handle();
+    TypeParameters& type_params = TypeParameters::Handle();
     Function& current = Function::Handle(function().ptr());
     intptr_t mapping_offset = num_vars;
     for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
                   current = current.parent_function()) {
       type_params = current.type_parameters();
+      if (type_params.IsNull()) continue;
       intptr_t size = current.NumTypeParameters();
-      ASSERT(size == 0 || type_params.Length() == size);
+      ASSERT(size > 0 && type_params.Length() == size);
       ASSERT(mapping_offset >= size);
       mapping_offset -= size;
       for (intptr_t j = 0; j < size; ++j) {
-        type_param = TypeParameter::RawCast(type_params.TypeAt(j));
-        name = type_param.name();
+        name = type_params.NameAt(j);
         // Write the names in backwards in terms of chain of functions.
         // But keep the order of names within the same function. so they
         // match up with the order of the types in 'type_arguments'.
@@ -2547,7 +2546,7 @@ bool BreakpointLocation::EnsureIsResolved(const Function& target_function,
 
 void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
                                          BreakpointLocation* loc) {
-  ASSERT(loc->token_pos_.IsReal());
+  ASSERT(loc->token_pos().IsReal());
   ASSERT((loc != NULL) && loc->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   ASSERT(func.HasCode());
@@ -2580,7 +2579,7 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
     if (FLAG_verbose_debug) {
       OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px " offset %#" Px
                    "\n",
-                   loc->token_pos_.ToCString(), lowest_pc,
+                   loc->token_pos().ToCString(), lowest_pc,
                    lowest_pc - code.PayloadStart());
     }
     RegisterCodeBreakpoint(code_bpt);
@@ -2589,10 +2588,12 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
       OS::PrintErr(
           "Adding location to existing code breakpoint at pos %s pc %#" Px
           " offset %#" Px "\n",
-          loc->token_pos_.ToCString(), lowest_pc,
+          loc->token_pos().ToCString(), lowest_pc,
           lowest_pc - code.PayloadStart());
     }
-    code_bpt->AddBreakpointLocation(loc);
+    if (!code_bpt->HasBreakpointLocation(loc)) {
+      code_bpt->AddBreakpointLocation(loc);
+    }
   }
   if (loc->AnyEnabled()) {
     code_bpt->Enable();
@@ -3998,14 +3999,23 @@ ErrorPtr Debugger::PauseBreakpoint() {
     return Error::null();
   }
 
-  CodeBreakpoint* cbpt = nullptr;
-  BreakpointLocation* bpt_location =
-      group_debugger()->GetBreakpointLocationFor(this, top_frame->pc(), &cbpt);
-  if (bpt_location == nullptr) {
-    // There might be no breakpoint locations for this isolate/debugger.
-    return Error::null();
+  BreakpointLocation* bpt_location = nullptr;
+  const char* cbpt_tostring = nullptr;
+  {
+    SafepointReadRwLocker cbl(Thread::Current(),
+                              group_debugger()->code_breakpoints_lock());
+    CodeBreakpoint* cbpt = nullptr;
+    bpt_location = group_debugger()->GetBreakpointLocationFor(
+        this, top_frame->pc(), &cbpt);
+    if (bpt_location == nullptr) {
+      // There might be no breakpoint locations for this isolate/debugger.
+      return Error::null();
+    }
+    ASSERT(cbpt != nullptr);
+    if (FLAG_verbose_debug) {
+      cbpt_tostring = cbpt->ToCString();
+    }
   }
-  ASSERT(cbpt != nullptr);
 
   Breakpoint* bpt_hit = bpt_location->FindHitBreakpoint(top_frame);
   if (bpt_hit == nullptr) {
@@ -4023,7 +4033,7 @@ ErrorPtr Debugger::PauseBreakpoint() {
       OS::PrintErr(
           ">>> hit synthetic %s"
           " (func %s token %s address %#" Px " offset %#" Px ")\n",
-          cbpt->ToCString(),
+          cbpt_tostring,
           String::Handle(top_frame->QualifiedFunctionName()).ToCString(),
           bpt_location->token_pos().ToCString(), top_frame->pc(),
           top_frame->pc() - top_frame->code().PayloadStart());
@@ -4044,13 +4054,10 @@ ErrorPtr Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
-    // Lock is needed for CodeBreakpoint::ToCString().
-    SafepointReadRwLocker sl(Thread::Current(),
-                             group_debugger()->code_breakpoints_lock());
     OS::PrintErr(">>> hit %" Pd
                  " %s"
                  " (func %s token %s address %#" Px " offset %#" Px ")\n",
-                 bpt_hit->id(), cbpt->ToCString(),
+                 bpt_hit->id(), cbpt_tostring,
                  String::Handle(top_frame->QualifiedFunctionName()).ToCString(),
                  bpt_location->token_pos().ToCString(), top_frame->pc(),
                  top_frame->pc() - top_frame->code().PayloadStart());
@@ -4506,7 +4513,7 @@ BreakpointLocation* Debugger::GetBreakpointLocation(
   while (loc != NULL) {
     loc_url = loc->url();
     if (script_url.Equals(loc_url) &&
-        (!token_pos.IsReal() || (loc->token_pos_ == token_pos)) &&
+        (!token_pos.IsReal() || (loc->token_pos() == token_pos)) &&
         ((requested_line == -1) ||
          (loc->requested_line_number_ == requested_line)) &&
         ((requested_column == -1) ||

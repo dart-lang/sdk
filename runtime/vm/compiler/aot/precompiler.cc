@@ -962,7 +962,7 @@ void Precompiler::AddTypesOf(const Class& cls) {
     AddType(type);
   }
 
-  AddTypeArguments(TypeArguments::Handle(Z, cls.type_parameters()));
+  AddTypeParameters(TypeParameters::Handle(Z, cls.type_parameters()));
 
   type = cls.super_type();
   AddType(type);
@@ -990,15 +990,6 @@ void Precompiler::AddTypesOf(const Function& function) {
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   AddType(signature);
-
-  // At this point, ensure any cached default type arguments are canonicalized.
-  function.UpdateCachedDefaultTypeArguments(thread());
-  if (function.CachesDefaultTypeArguments()) {
-    const auto& defaults = TypeArguments::Handle(
-        Z, function.default_type_arguments(/*kind_out=*/nullptr));
-    ASSERT(defaults.IsCanonical());
-    AddTypeArguments(defaults);
-  }
 
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());
@@ -1054,10 +1045,8 @@ void Precompiler::AddType(const AbstractType& abstype) {
     if (typeparams_to_retain_.HasKey(&param)) return;
     typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.ptr()));
 
-    auto& type = AbstractType::Handle(Z, param.bound());
-    AddType(type);
-    type = param.default_argument();
-    AddType(type);
+    auto& bound = AbstractType::Handle(Z, param.bound());
+    AddType(bound);
     return;
   }
 
@@ -1067,7 +1056,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
         FunctionType::ZoneHandle(Z, FunctionType::Cast(abstype).ptr());
     functiontypes_to_retain_.Insert(&signature);
 
-    AddTypeArguments(TypeArguments::Handle(Z, signature.type_parameters()));
+    AddTypeParameters(TypeParameters::Handle(Z, signature.type_parameters()));
 
     AbstractType& type = AbstractType::Handle(Z);
     type = signature.result_type();
@@ -1093,6 +1082,16 @@ void Precompiler::AddType(const AbstractType& abstype) {
     type = TypeRef::Cast(abstype).type();
     AddType(type);
   }
+}
+
+void Precompiler::AddTypeParameters(const TypeParameters& params) {
+  if (params.IsNull()) return;
+
+  TypeArguments& args = TypeArguments::Handle();
+  args = params.bounds();
+  AddTypeArguments(args);
+  args = params.defaults();
+  AddTypeArguments(args);
 }
 
 void Precompiler::AddTypeArguments(const TypeArguments& args) {
@@ -2479,16 +2478,6 @@ void Precompiler::DropLibraryEntries() {
   Array& dict = Array::Handle(Z);
   Object& entry = Object::Handle(Z);
 
-  Array& scripts = Array::Handle(Z);
-  Script& script = Script::Handle(Z);
-  KernelProgramInfo& program_info = KernelProgramInfo::Handle(Z);
-  const TypedData& null_typed_data = TypedData::Handle(Z);
-  const KernelProgramInfo& null_info = KernelProgramInfo::Handle(Z);
-#if defined(PRODUCT)
-  auto& str = String::Handle(Z);
-  auto& wsr = WeakSerializationReference::Handle(Z);
-#endif
-
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
 
@@ -2520,32 +2509,6 @@ void Precompiler::DropLibraryEntries() {
         FATAL1("Unexpected library entry: %s", entry.ToCString());
       }
       dict.SetAt(j, Object::null_object());
-    }
-
-    scripts = lib.LoadedScripts();
-    if (!scripts.IsNull()) {
-      for (intptr_t i = 0; i < scripts.Length(); ++i) {
-        script = Script::RawCast(scripts.At(i));
-        program_info = script.kernel_program_info();
-        if (!program_info.IsNull()) {
-          program_info.set_constants(Array::null_array());
-          program_info.set_scripts(Array::null_array());
-          program_info.set_libraries_cache(Array::null_array());
-          program_info.set_classes_cache(Array::null_array());
-        }
-#if defined(PRODUCT)
-        str = script.resolved_url();
-        if (!str.IsNull()) {
-          wsr = WeakSerializationReference::New(str, String::null_string());
-          script.set_resolved_url(wsr);
-        }
-#endif  // defined(PRODUCT)
-        script.set_compile_time_constants(Array::null_array());
-        script.set_line_starts(null_typed_data);
-        script.set_debug_positions(Array::null_array());
-        script.set_kernel_program_info(null_info);
-        script.set_source(String::null_string());
-      }
     }
 
     lib.RehashDictionary(dict, used * 4 / 3 + 1);

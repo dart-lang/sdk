@@ -449,18 +449,19 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   const Closure& closure =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Function& target = Function::Handle(zone, closure.function());
-  const TypeArguments& bounds =
-      TypeArguments::Handle(zone, target.type_parameters());
-
-  // Either the bounds are all-dynamic or the function is not generic.
-  if (bounds.IsNull()) return Object::null();
+  const TypeParameters& type_params =
+      TypeParameters::Handle(zone, target.type_parameters());
+  if (type_params.IsNull() || type_params.AllDynamicBounds()) {
+    // The function is not generic or the bounds are all dynamic.
+    return Object::null();
+  }
 
   const TypeArguments& type_args_to_check =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
 
   // This should be guaranteed by the front-end.
   ASSERT(type_args_to_check.IsNull() ||
-         bounds.Length() <= type_args_to_check.Length());
+         type_params.Length() <= type_args_to_check.Length());
 
   // The bounds on the closure may need instantiation.
   const TypeArguments& instantiator_type_args =
@@ -470,10 +471,8 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
 
   AbstractType& supertype = AbstractType::Handle(zone);
   AbstractType& subtype = AbstractType::Handle(zone);
-  TypeParameter& parameter = TypeParameter::Handle(zone);
-  for (intptr_t i = 0; i < bounds.Length(); ++i) {
-    parameter ^= bounds.TypeAt(i);
-    supertype = parameter.bound();
+  for (intptr_t i = 0; i < type_params.Length(); ++i) {
+    supertype = type_params.BoundAt(i);
     subtype = type_args_to_check.IsNull() ? Object::dynamic_type().ptr()
                                           : type_args_to_check.TypeAt(i);
 
@@ -492,7 +491,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
         ASSERT(caller_frame != NULL);
         location = caller_frame->GetTokenPos();
       }
-      String& parameter_name = String::Handle(zone, parameter.Name());
+      const auto& parameter_name = String::Handle(zone, type_params.NameAt(i));
       Exceptions::CreateAndThrowTypeError(location, subtype, supertype,
                                           parameter_name);
       UNREACHABLE();

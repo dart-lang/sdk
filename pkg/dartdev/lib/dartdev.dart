@@ -40,7 +40,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     args = args
         .where(
           (element) => !(element.contains('--observe') ||
-              element.contains('--enable-vm-service')),
+              element.contains('--enable-vm-service') ||
+              element.contains('--devtools')),
         )
         .toList();
   }

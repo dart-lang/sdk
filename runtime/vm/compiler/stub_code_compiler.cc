@@ -597,7 +597,8 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
     // Resolve the type parameter to its instantiated type and tail call the
     // instantiated type's TTS.
     __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                           target::TypeParameter::index_offset(), kTwoBytes);
+                           target::TypeParameter::index_offset(),
+                           kUnsignedByte);
     __ LoadIndexedCompressed(TypeTestABI::kScratchReg, tav,
                              target::TypeArguments::types_offset(),
                              TypeTestABI::kScratchReg);

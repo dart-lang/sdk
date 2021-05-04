@@ -191,7 +191,7 @@ static InstancePtr CreateTypeVariableMirror(const TypeParameter& param,
                                             const Instance& owner_mirror) {
   const Array& args = Array::Handle(Array::New(3));
   args.SetAt(0, param);
-  args.SetAt(1, String::Handle(param.name()));
+  args.SetAt(1, String::Handle(param.UserVisibleName()));
   args.SetAt(2, owner_mirror);
   return CreateMirror(Symbols::_TypeVariableMirror(), args);
 }
@@ -199,18 +199,17 @@ static InstancePtr CreateTypeVariableMirror(const TypeParameter& param,
 // We create a list in native code and let Dart code create the type mirror
 // object and the ordered map.
 static InstancePtr CreateTypeVariableList(const Class& cls) {
-  const TypeArguments& args = TypeArguments::Handle(cls.type_parameters());
-  if (args.IsNull()) {
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  if (num_type_params == 0) {
     return Object::empty_array().ptr();
   }
-  const Array& result = Array::Handle(Array::New(args.Length() * 2));
+  const Array& result = Array::Handle(Array::New(num_type_params * 2));
   TypeParameter& type = TypeParameter::Handle();
   String& name = String::Handle();
-  for (intptr_t i = 0; i < args.Length(); i++) {
-    type ^= args.TypeAt(i);
-    ASSERT(type.IsTypeParameter());
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type = cls.TypeParameterAt(i, Nullability::kLegacy);
     ASSERT(type.IsFinalized());
-    name = type.name();
+    name = type.UserVisibleName();
     result.SetAt(2 * i, name);
     result.SetAt(2 * i + 1, type);
   }

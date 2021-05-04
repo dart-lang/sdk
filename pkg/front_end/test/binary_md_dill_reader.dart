@@ -29,6 +29,7 @@ class BinaryMdDillReader {
   Map _dillStringsPointer;
   int verboseLevel = 0;
   bool _ranSetup = false;
+  List<String> readingStack = [];
 
   BinaryMdDillReader(this._binaryMdContent, this._dillContent);
 
@@ -101,11 +102,13 @@ class BinaryMdDillReader {
 
   int numLibs;
   int binaryOffsetForSourceTable;
+  int binaryOffsetForConstantTable;
+  int binaryOffsetForConstantTableIndex;
   int binaryOffsetForCanonicalNames;
   int binaryOffsetForMetadataPayloads;
   int binaryOffsetForMetadataMappings;
   int binaryOffsetForStringTable;
-  int binaryOffsetForConstantTable;
+  int binaryOffsetForStartOfComponentIndex;
   int mainMethodReference;
 
   /// Read the dill file data, parsing it into a Map.
@@ -119,10 +122,14 @@ class BinaryMdDillReader {
 
     // Skip to the start of the index.
     _binaryOffset = _dillContent.length -
-        ((numLibs + 1) + 10 /* number of fixed fields */) * 4;
+        ((numLibs + 1) + 12 /* number of fixed fields */) * 4;
 
     // Read index.
     binaryOffsetForSourceTable = _peekUint32();
+    _binaryOffset += 4;
+    binaryOffsetForConstantTable = _peekUint32();
+    _binaryOffset += 4;
+    binaryOffsetForConstantTableIndex = _peekUint32();
     _binaryOffset += 4;
     binaryOffsetForCanonicalNames = _peekUint32();
     _binaryOffset += 4;
@@ -132,7 +139,7 @@ class BinaryMdDillReader {
     _binaryOffset += 4;
     binaryOffsetForStringTable = _peekUint32();
     _binaryOffset += 4;
-    binaryOffsetForConstantTable = _peekUint32();
+    binaryOffsetForStartOfComponentIndex = _peekUint32();
     _binaryOffset += 4;
     mainMethodReference = _peekUint32();
     _binaryOffset += 4;
@@ -141,13 +148,13 @@ class BinaryMdDillReader {
     _binaryOffset = binaryOffsetForStringTable;
     var saved = _readingInstructions["ComponentFile"];
     _readingInstructions["ComponentFile"] = ["StringTable strings;"];
-    _readBinary("ComponentFile");
+    _readBinary("ComponentFile", "");
     _readingInstructions["ComponentFile"] = saved;
     _binaryOffset = 0;
     _depth = 0;
     // Hack end.
 
-    Map componentFile = _readBinary("ComponentFile");
+    Map componentFile = _readBinary("ComponentFile", "");
     if (_binaryOffset != _dillContent.length) {
       throw "Didn't read the entire binary: "
           "Only read $_binaryOffset of ${_dillContent.length} bytes. "
@@ -384,7 +391,7 @@ class BinaryMdDillReader {
 
   /// Actually read the binary dill file. Read type [what] at the current
   /// binary position as specified by field [_binaryOffset].
-  dynamic _readBinary(String what) {
+  dynamic _readBinary(String what, String callerInstruction) {
     ++_depth;
     what = _remapWhat(what);
 
@@ -416,6 +423,9 @@ class BinaryMdDillReader {
     if (_readingInstructions[what] == null) {
       throw "Didn't find instructions for '$what'";
     }
+
+    readingStack.add(orgWhat);
+    readingStack.add(callerInstruction);
 
     Map<String, dynamic> vars = {};
     if (verboseLevel > 1) {
@@ -516,25 +526,36 @@ class BinaryMdDillReader {
             count == "libraryCount + 1") {
           intCount = numLibs + 1;
         }
+        if (intCount < 0 &&
+            type == "UInt32" &&
+            _depth == 2 &&
+            count == "length" &&
+            readingStack.last == "RList<UInt32> constantsMapping;") {
+          int prevBinaryOffset = _binaryOffset;
+          // Hack: Use the ComponentIndex to go to the end and read the length.
+          _binaryOffset = binaryOffsetForCanonicalNames - 4;
+          intCount = _peekUint32();
+          _binaryOffset = prevBinaryOffset;
+        }
 
         if (intCount >= 0) {
           readNothingIsOk = intCount == 0;
           List<dynamic> value = new List.filled(intCount, null);
           for (int i = 0; i < intCount; ++i) {
             int oldOffset2 = _binaryOffset;
-            value[i] = _readBinary(type);
+            value[i] = _readBinary(type, instruction);
             if (_binaryOffset <= oldOffset2) {
               throw "Didn't read anything for $type @ $_binaryOffset";
             }
           }
           vars[name] = value;
         } else {
-          throw "Array of unknown size ($count)";
+          throw "Array of unknown size ($instruction, $type, $count)";
         }
       } else {
         // Not an array, read the single field recursively.
         type = _lookupGenericType(typeNames, type, types);
-        dynamic value = _readBinary(type);
+        dynamic value = _readBinary(type, instruction);
         vars[name] = value;
         _checkTag(instruction, value);
       }
@@ -551,6 +572,8 @@ class BinaryMdDillReader {
     }
 
     --_depth;
+    readingStack.removeLast();
+    readingStack.removeLast();
     return vars;
   }
 

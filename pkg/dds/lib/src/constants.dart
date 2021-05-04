@@ -16,6 +16,10 @@ abstract class RPCResponses {
   };
 }
 
+// Give connections time to reestablish before considering them closed.
+// Required to reestablish connections killed by UberProxy.
+const sseKeepAlive = Duration(seconds: 30);
+
 abstract class PauseTypeMasks {
   static const pauseOnStartMask = 1 << 0;
   static const pauseOnReloadMask = 1 << 1;

@@ -516,7 +516,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     completers[requestId] = completer;
 
     channel.sendRequest(RequestMessage(
-      id: Either2<num, String>.t1(requestId),
+      id: Either2<int, String>.t1(requestId),
       method: method,
       params: params,
       jsonrpc: jsonRpcVersion,

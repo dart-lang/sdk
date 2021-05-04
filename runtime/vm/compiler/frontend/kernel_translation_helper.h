@@ -1204,6 +1204,7 @@ class KernelReaderHelper {
   }
 
   intptr_t ReaderOffset() const;
+  intptr_t ReaderSize() const;
   void SkipBytes(intptr_t skip);
   bool ReadBool();
   uint8_t ReadByte();
@@ -1252,7 +1253,6 @@ class KernelReaderHelper {
   Nullability ReadNullability();
   Variance ReadVariance();
 
-  intptr_t SourceTableFieldCountFromFirstLibraryOffset();
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);
@@ -1344,11 +1344,8 @@ class ActiveClass {
     return klass->NumTypeArguments();
   }
 
-  void RecordDerivedTypeParameter(Zone* zone,
-                                  const TypeParameter& original,
-                                  const TypeParameter& derived) {
-    if (original.ptr() != derived.ptr() &&
-        original.bound() == AbstractType::null()) {
+  void RecordDerivedTypeParameter(Zone* zone, const TypeParameter& derived) {
+    if (derived.bound() == AbstractType::null()) {
       if (derived_type_parameters == nullptr) {
         derived_type_parameters = &GrowableObjectArray::Handle(
             zone, GrowableObjectArray::New(Heap::kOld));
@@ -1442,14 +1439,14 @@ class ActiveTypeParametersScope {
   // Also, the enclosing signature is set to 'signature'.
   ActiveTypeParametersScope(ActiveClass* active_class,
                             const FunctionType* innermost_signature,
-                            const TypeArguments& new_params,
                             Zone* Z);
 
-  ~ActiveTypeParametersScope() { *active_class_ = saved_; }
+  ~ActiveTypeParametersScope();
 
  private:
   ActiveClass* active_class_;
   ActiveClass saved_;
+  Zone* zone_;
 
   DISALLOW_COPY_AND_ASSIGN(ActiveTypeParametersScope);
 };
@@ -1476,8 +1473,7 @@ class TypeTranslator {
                                   const Function& function,
                                   const Class& parameterized_class,
                                   const FunctionType& parameterized_signature,
-                                  intptr_t type_parameter_count,
-                                  const NNBDMode nnbd_mode);
+                                  intptr_t type_parameter_count);
 
   void LoadAndSetupBounds(ActiveClass* active_class,
                           const Function& function,

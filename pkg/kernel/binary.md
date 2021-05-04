@@ -87,7 +87,7 @@ type StringReference {
 }
 
 type ConstantReference {
-  UInt offset; // Byte offset into the Component's constants.
+  UInt index; // Index into [constantsMapping] and [constants].
 }
 
 type SourceInfo {
@@ -147,16 +147,17 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 63;
+  UInt32 formatVersion = 64;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
+  List<Constant> constants;
+  RList<UInt32> constantsMapping; // Byte offset into the Component's constants.
   List<CanonicalName> canonicalNames;
   MetadataPayload[] metadataPayloads;
   RList<MetadataMapping> metadataMappings;
   StringTable strings;
-  List<Constant> constants;
   ComponentIndex componentIndex;
 }
 
@@ -179,11 +180,13 @@ type MetadataMapping {
 type ComponentIndex {
   Byte[] 8bitAlignment; // 0-bytes to make the entire component (!) 8-byte aligned.
   UInt32 binaryOffsetForSourceTable;
+  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForConstantTableIndex;
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForMetadataPayloads;
   UInt32 binaryOffsetForMetadataMappings;
   UInt32 binaryOffsetForStringTable;
-  UInt32 binaryOffsetForConstantTable;
+  UInt32 binaryOffsetForStartOfComponentIndex;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32 compilationMode; // enum NonNullableByDefaultCompiledMode { Disabled = 0, Weak = 1, Strong = 2, Agnostic = 3 } with a fixed-size integer.
   UInt32[libraryCount + 1] libraryOffsets;

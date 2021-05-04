@@ -151,9 +151,9 @@ class BreakpointLocation {
 
   ~BreakpointLocation();
 
-  TokenPosition token_pos() const { return token_pos_; }
+  TokenPosition token_pos() const { return token_pos_.load(); }
   intptr_t line_number();
-  TokenPosition end_token_pos() const { return end_token_pos_; }
+  TokenPosition end_token_pos() const { return end_token_pos_.load(); }
 
   ScriptPtr script() const {
     if (scripts_.length() == 0) {
@@ -176,7 +176,7 @@ class BreakpointLocation {
 
   bool AnyEnabled() const;
   bool IsResolved() const { return code_token_pos_.IsReal(); }
-  bool IsLatent() const { return !token_pos_.IsReal(); }
+  bool IsLatent() const { return !token_pos().IsReal(); }
 
   bool EnsureIsResolved(const Function& target_function,
                         TokenPosition exact_token_pos);
@@ -206,8 +206,8 @@ class BreakpointLocation {
   StringPtr url_;
   std::unique_ptr<SafepointRwLock> line_number_lock_;
   intptr_t line_number_;  // lazily computed for token_pos_
-  TokenPosition token_pos_;
-  TokenPosition end_token_pos_;
+  std::atomic<TokenPosition> token_pos_;
+  std::atomic<TokenPosition> end_token_pos_;
   BreakpointLocation* next_;
   Breakpoint* conditions_;
   intptr_t requested_line_number_;
