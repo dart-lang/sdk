@@ -249,7 +249,6 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     return value;
   }
   makeGenericType[$_genericTypeCtor] = $typeConstructor;
-  $addTypeCaches(makeGenericType);
   return makeGenericType;
 })()''');
 
