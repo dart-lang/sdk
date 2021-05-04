@@ -940,6 +940,7 @@ rarely
 ratio
 rb
 rc
+rd
 re
 reach
 reachabilities

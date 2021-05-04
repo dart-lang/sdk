@@ -23,7 +23,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   SwitchCaseIndexer? _switchCaseIndexer;
   TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer stringIndexer;
-  late ConstantIndexer _constantIndexer;
+  final ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool> _sourcesFromRealImplementation = <bool>[];
@@ -36,8 +36,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   final BufferedSink _mainSink;
   final BufferedSink _metadataSink;
-  final BytesSink _constantsBytesSink;
-  late BufferedSink _constantsSink;
   late BufferedSink _sink;
   final bool includeSources;
   final bool includeOffsets;
@@ -51,9 +49,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   int _binaryOffsetForMetadataPayloads = -1;
   int _binaryOffsetForMetadataMappings = -1;
   int _binaryOffsetForStringTable = -1;
+  int _binaryOffsetForConstantTableIndex = -1;
   int _binaryOffsetForConstantTable = -1;
 
   late List<CanonicalName> _canonicalNameList;
+  bool _canonicalNameListDone = false;
   Set<CanonicalName> _knownCanonicalNameNonRootTops = new Set<CanonicalName>();
 
   Library? _currentLibrary;
@@ -69,10 +69,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       this.includeOffsets = true})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
-        _constantsBytesSink = new BytesSink(),
-        stringIndexer = stringIndexer ?? new StringIndexer() {
-    _constantsSink = new BufferedSink(_constantsBytesSink);
-    _constantIndexer = new ConstantIndexer(this.stringIndexer, this);
+        stringIndexer = stringIndexer ?? new StringIndexer(),
+        _constantIndexer = new ConstantIndexer() {
     _sink = _mainSink;
   }
 
@@ -181,21 +179,34 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(_constantIndexer.put(constant));
   }
 
-  void writeConstantTable(ConstantIndexer indexer) {
+  void writeConstantTable() {
     _binaryOffsetForConstantTable = getBufferOffset();
 
-    writeUInt30(indexer.entries.length);
-    assert(identical(_sink, _mainSink));
-    _constantsSink.flushAndDestroy();
-    writeBytes(_constantsBytesSink.builder.takeBytes());
+    writeUInt30(_constantIndexer.entries.length);
+    assert(_constantIndexer.entries.length == _constantIndexer.offsets.length);
+    for (int i = 0; i < _constantIndexer.entries.length; i++) {
+      final Constant entry = _constantIndexer.entries[i];
+      _constantIndexer.offsets[i] =
+          getBufferOffset() - _binaryOffsetForConstantTable;
+      writeConstantTableEntry(entry);
+    }
   }
 
-  int writeConstantTableEntry(Constant constant) {
+  void writeConstantTableIndex() {
+    _binaryOffsetForConstantTableIndex = getBufferOffset();
+    assert(identical(_sink, _mainSink));
+    assert(_constantIndexer.entries.length == _constantIndexer.offsets.length);
+    for (int i = 0; i < _constantIndexer.offsets.length; i++) {
+      final int relativeOffset = _constantIndexer.offsets[i];
+      assert(relativeOffset >= 0);
+      writeUInt32(relativeOffset);
+    }
+    writeUInt32(_constantIndexer.entries.length);
+  }
+
+  void writeConstantTableEntry(Constant constant) {
     TypeParameterIndexer oldTypeParameterIndexer = _typeParameterIndexer;
     _typeParameterIndexer = new TypeParameterIndexer();
-    BufferedSink oldSink = _sink;
-    _sink = _constantsSink;
-    int initialOffset = _sink.offset;
     if (constant is NullConstant) {
       writeByte(ConstantTag.NullConstant);
     } else if (constant is BoolConstant) {
@@ -264,9 +275,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       throw new ArgumentError('Unsupported constant $constant');
     }
-    _sink = oldSink;
     _typeParameterIndexer = oldTypeParameterIndexer;
-    return _constantsSink.offset - initialOffset;
   }
 
   void writeDartType(DartType type) {
@@ -491,6 +500,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void writeLinkTable(Component component) {
     _binaryOffsetForLinkTable = getBufferOffset();
     writeList(_canonicalNameList, writeCanonicalNameEntry);
+    _canonicalNameListDone = true;
   }
 
   void indexLinkTable(Component component) {
@@ -506,6 +516,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void _indexLinkTableInternal(CanonicalName node) {
     node.index = _canonicalNameList.length;
+    assert(!_canonicalNameListDone);
     _canonicalNameList.add(node);
     Iterable<CanonicalName>? children = node.childrenOrNull;
     if (children != null) {
@@ -557,10 +568,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       }
       writeLibraries(component);
       writeUriToSource(component.uriToSource);
+      // Writing constants can add both strings and canonical names.
+      writeConstantTable();
+      writeConstantTableIndex();
+      // Writing canonical names can add strings.
       writeLinkTable(component);
+      // Writing metadata sections can add strings.
       _writeMetadataSection(component);
       writeStringTable(stringIndexer);
-      writeConstantTable(_constantIndexer);
       List<Library> libraries = component.libraries;
       if (libraryFilter != null) {
         List<Library> librariesNew = <Library>[];
@@ -727,9 +742,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     const int kernelFileAlignment = 8;
 
     // Keep this in sync with number of writeUInt32 below.
-    int numComponentIndexEntries = 8 + libraryOffsets.length + 3;
+    int numComponentIndexEntries = 10 + libraryOffsets.length + 3;
+    int componentIndexOffset = getBufferOffset();
 
-    int unalignedSize = getBufferOffset() + numComponentIndexEntries * 4;
+    int unalignedSize = componentIndexOffset + numComponentIndexEntries * 4;
     int padding =
         ((unalignedSize + kernelFileAlignment - 1) & -kernelFileAlignment) -
             unalignedSize;
@@ -740,6 +756,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // Fixed-size ints at the end used as an index.
     assert(_binaryOffsetForSourceTable >= 0);
     writeUInt32(_binaryOffsetForSourceTable);
+    assert(_binaryOffsetForConstantTable >= 0);
+    writeUInt32(_binaryOffsetForConstantTable);
+    assert(_binaryOffsetForConstantTableIndex >= 0);
+    writeUInt32(_binaryOffsetForConstantTableIndex);
     assert(_binaryOffsetForLinkTable >= 0);
     writeUInt32(_binaryOffsetForLinkTable);
     assert(_binaryOffsetForMetadataPayloads >= 0);
@@ -748,8 +768,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt32(_binaryOffsetForMetadataMappings);
     assert(_binaryOffsetForStringTable >= 0);
     writeUInt32(_binaryOffsetForStringTable);
-    assert(_binaryOffsetForConstantTable >= 0);
-    writeUInt32(_binaryOffsetForConstantTable);
+    assert(componentIndexOffset >= 0);
+    writeUInt32(componentIndexOffset);
 
     Procedure? mainMethod = component.mainMethod;
     if (mainMethod == null) {
@@ -911,6 +931,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     checkCanonicalName(node.parent!);
     node.index = _canonicalNameList.length;
+    assert(!_canonicalNameListDone);
     _canonicalNameList.add(node);
   }
 
@@ -2772,48 +2793,28 @@ class SwitchCaseIndexer {
 }
 
 class ConstantIndexer extends RecursiveResultVisitor {
-  final StringIndexer stringIndexer;
-
   final List<Constant> entries = <Constant>[];
-  final Map<Constant, int> offsets = <Constant, int>{};
-  int nextOffset = 0;
-
-  final BinaryPrinter _printer;
-
-  ConstantIndexer(this.stringIndexer, this._printer);
+  final List<int> offsets = <int>[];
+  final Map<Constant, int> index = <Constant, int>{};
 
   int put(Constant constant) {
-    final int? oldOffset = offsets[constant];
-    if (oldOffset != null) return oldOffset;
+    final int? oldIndex = index[constant];
+    if (oldIndex != null) return oldIndex;
 
     // Traverse DAG in post-order to ensure children have their offsets assigned
     // before the parent.
     constant.visitChildren(this);
 
-    if (constant is StringConstant) {
-      stringIndexer.put(constant.value);
-    } else if (constant is SymbolConstant) {
-      stringIndexer.put(constant.name);
-    } else if (constant is DoubleConstant) {
-      stringIndexer.put('${constant.value}');
-    } else if (constant is IntConstant) {
-      final int value = constant.value;
-      if ((value.abs() >> 30) != 0) {
-        stringIndexer.put('$value');
-      }
-    }
-
-    final int newOffset = nextOffset;
+    final int newIndex = entries.length;
     entries.add(constant);
-    nextOffset += _printer.writeConstantTableEntry(constant);
-    return offsets[constant] = newOffset;
+    offsets.add(-1); // placeholder.
+    assert(entries.length == offsets.length);
+    return index[constant] = newIndex;
   }
 
   defaultConstantReference(Constant node) {
     put(node);
   }
-
-  int? operator [](Constant node) => offsets[node];
 }
 
 class TypeParameterIndexer {

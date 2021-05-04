@@ -99,6 +99,7 @@ class Program {
     return metadata_mappings_offset_;
   }
   intptr_t constant_table_offset() { return constant_table_offset_; }
+  intptr_t component_index_offset() { return component_index_offset_; }
   intptr_t library_count() { return library_count_; }
   NNBDCompiledMode compilation_mode() const { return compilation_mode_; }
 
@@ -121,6 +122,9 @@ class Program {
 
   // The offset from the start of the binary to the start of the constant table.
   intptr_t constant_table_offset_;
+
+  // The offset from the start of the binary to the start of the ending-index.
+  intptr_t component_index_offset_;
 
   // The offset from the start of the binary to the canonical name table.
   intptr_t name_table_offset_;

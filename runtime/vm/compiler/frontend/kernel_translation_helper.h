@@ -1204,6 +1204,7 @@ class KernelReaderHelper {
   }
 
   intptr_t ReaderOffset() const;
+  intptr_t ReaderSize() const;
   void SkipBytes(intptr_t skip);
   bool ReadBool();
   uint8_t ReadByte();
@@ -1252,7 +1253,6 @@ class KernelReaderHelper {
   Nullability ReadNullability();
   Variance ReadVariance();
 
-  intptr_t SourceTableFieldCountFromFirstLibraryOffset();
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
   String& SourceTableUriFor(intptr_t index);

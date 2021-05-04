@@ -61,7 +61,7 @@ class CompilationModeError {
 }
 
 class _ComponentIndex {
-  static const int numberOfFixedFields = 10;
+  static const int numberOfFixedFields = 12;
 
   final int binaryOffsetForSourceTable;
   final int binaryOffsetForCanonicalNames;
@@ -69,6 +69,8 @@ class _ComponentIndex {
   final int binaryOffsetForMetadataMappings;
   final int binaryOffsetForStringTable;
   final int binaryOffsetForConstantTable;
+  final int binaryOffsetForConstantTableIndex;
+  final int binaryOffsetForStartOfComponentIndex;
   final int mainMethodReference;
   final NonNullableByDefaultCompiledMode compiledMode;
   final List<int> libraryOffsets;
@@ -82,6 +84,8 @@ class _ComponentIndex {
       required this.binaryOffsetForMetadataMappings,
       required this.binaryOffsetForStringTable,
       required this.binaryOffsetForConstantTable,
+      required this.binaryOffsetForConstantTableIndex,
+      required this.binaryOffsetForStartOfComponentIndex,
       required this.mainMethodReference,
       required this.compiledMode,
       required this.libraryOffsets,
@@ -122,7 +126,7 @@ class BinaryBuilder {
   int _byteOffset = 0;
   List<String> _stringTable = const [];
   List<Uri> _sourceUriTable = const [];
-  Map<int, Constant> _constantTable = <int, Constant>{};
+  List<Constant> _constantTable = const <Constant>[];
   late List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
   Library? _currentLibrary;
@@ -329,9 +333,12 @@ class BinaryBuilder {
 
   void readConstantTable() {
     final int length = readUInt30();
-    final int startOffset = byteOffset;
+    // Because of "back-references" (e.g. the 10th constant referencing the 3rd
+    // constant) we can't use List.generate.
+    _constantTable =
+        new List<Constant>.filled(length, dummyConstant, growable: false);
     for (int i = 0; i < length; i++) {
-      _constantTable[byteOffset - startOffset] = readConstantTableEntry();
+      _constantTable[i] = readConstantTableEntry();
     }
   }
 
@@ -457,10 +464,11 @@ class BinaryBuilder {
   }
 
   Constant readConstantReference() {
-    final int offset = readUInt30();
-    Constant? constant = _constantTable[offset];
-    assert(constant != null, "No constant found at offset $offset.");
-    return constant!;
+    final int index = readUInt30();
+    Constant constant = _constantTable[index];
+    assert(!identical(constant, dummyConstant),
+        "No constant found at index $index.");
+    return constant;
   }
 
   List<Constant> _readConstantReferenceList() {
@@ -702,11 +710,15 @@ class BinaryBuilder {
 
     // Now read the component index.
     int binaryOffsetForSourceTable = _componentStartOffset + readUint32();
+    int binaryOffsetForConstantTable = _componentStartOffset + readUint32();
+    int binaryOffsetForConstantTableIndex =
+        _componentStartOffset + readUint32();
     int binaryOffsetForCanonicalNames = _componentStartOffset + readUint32();
     int binaryOffsetForMetadataPayloads = _componentStartOffset + readUint32();
     int binaryOffsetForMetadataMappings = _componentStartOffset + readUint32();
     int binaryOffsetForStringTable = _componentStartOffset + readUint32();
-    int binaryOffsetForConstantTable = _componentStartOffset + readUint32();
+    int binaryOffsetForStartOfComponentIndex =
+        _componentStartOffset + readUint32();
     int mainMethodReference = readUint32();
     NonNullableByDefaultCompiledMode compiledMode =
         NonNullableByDefaultCompiledMode.values[readUint32()];
@@ -726,6 +738,9 @@ class BinaryBuilder {
         binaryOffsetForMetadataMappings: binaryOffsetForMetadataMappings,
         binaryOffsetForStringTable: binaryOffsetForStringTable,
         binaryOffsetForConstantTable: binaryOffsetForConstantTable,
+        binaryOffsetForConstantTableIndex: binaryOffsetForConstantTableIndex,
+        binaryOffsetForStartOfComponentIndex:
+            binaryOffsetForStartOfComponentIndex,
         mainMethodReference: mainMethodReference,
         compiledMode: compiledMode);
   }
@@ -804,6 +819,7 @@ class BinaryBuilder {
 
     _byteOffset = index.binaryOffsetForConstantTable;
     readConstantTable();
+    // We don't need the constant table index on the dart side.
 
     int numberOfLibraries = index.libraryCount;
 

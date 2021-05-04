@@ -3760,9 +3760,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
     SkipDartType();
   }
   if (position != nullptr) *position = p;
-  const intptr_t constant_offset = ReadUInt();
+  const intptr_t constant_index = ReadUInt();
   Fragment result = Constant(
-      Object::ZoneHandle(Z, constant_reader_.ReadConstant(constant_offset)));
+      Object::ZoneHandle(Z, constant_reader_.ReadConstant(constant_index)));
   return result;
 }
 

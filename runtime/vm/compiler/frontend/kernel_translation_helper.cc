@@ -1717,10 +1717,10 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
 
   const Object* constant_value = &Object::null_object();
   if ((flags & InferredTypeMetadata::kFlagConstant) != 0) {
-    const intptr_t constant_offset = helper_->ReadUInt();
+    const intptr_t constant_index = helper_->ReadUInt();
     if (read_constant) {
       constant_value = &Object::ZoneHandle(
-          H.zone(), constant_reader_->ReadConstant(constant_offset));
+          H.zone(), constant_reader_->ReadConstant(constant_index));
     }
   }
 
@@ -1956,6 +1956,10 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
 
 intptr_t KernelReaderHelper::ReaderOffset() const {
   return reader_.offset();
+}
+
+intptr_t KernelReaderHelper::ReaderSize() const {
+  return reader_.size();
 }
 
 void KernelReaderHelper::SetOffset(intptr_t offset) {
@@ -2713,17 +2717,13 @@ TokenPosition KernelReaderHelper::ReadPosition() {
   return position;
 }
 
-intptr_t KernelReaderHelper::SourceTableFieldCountFromFirstLibraryOffset() {
-  return SourceTableFieldCountFromFirstLibraryOffset41Plus;
-}
-
 intptr_t KernelReaderHelper::SourceTableSize() {
   AlternativeReadingScope alt(&reader_);
   intptr_t library_count = reader_.ReadFromIndexNoReset(
       reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
 
   const intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset();
+      SourceTableFieldCountFromFirstLibraryOffset;
 
   intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
       reader_.size(),
@@ -2740,7 +2740,7 @@ intptr_t KernelReaderHelper::GetOffsetForSourceInfo(intptr_t index) {
       reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
 
   const intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset();
+      SourceTableFieldCountFromFirstLibraryOffset;
 
   intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
       reader_.size(),
