@@ -45,13 +45,14 @@ main() {
   Expect.equals(magnitudeDecl, magnitudeOfR.originalDeclaration);
   Expect.equals(rFromSorter, magnitudeOfR.typeArguments.single);
 
-  typeParameters(magnitudeDecl, [#T]);
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
+
   typeParameters(realDecl, []);
-  typeParameters(sorterDecl, [#R]);
   typeParameters(realSorterDecl, []);
-  typeParameters(magnitudeOfReal, [#T]);
-  typeParameters(sorterOfReal, [#R]);
-  typeParameters(magnitudeOfR, [#T]);
+
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
 
   typeArguments(magnitudeDecl, []);
   typeArguments(realDecl, []);

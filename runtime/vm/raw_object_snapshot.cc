@@ -230,6 +230,8 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type_parameter, kIsDeserialized);
 
   // Set all non object fields.
+  type_parameter.set_base(reader->Read<uint8_t>());
+  type_parameter.set_index(reader->Read<uint8_t>());
   const uint8_t combined = reader->Read<uint8_t>();
   type_parameter.set_flags(combined >> 4);
   type_parameter.set_nullability(static_cast<Nullability>(combined & 0xf));
@@ -279,8 +281,8 @@ void UntaggedTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->Write<uint16_t>(base_);
-  writer->Write<uint16_t>(index_);
+  writer->Write<uint8_t>(base_);
+  writer->Write<uint8_t>(index_);
   const uint8_t combined = (flags_ << 4) | nullability_;
   ASSERT(flags_ == (combined >> 4));
   ASSERT(nullability_ == (combined & 0xf));
@@ -294,6 +296,43 @@ void UntaggedTypeParameter::WriteTo(SnapshotWriter* writer,
   ClassPtr param_class =
       writer->isolate_group()->class_table()->At(parameterized_class_id_);
   writer->WriteObjectImpl(param_class, kAsReference);
+}
+
+TypeParametersPtr TypeParameters::ReadFrom(SnapshotReader* reader,
+                                           intptr_t object_id,
+                                           intptr_t tags,
+                                           Snapshot::Kind kind,
+                                           bool as_reference) {
+  ASSERT(reader != NULL);
+
+  TypeParameters& type_parameters =
+      TypeParameters::ZoneHandle(reader->zone(), TypeParameters::New());
+  reader->AddBackRef(object_id, &type_parameters, kIsDeserialized);
+
+  // Set all the object fields.
+  READ_COMPRESSED_OBJECT_FIELDS(
+      type_parameters, type_parameters.ptr()->untag()->from(),
+      type_parameters.ptr()->untag()->to(), kAsReference);
+
+  return type_parameters.ptr();
+}
+
+void UntaggedTypeParameters::WriteTo(SnapshotWriter* writer,
+                                     intptr_t object_id,
+                                     Snapshot::Kind kind,
+                                     bool as_reference) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kTypeParametersCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer, kAsReference);
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 }
 
 TypeArgumentsPtr TypeArguments::ReadFrom(SnapshotReader* reader,

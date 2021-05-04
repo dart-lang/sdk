@@ -572,6 +572,7 @@ COMPRESSED_VISITOR(MirrorReference)
 COMPRESSED_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
 COMPRESSED_VISITOR(LoadingUnit)
+COMPRESSED_VISITOR(TypeParameters)
 VARIABLE_COMPRESSED_VISITOR(TypeArguments,
                             Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)

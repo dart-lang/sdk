@@ -110,7 +110,6 @@
   FIELD(Closure, function_type_arguments_offset)                               \
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
-  FIELD(ClosureData, default_type_arguments_offset)                            \
   FIELD(ClosureData, default_type_arguments_kind_offset)                       \
   FIELD(Code, object_pool_offset)                                              \
   FIELD(Code, saved_instructions_offset)                                       \
@@ -301,9 +300,12 @@
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
   FIELD(TypeArguments, types_offset)                                           \
+  FIELD(TypeParameters, names_offset)                                          \
+  FIELD(TypeParameters, flags_offset)                                          \
+  FIELD(TypeParameters, bounds_offset)                                         \
+  FIELD(TypeParameters, defaults_offset)                                       \
   FIELD(TypeParameter, bound_offset)                                           \
   FIELD(TypeParameter, flags_offset)                                           \
-  FIELD(TypeParameter, name_offset)                                            \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, data_offset)                                            \
@@ -384,6 +386,7 @@
   SIZEOF(TransferableTypedData, InstanceSize, UntaggedTransferableTypedData)   \
   SIZEOF(Type, InstanceSize, UntaggedType)                                     \
   SIZEOF(TypeParameter, InstanceSize, UntaggedTypeParameter)                   \
+  SIZEOF(TypeParameters, InstanceSize, UntaggedTypeParameters)                 \
   SIZEOF(TypeRef, InstanceSize, UntaggedTypeRef)                               \
   SIZEOF(TypedData, HeaderSize, UntaggedTypedData)                             \
   SIZEOF(TypedDataBase, InstanceSize, UntaggedTypedDataBase)                   \

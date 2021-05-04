@@ -37,29 +37,8 @@ class GenericMultipleMixins<A, B, C> extends Super<A> with Mixin<B>, Nixim<C> {}
 main() {
   TypeMirror dynamicMirror = currentMirrorSystem().dynamicType;
 
-  typeParameters(reflectClass(NonGenericMixinApplication1).mixin, [#M]);
-  typeParameters(reflectClass(NonGenericMixinApplication2).mixin, [#M]);
-  typeParameters(reflectClass(GenericMixinApplication1).mixin, [#M]);
-  typeParameters(reflectClass(GenericMixinApplication2).mixin, [#M]);
-  typeParameters(reflectClass(NonGenericClass1).mixin, []);
-  typeParameters(reflectClass(NonGenericClass2).mixin, []);
-  typeParameters(reflectClass(GenericClass1).mixin, [#C]);
-  typeParameters(reflectClass(GenericClass2).mixin, [#C]);
-  typeParameters(reflectClass(NonGenericClass1).superclass.mixin, [#M]);
-  typeParameters(reflectClass(NonGenericClass2).superclass.mixin, [#M]);
-  typeParameters(reflectClass(GenericClass1).superclass.mixin, [#M]);
-  typeParameters(reflectClass(GenericClass2).superclass.mixin, [#M]);
-  typeParameters(reflectClass(GenericMultipleMixins).mixin, [#A, #B, #C]);
-  typeParameters(reflectClass(GenericMultipleMixins).superclass.mixin, [#N]);
-  typeParameters(
-      reflectClass(GenericMultipleMixins).superclass.superclass.mixin, [#M]);
-  typeParameters(
-      reflectClass(GenericMultipleMixins)
-          .superclass
-          .superclass
-          .superclass
-          .mixin,
-      [#S]);
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
 
   typeArguments(
       reflectClass(NonGenericMixinApplication1).mixin, [dynamicMirror]);
@@ -94,46 +73,8 @@ main() {
           .mixin,
       [reflectClass(GenericMultipleMixins).typeVariables[0]]);
 
-  typeParameters(reflect(new NonGenericMixinApplication1()).type.mixin, [#M]);
-  typeParameters(reflect(new NonGenericMixinApplication2()).type.mixin, [#M]);
-  typeParameters(
-      reflect(new GenericMixinApplication1<bool>()).type.mixin, [#M]);
-  typeParameters(
-      reflect(new GenericMixinApplication2<bool>()).type.mixin, [#M]);
   typeParameters(reflect(new NonGenericClass1()).type.mixin, []);
   typeParameters(reflect(new NonGenericClass2()).type.mixin, []);
-  typeParameters(reflect(new GenericClass1<bool>()).type.mixin, [#C]);
-  typeParameters(reflect(new GenericClass2<bool>()).type.mixin, [#C]);
-  typeParameters(reflect(new NonGenericClass1()).type.superclass.mixin, [#M]);
-  typeParameters(reflect(new NonGenericClass2()).type.superclass.mixin, [#M]);
-  typeParameters(
-      reflect(new GenericClass1<bool>()).type.superclass.mixin, [#M]);
-  typeParameters(
-      reflect(new GenericClass2<bool>()).type.superclass.mixin, [#M]);
-  typeParameters(
-      reflect(new GenericMultipleMixins<bool, String, int>()).type.mixin,
-      [#A, #B, #C]);
-  typeParameters(
-      reflect(new GenericMultipleMixins<bool, String, int>())
-          .type
-          .superclass
-          .mixin,
-      [#N]);
-  typeParameters(
-      reflect(new GenericMultipleMixins<bool, String, int>())
-          .type
-          .superclass
-          .superclass
-          .mixin,
-      [#M]);
-  typeParameters(
-      reflect(new GenericMultipleMixins<bool, String, int>())
-          .type
-          .superclass
-          .superclass
-          .superclass
-          .mixin,
-      [#S]);
 
   typeArguments(
       reflect(new NonGenericMixinApplication1()).type.mixin, [dynamicMirror]);

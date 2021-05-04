@@ -93,20 +93,8 @@ main() {
   Expect.equals(reflectClass(Object), xFromGenericMixinApplication.upperBound);
   Expect.equals(reflectClass(Object), yFromGenericClass.upperBound);
 
-  typeParameters(interfaceDecl, [#T]);
-  typeParameters(boundedDecl, [#S]);
-  typeParameters(interfaceOfInt, [#T]);
-  typeParameters(interfaceOfR, [#T]);
-  typeParameters(interfaceOfBool, [#T]);
-  typeParameters(boundedOfInt, [#S]);
-  typeParameters(boundedOfString, [#S]); // //# 01: continued
-  typeParameters(interfaceOfFBounded, [#T]);
-  typeParameters(interfaceOfInt2, [#T]);
-  typeParameters(interfaceOfX, [#T]);
-  typeParameters(interfaceOfDouble, [#T]);
-  typeParameters(interfaceOfInt3, [#T]);
-  typeParameters(interfaceOfY, [#T]);
-  typeParameters(interfaceOfDouble2, [#T]);
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
 
   typeArguments(interfaceDecl, []);
   typeArguments(boundedDecl, []);

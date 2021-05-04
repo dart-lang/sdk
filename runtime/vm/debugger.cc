@@ -1328,20 +1328,19 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
     intptr_t num_vars = function().NumTypeArguments();
     type_params_names.Grow(num_vars);
     type_params_names.SetLength(num_vars);
-    TypeArguments& type_params = TypeArguments::Handle();
-    TypeParameter& type_param = TypeParameter::Handle();
+    TypeParameters& type_params = TypeParameters::Handle();
     Function& current = Function::Handle(function().ptr());
     intptr_t mapping_offset = num_vars;
     for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
                   current = current.parent_function()) {
       type_params = current.type_parameters();
+      if (type_params.IsNull()) continue;
       intptr_t size = current.NumTypeParameters();
-      ASSERT(size == 0 || type_params.Length() == size);
+      ASSERT(size > 0 && type_params.Length() == size);
       ASSERT(mapping_offset >= size);
       mapping_offset -= size;
       for (intptr_t j = 0; j < size; ++j) {
-        type_param = TypeParameter::RawCast(type_params.TypeAt(j));
-        name = type_param.name();
+        name = type_params.NameAt(j);
         // Write the names in backwards in terms of chain of functions.
         // But keep the order of names within the same function. so they
         // match up with the order of the types in 'type_arguments'.
