@@ -233,7 +233,8 @@ class _Collect extends RecursiveVisitor {
         shaker.typeFlowAnalysis.nativeCodeOracle
             .isMemberReferencedFromNativeCode(member) ||
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
-        getExternalName(member) != null) {
+        getExternalName(member) != null ||
+        member.name.text == '==') {
       info.eligible = false;
     }
   }
@@ -299,6 +300,12 @@ class _Collect extends RecursiveVisitor {
   void visitMethodInvocation(MethodInvocation node) {
     collectCall(node.interfaceTarget, node.arguments);
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    collectCall(node.interfaceTarget, node.arguments);
+    super.visitInstanceInvocation(node);
   }
 
   @override
@@ -635,6 +642,12 @@ class _Transform extends RecursiveVisitor {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
+    transformCall(node.interfaceTarget, node, node.receiver, node.arguments);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
     transformCall(node.interfaceTarget, node, node.receiver, node.arguments);
   }
 

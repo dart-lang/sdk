@@ -190,6 +190,28 @@ class DynamicSelectorsCollector extends RecursiveVisitor {
   }
 
   @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doInvoke(node.name));
+    }
+  }
+
+  @override
+  visitDynamicInvocation(DynamicInvocation node) {
+    super.visitDynamicInvocation(node);
+    dynamicSelectors.add(new Selector.doInvoke(node.name));
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    super.visitEqualsCall(node);
+    if (node.left is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doInvoke(Name('==')));
+    }
+  }
+
+  @override
   visitPropertyGet(PropertyGet node) {
     super.visitPropertyGet(node);
 
@@ -209,6 +231,29 @@ class DynamicSelectorsCollector extends RecursiveVisitor {
   }
 
   @override
+  visitInstanceGet(InstanceGet node) {
+    super.visitInstanceGet(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doGet(node.name));
+    }
+  }
+
+  @override
+  visitDynamicGet(DynamicGet node) {
+    super.visitDynamicGet(node);
+    dynamicSelectors.add(new Selector.doGet(node.name));
+  }
+
+  @override
+  visitInstanceTearOff(InstanceTearOff node) {
+    super.visitInstanceTearOff(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doGet(node.name));
+    }
+    tearOffSelectors.add(new Selector.doInvoke(node.name));
+  }
+
+  @override
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
 
@@ -220,5 +265,19 @@ class DynamicSelectorsCollector extends RecursiveVisitor {
         nonThisSelectors.add(selector ??= new Selector.doSet(node.name));
       }
     }
+  }
+
+  @override
+  visitInstanceSet(InstanceSet node) {
+    super.visitInstanceSet(node);
+    if (node.receiver is! ThisExpression) {
+      nonThisSelectors.add(new Selector.doSet(node.name));
+    }
+  }
+
+  @override
+  visitDynamicSet(DynamicSet node) {
+    super.visitDynamicSet(node);
+    dynamicSelectors.add(new Selector.doSet(node.name));
   }
 }

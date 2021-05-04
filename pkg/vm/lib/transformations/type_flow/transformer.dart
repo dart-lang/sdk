@@ -256,7 +256,13 @@ class AnnotateKernel extends RecursiveVisitor {
     }
 
     final bool markSkipCheck = !callSite.useCheckedEntry &&
-        (node is MethodInvocation || node is PropertySet);
+        (node is MethodInvocation ||
+            node is InstanceInvocation ||
+            node is DynamicInvocation ||
+            node is EqualsCall ||
+            node is PropertySet ||
+            node is InstanceSet ||
+            node is DynamicSet);
 
     bool markReceiverNotInt = false;
 
@@ -264,7 +270,8 @@ class AnnotateKernel extends RecursiveVisitor {
       // No information is needed for static calls.
       if (node is! StaticInvocation &&
           node is! StaticSet &&
-          node is! StaticGet) {
+          node is! StaticGet &&
+          node is! StaticTearOff) {
         // The compiler uses another heuristic in addition to the call-site
         // annotation: if the call-site is non-dynamic and the interface target does
         // not exist in the parent chain of _Smi (int is used as an approxmiation
@@ -298,11 +305,17 @@ class AnnotateKernel extends RecursiveVisitor {
     // Tell the table selector assigner about the callsite.
     final Selector selector = callSite.selector;
     if (selector is InterfaceSelector && !_callSiteUsesDirectCall(node)) {
-      if (node is PropertyGet) {
+      if (node is PropertyGet ||
+          node is InstanceGet ||
+          node is InstanceTearOff) {
         _tableSelectorAssigner.registerGetterCall(
             selector.member, callSite.isNullableReceiver);
       } else {
-        assert(node is MethodInvocation || node is PropertySet);
+        assert(node is MethodInvocation ||
+            node is InstanceInvocation ||
+            node is EqualsCall ||
+            node is PropertySet ||
+            node is InstanceSet);
         _tableSelectorAssigner.registerMethodOrSetterCall(
             selector.member, callSite.isNullableReceiver);
       }
@@ -428,15 +441,81 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  visitDynamicInvocation(DynamicInvocation node) {
+    _annotateCallSite(node, null);
+    super.visitDynamicInvocation(node);
+  }
+
+  @override
+  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    _annotateCallSite(node, null);
+    super.visitLocalFunctionInvocation(node);
+  }
+
+  @override
+  visitFunctionInvocation(FunctionInvocation node) {
+    _annotateCallSite(node, null);
+    super.visitFunctionInvocation(node);
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    _annotateCallSite(node, null);
+    super.visitEqualsCall(node);
+  }
+
+  @override
   visitPropertyGet(PropertyGet node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitPropertyGet(node);
   }
 
   @override
+  visitInstanceGet(InstanceGet node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  visitInstanceTearOff(InstanceTearOff node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  visitFunctionTearOff(FunctionTearOff node) {
+    _annotateCallSite(node, null);
+    super.visitFunctionTearOff(node);
+  }
+
+  @override
+  visitDynamicGet(DynamicGet node) {
+    _annotateCallSite(node, null);
+    super.visitDynamicGet(node);
+  }
+
+  @override
   visitPropertySet(PropertySet node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitPropertySet(node);
+  }
+
+  @override
+  visitInstanceSet(InstanceSet node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitInstanceSet(node);
+  }
+
+  @override
+  visitDynamicSet(DynamicSet node) {
+    _annotateCallSite(node, null);
+    super.visitDynamicSet(node);
   }
 
   @override
@@ -999,6 +1078,78 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitInstanceInvocation(
+      InstanceInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall(
+          _flattenArguments(node.arguments, receiver: node.receiver));
+    }
+    node.interfaceTarget =
+        fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
+    shaker.addUsedMember(node.interfaceTarget);
+    return node;
+  }
+
+  @override
+  TreeNode visitDynamicInvocation(
+      DynamicInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall(
+          _flattenArguments(node.arguments, receiver: node.receiver));
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitLocalFunctionInvocation(
+      LocalFunctionInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall(_flattenArguments(node.arguments));
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitFunctionInvocation(
+      FunctionInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall(
+          _flattenArguments(node.arguments, receiver: node.receiver));
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitEqualsCall(EqualsCall node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.left, node.right]);
+    }
+    node.interfaceTarget =
+        fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
+    shaker.addUsedMember(node.interfaceTarget);
+    return node;
+  }
+
+  @override
+  TreeNode visitEqualsNull(EqualsNull node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.expression]);
+    }
+    final nullTest = _getNullTest(node);
+    if (nullTest.isAlwaysNull || nullTest.isAlwaysNotNull) {
+      return _evaluateArguments(
+          [node.expression], BoolLiteral(nullTest.isAlwaysNull));
+    }
+    return node;
+  }
+
+  @override
   TreeNode visitPropertyGet(PropertyGet node, TreeNode removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
@@ -1014,6 +1165,54 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitInstanceGet(InstanceGet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      node.interfaceTarget =
+          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
+      shaker.addUsedMember(node.interfaceTarget);
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitInstanceTearOff(
+      InstanceTearOff node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      node.interfaceTarget =
+          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
+      shaker.addUsedMember(node.interfaceTarget);
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitDynamicGet(DynamicGet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitFunctionTearOff(
+      FunctionTearOff node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      return node;
+    }
+  }
+
+  @override
   TreeNode visitPropertySet(PropertySet node, TreeNode removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
@@ -1024,6 +1223,29 @@ class _TreeShakerPass1 extends RemovingTransformer {
       if (node.interfaceTarget != null) {
         shaker.addUsedMember(node.interfaceTarget);
       }
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitInstanceSet(InstanceSet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver, node.value]);
+    } else {
+      node.interfaceTarget = fieldMorpher
+          .adjustInstanceCallTarget(node.interfaceTarget, isSetter: true);
+      shaker.addUsedMember(node.interfaceTarget);
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitDynamicSet(DynamicSet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver, node.value]);
+    } else {
       return node;
     }
   }

@@ -159,6 +159,7 @@ class ExpressionLifter extends Transformer {
   TreeNode visitInvalidExpression(InvalidExpression expr) => nullary(expr);
   TreeNode visitSuperPropertyGet(SuperPropertyGet expr) => nullary(expr);
   TreeNode visitStaticGet(StaticGet expr) => nullary(expr);
+  TreeNode visitStaticTearOff(StaticTearOff expr) => nullary(expr);
   TreeNode visitRethrow(Rethrow expr) => nullary(expr);
 
   // Getting a final or const variable is not an effect so it can be evaluated
@@ -211,16 +212,49 @@ class ExpressionLifter extends Transformer {
     });
   }
 
+  @override
   TreeNode visitVariableSet(VariableSet expr) => unary(expr);
+  @override
   TreeNode visitPropertyGet(PropertyGet expr) => unary(expr);
+  @override
+  TreeNode visitInstanceGet(InstanceGet expr) => unary(expr);
+  @override
+  TreeNode visitDynamicGet(DynamicGet expr) => unary(expr);
+  @override
+  TreeNode visitInstanceTearOff(InstanceTearOff expr) => unary(expr);
+  @override
+  TreeNode visitFunctionTearOff(FunctionTearOff expr) => unary(expr);
+  @override
   TreeNode visitSuperPropertySet(SuperPropertySet expr) => unary(expr);
+  @override
   TreeNode visitStaticSet(StaticSet expr) => unary(expr);
+  @override
   TreeNode visitNot(Not expr) => unary(expr);
+  @override
   TreeNode visitIsExpression(IsExpression expr) => unary(expr);
+  @override
   TreeNode visitAsExpression(AsExpression expr) => unary(expr);
+  @override
   TreeNode visitThrow(Throw expr) => unary(expr);
 
+  @override
   TreeNode visitPropertySet(PropertySet expr) {
+    return transformTreeNode(expr, () {
+      expr.value = transform(expr.value)..parent = expr;
+      expr.receiver = transform(expr.receiver)..parent = expr;
+    });
+  }
+
+  @override
+  TreeNode visitInstanceSet(InstanceSet expr) {
+    return transformTreeNode(expr, () {
+      expr.value = transform(expr.value)..parent = expr;
+      expr.receiver = transform(expr.receiver)..parent = expr;
+    });
+  }
+
+  @override
+  TreeNode visitDynamicSet(DynamicSet expr) {
     return transformTreeNode(expr, () {
       expr.value = transform(expr.value)..parent = expr;
       expr.receiver = transform(expr.receiver)..parent = expr;
@@ -240,10 +274,53 @@ class ExpressionLifter extends Transformer {
     return args;
   }
 
+  @override
   TreeNode visitMethodInvocation(MethodInvocation expr) {
     return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
       expr.receiver = transform(expr.receiver)..parent = expr;
+    });
+  }
+
+  @override
+  TreeNode visitInstanceInvocation(InstanceInvocation expr) {
+    return transformTreeNode(expr, () {
+      visitArguments(expr.arguments);
+      expr.receiver = transform(expr.receiver)..parent = expr;
+    });
+  }
+
+  @override
+  TreeNode visitLocalFunctionInvocation(LocalFunctionInvocation expr) {
+    return transformTreeNode(expr, () {
+      visitArguments(expr.arguments);
+    });
+  }
+
+  @override
+  TreeNode visitDynamicInvocation(DynamicInvocation expr) {
+    return transformTreeNode(expr, () {
+      visitArguments(expr.arguments);
+      expr.receiver = transform(expr.receiver)..parent = expr;
+    });
+  }
+
+  @override
+  TreeNode visitFunctionInvocation(FunctionInvocation expr) {
+    return transformTreeNode(expr, () {
+      visitArguments(expr.arguments);
+      expr.receiver = transform(expr.receiver)..parent = expr;
+    });
+  }
+
+  @override
+  TreeNode visitEqualsNull(EqualsNull expr) => unary(expr);
+
+  @override
+  TreeNode visitEqualsCall(EqualsCall expr) {
+    return transformTreeNode(expr, () {
+      expr.right = transform(expr.right)..parent = expr;
+      expr.left = transform(expr.left)..parent = expr;
     });
   }
 
