@@ -877,10 +877,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
           return _emitInterfaceType(t, emitNullability: emitNullability);
         } else if (t is FutureOrType) {
-          _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
-          // TODO(45870) Add nullability wrappers to FutureOr.
-          return _emitFutureOrTypeWithArgument(
-              _emitDeferredType(t.typeArgument));
+          var normalizedType = _normalizeFutureOr(t);
+          if (normalizedType is FutureOrType) {
+            _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
+            var typeRep = _emitFutureOrTypeWithArgument(
+                _emitDeferredType(normalizedType.typeArgument));
+            return emitNullability
+                ? _emitNullabilityWrapper(
+                    typeRep, normalizedType.declaredNullability)
+                : typeRep;
+          }
+          return _emitDeferredType(normalizedType,
+              emitNullability: emitNullability);
         } else if (t is TypeParameterType) {
           return _emitTypeParameterType(t, emitNullability: emitNullability);
         }
