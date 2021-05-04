@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -106,6 +108,50 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     };
     applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_errorMessage_invalidIntegers() async {
+    // A VS Code code coverage extension has been seen to use Number.MAX_VALUE
+    // for the character position and resulted in:
+    //
+    //     type 'double' is not a subtype of type 'int'
+    //
+    // This test ensures the error message for these invalid params is clearer,
+    // indicating this is not a valid (Dart) int.
+    // https://github.com/dart-lang/sdk/issues/42786
+
+    newFile(mainFilePath);
+    await initialize();
+
+    final request = makeRequest(
+      Method.textDocument_codeAction,
+      _RawParams('''
+      {
+        "textDocument": {
+          "uri": "${mainFileUri.toString()}"
+        },
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 2
+          },
+          "end": {
+            "line": 3,
+            "character": 1.7976931348623157e+308
+          }
+        }
+      }
+      '''),
+    );
+    final resp = await sendRequestToServer(request);
+    final error = resp.error!;
+    expect(error.code, equals(ErrorCodes.InvalidParams));
+    expect(
+        error.message,
+        allOf([
+          contains('Invalid params for textDocument/codeAction'),
+          contains('params.range.end.character must be of type int'),
+        ]));
   }
 
   Future<void> test_nonDartFile() async {
@@ -287,4 +333,13 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
             .whereNotNull()
             .toList(),
       );
+}
+
+class _RawParams extends ToJsonable {
+  final String _json;
+
+  _RawParams(this._json);
+
+  @override
+  Object toJson() => jsonDecode(_json);
 }
