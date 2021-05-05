@@ -14,6 +14,13 @@
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
+#### `dart:typed_data`
+
+*   **BREAKING CHANGE** (https://github.com/dart-lang/sdk/issues/45115)
+    Most types exposed by this library can no longer be extended, implemented
+    or mixed-in. The affected types are `ByteBuffer`, `TypedData` and *all*
+    its subclasses, `Int32x4`, `Float32x4`, `Float64x2` and `Endian.
+
 #### `dart:web_sql`
 
 *   `dart:web_sql` is marked deprecated and will be removed in an upcoming
@@ -24,7 +31,6 @@
     was abandoned more than 5 years ago and is not supported by most browsers.
     The `dart:web_sql` library has been documented as unsupported and deprecated
     for many years as well and but wasn't annotated properly until now.
-
 ### Dart VM
 
 *   **Breaking Change** [#45071][]: `Dart_NewWeakPersistentHandle`'s and

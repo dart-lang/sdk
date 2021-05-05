@@ -273,10 +273,10 @@ abstract class Target {
   /// Whether a platform library may define a restricted type, such as `bool`,
   /// `int`, `double`, `num`, and `String`.
   ///
-  /// By default only `dart:core` may define restricted types, but some target
-  /// implementations override this.
+  /// By default only `dart:core` and `dart:typed_data` may define restricted
+  /// types, but some target implementations override this.
   bool mayDefineRestrictedType(Uri uri) =>
-      uri.scheme == 'dart' && uri.path == 'core';
+      uri.isScheme('dart') && (uri.path == 'core' || uri.path == 'typed_data');
 
   /// Whether a library is allowed to import a platform private library.
   ///

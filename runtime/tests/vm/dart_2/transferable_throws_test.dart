@@ -95,10 +95,6 @@ class MyList<T> extends ListBase<T> {
   void operator []=(int index, T value) {}
 }
 
-class MyTypedData implements TypedData {
-  noSuchMethod(_) {}
-}
-
 main() async {
   await throwsIfMaterializeAfterSend();
   await throwsIfSendMoreThanOnce();
@@ -110,6 +106,4 @@ main() async {
   Expect.throwsArgumentError(() => TransferableTypedData.fromList([null]));
   Expect.throwsArgumentError(
       () => TransferableTypedData.fromList(MyList<Uint8List>()));
-  Expect.throwsArgumentError(
-      () => TransferableTypedData.fromList([MyTypedData()]));
 }
