@@ -79,9 +79,8 @@ class ExtensionMemberResolver {
           [
             name,
             noneMoreSpecific
-                .map((e) => "'${e.extension.name ?? '<unnamed>'}'")
-                .toList()
-                .commaSeparatedWithAnd,
+                .map((e) => e.extension.name ?? '<unnamed>')
+                .quotedAndCommaSeparatedWithAnd,
           ],
         );
         return ResolutionResult.ambiguous;
