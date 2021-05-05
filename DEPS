@@ -82,7 +82,7 @@ vars = {
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
   "chrome_rev" : "19997",
-  "cli_util_rev" : "50cc840b146615899e97b892578848401b2028d5",
+  "cli_util_rev" : "8a73cd7eca373ff71d290ccf47d4829e5ca44209",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "9967dcd3d7645db6de48d5abfab3018bb0c84236",
   "convert_rev": "a60156c6efd653657c8926b5788219ed609917d7",
