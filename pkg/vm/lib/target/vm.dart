@@ -159,7 +159,7 @@ class VmTarget extends Target {
     } else {
       // TODO(jensj/dacoharkes): We can probably limit the transformations to
       // libraries that transitivley depend on dart:ffi.
-      final ffiTransformerData = transformFfiDefinitions.transformLibraries(
+      transformFfiDefinitions.transformLibraries(
           component,
           coreTypes,
           hierarchy,
@@ -167,14 +167,8 @@ class VmTarget extends Target {
           diagnosticReporter,
           referenceFromIndex,
           changedStructureNotifier);
-      transformFfiUseSites.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          libraries,
-          diagnosticReporter,
-          ffiTransformerData,
-          referenceFromIndex);
+      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+          libraries, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi annotations");
     }
 

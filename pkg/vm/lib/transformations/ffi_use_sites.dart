@@ -9,7 +9,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         templateFfiDartTypeMismatch,
-        templateFfiEmptyStruct,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
@@ -27,7 +26,6 @@ import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
     show
-        FfiTransformerData,
         NativeType,
         FfiTransformer,
         nativeTypeSizes,
@@ -42,7 +40,6 @@ void transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
-    FfiTransformerData ffiTransformerData,
     ReferenceFromIndex referenceFromIndex) {
   final index = new LibraryIndex(
       component, ["dart:ffi", "dart:_internal", "dart:typed_data"]);
@@ -57,18 +54,12 @@ void transformLibraries(
     return;
   }
   final transformer = new _FfiUseSiteTransformer(
-      index,
-      coreTypes,
-      hierarchy,
-      diagnosticReporter,
-      referenceFromIndex,
-      ffiTransformerData.emptyCompounds);
+      index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
   libraries.forEach(transformer.visitLibrary);
 }
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
 class _FfiUseSiteTransformer extends FfiTransformer {
-  final Set<Class> emptyCompounds;
   StaticTypeContext _staticTypeContext;
 
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
@@ -82,8 +73,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
-      this.emptyCompounds)
+      ReferenceFromIndex referenceFromIndex)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex) {}
 
@@ -192,7 +182,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyCompounds(dartType, node);
 
         final replacement = _replaceLookupFunction(node);
 
@@ -214,7 +203,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyCompounds(dartType, node);
 
         final DartType nativeSignature =
             (nativeType as InterfaceType).typeArguments[0];
@@ -246,7 +234,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyCompounds(dartType, node);
 
         final funcType = dartType as FunctionType;
 
@@ -782,30 +769,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           1,
           node.location.file);
       throw _FfiStaticTypeError();
-    }
-  }
-
-  void _ensureNoEmptyCompounds(DartType nativeType, Expression node) {
-    // Error on structs with no fields.
-    if (nativeType is InterfaceType) {
-      final Class nativeClass = nativeType.classNode;
-      if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
-        if (emptyCompounds.contains(nativeClass)) {
-          diagnosticReporter.report(
-              templateFfiEmptyStruct.withArguments(
-                  nativeClass.superclass.name, nativeClass.name),
-              node.fileOffset,
-              1,
-              node.location.file);
-        }
-      }
-    }
-
-    // Recurse when seeing a function type.
-    if (nativeType is FunctionType) {
-      nativeType.positionalParameters
-          .forEach((e) => _ensureNoEmptyCompounds(e, node));
-      _ensureNoEmptyCompounds(nativeType.returnType, node);
     }
   }
 
