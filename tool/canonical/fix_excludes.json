@@ -12,6 +12,10 @@
     "notes" : "semantics; possible to do if the fix is constrained.  see: https://dart-review.googlesource.com/c/sdk/+/178660"
   },
   {
+    "lint" : "avoid_web_libraries_in_flutter",
+    "notes" : "logic"
+  },
+  {
     "lint" : "camel_case_extensions",
     "notes" : "naming"
   },
@@ -49,6 +53,10 @@
   },
   {
     "lint" : "list_remove_unrelated_type",
+    "notes" : "logic"
+  },
+  {
+    "lint" : "no_logic_in_create_state",
     "notes" : "logic"
   },
   {
