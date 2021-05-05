@@ -398,8 +398,8 @@ export 'b.dart' hide C;
 
 ### ambiguous_extension_member_access
 
-_A member named '{0}' is defined in extensions '{1}' and '{2}' and neither is
-more specific._
+_A member named '{0}' is defined in extensions {1}, and neither is more
+specific._
 
 #### Description
 
