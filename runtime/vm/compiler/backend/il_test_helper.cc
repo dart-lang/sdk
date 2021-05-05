@@ -52,14 +52,18 @@ ClassPtr GetClass(const Library& lib, const char* name) {
   return cls.ptr();
 }
 
-TypeParameterPtr GetClassTypeParameter(const Class& klass, intptr_t index) {
-  const auto& param = TypeParameter::Handle(klass.TypeParameterAt(index));
+TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name) {
+  const auto& param = TypeParameter::Handle(
+      klass.LookupTypeParameter(String::Handle(String::New(name))));
   EXPECT(!param.IsNull());
   return param.ptr();
 }
 
-TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index) {
-  const auto& param = TypeParameter::Handle(fun.TypeParameterAt(index));
+TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
+                                          const char* name) {
+  intptr_t fun_level = 0;
+  const auto& param = TypeParameter::Handle(
+      fun.LookupTypeParameter(String::Handle(String::New(name)), &fun_level));
   EXPECT(!param.IsNull());
   return param.ptr();
 }

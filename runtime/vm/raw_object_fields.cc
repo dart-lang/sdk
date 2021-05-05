@@ -136,12 +136,9 @@ namespace dart {
   F(TypeRef, type_test_stub_)                                                  \
   F(TypeRef, type_)                                                            \
   F(TypeParameter, type_test_stub_)                                            \
+  F(TypeParameter, name_)                                                      \
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \
-  F(TypeParameters, names_)                                                    \
-  F(TypeParameters, flags_)                                                    \
-  F(TypeParameters, bounds_)                                                   \
-  F(TypeParameters, defaults_)                                                 \
   F(Closure, instantiator_type_arguments_)                                     \
   F(Closure, function_type_arguments_)                                         \
   F(Closure, delayed_type_arguments_)                                          \

@@ -27,6 +27,14 @@ main() {
   TypeVariableMirror ssFromSuperSuper =
       superOfSuperOfGeneric.typeVariables.single;
 
+  Expect.equals(#G, gFromGeneric.simpleName);
+  Expect.equals(#S, sFromSuper.simpleName);
+  Expect.equals(#SS, ssFromSuperSuper.simpleName);
+
+  typeParameters(generic, [#G]);
+  typeParameters(superOfGeneric, [#S]);
+  typeParameters(superOfSuperOfGeneric, [#SS]);
+
   typeArguments(generic, []);
   typeArguments(superOfGeneric, [gFromGeneric]);
   typeArguments(superOfSuperOfGeneric, [gFromGeneric]);
@@ -35,6 +43,10 @@ main() {
   ClassMirror genericWithInt = reflect(new Generic<int>()).type;
   ClassMirror superOfGenericWithInt = genericWithInt.superclass!;
   ClassMirror superOfSuperOfGenericWithInt = superOfGenericWithInt.superclass!;
+
+  typeParameters(genericWithInt, [#G]);
+  typeParameters(superOfGenericWithInt, [#S]);
+  typeParameters(superOfSuperOfGenericWithInt, [#SS]);
 
   typeArguments(genericWithInt, [reflectClass(int)]);
   typeArguments(superOfGenericWithInt, [reflectClass(int)]);

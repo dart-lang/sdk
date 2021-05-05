@@ -416,7 +416,6 @@ class SnapshotReader : public BaseReader {
   friend class Type;
   friend class FunctionType;
   friend class TypedDataView;
-  friend class TypeParameters;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;

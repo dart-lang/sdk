@@ -954,7 +954,8 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, interfaces)  // Array of AbstractType.
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(LibraryPtr, library)
-  COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
+  // Array of TypeParameter.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_parameters)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, super_type)
   // Canonicalized const instances of this class.
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
@@ -1357,7 +1358,9 @@ class UntaggedClosureData : public UntaggedObject {
 #endif
   // Closure object for static implicit closures.
   COMPRESSED_POINTER_FIELD(InstancePtr, closure)
-  VISIT_TO(CompressedObjectPtr, closure)
+  // Instantiate-to-bounds TAV for use when no TAV is provided.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, default_type_arguments)
+  VISIT_TO(CompressedObjectPtr, default_type_arguments)
 
   enum class DefaultTypeArgumentsKind : uint8_t {
     // Only here to make sure it's explicitly set appropriately.
@@ -1455,7 +1458,7 @@ class UntaggedField : public UntaggedObject {
   TokenPosition end_token_pos_;
   ClassIdTagType guarded_cid_;
   ClassIdTagType is_nullable_;  // kNullCid if field can contain null value and
-                                // kIllegalCid otherwise.
+                                // kInvalidCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_offset_;
@@ -2500,25 +2503,6 @@ class UntaggedTypeArguments : public UntaggedInstance {
   friend class SnapshotReader;
 };
 
-class UntaggedTypeParameters : public UntaggedObject {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameters);
-
-  VISIT_FROM(CompressedObjectPtr, names)
-  // Length of names reflects the number of type parameters.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, names)
-  // flags: isGenericCovariantImpl and (todo) variance.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, flags)
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, bounds)
-  // defaults is the instantiation to bounds (calculated by CFE).
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, defaults)
-  VISIT_TO(CompressedObjectPtr, defaults)
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-
-  friend class Object;
-  friend class SnapshotReader;
-};
-
 class UntaggedAbstractType : public UntaggedInstance {
  public:
   enum TypeState {
@@ -2567,7 +2551,8 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
 
   VISIT_FROM(CompressedObjectPtr, type_test_stub)
-  COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
+  // Array of TypeParameter.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_parameters)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names);
@@ -2639,13 +2624,21 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
   VISIT_FROM(CompressedObjectPtr, type_test_stub)
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   // ObjectType if no explicit bound specified.
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
-  VISIT_TO(CompressedObjectPtr, bound)
+  // The instantiation to bounds of this parameter as calculated by the CFE.
+  //
+  // TODO(dartbug.com/43901): Once a separate TypeParameters class has been
+  // added, move these there and remove them from TypeParameter objects.
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, default_argument)
+  VISIT_TO(CompressedObjectPtr, default_argument)
   ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
-  uint8_t base_;   // Number of enclosing function type parameters.
-  uint8_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
+  // TODO(regis): Can we use uint8_t twice below? Or keep uint16_t?
+  // Warning: BuildTypeParameterTypeTestStub assumes uint16_t.
+  uint16_t base_;  // Number of enclosing function type parameters.
+  uint16_t index_;
   uint8_t flags_;
   uint8_t nullability_;
 
@@ -2653,7 +2646,9 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   using BeingFinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
   using FinalizedBit =
       BitField<decltype(flags_), bool, BeingFinalizedBit::kNextBit, 1>;
-  static constexpr intptr_t kFlagsBitSize = FinalizedBit::kNextBit;
+  using GenericCovariantImplBit =
+      BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
+  static constexpr intptr_t kFlagsBitSize = GenericCovariantImplBit::kNextBit;
 
  private:
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }

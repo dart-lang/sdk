@@ -109,8 +109,6 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableSmiHandleScope reused_smi_handle(thread);
 #define REUSABLE_STRING_HANDLESCOPE(thread)                                    \
   ReusableStringHandleScope reused_string_handle(thread);
-#define REUSABLE_TYPE_PARAMETERS_HANDLESCOPE(thread)                           \
-  ReusableTypeArgumentsHandleScope reused_type_parameters_handle(thread);
 #define REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread)                            \
   ReusableTypeArgumentsHandleScope reused_type_arguments_handle(thread);
 #define REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread)                            \

@@ -294,40 +294,30 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   }
   IsolateGroup::Current()->heap()->Verify();
 }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-void ClassFinalizer::FinalizeTypeParameters(Zone* zone,
-                                            const Class& cls,
-                                            const FunctionType& signature,
-                                            FinalizationKind finalization,
-                                            PendingTypes* pending_types) {
+void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
+                                            FinalizationKind finalization) {
   if (FLAG_trace_type_finalization) {
-    THR_Print(
-        "%s type parameters of %s '%s'\n",
-        finalization == kFinalize ? "Finalizing" : "Canonicalizing",
-        !cls.IsNull() ? "class" : "signature",
-        String::Handle(zone, !cls.IsNull() ? cls.Name() : signature.Name())
-            .ToCString());
+    THR_Print("%s type parameters of '%s'\n",
+              String::Handle(cls.Name()).ToCString(),
+              finalization == kFinalize ? "Finalizing" : "Canonicalizing");
   }
-  const TypeParameters& type_params =
-      TypeParameters::Handle(zone, !cls.IsNull() ? cls.type_parameters()
-                                                 : signature.type_parameters());
+  const TypeArguments& type_params =
+      TypeArguments::Handle(cls.type_parameters());
   if (!type_params.IsNull()) {
-    TypeArguments& type_args = TypeArguments::Handle(zone);
-
-    type_args = type_params.bounds();
-    type_args =
-        FinalizeTypeArguments(zone, type_args, finalization, pending_types);
-    type_params.set_bounds(type_args);
-
-    type_args = type_params.defaults();
-    type_args =
-        FinalizeTypeArguments(zone, type_args, finalization, pending_types);
-    type_params.set_defaults(type_args);
-
-    type_params.OptimizeFlags();
+    const intptr_t num_type_params = type_params.Length();
+    TypeParameter& type_param = TypeParameter::Handle();
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      if (!type_param.IsBeingFinalized()) {
+        type_param ^= FinalizeType(type_param, finalization);
+        type_params.SetTypeAt(i, type_param);
+      }
+    }
   }
 }
+
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 // This function reports a compilation error if the recursive 'type' T being
 // finalized is a non-contractive type, i.e. if the induced type set S of P is
@@ -417,9 +407,9 @@ void ClassFinalizer::CheckRecursiveType(const AbstractType& type,
 // Expand the type arguments of the given type and finalize its full type
 // argument vector. Return the number of type arguments (0 for a raw type).
 intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
-    Zone* zone,
     const AbstractType& type,
     PendingTypes* pending_types) {
+  Zone* zone = Thread::Current()->zone();
   // The type class does not need to be finalized in order to finalize the type.
   // Also, the type parameters of the type class must be finalized.
   Class& type_class = Class::Handle(zone, type.type_class());
@@ -493,8 +483,8 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
       }
       if (offset > 0) {
         TrailPtr trail = new Trail(zone, 4);
-        FillAndFinalizeTypeArguments(zone, type_class, full_arguments, offset,
-                                     pending_types, trail);
+        FinalizeTypeArguments(type_class, full_arguments, offset, pending_types,
+                              trail);
       }
       if (full_arguments.IsRaw(0, num_type_arguments)) {
         // The parameterized_type is raw. Set its argument vector to null, which
@@ -545,24 +535,22 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
 // same time. Canonicalization happens when pending types are processed.
 // The trail is required to correctly instantiate a recursive type argument
 // of the super type.
-void ClassFinalizer::FillAndFinalizeTypeArguments(
-    Zone* zone,
-    const Class& cls,
-    const TypeArguments& arguments,
-    intptr_t num_uninitialized_arguments,
-    PendingTypes* pending_types,
-    TrailPtr trail) {
+void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
+                                           const TypeArguments& arguments,
+                                           intptr_t num_uninitialized_arguments,
+                                           PendingTypes* pending_types,
+                                           TrailPtr trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    FinalizeTypeParameters(zone, cls, Object::null_function_type(), kFinalize);
+    FinalizeTypeParameters(cls, kFinalize);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
-  AbstractType& super_type = AbstractType::Handle(zone, cls.super_type());
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    const Class& super_class = Class::Handle(zone, super_type.type_class());
+    const Class& super_class = Class::Handle(super_type.type_class());
     const intptr_t num_super_type_params = super_class.NumTypeParameters();
     const intptr_t num_super_type_args = super_class.NumTypeArguments();
     if (!super_type.IsFinalized() && !super_type.IsBeingFinalized()) {
@@ -570,12 +558,11 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
       cls.set_super_type(super_type);
     }
     TypeArguments& super_type_args =
-        TypeArguments::Handle(zone, super_type.arguments());
+        TypeArguments::Handle(super_type.arguments());
     // Offset of super type's type parameters in cls' type argument vector.
     const intptr_t super_offset = num_super_type_args - num_super_type_params;
     // If the super type is raw (i.e. super_type_args is null), set to dynamic.
-    AbstractType& super_type_arg =
-        AbstractType::Handle(zone, Type::DynamicType());
+    AbstractType& super_type_arg = AbstractType::Handle(Type::DynamicType());
     for (intptr_t i = super_offset; i < num_uninitialized_arguments; i++) {
       if (!super_type_args.IsNull()) {
         super_type_arg = super_type_args.TypeAt(i);
@@ -594,10 +581,9 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
                 ASSERT(super_type_arg.IsFunctionType());
               }
               if (FLAG_trace_type_finalization) {
-                THR_Print(
-                    "Creating TypeRef '%s': '%s'\n",
-                    String::Handle(zone, super_type_arg.Name()).ToCString(),
-                    super_type_arg.ToCString());
+                THR_Print("Creating TypeRef '%s': '%s'\n",
+                          String::Handle(super_type_arg.Name()).ToCString(),
+                          super_type_arg.ToCString());
               }
               super_type_arg = TypeRef::New(super_type_arg);
             }
@@ -615,12 +601,12 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
         // Instantiate super_type_arg with the current argument vector.
         if (!super_type_arg.IsInstantiated()) {
           if (FLAG_trace_type_finalization && super_type_arg.IsTypeRef()) {
-            AbstractType& ref_type = AbstractType::Handle(
-                zone, TypeRef::Cast(super_type_arg).type());
+            AbstractType& ref_type =
+                AbstractType::Handle(TypeRef::Cast(super_type_arg).type());
             THR_Print(
                 "Instantiating TypeRef '%s': '%s'\n"
                 "  instantiator: '%s'\n",
-                String::Handle(zone, super_type_arg.Name()).ToCString(),
+                String::Handle(super_type_arg.Name()).ToCString(),
                 ref_type.ToCString(), arguments.ToCString());
           }
           // In the typical case of an F-bounded type, the instantiation of the
@@ -642,7 +628,7 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments, unless it is a
             // type parameter, in which case there is nothing more to do.
-            AbstractType& unfinalized_type = AbstractType::Handle(zone);
+            AbstractType& unfinalized_type = AbstractType::Handle();
             if (super_type_arg.IsTypeRef()) {
               unfinalized_type = TypeRef::Cast(super_type_arg).type();
             } else {
@@ -650,19 +636,18 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
               unfinalized_type = super_type_arg.ptr();
             }
             if (FLAG_trace_type_finalization) {
-              THR_Print(
-                  "Instantiated unfinalized '%s': '%s'\n",
-                  String::Handle(zone, unfinalized_type.Name()).ToCString(),
-                  unfinalized_type.ToCString());
+              THR_Print("Instantiated unfinalized '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
             }
             if (unfinalized_type.IsType()) {
               CheckRecursiveType(unfinalized_type, pending_types);
               pending_types->Add(unfinalized_type);
             }
             const Class& super_cls =
-                Class::Handle(zone, unfinalized_type.type_class());
+                Class::Handle(unfinalized_type.type_class());
             const TypeArguments& super_args =
-                TypeArguments::Handle(zone, unfinalized_type.arguments());
+                TypeArguments::Handle(unfinalized_type.arguments());
             // Mark as finalized before finalizing to avoid cycles.
             unfinalized_type.SetIsFinalized();
             // Although the instantiator is different between cls and super_cls,
@@ -670,51 +655,23 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
             // divergence. Finalizing the type arguments of super_cls may indeed
             // recursively require instantiating the same type_refs already
             // present in the trail (see issue #29949).
-            FillAndFinalizeTypeArguments(
-                zone, super_cls, super_args,
+            FinalizeTypeArguments(
+                super_cls, super_args,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
                 pending_types, trail);
             if (FLAG_trace_type_finalization) {
-              THR_Print(
-                  "Finalized instantiated '%s': '%s'\n",
-                  String::Handle(zone, unfinalized_type.Name()).ToCString(),
-                  unfinalized_type.ToCString());
+              THR_Print("Finalized instantiated '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
             }
           }
         }
       }
       arguments.SetTypeAt(i, super_type_arg);
     }
-    FillAndFinalizeTypeArguments(zone, super_class, arguments, super_offset,
-                                 pending_types, trail);
+    FinalizeTypeArguments(super_class, arguments, super_offset, pending_types,
+                          trail);
   }
-}
-
-TypeArgumentsPtr ClassFinalizer::FinalizeTypeArguments(
-    Zone* zone,
-    const TypeArguments& type_args,
-    FinalizationKind finalization,
-    PendingTypes* pending_types) {
-  if (type_args.IsNull()) return TypeArguments::null();
-  ASSERT(type_args.ptr() != Object::empty_type_arguments().ptr());
-  const intptr_t len = type_args.Length();
-  AbstractType& type = AbstractType::Handle(zone);
-  AbstractType& finalized_type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < len; i++) {
-    type = type_args.TypeAt(i);
-    if (type.IsBeingFinalized()) {
-      ASSERT(finalization < kCanonicalize);
-      continue;
-    }
-    finalized_type = FinalizeType(type, kFinalize, pending_types);
-    if (type.ptr() != finalized_type.ptr()) {
-      type_args.SetTypeAt(i, finalized_type);
-    }
-  }
-  if (finalization >= kCanonicalize) {
-    return type_args.Canonicalize(Thread::Current(), nullptr);
-  }
-  return type_args.ptr();
 }
 
 AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
@@ -744,8 +701,8 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
     return type.ptr();
   }
 
-  // Recursive types must be processed in FillAndFinalizeTypeArguments() and
-  // cannot be encountered here.
+  // Recursive types must be processed in FinalizeTypeArguments() and cannot be
+  // encountered here.
   ASSERT(!type.IsBeingFinalized());
 
   // Mark the type as being finalized in order to detect self reference.
@@ -780,20 +737,17 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       type_parameter.set_parameterized_class_id(kClassCid);
     }
 
-    AbstractType& upper_bound = AbstractType::Handle(zone);
-    upper_bound = type_parameter.bound();
-    if (upper_bound.IsBeingFinalized()) {
-      if (upper_bound.IsTypeRef()) {
-        // Nothing to do.
-      } else {
-        upper_bound = TypeRef::New(upper_bound);
-        type_parameter.set_bound(upper_bound);
-        upper_bound = FinalizeType(upper_bound, kFinalize);
-      }
-    } else {
-      upper_bound = FinalizeType(upper_bound, kFinalize);
-      type_parameter.set_bound(upper_bound);
+    AbstractType& t = AbstractType::Handle(zone);
+    t = type_parameter.bound();
+    if (!t.IsBeingFinalized()) {
+      t = FinalizeType(t, kFinalize);
+      type_parameter.set_bound(t);
     }
+    t = type_parameter.default_argument();
+    // The default argument cannot create a cycle with the type parameter.
+    t = FinalizeType(t, kFinalize);
+    type_parameter.set_default_argument(t);
+
     type_parameter.SetIsFinalized();
 
     if (FLAG_trace_type_finalization) {
@@ -827,7 +781,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
   pending_types->Add(type);
 
   const intptr_t num_expanded_type_arguments =
-      ExpandAndFinalizeTypeArguments(zone, type, pending_types);
+      ExpandAndFinalizeTypeArguments(type, pending_types);
 
   // Self referencing types may get finalized indirectly.
   if (!type.IsFinalized()) {
@@ -865,12 +819,23 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
                                                   const FunctionType& signature,
                                                   FinalizationKind finalization,
                                                   PendingTypes* pending_types) {
-  // Finalize signature type parameter upper bounds and default args.
-  FinalizeTypeParameters(zone, Object::null_class(), signature, finalization,
-                         pending_types);
-
   AbstractType& type = AbstractType::Handle(zone);
   AbstractType& finalized_type = AbstractType::Handle(zone);
+  // Finalize signature type parameters, their upper bounds and default args.
+  const intptr_t num_type_params = signature.NumTypeParameters();
+  if (num_type_params > 0) {
+    TypeParameter& type_param = TypeParameter::Handle(zone);
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, signature.type_parameters());
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      finalized_type ^= FinalizeType(type_param, kFinalize, pending_types);
+      if (type_param.ptr() != finalized_type.ptr()) {
+        type_params.SetTypeAt(i, TypeParameter::Cast(finalized_type));
+      }
+    }
+  }
+
   // Finalize result type.
   type = signature.result_type();
   finalized_type = FinalizeType(type, kFinalize, pending_types);
@@ -1019,7 +984,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  Zone* zone = thread->zone();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (cls.is_type_finalized()) {
     return;
@@ -1029,24 +993,24 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     THR_Print("Finalize types in %s\n", cls.ToCString());
   }
   // Finalize super class.
-  Class& super_class = Class::Handle(zone, cls.SuperClass());
+  Class& super_class = Class::Handle(cls.SuperClass());
   if (!super_class.IsNull()) {
     FinalizeTypesInClass(super_class);
   }
   // Finalize type parameters before finalizing the super type.
-  FinalizeTypeParameters(zone, cls, Object::null_function_type(),
-                         kCanonicalize);
+  FinalizeTypeParameters(cls, kFinalize);
   ASSERT(super_class.ptr() == cls.SuperClass());  // Not modified.
   ASSERT(super_class.IsNull() || super_class.is_type_finalized());
+  FinalizeTypeParameters(cls, kCanonicalize);
   // Finalize super type.
-  AbstractType& super_type = AbstractType::Handle(zone, cls.super_type());
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     super_type = FinalizeType(super_type);
     cls.set_super_type(super_type);
   }
   // Finalize interface types (but not necessarily interface classes).
-  Array& interface_types = Array::Handle(zone, cls.interfaces());
-  AbstractType& interface_type = AbstractType::Handle(zone);
+  Array& interface_types = Array::Handle(cls.interfaces());
+  AbstractType& interface_type = AbstractType::Handle();
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
     interface_type = FinalizeType(interface_type);
@@ -1379,7 +1343,8 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   ASSERT(cls.NumTypeParameters() == 1);
-  type_param = cls.TypeParameterAt(0);
+  type_param ^= TypeParameter::RawCast(
+      TypeArguments::Handle(cls.type_parameters()).TypeAt(0));
   ASSERT(Pointer::kNativeTypeArgPos == type_param.index());
 #endif
 }
@@ -1695,8 +1660,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeparams.Length(); i++) {
     typeparam ^= typeparams.At(i);
     bool present = typeparams_table.Insert(typeparam);
-    // Two recursive types with different topology (and hashes) may be equal.
-    ASSERT(!present || typeparam.IsRecursive());
+    ASSERT(!present);
   }
   object_store->set_canonical_type_parameters(typeparams_table.Release());
 

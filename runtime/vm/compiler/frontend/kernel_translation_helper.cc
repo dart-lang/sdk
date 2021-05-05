@@ -710,18 +710,7 @@ Type& TranslationHelper::GetDeclarationType(const Class& klass) {
     type = klass.DeclarationType();
   } else {
     // Note that the type argument vector is not yet extended.
-    TypeArguments& type_args = TypeArguments::Handle(Z);
-    const intptr_t num_type_params = klass.NumTypeParameters();
-    if (num_type_params > 0) {
-      type_args = TypeArguments::New(num_type_params);
-      TypeParameter& type_param = TypeParameter::Handle();
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param = klass.TypeParameterAt(i);
-        ASSERT(type_param.bound() != AbstractType::null());
-        type_args.SetTypeAt(i, type_param);
-      }
-    }
-    type = Type::New(klass, type_args, Nullability::kNonNullable);
+    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()));
   }
   return type;
 }
@@ -2846,13 +2835,19 @@ ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
   ASSERT(member != NULL);
   if (member->IsFactory()) {
-    return klass->NumTypeParameters();
+    TypeArguments& class_types =
+        TypeArguments::Handle(zone, klass->type_parameters());
+    return class_types.Length();
   } else if (member->IsMethodExtractor()) {
     Function& extracted =
         Function::Handle(zone, member->extracted_method_closure());
-    return extracted.NumTypeParameters();
+    TypeArguments& function_types =
+        TypeArguments::Handle(zone, extracted.type_parameters());
+    return function_types.Length();
   } else {
-    return member->NumTypeParameters();
+    TypeArguments& function_types =
+        TypeArguments::Handle(zone, member->type_parameters());
+    return function_types.Length();
   }
 }
 
@@ -2861,15 +2856,17 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
     const Function& innermost,
     const FunctionType* innermost_signature,
     Zone* Z)
-    : active_class_(active_class), saved_(*active_class), zone_(Z) {
+    : active_class_(active_class), saved_(*active_class) {
   active_class_->enclosing = innermost_signature;
 
   intptr_t num_params = 0;
 
   Function& f = Function::Handle(Z);
+  TypeArguments& f_params = TypeArguments::Handle(Z);
   for (f = innermost.ptr(); f.parent_function() != Object::null();
        f = f.parent_function()) {
-    num_params += f.NumTypeParameters();
+    f_params = f.type_parameters();
+    num_params += f_params.Length();
   }
   if (num_params == 0) return;
 
@@ -2879,10 +2876,9 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
   intptr_t index = num_params;
   for (f = innermost.ptr(); f.parent_function() != Object::null();
        f = f.parent_function()) {
-    for (intptr_t j = f.NumTypeParameters() - 1; j >= 0; --j) {
-      const auto& type_param = TypeParameter::Handle(Z, f.TypeParameterAt(j));
-      params.SetTypeAt(--index, type_param);
-      active_class_->RecordDerivedTypeParameter(Z, type_param);
+    f_params = f.type_parameters();
+    for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
+      params.SetTypeAt(--index, AbstractType::Handle(Z, f_params.TypeAt(j)));
     }
   }
 
@@ -2892,53 +2888,30 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 ActiveTypeParametersScope::ActiveTypeParametersScope(
     ActiveClass* active_class,
     const FunctionType* innermost_signature,
+    const TypeArguments& new_params,
     Zone* Z)
-    : active_class_(active_class), saved_(*active_class), zone_(Z) {
+    : active_class_(active_class), saved_(*active_class) {
   active_class_->enclosing = innermost_signature;
 
-  const intptr_t num_new_params =
-      innermost_signature == nullptr ? active_class->klass->NumTypeParameters()
-                                     : innermost_signature->NumTypeParameters();
-  if (num_new_params == 0) return;
+  if (new_params.IsNull()) return;
 
   const TypeArguments* old_params = active_class->local_type_parameters;
   const intptr_t old_param_count =
       old_params == NULL ? 0 : old_params->Length();
   const TypeArguments& extended_params = TypeArguments::Handle(
-      Z, TypeArguments::New(old_param_count + num_new_params));
+      Z, TypeArguments::New(old_param_count + new_params.Length()));
 
   intptr_t index = 0;
   for (intptr_t i = 0; i < old_param_count; ++i) {
-    extended_params.SetTypeAt(index++,
-                              AbstractType::Handle(Z, old_params->TypeAt(i)));
+    extended_params.SetTypeAt(
+        index++, AbstractType::ZoneHandle(Z, old_params->TypeAt(i)));
   }
-  for (intptr_t i = 0; i < num_new_params; ++i) {
-    const auto& type_param =
-        TypeParameter::Handle(Z, innermost_signature == nullptr
-                                     ? active_class->klass->TypeParameterAt(i)
-                                     : innermost_signature->TypeParameterAt(i));
-    extended_params.SetTypeAt(index++, type_param);
-    active_class->RecordDerivedTypeParameter(Z, type_param);
+  for (intptr_t i = 0; i < new_params.Length(); ++i) {
+    extended_params.SetTypeAt(
+        index++, AbstractType::ZoneHandle(Z, new_params.TypeAt(i)));
   }
 
   active_class_->local_type_parameters = &extended_params;
-}
-
-ActiveTypeParametersScope::~ActiveTypeParametersScope() {
-  GrowableObjectArray* dropped = active_class_->derived_type_parameters;
-  const bool preserve_unpatched =
-      dropped != nullptr && saved_.derived_type_parameters == nullptr;
-  *active_class_ = saved_;
-  if (preserve_unpatched) {
-    // Preserve still unpatched derived type parameters that would be dropped.
-    auto& derived = TypeParameter::Handle(Z);
-    for (intptr_t i = 0, n = dropped->Length(); i < n; ++i) {
-      derived ^= dropped->At(i);
-      if (derived.bound() == AbstractType::null()) {
-        active_class_->RecordDerivedTypeParameter(Z, derived);
-      }
-    }
-  }
 }
 
 TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
@@ -3081,12 +3054,14 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
   if (!simple) {
     type_parameter_count = helper_->ReadListLength();
-    LoadAndSetupTypeParameters(active_class_, Object::null_function(),
-                               Object::null_class(), signature,
-                               type_parameter_count);
+    LoadAndSetupTypeParameters(
+        active_class_, Object::null_function(), Object::null_class(), signature,
+        type_parameter_count, active_class_->klass->nnbd_mode());
   }
 
-  ActiveTypeParametersScope scope(active_class_, &signature, Z);
+  ActiveTypeParametersScope scope(
+      active_class_, &signature,
+      TypeArguments::Handle(Z, signature.type_parameters()), Z);
 
   if (!simple) {
     LoadAndSetupBounds(active_class_, Object::null_function(),
@@ -3174,16 +3149,19 @@ void TypeTranslator::BuildTypeParameterType() {
   // If the type is from a constant, the parameter index isn't offset by the
   // enclosing context.
   if (!in_constant_context_) {
-    const intptr_t class_type_parameter_count =
-        active_class_->klass->NumTypeParameters();
-    if (class_type_parameter_count > parameter_index) {
-      result_ =
-          active_class_->klass->TypeParameterAt(parameter_index, nullability);
-      active_class_->RecordDerivedTypeParameter(Z,
+    const TypeArguments& class_types =
+        TypeArguments::Handle(Z, active_class_->klass->type_parameters());
+    if (parameter_index < class_types.Length()) {
+      // The index of the type parameter in [parameters] is
+      // the same index into the `klass->type_parameters()` array.
+      const auto& type_param =
+          TypeParameter::CheckedHandle(Z, class_types.TypeAt(parameter_index));
+      result_ = type_param.ToNullability(nullability, Heap::kOld);
+      active_class_->RecordDerivedTypeParameter(Z, type_param,
                                                 TypeParameter::Cast(result_));
       return;
     }
-    parameter_index -= class_type_parameter_count;
+    parameter_index -= class_types.Length();
 
     if (active_class_->HasMember()) {
       if (active_class_->MemberIsFactoryProcedure()) {
@@ -3204,32 +3182,33 @@ void TypeTranslator::BuildTypeParameterType() {
         //     static A.x<T'>() { return new B<T'>(); }
         //   }
         //
-        if (class_type_parameter_count > parameter_index) {
-          result_ = active_class_->klass->TypeParameterAt(parameter_index,
-                                                          nullability);
+        if (class_types.Length() > parameter_index) {
+          const auto& type_param = TypeParameter::CheckedHandle(
+              Z, class_types.TypeAt(parameter_index));
+          result_ = type_param.ToNullability(nullability, Heap::kOld);
           active_class_->RecordDerivedTypeParameter(
-              Z, TypeParameter::Cast(result_));
+              Z, type_param, TypeParameter::Cast(result_));
           return;
         }
-        parameter_index -= class_type_parameter_count;
+        parameter_index -= class_types.Length();
       }
       // Factory function should not be considered as procedure.
-      const intptr_t procedure_type_parameter_count =
+      intptr_t procedure_type_parameter_count =
           (active_class_->MemberIsProcedure() &&
            !active_class_->MemberIsFactoryProcedure())
               ? active_class_->MemberTypeParameterCount(Z)
               : 0;
       if (procedure_type_parameter_count > 0) {
         if (procedure_type_parameter_count > parameter_index) {
-          result_ = active_class_->member->TypeParameterAt(parameter_index,
-                                                           nullability);
+          const auto& type_param = TypeParameter::CheckedHandle(
+              Z,
+              TypeArguments::Handle(Z, active_class_->member->type_parameters())
+                  .TypeAt(parameter_index));
+          result_ = type_param.ToNullability(nullability, Heap::kOld);
+          active_class_->RecordDerivedTypeParameter(
+              Z, type_param, TypeParameter::Cast(result_));
           if (finalize_) {
-            ASSERT(TypeParameter::Cast(result_).bound() !=
-                   AbstractType::null());
             result_ = ClassFinalizer::FinalizeType(result_);
-          } else {
-            active_class_->RecordDerivedTypeParameter(
-                Z, TypeParameter::Cast(result_));
           }
           return;
         }
@@ -3242,12 +3221,10 @@ void TypeTranslator::BuildTypeParameterType() {
       const auto& type_param = TypeParameter::CheckedHandle(
           Z, active_class_->local_type_parameters->TypeAt(parameter_index));
       result_ = type_param.ToNullability(nullability, Heap::kOld);
+      active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                TypeParameter::Cast(result_));
       if (finalize_) {
-        ASSERT(TypeParameter::Cast(result_).bound() != AbstractType::null());
         result_ = ClassFinalizer::FinalizeType(result_);
-      } else {
-        active_class_->RecordDerivedTypeParameter(Z,
-                                                  TypeParameter::Cast(result_));
       }
       return;
     }
@@ -3323,7 +3300,8 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     const Function& function,
     const Class& parameterized_class,
     const FunctionType& parameterized_signature,
-    intptr_t type_parameter_count) {
+    intptr_t type_parameter_count,
+    const NNBDMode nnbd_mode) {
   ASSERT(parameterized_class.IsNull() != parameterized_signature.IsNull());
   ASSERT(type_parameter_count >= 0);
   if (type_parameter_count == 0) {
@@ -3339,18 +3317,23 @@ void TypeTranslator::LoadAndSetupTypeParameters(
 
   // First setup the type parameters, so if any of the following code uses it
   // (in a recursive way) we're fine.
-
-  // - Create a [ TypeParameters ] object.
-  const TypeParameters& type_parameters =
-      TypeParameters::Handle(Z, TypeParameters::New(type_parameter_count));
+  TypeArguments& type_parameters = TypeArguments::Handle(Z);
+  TypeParameter& parameter = TypeParameter::Handle(Z);
   const Type& null_bound = Type::Handle(Z);
 
+  const Nullability nullability = (nnbd_mode == NNBDMode::kOptedInLib)
+                                      ? Nullability::kNonNullable
+                                      : Nullability::kLegacy;
+
+  // - Create array of [TypeParameter] objects (without bound).
+  // - Create array of [String] objects.
+  type_parameters = TypeArguments::New(type_parameter_count);
   intptr_t offset = 0;
   if (!parameterized_class.IsNull()) {
-    ASSERT(parameterized_class.type_parameters() == TypeParameters::null());
+    ASSERT(parameterized_class.type_parameters() == TypeArguments::null());
     parameterized_class.set_type_parameters(type_parameters);
   } else {
-    ASSERT(parameterized_signature.type_parameters() == TypeParameters::null());
+    ASSERT(parameterized_signature.type_parameters() == TypeArguments::null());
     parameterized_signature.set_type_parameters(type_parameters);
     offset = parameterized_signature.NumParentTypeArguments();
     if (!function.IsNull()) {
@@ -3361,15 +3344,22 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   const Library& lib = Library::Handle(Z, active_class->klass->library());
   {
     AlternativeReadingScope alt(&helper_->reader_);
+    String& name = String::Handle(Z);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
       TypeParameterHelper helper(helper_);
       helper.Finish();
-      type_parameters.SetNameAt(i, H.DartIdentifier(lib, helper.name_index_));
-      type_parameters.SetIsGenericCovariantImplAt(
-          i, helper.IsGenericCovariantImpl());
+      if (parameterized_class.IsNull() && function.IsNull()) {
+        // Erase provided name and use a canonical one instead.
+        name = Symbols::NewFormatted(H.thread(), "X%" Pd, offset + i);
+      } else {
+        name = H.DartIdentifier(lib, helper.name_index_).ptr();
+      }
       // Bounds are filled later in LoadAndSetupBounds as bound types may
       // reference type parameters which are not created yet.
-      type_parameters.SetBoundAt(i, null_bound);
+      parameter = TypeParameter::New(
+          parameterized_class, offset, offset + i, name, null_bound,
+          helper.IsGenericCovariantImpl(), nullability);
+      type_parameters.SetTypeAt(i, parameter);
     }
   }
 }
@@ -3386,45 +3376,52 @@ void TypeTranslator::LoadAndSetupBounds(
     return;
   }
 
-  const TypeParameters& type_parameters = TypeParameters::Handle(
-      Z, !parameterized_class.IsNull()
-             ? parameterized_class.type_parameters()
-             : parameterized_signature.type_parameters());
+  const TypeArguments& type_parameters =
+      TypeArguments::Handle(Z, !parameterized_class.IsNull()
+                                   ? parameterized_class.type_parameters()
+                                   : parameterized_signature.type_parameters());
+  TypeParameter& parameter = TypeParameter::Handle(Z);
 
   // Fill in the bounds and default arguments of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
 
+    parameter ^= type_parameters.TypeAt(i);
     AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
-    ASSERT(!bound.IsNull());
-    type_parameters.SetBoundAt(i, bound);
+    parameter.set_bound(bound);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
     AbstractType& default_arg = BuildTypeWithoutFinalization();
-    ASSERT(!default_arg.IsNull());
-    type_parameters.SetDefaultAt(i, default_arg);
+    parameter.set_default_argument(default_arg);
     helper.Finish();
   }
 
-  // Fix bounds in all derived type parameters.
+  // Note that function.UpdateCachedDefaultTypeArguments() is called in
+  // function.set_signature() and is not required here.
+
+  // Fix bounds and default arguments in all derived type parameters (with
+  // different nullabilities).
   const intptr_t offset = !parameterized_signature.IsNull()
                               ? parameterized_signature.NumParentTypeArguments()
                               : 0;
   if (active_class->derived_type_parameters != nullptr) {
     auto& derived = TypeParameter::Handle(Z);
-    auto& bound = AbstractType::Handle(Z);
+    auto& type = AbstractType::Handle(Z);
     for (intptr_t i = 0, n = active_class->derived_type_parameters->Length();
          i < n; ++i) {
       derived ^= active_class->derived_type_parameters->At(i);
       if (derived.bound() == AbstractType::null() &&
           ((!parameterized_class.IsNull() &&
-            derived.parameterized_class_id() == parameterized_class.id()) ||
+            derived.parameterized_class() == parameterized_class.ptr()) ||
            (!parameterized_signature.IsNull() &&
-            derived.parameterized_class_id() == kFunctionCid &&
+            derived.parameterized_class() == Class::null() &&
             derived.index() >= offset &&
             derived.index() < offset + type_parameter_count))) {
-        bound = type_parameters.BoundAt(derived.index() - offset);
-        derived.set_bound(bound);
+        parameter ^= type_parameters.TypeAt(derived.index() - offset);
+        type = parameter.bound();
+        derived.set_bound(type);
+        type = parameter.default_argument();
+        derived.set_default_argument(type);
       }
     }
   }
@@ -3438,18 +3435,8 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
   if (finalize_ || klass.is_type_finalized()) {
     type = klass.DeclarationType();
   } else {
-    TypeArguments& type_args = TypeArguments::Handle(Z);
-    const intptr_t num_type_params = klass.NumTypeParameters();
-    if (num_type_params > 0) {
-      type_args = TypeArguments::New(num_type_params);
-      TypeParameter& type_param = TypeParameter::Handle();
-      for (intptr_t i = 0; i < num_type_params; i++) {
-        type_param = klass.TypeParameterAt(i);
-        ASSERT(type_param.bound() != AbstractType::null());
-        type_args.SetTypeAt(i, type_param);
-      }
-    }
-    type = Type::New(klass, type_args, Nullability::kNonNullable);
+    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                     Nullability::kNonNullable);
   }
   return type;
 }
@@ -3563,8 +3550,8 @@ void TypeTranslator::SetupFunctionParameters(
   if (!is_factory) {
     type_parameter_count = helper_->ReadListLength();
     LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
-                               signature, type_parameter_count);
-    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
+                               signature, type_parameter_count,
+                               function.nnbd_mode());
   }
 
   ActiveTypeParametersScope scope(active_class_, function, &signature, Z);

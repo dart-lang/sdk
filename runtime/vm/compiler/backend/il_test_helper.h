@@ -58,8 +58,9 @@ LibraryPtr LoadTestScript(const char* script,
 
 FunctionPtr GetFunction(const Library& lib, const char* name);
 ClassPtr GetClass(const Library& lib, const char* name);
-TypeParameterPtr GetClassTypeParameter(const Class& klass, intptr_t index);
-TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index);
+TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name);
+TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
+                                          const char* name);
 
 ObjectPtr Invoke(const Library& lib, const char* name);
 
