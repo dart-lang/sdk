@@ -877,10 +877,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
           return _emitInterfaceType(t, emitNullability: emitNullability);
         } else if (t is FutureOrType) {
-          _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
-          // TODO(45870) Add nullability wrappers to FutureOr.
-          return _emitFutureOrTypeWithArgument(
-              _emitDeferredType(t.typeArgument));
+          var normalizedType = _normalizeFutureOr(t);
+          if (normalizedType is FutureOrType) {
+            _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
+            var typeRep = _emitFutureOrTypeWithArgument(
+                _emitDeferredType(normalizedType.typeArgument));
+            return emitNullability
+                ? _emitNullabilityWrapper(
+                    typeRep, normalizedType.declaredNullability)
+                : typeRep;
+          }
+          return _emitDeferredType(normalizedType,
+              emitNullability: emitNullability);
         } else if (t is TypeParameterType) {
           return _emitTypeParameterType(t, emitNullability: emitNullability);
         }
@@ -2720,16 +2728,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           ? visitNullType(const NullType())
           : _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
 
-  /// Normalizes `FutureOr` types and emits the normalized version.
-  js_ast.Expression _normalizeFutureOr(FutureOrType futureOr) {
+  /// Normalizes `FutureOr` types.
+  ///
+  /// Any changes to the normalization logic here should be mirrored in the
+  /// classes.dart runtime library method named `normalizeFutureOr`.
+  DartType _normalizeFutureOr(FutureOrType futureOr) {
     var typeArgument = futureOr.typeArgument;
     if (typeArgument is DynamicType) {
       // FutureOr<dynamic> --> dynamic
-      return visitDynamicType(typeArgument);
+      return typeArgument;
     }
     if (typeArgument is VoidType) {
       // FutureOr<void> --> void
-      return visitVoidType(typeArgument);
+      return typeArgument;
     }
 
     if (typeArgument is InterfaceType &&
@@ -2744,23 +2755,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           : legacy
               ? Nullability.legacy
               : Nullability.nonNullable;
-      return _emitInterfaceType(
-          typeArgument.withDeclaredNullability(nullability));
+      return typeArgument.withDeclaredNullability(nullability);
     } else if (typeArgument is NeverType) {
       // FutureOr<Never> --> Future<Never>
-      return _emitInterfaceType(InterfaceType(
-          _coreTypes.futureClass, futureOr.nullability, [typeArgument]));
+      return InterfaceType(
+          _coreTypes.futureClass, futureOr.nullability, [typeArgument]);
     } else if (typeArgument is NullType) {
       // FutureOr<Null> --> Future<Null>?
-      return _emitInterfaceType(InterfaceType(
-          _coreTypes.futureClass, Nullability.nullable, [typeArgument]));
+      return InterfaceType(
+          _coreTypes.futureClass, Nullability.nullable, [typeArgument]);
     } else if (futureOr.declaredNullability == Nullability.nullable &&
         typeArgument.nullability == Nullability.nullable) {
       // FutureOr<T?>? --> FutureOr<T?>
-      return _emitFutureOrType(
-          futureOr.withDeclaredNullability(Nullability.nonNullable));
+      return futureOr.withDeclaredNullability(Nullability.nonNullable);
     }
-    return _emitFutureOrType(futureOr);
+    return futureOr;
   }
 
   @override
@@ -2772,8 +2781,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       type.onType.accept(this);
 
   @override
-  js_ast.Expression visitFutureOrType(FutureOrType type) =>
-      _normalizeFutureOr(type);
+  js_ast.Expression visitFutureOrType(FutureOrType type) {
+    var normalizedType = _normalizeFutureOr(type);
+    return normalizedType is FutureOrType
+        ? _emitFutureOrType(normalizedType)
+        : normalizedType.accept(this);
+  }
 
   /// Emits the representation of [type].
   ///

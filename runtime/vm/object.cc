@@ -24848,8 +24848,14 @@ uword Closure::ComputeHash() const {
   uint32_t result = 0;
   if (func.IsImplicitInstanceClosureFunction()) {
     // Implicit instance closures are not unique, so combine function's hash
-    // code with identityHashCode of cached receiver.
+    // code, delayed type arguments hash code (if generic), and identityHashCode
+    // of cached receiver.
     result = static_cast<uint32_t>(func.ComputeClosureHash());
+    if (func.IsGeneric()) {
+      const TypeArguments& delayed_type_args =
+          TypeArguments::Handle(zone, delayed_type_arguments());
+      result = CombineHashes(result, delayed_type_args.Hash());
+    }
     const Context& context = Context::Handle(zone, this->context());
     const Instance& receiver =
         Instance::Handle(zone, Instance::RawCast(context.At(0)));
