@@ -788,7 +788,6 @@ type FunctionTearOff extends Expression {
   Byte tag = 126;
   FileOffset fileOffset;
   Expression receiver;
-  DartType functionType;
 }
 
 type LocalFunctionInvocation extends Expression {
