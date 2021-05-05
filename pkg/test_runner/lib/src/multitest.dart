@@ -83,10 +83,7 @@ final _multitestOutcomes = {
   'syntax error',
   'compile-time error',
   'runtime error',
-  // TODO(rnystrom): Remove these after Dart 1.0 tests are removed.
-  'static type warning', // This is still a valid analyzer test
-  'dynamic type error', // This is now a no-op
-  'checked mode compile-time error' // This is now a no-op
+  'static type warning', // Used by some analyzer tests.
 };
 
 void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,

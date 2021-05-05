@@ -6,7 +6,11 @@
 class A<T> {
   A() {}
   factory A.factory() {
-    return new A<String>(); // //# 00: compile-time error
+    return new A<String>();
+    //     ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+    //         ^
+    // [cfe] A value of type 'A<String>' can't be returned from a function with return type 'A<T>'.
     return A<T>();
   }
 }
@@ -14,14 +18,18 @@ class A<T> {
 class B<T> extends A<T> {
   B() {}
   factory B.factory() {
-    return new B<String>(); // //# 01: compile-time error
+    return new B<String>();
+    //     ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+    //         ^
+    // [cfe] A value of type 'B<String>' can't be returned from a function with return type 'B<T>'.
     return B<T>();
   }
 }
 
 main() {
   new A<String>.factory();
-  new A<int>.factory(); // //# 00: dynamic type error
+  new A<int>.factory();
   new B<String>.factory();
-  new B<int>.factory(); // //# 01: dynamic type error
+  new B<int>.factory();
 }
