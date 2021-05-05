@@ -46,7 +46,7 @@ class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
             name: 'avoid_web_libraries_in_flutter',
             description: _desc,
             details: _details,
-            maturity: Maturity.experimental,
+            maturity: Maturity.stable,
             group: Group.errors);
 
   @override
