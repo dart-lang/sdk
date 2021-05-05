@@ -830,18 +830,6 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
 
   function.set_owner(real_class);
 
-  ASSERT(real_class.is_finalized());
-  // The owner class has already been marked as finalized so the signature of
-  // this added function must be finalized here, since finalization of member
-  // types will not be called anymore.
-  FunctionType& signature = FunctionType::Handle(Z, function.signature());
-  if (!function.is_static()) {
-    // Patch the illegal receiver type (type class with kIllegalCid) to dynamic.
-    signature.SetParameterTypeAt(0, Object::dynamic_type());
-  }
-  signature ^= ClassFinalizer::FinalizeType(signature);
-  function.set_signature(signature);
-
   return function.ptr();
 }
 
@@ -1437,9 +1425,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   // Set type parameters.
   T.LoadAndSetupTypeParameters(&active_class_, Object::null_function(), *klass,
                                Object::null_function_type(),
-                               type_parameter_count);
-
-  ActiveTypeParametersScope scope(&active_class_, nullptr, Z);
+                               type_parameter_count, klass->nnbd_mode());
 
   T.LoadAndSetupBounds(&active_class_, Object::null_function(), *klass,
                        Object::null_function_type(), type_parameter_count);

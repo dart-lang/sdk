@@ -83,7 +83,6 @@ class Thread;
   V(PcDescriptors)                                                             \
   V(Smi)                                                                       \
   V(String)                                                                    \
-  V(TypeParameters)                                                            \
   V(TypeArguments)                                                             \
   V(TypeParameter)
 

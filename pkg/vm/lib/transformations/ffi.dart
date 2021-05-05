@@ -786,13 +786,6 @@ class FfiTransformer extends Transformer {
   }
 }
 
-/// Contains all information collected by _FfiDefinitionTransformer that is
-/// needed in _FfiUseSiteTransformer.
-class FfiTransformerData {
-  final Set<Class> emptyCompounds;
-  FfiTransformerData(this.emptyCompounds);
-}
-
 /// Checks if any library depends on dart:ffi.
 bool importsFfi(Component component, List<Library> libraries) {
   Set<Library> allLibs = {...component.libraries, ...libraries};

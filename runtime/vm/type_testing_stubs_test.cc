@@ -461,7 +461,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   auto& tav_dynamic_t = TypeArguments::Handle(TypeArguments::New(2));
   tav_dynamic_t.SetTypeAt(0, type_dynamic);
   tav_dynamic_t.SetTypeAt(
-      1, TypeParameter::Handle(GetClassTypeParameter(class_base, 0)));
+      1, TypeParameter::Handle(GetClassTypeParameter(class_base, "T")));
   CanonicalizeTAV(&tav_dynamic_t);
 
   // We will generate specialized TTS for instantiated interface types
@@ -750,7 +750,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   // <...> as Base<T>  with T instantiantiator type parameter (T == int)
   const auto& tav_baset = TypeArguments::Handle(TypeArguments::New(1));
   tav_baset.SetTypeAt(
-      0, TypeParameter::Handle(GetClassTypeParameter(class_base, 0)));
+      0, TypeParameter::Handle(GetClassTypeParameter(class_base, "T")));
   auto& type_base_t = AbstractType::Handle(Type::New(class_base, tav_baset));
   FinalizeAndCanonicalize(&type_base_t);
   RunTTSTest(obj_base_int, type_base_t, tav_int, tav_null,
@@ -761,7 +761,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   // <...> as Base<B>  with B function type parameter
   const auto& tav_baseb = TypeArguments::Handle(TypeArguments::New(1));
   tav_baseb.SetTypeAt(
-      0, TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, 1)));
+      0, TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, "B")));
   auto& type_base_b = AbstractType::Handle(Type::New(class_base, tav_baseb));
   FinalizeAndCanonicalize(&type_base_b);
   // With B == int
@@ -797,8 +797,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
 
   //   <...> as Base<A2<T>>
   const auto& tav_t = TypeArguments::Handle(TypeArguments::New(1));
-  tav_t.SetTypeAt(0,
-                  TypeParameter::Handle(GetClassTypeParameter(class_base, 0)));
+  tav_t.SetTypeAt(
+      0, TypeParameter::Handle(GetClassTypeParameter(class_base, "T")));
   auto& type_a2_t = Type::Handle(Type::New(class_a2, tav_t));
   type_a2_t = type_a2_t.ToNullability(Nullability::kLegacy, Heap::kNew);
   FinalizeAndCanonicalize(&type_a2_t);
@@ -855,7 +855,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
   // dst_type = B<T>
   const auto& dst_tav = TypeArguments::Handle(TypeArguments::New(1));
   dst_tav.SetTypeAt(0,
-                    TypeParameter::Handle(GetClassTypeParameter(class_b, 0)));
+                    TypeParameter::Handle(GetClassTypeParameter(class_b, "T")));
   auto& dst_type = Type::Handle(Type::New(class_b, dst_tav));
   FinalizeAndCanonicalize(&dst_type);
   const auto& cint_tav =
@@ -891,10 +891,10 @@ ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
       Function::Handle(GetFunction(root_library, "genericFun"));
 
   const auto& dst_type_t =
-      TypeParameter::Handle(GetClassTypeParameter(class_a, 0));
+      TypeParameter::Handle(GetClassTypeParameter(class_a, "T"));
 
   const auto& dst_type_h =
-      TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, 0));
+      TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, "H"));
 
   const auto& aint = Object::Handle(Invoke(root_library, "createAInt"));
   const auto& astring = Object::Handle(Invoke(root_library, "createAString"));

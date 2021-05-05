@@ -2694,6 +2694,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kClosure_hash:
+    case Slot::Kind::kClosureData_default_type_arguments:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
     case Slot::Kind::kFunction_data:
@@ -2704,11 +2705,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
-    case Slot::Kind::kTypeParameters_names:
-    case Slot::Kind::kTypeParameters_flags:
-    case Slot::Kind::kTypeParameters_bounds:
-    case Slot::Kind::kTypeParameters_defaults:
     case Slot::Kind::kTypeParameter_bound:
+    case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
     case Slot::Kind::kWeakProperty_key:

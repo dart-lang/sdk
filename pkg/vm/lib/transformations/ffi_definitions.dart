@@ -63,7 +63,7 @@ import 'ffi.dart';
 ///
 ///   static final int #sizeOf = 24;
 /// }
-FfiTransformerData transformLibraries(
+void transformLibraries(
     Component component,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
@@ -77,17 +77,16 @@ FfiTransformerData transformLibraries(
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
     // for the VM target.
     // If dart:ffi is not loaded, do not do the transformation.
-    return FfiTransformerData({});
+    return;
   }
   if (index.tryGetClass('dart:ffi', 'NativeFunction') == null) {
     // If dart:ffi is not loaded (for real): do not do the transformation.
-    return FfiTransformerData({});
+    return;
   }
   final transformer = new _FfiDefinitionTransformer(index, coreTypes, hierarchy,
       diagnosticReporter, referenceFromIndex, changedStructureNotifier);
   libraries.forEach(transformer.visitLibrary);
   transformer.manualVisitInTopologicalOrder();
-  return FfiTransformerData(transformer.emptyCompounds);
 }
 
 class CompoundDependencyGraph<T> implements Graph<T> {
@@ -107,8 +106,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   Map<Class, Set<Class>> compoundClassDependencies = {};
   Map<Class, bool> fieldsValid = {};
   Map<Class, CompoundNativeTypeCfe> compoundCache = {};
-
-  Set<Class> emptyCompounds = {};
 
   ChangedStructureNotifier changedStructureNotifier;
 
@@ -528,7 +525,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           node.fileOffset,
           node.name.length,
           node.location.file);
-      emptyCompounds.add(node);
     }
 
     final compoundType = node.superclass == structClass

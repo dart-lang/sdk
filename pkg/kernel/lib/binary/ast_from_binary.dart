@@ -519,11 +519,7 @@ class BinaryBuilder {
 
   List<Expression> readAnnotationList([TreeNode? parent]) {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfExpression;
-    }
+    if (length == 0) return const <Expression>[];
     return new List<Expression>.generate(
         length, (_) => readExpression()..parent = parent,
         growable: useGrowableLists);

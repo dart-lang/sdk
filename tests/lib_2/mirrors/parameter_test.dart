@@ -182,11 +182,24 @@ main() {
 
   MethodMirror fooInC = cm.declarations[#foo] as MethodMirror;
   expect('Method(s(foo) in s(C))', fooInC);
-
-  // Names of type variables are not preserved after type canonicalization
-  // and are therefore not compared to expected names.
-
+  expect(
+      '[Parameter(s(a) in s(foo),'
+      ' type = Class(s(int) in s(dart.core), top-level)), '
+      'Parameter(s(b) in s(foo),'
+      ' type = TypeVariable(s(S) in s(Null),'
+      ' upperBound = Class(s(int) in s(dart.core), top-level)))]',
+      fooInC.parameters);
 
   MethodMirror barInC = cm.declarations[#bar] as MethodMirror;
   expect('Method(s(bar) in s(C))', barInC);
+  expect(
+      '[Parameter(s(a) in s(bar),'
+      ' type = TypeVariable(s(S) in s(Null),'
+      ' upperBound = Class(s(int) in s(dart.core), top-level))), '
+      'Parameter(s(b) in s(bar),'
+      ' type = TypeVariable(s(T) in s(Null),'
+      ' upperBound = Class(s(Object) in s(dart.core), top-level))), '
+      'Parameter(s(c) in s(bar),'
+      ' type = Class(s(num) in s(dart.core), top-level))]',
+      barInC.parameters);
 }

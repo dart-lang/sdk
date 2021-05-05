@@ -44,11 +44,11 @@ def Main():
             pubspec_yaml.write(PUBSPEC)
 
         exit_code = subprocess.call([pub, 'get'], cwd=working_dir, env=env)
-        if exit_code is not 0:
+        if exit_code != 0:
             return exit_code
 
         exit_code = subprocess.call([pub, 'upgrade'], cwd=working_dir, env=env)
-        if exit_code is not 0:
+        if exit_code != 0:
             return exit_code
     finally:
         shutil.rmtree(working_dir)

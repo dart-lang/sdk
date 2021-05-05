@@ -49,6 +49,14 @@ main() {
   Expect.equals(reflectClass(num), tFromSuper.upperBound);
   Expect.equals(reflectClass(Object), rFromGeneric.upperBound); // //# 02: continued
 
+  typeParameters(superDecl, [#T]);
+  typeParameters(superOfInt, [#T]);
+  typeParameters(genericDecl, [#R]); // //# 02: continued
+  typeParameters(superOfR, [#T]); // //# 02: continued
+  typeParameters(genericOfDouble, [#R]); // //# 02: continued
+  typeParameters(superOfDouble, [#T]); // //# 02: continued
+  typeParameters(superOfString, [#T]); // //# 01: continued
+
   typeArguments(superDecl, []);
   typeArguments(superOfInt, [reflectClass(int)]);
   typeArguments(genericDecl, []); // //# 02: continued

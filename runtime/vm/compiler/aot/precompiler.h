@@ -298,7 +298,6 @@ class Precompiler : public ValueObject {
   void AddType(const AbstractType& type);
   void AddTypesOf(const Class& cls);
   void AddTypesOf(const Function& function);
-  void AddTypeParameters(const TypeParameters& params);
   void AddTypeArguments(const TypeArguments& args);
   void AddCalleesOf(const Function& function, intptr_t gop_offset);
   void AddCalleesOfHelper(const Object& entry,

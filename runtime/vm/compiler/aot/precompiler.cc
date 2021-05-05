@@ -962,7 +962,7 @@ void Precompiler::AddTypesOf(const Class& cls) {
     AddType(type);
   }
 
-  AddTypeParameters(TypeParameters::Handle(Z, cls.type_parameters()));
+  AddTypeArguments(TypeArguments::Handle(Z, cls.type_parameters()));
 
   type = cls.super_type();
   AddType(type);
@@ -990,6 +990,15 @@ void Precompiler::AddTypesOf(const Function& function) {
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   AddType(signature);
+
+  // At this point, ensure any cached default type arguments are canonicalized.
+  function.UpdateCachedDefaultTypeArguments(thread());
+  if (function.CachesDefaultTypeArguments()) {
+    const auto& defaults = TypeArguments::Handle(
+        Z, function.default_type_arguments(/*kind_out=*/nullptr));
+    ASSERT(defaults.IsCanonical());
+    AddTypeArguments(defaults);
+  }
 
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());
@@ -1045,8 +1054,10 @@ void Precompiler::AddType(const AbstractType& abstype) {
     if (typeparams_to_retain_.HasKey(&param)) return;
     typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.ptr()));
 
-    auto& bound = AbstractType::Handle(Z, param.bound());
-    AddType(bound);
+    auto& type = AbstractType::Handle(Z, param.bound());
+    AddType(type);
+    type = param.default_argument();
+    AddType(type);
     return;
   }
 
@@ -1056,7 +1067,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
         FunctionType::ZoneHandle(Z, FunctionType::Cast(abstype).ptr());
     functiontypes_to_retain_.Insert(&signature);
 
-    AddTypeParameters(TypeParameters::Handle(Z, signature.type_parameters()));
+    AddTypeArguments(TypeArguments::Handle(Z, signature.type_parameters()));
 
     AbstractType& type = AbstractType::Handle(Z);
     type = signature.result_type();
@@ -1082,16 +1093,6 @@ void Precompiler::AddType(const AbstractType& abstype) {
     type = TypeRef::Cast(abstype).type();
     AddType(type);
   }
-}
-
-void Precompiler::AddTypeParameters(const TypeParameters& params) {
-  if (params.IsNull()) return;
-
-  TypeArguments& args = TypeArguments::Handle();
-  args = params.bounds();
-  AddTypeArguments(args);
-  args = params.defaults();
-  AddTypeArguments(args);
 }
 
 void Precompiler::AddTypeArguments(const TypeArguments& args) {

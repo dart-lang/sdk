@@ -79,13 +79,6 @@ class ClassFinalizer : public AllStatic {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
-  // Finalize given type argument vector.
-  static TypeArgumentsPtr FinalizeTypeArguments(
-      Zone* zone,
-      const TypeArguments& type_args,
-      FinalizationKind finalization = kCanonicalize,
-      PendingTypes* pending_types = NULL);
-
   // Finalize the types in the signature and the signature itself.
   static AbstractTypePtr FinalizeSignature(
       Zone* zone,
@@ -95,24 +88,18 @@ class ClassFinalizer : public AllStatic {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void AllocateEnumValues(const Class& enum_cls);
+  static void FinalizeTypeParameters(
+      const Class& cls,
+      FinalizationKind finalization = kCanonicalize);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  static void FinalizeTypeParameters(
-      Zone* zone,
-      const Class& cls,
-      const FunctionType& signature,
-      FinalizationKind finalization = kCanonicalize,
-      PendingTypes* pending_types = NULL);
-
-  static intptr_t ExpandAndFinalizeTypeArguments(Zone* zone,
-                                                 const AbstractType& type,
+  static intptr_t ExpandAndFinalizeTypeArguments(const AbstractType& type,
                                                  PendingTypes* pending_types);
-  static void FillAndFinalizeTypeArguments(Zone* zone,
-                                           const Class& cls,
-                                           const TypeArguments& arguments,
-                                           intptr_t num_uninitialized_arguments,
-                                           PendingTypes* pending_types,
-                                           TrailPtr trail);
+  static void FinalizeTypeArguments(const Class& cls,
+                                    const TypeArguments& arguments,
+                                    intptr_t num_uninitialized_arguments,
+                                    PendingTypes* pending_types,
+                                    TrailPtr trail);
   static void CheckRecursiveType(const AbstractType& type,
                                  PendingTypes* pending_types);
 

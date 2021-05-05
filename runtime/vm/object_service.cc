@@ -169,15 +169,6 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void TypeParameters::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("kind", "TypeParameters");
-  jsobj.AddProperty("flags", Array::Handle(flags()));
-  jsobj.AddProperty("names", Array::Handle(names()));
-  jsobj.AddProperty("bounds", TypeArguments::Handle(bounds()));
-  jsobj.AddProperty("defaults", TypeArguments::Handle(defaults()));
-}
-
 void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   // The index in the canonical_type_arguments table cannot be used as part of

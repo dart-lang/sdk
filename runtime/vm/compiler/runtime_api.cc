@@ -1180,10 +1180,6 @@ word Field::NextFieldOffset() {
   return -kWordSize;
 }
 
-word TypeParameters::NextFieldOffset() {
-  return -kWordSize;
-}
-
 word TypeArguments::NextFieldOffset() {
   return -kWordSize;
 }

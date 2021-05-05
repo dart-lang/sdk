@@ -72,8 +72,8 @@ const char* TypeTestingStubNamer::StringifyType(
 
     return concatenated;
   } else if (type.IsTypeParameter()) {
-    return AssemblerSafeName(
-        OS::SCreate(Z, "%s", TypeParameter::Cast(type).CanonicalNameCString()));
+    string_ = TypeParameter::Cast(type).name();
+    return AssemblerSafeName(OS::SCreate(Z, "%s", string_.ToCString()));
   } else {
     return AssemblerSafeName(OS::SCreate(Z, "%s", type.ToCString()));
   }
@@ -359,13 +359,18 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
   } else {
     ASSERT(hi->CanUseGenericSubtypeRangeCheckFor(type));
 
+    const intptr_t num_type_parameters = type_class.NumTypeParameters();
     const intptr_t num_type_arguments = type_class.NumTypeArguments();
+
+    const TypeArguments& tp =
+        TypeArguments::Handle(type_class.type_parameters());
+    ASSERT(tp.Length() == num_type_parameters);
 
     const TypeArguments& ta = TypeArguments::Handle(type.arguments());
     ASSERT(ta.Length() == num_type_arguments);
 
     BuildOptimizedSubclassRangeCheckWithTypeArguments(assembler, hi, type,
-                                                      type_class, ta);
+                                                      type_class, tp, ta);
   }
 
   if (Instance::NullIsAssignableTo(type)) {
@@ -406,6 +411,7 @@ void TypeTestingStubGenerator::
         HierarchyInfo* hi,
         const Type& type,
         const Class& type_class,
+        const TypeArguments& tp,
         const TypeArguments& ta) {
   // a) First we make a quick sub*class* cid-range check.
   compiler::Label check_failed;
@@ -935,6 +941,7 @@ void TypeUsageInfo::UpdateAssertAssignableTypes(
     TypeParameterSet* parameters_tested_against) {
   Class& klass = Class::Handle(zone_);
   TypeParameter& param = TypeParameter::Handle(zone_);
+  TypeArguments& params = TypeArguments::Handle(zone_);
   AbstractType& type = AbstractType::Handle(zone_);
 
   // Because Object/dynamic are common values for type parameters, we add them
@@ -954,8 +961,9 @@ void TypeUsageInfo::UpdateAssertAssignableTypes(
     }
 
     const intptr_t num_parameters = klass.NumTypeParameters();
+    params = klass.type_parameters();
     for (intptr_t i = 0; i < num_parameters; ++i) {
-      param = klass.TypeParameterAt(i);
+      param ^= params.TypeAt(i);
       if (parameters_tested_against->HasKey(&param)) {
         TypeArgumentsSet& ta_set = instance_creation_arguments_[cid];
         auto it = ta_set.GetIterator();

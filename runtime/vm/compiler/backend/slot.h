@@ -58,13 +58,10 @@ class ParsedFunction;
     FINAL)                                                                     \
   V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
+  V(ClosureData, UntaggedClosureData, default_type_arguments, TypeArguments,   \
+    FINAL_COMPRESSED)                                                          \
   V(Type, UntaggedType, arguments, TypeArguments, FINAL_COMPRESSED)            \
-  V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
-    FINAL_COMPRESSED)                                                          \
-  V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL_COMPRESSED)    \
-  V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments,             \
-    FINAL_COMPRESSED)                                                          \
-  V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments,           \
+  V(FunctionType, UntaggedFunctionType, type_parameters, TypeArguments,        \
     FINAL_COMPRESSED)                                                          \
   V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
   V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)
@@ -110,8 +107,8 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
   V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL_COMPRESSED)       \
-  V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL_COMPRESSED)    \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL_COMPRESSED)    \
+  V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL_COMPRESSED)     \
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic,        \
     FINAL_COMPRESSED)                                                          \
   V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic,       \
