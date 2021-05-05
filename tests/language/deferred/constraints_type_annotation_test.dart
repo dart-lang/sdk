@@ -22,11 +22,11 @@ main() {
   lib2.C a1 = new lib2.C(); //# type_annotation_non_deferred: continued
   asyncStart();
   lib.loadLibrary().then((_) {
-    lib.C a2 = new lib.C(); //# type_annotation1: dynamic type error, compile-time error
-    lib.G<F> a3 = new lib.G<F>(); //# type_annotation_generic1: dynamic type error, compile-time error
+    lib.C a2 = new lib.C(); //# type_annotation1: compile-time error
+    lib.G<F> a3 = new lib.G<F>(); //# type_annotation_generic1: compile-time error
     G2<lib.C> a4 = new G2(); //# type_annotation_generic2: compile-time error
     G2<lib.C> a5 = new G2<lib.C>(); //# type_annotation_generic3: compile-time error
-    lib.G<lib.C> a = new lib.G<lib.C>(); //# type_annotation_generic4: dynamic type error, compile-time error
+    lib.G<lib.C> a = new lib.G<lib.C>(); //# type_annotation_generic4: compile-time error
     var a6 = new lib.C(); //# new: ok
     var g1 = new lib.G<F>(); //# new_generic1: ok
     // new G2<lib.C>() does not give a dynamic type error because a malformed

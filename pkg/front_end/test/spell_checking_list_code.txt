@@ -573,6 +573,7 @@ infos
 init
 initializations
 initializer's
+inlines
 insertion
 inspect
 inspecting
@@ -962,6 +963,7 @@ received
 receivers
 recheck
 recognizing
+recompile
 recompiled
 recompiling
 recompute
@@ -1145,6 +1147,7 @@ streaming
 strict
 stringified
 stringify
+structs
 structures
 stub
 stubs
