@@ -44,8 +44,6 @@ abstract class DartDevelopmentService {
     Uri serviceUri,
     bool enableAuthCodes = true,
     bool ipv6 = false,
-    DevToolsConfiguration devToolsConfiguration = const DevToolsConfiguration(),
-    bool logRequests = false,
   }) async {
     if (remoteVmServiceUri == null) {
       throw ArgumentError.notNull('remoteVmServiceUri');
@@ -82,8 +80,6 @@ abstract class DartDevelopmentService {
       serviceUri,
       enableAuthCodes,
       ipv6,
-      devToolsConfiguration,
-      logRequests,
     );
     await service.startService();
     return service;
@@ -129,11 +125,6 @@ abstract class DartDevelopmentService {
   /// Returns `null` if the service is not running.
   Uri get wsUri;
 
-  /// The HTTP [Uri] of the hosted DevTools instance.
-  ///
-  /// Returns `null` if DevTools is not running.
-  Uri get devToolsUri;
-
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
   bool get isRunning;
@@ -176,14 +167,4 @@ class DartDevelopmentServiceException implements Exception {
 
   final int errorCode;
   final String message;
-}
-
-class DevToolsConfiguration {
-  const DevToolsConfiguration({
-    this.enable = false,
-    this.customBuildDirectoryPath,
-  });
-
-  final bool enable;
-  final Uri customBuildDirectoryPath;
 }

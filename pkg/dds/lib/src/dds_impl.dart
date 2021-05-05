@@ -24,8 +24,6 @@ import '../dds.dart';
 import 'binary_compatible_peer.dart';
 import 'client.dart';
 import 'client_manager.dart';
-import 'constants.dart';
-import 'devtools/devtools_handler.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
 import 'stream_manager.dart';
@@ -53,13 +51,7 @@ WebSocketChannel _defaultWebSocketBuilder(Uri uri) {
 
 class DartDevelopmentServiceImpl implements DartDevelopmentService {
   DartDevelopmentServiceImpl(
-    this._remoteVmServiceUri,
-    this._uri,
-    this._authCodesEnabled,
-    this._ipv6,
-    this._devToolsConfiguration,
-    this.shouldLogRequests,
-  ) {
+      this._remoteVmServiceUri, this._uri, this._authCodesEnabled, this._ipv6) {
     _clientManager = ClientManager(this);
     _expressionEvaluator = ExpressionEvaluator(this);
     _isolateManager = IsolateManager(this);
@@ -121,26 +113,20 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
         (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
             .host;
     final port = uri?.port ?? 0;
-    final pipeline = const Pipeline();
-    if (shouldLogRequests) {
-      pipeline.addMiddleware(
-        logRequests(
-          logger: (String message, bool isError) {
-            print('Log: $message');
-          },
-        ),
-      );
-    }
-    pipeline.addMiddleware(_authCodeMiddleware);
-    final handler = pipeline.addHandler(_handlers().handler);
+
     // Start the DDS server.
-    _server = await io.serve(handler, host, port);
+    _server = await io.serve(
+        const Pipeline()
+            .addMiddleware(_authCodeMiddleware)
+            .addHandler(_handlers().handler),
+        host,
+        port);
 
     final tmpUri = Uri(
       scheme: 'http',
       host: host,
       port: _server.port,
-      path: '$authCode/',
+      path: '$_authCode/',
     );
 
     // Notify the VM service that this client is DDS and that it should close
@@ -171,7 +157,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       return;
     }
     _shuttingDown = true;
-    // Don't accept any more HTTP requests.
+    // Don't accept anymore HTTP requests.
     await _server?.close();
 
     // Close connections to clients.
@@ -211,7 +197,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
             return forbidden;
           }
           final authToken = pathSegments[0];
-          if (authToken != authCode) {
+          if (authToken != _authCode) {
             return forbidden;
           }
           // Creates a new request with the authentication code stripped from
@@ -247,12 +233,18 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       });
 
   Handler _sseHandler() {
-    final handler = SseHandler(
-      authCodesEnabled
-          ? Uri.parse('/$authCode/$_kSseHandlerPath')
-          : Uri.parse('/$_kSseHandlerPath'),
-      keepAlive: sseKeepAlive,
-    );
+    // Give connections time to reestablish before considering them closed.
+    // Required to reestablish connections killed by UberProxy.
+    const keepAlive = Duration(seconds: 30);
+    final handler = authCodesEnabled
+        ? SseHandler(
+            Uri.parse('/$_authCode/$_kSseHandlerPath'),
+            keepAlive: keepAlive,
+          )
+        : SseHandler(
+            Uri.parse('/$_kSseHandlerPath'),
+            keepAlive: keepAlive,
+          );
 
     handler.connections.rest.listen((sseConnection) {
       final client = DartDevelopmentServiceClient.fromSSEConnection(
@@ -267,18 +259,10 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   Handler _httpHandler() {
-    if (_devToolsConfiguration != null && _devToolsConfiguration.enable) {
-      // Install the DevTools handlers and forward any unhandled HTTP requests to
-      // the VM service.
-      final buildDir =
-          _devToolsConfiguration.customBuildDirectoryPath?.toFilePath();
-      return devtoolsHandler(
-        dds: this,
-        buildDir: buildDir,
-        notFoundHandler: proxyHandler(remoteVmServiceUri),
-      );
-    }
-    return proxyHandler(remoteVmServiceUri);
+    // DDS doesn't support any HTTP requests itself, so we just forward all of
+    // them to the VM service.
+    final cascade = Cascade().add(proxyHandler(remoteVmServiceUri));
+    return cascade.handler;
   }
 
   List<String> _cleanupPathSegments(Uri uri) {
@@ -312,42 +296,13 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
-  Uri _toDevTools(Uri uri) {
-    // The DevTools URI is a bit strange as the query parameters appear after
-    // the fragment. There's no nice way to encode the query parameters
-    // properly, so we create another Uri just to grab the formatted query.
-    // The result will need to have '/?' prepended when being used as the
-    // fragment to get the correct format.
-    final query = Uri(
-      queryParameters: {
-        'uri': wsUri.toString(),
-      },
-    ).query;
-    return Uri(
-      scheme: 'http',
-      host: uri.host,
-      port: uri.port,
-      pathSegments: [
-        ...uri.pathSegments.where(
-          (e) => e.isNotEmpty,
-        ),
-        'devtools',
-        '',
-      ],
-      fragment: '/?$query',
-    );
-  }
-
   String getNamespace(DartDevelopmentServiceClient client) =>
       clientManager.clients.keyOf(client);
 
   @override
   bool get authCodesEnabled => _authCodesEnabled;
   final bool _authCodesEnabled;
-  String get authCode => _authCode;
   String _authCode;
-
-  final bool shouldLogRequests;
 
   @override
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
@@ -358,20 +313,16 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
   @override
   Uri get uri => _uri;
-  Uri _uri;
 
   @override
   Uri get sseUri => _toSse(_uri);
 
   Uri get wsUri => _toWebSocket(_uri);
-
-  Uri get devToolsUri => _toDevTools(_uri);
+  Uri _uri;
 
   final bool _ipv6;
 
   bool get isRunning => _uri != null;
-
-  final DevToolsConfiguration _devToolsConfiguration;
 
   Future<void> get done => _done.future;
   Completer _done = Completer<void>();
