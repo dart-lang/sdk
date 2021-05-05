@@ -35,15 +35,15 @@ class I extends G {}
 
 main() {
   // Declarations.
-  typeParameters(reflectClass(A), [#T]);
+
+  // Names of type variables are not preserved after type canonicalization
+  // and are therefore not compared to expected names.
+
   typeParameters(reflectClass(G), []);
   typeParameters(reflectClass(B), []);
   typeParameters(reflectClass(C), []);
   typeParameters(reflectClass(D), []);
-  typeParameters(reflectClass(E), [#S]);
-  typeParameters(reflectClass(F), [#R]);
   typeParameters(reflectClass(G), []);
-  typeParameters(reflectClass(H), [#A, #B, #C]);
   typeParameters(reflectClass(I), []);
 
   typeArguments(reflectClass(A), []);
@@ -77,14 +77,10 @@ main() {
   Expect.equals(reflectClass(I), reflectClass(I).originalDeclaration);
 
   // Instantiations.
-  typeParameters(reflect(new A<num>()).type, [#T]);
   typeParameters(reflect(new B()).type, []);
   typeParameters(reflect(new C()).type, []);
   typeParameters(reflect(new D()).type, []);
-  typeParameters(reflect(new E()).type, [#S]);
-  typeParameters(reflect(new F<num>()).type, [#R]);
   typeParameters(reflect(new G()).type, []);
-  typeParameters(reflect(new H()).type, [#A, #B, #C]);
   typeParameters(reflect(new I()).type, []);
 
   var numMirror = reflectClass(num);

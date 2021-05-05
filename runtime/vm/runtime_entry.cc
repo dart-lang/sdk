@@ -531,12 +531,19 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
       AbstractType::CheckedHandle(zone, arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
 
-  ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
+  if (supertype.IsTypeRef()) {
+    supertype = TypeRef::Cast(supertype).type();
+  }
   ASSERT(!supertype.IsNull() && !supertype.IsTypeRef());
 
   // Now that AssertSubtype may be checking types only available at runtime,
   // we can't guarantee the supertype isn't the top type.
   if (supertype.IsTopTypeForSubtyping()) return;
+
+  if (subtype.IsTypeRef()) {
+    subtype = TypeRef::Cast(subtype).type();
+  }
+  ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
 
   // TODO(regis): Support for FLAG_trace_type_checks is missing here. Is it
   // still useful or should we remove it everywhere?

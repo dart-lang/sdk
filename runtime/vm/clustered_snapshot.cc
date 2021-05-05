@@ -533,8 +533,14 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
         element ^= ptr;
         intptr_t entry = -1;
         const bool present = table.FindKeyOrDeletedOrUnused(element, &entry);
-        ASSERT(!present);
-        table.InsertKey(entry, element);
+        if (!present) {
+          table.InsertKey(entry, element);
+        } else {
+          // Two recursive types with different topology (and hashes)
+          // may be equal.
+          ASSERT(element.IsRecursive());
+          objects_[num_occupied++] = ptr;
+        }
       } else {
         objects_[num_occupied++] = ptr;
       }
@@ -682,6 +688,74 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
     }
     table->untag()->data()[SetType::kOccupiedEntriesIndex] = Smi::New(count);
     return {table, SetType::kFirstKeyIndex, SetType::UnusedMarker().ptr()};
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class TypeParametersSerializationCluster : public SerializationCluster {
+ public:
+  TypeParametersSerializationCluster()
+      : SerializationCluster("TypeParameters",
+                             kTypeParametersCid,
+                             compiler::target::TypeParameters::InstanceSize()) {
+  }
+  ~TypeParametersSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    TypeParametersPtr type_params = TypeParameters::RawCast(object);
+    objects_.Add(type_params);
+    PushFromTo(type_params);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      TypeParametersPtr type_params = objects_[i];
+      s->AssignRef(type_params);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      TypeParametersPtr type_params = objects_[i];
+      AutoTraceObject(type_params);
+      WriteFromTo(type_params);
+    }
+  }
+
+ private:
+  GrowableArray<TypeParametersPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class TypeParametersDeserializationCluster : public DeserializationCluster {
+ public:
+  TypeParametersDeserializationCluster()
+      : DeserializationCluster("TypeParameters") {}
+  ~TypeParametersDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, TypeParameters::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d, bool primary) {
+    ASSERT(!is_canonical());  // Never canonical.
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      TypeParametersPtr type_params =
+          static_cast<TypeParametersPtr>(d->Ref(id));
+      Deserializer::InitializeHeader(type_params, kTypeParametersCid,
+                                     TypeParameters::InstanceSize());
+      ReadFromTo(type_params);
+    }
   }
 };
 
@@ -1088,7 +1162,6 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     }
     s->Push(data->untag()->parent_function());
     s->Push(data->untag()->closure());
-    s->Push(data->untag()->default_type_arguments());
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1110,7 +1183,6 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       }
       WriteCompressedField(data, parent_function);
       WriteCompressedField(data, closure);
-      WriteCompressedField(data, default_type_arguments);
       s->WriteUnsigned(
           static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
     }
@@ -1151,8 +1223,6 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       }
       data->untag()->parent_function_ = static_cast<FunctionPtr>(d->ReadRef());
       data->untag()->closure_ = static_cast<InstancePtr>(d->ReadRef());
-      data->untag()->default_type_arguments_ =
-          static_cast<TypeArgumentsPtr>(d->ReadRef());
       data->untag()->default_type_arguments_kind_ =
           static_cast<ClosureData::DefaultTypeArgumentsKind>(d->ReadUnsigned());
     }
@@ -4218,8 +4288,8 @@ class TypeParameterSerializationCluster
     AutoTraceObject(type);
     WriteFromTo(type);
     s->Write<int32_t>(type->untag()->parameterized_class_id_);
-    s->Write<uint16_t>(type->untag()->base_);
-    s->Write<uint16_t>(type->untag()->index_);
+    s->Write<uint8_t>(type->untag()->base_);
+    s->Write<uint8_t>(type->untag()->index_);
     ASSERT(type->untag()->flags_ < (1 << UntaggedTypeParameter::kFlagsBitSize));
     ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
     static_assert(UntaggedTypeParameter::kFlagsBitSize + kNullabilityBitSize <=
@@ -4264,8 +4334,8 @@ class TypeParameterDeserializationCluster
                                      primary && is_canonical());
       ReadFromTo(type);
       type->untag()->parameterized_class_id_ = d->Read<int32_t>();
-      type->untag()->base_ = d->Read<uint16_t>();
-      type->untag()->index_ = d->Read<uint16_t>();
+      type->untag()->base_ = d->Read<uint8_t>();
+      type->untag()->index_ = d->Read<uint8_t>();
       const uint8_t combined = d->Read<uint8_t>();
       type->untag()->flags_ = combined >> kNullabilityBitSize;
       type->untag()->nullability_ = combined & kNullabilityBitMask;
@@ -6536,6 +6606,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
   switch (cid) {
     case kClassCid:
       return new (Z) ClassSerializationCluster(num_cids_ + num_tlc_cids_);
+    case kTypeParametersCid:
+      return new (Z) TypeParametersSerializationCluster();
     case kTypeArgumentsCid:
       return new (Z) TypeArgumentsSerializationCluster(
           is_canonical, cluster_represents_canonical_set);
@@ -7388,6 +7460,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kClassCid:
       ASSERT(!is_canonical);
       return new (Z) ClassDeserializationCluster();
+    case kTypeParametersCid:
+      return new (Z) TypeParametersDeserializationCluster();
     case kTypeArgumentsCid:
       return new (Z)
           TypeArgumentsDeserializationCluster(is_canonical, !is_non_root_unit_);

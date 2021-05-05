@@ -21,6 +21,7 @@ typedef uint16_t ClassIdTagType;
   V(Class)                                                                     \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
+  V(TypeParameters)                                                            \
   V(ClosureData)                                                               \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \

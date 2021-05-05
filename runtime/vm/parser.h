@@ -244,6 +244,7 @@ class ParsedFunction : public ZoneAllocated {
   V(current_function, Function, CurrentFunction)                               \
   V(current_num_processed, Smi, CurrentNumProcessed)                           \
   V(current_param_index, Smi, CurrentParamIndex)                               \
+  V(current_type_param, Dynamic, CurrentTypeParam)                             \
   V(function_type_args, Dynamic, FunctionTypeArgs)
 
 #define DEFINE_FIELD(Name, _, __) LocalVariable* Name = nullptr;

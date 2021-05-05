@@ -703,15 +703,13 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   }
 
   const auto& type_params =
-      TypeArguments::Handle(zone, function.type_parameters());
+      TypeParameters::Handle(zone, function.type_parameters());
   if (!type_params.IsNull()) {
-    auto& type_param = TypeParameter::Handle(zone);
     auto& bound = AbstractType::Handle(zone);
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
-      type_param ^= type_params.TypeAt(i);
-      bound = type_param.bound();
+      bound = type_params.BoundAt(i);
       if (!bound.IsTopTypeForSubtyping() &&
-          !type_param.IsGenericCovariantImpl()) {
+          !type_params.IsGenericCovariantImplAt(i)) {
         return true;
       }
     }
