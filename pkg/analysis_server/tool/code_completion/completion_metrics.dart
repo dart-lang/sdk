@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' as io;
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -62,7 +62,7 @@ Future<void> main(List<String> args) async {
   var result = parser.parse(args);
 
   if (!validArguments(parser, result)) {
-    io.exit(1);
+    return;
   }
 
   var options = CompletionMetricsOptions(result);
@@ -98,7 +98,7 @@ Future<void> main(List<String> args) async {
   print('Analyzing root: "$rootPath"');
   var stopwatch = Stopwatch()..start();
   var computer = CompletionMetricsComputer(rootPath, options);
-  var code = await computer.computeMetrics();
+  await computer.computeMetrics();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -113,7 +113,6 @@ Future<void> main(List<String> args) async {
   } else {
     computer.printResults();
   }
-  io.exit(code);
 }
 
 /// A [Counter] to track the performance of each of the completion strategies
@@ -282,6 +281,9 @@ class CompletionMetrics {
   /// The function to be executed when this metrics collector is disabled.
   final void Function()? disableFunction;
 
+  /// The tag used to profile performance of completions for this set of metrics.
+  final UserTag userTag;
+
   final Counter completionCounter = Counter('all completions');
 
   final Counter completionMissedTokenCounter =
@@ -295,6 +297,8 @@ class CompletionMetrics {
 
   final ArithmeticMeanComputer meanCompletionMS =
       ArithmeticMeanComputer('ms per completion');
+
+  final DistributionComputer distributionCompletionMS = DistributionComputer();
 
   final MeanReciprocalRankComputer mrrComputer =
       MeanReciprocalRankComputer('all completions');
@@ -333,7 +337,8 @@ class CompletionMetrics {
   CompletionMetrics(this.name,
       {required this.availableSuggestions,
       this.enableFunction,
-      this.disableFunction});
+      this.disableFunction})
+      : userTag = UserTag(name);
 
   /// Return an instance extracted from the decoded JSON [map].
   factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
@@ -349,6 +354,8 @@ class CompletionMetrics {
         .fromJson(map['completionElementKindCounter'] as Map<String, dynamic>);
     metrics.meanCompletionMS
         .fromJson(map['meanCompletionMS'] as Map<String, dynamic>);
+    metrics.distributionCompletionMS
+        .fromJson(map['distributionCompletionMS'] as Map<String, dynamic>);
     metrics.mrrComputer.fromJson(map['mrrComputer'] as Map<String, dynamic>);
     metrics.successfulMrrComputer
         .fromJson(map['successfulMrrComputer'] as Map<String, dynamic>);
@@ -401,6 +408,7 @@ class CompletionMetrics {
     completionKindCounter.addData(metrics.completionKindCounter);
     completionElementKindCounter.addData(metrics.completionElementKindCounter);
     meanCompletionMS.addData(metrics.meanCompletionMS);
+    distributionCompletionMS.addData(metrics.distributionCompletionMS);
     mrrComputer.addData(metrics.mrrComputer);
     successfulMrrComputer.addData(metrics.successfulMrrComputer);
     for (var entry in metrics.groupMrrComputers.entries) {
@@ -471,6 +479,7 @@ class CompletionMetrics {
       'completionKindCounter': completionKindCounter.toJson(),
       'completionElementKindCounter': completionElementKindCounter.toJson(),
       'meanCompletionMS': meanCompletionMS.toJson(),
+      'distributionCompletionMS': distributionCompletionMS.toJson(),
       'mrrComputer': mrrComputer.toJson(),
       'successfulMrrComputer': successfulMrrComputer.toJson(),
       'groupMrrComputers': groupMrrComputers
@@ -542,6 +551,7 @@ class CompletionMetrics {
   /// Record this elapsed ms count for the average ms count.
   void _recordTime(CompletionResult result) {
     meanCompletionMS.addValue(result.elapsedMS);
+    distributionCompletionMS.addValue(result.elapsedMS);
   }
 
   /// If the [result] is worse than any previously recorded results, record it.
@@ -567,9 +577,6 @@ class CompletionMetricsComputer {
   final CompletionMetricsOptions options;
 
   late ResolvedUnitResult _resolvedUnitResult;
-
-  /// The int to be returned from the [computeMetrics] call.
-  int resultCode = 0;
 
   /// A list of the metrics to be computed.
   final List<CompletionMetrics> targetMetrics = [];
@@ -622,8 +629,7 @@ class CompletionMetricsComputer {
     }
   }
 
-  Future<int> computeMetrics() async {
-    resultCode = 0;
+  Future<void> computeMetrics() async {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping',
@@ -647,7 +653,6 @@ class CompletionMetricsComputer {
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot);
     }
-    return resultCode;
   }
 
   int forEachExpectedCompletion(
@@ -790,6 +795,9 @@ class CompletionMetricsComputer {
       printCounter(metrics.completionKindCounter);
       printCounter(metrics.completionElementKindCounter);
     }
+
+    var distribution = metrics.distributionCompletionMS.displayString();
+    print('${metrics.name}: $distribution');
 
     List<String> toRow(MeanReciprocalRankComputer computer) {
       return [
@@ -948,6 +956,11 @@ class CompletionMetricsComputer {
 
     printHeading(2, 'Comparison of other metrics');
     printTable(table);
+
+    for (var metrics in targetMetrics) {
+      var distribution = metrics.distributionCompletionMS.displayString();
+      print('${metrics.name}: $distribution');
+    }
   }
 
   void printResults() {
@@ -1140,7 +1153,6 @@ class CompletionMetricsComputer {
             print('File $filePath skipped due to errors such as:');
             print('  ${analysisError.toString()}');
             print('');
-            resultCode = 1;
             continue;
           }
 
@@ -1214,9 +1226,11 @@ class CompletionMetricsComputer {
 
             var bestRank = -1;
             var bestName = '';
+            var defaultTag = getCurrentTag();
             for (var metrics in targetMetrics) {
               // Compute the completions.
               metrics.enable();
+              metrics.userTag.makeCurrent();
               // if (FeatureComputer.noDisabledFeatures) {
               //   var line = expectedCompletion.lineNumber;
               //   var column = expectedCompletion.columnNumber;
@@ -1229,6 +1243,7 @@ class CompletionMetricsComputer {
                 bestRank = rank;
                 bestName = metrics.name;
               }
+              defaultTag.makeCurrent();
               metrics.disable();
             }
             rankComparison.count(bestName);
@@ -1243,7 +1258,6 @@ class CompletionMetricsComputer {
           print('Exception caught analyzing: $filePath');
           print(exception.toString());
           print(stackTrace);
-          resultCode = 1;
         }
       }
     }
