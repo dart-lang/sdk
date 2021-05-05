@@ -32,6 +32,7 @@ import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
 import 'incremental_suite.dart' as incremental show createContext;
 import 'lint_suite.dart' as lint show createContext;
 import 'parser_suite.dart' as parser show createContext;
+import 'parser_equivalence_suite.dart' as parserEquivalence show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
 import 'spelling_test_not_src_suite.dart' as spelling_not_src
     show createContext;
@@ -411,6 +412,12 @@ const List<Suite> suites = [
   const Suite(
     "parser",
     parser.createContext,
+    "../testing.json",
+    shardCount: 1,
+  ),
+  const Suite(
+    "parser_equivalence",
+    parserEquivalence.createContext,
     "../testing.json",
     shardCount: 1,
   ),
