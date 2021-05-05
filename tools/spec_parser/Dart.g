@@ -1120,7 +1120,7 @@ partDirective
     ;
 
 partHeader
-    :    metadata PART OF identifier ('.' identifier)* ';'
+    :    metadata PART OF (dottedIdentifierList | uri)';'
     ;
 
 partDeclaration
