@@ -104,7 +104,8 @@ void main(List<String> args) {
       exit(0);
     } else {
       print("Package config out of date");
-      print("Run `dart tools/generate_package_config.dart` to update");
+      print("Run `gclient sync -D && dart tools/generate_package_config.dart` "
+          "to update.");
       exit(1);
     }
   }

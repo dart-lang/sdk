@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-03T18:00:16.673010",
+  "generated": "2021-05-05T10:52:59.908934",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -455,12 +455,6 @@
       "languageVersion": "2.2"
     },
     {
-      "name": "mustache",
-      "rootUri": "../third_party/pkg/mustache",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
-    },
-    {
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
@@ -648,12 +642,6 @@
       "rootUri": "../third_party/pkg/stack_trace",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "stagehand",
-      "rootUri": "../third_party/pkg/stagehand",
-      "packageUri": "lib/",
-      "languageVersion": "2.10"
     },
     {
       "name": "status_file",
