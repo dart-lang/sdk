@@ -241,19 +241,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   print(E2(s).charCount);
   // }
   // ```
-  /*
-   * TODO(brianwilkerson) This message doesn't handle the possible case where
-   *  there are more than 2 extensions, nor does it handle well the case where
-   *  one or more of the extensions is unnamed.
-   */
   static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
       CompileTimeErrorCode(
           'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-          "A member named '{0}' is defined in extensions '{1}' and '{2}' and "
-              "neither is more specific.",
+          "A member named '{0}' is defined in extensions {1}, and "
+              "none are more specific.",
           correction:
               "Try using an extension override to specify the extension "
-              "you want to to be chosen.",
+              "you want to be chosen.",
           hasPublishedDocs: true);
 
   /**

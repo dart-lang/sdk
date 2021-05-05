@@ -50,10 +50,6 @@ class ArithmeticMeanComputer {
     max = map['max'] as int?;
   }
 
-  void printMean() {
-    print('Mean \'$name\' ${mean.toStringAsFixed(6)} (total = $count)');
-  }
-
   /// Return a map used to represent this computer in a JSON structure.
   Map<String, dynamic> toJson() {
     return {
@@ -170,6 +166,52 @@ class Counter {
     return {
       'buckets': _buckets,
       'totalCount': _totalCount,
+    };
+  }
+}
+
+class DistributionComputer {
+  /// The buckets in which values are counted: [0..9], [10..19], ... [100..].
+  List<int> buckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  /// Add the data from the given [computer] to this computer.
+  void addData(DistributionComputer computer) {
+    for (var i = 0; i < buckets.length; i++) {
+      buckets[i] += computer.buckets[i];
+    }
+  }
+
+  /// Add a millisecond value to the list of buckets.
+  void addValue(int value) {
+    var bucket = math.min(value ~/ 10, buckets.length - 1);
+    buckets[bucket]++;
+  }
+
+  /// Return a textual representation of the distribution.
+  String displayString() {
+    var buffer = StringBuffer();
+    for (var i = 0; i < buckets.length; i++) {
+      if (i > 0) {
+        buffer.write(' ');
+      }
+      buffer.write('[');
+      buffer.write(i * 10);
+      buffer.write('] ');
+      buffer.write(buckets[i]);
+    }
+    return buffer.toString();
+  }
+
+  /// Set the state of this computer to the state recorded in the decoded JSON
+  /// [map].
+  void fromJson(Map<String, dynamic> map) {
+    buckets = map['buckets'] as List<int>;
+  }
+
+  /// Return a map used to represent this computer in a JSON structure.
+  Map<String, dynamic> toJson() {
+    return {
+      'buckets': buckets,
     };
   }
 }
