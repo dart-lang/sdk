@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
@@ -13,7 +14,6 @@ import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
-import 'package:path/path.dart' as path;
 
 import '../parse.dart';
 
@@ -22,10 +22,9 @@ void main() async {
   var details = [
     Detail.rule,
     Detail.fix,
+    Detail.bulk,
     // Detail.status,
-    Detail.score,
-    Detail.recommend,
-    Detail.bugs,
+    // Detail.bugs,
   ];
 
   var sorter = (LintScore s1, LintScore s2) {
@@ -35,8 +34,8 @@ void main() async {
 
   print(scorecard.asMarkdown(details, sorter: sorter));
 
-  var footer = buildFooter(scorecard, details);
-  print(footer);
+  // var footer = buildFooter(scorecard, details);
+  // print(footer);
 }
 
 const bulb = '💡';
@@ -128,6 +127,7 @@ int _compareRuleSets(List<String> s1, List<String> s2) {
 }
 
 List<String?> _getUnfixableLints() {
+  // todo(pq): consider moving this data elsewhere
   var excludes = File('tool/canonical/fix_excludes.json');
   var contents = excludes.readAsStringSync();
   var json = jsonDecode(contents);
@@ -147,9 +147,8 @@ List<String?> _getUnfixableLints() {
 class Detail {
   static const Detail rule = Detail('name', header: Header.left);
   static const Detail fix = Detail('fix');
+  static const Detail bulk = Detail('bulk');
   static const Detail status = Detail('status');
-  static const Detail score = Detail('core');
-  static const Detail recommend = Detail('recommend');
   static const Detail bugs = Detail('bug refs', header: Header.left);
   final String name;
   final Header header;
@@ -158,7 +157,6 @@ class Detail {
 
 class Header {
   static const Header left = Header('| :--- ');
-
   static const Header center = Header('| :---: ');
 
   final String markdown;
@@ -185,6 +183,10 @@ class LintScore {
     required this.bugReferences,
   });
 
+  bool get inCore => ruleSets.contains('core');
+  bool get inFlutter => ruleSets.contains('flutter');
+  bool get inRecommended => ruleSets.contains('recommended');
+
   String get _ruleSets => ruleSets.isNotEmpty ? ' ${ruleSets.toString()}' : '';
 
   String toMarkdown(List<Detail> details) {
@@ -196,18 +198,19 @@ class LintScore {
               ' [`$name`](https://dart-lang.github.io/linter/lints/$name.html) |');
           break;
         case Detail.fix:
-          var status =
-              unfixableLints.contains(name) ? skip : (hasFix ? bulb : consider);
+          var status = unfixableLints.contains(name)
+              ? skip
+              : (hasFix ? checkMark : consider);
+          sb.write(' $status |');
+          break;
+        case Detail.bulk:
+          var status = unfixableLints.contains(name)
+              ? skip
+              : (hasBulkFix ? checkMark : consider);
           sb.write(' $status |');
           break;
         case Detail.status:
           sb.write('${maturity != 'stable' ? ' **$maturity** ' : ""} |');
-          break;
-        case Detail.score:
-          sb.write('${ruleSets.contains('core') ? " $checkMark" : ""} |');
-          break;
-        case Detail.recommend:
-          sb.write('${ruleSets.contains('recommend') ? " $checkMark" : ""} |');
           break;
         case Detail.bugs:
           sb.write(' ${bugReferences.join(", ")} |');
@@ -218,7 +221,7 @@ class LintScore {
   }
 
   @override
-  String toString() => '$name$_ruleSets${hasFix ? " $bulb" : ""}';
+  String toString() => '$name$_ruleSets${hasFix ? " $checkMark" : ""}';
 }
 
 class ScoreCard {
@@ -234,17 +237,32 @@ class ScoreCard {
       {int Function(LintScore s1, LintScore s2)? sorter}) {
     // Header.
     var sb = StringBuffer();
-    details.forEach((detail) => sb.write('| ${detail.name} '));
-    sb.write('|\n');
-    details.forEach((detail) => sb.write(detail.header.markdown));
-    sb.write(' |\n');
+    void writeHeader(StringBuffer sb) {
+      details.forEach((detail) => sb.write('| ${detail.name} '));
+      sb.write('|\n');
+      details.forEach((detail) => sb.write(detail.header.markdown));
+      sb.write(' |\n');
+    }
 
     if (sorter != null) {
       scores.sort(sorter);
     }
 
+    void writeLints(String label, bool Function(LintScore lint) predicate) {
+      sb.writeln('\n## $label\n');
+      writeHeader(sb);
+      forEach((lint) {
+        if (predicate(lint)) {
+          sb.write('${lint.toMarkdown(details)}\n');
+        }
+      });
+    }
+
     // Body.
-    forEach((lint) => sb.write('${lint.toMarkdown(details)}\n'));
+    writeLints('Core Lints', (lint) => lint.inCore);
+    writeLints('Recommended Lints', (lint) => lint.inRecommended);
+    writeLints('Flutter Lints', (lint) => lint.inFlutter);
+
     return sb.toString();
   }
 
@@ -264,8 +282,9 @@ class ScoreCard {
     // var bugs = issues.where(_isBug).toList();
     var bugs = <Issue>[];
 
-    var coreRuleset = _readCoreLints();
-    var recommendRuleset = _readRecommendLints();
+    var coreRuleset = await _readCoreLints();
+    var recommendedRuleset = await _readRecommendedLints();
+    var flutterRuleset = await _readFlutterLints();
 
     var scorecard = ScoreCard();
     for (var lint in registeredLints!) {
@@ -273,8 +292,11 @@ class ScoreCard {
       if (coreRuleset.contains(lint.name)) {
         ruleSets.add('core');
       }
-      if (recommendRuleset.contains(lint.name)) {
-        ruleSets.add('recommend');
+      if (recommendedRuleset.contains(lint.name)) {
+        ruleSets.add('recommended');
+      }
+      if (flutterRuleset.contains(lint.name)) {
+        ruleSets.add('flutter');
       }
 
       if (ruleSets.isEmpty) {
@@ -317,6 +339,12 @@ class ScoreCard {
   //   }
   // }
 
+  static Future<List<String>> _fetchLints(String url) async {
+    var client = http.Client();
+    var req = await client.get(Uri.parse(url));
+    return _readLints(req.body);
+  }
+
   static List<String?> _getLintsWithAssists() {
     var assists = File('tool/canonical/assists.json');
     var contents = assists.readAsStringSync();
@@ -331,12 +359,12 @@ class ScoreCard {
   static Future<List<String>> _getLintsWithBulkFixes() async {
     var client = http.Client();
     var req = await client.get(Uri.parse(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/bulk_fix_processor.dart'));
+        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/fix_internal.dart'));
 
     var parser = CompilationUnitParser();
-    var cu = parser.parse(contents: req.body, name: 'bulk_fix_processor.dart');
+    var cu = parser.parse(contents: req.body, name: 'fix_internal.dart');
     var fixProcessor = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name.name == 'BulkFixProcessor');
+        (m) => m is ClassDeclaration && m.name.name == 'FixProcessor');
 
     var collector = _BulkFixCollector();
     fixProcessor.accept(collector);
@@ -358,9 +386,14 @@ class ScoreCard {
     return collector.lintNames;
   }
 
-  static List<String> _readLints(String filePath) {
-    var file = File(filePath);
-    var contents = file.readAsStringSync();
+  static Future<List<String>> _readCoreLints() async => _fetchLints(
+      'https://raw.githubusercontent.com/dart-lang/lints/main/lib/core.yaml');
+
+  static Future<List<String>> _readFlutterLints() async => _fetchLints(
+      // todo(pq):update when landed
+      'https://raw.githubusercontent.com/dart-lang/lints/400c60bf379bbad5b161148f52a29c0e4fd378f6/lib/flutter.yaml');
+
+  static List<String> _readLints(String contents) {
     var lintConfigs = processAnalysisOptionsFile(contents);
     if (lintConfigs == null) {
       return [];
@@ -368,11 +401,8 @@ class ScoreCard {
     return lintConfigs.ruleConfigs.map((c) => c.name ?? '<unknown>').toList();
   }
 
-  static List<String> _readRecommendLints() =>
-      _readLints(path.join('tool', 'canonical', 'recommend.yaml'));
-
-  static List<String> _readCoreLints() =>
-      _readLints(path.join('tool', 'canonical', 'core.yaml'));
+  static Future<List<String>> _readRecommendedLints() async => _fetchLints(
+      'https://raw.githubusercontent.com/dart-lang/lints/main/lib/recommended.yaml');
 }
 
 class _BulkFixCollector extends _LintNameCollector {
@@ -385,10 +415,27 @@ class _BulkFixCollector extends _LintNameCollector {
           for (var element in initializer.elements) {
             var entry = element as MapLiteralEntry;
             var key = entry.key;
-            if (key is PrefixedIdentifier) {
-              if (key.prefix.name == 'LintNames') {
-                addLint(key.identifier.name);
+            var value = entry.value;
+            if (key is PrefixedIdentifier &&
+                key.prefix.name == 'LintNames' &&
+                value is ListLiteral) {
+              for (var element in value.elements) {
+                if (element is MethodInvocation) {
+                  var args = element.argumentList.arguments;
+                  for (var arg in args) {
+                    if (arg is NamedExpression) {
+                      if (arg.name.label.name == 'canBeBulkApplied') {
+                        var value = arg.expression;
+                        if (value is BooleanLiteral &&
+                            value.literal.type == Keyword.TRUE) {
+                          addLint(key.identifier.name);
+                        }
+                      }
+                    }
+                  }
+                }
               }
+              addLint(key.identifier.name);
             }
           }
         }
