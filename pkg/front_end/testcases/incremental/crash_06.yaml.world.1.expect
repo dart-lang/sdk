@@ -1,0 +1,62 @@
+main = <No Member>;
+//
+// Problems in component:
+//
+// org-dartlang-test:///structs.dart:6:14: Error: Field 'zz' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.
+//   external Z zz;
+//              ^
+//
+library from "org-dartlang-test:///structs.dart" as str {
+//
+// Problems in library:
+//
+// org-dartlang-test:///structs.dart:6:12: Error: 'Z' isn't a type.
+//   external Z zz;
+//            ^
+//
+// org-dartlang-test:///structs.dart:6:12: Error: Type 'Z' not found.
+//   external Z zz;
+//            ^
+//
+
+  import "dart:ffi";
+
+  @#C6
+  class A extends dart.ffi::Struct {
+    static final field dart.core::int* #sizeOf = (#C8).{dart.core::List::[]}(dart.ffi::_abi())/*isLegacy*/;
+    synthetic constructor •() → str::A
+      : super dart.ffi::Struct::•()
+      ;
+    constructor #fromTypedDataBase(dart.core::Object #typedDataBase) → str::A
+      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
+      ;
+    get yy() → str::Y
+      return new str::Y::#fromTypedDataBase( block {
+        dart.core::Object #typedDataBase = this.{dart.ffi::_Compound::_typedDataBase};
+        dart.core::int #offset = (#C8).{dart.core::List::[]}(dart.ffi::_abi());
+      } =>#typedDataBase is dart.ffi::Pointer<dynamic> ?{dart.core::Object} dart.ffi::_fromAddress<str::Y>(#typedDataBase.{dart.ffi::Pointer::address}.{dart.core::num::+}(#offset)) : let dart.typed_data::TypedData #typedData = dart._internal::unsafeCast<dart.typed_data::TypedData>(#typedDataBase) in #typedData.{dart.typed_data::TypedData::buffer}.{dart.typed_data::ByteBuffer::asUint8List}(#typedData.{dart.typed_data::TypedData::offsetInBytes}.{dart.core::num::+}(#offset), (#C8).{dart.core::List::[]}(dart.ffi::_abi())));
+    set yy(str::Y #externalFieldValue) → void
+      return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()), #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}, #C7, (#C8).{dart.core::List::[]}(dart.ffi::_abi()));
+  }
+  class Y extends dart.ffi::Struct {
+    static final field dart.core::int* #sizeOf = (#C8).{dart.core::List::[]}(dart.ffi::_abi())/*isLegacy*/;
+    synthetic constructor •() → str::Y
+      : super dart.ffi::Struct::•()
+      ;
+    constructor #fromTypedDataBase(dart.core::Object #typedDataBase) → str::Y
+      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
+      ;
+    external get zz() → invalid-type;
+    external set zz(invalid-type #externalFieldValue) → void;
+  }
+}
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(str::Y)
+  #C3 = <dart.core::Type>[#C2]
+  #C4 = null
+  #C5 = dart.ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
+  #C6 = dart.core::pragma {name:#C1, options:#C5}
+  #C7 = 0
+  #C8 = <dart.core::int*>[#C7, #C7, #C7]
+}

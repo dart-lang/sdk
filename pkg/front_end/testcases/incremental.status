@@ -6,7 +6,3 @@
 
 # http://dartbug.com/41812#issuecomment-684825703
 strongmode_mixins_2: Crash
-
-# http://dartbug.com/45899
-crash_05: Crash
-crash_06: Crash

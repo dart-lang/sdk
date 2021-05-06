@@ -388,7 +388,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final NativeType nt = getType(nativeClass);
     if (nt == null) {
       // User-defined compounds.
-      Field sizeOfField = nativeClass.fields.single;
+      Field sizeOfField = nativeClass.fields
+          .firstWhere((field) => field.name == Name('#sizeOf'));
       return StaticGet(sizeOfField);
     }
     final int size = nativeTypeSizes[nt.index];
@@ -505,8 +506,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         PropertyGet(NullCheck(node.arguments.positional[0]),
             arrayTypedDataBaseField.name, arrayTypedDataBaseField),
         MethodInvocation(node.arguments.positional[1], numMultiplication.name,
-            Arguments([StaticGet(clazz.fields.single)]), numMultiplication),
-        StaticGet(clazz.fields.single),
+            Arguments([_inlineSizeOf(dartType)]), numMultiplication),
+        _inlineSizeOf(dartType),
         dartType,
         node.fileOffset);
 

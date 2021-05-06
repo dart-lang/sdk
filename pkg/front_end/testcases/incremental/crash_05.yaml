@@ -30,4 +30,4 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    expectsRebuildBodiesOnly: false
