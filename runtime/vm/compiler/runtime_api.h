@@ -922,7 +922,6 @@ class TypeParameter : public AllStatic {
  public:
   static word bound_offset();
   static word flags_offset();
-  static word name_offset();
   static word InstanceSize();
   static word NextFieldOffset();
   static word parameterized_class_id_offset();
@@ -1303,7 +1302,6 @@ class Closure : public AllStatic {
 
 class ClosureData : public AllStatic {
  public:
-  static word default_type_arguments_offset();
   static word default_type_arguments_kind_offset();
   static word InstanceSize();
   static word NextFieldOffset();
@@ -1369,6 +1367,16 @@ class Field : public AllStatic {
   static word kind_bits_offset();
   static word initializer_function_offset();
   static word host_offset_or_field_id_offset();
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
+class TypeParameters : public AllStatic {
+ public:
+  static word names_offset();
+  static word flags_offset();
+  static word bounds_offset();
+  static word defaults_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };

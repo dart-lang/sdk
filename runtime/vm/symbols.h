@@ -106,6 +106,7 @@ class ObjectPointerVisitor;
   V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
   V(DynamicCallCurrentFunctionVar, ":dyn_call_current_function")               \
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
+  V(DynamicCallCurrentTypeParamVar, ":dyn_call_current_type_param")            \
   V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
@@ -286,6 +287,7 @@ class ObjectPointerVisitor;
   V(TypeArguments, "TypeArguments")                                            \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(TypeError, "_TypeError")                                                   \
+  V(TypeParameters, "TypeParameters")                                          \
   V(TypeQuote, "type '")                                                       \
   V(Uint16List, "Uint16List")                                                  \
   V(Uint32List, "Uint32List")                                                  \

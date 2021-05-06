@@ -161,7 +161,7 @@ class ModularConstantEmitter
 
   @override
   jsAst.Expression visitLateSentinel(LateSentinelConstantValue constant, [_]) =>
-      js('#', _namer.staticStateHolder);
+      _namer.globalObjectForStaticState();
 
   @override
   jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {

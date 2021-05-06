@@ -63,7 +63,11 @@ import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_backend/deferred_holder_expression.dart'
     show
         DeferredHolderExpressionFinalizer,
-        DeferredHolderExpressionFinalizerImpl;
+        DeferredHolderExpressionFinalizerImpl,
+        DeferredHolderParameter,
+        DeferredHolderResource,
+        DeferredHolderResourceExpression,
+        DeferredHolderResourceKind;
 import '../../js_backend/type_reference.dart'
     show
         TypeReferenceFinalizer,
@@ -216,8 +220,8 @@ class ModelEmitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value);
     }
-    return js.js('#.#',
-        [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
+    return js.js(
+        '#.#', [_namer.globalObjectForConstants(), _namer.constantName(value)]);
   }
 
   bool get shouldMergeFragments => _options.mergeFragmentsThreshold != null;
@@ -280,7 +284,7 @@ class ModelEmitter {
           preDeferredFragment.finalize(program, outputUnitMap, codeFragmentMap);
       for (var codeFragment in finalizedFragment.codeFragments) {
         js.Expression fragmentCode =
-            fragmentEmitter.emitCodeFragment(codeFragment, program.holders);
+            fragmentEmitter.emitCodeFragment(codeFragment);
         if (fragmentCode != null) {
           (deferredFragmentsCode[finalizedFragment] ??= [])
               .add(EmittedCodeFragment(codeFragment, fragmentCode));

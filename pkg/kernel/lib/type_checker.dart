@@ -1122,8 +1122,7 @@ class TypeCheckingVisitor
     node.arguments.positional.forEach(visitExpression);
     node.arguments.named
         .forEach((NamedExpression n) => visitExpression(n.value));
-    // TODO(johnniwinther): Return the correct result type.
-    return const DynamicType();
+    return node.functionType?.returnType ?? const DynamicType();
   }
 
   @override
@@ -1190,8 +1189,7 @@ class TypeCheckingVisitor
     node.arguments.positional.forEach(visitExpression);
     node.arguments.named
         .forEach((NamedExpression n) => visitExpression(n.value));
-    // TODO(johnniwinther): Return the correct result type.
-    return const DynamicType();
+    return node.functionType.returnType;
   }
 
   @override

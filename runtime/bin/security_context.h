@@ -93,6 +93,14 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
     long_ssl_cert_evaluation_ = long_ssl_cert_evaluation;
   }
 
+  static bool bypass_trusting_system_roots() {
+    return bypass_trusting_system_roots_;
+  }
+  static void set_bypass_trusting_system_roots(
+      bool bypass_trusting_system_roots) {
+    bypass_trusting_system_roots_ = bypass_trusting_system_roots;
+  }
+
  private:
   void AddCompiledInCerts();
   void LoadRootCertFile(const char* file);
@@ -107,6 +115,7 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   bool trust_builtin_;
 
   static bool long_ssl_cert_evaluation_;
+  static bool bypass_trusting_system_roots_;
 
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
 };

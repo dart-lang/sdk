@@ -78,7 +78,6 @@ class LibrariesMap {
 class Registry {
   final OutputUnit _mainOutputUnit;
   final Sorter _sorter;
-  final Map<String, Holder> _holdersMap = <String, Holder>{};
   final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap =
       <OutputUnit, LibrariesMap>{};
 
@@ -86,7 +85,6 @@ class Registry {
   OutputUnit _lastOutputUnit;
   LibrariesMap _lastLibrariesMap;
 
-  Iterable<Holder> get holders => _holdersMap.values;
   Iterable<LibrariesMap> get deferredLibrariesMap =>
       _deferredLibrariesMap.values;
 
@@ -152,18 +150,5 @@ class Registry {
 
   void registerConstant(OutputUnit outputUnit, ConstantValue constantValue) {
     // Ignore for now.
-  }
-
-  Holder registerHolder(String name,
-      {bool isStaticStateHolder: false, bool isConstantsHolder: false}) {
-    assert(_holdersMap[name] == null ||
-        (_holdersMap[name].isStaticStateHolder == isStaticStateHolder &&
-            _holdersMap[name].isConstantsHolder == isConstantsHolder));
-
-    return _holdersMap.putIfAbsent(name, () {
-      return new Holder(name, _holdersMap.length,
-          isStaticStateHolder: isStaticStateHolder,
-          isConstantsHolder: isConstantsHolder);
-    });
   }
 }

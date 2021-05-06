@@ -364,6 +364,8 @@ class Namer extends ModularNamer {
     "Map", "Set",
   ];
 
+  // TODO(joshualitt): Stop reserving these names after local naming is updated
+  // to use frequencies.
   static const List<String> reservedGlobalObjectNames = const <String>[
     "A",
     "B",
@@ -1357,66 +1359,6 @@ class Namer extends ModularNamer {
         : globalPropertyNameForMember(method);
   }
 
-  /// Returns true if [element] is stored in the static state holder
-  /// ([staticStateHolder]).  We intend to store only mutable static state
-  /// there, whereas constants are stored in 'C'. Functions, accessors,
-  /// classes, etc. are stored in one of the other objects in
-  /// [reservedGlobalObjectNames].
-  bool _isPropertyOfStaticStateHolder(MemberEntity element) {
-    // TODO(ahe): Make sure this method's documentation is always true and
-    // remove the word "intend".
-    return element.isField;
-  }
-
-  /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
-  String globalObjectForMember(MemberEntity element) {
-    if (_isPropertyOfStaticStateHolder(element)) return staticStateHolder;
-    return globalObjectForLibrary(element.library);
-  }
-
-  @override
-  jsAst.VariableUse readGlobalObjectForMember(MemberEntity element) {
-    if (_isPropertyOfStaticStateHolder(element)) {
-      return new jsAst.VariableUse(staticStateHolder);
-    }
-    return readGlobalObjectForLibrary(element.library);
-  }
-
-  String globalObjectForClass(ClassEntity element) {
-    return globalObjectForLibrary(element.library);
-  }
-
-  @override
-  jsAst.VariableUse readGlobalObjectForClass(ClassEntity element) {
-    return readGlobalObjectForLibrary(element.library);
-  }
-
-  String globalObjectForType(Entity element) {
-    return globalObjectForClass(element);
-  }
-
-  @override
-  jsAst.VariableUse readGlobalObjectForType(Entity element) {
-    return readGlobalObjectForClass(element);
-  }
-
-  /// Returns the [reservedGlobalObjectNames] for [library].
-  String globalObjectForLibrary(LibraryEntity library) {
-    if (library == _commonElements.interceptorsLibrary) return 'J';
-    Uri uri = library.canonicalUri;
-    if (uri.scheme == 'dart') {
-      if (uri.path == 'html') return 'W';
-      if (uri.path.startsWith('_')) return 'H';
-      return 'P';
-    }
-    return userGlobalObjects[library.name.hashCode % userGlobalObjects.length];
-  }
-
-  @override
-  jsAst.VariableUse readGlobalObjectForLibrary(LibraryEntity library) {
-    return new jsAst.VariableUse(globalObjectForLibrary(library));
-  }
-
   @override
   jsAst.Name lazyInitializerName(FieldEntity element) {
     assert(element.isTopLevel || element.isStatic);
@@ -1444,8 +1386,6 @@ class Namer extends ModularNamer {
     String libraryName = _proposeNameForLibrary(library);
     return "${libraryName}.${element.name}";
   }
-
-  String globalObjectForConstant(ConstantValue constant) => 'C';
 
   String get genericInstantiationPrefix => r'$instantiate';
 
@@ -2146,26 +2086,45 @@ class MinifiedFixedNames extends FixedNames {
 abstract class ModularNamer {
   FixedNames get fixedNames;
 
+  /// Returns a variable use for accessing constants.
+  jsAst.Expression globalObjectForConstants() {
+    return DeferredHolderExpression.forConstants();
+  }
+
+  /// Returns a variable use for accessing static state.
+  jsAst.Expression globalObjectForStaticState() {
+    return DeferredHolderExpression.forStaticState();
+  }
+
   /// Returns a variable use for accessing [library].
   ///
   /// This is one of the [reservedGlobalObjectNames]
-  jsAst.Expression readGlobalObjectForLibrary(LibraryEntity library);
+  jsAst.Expression readGlobalObjectForLibrary(LibraryEntity library) {
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForLibrary, library);
+  }
 
   /// Returns a variable use for accessing the class [element].
   ///
   /// This is one of the [reservedGlobalObjectNames]
-  jsAst.Expression readGlobalObjectForClass(ClassEntity element);
+  jsAst.Expression readGlobalObjectForClass(ClassEntity element) {
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForClass, element);
+  }
 
   /// Returns a variable use for accessing the type [element].
   ///
   /// This is one of the [reservedGlobalObjectNames]
-  jsAst.Expression readGlobalObjectForType(Entity element);
+  jsAst.Expression readGlobalObjectForType(Entity element) {
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForType, element);
+  }
 
   /// Returns a variable use for accessing the member [element].
-  ///
-  /// This is either the [staticStateHolder] or one of the
-  /// [reservedGlobalObjectNames]
-  jsAst.Expression readGlobalObjectForMember(MemberEntity element);
+  jsAst.Expression readGlobalObjectForMember(MemberEntity element) {
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForMember, element);
+  }
 
   /// Returns a JavaScript property name used to store the class [element] on
   /// one of the global objects.
@@ -2286,11 +2245,6 @@ abstract class ModularNamer {
 
   /// The prefix used for encoding async properties.
   final String asyncPrefix = r"$async$";
-
-  /// Returns the name for the holder of static state.
-  ///
-  /// This is used for mutable static fields.
-  final String staticStateHolder = r'$';
 
   jsAst.Name _literalAsyncPrefix;
 
@@ -2457,30 +2411,6 @@ class ModularNamerImpl extends ModularNamer {
     jsAst.Name name = new ModularName(ModularNameKind.className, data: element);
     _registry.registerModularName(name);
     return name;
-  }
-
-  @override
-  jsAst.Expression readGlobalObjectForLibrary(LibraryEntity library) {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForLibrary, library);
-  }
-
-  @override
-  jsAst.Expression readGlobalObjectForClass(ClassEntity element) {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForClass, element);
-  }
-
-  @override
-  jsAst.Expression readGlobalObjectForType(Entity element) {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForType, element);
-  }
-
-  @override
-  jsAst.Expression readGlobalObjectForMember(MemberEntity element) {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForMember, element);
   }
 
   @override

@@ -16,7 +16,6 @@ import 'js_emitter.dart' show MetadataCollector;
 
 class Program {
   final List<Fragment> fragments;
-  final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
 
@@ -29,8 +28,8 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments, this.holders, this.typeToInterceptorMap,
-      this._metadataCollector, this.finalizers,
+  Program(this.fragments, this.typeToInterceptorMap, this._metadataCollector,
+      this.finalizers,
       {this.needsNativeSupport, this.outputContainsConstantList}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
@@ -71,23 +70,6 @@ class Program {
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
   Fragment get mainFragment => fragments.first;
-}
-
-/// This class represents a JavaScript object that contains static state, like
-/// classes or functions.
-class Holder {
-  final String name;
-  final int index;
-  final bool isStaticStateHolder;
-  final bool isConstantsHolder;
-
-  Holder(this.name, this.index,
-      {this.isStaticStateHolder: false, this.isConstantsHolder: false});
-
-  @override
-  String toString() {
-    return 'Holder(name=${name})';
-  }
 }
 
 /// This class represents one output file.
@@ -173,10 +155,9 @@ class DeferredFragment extends Fragment {
 
 class Constant {
   final js.Name name;
-  final Holder holder;
   final ConstantValue value;
 
-  Constant(this.name, this.holder, this.value);
+  Constant(this.name, this.value);
 
   @override
   String toString() {
@@ -219,14 +200,13 @@ class StaticField {
   final js.Name getterName;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
-  final Holder holder;
   final js.Expression code;
   final bool isFinal;
   final bool isLazy;
   final bool isInitializedByConstant;
   final bool usesNonNullableInitialization;
 
-  StaticField(this.element, this.name, this.getterName, this.holder, this.code,
+  StaticField(this.element, this.name, this.getterName, this.code,
       {this.isFinal,
       this.isLazy,
       this.isInitializedByConstant: false,
@@ -264,7 +244,6 @@ class Class implements FieldContainer {
   final ClassTypeData typeData;
 
   final js.Name name;
-  final Holder holder;
   Class _superclass;
   Class _mixinClass;
   final List<Method> methods;
@@ -308,7 +287,6 @@ class Class implements FieldContainer {
       this.element,
       this.typeData,
       this.name,
-      this.holder,
       this.methods,
       this.fields,
       this.staticFieldsForReflection,
@@ -347,9 +325,6 @@ class Class implements FieldContainer {
 
   js.Name get superclassName => superclass == null ? null : superclass.name;
 
-  int get superclassHolderIndex =>
-      (superclass == null) ? 0 : superclass.holder.index;
-
   @override
   String toString() => 'Class(name=${name.key},element=$element)';
 }
@@ -359,7 +334,6 @@ class MixinApplication extends Class {
       ClassEntity element,
       ClassTypeData typeData,
       js.Name name,
-      Holder holder,
       List<Field> instanceFields,
       List<Field> staticFieldsForReflection,
       List<StubMethod> callStubs,
@@ -374,7 +348,6 @@ class MixinApplication extends Class {
             element,
             typeData,
             name,
-            holder,
             const <Method>[],
             instanceFields,
             staticFieldsForReflection,
@@ -615,21 +588,11 @@ class ParameterStubMethod extends StubMethod {
   }
 }
 
-abstract class StaticMethod implements Method {
-  Holder get holder;
-}
+abstract class StaticMethod implements Method {}
 
 class StaticDartMethod extends DartMethod implements StaticMethod {
-  @override
-  final Holder holder;
-
-  StaticDartMethod(
-      FunctionEntity element,
-      js.Name name,
-      this.holder,
-      js.Expression code,
-      List<ParameterStubMethod> parameterStubs,
-      js.Name callName,
+  StaticDartMethod(FunctionEntity element, js.Name name, js.Expression code,
+      List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
       js.Name tearOffName,
       bool canBeApplied,
@@ -657,9 +620,8 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {
-  @override
-  Holder holder;
-  StaticStubMethod(js.Name name, this.holder, js.Expression code)
+  LibraryEntity library;
+  StaticStubMethod(this.library, js.Name name, js.Expression code)
       : super(name, code);
 
   @override
