@@ -2642,12 +2642,35 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var nameExpr = _emitTopLevelName(p);
+    var jsName = _safeFunctionNameForSafari(p.name.text, fn);
     body.add(js.statement('# = #',
-        [nameExpr, js_ast.NamedFunction(_emitTemporaryId(p.name.text), fn)]));
+        [nameExpr, js_ast.NamedFunction(_emitTemporaryId(jsName), fn)]));
 
     _currentUri = savedUri;
     _staticTypeContext.leaveMember(p);
     return js_ast.Statement.from(body);
+  }
+
+  /// Choose a safe name for [fn].
+  ///
+  /// Most of the time we use [candidateName], except if the name collides
+  /// with a parameter name and the function contains default parameter values.
+  ///
+  /// In ES6, functions containing default parameter values, which DDC
+  /// generates when Dart uses positional optional parameters, cannot have
+  /// two parameters with the same name. Because we have a similar restriction
+  /// in Dart, this is not normally an issue we need to pay attention to.
+  /// However, a bug in Safari makes it a syntax error to have the function
+  /// name overlap with the parameter names as well. This rename works around
+  /// such bug (dartbug.com/43520).
+  static String _safeFunctionNameForSafari(
+      String candidateName, js_ast.Fun fn) {
+    if (fn.params.any((p) => p is js_ast.DestructuredVariable)) {
+      while (fn.params.any((a) => a.parameterName == candidateName)) {
+        candidateName = '$candidateName\$';
+      }
+    }
+    return candidateName;
   }
 
   js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
