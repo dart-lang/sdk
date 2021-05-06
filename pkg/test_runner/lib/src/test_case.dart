@@ -66,6 +66,16 @@ class TestCase {
     assert(commands.isNotEmpty);
   }
 
+  List<String> get experiments => getExperiments(testFile, configuration);
+
+  static List<String> getExperiments(
+      TestFile testFile, TestConfiguration configuration) {
+    return [
+      ...testFile.experiments,
+      ...configuration.experiments,
+    ];
+  }
+
   TestCase indexedCopy(int index) {
     var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
     return TestCase(displayName, newCommands, configuration, expectedOutcomes,
