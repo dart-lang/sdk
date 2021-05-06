@@ -183,9 +183,6 @@ class ProgramBuilder {
     collector.outputConstantLists.forEach(_registerConstants);
     collector.outputStaticNonFinalFieldLists.forEach(_registry.registerMembers);
 
-    // We always add the current isolate holder.
-    _registerStaticStateHolder();
-
     // We need to run the native-preparation before we build the output. The
     // preparation code, in turn needs the classes to be set up.
     // We thus build the classes before building their containers.
@@ -248,8 +245,6 @@ class ProgramBuilder {
 
     associateNamedTypeVariablesNewRti();
 
-    List<Holder> holders = _registry.holders.toList(growable: false);
-
     bool needsNativeSupport =
         _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
             _nativeData.isAllowInteropUsed;
@@ -262,7 +257,7 @@ class ProgramBuilder {
       finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
-    return new Program(fragments, holders, _buildTypeToInterceptorMap(),
+    return new Program(fragments, _buildTypeToInterceptorMap(),
         _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList);
@@ -338,10 +333,6 @@ class ProgramBuilder {
     ConstantValue initialValue = fieldData.initialValue;
     js.Expression code;
     if (initialValue != null) {
-      // TODO(zarah): The holder should not be registered during building of
-      // a static field.
-      _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
-          isConstantsHolder: true);
       code = _task.emitter.constantReference(initialValue);
     } else {
       assert(fieldData.isEager);
@@ -353,8 +344,7 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, null, _registerStaticStateHolder(), code,
+    return new StaticField(element, name, null, code,
         isFinal: false,
         isLazy: false,
         isInitializedByConstant: initialValue != null,
@@ -385,8 +375,7 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, getterName, _registerStaticStateHolder(), code,
+    return new StaticField(element, name, getterName, code,
         isFinal: !element.isAssignable,
         isLazy: true,
         usesNonNullableInitialization: element.library.isNonNullableByDefault);
@@ -717,10 +706,6 @@ class ProgramBuilder {
     }
 
     js.Name name = _namer.className(cls);
-    String holderName = _namer.globalObjectForClass(cls);
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a class.
-    Holder holder = _registry.registerHolder(holderName);
     bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
         _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
@@ -736,7 +721,6 @@ class ProgramBuilder {
           cls,
           typeData,
           name,
-          holder,
           instanceFields,
           staticFieldsForReflection,
           callStubs,
@@ -752,7 +736,6 @@ class ProgramBuilder {
           cls,
           typeData,
           name,
-          holder,
           methods,
           instanceFields,
           staticFieldsForReflection,
@@ -1003,11 +986,6 @@ class ProgramBuilder {
         _codegenWorld,
         _closedWorld);
 
-    String holderName =
-        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // generating the interceptor methods.
-    Holder holder = _registry.registerHolder(holderName);
     List<js.Name> names = [];
     Map<js.Name, SpecializedGetInterceptor> interceptorMap = {};
     for (SpecializedGetInterceptor interceptor
@@ -1025,7 +1003,8 @@ class ProgramBuilder {
       SpecializedGetInterceptor interceptor = interceptorMap[name];
       js.Expression code =
           stubGenerator.generateGetInterceptorMethod(interceptor);
-      return new StaticStubMethod(name, holder, code);
+      return new StaticStubMethod(
+          _commonElements.interceptorsLibrary, name, code);
     });
   }
 
@@ -1107,11 +1086,6 @@ class ProgramBuilder {
         _codegenWorld,
         _closedWorld);
 
-    String holderName =
-        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // generating the interceptor methods.
-    Holder holder = _registry.registerHolder(holderName);
     List<js.Name> names = [];
     Map<js.Name, OneShotInterceptor> interceptorMap = {};
     for (OneShotInterceptor interceptor
@@ -1130,13 +1104,13 @@ class ProgramBuilder {
       OneShotInterceptor interceptor = interceptorMap[name];
       js.Expression code =
           stubGenerator.generateOneShotInterceptor(interceptor);
-      return new StaticStubMethod(name, holder, code);
+      return new StaticStubMethod(
+          _commonElements.interceptorsLibrary, name, code);
     });
   }
 
   StaticDartMethod _buildStaticMethod(FunctionEntity element) {
     js.Name name = _namer.methodPropertyName(element);
-    String holder = _namer.globalObjectForMember(element);
     js.Expression code = _generatedCode[element];
 
     bool isApplyTarget =
@@ -1175,15 +1149,8 @@ class ProgramBuilder {
       }
     }
 
-    // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a static method.
-    return new StaticDartMethod(
-        element,
-        name,
-        _registry.registerHolder(holder),
-        code,
-        _generateParameterStubs(element, needsTearOff, canBeApplied),
-        callName,
+    return new StaticDartMethod(element, name, code,
+        _generateParameterStubs(element, needsTearOff, canBeApplied), callName,
         needsTearOff: needsTearOff,
         tearOffName: tearOffName,
         canBeApplied: canBeApplied,
@@ -1201,16 +1168,8 @@ class ProgramBuilder {
       _registry.registerConstant(outputUnit, constantValue);
       assert(!_constants.containsKey(constantValue));
       js.Name name = _namer.constantName(constantValue);
-      String constantObject = _namer.globalObjectForConstant(constantValue);
-      Holder holder =
-          _registry.registerHolder(constantObject, isConstantsHolder: true);
-      Constant constant = new Constant(name, holder, constantValue);
+      Constant constant = new Constant(name, constantValue);
       _constants[constantValue] = constant;
     }
-  }
-
-  Holder _registerStaticStateHolder() {
-    return _registry.registerHolder(_namer.staticStateHolder,
-        isStaticStateHolder: true);
   }
 }
