@@ -2248,11 +2248,27 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     // it will be caught once we unwind the stack.
     return true;
   }
+
+  auto& handler_function = Function::Handle(handler_frame->function().ptr());
+  // If the handler function is an synthetic inner function, we need to look for
+  // the annotations on the outer function.
+  if (handler_function.IsAsyncClosure()) {
+    // async :async_op
+    handler_function = handler_function.parent_function();
+  } else if (handler_frame->function().IsAsyncGenClosure()) {
+    // async* :async_op
+    handler_function = handler_function.parent_function();
+  } else if (handler_frame->function().IsSyncGenClosure()) {
+    // sync* :sync_op + :sync_op_gen
+    handler_function = handler_function.parent_function();
+    handler_function = handler_function.parent_function();
+  }
+
   // If handler_frame's function is annotated with
   // @pragma('vm:notify-debugger-on-exception'), we specifically want to notify
   // the debugger of this otherwise ignored exception.
   if (Library::FindPragma(Thread::Current(), /*only_core=*/false,
-                          handler_frame->function(),
+                          handler_function,
                           Symbols::vm_notify_debugger_on_exception())) {
     return true;
   }
