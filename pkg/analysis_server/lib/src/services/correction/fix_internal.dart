@@ -43,6 +43,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_map_from_it
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
@@ -449,6 +450,15 @@ class FixProcessor extends BaseProcessor {
         canBeBulkApplied: true,
         generators: [
           RemoveEmptyElse.newInstance,
+        ],
+      )
+    ],
+    LintNames.avoid_function_literals_in_foreach_calls: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          ConvertForEachToForLoop.newInstance,
         ],
       )
     ],

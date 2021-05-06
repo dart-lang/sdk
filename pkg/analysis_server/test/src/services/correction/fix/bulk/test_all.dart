@@ -13,6 +13,7 @@ import 'add_required_test.dart' as add_required;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
+import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_map_from_iterable_to_for_literal_test.dart'
     as convert_map_from_iterable_to_for_literal;
 import 'convert_to_contains_test.dart' as convert_to_contains;
@@ -82,6 +83,7 @@ void main() {
     add_required.main();
     bulk_fix_processor.main();
     convert_documentation_into_line.main();
+    convert_for_each_to_for_loop.main();
     convert_map_from_iterable_to_for_literal.main();
     convert_to_contains.main();
     convert_to_generic_function_syntax.main();

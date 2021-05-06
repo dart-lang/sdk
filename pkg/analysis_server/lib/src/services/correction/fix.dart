@@ -257,6 +257,14 @@ class DartFixKind {
       'dart.fix.flutter.convert.childrenToChild',
       DartFixKindPriority.DEFAULT,
       'Convert to child:');
+  static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
+      'dart.fix.convert.toForLoop',
+      DartFixKindPriority.DEFAULT,
+      "Convert 'forEach' to a 'for' loop");
+  static const CONVERT_FOR_EACH_TO_FOR_LOOP_MULTI = FixKind(
+      'dart.fix.convert.toForLoop.multi',
+      DartFixKindPriority.IN_FILE,
+      "Convert 'forEach' to a 'for' loop everywhere in file");
   static const CONVERT_INTO_EXPRESSION_BODY = FixKind(
       'dart.fix.convert.toExpressionBody',
       DartFixKindPriority.DEFAULT,
