@@ -475,7 +475,8 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
                                           LocalVariable* instance,
                                           LocalVariable* setter_value) {
   Fragment instructions;
-  TargetEntryInstr *is_uninitialized, *is_initialized;
+  TargetEntryInstr* is_uninitialized;
+  TargetEntryInstr* is_initialized;
   const TokenPosition position = field.token_pos();
   const bool is_static = field.is_static();
   const bool is_final = field.is_final();
@@ -1090,7 +1091,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // }
       const Library& core_lib = Library::Handle(Z, Library::CoreLibrary());
 
-      TargetEntryInstr *allocate_non_growable, *allocate_growable;
+      TargetEntryInstr* allocate_non_growable;
+      TargetEntryInstr* allocate_growable;
 
       body += LoadArgDescriptor();
       body += LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
@@ -2108,7 +2110,8 @@ Fragment FlowGraphBuilder::TestClosureFunctionGeneric(
 
   Fragment check;
   check += LoadLocal(info.type_parameters);
-  TargetEntryInstr *is_not_generic, *is_generic;
+  TargetEntryInstr* is_not_generic;
+  TargetEntryInstr* is_generic;
   check += BranchIfNull(&is_not_generic, &is_generic);
 
   generic.Prepend(is_generic);
@@ -2154,7 +2157,8 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   check_required += LoadLocal(info.parameter_names);
   check_required += LoadNativeField(Slot::Array_length());
   check_required += SmiRelationalOp(Token::kLT);
-  TargetEntryInstr *valid_index, *invalid_index;
+  TargetEntryInstr* valid_index;
+  TargetEntryInstr* invalid_index;
   check_required += BranchIfTrue(&valid_index, &invalid_index);
 
   JoinEntryInstr* join_not_set = BuildJoinEntry();
@@ -2181,7 +2185,8 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
       IntConstant(1 << compiler::target::kRequiredNamedParameterFlag);
   check_required += SmiBinaryOp(Token::kBIT_AND);
   check_required += IntConstant(0);
-  TargetEntryInstr *is_not_set, *is_set;
+  TargetEntryInstr* is_not_set;
+  TargetEntryInstr* is_set;
   check_required += BranchIfEqual(&is_not_set, &is_set);
 
   Fragment(is_not_set) + Goto(join_not_set);
@@ -2230,19 +2235,22 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   JoinEntryInstr* done = BuildJoinEntry();
 
   store_default += LoadLocal(default_tav_kind);
-  TargetEntryInstr *is_instantiated, *is_not_instantiated;
+  TargetEntryInstr* is_instantiated;
+  TargetEntryInstr* is_not_instantiated;
   store_default += IntConstant(static_cast<intptr_t>(
       ClosureData::DefaultTypeArgumentsKind::kIsInstantiated));
   store_default += BranchIfEqual(&is_instantiated, &is_not_instantiated);
   store_default.current = is_not_instantiated;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
-  TargetEntryInstr *needs_instantiation, *can_share;
+  TargetEntryInstr* needs_instantiation;
+  TargetEntryInstr* can_share;
   store_default += IntConstant(static_cast<intptr_t>(
       ClosureData::DefaultTypeArgumentsKind::kNeedsInstantiation));
   store_default += BranchIfEqual(&needs_instantiation, &can_share);
   store_default.current = can_share;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
-  TargetEntryInstr *can_share_instantiator, *can_share_function;
+  TargetEntryInstr* can_share_instantiator;
+  TargetEntryInstr* can_share_function;
   store_default += IntConstant(static_cast<intptr_t>(
       ClosureData::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
   store_default += BranchIfEqual(&can_share_instantiator, &can_share_function);
@@ -2317,7 +2325,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
     has_any += LoadLocal(info.num_max_params);
     has_any += LoadLocal(info.parameter_names);
     has_any += LoadNativeField(Slot::Array_length());
-    TargetEntryInstr *no_required, *has_required;
+    TargetEntryInstr* no_required;
+    TargetEntryInstr* has_required;
     has_any += BranchIfEqual(&no_required, &has_required);
 
     Fragment(has_required) + Goto(info.throw_no_such_method);
@@ -2350,7 +2359,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   loop_check += LoadLocal(info.vars->current_param_index);
   loop_check += LoadLocal(info.num_max_params);
   loop_check += SmiRelationalOp(Token::kLT);
-  TargetEntryInstr *no_more, *more;
+  TargetEntryInstr* no_more;
+  TargetEntryInstr* more;
   loop_check += BranchIfTrue(&more, &no_more);
 
   Fragment(no_more) + Goto(done);
@@ -2371,7 +2381,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
     const auto& name = String::ZoneHandle(Z, info.descriptor.NameAt(i));
     loop_body += Constant(name);
     loop_body += LoadLocal(param_name);
-    TargetEntryInstr *match, *mismatch;
+    TargetEntryInstr* match;
+    TargetEntryInstr* mismatch;
     loop_body += BranchIfEqual(&match, &mismatch);
     loop_body.current = mismatch;
 
@@ -2411,7 +2422,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   Fragment check_processed(done);
   check_processed += LoadLocal(info.vars->current_num_processed);
   check_processed += IntConstant(info.descriptor.NamedCount());
-  TargetEntryInstr *all_processed, *bad_name;
+  TargetEntryInstr* all_processed;
+  TargetEntryInstr* bad_name;
   check_processed += BranchIfEqual(&all_processed, &bad_name);
 
   // Didn't find a matching parameter name for at least one argument name.
@@ -2437,14 +2449,16 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
   if (info.descriptor.TypeArgsLen() > 0) {
     Fragment check_type_args_length;
     check_type_args_length += LoadLocal(info.type_parameters);
-    TargetEntryInstr *null, *not_null;
+    TargetEntryInstr* null;
+    TargetEntryInstr* not_null;
     check_type_args_length += BranchIfNull(&null, &not_null);
     check_type_args_length.current = not_null;  // Continue in non-error case.
     check_type_args_length += LoadLocal(info.type_parameters);
     check_type_args_length += LoadNativeField(Slot::TypeParameters_names());
     check_type_args_length += LoadNativeField(Slot::Array_length());
     check_type_args_length += IntConstant(info.descriptor.TypeArgsLen());
-    TargetEntryInstr *equal, *not_equal;
+    TargetEntryInstr* equal;
+    TargetEntryInstr* not_equal;
     check_type_args_length += BranchIfEqual(&equal, &not_equal);
     check_type_args_length.current = equal;  // Continue in non-error case.
 
@@ -2462,7 +2476,8 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
   }
 
   check_entry += LoadLocal(info.has_named_params);
-  TargetEntryInstr *has_named, *has_positional;
+  TargetEntryInstr* has_named;
+  TargetEntryInstr* has_positional;
   check_entry += BranchIfTrue(&has_named, &has_positional);
   JoinEntryInstr* join_after_optional = BuildJoinEntry();
   check_entry.current = join_after_optional;
@@ -2475,7 +2490,8 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
     check_pos += LoadLocal(info.num_fixed_params);
     check_pos += IntConstant(info.descriptor.PositionalCount());
     check_pos += SmiRelationalOp(Token::kLTE);
-    TargetEntryInstr *enough, *too_few;
+    TargetEntryInstr* enough;
+    TargetEntryInstr* too_few;
     check_pos += BranchIfTrue(&enough, &too_few);
     check_pos.current = enough;
 
@@ -2484,7 +2500,8 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
     check_pos += IntConstant(info.descriptor.PositionalCount());
     check_pos += LoadLocal(info.num_max_params);
     check_pos += SmiRelationalOp(Token::kLTE);
-    TargetEntryInstr *valid, *too_many;
+    TargetEntryInstr* valid;
+    TargetEntryInstr* too_many;
     check_pos += BranchIfTrue(&valid, &too_many);
     check_pos.current = valid;
 
@@ -2495,7 +2512,8 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
 
   Fragment check_named(has_named);
 
-  TargetEntryInstr *same, *different;
+  TargetEntryInstr* same;
+  TargetEntryInstr* different;
   check_named += LoadLocal(info.num_fixed_params);
   check_named += IntConstant(info.descriptor.PositionalCount());
   check_named += BranchIfEqual(&same, &different);
@@ -2507,7 +2525,8 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
     check_named += IntConstant(info.descriptor.NamedCount());
     check_named += LoadLocal(info.num_opt_params);
     check_named += SmiRelationalOp(Token::kLTE);
-    TargetEntryInstr *valid, *too_many;
+    TargetEntryInstr* valid;
+    TargetEntryInstr* too_many;
     check_named += BranchIfTrue(&valid, &too_many);
     check_named.current = valid;
 
@@ -2535,7 +2554,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   // A null bounds vector represents a vector of dynamic and no check is needed.
   loop_init += LoadLocal(info.type_parameters);
   loop_init += LoadNativeField(Slot::TypeParameters_bounds());
-  TargetEntryInstr *null_bounds, *non_null_bounds;
+  TargetEntryInstr* null_bounds;
+  TargetEntryInstr* non_null_bounds;
   loop_init += BranchIfNull(&null_bounds, &non_null_bounds);
 
   Fragment(null_bounds) + Goto(done);
@@ -2551,7 +2571,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_check += LoadLocal(info.vars->current_param_index);
   loop_check += LoadLocal(info.num_type_parameters);
   loop_check += SmiRelationalOp(Token::kLT);
-  TargetEntryInstr *more, *no_more;
+  TargetEntryInstr* more;
+  TargetEntryInstr* no_more;
   loop_check += BranchIfTrue(&more, &no_more);
 
   Fragment(no_more) + Goto(done);
@@ -2560,7 +2581,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   JoinEntryInstr* next = BuildJoinEntry();
   JoinEntryInstr* check = BuildJoinEntry();
   loop_test_flag += LoadLocal(info.type_parameter_flags);
-  TargetEntryInstr *null_flags, *non_null_flags;
+  TargetEntryInstr* null_flags;
+  TargetEntryInstr* non_null_flags;
   loop_test_flag += BranchIfNull(&null_flags, &non_null_flags);
 
   Fragment(null_flags) + Goto(check);  // Check type if null (non-covariant).
@@ -2578,7 +2600,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_test_flag += IntConstant(1);
   loop_test_flag += SmiBinaryOp(Token::kBIT_AND);
   loop_test_flag += IntConstant(0);
-  TargetEntryInstr *is_noncovariant, *is_covariant;
+  TargetEntryInstr* is_noncovariant;
+  TargetEntryInstr* is_covariant;
   loop_test_flag += BranchIfEqual(&is_noncovariant, &is_covariant);
 
   Fragment(is_covariant) + Goto(next);  // Continue if covariant.
@@ -2590,7 +2613,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
 
   // Load type argument already stored in function_type_args if non null.
   loop_prep_type_param += LoadLocal(info.vars->function_type_args);
-  TargetEntryInstr *null_ftav, *non_null_ftav;
+  TargetEntryInstr* null_ftav;
+  TargetEntryInstr* non_null_ftav;
   loop_prep_type_param += BranchIfNull(&null_ftav, &non_null_ftav);
 
   Fragment(null_ftav) + Goto(dynamic_type_param);
@@ -3295,7 +3319,8 @@ FunctionEntryInstr* FlowGraphBuilder::BuildSharedUncheckedEntryPoint(
     shared_prologue_linked_in.current = join_entry;
   }
 
-  TargetEntryInstr *do_checks, *skip_checks;
+  TargetEntryInstr* do_checks;
+  TargetEntryInstr* skip_checks;
   shared_prologue_linked_in +=
       LoadLocal(parsed_function_->entry_points_temp_var());
   shared_prologue_linked_in += BuildEntryPointsIntrospection();
