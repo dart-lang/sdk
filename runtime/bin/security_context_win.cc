@@ -190,12 +190,18 @@ void SSLCertContext::TrustBuiltinRoots() {
     return;
   }
 
-  if (SSL_LOG_STATUS) {
-    Syslog::Print("Trusting Windows built-in roots\n");
-  }
-  X509_STORE* store = SSL_CTX_get_cert_store(context());
-  if (AddCertificatesFromRootStore(store)) {
-    return;
+  if (bypass_trusting_system_roots()) {
+    if (SSL_LOG_STATUS) {
+      Syslog::Print("Bypass trusting Windows built-in roots\n");
+    }
+  } else {
+    if (SSL_LOG_STATUS) {
+      Syslog::Print("Trusting Windows built-in roots\n");
+    }
+    X509_STORE* store = SSL_CTX_get_cert_store(context());
+    if (AddCertificatesFromRootStore(store)) {
+      return;
+    }
   }
   // Reset store. SSL_CTX_set_cert_store will take ownership of store. A manual
   // free is not needed.

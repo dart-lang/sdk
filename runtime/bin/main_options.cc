@@ -470,6 +470,8 @@ bool Options::ParseArguments(int argc,
   SSLCertContext::set_root_certs_cache(Options::root_certs_cache());
   SSLCertContext::set_long_ssl_cert_evaluation(
       Options::long_ssl_cert_evaluation());
+  SSLCertContext::set_bypass_trusting_system_roots(
+      Options::bypass_trusting_system_roots());
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
