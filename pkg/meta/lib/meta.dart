@@ -211,7 +211,8 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 /// that `m` should only be invoked from instance methods of `C` or classes that
 /// extend, implement or mix in `C`, either directly or indirectly or from within
 /// the same library that `m` is declared in. Additionally indicates that `m`
-/// should only be invoked on `this`, whether explicitly or implicitly.
+/// should only be invoked on `this` from outside of the library that it is
+/// declared in, whether explicitly or implicitly.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
