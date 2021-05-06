@@ -2049,7 +2049,8 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
 
   // Late variable, so check whether it has been initialized already.
   Fragment instructions = LoadLocal(variable);
-  TargetEntryInstr *is_uninitialized, *is_initialized;
+  TargetEntryInstr* is_uninitialized;
+  TargetEntryInstr* is_initialized;
   instructions += Constant(Object::sentinel());
   instructions += flow_graph_builder_->BranchIfStrictEqual(&is_uninitialized,
                                                            &is_initialized);
@@ -2067,8 +2068,8 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
         // Late final variable, so check whether it has been assigned
         // during initialization.
         initialize += LoadLocal(variable);
-        TargetEntryInstr *is_uninitialized_after_init,
-            *is_initialized_after_init;
+        TargetEntryInstr* is_uninitialized_after_init;
+        TargetEntryInstr* is_initialized_after_init;
         initialize += Constant(Object::sentinel());
         initialize += flow_graph_builder_->BranchIfStrictEqual(
             &is_uninitialized_after_init, &is_initialized_after_init);
@@ -2145,7 +2146,8 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSetImpl(
     // Late final variable, so check whether it has been initialized.
     LocalVariable* expr_temp = MakeTemporary();
     instructions += LoadLocal(variable);
-    TargetEntryInstr *is_uninitialized, *is_initialized;
+    TargetEntryInstr* is_uninitialized;
+    TargetEntryInstr* is_initialized;
     instructions += Constant(Object::sentinel());
     instructions += flow_graph_builder_->BranchIfStrictEqual(&is_uninitialized,
                                                              &is_initialized);
