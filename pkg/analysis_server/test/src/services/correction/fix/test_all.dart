@@ -43,6 +43,7 @@ import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
+import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
@@ -211,6 +212,7 @@ void main() {
     convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
+    convert_for_each_to_for_loop.main();
     convert_into_expression_body.main();
     convert_to_contains.main();
     convert_to_for_element.main();
