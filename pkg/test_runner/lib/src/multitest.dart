@@ -75,8 +75,7 @@ import "path.dart";
 import "test_file.dart";
 import "utils.dart";
 
-/// Until legacy multitests are ported we need to support both /// and //#
-final multitestMarker = RegExp(r"//[/#]");
+final multitestMarker = "//#";
 
 final _multitestOutcomes = {
   'ok',
