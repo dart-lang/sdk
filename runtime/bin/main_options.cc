@@ -583,7 +583,7 @@ bool Options::ParseArguments(int argc,
         run_command = true;
       }
       if (!Options::disable_dart_dev() && enable_vm_service_ && run_command) {
-        const char* dds_format_str = "--launch-dds=%s\\:%d";
+        const char* dds_format_str = "--launch-dds=%s:%d";
         size_t size =
             snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
                      vm_service_server_port());
@@ -603,7 +603,6 @@ bool Options::ParseArguments(int argc,
       first_option = false;
     }
   }
-
   // Verify consistency of arguments.
 
   // snapshot_depfile is an alias for depfile. Passing them both is an error.

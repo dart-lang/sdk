@@ -115,8 +115,11 @@ class Dart2jsTarget extends Target {
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
-      uri.scheme == 'dart' &&
-      (uri.path == 'core' || uri.path == '_interceptors');
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_interceptors' ||
+          uri.path == '_native_typed_data');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>

@@ -322,7 +322,6 @@
       "xcodebuild/ReleaseSIMARM64C/",
       "xcodebuild/ReleaseX64/",
       "xcodebuild/ReleaseX64C/",
-      "pkg/",
       "samples/",
       "samples_2/",
       "samples-dev/",
@@ -330,7 +329,6 @@
       "third_party/android_tools/sdk/platform-tools/adb",
       "third_party/android_tools/ndk/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-strip",
       "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
-      "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -3381,18 +3379,26 @@
       },
       "steps": [
         {
+          "name": "validate pkg/ pubspec files",
+          "script": "tools/sdks/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/package_deps/bin/package_deps.dart"
+          ]
+        },
+        {
+          "name": "validate .dart_tool/package_config.json",
+          "script": "tools/sdks/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/generate_package_config.dart",
+            "--check"
+          ]
+        },
+        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
             "dartdevc_test"
-          ]
-        },
-        {
-          "name": "validate pkg/ pubspec files",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/package_deps/bin/package_deps.dart"
           ]
         },
         {

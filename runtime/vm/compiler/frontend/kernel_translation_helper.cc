@@ -2315,12 +2315,53 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();                    // read name.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
+    case kInstanceGet:
+      ReadByte();                          // read kind.
+      ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
+      SkipName();                          // read name.
+      SkipDartType();                      // read result_type.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
+      return;
+    case kDynamicGet:
+      ReadByte();        // read kind.
+      ReadPosition();    // read position.
+      SkipExpression();  // read receiver.
+      SkipName();        // read name.
+      return;
+    case kInstanceTearOff:
+      ReadByte();                          // read kind.
+      ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
+      SkipName();                          // read name.
+      SkipDartType();                      // read result_type.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
+      return;
+    case kFunctionTearOff:
+      ReadPosition();    // read position.
+      SkipExpression();  // read receiver.
+      return;
     case kPropertySet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipExpression();              // read value.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
+      return;
+    case kInstanceSet:
+      ReadByte();                          // read kind.
+      ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
+      SkipName();                          // read name.
+      SkipExpression();                    // read value.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
+      return;
+    case kDynamicSet:
+      ReadByte();        // read kind.
+      ReadPosition();    // read position.
+      SkipExpression();  // read receiver.
+      SkipName();        // read name.
+      SkipExpression();  // read value.
       return;
     case kSuperPropertyGet:
       ReadPosition();                // read position.
@@ -2349,6 +2390,48 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
+      return;
+    case kInstanceInvocation:
+      ReadByte();                          // read kind.
+      ReadFlags();                         // read flags.
+      ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
+      SkipName();                          // read name.
+      SkipArguments();                     // read arguments.
+      SkipDartType();                      // read function_type.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
+      return;
+    case kDynamicInvocation:
+      ReadByte();        // read kind.
+      ReadPosition();    // read position.
+      SkipExpression();  // read receiver.
+      SkipName();        // read name.
+      SkipArguments();   // read arguments.
+      return;
+    case kLocalFunctionInvocation:
+      ReadPosition();   // read position.
+      ReadUInt();       // read variable kernel position.
+      ReadUInt();       // read relative variable index.
+      SkipArguments();  // read arguments.
+      SkipDartType();   // read function_type.
+      return;
+    case kFunctionInvocation:
+      ReadByte();        // read kind.
+      ReadPosition();    // read position.
+      SkipExpression();  // read receiver.
+      SkipArguments();   // read arguments.
+      SkipDartType();    // read function_type.
+      return;
+    case kEqualsCall:
+      ReadPosition();                      // read position.
+      SkipExpression();                    // read left.
+      SkipExpression();                    // read right.
+      SkipDartType();                      // read function_type.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
+      return;
+    case kEqualsNull:
+      ReadPosition();    // read position.
+      SkipExpression();  // read expression.
       return;
     case kSuperMethodInvocation:
       ReadPosition();                // read position.
@@ -2490,15 +2573,13 @@ void KernelReaderHelper::SkipExpression() {
     case kConstSetLiteral:
     case kConstMapLiteral:
     case kSymbolLiteral:
-      // Const invocations and const literals are removed by the
-      // constant evaluator.
     case kListConcatenation:
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
     case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are internal to the front end and
+    case kStaticTearOff:
+      // These nodes are internal to the front end and
       // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);

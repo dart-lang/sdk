@@ -379,12 +379,53 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadNameAsGetterName().Hash());  // read name.
       CalculateGetterNameFingerprint();  // read interface_target_reference.
       return;
+    case kInstanceGet:
+      ReadByte();                                // read kind.
+      ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
+      BuildHash(ReadNameAsGetterName().Hash());  // read name.
+      SkipDartType();                            // read result_type.
+      CalculateGetterNameFingerprint();  // read interface_target_reference.
+      return;
+    case kDynamicGet:
+      ReadByte();                                // read kind.
+      ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
+      BuildHash(ReadNameAsGetterName().Hash());  // read name.
+      return;
+    case kInstanceTearOff:
+      ReadByte();                                // read kind.
+      ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
+      BuildHash(ReadNameAsGetterName().Hash());  // read name.
+      SkipDartType();                            // read result_type.
+      CalculateGetterNameFingerprint();  // read interface_target_reference.
+      return;
+    case kFunctionTearOff:
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read receiver.
+      return;
     case kPropertySet:
       ReadPosition();                            // read position.
       CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsSetterName().Hash());  // read name.
       CalculateExpressionFingerprint();          // read value.
       CalculateSetterNameFingerprint();  // read interface_target_reference.
+      return;
+    case kInstanceSet:
+      ReadByte();                                // read kind.
+      ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
+      BuildHash(ReadNameAsSetterName().Hash());  // read name.
+      CalculateExpressionFingerprint();          // read value.
+      CalculateSetterNameFingerprint();  // read interface_target_reference.
+      return;
+    case kDynamicSet:
+      ReadByte();                                // read kind.
+      ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
+      BuildHash(ReadNameAsSetterName().Hash());  // read name.
+      CalculateExpressionFingerprint();          // read value.
       return;
     case kSuperPropertyGet:
       ReadPosition();                            // read position.
@@ -413,6 +454,48 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
       CalculateArgumentsFingerprint();           // read arguments.
       CalculateMethodNameFingerprint();  // read interface_target_reference.
+      return;
+    case kInstanceInvocation:
+      ReadByte();                                // read kind.
+      ReadFlags();                               // read flags.
+      ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
+      BuildHash(ReadNameAsMethodName().Hash());  // read name.
+      CalculateArgumentsFingerprint();           // read arguments.
+      SkipDartType();                            // read function_type.
+      CalculateMethodNameFingerprint();  // read interface_target_reference.
+      return;
+    case kDynamicInvocation:
+      ReadByte();                                // read kind.
+      ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
+      BuildHash(ReadNameAsMethodName().Hash());  // read name.
+      CalculateArgumentsFingerprint();           // read arguments.
+      return;
+    case kLocalFunctionInvocation:
+      ReadPosition();                   // read position.
+      ReadUInt();                       // read variable kernel position.
+      ReadUInt();                       // read relative variable index.
+      CalculateArgumentsFingerprint();  // read arguments.
+      SkipDartType();                   // read function_type.
+      return;
+    case kFunctionInvocation:
+      BuildHash(ReadByte());             // read kind.
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read receiver.
+      CalculateArgumentsFingerprint();   // read arguments.
+      SkipDartType();                    // read function_type.
+      return;
+    case kEqualsCall:
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read left.
+      CalculateExpressionFingerprint();  // read right.
+      SkipDartType();                    // read function_type.
+      CalculateMethodNameFingerprint();  // read interface_target_reference.
+      return;
+    case kEqualsNull:
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read expression.
       return;
     case kSuperMethodInvocation:
       ReadPosition();                            // read position.
@@ -558,15 +641,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kConstSetLiteral:
     case kConstMapLiteral:
     case kSymbolLiteral:
-      // Const invocations and const literals are removed by the
-      // constant evaluator.
     case kListConcatenation:
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
     case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are internal to the front end and
+    case kStaticTearOff:
+      // These nodes are internal to the front end and
       // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);

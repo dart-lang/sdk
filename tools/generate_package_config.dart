@@ -57,8 +57,6 @@ void main(List<String> args) {
     packageDirectory(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
-    packageDirectory('third_party/devtools/devtools_server'),
-    packageDirectory('third_party/devtools/devtools_shared'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
     packageDirectory('tools/package_deps'),
   ];
@@ -104,7 +102,8 @@ void main(List<String> args) {
       exit(0);
     } else {
       print("Package config out of date");
-      print("Run `dart tools/generate_package_config.dart` to update");
+      print("Run `gclient sync -D && dart tools/generate_package_config.dart` "
+          "to update.");
       exit(1);
     }
   }

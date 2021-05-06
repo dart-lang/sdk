@@ -67,7 +67,8 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../../base/nnbd_mode.dart';
 
-import '../denylisted_classes.dart' show denylistedCoreClasses;
+import '../denylisted_classes.dart'
+    show denylistedCoreClasses, denylistedTypedDataClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -804,6 +805,14 @@ class SourceLoader extends Loader {
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
       denyListedClasses.add(coreLibrary
           .lookupLocalMember(denylistedCoreClasses[i], required: true));
+    }
+    if (typedDataLibrary != null) {
+      for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
+        // Allow the member to not exist. If it doesn't, nobody can extend it.
+        Builder member = typedDataLibrary
+            .lookupLocalMember(denylistedTypedDataClasses[i], required: false);
+        if (member != null) denyListedClasses.add(member);
+      }
     }
 
     // Sort the classes topologically.

@@ -183,6 +183,7 @@ claim
 claimed
 claims
 clamp
+clamped
 clarification
 clashes
 class's
@@ -446,7 +447,12 @@ fishy
 fishythefish
 fixnum
 fleshed
+float32
+float32x
+float32x4
 float64
+float64x
+float64x2
 floitsch
 flowed
 flushed
@@ -583,6 +589,12 @@ inspired
 inst
 instanceof
 instantiator
+int16
+int32
+int32x
+int32x4
+int64
+int8
 integrate
 intentionally
 interim
@@ -1270,6 +1282,7 @@ ui
 uint
 uint16
 uint32
+uint64
 uint8
 umbrella
 un
@@ -1309,6 +1322,7 @@ universally
 unlinked
 unlower
 unmark
+unmodifiable
 unneeded
 unordered
 unpaired
