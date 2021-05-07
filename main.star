@@ -265,6 +265,11 @@ luci.console_view(
     header = "console-header.textpb",
 )
 
+luci.list_view(
+    name = "dart-fuzz",
+    title = "Dart Fuzzer Console",
+)
+
 luci.console_view(
     name = "flutter",
     repo = DART_GIT,
@@ -1627,6 +1632,12 @@ def add_postponed_alt_console_entries():
         luci.console_view_entry(console_view = "alt", **entry)
 
 add_postponed_alt_console_entries()
+
+# Dart Fuzz console
+luci.list_view_entry(
+    builder = "fuzz-linux",
+    list_view = "dart-fuzz",
+)
 
 # Flutter consoles
 luci.console_view_entry(

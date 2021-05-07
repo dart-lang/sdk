@@ -37,6 +37,7 @@ links: {
     }
 }
 console_groups: {
+    console_ids: "dart/dart-fuzz"
     console_ids: "dart/flutter"
     console_ids: "dart/flutter-hhh"
 }
