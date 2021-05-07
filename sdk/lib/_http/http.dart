@@ -396,7 +396,7 @@ abstract class HttpHeaders {
   static const accessControlAllowHeadersHeader = 'access-control-allow-headers';
   static const accessControlAllowMethodsHeader = 'access-control-allow-methods';
   static const accessControlAllowOriginHeader = 'access-control-allow-origin';
-  static const String accessControlExposableHeadersHeader =
+  static const String accessControlExposeHeadersHeader =
       'access-control-expose-headers';
   static const String accessControlMaxAgeHeader = 'access-control-max-age';
   static const String accessControlRequestHeadersHeader =
