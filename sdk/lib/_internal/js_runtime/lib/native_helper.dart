@@ -283,7 +283,7 @@ void initNativeDispatchContinue() {
   // tags `TAG`, if `window.TAG` is a (constructor) function, set the dispatch
   // property if the function's prototype to a dispatch record.
   var map = interceptorsByTag;
-  var tags = JS('JSMutableArray', 'Object.getOwnPropertyNames(#)', map);
+  JSArray tags = JS('JSMutableArray', 'Object.getOwnPropertyNames(#)', map);
 
   if (JS('bool', 'typeof window != "undefined"')) {
     var context = JS('=Object', 'window');
