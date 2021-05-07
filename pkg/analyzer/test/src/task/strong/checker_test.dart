@@ -472,62 +472,6 @@ void main() {
     ]);
   }
 
-  test_functionModifiers_async() async {
-    await assertErrorsInCode('''
-import 'dart:math' show Random;
-
-dynamic x;
-
-foo1() async => x;
-Future foo2() async => x;
-Future<int> foo3() async => x;
-Future<int> foo4() async => new Future<int>.value(x);
-Future<int> foo5() async => new Future<String>.value(x);
-
-bar1() async { return x; }
-Future bar2() async { return x; }
-Future<int> bar3() async { return x; }
-Future<int> bar4() async {
-  return new Future<int>.value(x);
-}
-Future<int> bar5() async {
-  return new Future<String>.value(x);
-}
-
-int y;
-Future<int> z;
-
-baz() async {
-  int a = await x;
-  int b = await y;
-  int c = await z;
-  String d = await z;
-}
-
-Future<bool> get issue_ddc_264 async {
-  await 42;
-  if (new Random().nextBool()) {
-    return true;
-  } else {
-    return new Future<bool>.value(false);
-  }
-}
-
-
-Future<String> issue_sdk_26404() async {
-  return ((1 > 0) ? new Future<String>.value('hello') : "world");
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 203, 27),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 433, 27),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 508, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 527, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 546, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 568, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 572, 7),
-    ]);
-  }
-
   test_functionTypingAndSubtyping_classes() async {
     await assertErrorsInCode('''
 class A {}
