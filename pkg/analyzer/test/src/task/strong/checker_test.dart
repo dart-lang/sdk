@@ -472,62 +472,6 @@ void main() {
     ]);
   }
 
-  test_functionModifiers_async() async {
-    await assertErrorsInCode('''
-import 'dart:math' show Random;
-
-dynamic x;
-
-foo1() async => x;
-Future foo2() async => x;
-Future<int> foo3() async => x;
-Future<int> foo4() async => new Future<int>.value(x);
-Future<int> foo5() async => new Future<String>.value(x);
-
-bar1() async { return x; }
-Future bar2() async { return x; }
-Future<int> bar3() async { return x; }
-Future<int> bar4() async {
-  return new Future<int>.value(x);
-}
-Future<int> bar5() async {
-  return new Future<String>.value(x);
-}
-
-int y;
-Future<int> z;
-
-baz() async {
-  int a = await x;
-  int b = await y;
-  int c = await z;
-  String d = await z;
-}
-
-Future<bool> get issue_ddc_264 async {
-  await 42;
-  if (new Random().nextBool()) {
-    return true;
-  } else {
-    return new Future<bool>.value(false);
-  }
-}
-
-
-Future<String> issue_sdk_26404() async {
-  return ((1 > 0) ? new Future<String>.value('hello') : "world");
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 203, 27),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 433, 27),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 508, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 527, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 546, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 568, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 572, 7),
-    ]);
-  }
-
   test_functionTypingAndSubtyping_classes() async {
     await assertErrorsInCode('''
 class A {}
@@ -1679,27 +1623,6 @@ void main() {
     ]);
   }
 
-  test_functionTypingAndSubtyping_uninferredClosure() async {
-    await assertErrorsInCode('''
-typedef num Num2Num(num x);
-void main() {
-  Num2Num g = (int x) { return x; };
-  print(g(42));
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 56, 21),
-    ]);
-  }
-
-  test_functionTypingAndSubtyping_void() async {
-    await assertNoErrorsInCode('''
-class A {
-  void bar() => null;
-  void foo() => bar(); // allowed
-}
-''');
-  }
-
   test_genericClassMethodOverride() async {
     await assertErrorsInCode('''
 class A {}
@@ -1718,50 +1641,6 @@ class Derived2<S extends B> extends Base<B> {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 130, 3),
-    ]);
-  }
-
-  test_genericFunctionWrongNumberOfArguments() async {
-    await assertErrorsInCode(r'''
-T foo<T>(T x, T y) => x;
-T bar<T>({T x, T y}) => x;
-
-main() {
-  String x;
-  // resolving these shouldn't crash.
-  foo(1, 2, 3);
-  x = foo('1', '2', '3');
-  foo(1);
-  x = foo('1');
-  x = foo(1, 2, 3);
-  x = foo(1);
-
-  // named arguments
-  bar(y: 1, x: 2, z: 3);
-  x = bar(z: '1', x: '2', y: '3');
-  bar(y: 1);
-  x = bar(x: '1', z: 42);
-  x = bar(y: 1, x: 2, z: 3);
-  x = bar(x: 1);
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 124, 1),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 148, 3),
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 159, 3),
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 173, 5),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 196, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 190, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 193, 1),
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 209, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 210, 1),
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 254, 1),
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 271, 1),
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 327, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 348, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 354, 1),
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 357, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 377, 1),
     ]);
   }
 

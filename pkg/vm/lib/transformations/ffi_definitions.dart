@@ -1033,11 +1033,8 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
               ? transformer.loadUnalignedMethods
               : transformer.loadMethods)[nativeType],
           Arguments([
-            PropertyGet(
-                ThisExpression(),
-                transformer.compoundTypedDataBaseField.name,
-                transformer.compoundTypedDataBaseField)
-              ..fileOffset = fileOffset,
+            transformer.getCompoundTypedDataBaseField(
+                ThisExpression(), fileOffset),
             transformer.runtimeBranchOnLayout(offsets)
           ]))
         ..fileOffset = fileOffset);
@@ -1060,11 +1057,8 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
               ? transformer.storeUnalignedMethods
               : transformer.storeMethods)[nativeType],
           Arguments([
-            PropertyGet(
-                ThisExpression(),
-                transformer.compoundTypedDataBaseField.name,
-                transformer.compoundTypedDataBaseField)
-              ..fileOffset = fileOffset,
+            transformer.getCompoundTypedDataBaseField(
+                ThisExpression(), fileOffset),
             transformer.runtimeBranchOnLayout(offsets),
             VariableGet(argument)
           ]))
@@ -1103,11 +1097,8 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
             StaticInvocation(
                 transformer.loadMethods[NativeType.kIntptr],
                 Arguments([
-                  PropertyGet(
-                      ThisExpression(),
-                      transformer.compoundTypedDataBaseField.name,
-                      transformer.compoundTypedDataBaseField)
-                    ..fileOffset = fileOffset,
+                  transformer.getCompoundTypedDataBaseField(
+                      ThisExpression(), fileOffset),
                   transformer.runtimeBranchOnLayout(offsets)
                 ]))
               ..fileOffset = fileOffset
@@ -1132,11 +1123,8 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.storeMethods[NativeType.kIntptr],
           Arguments([
-            PropertyGet(
-                ThisExpression(),
-                transformer.compoundTypedDataBaseField.name,
-                transformer.compoundTypedDataBaseField)
-              ..fileOffset = fileOffset,
+            transformer.getCompoundTypedDataBaseField(
+                ThisExpression(), fileOffset),
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(VariableGet(argument), transformer.addressGetter.name,
                 transformer.addressGetter)
@@ -1183,11 +1171,8 @@ abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
         constructor,
         Arguments([
           transformer.typedDataBaseOffset(
-              PropertyGet(
-                  ThisExpression(),
-                  transformer.compoundTypedDataBaseField.name,
-                  transformer.compoundTypedDataBaseField)
-                ..fileOffset = fileOffset,
+              transformer.getCompoundTypedDataBaseField(
+                  ThisExpression(), fileOffset),
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
               dartType,
@@ -1212,17 +1197,11 @@ abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.memCopy,
           Arguments([
-            PropertyGet(
-                ThisExpression(),
-                transformer.compoundTypedDataBaseField.name,
-                transformer.compoundTypedDataBaseField)
-              ..fileOffset = fileOffset,
+            transformer.getCompoundTypedDataBaseField(
+                ThisExpression(), fileOffset),
             transformer.runtimeBranchOnLayout(offsets),
-            PropertyGet(
-                VariableGet(argument),
-                transformer.compoundTypedDataBaseField.name,
-                transformer.compoundTypedDataBaseField)
-              ..fileOffset = fileOffset,
+            transformer.getCompoundTypedDataBaseField(
+                VariableGet(argument), fileOffset),
             ConstantExpression(IntConstant(0)),
             transformer.runtimeBranchOnLayout(size),
           ]))
@@ -1367,11 +1346,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
         transformer.arrayConstructor,
         Arguments([
           transformer.typedDataBaseOffset(
-              PropertyGet(
-                  ThisExpression(),
-                  transformer.compoundTypedDataBaseField.name,
-                  transformer.compoundTypedDataBaseField)
-                ..fileOffset = fileOffset,
+              transformer.getCompoundTypedDataBaseField(
+                  ThisExpression(), fileOffset),
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
               typeArgument,
@@ -1400,17 +1376,11 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.memCopy,
           Arguments([
-            PropertyGet(
-                ThisExpression(),
-                transformer.compoundTypedDataBaseField.name,
-                transformer.compoundTypedDataBaseField)
-              ..fileOffset = fileOffset,
+            transformer.getCompoundTypedDataBaseField(
+                ThisExpression(), fileOffset),
             transformer.runtimeBranchOnLayout(offsets),
-            PropertyGet(
-                VariableGet(argument),
-                transformer.arrayTypedDataBaseField.name,
-                transformer.arrayTypedDataBaseField)
-              ..fileOffset = fileOffset,
+            transformer.getArrayTypedDataBaseField(
+                VariableGet(argument), fileOffset),
             ConstantExpression(IntConstant(0)),
             transformer.runtimeBranchOnLayout(size),
           ]))
