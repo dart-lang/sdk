@@ -391,17 +391,17 @@ abstract class HttpHeaders {
   static const acceptEncodingHeader = "accept-encoding";
   static const acceptLanguageHeader = "accept-language";
   static const acceptRangesHeader = "accept-ranges";
-  static const String accesscontrolAllowedCredentialsHeader =
+  static const String accessControlAllowedCredentialsHeader =
       'access-control-allow-credentials';
   static const accessControlAllowHeadersHeader = 'access-control-allow-headers';
   static const accessControlAllowMethodsHeader = 'access-control-allow-methods';
   static const accessControlAllowOriginHeader = 'access-control-allow-origin';
-  static const String accesscontrolExposableHeadersHeader =
+  static const String accessControlExposableHeadersHeader =
       'access-control-expose-headers';
-  static const String accesscontrolMaxAgeHeader = 'access-control-max-age';
-  static const String accesscontrolRequestHeadersHeader =
+  static const String accessControlMaxAgeHeader = 'access-control-max-age';
+  static const String accessControlRequestHeadersHeader =
       'access-control-request-headers';
-  static const String accesscontrolRequestMethodHeader =
+  static const String accessControlRequestMethodHeader =
       'access-control-request-method';
 
   static const ageHeader = "age";
