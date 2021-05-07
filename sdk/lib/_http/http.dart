@@ -403,7 +403,6 @@ abstract class HttpHeaders {
       'access-control-request-headers';
   static const String accessControlRequestMethodHeader =
       'access-control-request-method';
-
   static const ageHeader = "age";
   static const allowHeader = "allow";
   static const authorizationHeader = "authorization";
