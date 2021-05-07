@@ -63,6 +63,10 @@ These rules are under active development.  Feedback is
 
 const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
+// todo(pq):add badge
+final coreRules = <String?>[];
+// todo(pq):add badge
+final recommendedRules = <String?>[];
 final effectiveDartRules = <String?>[];
 final flutterRules = <String?>[];
 final pedanticRules = <String?>[];
@@ -117,9 +121,24 @@ String describeMaturity(LintRule r) =>
     r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})';
 
 Future<void> fetchBadgeInfo() async {
-  var latestPedantic = await pedanticLatestVersion;
-  var latestEffectiveDart = await effectiveDartLatestVersion;
+  var core = await fetchConfig(
+      'https://raw.githubusercontent.com/dart-lang/lints/master/lib/core.yaml');
+  if (core != null) {
+    for (var ruleConfig in core.ruleConfigs) {
+      coreRules.add(ruleConfig.name);
+    }
+  }
 
+  var recommended = await fetchConfig(
+      'https://raw.githubusercontent.com/dart-lang/lints/master/lib/recommended.yaml');
+  if (recommended != null) {
+    recommendedRules.addAll(coreRules);
+    for (var ruleConfig in recommended.ruleConfigs) {
+      recommendedRules.add(ruleConfig.name);
+    }
+  }
+
+  var latestPedantic = await pedanticLatestVersion;
   var pedantic = await fetchConfig(
       'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml');
   if (pedantic != null) {
@@ -128,6 +147,7 @@ Future<void> fetchBadgeInfo() async {
     }
   }
 
+  var latestEffectiveDart = await effectiveDartLatestVersion;
   var effectiveDart = await fetchConfig(
       'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.$latestEffectiveDart.yaml');
   if (effectiveDart != null) {
@@ -137,8 +157,9 @@ Future<void> fetchBadgeInfo() async {
   }
 
   var flutter = await fetchConfig(
-      'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml');
+      'https://raw.githubusercontent.com/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
   if (flutter != null) {
+    flutterRules.addAll(recommendedRules);
     for (var ruleConfig in flutter.ruleConfigs) {
       flutterRules.add(ruleConfig.name);
     }
