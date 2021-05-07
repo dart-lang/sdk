@@ -391,7 +391,7 @@ abstract class HttpHeaders {
   static const acceptEncodingHeader = "accept-encoding";
   static const acceptLanguageHeader = "accept-language";
   static const acceptRangesHeader = "accept-ranges";
-  static const String accessControlAllowedCredentialsHeader =
+  static const String accessControlAllowCredentialsHeader =
       'access-control-allow-credentials';
   static const accessControlAllowHeadersHeader = 'access-control-allow-headers';
   static const accessControlAllowMethodsHeader = 'access-control-allow-methods';
