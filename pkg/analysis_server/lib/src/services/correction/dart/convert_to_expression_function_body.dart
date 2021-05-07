@@ -28,6 +28,10 @@ class ConvertToExpressionFunctionBody extends CorrectionProducer {
     if (body is! BlockFunctionBody || body.isGenerator) {
       return;
     }
+    var parent = body.parent;
+    if (parent is ConstructorDeclaration && parent.factoryKeyword == null) {
+      return;
+    }
     // prepare return statement
     List<Statement> statements = body.block.statements;
     if (statements.length != 1) {
