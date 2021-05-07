@@ -784,6 +784,25 @@ class FfiTransformer extends Transformer {
         InterfaceType(compoundClass, Nullability.legacy),
         SubtypeCheckMode.ignoringNullabilities);
   }
+
+  Expression getCompoundTypedDataBaseField(
+      Expression receiver, int fileOffset) {
+    return PropertyGet(
+        receiver, compoundTypedDataBaseField.name, compoundTypedDataBaseField)
+      ..fileOffset = fileOffset;
+  }
+
+  Expression getArrayTypedDataBaseField(Expression receiver,
+      [int fileOffset = TreeNode.noOffset]) {
+    return PropertyGet(
+        receiver, arrayTypedDataBaseField.name, arrayTypedDataBaseField)
+      ..fileOffset = fileOffset;
+  }
+
+  Expression multiply(Expression a, Expression b) {
+    return MethodInvocation(
+        a, numMultiplication.name, Arguments([b]), numMultiplication);
+  }
 }
 
 /// Checks if any library depends on dart:ffi.

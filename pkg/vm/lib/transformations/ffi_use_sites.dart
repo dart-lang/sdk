@@ -327,11 +327,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         Expression sizeInBytes = _inlineSizeOf(nativeType);
         if (sizeInBytes != null) {
           if (node.arguments.positional.length == 2) {
-            sizeInBytes = MethodInvocation(
-                node.arguments.positional[1],
-                numMultiplication.name,
-                Arguments([sizeInBytes]),
-                numMultiplication);
+            sizeInBytes = multiply(node.arguments.positional[1], sizeInBytes);
           }
           return MethodInvocation(
               node.arguments.positional[0],
@@ -485,11 +481,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           pointer,
           offsetByMethod.name,
           Arguments([
-            MethodInvocation(
-                node.arguments.positional[1],
-                numMultiplication.name,
-                Arguments([_inlineSizeOf(dartType)]),
-                numMultiplication)
+            multiply(node.arguments.positional[1], _inlineSizeOf(dartType))
           ]),
           offsetByMethod);
     }
@@ -503,10 +495,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
 
     final typedDataBasePrime = typedDataBaseOffset(
-        PropertyGet(NullCheck(node.arguments.positional[0]),
-            arrayTypedDataBaseField.name, arrayTypedDataBaseField),
-        MethodInvocation(node.arguments.positional[1], numMultiplication.name,
-            Arguments([_inlineSizeOf(dartType)]), numMultiplication),
+        getArrayTypedDataBaseField(NullCheck(node.arguments.positional[0])),
+        multiply(node.arguments.positional[1], _inlineSizeOf(dartType)),
         _inlineSizeOf(dartType),
         dartType,
         node.fileOffset);
@@ -574,26 +564,17 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final elementSizeVar = VariableDeclaration("#elementSize",
-        initializer: MethodInvocation(
+        initializer: multiply(
             VariableGet(singleElementSizeVar),
-            numMultiplication.name,
-            Arguments([
-              PropertyGet(
-                  VariableGet(arrayVar),
-                  arrayNestedDimensionsFlattened.name,
-                  arrayNestedDimensionsFlattened)
-            ]),
-            numMultiplication),
+            PropertyGet(
+                VariableGet(arrayVar),
+                arrayNestedDimensionsFlattened.name,
+                arrayNestedDimensionsFlattened)),
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final offsetVar = VariableDeclaration("#offset",
-        initializer: MethodInvocation(
-            VariableGet(elementSizeVar),
-            numMultiplication.name,
-            Arguments([
-              VariableGet(indexVar),
-            ]),
-            numMultiplication),
+        initializer:
+            multiply(VariableGet(elementSizeVar), VariableGet(indexVar)),
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
 
@@ -618,8 +599,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               arrayConstructor,
               Arguments([
                 typedDataBaseOffset(
-                    PropertyGet(VariableGet(arrayVar),
-                        arrayTypedDataBaseField.name, arrayTypedDataBaseField),
+                    getArrayTypedDataBaseField(VariableGet(arrayVar)),
                     VariableGet(offsetVar),
                     VariableGet(elementSizeVar),
                     dartType,
@@ -641,13 +621,11 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         StaticInvocation(
             memCopy,
             Arguments([
-              PropertyGet(VariableGet(arrayVar), arrayTypedDataBaseField.name,
-                  arrayTypedDataBaseField)
-                ..fileOffset = node.fileOffset,
+              getArrayTypedDataBaseField(
+                  VariableGet(arrayVar), node.fileOffset),
               VariableGet(offsetVar),
-              PropertyGet(node.arguments.positional[2],
-                  arrayTypedDataBaseField.name, arrayTypedDataBaseField)
-                ..fileOffset = node.fileOffset,
+              getArrayTypedDataBaseField(
+                  node.arguments.positional[2], node.fileOffset),
               ConstantExpression(IntConstant(0)),
               VariableGet(elementSizeVar),
             ]))
@@ -673,13 +651,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           return MethodInvocation(
               node.receiver,
               offsetByMethod.name,
-              Arguments([
-                MethodInvocation(
-                    node.arguments.positional.single,
-                    numMultiplication.name,
-                    Arguments([inlineSizeOf]),
-                    numMultiplication)
-              ]),
+              Arguments(
+                  [multiply(node.arguments.positional.single, inlineSizeOf)]),
               offsetByMethod);
         }
       }
@@ -711,13 +684,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           return MethodInvocation(
               node.receiver,
               offsetByMethod.name,
-              Arguments([
-                MethodInvocation(
-                    node.arguments.positional.single,
-                    numMultiplication.name,
-                    Arguments([inlineSizeOf]),
-                    numMultiplication)
-              ]),
+              Arguments(
+                  [multiply(node.arguments.positional.single, inlineSizeOf)]),
               offsetByMethod);
         }
       }
