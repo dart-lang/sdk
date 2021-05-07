@@ -6130,7 +6130,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     ir.Member memberContextNode = _elementMap.getMemberContextNode(function);
-    bool hasBox = false;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
         (ir.VariableDeclaration variable, {bool isElided}) {
@@ -6144,14 +6143,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           scopeData.isBoxedVariable(_localsMap, local)) {
         // The parameter will be a field in the box passed as the last
         // parameter. So no need to have it.
-        hasBox = true;
         return;
       }
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(local, argument);
     });
 
-    if (hasBox) {
+    if (forGenerativeConstructorBody && scopeData.requiresContextBox) {
       HInstruction box = compiledArguments[argumentIndex++];
       assert(box is HCreateBox);
       // TODO(sra): Make inlining of closures work. We should always call
