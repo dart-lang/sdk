@@ -22,7 +22,6 @@ import 'dart:_js_helper'
         patch,
         Primitives,
         quoteStringForRegExp,
-        stringJoinUnchecked,
         getTraceFromException,
         RuntimeError;
 

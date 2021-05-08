@@ -30,7 +30,7 @@ regExpGetGlobalNative(JSSyntaxRegExp regexp) {
 /// it finds a match.
 int regExpCaptureCount(JSSyntaxRegExp regexp) {
   var nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
-  var match = JS('JSExtendableArray', '#.exec("")', nativeAnchoredRegExp);
+  JSArray match = JS('JSExtendableArray', '#.exec("")', nativeAnchoredRegExp);
   // The native-anchored regexp always have one capture more than the original,
   // and always matches the empty string.
   return match.length - 2;

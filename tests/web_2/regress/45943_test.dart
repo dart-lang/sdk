@@ -12,7 +12,7 @@ class _InspectorOverlayLayer {
       return true;
     }());
     if (inDebugMode == false) {
-      throw Error();
+      print('Error');
     }
   }
 }

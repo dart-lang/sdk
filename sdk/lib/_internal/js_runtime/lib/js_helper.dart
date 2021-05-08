@@ -270,7 +270,7 @@ class Primitives {
   static int? parseInt(String source, int? radix) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
-    var match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
+    List? match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
@@ -353,7 +353,7 @@ class Primitives {
         source)) {
       return null;
     }
-    var result = JS('num', r'parseFloat(#)', source);
+    double result = JS('double', r'parseFloat(#)', source);
     if (result.isNaN) {
       var trimmed = source.trim();
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
@@ -531,7 +531,7 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCharCode(charCode) {
+  static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('returns:String;effects:none;depends:none',
@@ -599,8 +599,8 @@ class Primitives {
         as int;
   }
 
-  static int? valueFromDecomposedDate(
-      years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
+  static int? valueFromDecomposedDate(int years, int month, int day, int hours,
+      int minutes, int seconds, int milliseconds, bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -619,7 +619,7 @@ class Primitives {
       years += 400;
       jsMonth -= 400 * 12;
     }
-    var value;
+    num value;
     if (isUtc) {
       value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
           hours, minutes, seconds, milliseconds);
@@ -733,9 +733,9 @@ class Primitives {
     return (weekday + 6) % 7 + 1;
   }
 
-  static valueFromDateString(str) {
+  static num valueFromDateString(str) {
     if (str is! String) throw argumentErrorValue(str);
-    var value = JS('num', r'Date.parse(#)', str);
+    num value = JS('num', r'Date.parse(#)', str);
     if (value.isNaN) throw argumentErrorValue(str);
     return value;
   }
