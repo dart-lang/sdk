@@ -21,7 +21,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
   static method libMethod() → void {
     lib1::Foo* foo = new lib2::Bar::•();
     lib2::Bar* bar = new lib2::Bar::•();
-    dart.core::print(foo.{lib1::Foo::==}(bar));
+    dart.core::print(foo =={lib1::Foo::==}{(dynamic) →* dart.core::bool*} bar);
   }
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {

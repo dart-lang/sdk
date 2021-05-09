@@ -85,19 +85,19 @@ Try correcting the name to the name of an existing method, or defining a method 
                  ^^^^^^^^^^^^^^^");
   pri::expect(42, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:23:14: Error: Method not found: '_PrivateExtension'.
   expect(42, _PrivateExtension(\"\").publicMethod1());
-             ^^^^^^^^^^^^^^^^^".publicMethod1());
+             ^^^^^^^^^^^^^^^^^"{dynamic}.publicMethod1());
   pri::expect(87, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:24:14: Error: Method not found: '_PrivateExtension'.
   expect(87, _PrivateExtension(\"\")._privateMethod1());
-             ^^^^^^^^^^^^^^^^^"._privateMethod1());
+             ^^^^^^^^^^^^^^^^^"{dynamic}._privateMethod1());
   pri::expect(237, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:25:35: Error: Method not found: '_privateMethod2'.
   expect(237, PublicExtension(\"\")._privateMethod2());
                                   ^^^^^^^^^^^^^^^");
   pri::expect(24, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:27:14: Error: Getter not found: '_PrivateExtension'.
   expect(24, _PrivateExtension.publicStaticMethod1());
-             ^^^^^^^^^^^^^^^^^".publicStaticMethod1());
+             ^^^^^^^^^^^^^^^^^"{dynamic}.publicStaticMethod1());
   pri::expect(78, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:28:14: Error: Getter not found: '_PrivateExtension'.
   expect(78, _PrivateExtension._privateStaticMethod1());
-             ^^^^^^^^^^^^^^^^^"._privateStaticMethod1());
+             ^^^^^^^^^^^^^^^^^"{dynamic}._privateStaticMethod1());
   pri::expect(732, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:29:31: Error: Method not found: 'PublicExtension._privateStaticMethod2'.
   expect(732, PublicExtension._privateStaticMethod2());
                               ^^^^^^^^^^^^^^^^^^^^^");
@@ -217,7 +217,7 @@ static method test() → dynamic {
   pri::_extension#0|test3("");
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual)) {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }

@@ -73,6 +73,6 @@ static method foo<T extends core::Object* = dynamic>(self::foo::T* x) → dynami
   core::print(self::foo::T*);
 }
 static method main() → dynamic {
-  self::Diagnosticable* x = let final self::StateA* #t1 = self::a in #t1.{self::_State&Object&Diagnosticable::==}(null) ?{self::Diagnosticable*} self::b : #t1;
+  self::Diagnosticable* x = let final self::StateA* #t1 = self::a in #t1 == null ?{self::Diagnosticable*} self::b : #t1;
   self::foo<self::Diagnosticable*>(x);
 }

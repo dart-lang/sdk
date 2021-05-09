@@ -81,7 +81,7 @@ abstract class RenderBox extends mai::RenderObject {
 abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
   generic-covariant-impl field mai::RenderObjectWithChildMixin::ChildType? _child = null;
   get child() → mai::RenderObjectWithChildMixin::ChildType?
-    return this.{mai::RenderObjectWithChildMixin::_child};
+    return this.{mai::RenderObjectWithChildMixin::_child}{mai::RenderObjectWithChildMixin::ChildType?};
 }
 abstract class _RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<T extends mai::RenderBox> extends core::Object implements mai::RenderBox, mai::RenderObjectWithChildMixin<mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin::T> /*isAnonymousMixin*/  {
   synthetic constructor •() → mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin::T>
@@ -91,7 +91,7 @@ abstract class _RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<T exten
 abstract class RenderProxyBoxMixin<T extends mai::RenderBox> extends mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<mai::RenderProxyBoxMixin::T> /*isMixinDeclaration*/  {
   @#C2
   method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C1}) → core::bool {
-    return let final core::bool? #t1 = let final mai::RenderProxyBoxMixin::T? #t2 = this.{mai::RenderObjectWithChildMixin::child} in #t2.{core::Object::==}(null) ?{core::bool?} null : #t2{mai::RenderProxyBoxMixin::T}.{mai::RenderBox::hitTest}(result, position: position) in #t1.{core::Object::==}(null) ?{core::bool} false : #t1{core::bool};
+    return let final core::bool? #t1 = let final mai::RenderProxyBoxMixin::T? #t2 = this.{mai::RenderObjectWithChildMixin::child}{mai::RenderProxyBoxMixin::T?} in #t2 == null ?{core::bool?} null : #t2{mai::RenderProxyBoxMixin::T}.{mai::RenderBox::hitTest}(result, position: position){(mai::BoxHitTestResult, {required position: mai::Offset}) → core::bool} in #t1 == null ?{core::bool} false : #t1{core::bool};
   }
 }
 abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin extends mai::RenderBox implements mai::RenderObjectWithChildMixin<mai::RenderBox> /*isAnonymousMixin,isEliminatedMixin*/  {
@@ -100,7 +100,7 @@ abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin extends mai:
     : super mai::RenderBox::•()
     ;
   get child() → mai::RenderBox?
-    return this.{mai::RenderObjectWithChildMixin::_child};
+    return this.{mai::RenderObjectWithChildMixin::_child}{mai::RenderBox?};
 }
 abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin extends mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin implements mai::RenderProxyBoxMixin<mai::RenderBox> /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin
@@ -108,7 +108,7 @@ abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyB
     ;
   @#C2
   method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C1}) → core::bool {
-    return let final core::bool? #t3 = let final mai::RenderBox? #t4 = this.{mai::RenderObjectWithChildMixin::child} in #t4.{core::Object::==}(null) ?{core::bool?} null : #t4{mai::RenderBox}.{mai::RenderBox::hitTest}(result, position: position) in #t3.{core::Object::==}(null) ?{core::bool} false : #t3{core::bool};
+    return let final core::bool? #t3 = let final mai::RenderBox? #t4 = this.{mai::RenderObjectWithChildMixin::child}{mai::RenderBox?} in #t4 == null ?{core::bool?} null : #t4{mai::RenderBox}.{mai::RenderBox::hitTest}(result, position: position){(mai::BoxHitTestResult, {required position: mai::Offset}) → core::bool} in #t3 == null ?{core::bool} false : #t3{core::bool};
   }
 }
 class RenderProxyBox extends mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin {

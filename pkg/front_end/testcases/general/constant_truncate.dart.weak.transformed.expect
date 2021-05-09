@@ -344,37 +344,37 @@ static const field core::int* f5 = invalid-expression "Binary operator '-Infinit
 static method main() → dynamic {
   self::test(0, 0, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
   self::test(0.0, 0, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0.{core::double::unary-}(), 0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(){() →* core::double*}, 0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
   self::test(#C2, 0, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
   self::test(#C3, 0, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
   self::test(#C4, 0, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
   self::test(0, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
   self::test(0.0, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0.{core::double::unary-}(), 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(){() →* core::double*}, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
   self::test(#C2, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
   self::test(#C3, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
   self::test(#C4, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(0, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(0.0.{core::double::unary-}(), 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C2, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C3, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
-  self::test(#C4, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(0, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(){() →* core::double*}, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C2, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C3, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C4, 0.0.{core::double::unary-}(){() →* core::double*}, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
   self::test(0, #C2, () → core::int* => invalid-expression "Binary operator '0 ~/ NaN' results is Infinity or NaN.");
   self::test(0.0, #C2, () → core::int* => invalid-expression "Binary operator '0.0 ~/ NaN' results is Infinity or NaN.");
-  self::test(0.0.{core::double::unary-}(), #C2, () → core::int* => invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.");
+  self::test(0.0.{core::double::unary-}(){() →* core::double*}, #C2, () → core::int* => invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.");
   self::test(#C2, #C2, () → core::int* => invalid-expression "Binary operator 'NaN ~/ NaN' results is Infinity or NaN.");
   self::test(#C3, #C2, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.");
   self::test(#C4, #C2, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.");
   self::test(0, #C3, () → core::int* => #C1);
   self::test(0.0, #C3, () → core::int* => #C1);
-  self::test(0.0.{core::double::unary-}(), #C3, () → core::int* => #C1);
+  self::test(0.0.{core::double::unary-}(){() →* core::double*}, #C3, () → core::int* => #C1);
   self::test(#C2, #C3, () → core::int* => invalid-expression "Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.");
   self::test(#C3, #C3, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.");
   self::test(#C4, #C3, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.");
   self::test(0, #C4, () → core::int* => #C1);
   self::test(0.0, #C4, () → core::int* => #C1);
-  self::test(0.0.{core::double::unary-}(), #C4, () → core::int* => #C1);
+  self::test(0.0.{core::double::unary-}(){() →* core::double*}, #C4, () → core::int* => #C1);
   self::test(#C2, #C4, () → core::int* => invalid-expression "Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.");
   self::test(#C3, #C4, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.");
   self::test(#C4, #C4, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.");
@@ -382,7 +382,7 @@ static method main() → dynamic {
 static method test(core::num* a, core::num* b, () →* core::num* f) → void {
   core::num* result;
   try {
-    result = a.{core::num::~/}(b);
+    result = a.{core::num::~/}(b){(core::num*) →* core::int*};
     core::print("${a} ~/ ${b} = ${result}");
   }
   on dynamic catch(final dynamic e) {
@@ -390,16 +390,16 @@ static method test(core::num* a, core::num* b, () →* core::num* f) → void {
     self::throws(f);
     return;
   }
-  self::expect(f.call(), result);
+  self::expect(f(){() →* core::num*}, result);
 }
 static method expect(dynamic expected, dynamic actual) → void {
-  if(!expected.{core::Object::==}(actual)) {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
     throw "Expected ${expected}, actual ${actual}";
   }
 }
 static method throws(() →* core::num* f) → void {
   try {
-    f.call();
+    f(){() →* core::num*};
   }
   on dynamic catch(final dynamic e) {
     return;
@@ -415,16 +415,16 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:50:8 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:57:8 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:62:11 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:63:13 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:64:8 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:64:14 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:65:20 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:66:25 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:67:33 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:71:8 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:78:8 -> DoubleConstant(-0.0)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:85:8 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:50:8 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:57:8 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:62:11 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:63:13 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:64:8 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:64:14 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:65:20 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:66:25 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:67:33 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:71:8 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:78:8 -> DoubleConstant(-0.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///constant_truncate.dart:85:8 -> DoubleConstant(-0.0)
 Extra constant evaluation: evaluated: 115, effectively constant: 12

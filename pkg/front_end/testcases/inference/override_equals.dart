@@ -26,11 +26,11 @@ class SubNullEquality extends NullEquality {
 test() {
   NullEquality n = new NullEquality();
   var /*@ type=bool* */ equals_self = n /*@target=NullEquality.==*/ == n;
-  var /*@ type=bool* */ equals_null = n /*@target=NullEquality.==*/ == null;
-  var /*@ type=bool* */ null_equals = null /*@target=Object.==*/ == n;
+  var /*@ type=bool* */ equals_null = n  == null;
+  var /*@ type=bool* */ null_equals = null  == n;
   var /*@ type=bool* */ not_equals_self = n /*@target=NullEquality.==*/ != n;
-  var /*@ type=bool* */ not_equals_null = n /*@target=NullEquality.==*/ != null;
-  var /*@ type=bool* */ null_not_equals = null /*@target=Object.==*/ != n;
+  var /*@ type=bool* */ not_equals_null = n  != null;
+  var /*@ type=bool* */ null_not_equals = null  != n;
 }
 
 main() {

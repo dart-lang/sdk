@@ -25,11 +25,11 @@ class D<Y extends core::Object* = dynamic> extends core::Object {
 static method main() → void {
   iss::foo(() → Null => null);
   iss::bar = () → iss::Map<core::String*, core::String*>* => null;
-  new self::D::•<core::int*>().{self::D::method}();
+  new self::D::•<core::int*>().{self::D::method}(){() →* iss::C<core::int*>*};
   self::findKey(new iss::Map::•<core::String*, core::String*>("foo", "bar"), "bar");
 }
 static method findKey(iss::Map<core::String*, dynamic>* m, dynamic search) → void {
-  core::print(let final core::MapEntry<core::String*, dynamic>* #t1 = m.{iss::Map::entries}.{iss::Iterable::singleWhere}((core::MapEntry<core::String*, dynamic>* entry) → core::bool* => entry.{core::MapEntry::value}.{core::Object::==}(search), orElse: () → Null => null) in #t1.{core::Object::==}(null) ?{core::String*} null : #t1.{core::MapEntry::key});
+  core::print(let final core::MapEntry<core::String*, dynamic>* #t1 = m.{iss::Map::entries}{iss::Iterable<core::MapEntry<core::String*, dynamic>*>*}.{iss::Iterable::singleWhere}((core::MapEntry<core::String*, dynamic>* entry) → core::bool* => entry.{core::MapEntry::value}{dynamic} =={core::Object::==}{(core::Object*) →* core::bool*} search, orElse: () → Null => null){((core::MapEntry<core::String*, dynamic>*) →* core::bool*, {orElse: () →* core::MapEntry<core::String*, dynamic>*}) →* core::MapEntry<core::String*, dynamic>*} in #t1 == null ?{core::String*} null : #t1.{core::MapEntry::key}{core::String*});
 }
 
 library /*isNonNullableByDefault*/;
@@ -39,7 +39,7 @@ import "dart:core" as core;
 class C<X extends core::Object? = dynamic> extends core::Object {
   constructor •(() → iss::Map<core::String, core::String> f) → iss::C<iss::C::X%>
     : super core::Object::•() {
-    core::print(f.{core::Object::runtimeType});
+    core::print(f.{core::Object::runtimeType}{core::Type});
   }
 }
 class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
@@ -49,7 +49,7 @@ class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> 
     : iss::Map::key = key, iss::Map::value = value, super core::Object::•()
     ;
   get entries() → iss::Iterable<core::MapEntry<iss::Map::K%, iss::Map::V%>>
-    return new iss::Iterable::•<core::MapEntry<iss::Map::K%, iss::Map::V%>>(new core::MapEntry::_<iss::Map::K%, iss::Map::V%>(this.{iss::Map::key}, this.{iss::Map::value}));
+    return new iss::Iterable::•<core::MapEntry<iss::Map::K%, iss::Map::V%>>(new core::MapEntry::_<iss::Map::K%, iss::Map::V%>(this.{iss::Map::key}{iss::Map::K%}, this.{iss::Map::value}{iss::Map::V%}));
 }
 class Iterable<E extends core::Object? = dynamic> extends core::Object {
   final field iss::Iterable::E% element;
@@ -57,19 +57,19 @@ class Iterable<E extends core::Object? = dynamic> extends core::Object {
     : iss::Iterable::element = element, super core::Object::•()
     ;
   method singleWhere((iss::Iterable::E%) → core::bool test, {generic-covariant-impl () →? iss::Iterable::E% orElse = #C1}) → iss::Iterable::E% {
-    if(test.call(this.{iss::Iterable::element})) {
-      return this.{iss::Iterable::element};
+    if(test(this.{iss::Iterable::element}{iss::Iterable::E%}){(iss::Iterable::E%) → core::bool}) {
+      return this.{iss::Iterable::element}{iss::Iterable::E%};
     }
-    if(!orElse.{core::Object::==}(null))
-      return orElse{() → iss::Iterable::E%}.call();
+    if(!(orElse == null))
+      return orElse{() → iss::Iterable::E%}(){() → iss::Iterable::E%};
     throw "error";
   }
 }
 static method foo(() → iss::Map<core::String, core::String> f) → void {
-  core::print(f.{core::Object::runtimeType});
+  core::print(f.{core::Object::runtimeType}{core::Type});
 }
 static set bar(() → iss::Map<core::String, core::String> f) → void {
-  core::print(f.{core::Object::runtimeType});
+  core::print(f.{core::Object::runtimeType}{core::Type});
 }
 
 constants  {

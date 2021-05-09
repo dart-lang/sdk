@@ -53,5 +53,5 @@ class Foo extends self::_Foo&Object&Mixin {
 static method main() → dynamic {
   self::Foo* f = new self::Foo::•();
   f.{self::_Foo&Object&Mixin::field} = 42;
-  core::print(f.{self::Foo::bar}());
+  core::print(f.{self::Foo::bar}(){() →* dynamic});
 }

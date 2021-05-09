@@ -112,41 +112,41 @@ class SubClass extends self::Class {
 static method main() → dynamic {
   self::SubClass sc = new self::SubClass::•();
   self::Class c = sc;
-  self::throws(() → core::int => c.{self::Class::field1}, "Read value from uninitialized SubClass.field1");
-  self::throws(() → core::int => sc.{self::SubClass::directField1}, "Read value from uninitialized Class.field1");
+  self::throws(() → core::int => c.{self::Class::field1}{core::int}, "Read value from uninitialized SubClass.field1");
+  self::throws(() → core::int => sc.{self::SubClass::directField1}{core::int}, "Read value from uninitialized Class.field1");
   self::expect(42, c.{self::Class::field1} = 42);
-  self::expect(42, c.{self::Class::field1});
-  self::throws(() → core::int => sc.{self::SubClass::directField1}, "Read value from uninitialized Class.field1");
+  self::expect(42, c.{self::Class::field1}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField1}{core::int}, "Read value from uninitialized Class.field1");
   self::expect(87, sc.{self::SubClass::directField1} = 87);
-  self::expect(87, sc.{self::SubClass::directField1});
-  self::expect(0, c.{self::Class::field2});
-  self::throws(() → core::int => sc.{self::SubClass::directField2}, "Read value from uninitialized Class.field2");
+  self::expect(87, sc.{self::SubClass::directField1}{core::int});
+  self::expect(0, c.{self::Class::field2}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}{core::int}, "Read value from uninitialized Class.field2");
   self::expect(42, c.{self::Class::field2} = 42);
-  self::expect(42, c.{self::Class::field2});
-  self::throws(() → core::int => sc.{self::SubClass::directField2}, "Read value from uninitialized Class.field2");
+  self::expect(42, c.{self::Class::field2}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}{core::int}, "Read value from uninitialized Class.field2");
   self::expect(87, sc.{self::SubClass::directField2} = 87);
-  self::expect(87, sc.{self::SubClass::directField2});
-  self::throws(() → core::int => c.{self::Class::field3}, "Read value from uninitialized SubClass.field3");
-  self::throws(() → core::int => sc.{self::SubClass::directField3}, "Read value from uninitialized Class.field3");
+  self::expect(87, sc.{self::SubClass::directField2}{core::int});
+  self::throws(() → core::int => c.{self::Class::field3}{core::int}, "Read value from uninitialized SubClass.field3");
+  self::throws(() → core::int => sc.{self::SubClass::directField3}{core::int}, "Read value from uninitialized Class.field3");
   self::expect(42, c.{self::Class::field3} = 42);
-  self::expect(42, c.{self::Class::field3});
-  self::throws(() → core::int => sc.{self::SubClass::directField3}, "Read value from uninitialized Class.field3");
+  self::expect(42, c.{self::Class::field3}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField3}{core::int}, "Read value from uninitialized Class.field3");
   self::throws(() → core::int => c.{self::Class::field3} = 87, "Write value to initialized SubClass.field3");
-  self::expect(0, c.{self::Class::field4});
-  self::throws(() → core::int => sc.{self::SubClass::directField4}, "Read value from uninitialized Class.field4");
+  self::expect(0, c.{self::Class::field4}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField4}{core::int}, "Read value from uninitialized Class.field4");
   self::expect(42, c.{self::Class::field4} = 42);
-  self::expect(0, c.{self::Class::field4});
-  self::expect(42, sc.{self::SubClass::directField4});
+  self::expect(0, c.{self::Class::field4}{core::int});
+  self::expect(42, sc.{self::SubClass::directField4}{core::int});
   self::throws(() → core::int => c.{self::Class::field4} = 87, "Write value to initialized SubClass.field4");
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}.";
 }
 static method throws(() → dynamic f, core::String message) → dynamic {
   dynamic value;
   try {
-    value = f.call();
+    value = f();
   }
   on core::Error catch(final core::Error e) {
     core::print(e);

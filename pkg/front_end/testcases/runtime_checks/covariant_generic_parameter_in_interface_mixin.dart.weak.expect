@@ -58,10 +58,10 @@ class C = self::B with self::M implements self::I<core::int*> {
     return super.{self::M::f}(x);
 }
 static method g1(self::C* c) → void {
-  c.{self::C::f}(1);
+  c.{self::C::f}(1){(core::int*) →* void};
 }
 static method g2(self::I<core::num*>* i) → void {
-  i.{self::I::f}(1.5);
+  i.{self::I::f}(1.5){(core::num*) →* void};
 }
 static method test() → void {
   self::g2(new self::C::•());

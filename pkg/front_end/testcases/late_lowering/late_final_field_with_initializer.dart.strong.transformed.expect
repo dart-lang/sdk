@@ -16,9 +16,9 @@ class C extends self::B {
     : super self::B::•(x)
     ;
   get y() → core::int
-    return let final core::int? #t1 = this.{self::C::_#C#y} in #t1.==(null) ?{core::int} let final core::int #t2 = this.{self::B::x}.{core::num::+}(1) in this.{self::C::_#C#y}.==(null) ?{core::int} this.{self::C::_#C#y} = #t2 : throw new _in::LateError::fieldADI("y") : #t1{core::int};
+    return let final core::int? #t1 = this.{self::C::_#C#y} in #t1 == null ?{core::int} let final core::int #t2 = this.{self::B::x}{core::int}.{core::num::+}(1){(core::num) → core::int} in this.{self::C::_#C#y} == null ?{core::int} this.{self::C::_#C#y} = #t2 : throw new _in::LateError::fieldADI("y") : #t1{core::int};
   method method() → dynamic
-    return this.{self::B::x};
+    return this.{self::B::x}{core::int};
 }
 class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? lateStaticField1Init = null;
@@ -38,12 +38,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return self::Class::lateStaticField1Init = value;
   }
   static get lateStaticField1() → core::int
-    return let final core::int? #t3 = self::Class::_#lateStaticField1 in #t3.==(null) ?{core::int} let final core::int #t4 = self::Class::initLateStaticField1(87) in self::Class::_#lateStaticField1.==(null) ?{core::int} self::Class::_#lateStaticField1 = #t4 : throw new _in::LateError::fieldADI("lateStaticField1") : #t3{core::int};
+    return let final core::int? #t3 = self::Class::_#lateStaticField1 in #t3 == null ?{core::int} let final core::int #t4 = self::Class::initLateStaticField1(87) in self::Class::_#lateStaticField1 == null ?{core::int} self::Class::_#lateStaticField1 = #t4 : throw new _in::LateError::fieldADI("lateStaticField1") : #t3{core::int};
   static method initLateStaticField2(core::int value) → core::int {
     return self::Class::lateStaticField2Init = value;
   }
   static get lateStaticField2() → core::int
-    return let final core::int? #t5 = self::Class::_#lateStaticField2 in #t5.==(null) ?{core::int} let final core::int #t6 = self::Class::initLateStaticField2(42) in self::Class::_#lateStaticField2.==(null) ?{core::int} self::Class::_#lateStaticField2 = #t6 : throw new _in::LateError::fieldADI("lateStaticField2") : #t5{core::int};
+    return let final core::int? #t5 = self::Class::_#lateStaticField2 in #t5 == null ?{core::int} let final core::int #t6 = self::Class::initLateStaticField2(42) in self::Class::_#lateStaticField2 == null ?{core::int} self::Class::_#lateStaticField2 = #t6 : throw new _in::LateError::fieldADI("lateStaticField2") : #t5{core::int};
   static method staticMethod() → dynamic {
     self::expect(null, self::Class::lateStaticField2Init);
     self::expect(42, self::Class::lateStaticField2);
@@ -53,13 +53,13 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return this.{self::Class::lateInstanceFieldInit} = value;
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t7 = this.{self::Class::_#Class#lateInstanceField} in #t7.==(null) ?{core::int} let final core::int #t8 = this.{self::Class::initLateInstanceField}(16) in this.{self::Class::_#Class#lateInstanceField}.==(null) ?{core::int} this.{self::Class::_#Class#lateInstanceField} = #t8 : throw new _in::LateError::fieldADI("lateInstanceField") : #t7{core::int};
+    return let final core::int? #t7 = this.{self::Class::_#Class#lateInstanceField} in #t7 == null ?{core::int} let final core::int #t8 = this.{self::Class::initLateInstanceField}(16){(core::int) → core::int} in this.{self::Class::_#Class#lateInstanceField} == null ?{core::int} this.{self::Class::_#Class#lateInstanceField} = #t8 : throw new _in::LateError::fieldADI("lateInstanceField") : #t7{core::int};
   method initLateGenericField(generic-covariant-impl self::Class::T% value) → self::Class::T% {
     return this.{self::Class::lateGenericFieldInit} = value;
   }
   get lateGenericField() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField#isSet}) {
-      final self::Class::T% #t9 = this.{self::Class::initLateGenericField}(this.{self::Class::field});
+      final self::Class::T% #t9 = this.{self::Class::initLateGenericField}(this.{self::Class::field}{self::Class::T%}){(self::Class::T%) → self::Class::T%};
       if(this.{self::Class::_#Class#lateGenericField#isSet})
         throw new _in::LateError::fieldADI("lateGenericField");
       this.{self::Class::_#Class#lateGenericField} = #t9;
@@ -68,12 +68,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return let final self::Class::T? #t10 = this.{self::Class::_#Class#lateGenericField} in #t10{self::Class::T%};
   }
   method instanceMethod() → dynamic {
-    self::expect(null, this.{self::Class::lateInstanceFieldInit});
-    self::expect(16, this.{self::Class::lateInstanceField});
-    self::expect(16, this.{self::Class::lateInstanceFieldInit});
-    self::expect(null, this.{self::Class::lateGenericFieldInit});
-    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericField});
-    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericFieldInit});
+    self::expect(null, this.{self::Class::lateInstanceFieldInit}{core::int?});
+    self::expect(16, this.{self::Class::lateInstanceField}{core::int});
+    self::expect(16, this.{self::Class::lateInstanceFieldInit}{core::int?});
+    self::expect(null, this.{self::Class::lateGenericFieldInit}{self::Class::T?});
+    self::expect(this.{self::Class::field}{self::Class::T%}, this.{self::Class::lateGenericField}{self::Class::T%});
+    self::expect(this.{self::Class::field}{self::Class::T%}, this.{self::Class::lateGenericFieldInit}{self::Class::T?});
   }
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
@@ -97,17 +97,17 @@ static method initLateTopLevelField1(core::int value) → core::int {
   return self::lateTopLevelField1Init = value;
 }
 static get lateTopLevelField1() → core::int
-  return let final core::int? #t11 = self::_#lateTopLevelField1 in #t11.==(null) ?{core::int} let final core::int #t12 = self::initLateTopLevelField1(123) in self::_#lateTopLevelField1.==(null) ?{core::int} self::_#lateTopLevelField1 = #t12 : throw new _in::LateError::fieldADI("lateTopLevelField1") : #t11{core::int};
+  return let final core::int? #t11 = self::_#lateTopLevelField1 in #t11 == null ?{core::int} let final core::int #t12 = self::initLateTopLevelField1(123) in self::_#lateTopLevelField1 == null ?{core::int} self::_#lateTopLevelField1 = #t12 : throw new _in::LateError::fieldADI("lateTopLevelField1") : #t11{core::int};
 static method Extension|initLateExtensionField1(core::int value) → core::int {
   return self::Extension|lateExtensionField1Init = value;
 }
 static get Extension|lateExtensionField1() → core::int
-  return let final core::int? #t13 = self::_#Extension|lateExtensionField1 in #t13.==(null) ?{core::int} let final core::int #t14 = self::Extension|initLateExtensionField1(87) in self::_#Extension|lateExtensionField1.==(null) ?{core::int} self::_#Extension|lateExtensionField1 = #t14 : throw new _in::LateError::fieldADI("lateExtensionField1") : #t13{core::int};
+  return let final core::int? #t13 = self::_#Extension|lateExtensionField1 in #t13 == null ?{core::int} let final core::int #t14 = self::Extension|initLateExtensionField1(87) in self::_#Extension|lateExtensionField1 == null ?{core::int} self::_#Extension|lateExtensionField1 = #t14 : throw new _in::LateError::fieldADI("lateExtensionField1") : #t13{core::int};
 static method Extension|initLateExtensionField2(core::int value) → core::int {
   return self::Extension|lateExtensionField2Init = value;
 }
 static get Extension|lateExtensionField2() → core::int
-  return let final core::int? #t15 = self::_#Extension|lateExtensionField2 in #t15.==(null) ?{core::int} let final core::int #t16 = self::Extension|initLateExtensionField2(42) in self::_#Extension|lateExtensionField2.==(null) ?{core::int} self::_#Extension|lateExtensionField2 = #t16 : throw new _in::LateError::fieldADI("lateExtensionField2") : #t15{core::int};
+  return let final core::int? #t15 = self::_#Extension|lateExtensionField2 in #t15 == null ?{core::int} let final core::int #t16 = self::Extension|initLateExtensionField2(42) in self::_#Extension|lateExtensionField2 == null ?{core::int} self::_#Extension|lateExtensionField2 = #t16 : throw new _in::LateError::fieldADI("lateExtensionField2") : #t15{core::int};
 static method Extension|staticMethod() → dynamic {
   self::expect(null, self::Extension|lateExtensionField2Init);
   self::expect(42, self::Extension|lateExtensionField2);
@@ -121,14 +121,14 @@ static method main() → dynamic {
   self::expect(87, self::Class::lateStaticField1);
   self::expect(87, self::Class::lateStaticField1Init);
   self::Class::staticMethod();
-  new self::Class::•<core::int>(0).{self::Class::instanceMethod}();
+  new self::Class::•<core::int>(0).{self::Class::instanceMethod}(){() → dynamic};
   self::expect(null, self::Extension|lateExtensionField1Init);
   self::expect(87, self::Extension|lateExtensionField1);
   self::expect(87, self::Extension|lateExtensionField1Init);
   self::Extension|staticMethod();
-  self::expect(2, new self::C::•(1).{self::C::y});
+  self::expect(2, new self::C::•(1).{self::C::y}{core::int});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

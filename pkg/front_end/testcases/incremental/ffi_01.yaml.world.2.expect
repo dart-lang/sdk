@@ -45,9 +45,9 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method main() → dynamic {
     lib::Coordinate* coordinate = lib::Coordinate::allocate(42.0, 42.0, null);
-    dart.core::print(coordinate.{lib::Coordinate::x});
-    dart.core::print(coordinate.{lib::Coordinate::y});
-    dart.core::print(coordinate.{lib::Coordinate::next});
+    dart.core::print(coordinate.{lib::Coordinate::x}{dart.core::double*});
+    dart.core::print(coordinate.{lib::Coordinate::y}{dart.core::double*});
+    dart.core::print(coordinate.{lib::Coordinate::next}{dart.ffi::Pointer<lib::Coordinate*>*});
     main::done();
   }
   static method done() → dynamic {

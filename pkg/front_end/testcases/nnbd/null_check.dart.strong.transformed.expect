@@ -94,23 +94,23 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   method method() → core::int?
-    return this.{self::Class::field};
+    return this.{self::Class::field}{core::int?};
   operator +(self::Class other) → self::Class
     return new self::Class::•();
 }
 static method main() → dynamic {
   self::Class? c = new self::Class::•();
   c!;
-  c{self::Class}!.{self::Class::field};
+  c{self::Class}!.{self::Class::field}{core::int?};
   c{self::Class}!.{self::Class::field} = 42;
-  c{self::Class}!.{self::Class::method};
-  c{self::Class}!.{self::Class::method}();
-  c{self::Class}!.{self::Class::field}!.{core::int::toString}();
-  c{self::Class}!.{self::Class::method}()!.{core::int::toString}();
-  c{self::Class}!.{self::Class::+}(c{self::Class});
-  c{self::Class}!.{self::Class::+}(c{self::Class}!);
-  c{self::Class}.{self::Class::+}(c{self::Class}!);
-  c{self::Class}.{self::Class::+}(c{self::Class})!;
+  c{self::Class}!.{self::Class::method}{() → core::int?};
+  c{self::Class}!.{self::Class::method}(){() → core::int?};
+  c{self::Class}!.{self::Class::field}{core::int?}!.{core::int::toString}(){() → core::String};
+  c{self::Class}!.{self::Class::method}(){() → core::int?}!.{core::int::toString}(){() → core::String};
+  c{self::Class}!.{self::Class::+}(c{self::Class}){(self::Class) → self::Class};
+  c{self::Class}!.{self::Class::+}(c{self::Class}!){(self::Class) → self::Class};
+  c{self::Class}.{self::Class::+}(c{self::Class}!){(self::Class) → self::Class};
+  c{self::Class}.{self::Class::+}(c{self::Class}){(self::Class) → self::Class}!;
   core::bool? o = true;
   !o! ?{core::bool} !o{core::bool}! : !!o{core::bool}!!;
   !o{core::bool}! ?{core::bool} (!o{core::bool})! : (!(!o{core::bool})!)!;

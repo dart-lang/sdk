@@ -4,5 +4,5 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   () →* dynamic f;
-  f.call().call<core::int*>();
+  f(){dynamic}.call<core::int*>();
 }

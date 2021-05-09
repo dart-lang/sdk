@@ -12,11 +12,11 @@ static const field core::String var3 = #C3;
 static const field dynamic var4 = #C4;
 static method fn() → dynamic {
   core::String local = "str";
-  return local.{core::String::[]}(0);
+  return local.{core::String::[]}(0){(core::int) → core::String};
 }
 static method fn2() → dynamic {
   try {
-    core::String x = (#C1).{core::String::[]}(1.{core::int::unary-}());
+    core::String x = (#C1).{core::String::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::String};
   }
   on core::RangeError catch(no-exception-var) {
     return 2;
@@ -37,5 +37,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_string.dart:23:17 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///const_functions_string.dart:23:17 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 8, effectively constant: 1

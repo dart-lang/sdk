@@ -25,11 +25,11 @@ static field dynamic v = invalid-expression "pkg/front_end/testcases/inference/u
  - 'List' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
 var v = (f<dynamic>)(/*@returnType=int**/() {
-          ^".>(invalid-expression "pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:9:20: Error: This couldn't be parsed.
+          ^"{dynamic}.>(invalid-expression "pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:9:20: Error: This couldn't be parsed.
 var v = (f<dynamic>)(/*@returnType=int**/() {
-                   ^").call(() → core::int* {
+                   ^"){dynamic}.call(() → core::int* {
   return 1;
 });
 static method f<T extends core::Object* = dynamic>(() →* self::f::T* g) → core::List<self::f::T*>*
-  return <self::f::T*>[g.call()];
+  return <self::f::T*>[g(){() →* self::f::T*}];
 static method main() → dynamic {}

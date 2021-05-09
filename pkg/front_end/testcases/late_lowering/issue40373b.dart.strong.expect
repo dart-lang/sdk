@@ -57,13 +57,13 @@ static method main() → dynamic {
   self::C::s = "was";
   self::C c = new self::C::•();
   c.{self::C::v} = "here";
-  #l#set.call("Run, Forrest, run");
+  #l#set("Run, Forrest, run"){(dynamic) → dynamic};
   self::expect("Lily", self::g);
   self::expect("was", self::C::s);
-  self::expect("here", c.{self::C::v});
-  self::expect("Run, Forrest, run", #l#get.call());
+  self::expect("here", c.{self::C::v}{dynamic});
+  self::expect("Run, Forrest, run", #l#get(){() → dynamic});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

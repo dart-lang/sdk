@@ -76,6 +76,6 @@ void fn6() {
   const z = a();
   //        ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //         ^
+  //        ^
   // [cfe] Constant evaluation error:
 }

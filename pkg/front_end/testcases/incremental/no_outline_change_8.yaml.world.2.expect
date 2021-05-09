@@ -22,7 +22,7 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   static method main() → dynamic {
     main::Foo* foo = new main::Foo::•();
-    dart.core::print(foo.{main::Foo::x});
+    dart.core::print(foo.{main::Foo::x}{dart.core::String*});
     foo.{main::Foo::x} = "hello";
   }
 }

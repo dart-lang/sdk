@@ -26,15 +26,15 @@ class UsedClass extends core::Object implements self::UnusedInterface {
     ;
 }
 static method usedMethod(self::UnusedInterface c) → dynamic {
-  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField};
+  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField}{core::int?};
 }
 static method main() → dynamic {
   self::usedMethod(let final self::UsedClass #t1 = new self::UsedClass::•() in block {
-    #t1.{self::UsedClass::usedField};
+    #t1.{self::UsedClass::usedField}{core::int?};
   } =>#t1);
   #C3;
   core::List<self::UnusedEnum> list = core::_GrowableList::•<self::UnusedEnum>(0);
-  if(list.{core::Iterable::isNotEmpty}) {
+  if(list.{core::Iterable::isNotEmpty}{core::bool}) {
     let dynamic #t2 = new mai::ConstClass::•() in let dynamic #t3 = _in::unsafeCast<dynamic>(null) as{TypeError,ForDynamic,ForNonNullableByDefault} mai::ConstEnum in throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
   }
 }

@@ -21,6 +21,6 @@ class A extends core::Object {
 static method main() → dynamic {
   self::A* a = new self::A::•();
   self::A* b = a;
-  core::print(a.{self::A::x});
-  core::print(a.{self::A::x}.{core::num::+}(2));
+  core::print(a.{self::A::x}{core::int*});
+  core::print(a.{self::A::x}{core::int*}.{core::num::+}(2){(core::num*) →* core::int*});
 }

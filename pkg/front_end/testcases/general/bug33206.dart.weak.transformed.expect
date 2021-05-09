@@ -13,7 +13,7 @@ class X extends core::Object {
     : self::X::x = x, self::X::y = y, super core::Object::•()
     ;
   method toString() → core::String*
-    return "X(${this.{self::X::x}}, ${this.{self::X::y}})";
+    return "X(${this.{self::X::x}{dynamic}}, ${this.{self::X::y}{dynamic}})";
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -112,9 +112,9 @@ static method foo() → asy::Future<self::X*>* /* originally async */ {
       {
         final self::Y* #t1 = new self::Y::•();
         [yield] let dynamic #t2 = asy::_awaitHelper(self::f1(), :async_op_then, :async_op_error, :async_op) in null;
-        #t1.{self::Y::f}(_in::unsafeCast<core::List<core::Object*>*>(:result));
+        #t1.{self::Y::f}(_in::unsafeCast<core::List<core::Object*>*>(:result)){(dynamic) →* dynamic};
         :async_temporary_0 = block {
-          #t1.{self::Y::f}(self::f2());
+          #t1.{self::Y::f}(self::f2()){(dynamic) →* dynamic};
         } =>#t1;
         [yield] let dynamic #t3 = asy::_awaitHelper(self::f3(), :async_op_then, :async_op_error, :async_op) in null;
         :return_value = new self::X::•(_in::unsafeCast<self::Y*>(:async_temporary_0), _in::unsafeCast<core::Object*>(:result));

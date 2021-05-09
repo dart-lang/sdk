@@ -51,21 +51,21 @@ class G<T extends core::Object? = dynamic> extends self::F<self::G::T%, core::St
     ;
 }
 static const field core::String var1 = self::fn();
-static const field core::String toString1 = const self::A::•().{core::Object::toString}();
+static const field core::String toString1 = const self::A::•().{core::Object::toString}(){() → core::String};
 static const field core::String var2 = self::fn2();
-static const field core::String toString2 = const self::B::•().{self::B::toString}();
+static const field core::String toString2 = const self::B::•().{self::B::toString}(){() → core::String};
 static const field core::int var3 = self::fn3();
 static const field core::int var4 = self::fn4();
-static const field core::int fnVal1 = const self::C::•(0).{self::C::fn}();
-static const field core::int fnVal2 = const self::C::•(1).{self::C::fn}();
+static const field core::int fnVal1 = const self::C::•(0).{self::C::fn}(){() → core::int};
+static const field core::int fnVal2 = const self::C::•(1).{self::C::fn}(){() → core::int};
 static const field core::int var5 = self::fn5();
-static const field core::int fnVal3 = const self::D::•(1).{self::D::fn}();
+static const field core::int fnVal3 = const self::D::•(1).{self::D::fn}(){() → core::int};
 static const field core::int var6 = self::fn6();
-static const field core::int fnVal4 = const self::E::•(0).{self::C::fn}();
+static const field core::int fnVal4 = const self::E::•(0).{self::C::fn}(){() → core::int};
 static const field core::String var7 = self::fn7();
-static const field core::String fnVal5 = const self::F::•<core::int, core::String, core::num>().{self::F::fn}("string");
+static const field core::String fnVal5 = const self::F::•<core::int, core::String, core::num>().{self::F::fn}("string"){(core::String) → core::String};
 static const field core::String var8 = self::fn8();
-static const field core::String fnVal6 = const self::G::•<core::int>().{self::F::fn}("string");
+static const field core::String fnVal6 = const self::G::•<core::int>().{self::F::fn}("string"){(core::String) → core::String};
 static method fn() → core::String
   ;
 static method fn2() → core::String

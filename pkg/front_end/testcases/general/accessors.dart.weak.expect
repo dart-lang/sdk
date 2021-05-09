@@ -85,6 +85,6 @@ static method main() → dynamic {
     core::print("Expected error: ${e}");
   }
   self::onlySetter = "fisk";
-  new self::C::•().{self::C::testC}();
-  new self::D::•().{self::C::testD}();
+  new self::C::•().{self::C::testC}(){() →* dynamic};
+  new self::D::•().{self::C::testD}(){() →* dynamic};
 }
