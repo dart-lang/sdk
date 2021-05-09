@@ -20,9 +20,6 @@ const singleCatchVar = singleCatchFn();
 int singleCatchFn() {}
 const singleCatchVar2 = singleCatchFn2();
 int singleCatchFn2() {}
-const typeExample = int;
-const typeVar = typeFn();
-Type typeFn() {}
 const getWithIndexVar = getWithIndexFn();
 int getWithIndexFn() {}
 const rangeErrorCatchVar = rangeErrorCatchFn();

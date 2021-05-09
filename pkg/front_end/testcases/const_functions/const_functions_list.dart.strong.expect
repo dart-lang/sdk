@@ -15,18 +15,16 @@ static const field core::int lengthVar = #C5;
 static const field core::int singleVar = #C1;
 static const field core::int singleCatchVar = #C2;
 static const field core::int singleCatchVar2 = #C2;
-static const field core::Type typeExample = #C6;
-static const field core::Type typeVar = #C6;
 static const field core::int getWithIndexVar = #C1;
 static const field core::int rangeErrorCatchVar = #C2;
-static const field core::List<core::int> mutableListVar = #C7;
-static const field core::List<core::int> mutableListAddVar = #C9;
+static const field core::List<core::int> mutableListVar = #C6;
+static const field core::List<core::int> mutableListAddVar = #C8;
 static method firstFn() → core::int {
-  return (#C7).{core::Iterable::first};
+  return (#C6).{core::Iterable::first};
 }
 static method firstCatchFn() → core::int {
   try {
-    core::int v = (#C10).{core::Iterable::first};
+    core::int v = (#C9).{core::Iterable::first};
   }
   on core::StateError catch(no-exception-var) {
     return 0;
@@ -34,17 +32,17 @@ static method firstCatchFn() → core::int {
   return 1;
 }
 static method isEmptyFn() → core::bool {
-  return (#C7).{core::Iterable::isEmpty};
+  return (#C6).{core::Iterable::isEmpty};
 }
 static method isNotEmptyFn() → core::bool {
-  return (#C7).{core::Iterable::isNotEmpty};
+  return (#C6).{core::Iterable::isNotEmpty};
 }
 static method lastFn() → core::int {
-  return (#C7).{core::Iterable::last};
+  return (#C6).{core::Iterable::last};
 }
 static method lastCatchFn() → core::int {
   try {
-    core::int v = (#C10).{core::Iterable::last};
+    core::int v = (#C9).{core::Iterable::last};
   }
   on core::StateError catch(no-exception-var) {
     return 0;
@@ -52,14 +50,14 @@ static method lastCatchFn() → core::int {
   return 1;
 }
 static method lengthFn() → core::int {
-  return (#C7).{core::List::length};
+  return (#C6).{core::List::length};
 }
 static method singleFn() → core::int {
-  return (#C11).{core::Iterable::single};
+  return (#C10).{core::Iterable::single};
 }
 static method singleCatchFn() → core::int {
   try {
-    core::int v = (#C10).{core::Iterable::single};
+    core::int v = (#C9).{core::Iterable::single};
   }
   on core::StateError catch(no-exception-var) {
     return 0;
@@ -68,22 +66,19 @@ static method singleCatchFn() → core::int {
 }
 static method singleCatchFn2() → core::int {
   try {
-    core::int v = (#C7).{core::Iterable::single};
+    core::int v = (#C6).{core::Iterable::single};
   }
   on core::StateError catch(no-exception-var) {
     return 0;
   }
   return 1;
 }
-static method typeFn() → core::Type {
-  return (#C7).{core::Object::runtimeType};
-}
 static method getWithIndexFn() → core::int {
-  return (#C11).{core::List::[]}(0);
+  return (#C10).{core::List::[]}(0);
 }
 static method rangeErrorCatchFn() → core::int {
   try {
-    core::int v = (#C11).{core::List::[]}(1);
+    core::int v = (#C10).{core::List::[]}(1);
   }
   on core::RangeError catch(no-exception-var) {
     return 0;
@@ -110,11 +105,10 @@ static method main() → void {
   exp::Expect::equals(#C1, 1);
   exp::Expect::equals(#C2, 0);
   exp::Expect::equals(#C2, 0);
-  exp::Expect::equals(#C6, #C6);
   exp::Expect::equals(#C1, 1);
   exp::Expect::equals(#C2, 0);
-  exp::Expect::equals(#C7, #C7);
-  exp::Expect::equals(#C9, #C9);
+  exp::Expect::equals(#C6, #C6);
+  exp::Expect::equals(#C8, #C8);
 }
 
 constants  {
@@ -123,10 +117,9 @@ constants  {
   #C3 = false
   #C4 = true
   #C5 = 2
-  #C6 = TypeLiteralConstant(core::int)
-  #C7 = <core::int>[#C1, #C5]
-  #C8 = 3
-  #C9 = <core::int>[#C1, #C5, #C8]
-  #C10 = <core::int>[]
-  #C11 = <core::int>[#C1]
+  #C6 = <core::int>[#C1, #C5]
+  #C7 = 3
+  #C8 = <core::int>[#C1, #C5, #C7]
+  #C9 = <core::int>[]
+  #C10 = <core::int>[#C1]
 }
