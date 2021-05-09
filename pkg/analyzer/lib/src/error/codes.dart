@@ -1581,14 +1581,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * basename `n`.
    *
    * Parameters:
-   * 0: the name of the constructor
+   * 0: the name of the field
    */
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD =
       CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
           "'{0}' can't be used to name both a constructor and a static field "
               "in this class.",
-          correction: "Try renaming either the constructor or the field.");
+          correction: "Try renaming either the constructor or the field.",
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD');
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -1600,10 +1601,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD =
       CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
           "'{0}' can't be used to name both a constructor and a static method "
               "in this class.",
-          correction: "Try renaming either the constructor or the method.");
+          correction: "Try renaming either the constructor or the method.",
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD');
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
