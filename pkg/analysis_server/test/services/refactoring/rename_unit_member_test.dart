@@ -403,7 +403,7 @@ class TestPage extends StatefulWidget {
   const TestPage();
 
   @override
-  TestPageState createState() => new TestPageState();
+  State<TestPage> createState() => new TestPageState();
 }
 
 class TestPageState extends State<TestPage> {
@@ -425,7 +425,7 @@ class NewPage extends StatefulWidget {
   const NewPage();
 
   @override
-  NewPageState createState() => new NewPageState();
+  State<NewPage> createState() => new NewPageState();
 }
 
 class NewPageState extends State<NewPage> {
@@ -445,7 +445,7 @@ class _TestPage extends StatefulWidget {
   const _TestPage();
 
   @override
-  _TestPageState createState() => new _TestPageState();
+  State<_TestPage> createState() => new _TestPageState();
 }
 
 class _TestPageState extends State<_TestPage> {
@@ -467,7 +467,7 @@ class _NewPage extends StatefulWidget {
   const _NewPage();
 
   @override
-  _NewPageState createState() => new _NewPageState();
+  State<_NewPage> createState() => new _NewPageState();
 }
 
 class _NewPageState extends State<_NewPage> {
@@ -487,7 +487,7 @@ class TestPage extends StatefulWidget {
   const TestPage();
 
   @override
-  _TestPageState createState() => new _TestPageState();
+  State<TestPage> createState() => new _TestPageState();
 }
 
 class _TestPageState extends State<TestPage> {
@@ -509,7 +509,7 @@ class NewPage extends StatefulWidget {
   const NewPage();
 
   @override
-  _NewPageState createState() => new _NewPageState();
+  State<NewPage> createState() => new _NewPageState();
 }
 
 class _NewPageState extends State<NewPage> {
