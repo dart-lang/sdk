@@ -13,7 +13,7 @@ class C {
 //^
 // [cfe] Conflicts with setter 'n'.
 //  ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
 
   static set n(int x) {}
   //         ^
