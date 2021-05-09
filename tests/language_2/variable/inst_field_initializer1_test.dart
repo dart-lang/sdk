@@ -12,8 +12,6 @@ class A {
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] Can't access 'this' in a field initializer to read 'x'.
-  //         ^
-  // [analyzer] STATIC_WARNING.TOP_LEVEL_INSTANCE_GETTER
 }
 
 void main() {

@@ -20,8 +20,8 @@ class TopLevelCycleTest extends PubPackageResolutionTest {
 var x = y + 1;
 var y = x + 1;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 8, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 23, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 19, 1),
     ]);
   }
 
@@ -29,7 +29,7 @@ var y = x + 1;
     await assertErrorsInCode(r'''
 var x = x;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 8, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
     ]);
   }
 
@@ -41,7 +41,7 @@ var elems = [
   ],
 ];
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 25, 5),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 5),
     ]);
   }
 }
