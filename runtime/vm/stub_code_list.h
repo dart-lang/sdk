@@ -33,6 +33,7 @@ namespace dart {
   V(AllocateDouble)                                                            \
   V(AllocateFloat32x4)                                                         \
   V(AllocateFloat64x2)                                                         \
+  V(AllocateInt32x4)                                                           \
   V(AllocateInt8Array)                                                         \
   V(AllocateUint8Array)                                                        \
   V(AllocateUint8ClampedArray)                                                 \

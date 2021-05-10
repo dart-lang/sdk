@@ -45,7 +45,7 @@ dependencies:
 
 dev_dependencies:
   http: ^0.13.0
-  pedantic: ^1.10.0
+  lints: ^1.0.0-0
   test_process: ^2.0.0
   test: ^1.15.0
 ''';

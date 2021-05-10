@@ -14,14 +14,15 @@ abstract class IterableMixin<E> implements Iterable<E> {
   // If changing a method here, also change the other copies.
 
   Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
-  Iterable<T> map<T>(T f(E element)) => MappedIterable<E, T>(this, f);
+  Iterable<T> map<T>(T toElement(E element)) =>
+      MappedIterable<E, T>(this, toElement);
 
-  Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
+  Iterable<E> where(bool test(E element)) => WhereIterable<E>(this, test);
 
   Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      ExpandIterable<E, T>(this, f);
+  Iterable<T> expand<T>(Iterable<T> toElements(E element)) =>
+      ExpandIterable<E, T>(this, toElements);
 
   Iterable<E> followedBy(Iterable<E> other) {
     // Type workaround because IterableMixin<E> doesn't promote
@@ -40,8 +41,8 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return false;
   }
 
-  void forEach(void f(E element)) {
-    for (E element in this) f(element);
+  void forEach(void action(E element)) {
+    for (E element in this) action(element);
   }
 
   E reduce(E combine(E value, E element)) {
@@ -62,9 +63,9 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return value;
   }
 
-  bool every(bool f(E element)) {
+  bool every(bool test(E element)) {
     for (E element in this) {
-      if (!f(element)) return false;
+      if (!test(element)) return false;
     }
     return true;
   }

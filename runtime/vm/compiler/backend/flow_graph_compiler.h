@@ -610,6 +610,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateAssertAssignable(CompileType* receiver_type,
                                 const InstructionSource& source,
                                 intptr_t deopt_id,
+                                Environment* env,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
@@ -620,6 +621,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateTTSCall(const InstructionSource& source,
                        intptr_t deopt_id,
+                       Environment* env,
                        Register reg_with_type,
                        const AbstractType& dst_type,
                        const String& dst_name,
@@ -640,8 +642,13 @@ class FlowGraphCompiler : public ValueObject {
                         const Code& stub,
                         UntaggedPcDescriptors::Kind kind,
                         LocationSummary* locs,
-                        intptr_t deopt_id = DeoptId::kNone,
-                        Environment* env = nullptr);
+                        intptr_t deopt_id,
+                        Environment* env);
+
+  void GenerateNonLazyDeoptableStubCall(const InstructionSource& source,
+                                        const Code& stub,
+                                        UntaggedPcDescriptors::Kind kind,
+                                        LocationSummary* locs);
 
   void GeneratePatchableCall(const InstructionSource& source,
                              const Code& stub,
@@ -665,6 +672,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateInstanceOf(const InstructionSource& source,
                           intptr_t deopt_id,
+                          Environment* env,
                           const AbstractType& type,
                           LocationSummary* locs);
 

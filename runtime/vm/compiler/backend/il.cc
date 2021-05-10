@@ -51,6 +51,9 @@ DEFINE_FLAG(bool,
             true,
             "Generate special IC stubs for two args Smi operations");
 
+DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, use_slow_path);
+
 class SubclassFinder {
  public:
   SubclassFinder(Zone* zone,
@@ -1005,7 +1008,7 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForTypedData(class_id()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
-                             locs(), deopt_id());
+                             locs(), deopt_id(), env());
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedDartFieldStore() const {
@@ -4316,7 +4319,7 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         compiler->zone(), object_store->init_static_field_stub());
     compiler->GenerateStubCall(source(), init_static_field_stub,
                                /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                               deopt_id());
+                               deopt_id(), env());
     __ Bind(&no_call);
   }
 }
@@ -4373,7 +4376,7 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
 
   compiler->GenerateStubCall(source(), stub,
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id());
+                             deopt_id(), env());
   __ Bind(&no_call);
 }
 
@@ -4393,7 +4396,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler->GenerateStubCall(source(), throw_stub,
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id());
+                             deopt_id(), env());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
   // instruction: The ThrowInstr will terminate the current block. The very
   // next machine code instruction might get a pc descriptor attached with a
@@ -4421,7 +4424,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->SetNeedsStackTrace(catch_try_index());
   compiler->GenerateStubCall(source(), re_throw_stub,
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id());
+                             deopt_id(), env());
   // Issue(dartbug.com/41353): Right now we have to emit an extra breakpoint
   // instruction: The ThrowInstr will terminate the current block. The very
   // next machine code instruction might get a pc descriptor attached with a
@@ -5318,7 +5321,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(value()->Type(), source(), deopt_id(),
-                                     dst_name(), locs());
+                                     env(), dst_name(), locs());
   ASSERT(locs()->in(kInstancePos).reg() == locs()->out(0).reg());
 }
 
@@ -5345,7 +5348,8 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateStubCall(source(), StubCode::AssertSubtype(),
-                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
+                             env());
 }
 
 LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
@@ -5429,7 +5433,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   }
 
   compiler->GenerateStubCall(source(), GetStub(), UntaggedPcDescriptors::kOther,
-                             locs(), deopt_id());
+                             locs(), deopt_id(), env());
   __ Bind(&type_arguments_instantiated);
 }
 
@@ -5558,8 +5562,14 @@ void BoxAllocationSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   locs->live_registers()->Remove(Location::RegisterLocation(result_));
   compiler->SaveLiveRegisters(locs);
-  compiler->GenerateStubCall(InstructionSource(),  // No token position.
-                             stub, UntaggedPcDescriptors::kOther, locs);
+  // Box allocation slow paths cannot lazy-deopt.
+  ASSERT(!kAllocateMintRuntimeEntry.can_lazy_deopt() &&
+         !kAllocateDoubleRuntimeEntry.can_lazy_deopt() &&
+         !kAllocateFloat32x4RuntimeEntry.can_lazy_deopt() &&
+         !kAllocateFloat64x2RuntimeEntry.can_lazy_deopt());
+  compiler->GenerateNonLazyDeoptableStubCall(
+      InstructionSource(),  // No token position.
+      stub, UntaggedPcDescriptors::kOther, locs);
   __ MoveRegister(result_, AllocateBoxABI::kResultReg);
   compiler->RestoreLiveRegisters(locs);
   __ Jump(exit_label());
@@ -5577,8 +5587,12 @@ void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
     auto slow_path = new BoxAllocationSlowPath(instruction, cls, result);
     compiler->AddSlowPathCode(slow_path);
 
-    __ TryAllocate(cls, slow_path->entry_label(), compiler::Assembler::kFarJump,
-                   result, temp);
+    if (FLAG_inline_alloc && !FLAG_use_slow_path) {
+      __ TryAllocate(cls, slow_path->entry_label(),
+                     compiler::Assembler::kFarJump, result, temp);
+    } else {
+      __ Jump(slow_path->entry_label());
+    }
     __ Bind(slow_path->exit_label());
   }
 }

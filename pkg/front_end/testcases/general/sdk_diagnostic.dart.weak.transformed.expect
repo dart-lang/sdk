@@ -32,12 +32,12 @@ class C extends core::Iterable<core::Object*> {
     ;
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::C::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::Object*>* other) → core::Iterable<core::Object*>*; -> core::Iterable::followedBy
-  abstract member-signature method map<T extends core::Object* = dynamic>((core::Object*) →* self::C::map::T* f) → core::Iterable<self::C::map::T*>*; -> core::Iterable::map
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::Object*) →* self::C::map::T* toElement) → core::Iterable<self::C::map::T*>*; -> core::Iterable::map
   abstract member-signature method where((core::Object*) →* core::bool* test) → core::Iterable<core::Object*>*; -> core::Iterable::where
   abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::C::whereType::T*>*; -> core::Iterable::whereType
-  abstract member-signature method expand<T extends core::Object* = dynamic>((core::Object*) →* core::Iterable<self::C::expand::T*>* f) → core::Iterable<self::C::expand::T*>*; -> core::Iterable::expand
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::Object*) →* core::Iterable<self::C::expand::T*>* toElements) → core::Iterable<self::C::expand::T*>*; -> core::Iterable::expand
   abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
-  abstract member-signature method forEach((core::Object*) →* void f) → void; -> core::Iterable::forEach
+  abstract member-signature method forEach((core::Object*) →* void action) → void; -> core::Iterable::forEach
   abstract member-signature method reduce(generic-covariant-impl (core::Object*, core::Object*) →* core::Object* combine) → core::Object*; -> core::Iterable::reduce
   abstract member-signature method fold<T extends core::Object* = dynamic>(self::C::fold::T* initialValue, (self::C::fold::T*, core::Object*) →* self::C::fold::T* combine) → self::C::fold::T*; -> core::Iterable::fold
   abstract member-signature method every((core::Object*) →* core::bool* test) → core::bool*; -> core::Iterable::every

@@ -14,6 +14,7 @@ const _currentVersion = '2.14.0';
 final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.const_functions: ExperimentalFeatures.const_functions,
   EnableString.constant_update_2018: ExperimentalFeatures.constant_update_2018,
+  EnableString.constructor_tearoffs: ExperimentalFeatures.constructor_tearoffs,
   EnableString.control_flow_collections:
       ExperimentalFeatures.control_flow_collections,
   EnableString.extension_methods: ExperimentalFeatures.extension_methods,
@@ -37,6 +38,9 @@ class EnableString {
 
   /// String to enable the experiment "constant-update-2018"
   static const String constant_update_2018 = 'constant-update-2018';
+
+  /// String to enable the experiment "constructor-tearoffs"
+  static const String constructor_tearoffs = 'constructor-tearoffs';
 
   /// String to enable the experiment "control-flow-collections"
   static const String control_flow_collections = 'control-flow-collections';
@@ -94,8 +98,19 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.0.0'),
   );
 
-  static final control_flow_collections = ExperimentalFeature(
+  static final constructor_tearoffs = ExperimentalFeature(
     index: 2,
+    enableString: EnableString.constructor_tearoffs,
+    isEnabledByDefault: IsEnabledByDefault.constructor_tearoffs,
+    isExpired: IsExpired.constructor_tearoffs,
+    documentation:
+        'Allow constructor tear-offs and explicit generic instantiations.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final control_flow_collections = ExperimentalFeature(
+    index: 3,
     enableString: EnableString.control_flow_collections,
     isEnabledByDefault: IsEnabledByDefault.control_flow_collections,
     isExpired: IsExpired.control_flow_collections,
@@ -105,7 +120,7 @@ class ExperimentalFeatures {
   );
 
   static final extension_methods = ExperimentalFeature(
-    index: 3,
+    index: 4,
     enableString: EnableString.extension_methods,
     isEnabledByDefault: IsEnabledByDefault.extension_methods,
     isExpired: IsExpired.extension_methods,
@@ -115,7 +130,7 @@ class ExperimentalFeatures {
   );
 
   static final extension_types = ExperimentalFeature(
-    index: 4,
+    index: 5,
     enableString: EnableString.extension_types,
     isEnabledByDefault: IsEnabledByDefault.extension_types,
     isExpired: IsExpired.extension_types,
@@ -125,7 +140,7 @@ class ExperimentalFeatures {
   );
 
   static final generic_metadata = ExperimentalFeature(
-    index: 5,
+    index: 6,
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
@@ -136,7 +151,7 @@ class ExperimentalFeatures {
   );
 
   static final non_nullable = ExperimentalFeature(
-    index: 6,
+    index: 7,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -146,7 +161,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 7,
+    index: 8,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -156,7 +171,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 8,
+    index: 9,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -166,7 +181,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 9,
+    index: 10,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -176,7 +191,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 10,
+    index: 11,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -186,7 +201,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 11,
+    index: 12,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -196,7 +211,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 12,
+    index: 13,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -214,6 +229,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "constant-update-2018"
   static const bool constant_update_2018 = true;
+
+  /// Default state of the experiment "constructor-tearoffs"
+  static const bool constructor_tearoffs = false;
 
   /// Default state of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
@@ -259,6 +277,9 @@ class IsExpired {
   /// Expiration status of the experiment "constant-update-2018"
   static const bool constant_update_2018 = true;
 
+  /// Expiration status of the experiment "constructor-tearoffs"
+  static const bool constructor_tearoffs = false;
+
   /// Expiration status of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
 
@@ -300,6 +321,10 @@ mixin _CurrentState {
   /// Current state for the flag "constant-update-2018"
   bool get constant_update_2018 =>
       isEnabled(ExperimentalFeatures.constant_update_2018);
+
+  /// Current state for the flag "constructor-tearoffs"
+  bool get constructor_tearoffs =>
+      isEnabled(ExperimentalFeatures.constructor_tearoffs);
 
   /// Current state for the flag "control-flow-collections"
   bool get control_flow_collections =>

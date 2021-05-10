@@ -364,6 +364,13 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
   arguments.SetReturn(Object::Handle(zone, Float64x2::New(0.0, 0.0)));
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Int32x4::New(0, 0, 0, 0)));
+}
+
 // Allocate typed data array of given class id and length.
 // Arg0: class id.
 // Arg1: number of elements.
@@ -3110,9 +3117,12 @@ static void DeoptimizeLastDartFrameIfOptimized() {
     DartFrameIterator iterator(mutator_thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
-    const auto& optimized_code = Code::Handle(frame->LookupDartCode());
-    if (optimized_code.is_optimized() && !optimized_code.is_force_optimized()) {
-      DeoptimizeAt(mutator_thread, optimized_code, frame);
+    if (frame != nullptr) {
+      const auto& optimized_code = Code::Handle(frame->LookupDartCode());
+      if (optimized_code.is_optimized() &&
+          !optimized_code.is_force_optimized()) {
+        DeoptimizeAt(mutator_thread, optimized_code, frame);
+      }
     }
   });
 }
@@ -3312,7 +3322,9 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
   UNREACHABLE();
 }
 
-void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
+void OnEveryRuntimeEntryCall(Thread* thread,
+                             const char* runtime_call_name,
+                             bool can_lazy_deopt) {
   ASSERT(FLAG_deoptimize_on_runtime_call_every > 0);
   if (FLAG_precompiled_mode) {
     return;
@@ -3324,16 +3336,20 @@ void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
   if (is_deopt_related) {
     return;
   }
-  if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
-      (strlen(runtime_call_name) !=
-           strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
-       strstr(runtime_call_name, FLAG_deoptimize_on_runtime_call_name_filter) ==
-           0)) {
-    return;
-  }
-  const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
-  if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
-    DeoptimizeLastDartFrameIfOptimized();
+  // For --deoptimize-on-every-runtime-call we only consider runtime calls that
+  // can lazy-deopt.
+  if (can_lazy_deopt) {
+    if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
+        (strlen(runtime_call_name) !=
+             strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
+         strstr(runtime_call_name,
+                FLAG_deoptimize_on_runtime_call_name_filter) == 0)) {
+      return;
+    }
+    const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
+    if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
+      DeoptimizeLastDartFrameIfOptimized();
+    }
   }
 }
 

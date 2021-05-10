@@ -19,7 +19,7 @@
 *   **BREAKING CHANGE** (https://github.com/dart-lang/sdk/issues/45115)
     Most types exposed by this library can no longer be extended, implemented
     or mixed-in. The affected types are `ByteBuffer`, `TypedData` and *all*
-    its subclasses, `Int32x4`, `Float32x4`, `Float64x2` and `Endian.
+    its subclasses, `Int32x4`, `Float32x4`, `Float64x2` and `Endian`.
 
 #### `dart:web_sql`
 
@@ -41,6 +41,12 @@
 [#45071]: https://github.com/dart-lang/sdk/issues/45071
 
 ### Tools
+
+#### Dart command line
+
+- The `dart create` command has been updated to create projects that use the new
+  'core' set of lints from `package:lints`. See https://dart.dev/go/core-lints
+  for more information about these lints.
 
 #### Linter
 

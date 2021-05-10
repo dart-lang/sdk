@@ -2796,11 +2796,11 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   // all other threads, including auxiliary threads are at a safepoint), even
   // though we only need to ensure that the mutator threads are stopped.
   if (use_force_growth_in_otherwise) {
-    ForceGrowthSafepointOperationScope safepoint_scope(thread,
-                                                       SafepointLevel::kGC);
+    ForceGrowthSafepointOperationScope safepoint_scope(
+        thread, SafepointLevel::kGCAndDeopt);
     otherwise->Call();
   } else {
-    GcSafepointOperationScope safepoint_scope(thread);
+    DeoptSafepointOperationScope safepoint_scope(thread);
     otherwise->Call();
   }
 }

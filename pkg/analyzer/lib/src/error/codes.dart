@@ -10524,7 +10524,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
-          "'{0}' can't be a superinterface of itself: {1}.");
+          "'{0}' can't be a superinterface of itself: {1}.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -10540,8 +10541,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_EXTENDS =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
-          "'{0}' can't extend itself.");
+      CompileTimeErrorCode(
+          'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't extend itself.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -10557,16 +10559,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
-          "'{0}' can't implement itself.");
+      CompileTimeErrorCode(
+          'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't implement itself.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS');
 
   /**
    * Parameters:
    * 0: the name of the mixin that constraints itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_ON =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_ON',
-          "'{0}' can't use itself as a superclass constraint.");
+      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
+          "'{0}' can't use itself as a superclass constraint.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -10582,8 +10586,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_WITH =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_WITH',
-          "'{0}' can't use itself as a mixin.");
+      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
+          "'{0}' can't use itself as a mixin.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH');
 
   /**
    * No parameters.

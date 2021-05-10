@@ -13,6 +13,7 @@ enum ExperimentalFlag {
   alternativeInvalidationStrategy,
   constFunctions,
   constantUpdate2018,
+  constructorTearoffs,
   controlFlowCollections,
   extensionMethods,
   extensionTypes,
@@ -30,6 +31,7 @@ const Version enableAlternativeInvalidationStrategyVersion =
     const Version(2, 14);
 const Version enableConstFunctionsVersion = const Version(2, 14);
 const Version enableConstantUpdate2018Version = const Version(2, 0);
+const Version enableConstructorTearoffsVersion = const Version(2, 14);
 const Version enableControlFlowCollectionsVersion = const Version(2, 0);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
 const Version enableExtensionTypesVersion = const Version(2, 14);
@@ -50,6 +52,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.constFunctions;
     case "constant-update-2018":
       return ExperimentalFlag.constantUpdate2018;
+    case "constructor-tearoffs":
+      return ExperimentalFlag.constructorTearoffs;
     case "control-flow-collections":
       return ExperimentalFlag.controlFlowCollections;
     case "extension-methods":
@@ -80,6 +84,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy: false,
   ExperimentalFlag.constFunctions: false,
   ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: true,
   ExperimentalFlag.extensionTypes: false,
@@ -97,6 +102,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy: false,
   ExperimentalFlag.constFunctions: false,
   ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,
   ExperimentalFlag.extensionTypes: false,
@@ -114,6 +120,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 14),
   ExperimentalFlag.constFunctions: const Version(2, 14),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
+  ExperimentalFlag.constructorTearoffs: const Version(2, 14),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.extensionTypes: const Version(2, 14),
@@ -131,6 +138,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 14),
   ExperimentalFlag.constFunctions: const Version(2, 14),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
+  ExperimentalFlag.constructorTearoffs: const Version(2, 14),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.extensionTypes: const Version(2, 14),
