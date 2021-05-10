@@ -929,6 +929,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   isolate_group->object_store()->set_float32x4_class(cls);
   cls = Class::New<Float64x2, RTN::Float64x2>(isolate_group);
   isolate_group->object_store()->set_float64x2_class(cls);
+  cls = Class::New<Int32x4, RTN::Int32x4>(isolate_group);
+  isolate_group->object_store()->set_int32x4_class(cls);
 
   // Ensure that class kExternalTypedDataUint8ArrayCid is registered as we
   // need it when reading in the token stream of bootstrap classes in the VM

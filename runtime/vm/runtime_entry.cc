@@ -364,6 +364,13 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
   arguments.SetReturn(Object::Handle(zone, Float64x2::New(0.0, 0.0)));
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Int32x4::New(0, 0, 0, 0)));
+}
+
 // Allocate typed data array of given class id and length.
 // Arg0: class id.
 // Arg1: number of elements.
