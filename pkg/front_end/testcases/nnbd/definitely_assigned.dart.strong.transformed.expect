@@ -107,7 +107,7 @@ static field () → Null fieldCompound = () → Null {
   local4 = 0;
   let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
   local4 += 0; // error
-  ^^^^^^" in local4 = local4.{core::num::+}(0){(core::num) → core::int};
+  ^^^^^^" in local4 = local4.{core::num::+}(0);
 };
 static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect::T% value) → dynamic {
   late final self::methodDirect::T% local2;
@@ -153,6 +153,6 @@ static method methodCompound() → dynamic {
   local4 = 0;
   let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:80:3: Error: Late final variable 'local4' definitely assigned.
   local4 += 0; // error
-  ^^^^^^" in local4 = local4.{core::num::+}(0){(core::num) → core::int};
+  ^^^^^^" in local4 = local4.{core::num::+}(0);
 }
 static method main() → dynamic {}

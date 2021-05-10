@@ -23,7 +23,7 @@ extension E on self::A {
 static method E|get#bar(lowered final self::A #this) → core::double
   return 3.14;
 static method test(self::A a, self::E e) → dynamic {
-  a.{self::A::foo}{core::int};
+  a.{self::A::foo};
   self::E|get#bar(a);
   invalid-expression "pkg/front_end/testcases/extension_types/simple_getter_resolution.dart:16:5: Error: The getter 'foo' isn't defined for the extension 'E'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'foo'.

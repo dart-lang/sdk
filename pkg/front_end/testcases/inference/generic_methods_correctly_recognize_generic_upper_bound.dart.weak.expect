@@ -29,5 +29,5 @@ class Foo<T extends core::Pattern*> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  new self::Foo::•<core::String*>().{self::Foo::method}<core::int*>(42){(core::int*) →* core::int*};
+  new self::Foo::•<core::String*>().{self::Foo::method}<core::int*>(42);
 }

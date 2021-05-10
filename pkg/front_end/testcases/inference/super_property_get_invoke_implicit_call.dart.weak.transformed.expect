@@ -40,7 +40,7 @@ class D extends self::C {
     : super self::C::•()
     ;
   method g() → void {
-    core::int* y = super.{self::C::f}.{self::CallableClass::call}(){() →* core::int*};
+    core::int* y = super.{self::C::f}.{self::CallableClass::call}();
   }
 }
 static method main() → dynamic {}

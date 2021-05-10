@@ -20,7 +20,7 @@ class Class1 extends core::Object /*hasConstConstructor*/  {
 class Class2 extends core::Object /*hasConstConstructor*/  {
   final field self::Class2* field;
   const constructor •(core::int* value) → self::Class2*
-    : self::Class2::field = value =={core::num::==}{(core::Object*) →* core::bool*} 0 ?{self::Class2*} null : const self::Class2::•(0), super core::Object::•()
+    : self::Class2::field = value.{core::num::==}(0) ?{self::Class2*} null : const self::Class2::•(0), super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -66,8 +66,8 @@ class Class4 extends core::Object /*hasConstConstructor*/  {
 static const field core::int* a = self::b;
 static const field core::int* b = self::a;
 static const field core::int* c = self::d;
-static const field core::int* d = self::e.{core::num::+}(1){(core::num*) →* core::int*};
-static const field core::int* e = self::d.{core::num::-}(1){(core::num*) →* core::int*};
+static const field core::int* d = self::e.{core::num::+}(1);
+static const field core::int* e = self::d.{core::num::-}(1);
 static const field self::Class1* c1_0 = const self::Class1::•();
 static const field self::Class1* c1_1 = const self::Class1::•(c: null);
 static const field self::Class1* c1_2 = const self::Class1::•();

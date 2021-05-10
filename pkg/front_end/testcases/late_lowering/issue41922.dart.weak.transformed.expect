@@ -35,12 +35,12 @@ static method main() → dynamic {
   self::expect("lateValue", self::C::s);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → void f) → dynamic {
   try {
-    f(){() → void};
+    f.call();
   }
   on core::Object catch(final core::Object _) {
     return;

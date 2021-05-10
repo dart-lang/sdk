@@ -137,7 +137,7 @@ static method main() → dynamic {
 }
 static method throws(() →* void f) → dynamic {
   try {
-    f(){() →* void};
+    f.call();
   }
   on dynamic catch(final dynamic _) {
     return;

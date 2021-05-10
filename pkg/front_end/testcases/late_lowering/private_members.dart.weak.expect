@@ -88,10 +88,10 @@ static field core::int? _#_Extension|_privateFinalField2 = null /* from org-dart
 static field core::bool _#_Extension|_privateFinalField2#isSet = false /* from org-dartlang-testcase:///private_members_part.dart */;
 static method main() → dynamic {
   self::_Class c = new self::_Class::•();
-  c.{self::_Class::_privateField1} = c.{self::_Class::_privateField1}{core::int};
-  c.{self::_Class::_privateField2} = c.{self::_Class::_privateField2}{core::int?};
-  c.{self::_Class::_privateFinalField1}{core::int};
-  c.{self::_Class::_privateFinalField2}{core::int?};
+  c.{self::_Class::_privateField1} = c.{self::_Class::_privateField1};
+  c.{self::_Class::_privateField2} = c.{self::_Class::_privateField2};
+  c.{self::_Class::_privateFinalField1};
+  c.{self::_Class::_privateFinalField2};
   self::_Extension|_privateField1 = self::_Extension|_privateField1;
   self::_Extension|_privateField2 = self::_Extension|_privateField2;
   self::_Extension|_privateFinalField1;

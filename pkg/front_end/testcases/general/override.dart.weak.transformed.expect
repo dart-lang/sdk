@@ -49,7 +49,7 @@ class Sub extends self::Base {
   }
 }
 static method main(core::List<core::String*>* args) → dynamic {
-  self::Base* object = args.{core::List::length}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 0 ?{self::Base*} new self::Base::•() : new self::Sub::•();
-  self::Foo* a = object.{self::Base::method}(){() →* self::Foo*};
+  self::Base* object = args.{core::List::length}.{core::num::==}(0) ?{self::Base*} new self::Base::•() : new self::Sub::•();
+  self::Foo* a = object.{self::Base::method}();
   core::print(a);
 }

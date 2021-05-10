@@ -52,9 +52,9 @@ static method main() → dynamic /* originally async */ {
           :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
           return :controller_stream;
         };
-        asy::Stream<dynamic>* y = f(){() →* asy::Stream<Null>*};
-        asy::Stream<core::String*>* z = f(){() →* asy::Stream<Null>*};
-        [yield] let dynamic #t1 = asy::_awaitHelper(f(){() →* asy::Stream<Null>*}.{asy::Stream::first}{asy::Future<Null>*}, :async_op_then, :async_op_error, :async_op) in null;
+        asy::Stream<dynamic>* y = f.call();
+        asy::Stream<core::String*>* z = f.call();
+        [yield] let dynamic #t1 = asy::_awaitHelper(f.call().{asy::Stream::first}, :async_op_then, :async_op_error, :async_op) in null;
         core::String* s = _in::unsafeCast<Null>(:result);
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);

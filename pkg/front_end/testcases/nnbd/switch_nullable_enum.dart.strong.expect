@@ -95,7 +95,7 @@ static method main() → dynamic {
   self::expect(1, self::method4(null));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+  if(!expected.{core::Object::==}(actual)) {
     throw "Expected ${expected}, actual ${actual}.";
   }
 }

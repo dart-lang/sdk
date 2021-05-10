@@ -30,7 +30,7 @@ class StructInlineArrayMultiDimensional extends ffi::Struct {
 static method main() → dynamic {
   final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = (#C15).{ffi::Allocator::allocate}<self::StructInlineArrayMultiDimensional>(self::StructInlineArrayMultiDimensional::#sizeOf);
   final self::StructInlineArrayMultiDimensional struct = new self::StructInlineArrayMultiDimensional::#fromTypedDataBase(pointer!);
-  final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0}{ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>};
+  final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0};
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = block {
     ffi::Array<dynamic> #array = array!;
     core::int #index = 0!;
@@ -50,7 +50,7 @@ static method main() → dynamic {
     core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened});
     core::int #offset = #elementSize.{core::num::*}(#index);
   } =>ffi::_memCopy(#array.{ffi::Array::_typedDataBase}, #offset, subArray.{ffi::Array::_typedDataBase}, #C12, #elementSize);
-  (#C15).{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
+  (#C15).{ffi::Allocator::free}(pointer);
 }
 
 constants  {

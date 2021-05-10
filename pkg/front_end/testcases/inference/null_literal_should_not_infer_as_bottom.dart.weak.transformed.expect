@@ -6,13 +6,13 @@ static field dynamic h = null;
 static method foo((core::Object*) →* core::int* f) → void {}
 static method test() → dynamic {
   (core::Object*) →* Null f = (core::Object* x) → Null => null;
-  core::String* y = f(42){(core::Object*) →* Null};
+  core::String* y = f.call(42);
   f = (core::Object* x) → Null => "hello" as{TypeError} Null;
   dynamic g = null;
   g = "hello";
-  g{dynamic}.foo();
+  g.foo();
   self::h = "hello";
-  self::h{dynamic}.foo();
+  self::h.foo();
   self::foo((core::Object* x) → Null => null);
   self::foo((core::Object* x) → Null => throw "not implemented");
 }

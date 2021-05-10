@@ -44,19 +44,19 @@ class D<U extends core::Object* = dynamic> extends self::C<self::D::U*> {
   method f2(generic-covariant-impl core::int* x, [generic-covariant-impl self::D::U* y = #C1]) → void {}
 }
 static method g1(self::C<core::num*>* c) → void {
-  c.{self::C::f1}(1){(core::int*) →* void};
+  c.{self::C::f1}(1);
 }
 static method g2(self::I<core::num*>* i) → void {
-  i.{self::I::f1}(1.5){(core::num*) →* void};
+  i.{self::I::f1}(1.5);
 }
 static method g3(self::C<core::num*>* c) → void {
-  c.{self::C::f2}(1, 1.5){(core::int*, [core::num*]) →* void};
+  c.{self::C::f2}(1, 1.5);
 }
 static method g4(self::D<core::num*>* d) → void {
-  d.{self::D::f1}(1){(core::int*) →* void};
+  d.{self::D::f1}(1);
 }
 static method g5(self::D<core::num*>* d) → void {
-  d.{self::D::f2}(1, 1.5){(core::int*, [core::num*]) →* void};
+  d.{self::D::f2}(1, 1.5);
 }
 static method test() → void {
   self::g2(new self::C::•<core::num*>());

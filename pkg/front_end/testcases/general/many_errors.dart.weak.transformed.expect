@@ -127,7 +127,7 @@ external static method foo(core::String* x) → dynamic {
 external foo(String x) {
                        ^";
   {
-    return x.{core::String::length}{core::int*};
+    return x.{core::String::length};
   }
 }
 static method m() → dynamic {

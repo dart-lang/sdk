@@ -23,7 +23,7 @@ class LegacyClass<T extends Null> extends bou::Class<self::LegacyClass::T*> {
 }
 static method test() → dynamic {
   bou::Class<Null>* c = new bou::Class::•<Null>();
-  c.{bou::Class::method}<Null>(){() →* dynamic};
+  c.{bou::Class::method}<Null>();
   bou::method<Null>();
 }
 static method main() → dynamic {}

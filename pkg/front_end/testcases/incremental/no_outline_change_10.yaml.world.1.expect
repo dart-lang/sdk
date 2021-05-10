@@ -36,7 +36,7 @@ library from "org-dartlang-test:///lib3.dart" as lib3 {
 
   static method lib3Method(lib1::Foo* foo) → void {
     lib1::Foo* bar = new lib2::Bar::•();
-    dart.core::bool* equal = foo =={lib1::Foo::==}{(dynamic) →* dart.core::bool*} bar;
+    dart.core::bool* equal = foo.{lib1::Foo::==}(bar);
     dart.core::print("foo == bar = ${equal}");
   }
 }

@@ -17,7 +17,7 @@ class DynamicClass<T extends dynamic, S extends self::DynamicClass::T* = dynamic
     : self::DynamicClass::field1 = field1, self::DynamicClass::field2 = field2, super core::Object::•()
     ;
   method method() → dynamic
-    return this.{self::DynamicClass::field1}{self::DynamicClass::T*}{dynamic}.*(this.{self::DynamicClass::field2}{self::DynamicClass::T*});
+    return this.{self::DynamicClass::field1}.*(this.{self::DynamicClass::field2});
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -36,12 +36,12 @@ class NumClass<T extends core::num*, S extends self::NumClass::T* = core::num*> 
     : self::NumClass::field1 = field1, self::NumClass::field2 = field2, super core::Object::•()
     ;
   method method1() → core::num*
-    return this.{self::NumClass::field1}{self::NumClass::T*}.{core::num::*}(this.{self::NumClass::field2}{self::NumClass::S*}){(core::num*) →* core::num*};
+    return this.{self::NumClass::field1}.{core::num::*}(this.{self::NumClass::field2});
   method method2() → core::num*
-    return this.{self::NumClass::field1}{self::NumClass::T*}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the class 'num'.
+    return this.{self::NumClass::field1}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the class 'num'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
   num method2() => field1 + field2.length;
-                                   ^^^^^^"){(core::num*) →* core::num*};
+                                   ^^^^^^");
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -64,12 +64,12 @@ class Class<X5 extends self::Class::X4* = core::int*, X4 extends self::Class::X3
     : super core::Object::•()
     ;
   method method() → dynamic {
-    this.{self::Class::field0}{self::Class::X0*}.{core::int::isEven}{core::bool*};
-    this.{self::Class::field1}{self::Class::X1*}.{core::int::isEven}{core::bool*};
-    this.{self::Class::field2}{self::Class::X2*}.{core::int::isEven}{core::bool*};
-    this.{self::Class::field3}{self::Class::X3*}.{core::int::isEven}{core::bool*};
-    this.{self::Class::field4}{self::Class::X4*}.{core::int::isEven}{core::bool*};
-    this.{self::Class::field5}{self::Class::X5*}.{core::int::isEven}{core::bool*};
+    this.{self::Class::field0}.{core::int::isEven};
+    this.{self::Class::field1}.{core::int::isEven};
+    this.{self::Class::field2}.{core::int::isEven};
+    this.{self::Class::field3}.{core::int::isEven};
+    this.{self::Class::field4}.{core::int::isEven};
+    this.{self::Class::field5}.{core::int::isEven};
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -83,6 +83,6 @@ class Class<X5 extends self::Class::X4* = core::int*, X4 extends self::Class::X3
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  new self::DynamicClass::•<core::num*, core::int*>(0.5, 2).{self::DynamicClass::method}(){() →* dynamic};
-  new self::NumClass::•<core::num*, core::double*>(2, 0.5).{self::NumClass::method1}(){() →* core::num*};
+  new self::DynamicClass::•<core::num*, core::int*>(0.5, 2).{self::DynamicClass::method}();
+  new self::NumClass::•<core::num*, core::double*>(2, 0.5).{self::NumClass::method1}();
 }

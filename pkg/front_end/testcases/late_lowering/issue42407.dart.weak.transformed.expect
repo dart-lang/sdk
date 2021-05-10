@@ -22,7 +22,7 @@ class B<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   get y() → self::B::T?
-    return this.{self::B::_y}{self::B::T?};
+    return this.{self::B::_y};
   set y(generic-covariant-impl self::B::T? val) → void {
     this.{self::B::_y} = val;
   }
@@ -36,12 +36,12 @@ static method main() → dynamic {
   self::throws(() → void => b.{self::B::y} = 0.5);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → void f) → dynamic {
   try {
-    f(){() → void};
+    f.call();
   }
   on core::Object catch(final core::Object _) {
     return;

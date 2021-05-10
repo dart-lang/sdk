@@ -10,7 +10,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     : self::C::_x = _x, super core::Object::•()
     ;
   method f() → (self::C::T*) →* void
-    return this.{self::C::_x}{(self::C::T*) →* void};
+    return this.{self::C::_x};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -23,7 +23,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method g(self::C<core::num*>* c) → () →* (core::num*) →* void {
-  return c.{self::C::f}{() →* (core::num*) →* void} as{TypeError,CovarianceCheck} () →* (core::num*) →* void;
+  return c.{self::C::f} as{TypeError,CovarianceCheck} () →* (core::num*) →* void;
 }
 static method h(core::int* i) → void {
   core::print("${i}");

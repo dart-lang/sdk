@@ -39,7 +39,7 @@ class B extends core::Object {
       try {
         #L1:
         {
-          :return_value = this.{self::B::a}{self::A*}.{self::A::foo}(){() →* dynamic};
+          :return_value = this.{self::B::a}.{self::A::foo}();
           break #L1;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -82,7 +82,7 @@ class C extends core::Object {
       try {
         #L2:
         {
-          :return_value = this.{self::C::b}{self::B*}.{self::B::bar}(){() →* asy::Future<dynamic>*} as{TypeError} FutureOr<core::int*>*;
+          :return_value = this.{self::C::b}.{self::B::bar}() as{TypeError} FutureOr<core::int*>*;
           break #L2;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);

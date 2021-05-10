@@ -11,8 +11,8 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field invalid-type x = () → invalid-type => new self::B::•().{self::B::x}{invalid-type};
-  field () →* invalid-type y = () → invalid-type => new self::B::•().{self::B::x}{invalid-type};
+  field invalid-type x = () → invalid-type => new self::B::•().{self::B::x};
+  field () →* invalid-type y = () → invalid-type => new self::B::•().{self::B::x};
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;

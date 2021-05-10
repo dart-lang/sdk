@@ -24,6 +24,6 @@ class B extends self::A<dynamic> {
     ;
 }
 static method bar(self::B* b) → dynamic {
-  b.{self::A::foo}<dynamic>(){() →* dynamic};
+  b.{self::A::foo}<dynamic>();
 }
 static method main() → dynamic {}

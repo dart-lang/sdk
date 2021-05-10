@@ -14,8 +14,8 @@ class B extends core::Object {
     this.{self::B::_x} = x;
   }
   method check(core::Object* expectedValue) → void {
-    if(!(this.{self::B::_x}{core::Object*} =={core::Object::==}{(core::Object*) →* core::bool*} expectedValue)) {
-      throw "Expected _x == ${expectedValue}; got ${this.{self::B::_x}{core::Object*}}";
+    if(!this.{self::B::_x}.{core::Object::==}(expectedValue)) {
+      throw "Expected _x == ${expectedValue}; got ${this.{self::B::_x}}";
     }
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -57,10 +57,10 @@ class C extends self::B implements self::I<core::num*> {
 }
 static method main() → dynamic {
   self::C* c = new self::C::•();
-  c.{self::C::f}(){([core::num*]) →* void};
-  c.{self::B::check}(10){(core::Object*) →* void};
-  c.{self::C::g}(){({x: core::num*}) →* void};
-  c.{self::B::check}(20){(core::Object*) →* void};
+  c.{self::C::f}();
+  c.{self::B::check}(10);
+  c.{self::C::g}();
+  c.{self::B::check}(20);
 }
 
 constants  {

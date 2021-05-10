@@ -29,6 +29,6 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  core::String* s = new self::C::•<dynamic>().{self::C::method}(){() →* invalid-type};
+  core::String* s = new self::C::•<dynamic>().{self::C::method}();
   core::print(s);
 }

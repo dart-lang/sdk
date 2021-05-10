@@ -1156,10 +1156,10 @@ static method test() → dynamic {
   duplicateTopLevelFieldAndSetter2 = duplicateTopLevelFieldAndSetter2;
                                    ^";
   self::Class c = new self::Class::•();
-  c.{self::Class::instanceFieldAndSetter} = c.{self::Class::instanceFieldAndSetter}{core::int?};
-  c.{self::Class::instanceFieldAndDuplicateSetter} = c.{self::Class::instanceFieldAndDuplicateSetter}{core::int?};
-  c.{self::Class::instanceLateFinalFieldAndSetter} = c.{self::Class::instanceLateFinalFieldAndSetter}{core::int?};
-  c.{self::Class::instanceLateFinalFieldAndDuplicateSetter} = c.{self::Class::instanceLateFinalFieldAndDuplicateSetter}{core::int?};
+  c.{self::Class::instanceFieldAndSetter} = c.{self::Class::instanceFieldAndSetter};
+  c.{self::Class::instanceFieldAndDuplicateSetter} = c.{self::Class::instanceFieldAndDuplicateSetter};
+  c.{self::Class::instanceLateFinalFieldAndSetter} = c.{self::Class::instanceLateFinalFieldAndSetter};
+  c.{self::Class::instanceLateFinalFieldAndDuplicateSetter} = c.{self::Class::instanceLateFinalFieldAndDuplicateSetter};
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:188:5: Error: The setter 'duplicateInstanceFieldAndStaticSetter1' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateInstanceFieldAndStaticSetter1'.
@@ -1195,11 +1195,11 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:209:9: Error: Setter not found: 'instanceFieldAndStaticSetter'.
   Class.instanceFieldAndStaticSetter = c.instanceFieldAndStaticSetter;
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  c.{self::Class::instanceFieldAndStaticSetter} = c.{self::Class::instanceFieldAndStaticSetter}{core::int?};
+  c.{self::Class::instanceFieldAndStaticSetter} = c.{self::Class::instanceFieldAndStaticSetter};
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:212:47: Error: Can't assign to this.
   Class.instanceFieldAndStaticDuplicateSetter =
                                               ^";
-  c.{self::Class::instanceFieldAndStaticDuplicateSetter} = c.{self::Class::instanceFieldAndStaticDuplicateSetter}{core::int?};
+  c.{self::Class::instanceFieldAndStaticDuplicateSetter} = c.{self::Class::instanceFieldAndStaticDuplicateSetter};
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:217:5: Error: The setter 'duplicateStaticFieldAndInstanceSetter1' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateStaticFieldAndInstanceSetter1'.

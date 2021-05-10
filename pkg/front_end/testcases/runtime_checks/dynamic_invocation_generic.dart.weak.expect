@@ -19,10 +19,10 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method g1(dynamic d) → void {
-  d{dynamic}.f<core::num*>(1.5);
+  d.f<core::num*>(1.5);
 }
 static method g2(dynamic d) → void {
-  d{dynamic}.f(1.5);
+  d.f(1.5);
 }
 static method test() → void {
   self::g1(new self::C::•<core::int*>());

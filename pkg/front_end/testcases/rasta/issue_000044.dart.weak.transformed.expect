@@ -104,7 +104,7 @@ Try using a constructor or factory that is 'const'.
   print(const C.missingFactoryKeyword());
               ^");
   core::print(#C1);
-  core::print(new self::C::constant().{self::C::notEvenAConstructor}(null){(dynamic) →* self::C*});
+  core::print(new self::C::constant().{self::C::notEvenAConstructor}(null));
 }
 
 constants  {

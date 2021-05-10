@@ -27,5 +27,5 @@ class B extends self::A {
   }
 }
 static method main() → dynamic {
-  new self::B::•().{self::B::m}(){() →* dynamic};
+  new self::B::•().{self::B::m}();
 }

@@ -25,7 +25,7 @@ static method basicSwitch(core::int x) → core::int {
     #L3:
     default:
       {
-        x = x.{core::num::+}(1){(core::num) → core::int};
+        x = x.{core::num::+}(1);
         break #L1;
       }
   }
@@ -53,7 +53,7 @@ static method continueLabelSwitch(core::int x) → core::int {
     #L7:
     case #C7:
       {
-        x = x.{core::num::+}(100){(core::num) → core::int};
+        x = x.{core::num::+}(100);
         continue #L8;
       }
     #L9:
@@ -64,7 +64,7 @@ static method continueLabelSwitch(core::int x) → core::int {
     #L8:
     case #C2:
       {
-        return x.{core::num::+}(3){(core::num) → core::int};
+        return x.{core::num::+}(3);
       }
   }
   return 0;

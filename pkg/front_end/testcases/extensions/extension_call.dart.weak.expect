@@ -24,7 +24,7 @@ extension Extension<T extends core::Object* = dynamic> on self::Class<T*>* {
   tearoff call = self::Extension|get#call;
 }
 static method Extension|call<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|call::T*>* #this, self::Extension|call::T* a) → self::Extension|call::T*
-  return #this.{self::Class::method}(a){(self::Extension|call::T*) →* self::Extension|call::T*};
+  return #this.{self::Class::method}(a);
 static method Extension|get#call<T extends core::Object* = dynamic>(lowered final self::Class<self::Extension|get#call::T*>* #this) → (self::Extension|get#call::T*) →* self::Extension|get#call::T*
   return (self::Extension|get#call::T* a) → self::Extension|get#call::T* => self::Extension|call<self::Extension|get#call::T*>(#this, a);
 static method main() → dynamic {
@@ -37,7 +37,7 @@ static method main() → dynamic {
   self::expect(123, self::Extension|call<core::int*>(c, 123));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+  if(!expected.{core::Object::==}(actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }

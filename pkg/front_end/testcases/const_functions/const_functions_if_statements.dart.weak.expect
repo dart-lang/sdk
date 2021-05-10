@@ -17,11 +17,11 @@ static const field core::int var6_2 = #C3;
 static const field core::int var7 = #C5;
 static const field core::int var8 = #C6;
 static method ifTest(core::int a) → core::int {
-  if(a =={core::num::==}{(core::Object) → core::bool} 1) {
+  if(a.{core::num::==}(1)) {
     return 100;
   }
   else
-    if(a =={core::num::==}{(core::Object) → core::bool} 2) {
+    if(a.{core::num::==}(2)) {
       return 200;
     }
     else {
@@ -29,7 +29,7 @@ static method ifTest(core::int a) → core::int {
     }
 }
 static method ifTest2(core::int a) → core::int {
-  if(a =={core::num::==}{(core::Object) → core::bool} (#C4)) {
+  if(a.{core::num::==}(#C4)) {
     return 100;
   }
   else {
@@ -37,8 +37,8 @@ static method ifTest2(core::int a) → core::int {
   }
 }
 static method ifTest3(core::int a) → core::int {
-  if(a.{core::num::>}(0){(core::num) → core::bool}) {
-    if(a =={core::num::==}{(core::Object) → core::bool} 1)
+  if(a.{core::num::>}(0)) {
+    if(a.{core::num::==}(1))
       return 100;
     return 200;
   }
@@ -46,15 +46,15 @@ static method ifTest3(core::int a) → core::int {
 }
 static method ifTest4(core::int a) → core::int {
   core::int b = a;
-  if(a =={core::num::==}{(core::Object) → core::bool} 1) {
-    b = b.{core::num::+}(a){(core::num) → core::int};
-    if(a.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
-      b = b.{core::num::+}(a){(core::num) → core::int};
+  if(a.{core::num::==}(1)) {
+    b = b.{core::num::+}(a);
+    if(a.{core::num::%}(2).{core::num::==}(1)) {
+      b = b.{core::num::+}(a);
     }
   }
   else
-    if(a =={core::num::==}{(core::Object) → core::bool} 2) {
-      b = b.{core::num::-}(a){(core::num) → core::int};
+    if(a.{core::num::==}(2)) {
+      b = b.{core::num::-}(a);
     }
   return b;
 }

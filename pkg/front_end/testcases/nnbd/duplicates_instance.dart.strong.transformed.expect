@@ -258,7 +258,7 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
   (c.instanceMethod)();
-     ^^^^^^^^^^^^^^"{dynamic}.call();
+     ^^^^^^^^^^^^^^".call();
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:88:5: Error: The getter 'instanceGetter' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
@@ -285,7 +285,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   c.instanceDuplicateFieldAndSetter;
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   c.{self::Class::instanceDuplicateFieldAndSetter} = 0;
-  c.{self::Class::instanceFieldAndDuplicateSetter}{core::int};
+  c.{self::Class::instanceFieldAndDuplicateSetter};
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:95:5: Error: The setter 'instanceFieldAndDuplicateSetter' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndDuplicateSetter'.
@@ -306,35 +306,35 @@ static method main() → dynamic {
   self::Class c = new self::Class::•();
   c.{self::Class::instanceFieldAndSetter1} = 0;
   self::expect(null, self::result);
-  self::expect(0, c.{self::Class::instanceFieldAndSetter1}{core::int});
+  self::expect(0, c.{self::Class::instanceFieldAndSetter1});
   self::result = null;
   c.{self::Class::instanceFieldAndSetter2} = 0;
   self::expect(null, self::result);
-  self::expect(0, c.{self::Class::instanceFieldAndSetter2}{core::int});
+  self::expect(0, c.{self::Class::instanceFieldAndSetter2});
   self::result = null;
   c.{self::Class::instanceLateFinalFieldAndSetter1} = 0;
   self::expect(null, self::result);
-  self::expect(0, c.{self::Class::instanceLateFinalFieldAndSetter1}{core::int});
+  self::expect(0, c.{self::Class::instanceLateFinalFieldAndSetter1});
   self::result = null;
   c.{self::Class::instanceLateFinalFieldAndSetter2} = 0;
   self::expect(null, self::result);
-  self::expect(0, c.{self::Class::instanceLateFinalFieldAndSetter2}{core::int});
+  self::expect(0, c.{self::Class::instanceLateFinalFieldAndSetter2});
   self::result = null;
-  self::expect(1, c.{self::Class::instanceMethodAndSetter1}(){() → core::int});
+  self::expect(1, c.{self::Class::instanceMethodAndSetter1}());
   c.{self::Class::instanceMethodAndSetter1} = 0;
   self::expect(2, self::result);
   self::result = null;
-  self::expect(1, c.{self::Class::instanceMethodAndSetter2}(){() → core::int});
+  self::expect(1, c.{self::Class::instanceMethodAndSetter2}());
   c.{self::Class::instanceMethodAndSetter2} = 0;
   self::expect(2, self::result);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → dynamic f) → dynamic {
   try {
-    f();
+    f.call();
   }
   on core::Object catch(final core::Object e) {
     core::print(e);

@@ -8,7 +8,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
     : self::A::f = f, super core::Object::•()
     ;
   method foo(generic-covariant-impl self::A::T* x) → dynamic
-    return let final self::A::T* #t1 = x in this.{self::A::f}{(self::A::T*) →* void}(#t1){(self::A::T*) →* void};
+    return let final self::A::T* #t1 = x in this.{self::A::f}.call(#t1);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -21,5 +21,5 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  new self::A::•<core::int*>((core::int* x) → Null {}).{self::A::foo}(3){(core::int*) →* dynamic};
+  new self::A::•<core::int*>((core::int* x) → Null {}).{self::A::foo}(3);
 }

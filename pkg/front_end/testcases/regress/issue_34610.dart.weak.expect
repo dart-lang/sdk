@@ -94,14 +94,14 @@ class C { C.named => null; get bar => 1; }
 }
 static method main() → dynamic {
   try {
-    core::print(new self::A::named().{self::A::bar}{dynamic});
+    core::print(new self::A::named().{self::A::bar});
     throw "expected exception";
   }
   on dynamic catch(final dynamic e) {
   }
-  core::print(new self::B::named().{self::B::bar}{dynamic});
+  core::print(new self::B::named().{self::B::bar});
   try {
-    core::print(new self::C::named().{self::C::bar}{dynamic});
+    core::print(new self::C::named().{self::C::bar});
     throw "expected exception";
   }
   on dynamic catch(final dynamic e) {

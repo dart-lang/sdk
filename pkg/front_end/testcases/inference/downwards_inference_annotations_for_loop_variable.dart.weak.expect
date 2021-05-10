@@ -18,7 +18,7 @@ class Foo extends core::Object /*hasConstConstructor*/  {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → void {
-  for (@#C1 core::int* i = 0; i.{core::num::<}(1){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+  for (@#C1 core::int* i = 0; i.{core::num::<}(1); i = i.{core::num::+}(1)) {
   }
   for (@#C1 core::int* i in <core::int*>[0]) {
   }

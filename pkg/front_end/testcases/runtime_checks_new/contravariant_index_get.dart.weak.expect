@@ -21,6 +21,6 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test(self::C<core::num*>* c) → (core::num*) →* void {
-  return c.{self::C::[]}(0){(core::int*) →* (core::num*) →* void} as{TypeError,CovarianceCheck} (core::num*) →* void;
+  return c.{self::C::[]}(0) as{TypeError,CovarianceCheck} (core::num*) →* void;
 }
 static method main() → dynamic {}

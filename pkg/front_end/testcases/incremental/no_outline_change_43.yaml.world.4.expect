@@ -23,6 +23,6 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method foo() → void {
     dart.core::int* value = lib::libField;
-    lib::libField = value.{dart.core::num::+}(1){(dart.core::num*) →* dart.core::int*};
+    lib::libField = value.{dart.core::num::+}(1);
   }
 }

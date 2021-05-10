@@ -36,29 +36,29 @@ extension Extension2 on self::Class* {
   set field = self::Extension2|set#field;
 }
 static method Extension1|get#field(lowered final self::Class* #this) → core::int*
-  return #this.{self::Class::field1}{core::int*};
+  return #this.{self::Class::field1};
 static method Extension1|set#field(lowered final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field1} = value;
 }
 static method Extension1|method(lowered final self::Class* #this) → core::int*
-  return #this.{self::Class::field1}{core::int*};
+  return #this.{self::Class::field1};
 static method Extension1|get#method(lowered final self::Class* #this) → () →* core::int*
   return () → core::int* => self::Extension1|method(#this);
 static method Extension1|genericMethod<T extends core::num*>(lowered final self::Class* #this, self::Extension1|genericMethod::T* t) → core::int*
-  return #this.{self::Class::field1}{core::int*}.{core::num::+}(t){(core::num*) →* core::num*} as{TypeError} core::int*;
+  return #this.{self::Class::field1}.{core::num::+}(t) as{TypeError} core::int*;
 static method Extension1|get#genericMethod(lowered final self::Class* #this) → <T extends core::num*>(T*) →* core::int*
   return <T extends core::num*>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#this, t);
 static method Extension2|get#field(lowered final self::Class* #this) → core::int*
-  return #this.{self::Class::field2}{core::int*};
+  return #this.{self::Class::field2};
 static method Extension2|set#field(lowered final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field2} = value;
 }
 static method Extension2|method(lowered final self::Class* #this) → core::int*
-  return #this.{self::Class::field2}{core::int*};
+  return #this.{self::Class::field2};
 static method Extension2|get#method(lowered final self::Class* #this) → () →* core::int*
   return () → core::int* => self::Extension2|method(#this);
 static method Extension2|genericMethod<T extends core::num*>(lowered final self::Class* #this, self::Extension2|genericMethod::T* t) → core::int*
-  return #this.{self::Class::field2}{core::int*}.{core::num::+}(t){(core::num*) →* core::num*} as{TypeError} core::int*;
+  return #this.{self::Class::field2}.{core::num::+}(t) as{TypeError} core::int*;
 static method Extension2|get#genericMethod(lowered final self::Class* #this) → <T extends core::num*>(T*) →* core::int*
   return <T extends core::num*>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#this, t);
 static method main() → dynamic {
@@ -69,25 +69,25 @@ static method main() → dynamic {
   self::expect(87, self::Extension2|method(c));
   () →* core::int* tearOff1 = self::Extension1|get#method(c);
   () →* core::int* tearOff2 = self::Extension2|get#method(c);
-  self::expect(42, tearOff1(){() →* core::int*});
-  self::expect(87, tearOff2(){() →* core::int*});
+  self::expect(42, tearOff1.call());
+  self::expect(87, tearOff2.call());
   self::expect(52, self::Extension1|genericMethod<core::int*>(c, 10));
   self::expect(97, self::Extension2|genericMethod<core::int*>(c, 10));
   self::expect(52, self::Extension1|genericMethod<core::num*>(c, 10));
   self::expect(97, self::Extension2|genericMethod<core::num*>(c, 10));
   <T extends core::num*>(T*) →* core::int* genericTearOff1 = self::Extension1|get#genericMethod(c);
   <T extends core::num*>(T*) →* core::int* genericTearOff2 = self::Extension2|get#genericMethod(c);
-  self::expect(52, genericTearOff1<core::int*>(10){(core::int*) →* core::int*});
-  self::expect(97, genericTearOff2<core::int*>(10){(core::int*) →* core::int*});
-  self::expect(52, genericTearOff1<core::num*>(10){(core::num*) →* core::int*});
-  self::expect(97, genericTearOff2<core::num*>(10){(core::num*) →* core::int*});
+  self::expect(52, genericTearOff1.call<core::int*>(10));
+  self::expect(97, genericTearOff2.call<core::int*>(10));
+  self::expect(52, genericTearOff1.call<core::num*>(10));
+  self::expect(97, genericTearOff2.call<core::num*>(10));
   self::expect(23, let final self::Class* #t1 = c in let final core::int* #t2 = 23 in let final void #t3 = self::Extension1|set#field(#t1, #t2) in #t2);
   self::expect(67, let final self::Class* #t4 = c in let final core::int* #t5 = 67 in let final void #t6 = self::Extension2|set#field(#t4, #t5) in #t5);
   self::expect(23, self::Extension1|get#field(c));
   self::expect(67, self::Extension2|get#field(c));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+  if(!expected.{core::Object::==}(actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }

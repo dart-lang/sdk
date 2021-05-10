@@ -14,8 +14,8 @@ class Class extends core::Object implements mai::Interface {
     ;
 }
 static method method(mai::Interface i) → void {
-  i.{mai::Interface::field2} = i.{mai::Interface::field1}{core::int?};
-  i.{mai::Interface::field3} = i.{mai::Interface::field3}{core::int?};
+  i.{mai::Interface::field2} = i.{mai::Interface::field1};
+  i.{mai::Interface::field3} = i.{mai::Interface::field3};
 }
 static method main() → dynamic {
   self::method(new self::Class::•());

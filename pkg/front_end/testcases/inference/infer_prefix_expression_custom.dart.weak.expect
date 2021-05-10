@@ -22,8 +22,8 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field self::A* a = new self::A::•();
-static field core::int* v_complement = self::a.{self::A::~}(){() →* core::int*};
-static field core::double* v_negate = self::a.{self::A::unary-}(){() →* core::double*};
+static field core::int* v_complement = self::a.{self::A::~}();
+static field core::double* v_negate = self::a.{self::A::unary-}();
 static method main() → dynamic {
   self::a;
   self::v_complement;

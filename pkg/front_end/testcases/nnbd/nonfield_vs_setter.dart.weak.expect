@@ -192,12 +192,12 @@ static method test() → dynamic {
   classAndSetter = classAndSetter();
   ^^^^^^^^^^^^^^";
   self::Class c = new self::Class::•();
-  c.{self::Class::instanceMethodAndSetter} = c.{self::Class::instanceMethodAndSetter}(){() → dynamic};
+  c.{self::Class::instanceMethodAndSetter} = c.{self::Class::instanceMethodAndSetter}();
   invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:9: Error: Setter not found: 'staticMethodAndSetter'.
   Class.staticMethodAndSetter = Class.staticMethodAndSetter();
         ^^^^^^^^^^^^^^^^^^^^^";
   c.{self::Class::staticMethodAndInstanceSetter} = self::Class::staticMethodAndInstanceSetter();
-  self::Class::instanceMethodAndStaticSetter = c.{self::Class::instanceMethodAndStaticSetter}(){() → dynamic};
+  self::Class::instanceMethodAndStaticSetter = c.{self::Class::instanceMethodAndStaticSetter}();
   c.{self::Class::Class} = invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:61:15: Error: The getter 'Class' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'Class'.

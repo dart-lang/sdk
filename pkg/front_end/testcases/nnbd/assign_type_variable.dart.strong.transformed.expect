@@ -9,7 +9,7 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
   method method(generic-covariant-impl self::Class::E% e) → void {
     e = self::id<self::Class::E%>(e);
     e = self::id<self::Class::E%>(e);
-    if(!(e == null)) {
+    if(!e.{core::Object::==}(null)) {
       self::Class::E% e2 = e{self::Class::E% & core::Object /* '%' & '!' = '!' */};
       e2 = self::id<self::Class::E%>(e{self::Class::E% & core::Object /* '%' & '!' = '!' */});
       e2 = self::id<self::Class::E%>(e{self::Class::E% & core::Object /* '%' & '!' = '!' */});

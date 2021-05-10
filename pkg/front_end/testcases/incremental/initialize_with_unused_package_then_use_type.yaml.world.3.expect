@@ -5,7 +5,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method main() → dynamic {
     foo::Foo* foo = new foo::Foo::•();
-    foo.{foo::Foo::foo}(){() →* dynamic};
+    foo.{foo::Foo::foo}();
   }
 }
 library from "package:mypackage/foo.dart" as foo {

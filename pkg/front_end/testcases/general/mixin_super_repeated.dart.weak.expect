@@ -74,10 +74,10 @@ static method main() → dynamic {
   self::Named* named = new self::Named::•();
   named.{self::Named::m} = 42;
   named.{self::_Named&S&M&N::superM} = 87;
-  if(!(named.{self::Named::m}{dynamic} =={core::Object::==}{(core::Object*) →* core::bool*} 42)) {
+  if(!named.{self::Named::m}.{core::Object::==}(42)) {
     throw "Bad mixin translation of set:superM";
   }
-  if(!(named.{self::_Named&S&M&N::superM}{dynamic} =={core::Object::==}{(core::Object*) →* core::bool*} 87)) {
+  if(!named.{self::_Named&S&M&N::superM}.{core::Object::==}(87)) {
     throw "Bad mixin translation of get:superM";
   }
 }

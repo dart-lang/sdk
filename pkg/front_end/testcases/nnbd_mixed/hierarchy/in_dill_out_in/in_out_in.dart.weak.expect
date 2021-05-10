@@ -106,15 +106,15 @@ class Class extends in_::LegacyClass implements in_2::SuperQ {
     ;
   method test() → dynamic {
     core::int i;
-    core::int? v1 = this.{self::Class::nullabilityMethod}(null){(core::int?, {j: core::int?}) → core::int?};
+    core::int? v1 = this.{self::Class::nullabilityMethod}(null);
     i = super.{in_2::Super::nullabilityMethod}(null);
-    i = this.{in_::LegacyClass::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = this.{in_::LegacyClass::optionalArgumentsMethod}(null, null);
     i = super.{in_2::Super::optionalArgumentsMethod}(null);
     let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:21:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_2::Super::optionalArgumentsMethod}(null, null);
-    core::int? v2 = this.{self::Class::nullabilityGetter}{core::int?};
+    core::int? v2 = this.{self::Class::nullabilityGetter};
     i = super.{in_2::Super::nullabilityGetter};
     this.{self::Class::nullabilitySetter} = null;
     super.{in_2::Super::nullabilitySetter} = null;
@@ -138,15 +138,15 @@ class ClassQ extends in_::LegacyClassQ implements in_2::Super {
     ;
   method test() → dynamic {
     core::int i;
-    this.{in_::LegacyClassQ::nullabilityMethod}(null){(core::int*, {j: core::int*}) →* core::int*};
+    this.{in_::LegacyClassQ::nullabilityMethod}(null);
     i = super.{in_2::SuperQ::nullabilityMethod}(null);
-    i = this.{in_::LegacyClassQ::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = this.{in_::LegacyClassQ::optionalArgumentsMethod}(null, null);
     i = super.{in_2::SuperQ::optionalArgumentsMethod}(null);
     let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:46:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_2::SuperQ::optionalArgumentsMethod}(null, null);
-    i = this.{self::ClassQ::nullabilityGetter}{core::int};
+    i = this.{self::ClassQ::nullabilityGetter};
     i = super.{in_2::SuperQ::nullabilityGetter};
     this.{self::ClassQ::nullabilitySetter} = let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:52:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
     nullabilitySetter = null; // error
@@ -173,15 +173,15 @@ class ClassMixedIn extends in_::LegacyMixedIn implements in_2::SuperQ {
     core::int i;
     invalid-type v1 = let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:63:31: Error: Required named parameter 'j' must be provided.
     var v1 = nullabilityMethod(null); // ok
-                              ^" in this.{in_::_LegacyMixedIn&Object&Super::nullabilityMethod}{<inapplicable>}.(null){(invalid-type) → invalid-type};
+                              ^" in this.{in_::_LegacyMixedIn&Object&Super::nullabilityMethod}(null);
     i = super.{in_::_LegacyMixedIn&Object&Super::nullabilityMethod}(null);
-    i = this.{in_::LegacyMixedIn::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = this.{in_::LegacyMixedIn::optionalArgumentsMethod}(null, null);
     i = super.{in_::_LegacyMixedIn&Object&Super::optionalArgumentsMethod}(null);
     let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:71:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_::_LegacyMixedIn&Object&Super::optionalArgumentsMethod}(null, null);
-    core::int v2 = this.{in_::_LegacyMixedIn&Object&Super::nullabilityGetter}{core::int};
+    core::int v2 = this.{in_::_LegacyMixedIn&Object&Super::nullabilityGetter};
     i = super.{in_::_LegacyMixedIn&Object&Super::nullabilityGetter};
     this.{self::ClassMixedIn::nullabilitySetter} = null;
     super.{in_::_LegacyMixedIn&Object&Super::nullabilitySetter} = null;
@@ -203,15 +203,15 @@ class ClassMixedInQ extends in_::LegacyMixedInQ implements in_2::Super {
     ;
   method test() → dynamic {
     core::int i;
-    this.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityMethod}(null){(core::int?, {j: core::int?}) →* core::int?};
+    this.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityMethod}(null);
     i = super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityMethod}(null);
-    i = this.{in_::LegacyMixedInQ::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = this.{in_::LegacyMixedInQ::optionalArgumentsMethod}(null, null);
     i = super.{in_::_LegacyMixedInQ&Object&SuperQ::optionalArgumentsMethod}(null);
     let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:96:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_::_LegacyMixedInQ&Object&SuperQ::optionalArgumentsMethod}(null, null);
-    i = this.{self::ClassMixedInQ::nullabilityGetter}{core::int};
+    i = this.{self::ClassMixedInQ::nullabilityGetter};
     i = super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityGetter};
     this.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter} = null;
     super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter} = null;

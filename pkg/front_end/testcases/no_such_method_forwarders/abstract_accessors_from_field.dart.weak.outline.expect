@@ -32,9 +32,9 @@ class A extends core::Object implements self::I {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder get foo() → core::int*
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::int*;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder set foo(core::int* value) → void
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 class B extends self::A {
   synthetic constructor •() → self::B*

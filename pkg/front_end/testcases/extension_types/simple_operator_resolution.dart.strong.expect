@@ -43,10 +43,10 @@ extension E on self::A {
 static method E|+(lowered final self::A #this, dynamic other) → dynamic
   return 42;
 static method test(self::A a, self::E e) → dynamic {
-  a.{self::A::*}("foobar"){(dynamic) → dynamic};
-  a.{self::A::[]}(0){(core::int) → dynamic};
-  a.{self::A::[]=}(0, "foobar"){(core::int, dynamic) → void};
-  a.{self::A::unary-}(){() → dynamic};
+  a.{self::A::*}("foobar");
+  a.{self::A::[]}(0);
+  a.{self::A::[]=}(0, "foobar");
+  a.{self::A::unary-}();
   self::E|+(a, "foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:23:5: Error: The operator '*' isn't defined for the extension 'E'.
 Try correcting the operator to an existing operator, or defining a '*' operator.

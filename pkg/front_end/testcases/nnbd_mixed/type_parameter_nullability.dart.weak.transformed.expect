@@ -23,13 +23,13 @@ class C<T extends core::num?, S extends core::Object? = dynamic, U extends core:
 }
 static method main() → dynamic {
   self::C<core::num, core::num, core::num> c = new self::C::•<core::num, core::num, core::num>();
-  c.{self::C::promoteNullable}(null){(core::num?) → void};
-  c.{self::C::promoteNullable}(0){(core::num?) → void};
-  c.{self::C::nullableAsUndetermined}(null){(core::num?) → void};
-  c.{self::C::nullableAsUndetermined}(0){(core::num?) → void};
+  c.{self::C::promoteNullable}(null);
+  c.{self::C::promoteNullable}(0);
+  c.{self::C::nullableAsUndetermined}(null);
+  c.{self::C::nullableAsUndetermined}(0);
   typ::D<core::num> d = new typ::D::•<core::num>();
-  d.{typ::D::promoteLegacy}(null){(core::num*) →* void};
-  d.{typ::D::promoteLegacy}(0){(core::num*) →* void};
+  d.{typ::D::promoteLegacy}(null);
+  d.{typ::D::promoteLegacy}(0);
 }
 
 library;
@@ -42,7 +42,7 @@ class D<T extends core::num*> extends core::Object {
     ;
   method promoteLegacy(generic-covariant-impl typ::D::T* t) → void {
     if(t is core::int*) {
-      let final typ::D::T* & core::int* /* '*' & '*' = '*' */ #t1 = t{typ::D::T* & core::int* /* '*' & '*' = '*' */} in #t1 == null ?{core::bool*} null : #t1.{core::int::isEven}{core::bool*};
+      let final typ::D::T* & core::int* /* '*' & '*' = '*' */ #t1 = t{typ::D::T* & core::int* /* '*' & '*' = '*' */} in #t1.{core::num::==}(null) ?{core::bool*} null : #t1.{core::int::isEven};
     }
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

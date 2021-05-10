@@ -20,7 +20,7 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class M1 extends core::Object {
-  field core::num* v2 = 1.{core::int::unary-}(){() →* core::int*};
+  field core::num* v2 = 1.{core::int::unary-}();
   synthetic constructor •() → self::M1*
     : super core::Object::•()
     ;
@@ -46,10 +46,10 @@ class C = self::A with self::M1 {
 }
 static method main() → dynamic {
   self::C* c = new self::C::•(true, 2);
-  self::expect(true, c.{self::A::v1}{core::bool*});
-  self::expect(1.{core::int::unary-}(){() →* core::int*}, c.{self::C::v2}{core::num*});
+  self::expect(true, c.{self::A::v1});
+  self::expect(1.{core::int::unary-}(), c.{self::C::v2});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }

@@ -14,14 +14,14 @@ class Class<E extends self::Element?> extends core::Object {
     : self::Class::element = element, super core::Object::•()
     ;
   method setElement(generic-covariant-impl self::Class::E? element) → void {
-    if(!(this.{self::Class::element}{self::Class::E?} =={core::Object::==}{(core::Object) → core::bool} element)) {
+    if(!this.{self::Class::element}.{core::Object::==}(element)) {
       this.{self::Class::element} = element;
       core::Set<self::Element> elements = col::LinkedHashSet::•<self::Element>();
-      if(!(element == null)) {
-        elements.{core::Set::add}(element{self::Class::E% & self::Element /* '%' & '!' = '!' */}){(self::Element) → core::bool};
+      if(!element.{core::Object::==}(null)) {
+        elements.{core::Set::add}(element{self::Class::E% & self::Element /* '%' & '!' = '!' */});
       }
-      if(!(this.{self::Class::element}{self::Class::E?} == null)) {
-        elements.{core::Set::add}(this.{self::Class::element}{self::Class::E?}!){(self::Element) → core::bool};
+      if(!this.{self::Class::element}.{core::Object::==}(null)) {
+        elements.{core::Set::add}(this.{self::Class::element}!);
       }
     }
   }

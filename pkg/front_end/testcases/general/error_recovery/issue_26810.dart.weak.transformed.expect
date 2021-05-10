@@ -79,64 +79,64 @@ abstract class Key extends core::Object {
   field core::int* foo;
   field core::int* bar;
   constructor •(core::int* x, core::int* y) → self::Key*
-    : self::Key::foo = x.{core::int::^}(y){(core::int*) →* core::int*}, self::Key::bar = x.{core::int::^}(y){(core::int*) →* core::int*}, super core::Object::•() {
-    core::print("hello ${x.{core::int::^}(y){(core::int*) →* core::int*}}");
+    : self::Key::foo = x.{core::int::^}(y), self::Key::bar = x.{core::int::^}(y), super core::Object::•() {
+    core::print("hello ${x.{core::int::^}(y)}");
   }
   constructor NotDuplicate(core::int* x, core::int* y) → self::Key*
-    : self::Key::foo = x.{core::int::^}(y){(core::int*) →* core::int*}, self::Key::bar = x.{core::int::^}(y){(core::int*) →* core::int*}, super core::Object::•() {
-    core::print("hello ${x.{core::int::^}(y){(core::int*) →* core::int*}}");
+    : self::Key::foo = x.{core::int::^}(y), self::Key::bar = x.{core::int::^}(y), super core::Object::•() {
+    core::print("hello ${x.{core::int::^}(y)}");
   }
   get a() → core::int*
-    return this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}){(core::int*) →* core::int*};
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
   get b() → core::int*
-    return this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}){(core::int*) →* core::int*};
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
   get c() → core::int* {
-    return this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}){(core::int*) →* core::int*};
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
   }
   get d() → core::int* {
-    return this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}){(core::int*) →* core::int*};
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Object::hashCode});
   }
   get e() → core::int*
-    return 1.{core::num::+}(this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}){(core::num*) →* core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
   get f() → core::int*
-    return 1.{core::num::+}(this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}){(core::num*) →* core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
   get g() → core::int* {
-    return 1.{core::num::+}(this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}){(core::num*) →* core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
   }
   get h() → core::int* {
-    return 1.{core::num::+}(this.{self::Key::runtimeType}{core::Type*}.{core::Type::hashCode}{core::int*}){(core::num*) →* core::int*}.{core::int::^}(null.{core::Object::hashCode}{core::int*}.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Object::hashCode}.{core::num::+}(3));
   }
   method i(core::int* x, core::int* y) → core::int*
-    return x.{core::int::^}(y){(core::int*) →* core::int*};
+    return x.{core::int::^}(y);
   method j(core::int* x, core::int* y) → core::int*
-    return x.{core::int::^}(y){(core::int*) →* core::int*};
+    return x.{core::int::^}(y);
   method k(core::int* x, core::int* y) → core::int* {
-    return x.{core::int::^}(y){(core::int*) →* core::int*};
+    return x.{core::int::^}(y);
   }
   method l(core::int* x, core::int* y) → core::int* {
-    return x.{core::int::^}(y){(core::int*) →* core::int*};
+    return x.{core::int::^}(y);
   }
   method m(core::int* x, core::int* y) → core::int* {
-    core::int* z = x.{core::int::^}(y){(core::int*) →* core::int*};
+    core::int* z = x.{core::int::^}(y);
     return z;
   }
   method n(core::int* x, core::int* y) → core::int* {
-    core::int* z = x.{core::int::^}(y){(core::int*) →* core::int*};
+    core::int* z = x.{core::int::^}(y);
     return z;
   }
   method o(core::int* x, core::int* y) → core::int*
-    return 1.{core::num::+}(x){(core::num*) →* core::int*}.{core::int::^}(y.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
   method p(core::int* x, core::int* y) → core::int*
-    return 1.{core::num::+}(x){(core::num*) →* core::int*}.{core::int::^}(y.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
   method q(core::int* x, core::int* y) → core::int* {
-    return 1.{core::num::+}(x){(core::num*) →* core::int*}.{core::int::^}(y.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
   }
   method r(core::int* x, core::int* y) → core::int* {
-    return 1.{core::num::+}(x){(core::num*) →* core::int*}.{core::int::^}(y.{core::num::+}(3){(core::num*) →* core::int*}){(core::int*) →* core::int*};
+    return 1.{core::num::+}(x).{core::int::^}(y.{core::num::+}(3));
   }
   method s(core::int* x, core::int* y) → dynamic {
-    this.{self::Key::s}(x.{core::int::^}(y){(core::int*) →* core::int*}, x.{core::int::^}(y){(core::int*) →* core::int*}){(core::int*, core::int*) →* dynamic};
-    this.{self::Key::s}(x.{core::int::^}(y){(core::int*) →* core::int*}, x.{core::int::^}(y){(core::int*) →* core::int*}){(core::int*, core::int*) →* dynamic};
+    this.{self::Key::s}(x.{core::int::^}(y), x.{core::int::^}(y));
+    this.{self::Key::s}(x.{core::int::^}(y), x.{core::int::^}(y));
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

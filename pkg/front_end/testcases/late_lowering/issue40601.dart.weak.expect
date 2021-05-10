@@ -18,10 +18,10 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
       #value#isSet = true;
       return #value = #t1;
     }
-    () → dynamic result = () → dynamic => this.{self::A::bar}(#value#get(){() → self::A::T%}){(self::A::T%) → dynamic};
+    () → dynamic result = () → dynamic => this.{self::A::bar}(#value#get.call());
     (() → Null {
-      #value#set(this.{self::A::baz}(){() → self::A::T%}){(self::A::T%) → dynamic};
-    })(){() → Null};
+      #value#set.call(this.{self::A::baz}());
+    }).call();
     return result;
   }
 }

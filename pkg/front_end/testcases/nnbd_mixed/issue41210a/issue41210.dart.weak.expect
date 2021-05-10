@@ -33,7 +33,7 @@ class C extends self::_C&Object&A&B {
     ;
 }
 static method main() → dynamic {
-  core::print(new self::C::•().{self::_C&Object&A::method}(){({s: core::String*}) →* core::String*});
+  core::print(new self::C::•().{self::_C&Object&A::method}());
 }
 
 library;

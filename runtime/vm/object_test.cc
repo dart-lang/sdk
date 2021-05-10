@@ -3545,7 +3545,7 @@ TEST_CASE(StackTraceFormat) {
            "#3      _bar (%1$s:16:3)\n"
            "#4      MyClass.field (%1$s:25:5)\n"
            "#5      MyClass.foo.fooHelper (%1$s:30:7)\n"
-           "#6      MyClass.foo (%1$s:32:5)\n"
+           "#6      MyClass.foo (%1$s:32:14)\n"
            "#7      new MyClass.<anonymous closure> (%1$s:21:12)\n"
            "#8      new MyClass (%1$s:21:18)\n"
            "#9      main.<anonymous closure> (%1$s:37:14)\n"

@@ -35,7 +35,7 @@ Try correcting the name to the name of an existing method, or defining a method 
   invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:13:5: Error: Method not found: 'C._staticFoo'.
   C._staticFoo();
     ^^^^^^^^^^";
-  c.{iss::C::foo}(){() →* dynamic};
+  c.{iss::C::foo}();
   iss::C::staticFoo();
   invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:16:5: Error: The method '_bar' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
@@ -53,7 +53,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method foo() → dynamic
-    return this.{iss::C::_foo}(){() →* dynamic};
+    return this.{iss::C::_foo}();
   method _foo() → dynamic {
     try {
       throw "producing a stack trace";

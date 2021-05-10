@@ -19,7 +19,7 @@ class C extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::bool* x = self::f().{self::C::g}(){() →* core::bool*};
+static field core::bool* x = self::f().{self::C::g}();
 static method f() → self::C*
   return null;
 static method main() → dynamic {}

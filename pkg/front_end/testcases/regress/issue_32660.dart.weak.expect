@@ -92,7 +92,7 @@ class E extends self::D {
     ;
   abstract method foo(core::int* x, {core::int* y = #C1}) → dynamic;
   method noSuchMethod(core::Invocation* i) → dynamic {
-    core::print(i.{core::Invocation::namedArguments}{core::Map<core::Symbol*, dynamic>*});
+    core::print(i.{core::Invocation::namedArguments});
     return 42;
   }
 }

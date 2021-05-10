@@ -14,7 +14,7 @@ class C extends core::Object {
     ;
   get p1() → core::num {
     if(!this.{self::C::_#C#p1#isSet}) {
-      this.{self::C::_#C#p1} = this.{self::C::pi}{core::num};
+      this.{self::C::_#C#p1} = this.{self::C::pi};
       this.{self::C::_#C#p1#isSet} = true;
     }
     return let final core::num? #t1 = this.{self::C::_#C#p1} in #t1{core::num};
@@ -25,7 +25,7 @@ class C extends core::Object {
   }
   get p2() → core::num {
     if(!this.{self::C::_#C#p2#isSet}) {
-      final core::num #t3 = this.{self::C::pi}{core::num};
+      final core::num #t3 = this.{self::C::pi};
       if(this.{self::C::_#C#p2#isSet})
         throw new _in::LateError::fieldADI("p2");
       this.{self::C::_#C#p2} = #t3;
@@ -35,10 +35,10 @@ class C extends core::Object {
   }
 }
 static method main() → dynamic {
-  self::expect(3.14, new self::C::•().{self::C::p1}{core::num});
-  self::expect(3.14, new self::C::•().{self::C::p2}{core::num});
+  self::expect(3.14, new self::C::•().{self::C::p1});
+  self::expect(3.14, new self::C::•().{self::C::p2});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }

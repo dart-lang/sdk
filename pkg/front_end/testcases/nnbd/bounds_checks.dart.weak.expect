@@ -86,6 +86,6 @@ static method baz<T extends self::A<core::num?>>() → dynamic {}
 static method hest<T extends core::num>() → void {}
 static method fisk(self::Hest h) → dynamic {
   self::hest<core::num?>();
-  h.{self::Hest::hest}<core::num?>(){() → void};
+  h.{self::Hest::hest}<core::num?>();
 }
 static method main() → dynamic {}

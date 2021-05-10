@@ -24,7 +24,7 @@ class C extends core::Object /*hasConstConstructor*/  {
     : self::C::y = y, super core::Object::•()
     ;
   method fn() → core::int {
-    if(this.{self::C::y}{core::int} =={core::num::==}{(core::Object) → core::bool} 1)
+    if(this.{self::C::y}.{core::num::==}(1))
       return 100;
     return 200;
   }
@@ -71,26 +71,26 @@ static const field core::String fnVal5 = #C7;
 static const field core::String var8 = #C7;
 static const field core::String fnVal6 = #C7;
 static method fn() → core::String
-  return (#C8).{core::Object::toString}(){() → core::String};
+  return (#C8).{core::Object::toString}();
 static method fn2() → core::String
-  return (#C9).{self::B::toString}(){() → core::String};
+  return (#C9).{self::B::toString}();
 static method fn3() → core::int
-  return (#C11).{self::C::fn}(){() → core::int};
+  return (#C11).{self::C::fn}();
 static method fn4() → core::int
-  return (#C13).{self::C::fn}(){() → core::int};
+  return (#C13).{self::C::fn}();
 static method fn5() → core::int
-  return (#C14).{self::D::fn}(){() → core::int};
+  return (#C14).{self::D::fn}();
 static method fn6() → core::int
-  return (#C15).{self::C::fn}(){() → core::int};
+  return (#C15).{self::C::fn}();
 static method fn7() → core::String
-  return (#C16).{self::F::fn}("string"){(core::String) → core::String};
+  return (#C16).{self::F::fn}("string");
 static method fn8() → core::String
-  return (#C17).{self::F::fn}("string"){(core::String) → core::String};
+  return (#C17).{self::F::fn}("string");
 static method main() → void {
-  exp::Expect::equals(#C2, (#C8).{core::Object::toString}(){() → core::String});
-  exp::Expect::equals(#C2, (#C8).{core::Object::toString}(){() → core::String});
-  exp::Expect::equals(#C3, (#C9).{self::B::toString}(){() → core::String});
-  exp::Expect::equals(#C3, (#C9).{self::B::toString}(){() → core::String});
+  exp::Expect::equals(#C2, (#C8).{core::Object::toString}());
+  exp::Expect::equals(#C2, (#C8).{core::Object::toString}());
+  exp::Expect::equals(#C3, (#C9).{self::B::toString}());
+  exp::Expect::equals(#C3, (#C9).{self::B::toString}());
   exp::Expect::equals(#C4, 200);
   exp::Expect::equals(#C5, 100);
   exp::Expect::equals(#C4, 200);

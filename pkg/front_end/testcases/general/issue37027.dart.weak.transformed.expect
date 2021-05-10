@@ -12,8 +12,8 @@ class C extends core::Object {
         core::Iterator<core::int> :sync-for-iterator = ell.{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           core::int e = :sync-for-iterator.{core::Iterator::current};
-          if(e.{core::int::isOdd}{core::bool})
-            #t1.{core::Set::add}(2.{core::num::*}(e){(core::num) → core::int}){(core::int) → core::bool};
+          if(e.{core::int::isOdd})
+            #t1.{core::Set::add}{Invariant}(2.{core::num::*}(e));
         }
       }
     } =>#t1, super core::Object::•()

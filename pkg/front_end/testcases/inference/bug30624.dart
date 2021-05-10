@@ -28,12 +28,12 @@ class C<E> {
 
   void barE([int cmp(E a, E b)]) {
     /*@ typeArgs=C::E* */ foo(
-        this, cmp  == null ? _default : cmp);
+        this, cmp /*@target=Object.==*/ == null ? _default : cmp);
   }
 
   void barF([int cmp(E a, E b)]) {
     /*@ typeArgs=C::E* */ foo(
-        this, cmp  != null ? cmp : _default);
+        this, cmp /*@target=Object.==*/ != null ? cmp : _default);
   }
 
   static int _default(a, b) {

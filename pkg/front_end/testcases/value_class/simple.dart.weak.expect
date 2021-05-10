@@ -58,13 +58,13 @@ static method main() → dynamic {
   self::Animal thirdAnimal = invalid-expression "pkg/front_end/testcases/value_class/simple.dart:15:31: Error: No named parameter with the name 'numberOfLegs'.
   Animal thirdAnimal = Animal(numberOfLegs: 3);
                               ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Animal;
-  self::expect(true, firstAnimal =={core::Object::==}{(core::Object) → core::bool} secondAnimal);
-  self::expect(false, firstAnimal =={core::Object::==}{(core::Object) → core::bool} thirdAnimal);
-  self::expect(true, firstAnimal.{core::Object::hashCode}{core::int} =={core::num::==}{(core::Object) → core::bool} secondAnimal.{core::Object::hashCode}{core::int});
-  self::expect(false, firstAnimal.{core::Object::hashCode}{core::int} =={core::num::==}{(core::Object) → core::bool} thirdAnimal.{core::Object::hashCode}{core::int});
+  self::expect(true, firstAnimal.{core::Object::==}(secondAnimal));
+  self::expect(false, firstAnimal.{core::Object::==}(thirdAnimal));
+  self::expect(true, firstAnimal.{core::Object::hashCode}.{core::num::==}(secondAnimal.{core::Object::hashCode}));
+  self::expect(false, firstAnimal.{core::Object::hashCode}.{core::num::==}(thirdAnimal.{core::Object::hashCode}));
 }
 static method expect(core::Object? expected, core::Object? actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected=${expected}, actual=${actual}";
 }
 
@@ -77,14 +77,14 @@ class JenkinsSmiHash extends core::Object {
     : super core::Object::•()
     ;
   static method combine(core::int hash, core::int value) → core::int {
-    hash = 536870911.{core::int::&}(hash.{core::num::+}(value){(core::num) → core::int}){(core::int) → core::int};
-    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(10){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
-    return hash.{core::int::^}(hash.{core::int::>>}(6){(core::int) → core::int}){(core::int) → core::int};
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
   }
   static method finish(core::int hash) → core::int {
-    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(3){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
-    hash = hash.{core::int::^}(hash.{core::int::>>}(11){(core::int) → core::int}){(core::int) → core::int};
-    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash){(core::int) → core::int}.{core::int::<<}(15){(core::int) → core::int}){(core::num) → core::int}){(core::int) → core::int};
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
   }
 }
 static const field core::String valueClass = #C1;

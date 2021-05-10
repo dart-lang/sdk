@@ -4,7 +4,7 @@ library from "org-dartlang-test:///a.dart" as a {
   import "package:moduleB/b.dart";
 
   static field dart.core::String* foo = c::baz;
-  static field dart.core::int* x = b::mya2.{b::A2::bar}{dart.core::int*};
+  static field dart.core::int* x = b::mya2.{b::A2::bar};
 }
 library from "package:moduleB/b.dart" as b {
 additionalExports = (c::baz,

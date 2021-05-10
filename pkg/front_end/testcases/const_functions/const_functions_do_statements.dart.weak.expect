@@ -12,9 +12,9 @@ static const field core::int var4 = #C4;
 static method fn() → core::int {
   core::int x = 0;
   do {
-    x = x.{core::num::+}(1){(core::num) → core::int};
+    x = x.{core::num::+}(1);
   }
-  while (x.{core::num::<}(2){(core::num) → core::bool})
+  while (x.{core::num::<}(2))
   return x;
 }
 static method fn2(core::int a) → core::int {
@@ -22,12 +22,12 @@ static method fn2(core::int a) → core::int {
   core::int b = 0;
   #L1:
   do {
-    if(x.{core::num::>}(5){(core::num) → core::bool})
+    if(x.{core::num::>}(5))
       break #L1;
-    x = x.{core::num::+}(a){(core::num) → core::int};
-    b = b.{core::num::+}(1){(core::num) → core::int};
+    x = x.{core::num::+}(a);
+    b = b.{core::num::+}(1);
   }
-  while (b.{core::num::<}(2){(core::num) → core::bool})
+  while (b.{core::num::<}(2))
   return x;
 }
 static method fn3() → core::int {
@@ -36,12 +36,12 @@ static method fn3() → core::int {
   do
     #L2:
     {
-      x = x.{core::num::+}(1){(core::num) → core::int};
-      if(x.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 1)
+      x = x.{core::num::+}(1);
+      if(x.{core::num::%}(2).{core::num::==}(1))
         break #L2;
-      b = b.{core::num::+}(x){(core::num) → core::int};
+      b = b.{core::num::+}(x);
     }
-  while (x.{core::num::<}(5){(core::num) → core::bool})
+  while (x.{core::num::<}(5))
   return b;
 }
 static method main() → void {

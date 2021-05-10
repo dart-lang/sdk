@@ -52,7 +52,7 @@ class C extends self::B implements self::A {
 static field core::List<self::A*>* list;
 static method g<T extends self::A*>(self::g::T* t) → core::List<self::g::T*>* {
   self::list = <self::g::T*>[];
-  core::print(self::list.{core::Object::runtimeType}{core::Type*});
+  core::print(self::list.{core::Object::runtimeType});
   return self::list as{TypeError} core::List<self::g::T*>*;
 }
 static method f<S extends core::Object* = dynamic>(self::f::S* s) → core::List<self::f::S*>* {
@@ -64,7 +64,7 @@ static method f<S extends core::Object* = dynamic>(self::f::S* s) → core::List
 }
 static method main() → dynamic {
   self::f<self::B*>(new self::C::•());
-  core::print(self::list.{core::Object::runtimeType}{core::Type*});
+  core::print(self::list.{core::Object::runtimeType});
   core::List<self::A*>* aList;
   aList = self::list;
   core::Object* o = aList;

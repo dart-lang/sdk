@@ -8,7 +8,7 @@ class Class<T extends core::Object* = dynamic> extends core::Object {
     ;
   method method(generic-covariant-impl self::Class::T* o) → dynamic {
     if(o is self::Class<dynamic>*) {
-      o{self::Class::T* & self::Class<dynamic>* /* '*' & '*' = '*' */}.{self::Class::method}(null){(dynamic) →* dynamic};
+      o{self::Class::T* & self::Class<dynamic>* /* '*' & '*' = '*' */}.{self::Class::method}(null);
     }
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -24,10 +24,10 @@ class Class<T extends core::Object* = dynamic> extends core::Object {
 }
 static method method<T extends core::Object* = dynamic>(self::method::T* o) → dynamic {
   if(o is self::Class<dynamic>*) {
-    o{self::method::T* & self::Class<dynamic>* /* '*' & '*' = '*' */}.{self::Class::method}(null){(dynamic) →* dynamic};
+    o{self::method::T* & self::Class<dynamic>* /* '*' & '*' = '*' */}.{self::Class::method}(null);
   }
 }
 static method main() → dynamic {
-  new self::Class::•<dynamic>().{self::Class::method}(new self::Class::•<dynamic>()){(dynamic) →* dynamic};
+  new self::Class::•<dynamic>().{self::Class::method}(new self::Class::•<dynamic>());
   self::method<self::Class<dynamic>*>(new self::Class::•<dynamic>());
 }

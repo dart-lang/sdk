@@ -85,16 +85,16 @@ static field invalid-type E|field1 = null;
 static field core::int* E|field2 = (() → Null {
   invalid-type x = null;
   return null;
-})(){() →* Null};
+}).call();
 static field core::List<invalid-type>* E|field3 = null;
 static field (invalid-type) →* invalid-type E|field4 = null;
 static field (core::List<invalid-type>*) →* core::List<invalid-type>* E|field5 = null;
 static field core::int* E|field6 = (<E extends core::Object* = dynamic>() → Null {
   E* x = null;
   return null;
-})<core::String*>(){() →* Null};
+}).call<core::String*>();
 static field core::int* E|field7 = (<E extends core::Object* = dynamic>() → Null {
   E* x = null;
   return null;
-})<invalid-type>(){() →* Null};
+}).call<invalid-type>();
 static method main() → dynamic {}

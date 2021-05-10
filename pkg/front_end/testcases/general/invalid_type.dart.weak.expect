@@ -25,7 +25,7 @@ class C extends core::Object {
   static method foo() → dynamic {
     invalid-expression "pkg/front_end/testcases/general/invalid_type.dart:7:5: Error: Expected identifier, but got 'this'.
     this.bar();
-    ^^^^"{dynamic}.bar();
+    ^^^^".bar();
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -39,7 +39,7 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  (null as invalid-type){dynamic}.bar();
+  (null as invalid-type).bar();
   invalid-expression "pkg/front_end/testcases/general/invalid_type.dart:13:8: Error: The method 'bar' isn't defined for the class 'Null'.
 Try correcting the name to the name of an existing method, or defining a method named 'bar'.
   null.bar();

@@ -134,9 +134,9 @@ class D<S extends core::Object* = dynamic> extends self::_D&Object&G1<self::D::S
     ;
 }
 static method main() → dynamic {
-  new self::B::•(null).{self::_B&Object&M1&M2::m}(){() →* dynamic};
-  new self::C::•(null).{self::_C&Object&M1&M2::m}(){() →* dynamic};
-  new self::D::•<dynamic>().{self::_D&Object&G1::m}(){() →* dynamic};
-  new self::D::•<core::int*>().{self::_D&Object&G1::m}(){() →* dynamic};
-  new self::D::•<core::List<core::int*>*>().{self::_D&Object&G1::m}(){() →* dynamic};
+  new self::B::•(null).{self::_B&Object&M1&M2::m}();
+  new self::C::•(null).{self::_C&Object&M1&M2::m}();
+  new self::D::•<dynamic>().{self::_D&Object&G1::m}();
+  new self::D::•<core::int*>().{self::_D&Object&G1::m}();
+  new self::D::•<core::List<core::int*>*>().{self::_D&Object&G1::m}();
 }

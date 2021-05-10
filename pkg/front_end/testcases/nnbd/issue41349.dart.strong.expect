@@ -44,16 +44,16 @@ static method main() → dynamic {
   self::testFunction(() → core::int => 53);
 }
 static method testA(self::A? a) → dynamic {
-  self::expect(23, let final self::A? #t1 = a in #t1 == null ?{dynamic} null : #t1{self::A}.{self::A::foo}(){() → dynamic});
+  self::expect(23, let final self::A? #t1 = a in #t1.{core::Object::==}(null) ?{dynamic} null : #t1{self::A}.{self::A::foo}());
   self::expect(42, self::B|foo(a));
-  self::expect(123, let final self::A? #t2 = a in #t2 == null ?{dynamic} null : self::C|bar(#t2{self::A}));
+  self::expect(123, let final self::A? #t2 = a in #t2.{core::Object::==}(null) ?{dynamic} null : self::C|bar(#t2{self::A}));
   self::expect(87, self::B|bar(a));
 }
 static method testFunction(() →? core::int f) → dynamic {
-  self::expect(53, let final () →? core::int #t3 = f in #t3 == null ?{core::int?} null : #t3{() → core::int}(){() → core::int});
+  self::expect(53, let final () →? core::int #t3 = f in #t3.{core::Object::==}(null) ?{core::int?} null : #t3{() → core::int}.call());
   self::expect(76, self::D|call(f));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }

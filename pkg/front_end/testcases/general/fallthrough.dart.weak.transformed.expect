@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main(core::List<core::String*>* args) → void {
-  core::int* x = args.{core::List::length}{core::int*};
+  core::int* x = args.{core::List::length};
   #L1:
   switch(x) {
     #L2:
@@ -32,7 +32,7 @@ static method main(core::List<core::String*>* args) → void {
     case #C3:
     case #C4:
       {
-        if(args.{core::List::[]}(0){(core::int*) →* core::String*} =={core::String::==}{(core::Object*) →* core::bool*} "") {
+        if(args.{core::List::[]}(0).{core::String::==}("")) {
           break #L1;
         }
         else {

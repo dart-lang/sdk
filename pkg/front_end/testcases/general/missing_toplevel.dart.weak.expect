@@ -112,8 +112,8 @@ static field dynamic missingIndexGet = let final self::ClassWithIndexSet* #t2 = 
  - 'ClassWithIndexSet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.
 var missingIndexGet = classWithIndexSet[0] ??= 2;
-                                       ^" in #t4 == null ?{dynamic} let final core::int* #t5 = 2 in let final void #t6 = #t2.{self::ClassWithIndexSet::[]=}(#t3, #t5){(core::int*, core::int*) →* void} in #t5 : #t4;
-static field core::int* missingIndexSet = let final self::ClassWithIndexGet* #t7 = self::classWithIndexGet in let final core::int* #t8 = 0 in let final core::int* #t9 = #t7.{self::ClassWithIndexGet::[]}(#t8){(core::int*) →* core::int*} in #t9 == null ?{core::int*} let final core::int* #t10 = 2 in let final void #t11 = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:29:40: Error: The operator '[]=' isn't defined for the class 'ClassWithIndexGet'.
+                                       ^" in #t4.{core::Object::==}(null) ?{dynamic} let final core::int* #t5 = 2 in let final void #t6 = #t2.{self::ClassWithIndexSet::[]=}(#t3, #t5) in #t5 : #t4;
+static field core::int* missingIndexSet = let final self::ClassWithIndexGet* #t7 = self::classWithIndexGet in let final core::int* #t8 = 0 in let final core::int* #t9 = #t7.{self::ClassWithIndexGet::[]}(#t8) in #t9.{core::num::==}(null) ?{core::int*} let final core::int* #t10 = 2 in let final void #t11 = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:29:40: Error: The operator '[]=' isn't defined for the class 'ClassWithIndexGet'.
  - 'ClassWithIndexGet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 Try correcting the operator to an existing operator, or defining a '[]=' operator.
 var missingIndexSet = classWithIndexGet[0] ??= 2;

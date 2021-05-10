@@ -8,11 +8,11 @@ abstract class TestMixin<R extends core::Object* = dynamic, T extends core::Obje
     final self::TestMixin::R* response = await fetch;
     self::TestMixin::T* result;
     if(response is self::Response<dynamic>*) {
-      result = response{self::TestMixin::R* & self::Response<dynamic>* /* '*' & '*' = '*' */}.{self::Response::data}{dynamic} as{TypeError,ForDynamic} self::TestMixin::T*;
+      result = response{self::TestMixin::R* & self::Response<dynamic>* /* '*' & '*' = '*' */}.{self::Response::data} as{TypeError,ForDynamic} self::TestMixin::T*;
     }
     else
       if(response is self::PagingResponse<dynamic>*) {
-        result = response{self::TestMixin::R* & self::PagingResponse<dynamic>* /* '*' & '*' = '*' */}.{self::PagingResponse::data}{self::PagingResponseData<dynamic>*}.{self::PagingResponseData::data}{core::List<dynamic>*} as self::TestMixin::T*;
+        result = response{self::TestMixin::R* & self::PagingResponse<dynamic>* /* '*' & '*' = '*' */}.{self::PagingResponse::data}.{self::PagingResponseData::data} as self::TestMixin::T*;
       }
       else
         if(response is self::TestMixin::T*) {
@@ -105,7 +105,7 @@ class Class1 extends self::_Class1&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::Response<core::String*>* response = new self::Response::•<core::String*>("test");
-    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String*>*>(response)){(asy::Future<self::Response<core::String*>*>*) →* asy::Future<core::String*>*};
+    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String*>*>(response));
   }
 }
 abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String*>*, core::String*> /*isAnonymousMixin,hasConstConstructor*/  {
@@ -131,7 +131,7 @@ class Class2 extends self::_Class2&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::PagingResponse<core::String*>* response = new self::PagingResponse::•<core::String*>(new self::PagingResponseData::•<core::String*>(<core::String*>["test"]));
-    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String*>*>(response)){(asy::Future<self::PagingResponse<core::String*>*>*) →* asy::Future<core::String*>*};
+    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String*>*>(response));
   }
 }
 static method main() → dynamic {}

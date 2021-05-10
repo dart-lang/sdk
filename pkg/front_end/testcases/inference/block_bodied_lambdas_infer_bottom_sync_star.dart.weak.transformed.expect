@@ -20,7 +20,7 @@ static method main() → dynamic {
     }
     return new core::_SyncIterable::•<Null>(:sync_op_gen);
   };
-  core::Iterable<dynamic>* y = f(){() →* core::Iterable<Null>*};
-  core::Iterable<core::String*>* z = f(){() →* core::Iterable<Null>*};
-  core::String* s = f(){() →* core::Iterable<Null>*}.{core::Iterable::first}{Null};
+  core::Iterable<dynamic>* y = f.call();
+  core::Iterable<core::String*>* z = f.call();
+  core::String* s = f.call().{core::Iterable::first};
 }

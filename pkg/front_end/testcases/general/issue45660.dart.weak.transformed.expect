@@ -12,7 +12,7 @@ import "dart:core" as core;
 
 static field <T extends core::num* = dynamic>(T*) →* T* extendsNumReturnArg = <S extends core::num*>(S* s) → S* => s;
 static method functionInvocations() → dynamic {
-  self::extendsNumReturnArg<Null>(null){(Null) →* Null};
-  self::extendsNumReturnArg<core::String*>(""){(core::String*) →* core::String*};
+  self::extendsNumReturnArg.call<Null>(null);
+  self::extendsNumReturnArg.call<core::String*>("");
 }
 static method main() → dynamic {}

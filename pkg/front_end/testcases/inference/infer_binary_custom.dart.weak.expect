@@ -21,8 +21,8 @@ class A extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::int* v_add = new self::A::•().{self::A::+}("foo"){(dynamic) →* core::int*};
-static field core::double* v_minus = new self::A::•().{self::A::-}("bar"){(dynamic) →* core::double*};
+static field core::int* v_add = new self::A::•().{self::A::+}("foo");
+static field core::double* v_minus = new self::A::•().{self::A::-}("bar");
 static method main() → dynamic {
   self::v_add;
   self::v_minus;

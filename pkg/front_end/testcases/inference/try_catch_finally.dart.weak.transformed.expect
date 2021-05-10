@@ -51,7 +51,7 @@ static method test(() →* void f) → void {
   try
     try {
       core::int* x = 0;
-      f(){() →* void};
+      f.call();
     }
     on self::C* catch(no-exception-var) {
       core::int* x = 0;

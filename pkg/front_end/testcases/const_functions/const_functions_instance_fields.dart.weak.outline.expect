@@ -24,7 +24,7 @@ class C extends self::A /*hasConstConstructor*/  {
 }
 static const field core::int var1 = self::fn();
 static const field core::int var2 = self::fn2();
-static const field core::int var3 = const self::A::•(1).{self::A::y}{core::int};
+static const field core::int var3 = const self::A::•(1).{self::A::y};
 static const field core::int var4 = self::fn4();
 static const field core::int var5 = self::fn5();
 static method fn() → core::int
