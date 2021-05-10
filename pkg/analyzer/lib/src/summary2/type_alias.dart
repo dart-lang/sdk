@@ -11,7 +11,7 @@ class TypeAliasSelfReferenceFinder {
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
       for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit!.declarations) {
+        for (var node in unitContext.unit.declarations) {
           if (node is FunctionTypeAlias) {
             var finder = _Finder(node);
             finder.functionTypeAlias(node);
@@ -86,8 +86,10 @@ class _Finder {
 
     if (node is TypeName) {
       var element = node.name.staticElement;
+      // TODO(scheglov) We have `linkedContext` only during linking.
       if (element is ElementImpl &&
           element.enclosingElement != null &&
+          element.linkedContext != null &&
           element.linkedContext!.isLinking) {
         var typeNode = element.linkedNode;
         if (typeNode == self) {

@@ -23,12 +23,13 @@ import 'package:analyzer/src/summary2/variance_builder.dart';
 var timerLinkingLinkingBundle = Stopwatch();
 var timerLinkingRemoveBundle = Stopwatch();
 
+/// TODO(scheglov) deprecate `withInformative`.
 LinkResult link(
   LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-  bool withInformative,
-) {
-  var linker = Linker(elementFactory, withInformative);
+  List<LinkInputLibrary> inputLibraries, [
+  bool? withInformative,
+]) {
+  var linker = Linker(elementFactory);
   linker.link(inputLibraries);
   return LinkResult(
     astBytes: linker.astBytes,
@@ -38,18 +39,16 @@ LinkResult link(
 
 class Linker {
   final LinkedElementFactory elementFactory;
-  final bool withInformative;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
   late InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
-  late BundleWriter bundleWriter;
   late Uint8List astBytes;
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory, this.withInformative);
+  Linker(this.elementFactory);
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -62,12 +61,6 @@ class Linker {
   Reference get rootReference => elementFactory.rootReference;
 
   void link(List<LinkInputLibrary> inputLibraries) {
-    bundleWriter = BundleWriter(
-      withInformative,
-      elementFactory.dynamicRef,
-    );
-    _writeAst(inputLibraries);
-
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
     }
@@ -75,7 +68,7 @@ class Linker {
     _buildOutlines();
 
     timerLinkingLinkingBundle.start();
-    _writeResolution();
+    _writeLibraries();
     timerLinkingLinkingBundle.stop();
 
     timerLinkingRemoveBundle.start();
@@ -215,35 +208,15 @@ class Linker {
     TypesBuilder().build(nodesToBuildType);
   }
 
-  void _writeAst(List<LinkInputLibrary> inputLibraries) {
-    for (var inputLibrary in inputLibraries) {
-      bundleWriter.addLibraryAst(
-        LibraryToWriteAst(
-          units: inputLibrary.units.map((e) {
-            return UnitToWriteAst(
-              node: e.unit,
-            );
-          }).toList(),
-        ),
-      );
-    }
-  }
+  void _writeLibraries() {
+    var bundleWriter = BundleWriter(
+      elementFactory.dynamicRef,
+    );
 
-  void _writeResolution() {
     for (var builder in builders.values) {
-      bundleWriter.addLibraryResolution(
-        LibraryToWriteResolution(
-          uriStr: '${builder.uri}',
-          exports: builder.exports,
-          units: builder.context.units.map((e) {
-            return UnitToWriteResolution(
-              uriStr: e.uriStr,
-              partUriStr: e.partUriStr,
-              node: e.unit!,
-              isSynthetic: e.isSynthetic,
-            );
-          }).toList(),
-        ),
+      bundleWriter.writeLibraryElement(
+        builder.element,
+        builder.exports,
       );
     }
 

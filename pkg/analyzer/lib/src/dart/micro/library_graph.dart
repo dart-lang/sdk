@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -87,6 +88,7 @@ class FileState {
   late bool _exists;
   late List<int> _apiSignature;
   late UnlinkedUnit2 unlinked2;
+  Uint8List? informativeBytes;
   LibraryCycle? _libraryCycle;
 
   /// id of the cache entry.
@@ -242,6 +244,8 @@ class FileState {
           performance.getDataInt('length').add(content.length);
           return parse(AnalysisErrorListener.NULL_LISTENER, content);
         });
+
+        informativeBytes = writeUnitInformative(unit);
 
         performance.run('unlinked', (performance) {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
@@ -775,10 +779,6 @@ class LibraryCycle {
 
   /// The hash of all the paths of the files in this cycle.
   late String cyclePathsHash;
-
-  /// The ID of the ast cache entry.
-  /// It is `null` if we failed to load libraries of the cycle.
-  int? astId;
 
   /// The ID of the resolution cache entry.
   /// It is `null` if we failed to load libraries of the cycle.

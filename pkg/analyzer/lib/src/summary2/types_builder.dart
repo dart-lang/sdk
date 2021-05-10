@@ -367,6 +367,7 @@ class _MixinsInference {
       _MixinInference(element, featureSet).perform(withClause);
     } finally {
       element.linkedMixinInferenceCallback = null;
+      element.resetAfterMixinInference();
     }
   }
 

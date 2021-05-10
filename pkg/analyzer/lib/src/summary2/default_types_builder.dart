@@ -241,21 +241,23 @@ class DefaultTypesBuilder {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
               var parameterImpl = parameter as TypeParameterElementImpl;
-              var parameterNode = parameterImpl.linkedNode as TypeParameter;
+              var parameterNode = parameterImpl.linkedNode;
               // TODO(scheglov) How to we skip already linked?
-              var bound = parameterNode.bound;
-              if (bound != null) {
-                var tails = _findRawTypePathsToDeclaration(
-                  parameterNode,
-                  bound.typeOrThrow,
-                  end,
-                  visited,
-                );
-                for (var tail in tails) {
-                  paths.add(<_CycleElement>[
-                    _CycleElement(startParameter, startType),
-                    ...tail,
-                  ]);
+              if (parameterNode is TypeParameter) {
+                var bound = parameterNode.bound;
+                if (bound != null) {
+                  var tails = _findRawTypePathsToDeclaration(
+                    parameterNode,
+                    bound.typeOrThrow,
+                    end,
+                    visited,
+                  );
+                  for (var tail in tails) {
+                    paths.add(<_CycleElement>[
+                      _CycleElement(startParameter, startType),
+                      ...tail,
+                    ]);
+                  }
                 }
               }
             }

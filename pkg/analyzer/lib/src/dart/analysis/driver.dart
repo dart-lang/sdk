@@ -80,7 +80,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 135;
+  static const int DATA_VERSION = 136;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -1581,7 +1581,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             analysisOptions as AnalysisOptionsImpl,
             declaredVariables,
             sourceFactory,
-            libraryContext.isLibraryUri,
             libraryContext.analysisContext,
             libraryContext.elementFactory.libraryOfUri2(library.uriStr),
             libraryContext.analysisSession.inheritanceManager,
@@ -1671,7 +1670,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           analysisOptions as AnalysisOptionsImpl,
           declaredVariables,
           sourceFactory,
-          libraryContext.isLibraryUri,
           libraryContext.analysisContext,
           libraryContext.elementFactory.libraryOfUri2(library.uriStr),
           libraryContext.analysisSession.inheritanceManager,

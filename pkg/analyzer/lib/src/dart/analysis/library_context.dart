@@ -89,12 +89,6 @@ class LibraryContext {
     return elementFactory.libraryOfUri2('$uri');
   }
 
-  /// Return `true` if the given [uri] is known to be a library.
-  bool isLibraryUri(Uri uri) {
-    String uriStr = uri.toString();
-    return elementFactory.isLibraryUri(uriStr);
-  }
-
   /// Load data required to access elements of the given [targetLibrary].
   void load2(FileState targetLibrary) {
     timerLoad2.start();
@@ -122,12 +116,10 @@ class LibraryContext {
         (e) => loadBundle(e, '$debugPrefix  '),
       );
 
-      var uriToLibrary_uriToUnitAstBytes = <String, Map<String, Uint8List>>{};
+      var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
-        var uriToUnitAstBytes = <String, Uint8List>{};
-        uriToLibrary_uriToUnitAstBytes[library.uriStr] = uriToUnitAstBytes;
         for (var file in library.libraryFiles) {
-          uriToUnitAstBytes[file.uriStr] = file.getAstBytes();
+          unitsInformativeBytes[file.uri] = file.getAstBytes();
         }
       }
 
@@ -237,11 +229,11 @@ class LibraryContext {
         librariesLoaded += cycle.libraries.length;
       }
 
-      elementFactory.addLibraries(
-        createLibraryReadersWithAstBytes(
+      elementFactory.addBundle(
+        BundleReader(
           elementFactory: elementFactory,
+          unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: resolutionBytes,
-          uriToLibrary_uriToUnitAstBytes: uriToLibrary_uriToUnitAstBytes,
         ),
       );
     }
@@ -287,8 +279,8 @@ class LibraryContext {
         elementFactory.addBundle(
           BundleReader(
             elementFactory: elementFactory,
-            astBytes: bundle.astBytes,
             resolutionBytes: bundle.resolutionBytes,
+            unitsInformativeBytes: {},
           ),
         );
       }
