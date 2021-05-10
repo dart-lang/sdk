@@ -47,41 +47,14 @@ class ConstructorInitializerResolver {
       constructorElement,
     );
 
-    _astResolver = AstResolver(_linker, _unitElement, initializerScope);
+    _astResolver = AstResolver(
+        _linker, _unitElement, initializerScope, _constructorNode,
+        enclosingClassElement: _classElement,
+        enclosingExecutableElement: _constructorElement);
 
     var body = _constructorNode.body;
     body.localVariableInfo = LocalVariableInfo();
 
-    _initializers();
-    _redirectedConstructor();
-  }
-
-  void _initializers() {
-    var isConst = _constructorNode.constKeyword != null;
-    if (!isConst) {
-      return;
-    }
-
-    for (var initializer in _constructorNode.initializers) {
-      _astResolver.resolve(
-        initializer,
-        () => initializer,
-        enclosingClassElement: _classElement,
-        enclosingExecutableElement: _constructorElement,
-        enclosingFunctionBody: _constructorNode.body,
-      );
-    }
-  }
-
-  void _redirectedConstructor() {
-    var redirected = _constructorNode.redirectedConstructor;
-    if (redirected != null) {
-      _astResolver.resolve(
-        redirected,
-        () => redirected,
-        enclosingClassElement: _classElement,
-        enclosingExecutableElement: _constructorElement,
-      );
-    }
+    _astResolver.resolveConstructorNode(_constructorNode);
   }
 }

@@ -222,11 +222,11 @@ class FlowAnalysisHelper {
     flow!.labeledStatement_end();
   }
 
-  void topLevelDeclaration_enter(
-      AstNode node, FormalParameterList? parameters) {
+  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
+      {void Function(AstVisitor<Object?> visitor)? visit}) {
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters,
-        retainDataForTesting: dataForTesting != null);
+        retainDataForTesting: dataForTesting != null, visit: visit);
     if (dataForTesting != null) {
       dataForTesting!.assignedVariables[node] = assignedVariables
           as AssignedVariablesForTesting<AstNode, PromotableElement>;
@@ -276,14 +276,19 @@ class FlowAnalysisHelper {
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
       AstNode node, FormalParameterList? parameters,
-      {bool retainDataForTesting = false}) {
+      {bool retainDataForTesting = false,
+      void Function(AstVisitor<Object?> visitor)? visit}) {
     AssignedVariables<AstNode, PromotableElement> assignedVariables =
         retainDataForTesting
             ? AssignedVariablesForTesting()
             : AssignedVariables();
     var assignedVariablesVisitor = _AssignedVariablesVisitor(assignedVariables);
     assignedVariablesVisitor._declareParameters(parameters);
-    node.visitChildren(assignedVariablesVisitor);
+    if (visit != null) {
+      visit(assignedVariablesVisitor);
+    } else {
+      node.visitChildren(assignedVariablesVisitor);
+    }
     assignedVariables.finish();
     return assignedVariables;
   }
@@ -344,9 +349,9 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
       : super(typeSystem, false, isNonNullableByDefault);
 
   @override
-  void topLevelDeclaration_enter(
-      AstNode node, FormalParameterList? parameters) {
-    super.topLevelDeclaration_enter(node, parameters);
+  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
+      {void Function(AstVisitor<Object?> visitor)? visit}) {
+    super.topLevelDeclaration_enter(node, parameters, visit: visit);
     migrationResolutionHooks.setFlowAnalysis(flow);
   }
 

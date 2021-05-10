@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -85,15 +84,10 @@ class ConstantInitializersResolver {
     if (typeNode != null) {
       if (declarationList.isConst ||
           declarationList.isFinal && _enclosingClassHasConstConstructor) {
-        var astResolver = AstResolver(linker, _unitElement, _scope);
-        astResolver.resolve(
-          variable.initializer!,
-          () {
-            InferenceContext.setType(variable.initializer, typeNode.type);
-            return variable.initializer!;
-          },
-          isTopLevelVariableInitializer: true,
-        );
+        var astResolver =
+            AstResolver(linker, _unitElement, _scope, variable.initializer!);
+        astResolver.resolveExpression(() => variable.initializer!,
+            contextType: typeNode.type);
       }
     }
   }
@@ -440,12 +434,9 @@ class _VariableInferenceNode extends _InferenceNode {
   }
 
   void _resolveInitializer({required bool forDependencies}) {
-    var astResolver = AstResolver(_walker._linker, _unitElement, _scope);
-    astResolver.resolve(
-      _node.initializer!,
-      () => _node.initializer!,
-      buildElements: forDependencies,
-      isTopLevelVariableInitializer: true,
-    );
+    var astResolver =
+        AstResolver(_walker._linker, _unitElement, _scope, _node.initializer!);
+    astResolver.resolveExpression(() => _node.initializer!,
+        buildElements: forDependencies);
   }
 }

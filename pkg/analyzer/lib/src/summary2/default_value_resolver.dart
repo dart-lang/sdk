@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/resolver.dart' show InferenceContext;
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
@@ -21,8 +20,6 @@ class DefaultValueResolver {
   ClassElement? _classElement;
   late ExecutableElement _executableElement;
   late Scope _scope;
-
-  AstResolver? _astResolver;
 
   DefaultValueResolver(this._linker, this._libraryElement)
       : _typeSystem = _libraryElement.typeSystem;
@@ -67,7 +64,6 @@ class DefaultValueResolver {
   void _constructor(ConstructorElementImpl element) {
     if (element.isSynthetic) return;
 
-    _astResolver = null;
     _executableElement = element;
     _setScopeFromElement(element);
 
@@ -82,7 +78,6 @@ class DefaultValueResolver {
   }
 
   void _function(FunctionElement element) {
-    _astResolver = null;
     _executableElement = element;
     _setScopeFromElement(element);
 
@@ -90,7 +85,6 @@ class DefaultValueResolver {
   }
 
   void _method(MethodElementImpl element) {
-    _astResolver = null;
     _executableElement = element;
     _setScopeFromElement(element);
 
@@ -108,19 +102,12 @@ class DefaultValueResolver {
 
     var contextType = _typeSystem.eliminateTypeVariables(parameter.type);
 
-    var astResolver =
-        _astResolver ??= AstResolver(_linker, _unitElement, _scope);
-    astResolver.resolve(
-      node.defaultValue!,
-      () {
-        var defaultValue = node.defaultValue!;
-        InferenceContext.setType(defaultValue, contextType);
-        return defaultValue;
-      },
-      enclosingClassElement: _classElement,
-      enclosingExecutableElement: _executableElement,
-      isTopLevelVariableInitializer: true,
-    );
+    var astResolver = AstResolver(
+        _linker, _unitElement, _scope, node.defaultValue!,
+        enclosingClassElement: _classElement,
+        enclosingExecutableElement: _executableElement);
+    astResolver.resolveExpression(() => node.defaultValue!,
+        contextType: contextType);
   }
 
   void _parameters(List<ParameterElement> parameters) {
