@@ -6,7 +6,7 @@
 
 class A
 //    ^
-// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'A' is a supertype of itself.
     extends A
 {
