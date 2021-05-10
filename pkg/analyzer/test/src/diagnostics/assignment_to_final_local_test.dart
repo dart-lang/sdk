@@ -60,6 +60,30 @@ f(final x) {
     ]);
   }
 
+  /// See `10.6.1 Generative Constructors`.
+  ///
+  /// Each initializing formal in the formal parameter list introduces a final
+  /// local variable into the formal parameter initializer scope, but not into
+  /// the formal parameter scope; every other formal parameter introduces a
+  /// local variable into both the formal parameter scope and the formal
+  /// parameter initializer scope.
+  ///
+  /// Note that it says 'final local variable', regardless whether the instance
+  /// variable is final.
+  test_parameter_fieldFormal() async {
+    await assertErrorsInCode('''
+class A {
+  int x;
+  final Object y;
+  A(this.x) : y = (() {
+    x = 0;
+  });
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 65, 1),
+    ]);
+  }
+
   test_postfixMinusMinus() async {
     await assertErrorsInCode('''
 f() {

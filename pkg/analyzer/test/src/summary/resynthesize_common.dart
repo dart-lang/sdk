@@ -375,13 +375,13 @@ class alias MixinApp extends Base with M {
   synthetic MixinApp.positionalArg([bool x = true]) : super.
         positionalArg/*location: a.dart;Base;positionalArg*/(
         x/*location: test.dart;MixinApp;positionalArg;x*/);
-  synthetic MixinApp.positionalArg2([bool x = true]) : super.
+  synthetic MixinApp.positionalArg2([final bool x = true]) : super.
         positionalArg2/*location: a.dart;Base;positionalArg2*/(
         x/*location: test.dart;MixinApp;positionalArg2;x*/);
   synthetic MixinApp.namedArg({int x: 42}) : super.
         namedArg/*location: a.dart;Base;namedArg*/(
         x/*location: test.dart;MixinApp;namedArg;x*/);
-  synthetic MixinApp.namedArg2({bool x: true}) : super.
+  synthetic MixinApp.namedArg2({final bool x: true}) : super.
         namedArg2/*location: a.dart;Base;namedArg2*/(
         x/*location: test.dart;MixinApp;namedArg2;x*/);
 }
@@ -528,7 +528,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -538,7 +538,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -548,7 +548,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -563,7 +563,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic Function(double) this.x/*(double b)*/);
+  C(final dynamic Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -578,7 +578,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int Function(double) this.x/*(double b)*/);
+  C(final int Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -593,7 +593,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic Function() f;
-  C(List<U> Function<T, U>(T) this.f/*(T t)*/);
+  C(final List<U> Function<T, U>(T) this.f/*(T t)*/);
 }
 ''');
   }
@@ -606,7 +606,7 @@ class C {
 class C {
   int x;
   String x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -617,7 +617,7 @@ class C {
         await checkLibrary('class C { C(this.x); }', allowErrors: true);
     checkElementText(library, r'''
 class C {
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -628,7 +628,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -638,7 +638,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -648,7 +648,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(num this.x);
+  C(final num this.x);
 }
 ''');
   }
@@ -658,7 +658,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -668,7 +668,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -678,7 +678,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -688,7 +688,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x});
+  C({final int this.x});
 }
 ''');
   }
@@ -698,7 +698,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x: 42});
+  C({final int this.x: 42});
 }
 ''');
   }
@@ -708,7 +708,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x]);
+  C([final int this.x]);
 }
 ''');
   }
@@ -718,7 +718,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x = 42]);
+  C([final int this.x = 42]);
 }
 ''');
   }
@@ -2992,8 +2992,8 @@ const Object y = const C.named(0);
     checkElementText(library, '''
 class C<T> {
   final T t;
-  const C(T this.t);
-  const C.named(T this.t);
+  const C(final T this.t);
+  const C.named(final T this.t);
 }
 const Object x = const
         C/*location: test.dart;C*/(0);
@@ -3871,7 +3871,7 @@ int foo() => 42;
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x:
+  const C({final dynamic this.x:
         foo/*location: test.dart;foo*/});
 }
 int foo() {}
@@ -3888,7 +3888,7 @@ class C {
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x: 1 + 2});
+  const C({final dynamic this.x: 1 + 2});
 }
 ''');
   }
@@ -3903,7 +3903,7 @@ class C {
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C([dynamic this.x = 1 + 2]);
+  const C([final dynamic this.x = 1 + 2]);
 }
 ''');
   }
@@ -5853,7 +5853,7 @@ class X {
 typedef F<T> = void Function(T v);
 class X {
   final void Function(dynamic) f;
-  const X({void Function(dynamic) this.f:
+  const X({final void Function(dynamic) this.f:
         defaultF/*location: test.dart;defaultF*/});
 }
 void defaultF<T>(T v) {}
@@ -7030,7 +7030,7 @@ class C {
     checkElementText(library, r'''
 class C extends D {
   int v;
-  C(int this.v);
+  C(final int this.v);
 }
 abstract class D {
   int get v;
@@ -7905,7 +7905,7 @@ const x = C.named(42);
     checkElementText(library, r'''
 class C {
   final Object x;
-  const C.named(Object this.x);
+  const C.named(final Object this.x);
 }
 const C x =
         C/*location: test.dart;C*/.
@@ -9295,7 +9295,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int foo;
-  void set bar(dynamic this.foo) {}
+  void set bar(final dynamic this.foo) {}
 }
 ''');
   }
@@ -9308,7 +9308,7 @@ class C {
 ''');
     checkElementText(library, r'''
 class C {
-  void set x(dynamic this.x) {}
+  void set x(final dynamic this.x) {}
 }
 ''');
   }
@@ -10544,7 +10544,7 @@ enum E {
 }
 class A {
   final dynamic value;
-  const A(dynamic this.value);
+  const A(final dynamic this.value);
 }
 ''',
         withFullyResolvedAst: true);
@@ -10688,7 +10688,7 @@ class C {
 class C {
   dynamic x;
   C(@
-        a/*location: test.dart;a?*/ dynamic this.x);
+        a/*location: test.dart;a?*/ final dynamic this.x);
 }
 const dynamic a = null;
 ''');
@@ -10701,7 +10701,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x = null]);
+        a/*location: test.dart;a?*/ final dynamic this.x = null]);
 }
 const dynamic a = null;
 ''');
@@ -12132,8 +12132,8 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C.positional([dynamic this.x = 1]);
-  C.named({dynamic this.x: 1});
+  C.positional([final dynamic this.x = 1]);
+  C.named({final dynamic this.x: 1});
 }
 ''');
   }
@@ -12540,7 +12540,7 @@ class B {
     checkElementText(library, r'''
 class A<T> {
   T value;
-  A(T this.value);
+  A(final T this.value);
 }
 class B {
   A<String> a;
@@ -12558,7 +12558,7 @@ class A<T> {
     checkElementText(library, r'''
 class A<T> {
   int f;
-  A(int this.f);
+  A(final int this.f);
 }
 ''');
   }
@@ -12645,7 +12645,7 @@ class B extends A {
 }
 class C<T extends A = A> {
   final T f;
-  const C(T this.f);
+  const C(final T this.f);
 }
 final B b;
 final C<B> c;

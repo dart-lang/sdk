@@ -4275,6 +4275,15 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
     _field = field;
   }
 
+  /// Initializing formals are visible only in the "formal parameter
+  /// initializer scope", which is the current scope of the initializer list
+  /// of the constructor, and which is enclosed in the scope where the
+  /// constructor is declared. And according to the specification, they
+  /// introduce final local variables, always, regardless whether the field
+  /// is final.
+  @override
+  bool get isFinal => true;
+
   @override
   bool get isInitializingFormal => true;
 
