@@ -37,6 +37,7 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
         'description': rule.description,
         'group': rule.group.name,
         'maturity': rule.maturity.name,
+        'incompatible': rule.incompatibleRules,
         'sets': [
           if (flutterRules.contains(rule.name)) 'flutter',
           if (pedanticRules.contains(rule.name)) 'pedantic',
