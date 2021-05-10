@@ -122,6 +122,9 @@ features:
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
 
+  constructor-tearoffs:
+    help: "Allow constructor tear-offs and explicit generic instantiations."
+
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
