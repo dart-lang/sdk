@@ -25,6 +25,7 @@
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
+
 namespace dart {
 
 class AbstractType;
@@ -231,6 +232,14 @@ class Thread;
 enum class ValidationPolicy {
   kValidateFrames = 0,
   kDontValidateFrames = 1,
+};
+
+enum class RuntimeCallDeoptAbility {
+  // There was no leaf call or a leaf call that can cause deoptimization
+  // after-call.
+  kCanLazyDeopt,
+  // There was a leaf call and the VM cannot cause deoptimize after-call.
+  kCannotLazyDeopt,
 };
 
 // A VM thread; may be executing Dart code or performing helper tasks like
@@ -1025,6 +1034,8 @@ class Thread : public ThreadState {
   uint32_t runtime_call_count_ = 0;
 
   // Deoptimization of stack frames.
+  RuntimeCallDeoptAbility runtime_call_deopt_ability_ =
+      RuntimeCallDeoptAbility::kCanLazyDeopt;
   PendingDeopts pending_deopts_;
 
   // Compiler state:
@@ -1116,10 +1127,31 @@ class Thread : public ThreadState {
   friend class CompilerState;
   friend class compiler::target::Thread;
   friend class FieldTable;
+  friend class RuntimeCallDeoptScope;
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
                                                    const char*,
                                                    char**);
   DISALLOW_COPY_AND_ASSIGN(Thread);
+};
+
+class RuntimeCallDeoptScope : public StackResource {
+ public:
+  RuntimeCallDeoptScope(Thread* thread, RuntimeCallDeoptAbility kind)
+      : StackResource(thread) {
+    // We cannot have nested calls into the VM without deopt support.
+    ASSERT(thread->runtime_call_deopt_ability_ ==
+           RuntimeCallDeoptAbility::kCanLazyDeopt);
+    thread->runtime_call_deopt_ability_ = kind;
+  }
+  virtual ~RuntimeCallDeoptScope() {
+    thread()->runtime_call_deopt_ability_ =
+        RuntimeCallDeoptAbility::kCanLazyDeopt;
+  }
+
+ private:
+  Thread* thread() {
+    return reinterpret_cast<Thread*>(StackResource::thread());
+  }
 };
 
 #if defined(HOST_OS_WINDOWS)

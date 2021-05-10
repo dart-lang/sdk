@@ -94,7 +94,7 @@ class RuntimeEntry : public BaseRuntimeEntry {
 
 // Helper macros for declaring and defining runtime entries.
 
-#define DEFINE_RUNTIME_ENTRY(name, argument_count)                             \
+#define DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, can_lazy_deopt)        \
   extern void DRT_##name(NativeArguments arguments);                           \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
       "DRT_" #name, &DRT_##name, argument_count, false, false);                \
@@ -109,6 +109,9 @@ class RuntimeEntry : public BaseRuntimeEntry {
     {                                                                          \
       Thread* thread = arguments.thread();                                     \
       ASSERT(thread == Thread::Current());                                     \
+      RuntimeCallDeoptScope runtime_call_deopt_scope(                          \
+          thread, can_lazy_deopt ? RuntimeCallDeoptAbility::kCanLazyDeopt      \
+                                 : RuntimeCallDeoptAbility::kCannotLazyDeopt); \
       Isolate* isolate = thread->isolate();                                    \
       TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
@@ -122,6 +125,12 @@ class RuntimeEntry : public BaseRuntimeEntry {
   }                                                                            \
   static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
                                NativeArguments arguments)
+
+#define DEFINE_RUNTIME_ENTRY(name, argument_count)                             \
+  DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/true)
+
+#define DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(name, argument_count)               \
+  DEFINE_RUNTIME_ENTRY_IMPL(name, argument_count, /*can_lazy_deopt=*/false)
 
 #define DECLARE_RUNTIME_ENTRY(name)                                            \
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
