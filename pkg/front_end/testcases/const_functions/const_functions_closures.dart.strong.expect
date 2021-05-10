@@ -16,29 +16,29 @@ static method foo() → core::int {
   () → () → core::int f = () → () → core::int {
     core::int count = 0;
     function baz() → core::int {
-      count = count.{core::num::+}(1){(core::num) → core::int};
+      count = count.{core::num::+}(1);
       return count;
     }
     return baz;
   };
-  () → core::int c1 = f(){() → () → core::int};
-  () → core::int c2 = f(){() → () → core::int};
-  core::int c1_val1 = c1(){() → core::int};
-  assert(c1_val1 =={core::num::==}{(core::Object) → core::bool} 1);
-  core::int c1_val2 = c1(){() → core::int};
-  assert(c1_val2 =={core::num::==}{(core::Object) → core::bool} 2);
-  core::int c1_val3 = c1(){() → core::int};
-  assert(c1_val3 =={core::num::==}{(core::Object) → core::bool} 3);
-  core::int c2_val1 = c2(){() → core::int};
-  assert(c1_val1 =={core::num::==}{(core::Object) → core::bool} 1);
-  core::int c2_val2 = c2(){() → core::int};
-  assert(c1_val2 =={core::num::==}{(core::Object) → core::bool} 2);
-  core::int c2_val3 = c2(){() → core::int};
-  assert(c1_val3 =={core::num::==}{(core::Object) → core::bool} 3);
+  () → core::int c1 = f.call();
+  () → core::int c2 = f.call();
+  core::int c1_val1 = c1.call();
+  assert(c1_val1.{core::num::==}(1));
+  core::int c1_val2 = c1.call();
+  assert(c1_val2.{core::num::==}(2));
+  core::int c1_val3 = c1.call();
+  assert(c1_val3.{core::num::==}(3));
+  core::int c2_val1 = c2.call();
+  assert(c1_val1.{core::num::==}(1));
+  core::int c2_val2 = c2.call();
+  assert(c1_val2.{core::num::==}(2));
+  core::int c2_val3 = c2.call();
+  assert(c1_val3.{core::num::==}(3));
   return 0;
 }
 static method fn() → core::int {
-  return (() → core::int => 0)(){() → core::int};
+  return (() → core::int => 0).call();
 }
 static method fn3() → core::int {
   core::int y = 2;
@@ -49,25 +49,25 @@ static method fn4() → core::int {
   function innerFn() → core::int {
     return x;
   }
-  return innerFn(){() → core::int};
+  return innerFn.call();
 }
 static method fn5(core::int a) → core::int {
   function recurse(core::int b) → core::int {
-    if(b =={core::num::==}{(core::Object) → core::bool} 1)
+    if(b.{core::num::==}(1))
       return 1;
-    core::int result = recurse(b.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::int};
-    return b.{core::num::*}(result){(core::num) → core::int};
+    core::int result = recurse.call(b.{core::num::-}(1));
+    return b.{core::num::*}(result);
   }
-  return recurse(a){(core::int) → core::int};
+  return recurse.call(a);
 }
 static method fn6(core::int a) → core::int {
   function recurse() → core::int {
-    a = a.{core::num::-}(1){(core::num) → core::int};
-    if(a =={core::num::==}{(core::Object) → core::bool} 1)
+    a = a.{core::num::-}(1);
+    if(a.{core::num::==}(1))
       return 1;
-    return a.{core::num::*}(recurse(){() → core::int}){(core::num) → core::int};
+    return a.{core::num::*}(recurse.call());
   }
-  return recurse(){() → core::int};
+  return recurse.call();
 }
 static method main() → void {
   exp::Expect::equals(#C1, 0);

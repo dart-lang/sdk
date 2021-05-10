@@ -211,13 +211,13 @@ static method localFunctions() → dynamic {
   core::int? local1 = (() → core::int? {
     if(b)
       return 0;
-  })(){() → core::int?};
+  }).call();
   core::int? local2 = (() → core::int? {
     if(b)
       return null;
     if(!b)
       return 0;
-  })(){() → core::int?};
+  }).call();
 }
 static method main() → dynamic {}
 

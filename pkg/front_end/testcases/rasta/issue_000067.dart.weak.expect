@@ -43,5 +43,5 @@ class D extends self::C {
 }
 static method main() → dynamic {
   self::A* a = new self::D::•();
-  exp::Expect::equals(2, a.{self::A::m}(){() →* core::int*});
+  exp::Expect::equals(2, a.{self::A::m}());
 }

@@ -5545,6 +5545,44 @@ void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
   compiler->AddNullCheck(check_null->source(), check_null->function_name());
 }
 
+void BoxAllocationSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (compiler::Assembler::EmittingComments()) {
+    __ Comment("%s slow path allocation of %s", instruction()->DebugName(),
+               String::Handle(cls_.ScrubbedName()).ToCString());
+  }
+  __ Bind(entry_label());
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
+
+  LocationSummary* locs = instruction()->locs();
+
+  locs->live_registers()->Remove(Location::RegisterLocation(result_));
+  compiler->SaveLiveRegisters(locs);
+  compiler->GenerateStubCall(InstructionSource(),  // No token position.
+                             stub, UntaggedPcDescriptors::kOther, locs);
+  __ MoveRegister(result_, AllocateBoxABI::kResultReg);
+  compiler->RestoreLiveRegisters(locs);
+  __ Jump(exit_label());
+}
+
+void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
+                                     Instruction* instruction,
+                                     const Class& cls,
+                                     Register result,
+                                     Register temp) {
+  if (compiler->intrinsic_mode()) {
+    __ TryAllocate(cls, compiler->intrinsic_slow_path_label(),
+                   compiler::Assembler::kFarJump, result, temp);
+  } else {
+    auto slow_path = new BoxAllocationSlowPath(instruction, cls, result);
+    compiler->AddSlowPathCode(slow_path);
+
+    __ TryAllocate(cls, slow_path->entry_label(), compiler::Assembler::kFarJump,
+                   result, temp);
+    __ Bind(slow_path->exit_label());
+  }
+}
+
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                                             bool save_fpu_registers) {
 #if defined(TARGET_ARCH_IA32)

@@ -64,11 +64,11 @@ Try removing the extra positional arguments.
                                            ^" in super.{self::E::==}(other);
 }
 static method main() → dynamic {
-  self::expect(true, new self::D::•() =={self::D::==}{(core::Object?) → core::bool} new self::D::•());
-  self::expect(false, new self::D::•().{self::D::method1}(null){(dynamic) → core::bool});
-  self::expect(false, new self::D::•().{self::D::method2}(null){(Null) → core::bool});
+  self::expect(true, new self::D::•().{self::D::==}(new self::D::•()));
+  self::expect(false, new self::D::•().{self::D::method1}(null));
+  self::expect(false, new self::D::•().{self::D::method2}(null));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }

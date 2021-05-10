@@ -14,7 +14,7 @@ class AdaptorElement extends obj::RenderObject {
   get renderObject() → mai::Adaptor*
     return super.{obj::RenderObject::renderObject} as{TypeError} mai::Adaptor*;
   method foo() → void {
-    core::print(this.{self::AdaptorElement::renderObject}{mai::Adaptor*}.{mai::_Adaptor&RenderFoo&LibMixin::constraints}{obj::FooConstraints*}.{obj::FooConstraints::axis}{core::String*});
+    core::print(this.{self::AdaptorElement::renderObject}.{mai::_Adaptor&RenderFoo&LibMixin::constraints}.{obj::FooConstraints::axis});
   }
   abstract member-signature get constraints() → obj::Constraints*; -> obj::RenderObject::constraints
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

@@ -10,7 +10,7 @@ class C extends core::Object {
     core::print("Called m");
   }
   method testC() → dynamic {
-    this.{self::C::m}(){() →* dynamic};
+    this.{self::C::m}();
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -28,10 +28,10 @@ class D extends self::C {
     : super self::C::•()
     ;
   method testD() → dynamic {
-    this.{self::C::m}(){() →* dynamic};
+    this.{self::C::m}();
   }
 }
 static method main() → dynamic {
-  new self::C::•().{self::C::testC}(){() →* dynamic};
-  new self::D::•().{self::D::testD}(){() →* dynamic};
+  new self::C::•().{self::C::testC}();
+  new self::D::•().{self::D::testD}();
 }

@@ -21,11 +21,11 @@ extension E on self::A {
   tearoff bar = self::E|get#bar;
 }
 static method E|bar(lowered final self::A #this) → void
-  return #this.{self::A::foo}(){() → void};
+  return #this.{self::A::foo}();
 static method E|get#bar(lowered final self::A #this) → () → void
   return () → void => self::E|bar(#this);
 static method test(self::A a, self::E e) → dynamic {
-  a.{self::A::foo}(){() → void};
+  a.{self::A::foo}();
   self::E|bar(a);
   invalid-expression "pkg/front_end/testcases/extension_types/simple_method_resolution.dart:16:5: Error: The method 'foo' isn't defined for the extension 'E'.
 Try correcting the name to the name of an existing method, or defining a method name 'foo'.

@@ -104,7 +104,7 @@ static method Extension1|get#m3(lowered final self::Class* #this) → core::int*
 static method Extension1|set#m4(lowered final self::Class* #this, core::int* x) → void {}
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
-  self::expect(0, c.{self::Class::m1}{core::int*});
+  self::expect(0, c.{self::Class::m1});
   c.{self::Class::m2} = 2;
 }
 static method errors() → dynamic {
@@ -141,7 +141,7 @@ Try using an explicit extension application of the wanted extension or hiding un
     ^^";
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+  if(!expected.{core::Object::==}(actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }

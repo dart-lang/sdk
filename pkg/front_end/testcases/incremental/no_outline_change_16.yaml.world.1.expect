@@ -33,11 +33,11 @@ library from "org-dartlang-test:///main.dart" as main {
       dart.core::print("noSouchMethod!");
     }
     no-such-method-forwarder get /* from org-dartlang-test:///lib1.dart */ getter() → dart.core::bool*
-      return this.{main::Foo1::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic} as{TypeError,ForDynamic} dart.core::bool*;
+      return this.{main::Foo1::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} dart.core::bool*;
     no-such-method-forwarder method /* from org-dartlang-test:///lib1.dart */ method() → void
-      return this.{main::Foo1::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic};
+      return this.{main::Foo1::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4)));
     no-such-method-forwarder set /* from org-dartlang-test:///lib1.dart */ setter(dart.core::bool* b) → void
-      return this.{main::Foo1::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C6, 2, #C2, dart.core::List::unmodifiable<dynamic>(dart.core::_GrowableList::_literal1<dynamic>(b)), dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic};
+      return this.{main::Foo1::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C6, 2, #C2, dart.core::List::unmodifiable<dynamic>(dart.core::_GrowableList::_literal1<dynamic>(b)), dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4)));
   }
   class Foo2 extends dart.core::Object implements lib1::Bar {
     synthetic constructor •() → main::Foo2*
@@ -56,15 +56,15 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
     no-such-method-forwarder get /* from org-dartlang-test:///lib1.dart */ getter() → dart.core::bool*
-      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic} as{TypeError,ForDynamic} dart.core::bool*;
+      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} dart.core::bool*;
     no-such-method-forwarder get /* from org-dartlang-test:///lib1.dart */ field() → dart.core::bool*
-      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C7, 1, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic} as{TypeError,ForDynamic} dart.core::bool*;
+      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C7, 1, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} dart.core::bool*;
     no-such-method-forwarder method /* from org-dartlang-test:///lib1.dart */ method() → void
-      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic};
+      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4)));
     no-such-method-forwarder set /* from org-dartlang-test:///lib1.dart */ setter(dart.core::bool* b) → void
-      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C6, 2, #C2, dart.core::List::unmodifiable<dynamic>(dart.core::_GrowableList::_literal1<dynamic>(b)), dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic};
+      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C6, 2, #C2, dart.core::List::unmodifiable<dynamic>(dart.core::_GrowableList::_literal1<dynamic>(b)), dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4)));
     no-such-method-forwarder set /* from org-dartlang-test:///lib1.dart */ field(dart.core::bool* value) → void
-      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C8, 2, #C2, dart.core::List::unmodifiable<dynamic>(dart.core::_GrowableList::_literal1<dynamic>(value)), dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation*) →* dynamic};
+      return this.{main::Foo2::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C8, 2, #C2, dart.core::List::unmodifiable<dynamic>(dart.core::_GrowableList::_literal1<dynamic>(value)), dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4)));
   }
 }
 constants  {

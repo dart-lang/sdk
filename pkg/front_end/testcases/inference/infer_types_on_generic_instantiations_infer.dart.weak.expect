@@ -47,8 +47,8 @@ class B extends core::Object implements self::A<core::int*> {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method foo() → dynamic {
-  core::String* y = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::String*;
-  core::int* z = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::int*;
+  core::String* y = new self::B::•().{self::B::x} as{TypeError,ForDynamic} core::String*;
+  core::int* z = new self::B::•().{self::B::x} as{TypeError,ForDynamic} core::int*;
 }
 static method main() → dynamic {
   self::foo();

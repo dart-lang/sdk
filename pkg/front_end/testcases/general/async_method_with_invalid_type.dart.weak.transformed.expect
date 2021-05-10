@@ -23,6 +23,13 @@ static method foo() → dynamic /* originally async */ {
       #L1:
       {
         invalid-type x;
+        {
+          core::Iterator<invalid-type>* :sync-for-iterator = x.z.{core::Iterable::iterator};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+            dynamic y = :sync-for-iterator.{core::Iterator::current};
+            {}
+          }
+        }
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;

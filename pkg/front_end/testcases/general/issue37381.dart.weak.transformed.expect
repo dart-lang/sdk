@@ -7,7 +7,7 @@ class A<X extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method f<R extends core::Object* = dynamic>(<X extends core::Object* = dynamic>(self::A<X*>*) →* self::A::f::R* f) → self::A::f::R*
-    return f<self::A::X*>(this){(self::A<self::A::X*>*) →* self::A::f::R*};
+    return f.call<self::A::X*>(this);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -21,5 +21,5 @@ class A<X extends core::Object* = dynamic> extends core::Object {
 }
 static method main() → dynamic {
   self::A<core::num*>* a = new self::A::•<core::int*>();
-  a.{self::A::f}<core::int*>(<X extends core::Object* = dynamic>(self::A<X*>* _) → core::int* => 42){(<X extends core::Object* = dynamic>(self::A<X*>*) →* core::int*) →* core::int*};
+  a.{self::A::f}<core::int*>(<X extends core::Object* = dynamic>(self::A<X*>* _) → core::int* => 42);
 }

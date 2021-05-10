@@ -8,13 +8,13 @@ static method test(core::int* x, () →* void f) → void {
     #L2:
     case #C1:
       {
-        f(){() →* void};
+        f.call();
         continue #L3;
       }
     #L3:
     case #C2:
       {
-        f(){() →* void};
+        f.call();
         break #L1;
       }
   }

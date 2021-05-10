@@ -25,11 +25,11 @@ test() {
       d. /*@target=Object.noSuchMethod*/ noSuchMethod(null);
   var /*@ type=dynamic */ call_nsm2 = d.noSuchMethod(null, null);
   var /*@ type=bool* */ equals_self = d /*@target=Object.==*/ == d;
-  var /*@ type=bool* */ equals_null = d  == null;
-  var /*@ type=bool* */ null_equals = null  == d;
+  var /*@ type=bool* */ equals_null = d /*@target=Object.==*/ == null;
+  var /*@ type=bool* */ null_equals = null /*@target=Object.==*/ == d;
   var /*@ type=bool* */ not_equals_self = d /*@target=Object.==*/ != d;
-  var /*@ type=bool* */ not_equals_null = d  != null;
-  var /*@ type=bool* */ null_not_equals = null  != d;
+  var /*@ type=bool* */ not_equals_null = d /*@target=Object.==*/ != null;
+  var /*@ type=bool* */ null_not_equals = null /*@target=Object.==*/ != d;
 }
 
 main() {}

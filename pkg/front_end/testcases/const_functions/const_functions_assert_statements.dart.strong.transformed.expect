@@ -9,15 +9,15 @@ static const field core::int var1 = #C1;
 static const field core::int var2 = #C1;
 static method fn() → core::int {
   core::int x = 0;
-  assert(x =={core::num::==}{(core::Object) → core::bool} 0, "fail");
+  assert(x.{core::num::==}(0), "fail");
   return x;
 }
 static method fn2() → core::int {
   core::int x = 0;
   assert((() → core::bool {
-    core::int y = x.{core::num::+}(1){(core::num) → core::int};
-    return y =={core::num::==}{(core::Object) → core::bool} 1;
-  })(){() → core::bool});
+    core::int y = x.{core::num::+}(1);
+    return y.{core::num::==}(1);
+  }).call());
   return x;
 }
 static method main() → void {

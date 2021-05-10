@@ -28,6 +28,6 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field self::A* a = new self::A::•();
-static field () →* invalid-type x = () → invalid-type => self::a.{self::A::b}{invalid-type};
-static field () →* () →* () →* invalid-type y = () → () →* () →* invalid-type => self::a.{self::A::c}{() →* () →* invalid-type};
+static field () →* invalid-type x = () → invalid-type => self::a.{self::A::b};
+static field () →* () →* () →* invalid-type y = () → () →* () →* invalid-type => self::a.{self::A::c};
 static method main() → dynamic {}

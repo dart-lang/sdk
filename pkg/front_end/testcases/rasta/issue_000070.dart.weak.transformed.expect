@@ -22,7 +22,7 @@ class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U 
     return new self::A::empty<self::A::f::N*, self::A::f::S*, self::A::f::U*>();
   }
   get getter() → core::List<self::A::U*>* {
-    return this.{self::A::field}{core::List<self::A::U*>*};
+    return this.{self::A::field};
   }
   set setter(generic-covariant-impl self::A::S* s) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -60,7 +60,7 @@ static method main() → dynamic {
   new self::A::•<core::num*, core::double*, core::List<dynamic>*>(1, 2.0);
   self::A<dynamic, dynamic, dynamic>* a = self::A::f<core::int*, core::int*, core::int*>(1);
   #C3;
-  core::List<dynamic>* z = a.{self::A::getter}{core::List<dynamic>*};
+  core::List<dynamic>* z = a.{self::A::getter};
   a.{self::A::setter} = 1;
 }
 

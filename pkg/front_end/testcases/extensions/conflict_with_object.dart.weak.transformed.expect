@@ -60,13 +60,13 @@ static method Extension|toString() → core::String*
   return "Foo";
 static method main() → dynamic {
   core::int* value;
-  self::expect(true, "".{core::Object::noSuchMethod}{(core::Invocation*) →* dynamic} is core::Function*);
+  self::expect(true, "".{core::Object::noSuchMethod} is core::Function*);
   value = self::Extension|get#noSuchMethod("");
   self::Extension|set#hashCode("", 42);
-  self::expect(true, "".{core::Object::runtimeType}{core::Type*} is core::Type*);
+  self::expect(true, "".{core::Object::runtimeType} is core::Type*);
   self::expect(true, self::Extension|get#runtimeType("") is core::Function*);
   value = self::Extension|runtimeType("");
-  self::expect(true, "" =={core::String::==}{(core::Object*) →* core::bool*} "");
+  self::expect(true, "".{core::String::==}(""));
   self::expect("Foo", self::Extension|toString());
 }
 static method errors() → dynamic {
@@ -74,7 +74,7 @@ static method errors() → dynamic {
   value = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:27:14: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'int'.
  - 'Invocation' is from 'dart:core'.
   value = \"\".noSuchMethod;
-             ^" in "".{core::Object::noSuchMethod}{(core::Invocation*) →* dynamic} as{TypeError} core::int*;
+             ^" in "".{core::Object::noSuchMethod} as{TypeError} core::int*;
   invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:28:6: Error: The setter 'hashCode' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'hashCode'.
   \"\".hashCode = 42;
@@ -82,15 +82,15 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   value = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:29:14: Error: A value of type 'Type' can't be assigned to a variable of type 'int'.
  - 'Type' is from 'dart:core'.
   value = \"\".runtimeType;
-             ^" in "".{core::Object::runtimeType}{core::Type*} as{TypeError} core::int*;
+             ^" in "".{core::Object::runtimeType} as{TypeError} core::int*;
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+  if(!expected.{core::Object::==}(actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }
 
 
 Extra constant evaluation status:
-Evaluated: EqualsCall @ org-dartlang-testcase:///conflict_with_object.dart:21:19 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///conflict_with_object.dart:21:19 -> BoolConstant(true)
 Extra constant evaluation: evaluated: 37, effectively constant: 1

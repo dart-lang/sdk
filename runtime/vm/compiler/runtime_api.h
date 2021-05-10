@@ -114,6 +114,8 @@ const Type& IntType();
 const Class& GrowableObjectArrayClass();
 const Class& MintClass();
 const Class& DoubleClass();
+const Class& Float32x4Class();
+const Class& Float64x2Class();
 const Array& OneArgArgumentsDescriptor();
 
 template <typename To, typename From>

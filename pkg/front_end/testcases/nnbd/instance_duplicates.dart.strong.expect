@@ -600,10 +600,10 @@ Try correcting the name to the name of an existing getter, or defining a getter 
                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
   c.{self::Class::methodAndSetter1} = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
   c.methodAndSetter1 = c.methodAndSetter1;
-                         ^" in c.{self::Class::methodAndSetter1}{() → core::int?} as{TypeError,ForNonNullableByDefault} core::int?;
-  c.{self::Class::methodAndSetter2} = c.{self::Class::methodAndSetter2}{(core::int?) → void};
-  c.{self::Class::fieldAndSetter1} = c.{self::Class::fieldAndSetter1}{core::int?};
-  c.{self::Class::fieldAndSetter2} = c.{self::Class::fieldAndSetter2}{core::int?};
+                         ^" in c.{self::Class::methodAndSetter1} as{TypeError,ForNonNullableByDefault} core::int?;
+  c.{self::Class::methodAndSetter2} = c.{self::Class::methodAndSetter2};
+  c.{self::Class::fieldAndSetter1} = c.{self::Class::fieldAndSetter1};
+  c.{self::Class::fieldAndSetter2} = c.{self::Class::fieldAndSetter2};
   invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:96:5: Error: The setter 'fieldAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter1'.

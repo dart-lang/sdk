@@ -28,11 +28,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, precompiled_mode);
 
 namespace compiler {
@@ -1265,7 +1260,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -1285,7 +1280,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 

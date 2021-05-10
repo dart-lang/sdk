@@ -11,7 +11,7 @@ typedef F4 = () → self::A<dynamic>;
 class Check extends core::Object /*hasConstConstructor*/  {
   final field dynamic _ignored;
   const constructor •(dynamic x, dynamic y) → self::Check
-    : assert(core::identical(x, y)), self::Check::_ignored = core::identical(x, y) ?{core::int} 42 : 1.{core::num::~/}(0){(core::num) → core::int}, super core::Object::•()
+    : assert(core::identical(x, y)), self::Check::_ignored = core::identical(x, y) ?{core::int} 42 : 1.{core::num::~/}(0), super core::Object::•()
     ;
 }
 class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {

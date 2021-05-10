@@ -10,7 +10,7 @@ library from "org-dartlang-test:///compileme.dart" as com {
       ;
     method class1() → lib1::Class1* {
       lib1::Class1* class1 = new lib1::Class1::•();
-      class1.{lib1::Class1::c3a}{lib3::Class3a*}.{lib3::Class3a::c3b}{lib3::Class3b*}.{lib3::Class3b::str}(){() →* dart.core::String*};
+      class1.{lib1::Class1::c3a}.{lib3::Class3a::c3b}.{lib3::Class3b::str}();
       return class1;
     }
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode

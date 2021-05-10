@@ -26,10 +26,10 @@ abstract class C extends self::B {
 }
 static method f<T extends self::B*>(self::f::T* a) → void {
   if(a is core::String*) {
-    a.{self::B::foo}(){() →* void};
+    a.{self::B::foo}();
   }
   if(a is self::C*) {
-    a{self::f::T* & self::C* /* '*' & '*' = '*' */}.{self::C::bar}(){() →* void};
+    a{self::f::T* & self::C* /* '*' & '*' = '*' */}.{self::C::bar}();
   }
 }
 static method main() → dynamic {}

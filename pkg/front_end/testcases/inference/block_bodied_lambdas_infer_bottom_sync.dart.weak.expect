@@ -8,7 +8,7 @@ static method test() → dynamic {
   (core::Object*) →* Null f = (core::Object* x) → Null {
     return null;
   };
-  core::String* y = f(42){(core::Object*) →* Null};
+  core::String* y = f.call(42);
   f = (core::Object* x) → Null => "hello" as{TypeError} Null;
   self::foo((core::Object* x) → Null {
     return null;

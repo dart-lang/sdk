@@ -70,11 +70,11 @@ class F extends self::_F&C&M {
     ;
 }
 static method main() → dynamic {
-  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<core::Object*>().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<dynamic>().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: String", new self::D::•().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: String", new self::E::•().{self::C::trace}{core::String*});
-  exp::Expect::stringEquals("a: 0, b: int", new self::F::•().{self::C::trace}{core::String*});
+  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<core::Object*>().{self::C::trace});
+  exp::Expect::stringEquals("a: 0, b: T", new self::C::•<dynamic>().{self::C::trace});
+  exp::Expect::stringEquals("a: 0, b: String", new self::D::•().{self::C::trace});
+  exp::Expect::stringEquals("a: 0, b: String", new self::E::•().{self::C::trace});
+  exp::Expect::stringEquals("a: 0, b: int", new self::F::•().{self::C::trace});
 }
 
 constants  {

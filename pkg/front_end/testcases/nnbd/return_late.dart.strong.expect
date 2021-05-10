@@ -8,7 +8,7 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
     : self::Class::field = field, super core::Object::•()
     ;
   method returnTypeVariable() → self::Class::E% {
-    late self::Class::E% result = this.{self::Class::field}{self::Class::E%};
+    late self::Class::E% result = this.{self::Class::field};
     return result;
   }
 }
@@ -21,14 +21,14 @@ static method returnNullable(core::int? value) → core::int? {
   return result;
 }
 static method main() → dynamic {
-  self::expect(42, new self::Class::•<core::int>(42).{self::Class::returnTypeVariable}(){() → core::int});
-  self::expect(87, new self::Class::•<core::int?>(87).{self::Class::returnTypeVariable}(){() → core::int?});
-  self::expect(null, new self::Class::•<core::int?>(null).{self::Class::returnTypeVariable}(){() → core::int?});
+  self::expect(42, new self::Class::•<core::int>(42).{self::Class::returnTypeVariable}());
+  self::expect(87, new self::Class::•<core::int?>(87).{self::Class::returnTypeVariable}());
+  self::expect(null, new self::Class::•<core::int?>(null).{self::Class::returnTypeVariable}());
   self::expect(42, self::returnNonNullable(42));
   self::expect(87, self::returnNullable(87));
   self::expect(null, self::returnNullable(null));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }

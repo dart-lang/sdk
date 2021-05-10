@@ -16,7 +16,7 @@ static const field core::int var7 = #C5;
 static const field core::int var8 = #C5;
 static const field core::int? var9 = #C7;
 static method function1(core::int a, core::int b) → core::int {
-  core::int x = 1.{core::num::+}(a){(core::num) → core::int}.{core::num::+}(b){(core::num) → core::int};
+  core::int x = 1.{core::num::+}(a).{core::num::+}(b);
   return x;
 }
 static method function2() → core::String {
@@ -25,13 +25,13 @@ static method function2() → core::String {
 }
 static method function3() → core::int {
   core::int first = 2;
-  core::int second = 2.{core::num::+}(first){(core::num) → core::int};
-  return 2.{core::num::+}(second){(core::num) → core::int};
+  core::int second = 2.{core::num::+}(first);
+  return 2.{core::num::+}(second);
 }
 static method function4() → core::int {
   core::int first = 2;
   core::int second = 0;
-  return first.{core::num::+}(second){(core::num) → core::int};
+  return first.{core::num::+}(second);
 }
 static method function5() → core::int {
   return #C6;
@@ -63,7 +63,7 @@ static method main() → void {
   exp::Expect::equals(#C3, "string");
   exp::Expect::equals(#C4, 6);
   exp::Expect::equals(#C5, 2);
-  exp::Expect::equals(#C6, 2.{core::int::unary-}(){() → core::int});
+  exp::Expect::equals(#C6, 2.{core::int::unary-}());
   exp::Expect::equals(#C5, 2);
   exp::Expect::equals(#C5, 2);
   exp::Expect::equals(#C5, 2);

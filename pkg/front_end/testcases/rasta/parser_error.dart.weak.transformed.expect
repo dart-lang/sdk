@@ -29,7 +29,7 @@ static method test(dynamic a, {dynamic b = #C1, dynamic c = #C1}) → core::int*
   if (?b) return b;  /// 01: compile-time error
         ^") as{TypeError,ForDynamic} core::bool*)
     return b as{TypeError,ForDynamic} core::int*;
-  return a{dynamic}.+(b){dynamic}.+(c) as{TypeError,ForDynamic} core::int*;
+  return a.+(b).+(c) as{TypeError,ForDynamic} core::int*;
 }
 static method main() → dynamic {
   exp::Expect::equals(6, self::test(1, b: 2, c: 3));

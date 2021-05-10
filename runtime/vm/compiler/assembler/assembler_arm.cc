@@ -25,9 +25,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
-DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
-DECLARE_FLAG(bool, use_slow_path);
 
 namespace compiler {
 
@@ -3425,6 +3423,7 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
+                            JumpDistance distance,
                             Register instance_reg,
                             Register temp_reg) {
   ASSERT(failure != NULL);

@@ -79,9 +79,9 @@ class C3 { int f; C3() : f++; }
 }
 static method main() → dynamic {
   self::C1* c1 = new self::C1::•();
-  c1.{self::C1::toString}(){() →* core::String*};
+  c1.{self::C1::toString}();
   self::C2* c2 = new self::C2::•();
-  c2.{self::C2::toString}(){() →* core::String*};
+  c2.{self::C2::toString}();
   self::C3* c3 = new self::C3::•();
-  c3.{self::C3::toString}(){() →* core::String*};
+  c3.{self::C3::toString}();
 }

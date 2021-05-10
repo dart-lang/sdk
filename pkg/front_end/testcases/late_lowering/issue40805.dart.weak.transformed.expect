@@ -24,7 +24,7 @@ class D extends self::C {
     : super self::C::•()
     ;
   set x(covariant core::num value) → void {
-    super.{self::C::x} = value.{core::num::toInt}(){() → core::int};
+    super.{self::C::x} = value.{core::num::toInt}();
   }
 }
 static method main() → dynamic {

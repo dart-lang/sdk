@@ -14,5 +14,5 @@ static method main() → dynamic {
     #local#isSet = true;
     return #local = #t1;
   }
-  #local#set(self::f<core::int>(0)){(core::int) → dynamic};
+  #local#set.call(self::f<core::int>(0));
 }

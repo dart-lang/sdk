@@ -12,11 +12,11 @@ class Foo extends core::Object {
 static method main() → dynamic {
   self::Foo foo = new self::Foo::•();
   foo.{self::Foo::field} = 5;
-  foo.{self::Foo::bar}(6){(core::int?) → core::int?};
+  foo.{self::Foo::bar}(6);
   self::test_nullable_function_type_formal_param(f: () → core::int => 2);
 }
 static method test_nullable_function_type_formal_param({() →? core::int f = #C1}) → core::int {
-  return let final core::int? #t1 = let final () →? core::int #t2 = f in #t2 == null ?{core::int?} null : #t2{() → core::int}(){() → core::int} in #t1 == null ?{core::int} 1.{core::int::unary-}(){() → core::int} : #t1{core::int};
+  return let final core::int? #t1 = let final () →? core::int #t2 = f in #t2.{core::Object::==}(null) ?{core::int?} null : #t2{() → core::int}.call() in #t1.{core::num::==}(null) ?{core::int} 1.{core::int::unary-}() : #t1{core::int};
 }
 
 constants  {
@@ -24,5 +24,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///nullable_param.dart:19:23 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///nullable_param.dart:19:23 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 20, effectively constant: 1

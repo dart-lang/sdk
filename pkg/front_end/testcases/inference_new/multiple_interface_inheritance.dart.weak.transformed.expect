@@ -78,10 +78,10 @@ class F extends self::E {
   method f(core::Object* o) → void {}
 }
 static method g1(self::C* c) → void {
-  c.{self::C::f}("hi"){(core::Object*) →* void};
+  c.{self::C::f}("hi");
 }
 static method g2(self::E* e) → void {
-  e.{self::I2::f}("hi"){(core::Object*) →* void};
+  e.{self::I2::f}("hi");
 }
 static method main() → dynamic {
   self::g1(new self::D::•());

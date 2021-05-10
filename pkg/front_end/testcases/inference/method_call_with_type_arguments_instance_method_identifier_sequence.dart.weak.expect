@@ -35,5 +35,5 @@ class D<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field self::C* c;
-static field self::D<core::int*>* f = self::c.{self::C::f}<core::int*>(){() →* self::D<core::int*>*};
+static field self::D<core::int*>* f = self::c.{self::C::f}<core::int*>();
 static method main() → dynamic {}

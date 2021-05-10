@@ -9,7 +9,7 @@ static method main() → dynamic {
   self::expect(3, imp::Extension|method("foo"));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 
@@ -22,6 +22,6 @@ extension Extension on core::String* {
   tearoff method = imp::Extension|get#method;
 }
 static method Extension|method(lowered final core::String* #this) → core::int*
-  return #this.{core::String::length}{core::int*};
+  return #this.{core::String::length};
 static method Extension|get#method(lowered final core::String* #this) → () →* core::int*
   return () → core::int* => imp::Extension|method(#this);

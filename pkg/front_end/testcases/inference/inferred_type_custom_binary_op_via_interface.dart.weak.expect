@@ -35,7 +35,7 @@ abstract class C extends core::Object implements self::I {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field self::C* c;
-static field core::bool* x = self::c.{self::I::*}(self::c){(self::C*) →* core::bool*};
+static field core::bool* x = self::c.{self::I::*}(self::c);
 static method main() → dynamic {
   self::c;
 }

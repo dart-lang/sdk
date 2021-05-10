@@ -618,13 +618,13 @@ static method main() → dynamic {
 static method foo() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:34:3: Error: Can't use 'main' because it is declared more than once.
   main();
-  ^"{dynamic}.call();
+  ^".call();
   core::print(invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:35:9: Error: Can't use 'field' because it is declared more than once.
   print(field);
         ^");
   invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:36:3: Error: Can't use 'C' because it is declared more than once.
   C.s();
-  ^"{dynamic}.s();
+  ^".s();
 }
 static method useAnotherEnum() → dynamic {
   <core::String*, core::Object*>{"AnotherEnum.a": #C27, "AnotherEnum.b": #C29, "AnotherEnum.c": #C31, "AnotherEnum._name": invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:102:38: Error: Can't use '_name' because it is declared more than once.

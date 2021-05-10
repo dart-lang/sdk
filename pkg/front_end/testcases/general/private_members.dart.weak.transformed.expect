@@ -35,17 +35,17 @@ extension _Extension on core::int { // from org-dartlang-testcase:///private_mem
 static field core::int _Extension|_privateField = 1 /* from org-dartlang-testcase:///private_members_part.dart */;
 static field core::int _Extension|_privateFinalField = 1 /* from org-dartlang-testcase:///private_members_part.dart */;
 static method test(self::_AbstractClass c) → dynamic {
-  c.{self::_AbstractClass::_privateAbstractField} = c.{self::_AbstractClass::_privateAbstractField}{core::int};
+  c.{self::_AbstractClass::_privateAbstractField} = c.{self::_AbstractClass::_privateAbstractField};
 }
 static method main() → dynamic {
   self::_Class c = new self::_Class::_privateConstructor();
   c = new self::_Class::_privateConstructor();
-  c.{self::_Class::_privateMethod}(){() → void};
-  c.{self::_Class::_privateSetter} = c.{self::_Class::_privateGetter}{core::int};
-  c.{self::_Class::_privateField} = c.{self::_Class::_privateField}{core::int};
-  c.{self::_Class::_privateFinalField}{core::int};
+  c.{self::_Class::_privateMethod}();
+  c.{self::_Class::_privateSetter} = c.{self::_Class::_privateGetter};
+  c.{self::_Class::_privateField} = c.{self::_Class::_privateField};
+  c.{self::_Class::_privateFinalField};
   self::_Extension|_privateMethod(0);
-  self::_Extension|get#_privateMethod(0)(){() → void};
+  self::_Extension|get#_privateMethod(0).call();
   self::_Extension|set#_privateSetter(0, self::_Extension|get#_privateGetter(0));
   self::_Extension|_privateField = self::_Extension|_privateField;
   self::_Extension|_privateFinalField;

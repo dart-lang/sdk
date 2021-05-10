@@ -6,8 +6,8 @@ typedef ToValue<contravariant T extends core::Object* = dynamic> = (T*) →* voi
 static method main() → dynamic {
   function f<T extends core::Object* = dynamic>(T* x) → (T*) →* void
     return null;
-  (core::int*) →* void x = f<core::int*>(42){(core::int*) →* (core::int*) →* void};
-  (core::int*) →* void y = f<core::int*>(42){(core::int*) →* (core::int*) →* void};
+  (core::int*) →* void x = f.call<core::int*>(42);
+  (core::int*) →* void y = f.call<core::int*>(42);
   (core::int*) →* void takesInt = x;
   takesInt = y;
 }

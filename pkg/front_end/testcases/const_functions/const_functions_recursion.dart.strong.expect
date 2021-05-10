@@ -7,15 +7,15 @@ import "package:expect/expect.dart";
 
 static const field core::int b = #C1;
 static method fn(core::int a) → core::int {
-  if(a =={core::num::==}{(core::Object) → core::bool} 1)
+  if(a.{core::num::==}(1))
     return 1;
-  return a.{core::num::*}(self::fn(a.{core::num::-}(1){(core::num) → core::int})){(core::num) → core::int};
+  return a.{core::num::*}(self::fn(a.{core::num::-}(1)));
 }
 static method localTest() → core::int {
   function fnLocal(core::int a) → core::int {
-    if(a =={core::num::==}{(core::Object) → core::bool} 1)
+    if(a.{core::num::==}(1))
       return 1;
-    return a.{core::num::*}(fnLocal(a.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::int}){(core::num) → core::int};
+    return a.{core::num::*}(fnLocal.call(a.{core::num::-}(1)));
   }
   return #C1;
 }

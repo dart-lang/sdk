@@ -78,7 +78,7 @@ Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:21:29 -> B
 Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:23:5 -> BoolConstant(true)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:25:5 -> BoolConstant(true)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:27:5 -> BoolConstant(true)
-Evaluated: StaticTearOff @ org-dartlang-testcase:///constants_lib.dart:18:12 -> TearOffConstant(identical)
+Evaluated: StaticGet @ org-dartlang-testcase:///constants_lib.dart:18:12 -> TearOffConstant(identical)
 Evaluated: Instantiation @ org-dartlang-testcase:///constants_lib.dart:19:48 -> PartialInstantiationConstant(id<int*>)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constants_lib.dart:20:24 -> InstanceConstant(const Class<int*>{Class.field: 0})
 Evaluated: ListLiteral @ org-dartlang-testcase:///constants_lib.dart:21:26 -> ListConstant(const <int*>[0])

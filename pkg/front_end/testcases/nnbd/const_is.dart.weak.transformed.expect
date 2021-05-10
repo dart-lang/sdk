@@ -49,10 +49,10 @@ static const field core::bool f3_is_t1 = #C1;
 static const field core::bool f4_is_t1 = #C1;
 static const field core::bool f5_is_t1 = #C1;
 static method f({required core::int i = #C3}) → core::int {
-  return i.{core::num::+}(1){(core::num) → core::int};
+  return i.{core::num::+}(1);
 }
 static method g({core::int i = #C4}) → core::int {
-  return i.{core::num::+}(1){(core::num) → core::int};
+  return i.{core::num::+}(1);
 }
 static method f1(core::int i, self::B b, core::Map<core::int, core::num> m, dynamic x, {required dynamic extraParam = #C3, required core::bool obool = #C3, required dynamic ox = #C3, required self::D ob = #C3, required core::List<core::num>? ol = #C3}) → self::B
   return new self::B::•();
@@ -87,7 +87,7 @@ static method main() → dynamic {
   self::expect((#C11) is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B, #C1);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 

@@ -117,13 +117,13 @@ static method errors(dynamic c) → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:8:6: Error: Expected an identifier, but got ''.
 Try inserting an identifier before ''.
   c?..f;
-     ^"{dynamic}.f;
+     ^".f;
   !(invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:9:7: Error: Expected an identifier, but got ''.
 Try inserting an identifier before ''.
   !c?..f;
-      ^"{dynamic}.f as{TypeError,ForDynamic} core::bool*);
+      ^".f as{TypeError,ForDynamic} core::bool*);
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:6: Error: Expected an identifier, but got ''.
 Try inserting an identifier before ''.
   c?..f!;
-     ^"{dynamic}.f!;
+     ^".f!;
 }

@@ -67,10 +67,10 @@ class BarValue extends core::Object {
 static method main() → dynamic {
   self::Foo* foo = new self::Foo::•();
   foo.{self::Foo::_field} = new self::FooValue::•();
-  dynamic fooValue = foo.{self::Foo::_field}{dynamic};
+  dynamic fooValue = foo.{self::Foo::_field};
   core::print(fooValue);
   self::Bar* bar = new self::Bar::•();
   bar.{self::Bar::_field} = new self::BarValue::•();
-  dynamic barValue = bar.{self::Bar::_field}{dynamic};
+  dynamic barValue = bar.{self::Bar::_field};
   core::print(barValue);
 }

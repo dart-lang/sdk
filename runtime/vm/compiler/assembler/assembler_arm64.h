@@ -1999,6 +1999,7 @@ class Assembler : public AssemblerBase {
   //   * [top_reg] will contain Thread::top_offset()
   void TryAllocate(const Class& cls,
                    Label* failure,
+                   JumpDistance distance,
                    Register instance_reg,
                    Register top_reg,
                    bool tag_result = true);

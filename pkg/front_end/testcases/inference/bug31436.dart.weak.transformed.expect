@@ -9,7 +9,7 @@ static method block_test() → void {
   };
   assert(g is () →* core::List<core::Object*>*);
   assert(!(g is () →* core::List<core::int*>*));
-  g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
+  g.call().{core::List::add}("hello");
   core::List<core::int*>* l = core::_GrowableList::_literal1<core::int*>(3);
   g = () → core::List<core::int*>* {
     return l;
@@ -17,7 +17,7 @@ static method block_test() → void {
   assert(g is () →* core::List<core::Object*>*);
   assert(g is () →* core::List<core::int*>*);
   try {
-    g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
+    g.call().{core::List::add}("hello");
     throw "expected a runtime error";
   }
   on core::TypeError* catch(no-exception-var) {
@@ -29,10 +29,10 @@ static method block_test() → void {
   assert(g is () →* core::List<core::Object*>*);
   assert(!(g is () →* core::List<core::int*>*));
   assert(!(g is () →* core::Object*));
-  g(){() →* core::List<core::Object*>*};
+  g.call();
   o = 3;
   try {
-    g(){() →* core::List<core::Object*>*};
+    g.call();
     throw "expected a runtime error";
   }
   on core::TypeError* catch(no-exception-var) {
@@ -43,13 +43,13 @@ static method arrow_test() → void {
   g = () → core::List<core::Object*>* => core::_GrowableList::_literal1<core::Object*>(3);
   assert(g is () →* core::List<core::Object*>*);
   assert(!(g is () →* core::List<core::int*>*));
-  g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
+  g.call().{core::List::add}("hello");
   core::List<core::int*>* l = core::_GrowableList::_literal1<core::int*>(3);
   g = () → core::List<core::int*>* => l;
   assert(g is () →* core::List<core::Object*>*);
   assert(g is () →* core::List<core::int*>*);
   try {
-    g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
+    g.call().{core::List::add}("hello");
     throw "expected a runtime error";
   }
   on core::TypeError* catch(no-exception-var) {
@@ -59,10 +59,10 @@ static method arrow_test() → void {
   assert(g is () →* core::List<core::Object*>*);
   assert(!(g is () →* core::List<core::int*>*));
   assert(!(g is () →* core::Object*));
-  g(){() →* core::List<core::Object*>*};
+  g.call();
   o = 3;
   try {
-    g(){() →* core::List<core::Object*>*};
+    g.call();
     throw "expected a runtime error";
   }
   on core::TypeError* catch(no-exception-var) {

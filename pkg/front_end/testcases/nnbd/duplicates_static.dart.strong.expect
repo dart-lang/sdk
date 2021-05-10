@@ -221,7 +221,7 @@ static method test() → dynamic {
         ^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:86:10: Error: Can't use 'staticMethod' because it is declared more than once.
   (Class.staticMethod)();
-         ^^^^^^^^^^^^"{dynamic}.call();
+         ^^^^^^^^^^^^".call();
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:87:9: Error: Can't use 'staticGetter' because it is declared more than once.
   Class.staticGetter;
         ^^^^^^^^^^^^";
@@ -278,12 +278,12 @@ static method main() → dynamic {
   self::expect(1, self::Class::staticMethodAndSetter2());
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → dynamic f) → dynamic {
   try {
-    f();
+    f.call();
   }
   on core::Object catch(final core::Object e) {
     core::print(e);

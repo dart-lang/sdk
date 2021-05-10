@@ -206,10 +206,10 @@ static method topLevelMethodAndSetter2() → core::int
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:83:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
   topLevelMethod();
-  ^"{dynamic}.call();
+  ^".call();
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
   (topLevelMethod)();
-   ^"{dynamic}.call();
+   ^".call();
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:85:3: Error: Can't use 'topLevelGetter' because it is declared more than once.
   topLevelGetter;
   ^";
@@ -266,12 +266,12 @@ static method main() → dynamic {
   self::expect(1, self::topLevelMethodAndSetter2());
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → dynamic f) → dynamic {
   try {
-    f();
+    f.call();
   }
   on core::Object catch(final core::Object e) {
     core::print(e);

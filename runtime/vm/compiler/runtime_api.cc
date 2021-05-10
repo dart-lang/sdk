@@ -176,6 +176,16 @@ const Class& DoubleClass() {
   return Class::Handle(object_store->double_class());
 }
 
+const Class& Float32x4Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->float32x4_class());
+}
+
+const Class& Float64x2Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->float64x2_class());
+}
+
 const Array& OneArgArgumentsDescriptor() {
   return Array::ZoneHandle(
       ArgumentsDescriptor::NewBoxed(/*type_args_len=*/0, /*num_arguments=*/1));

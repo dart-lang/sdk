@@ -16,7 +16,7 @@ static method main() → dynamic {
   self::expect(false, iss::Extension|+(false, false));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}.";
 }
 
@@ -28,4 +28,4 @@ extension Extension on core::bool* {
   operator + = iss::Extension|+;
 }
 static method Extension|+(lowered final core::bool* #this, core::bool* other) → core::bool*
-  return #this.{core::bool::|}(other){(core::bool*) →* core::bool*};
+  return #this.{core::bool::|}(other);

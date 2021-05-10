@@ -13,7 +13,7 @@ class MessageType extends core::Object /*hasConstConstructor*/  {
     : self::MessageType::name = name, super core::Object::•()
     ;
   static factory parse(core::String name) → self::MessageType {
-    if(name =={core::String::==}{(core::Object) → core::bool} "print") {
+    if(name.{core::String::==}("print")) {
       return #C2;
     }
     return #C4;

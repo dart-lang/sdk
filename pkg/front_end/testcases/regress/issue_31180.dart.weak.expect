@@ -11,8 +11,9 @@ library;
 // ^^^^^^^^^^^^
 //
 import self as self;
+import "dart:core" as core;
 
 static method bad() → dynamic {
-  return let final dynamic #t1 = null in #t1 == null ?{dynamic} null : #t1{dynamic}.[](1);
+  return let final dynamic #t1 = null in #t1.{core::Object::==}(null) ?{dynamic} null : #t1.[](1);
 }
 static method main() → dynamic {}

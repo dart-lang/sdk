@@ -214,7 +214,7 @@ static method main() → dynamic {
     #L16:
     {
       core::print("Hello from do-while!");
-      if((i = i.{core::num::+}(1){(core::num*) →* core::int*}).{core::num::<}(3){(core::num*) →* core::bool*})
+      if((i = i.{core::num::+}(1)).{core::num::<}(3))
         break #L16;
       break #L15;
     }
@@ -225,7 +225,7 @@ static method main() → dynamic {
     #L18:
     {
       core::print("Hello from while!");
-      if((i = i.{core::num::+}(1){(core::num*) →* core::int*}).{core::num::<}(3){(core::num*) →* core::bool*})
+      if((i = i.{core::num::+}(1)).{core::num::<}(3))
         break #L18;
       break #L17;
     }

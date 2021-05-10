@@ -27,12 +27,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
-
 namespace compiler {
 
 // Ensures that [EAX] is a new object, if not it will be added to the remembered

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   field core::Map<core::String*, (core::String*) →* Null>* map = <core::String*, (core::String*) →* Null>{"foo": (core::String* a) → Null {
-    core::int* c = a.{core::String::length}{core::int*};
+    core::int* c = a.{core::String::length};
   }};
   synthetic constructor •() → self::Class*
     : super core::Object::•()

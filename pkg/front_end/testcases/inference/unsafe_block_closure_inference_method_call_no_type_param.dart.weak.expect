@@ -21,7 +21,7 @@ class C extends core::Object {
 }
 static field core::double* v = new self::C::•().{self::C::f}(() → core::int* {
   return 1;
-}){(dynamic) →* core::double*};
+});
 static method main() → dynamic {
   self::v;
 }

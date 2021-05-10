@@ -18,7 +18,7 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     @#C1
     method toString() → dart.core::String* {
-      return "${this.{main::Foo::message}{dynamic}}!";
+      return "${this.{main::Foo::message}}!";
     }
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf

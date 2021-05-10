@@ -9,8 +9,8 @@ static method Extension|extensionMethod(lowered final Never #this) → dynamic {
 static method Extension|get#extensionMethod(lowered final Never #this) → () → dynamic
   return () → dynamic => self::Extension|extensionMethod(#this);
 static method implicitAccess(Never never) → dynamic {
-  never{Never}.extensionMethod();
-  never{Never}.missingMethod();
+  never.extensionMethod();
+  never.missingMethod();
 }
 static method explicitAccess(Never never) → dynamic {
   self::Extension|extensionMethod(never);

@@ -74,25 +74,25 @@ class D extends self::C {
     return null;
   method method() → dynamic {}
   method test() → void {
-    this.{self::D::field}{dynamic};
-    this.{self::C::superField}{dynamic};
+    this.{self::D::field};
+    this.{self::C::superField};
     this.{self::D::field} = 0;
     this.{self::C::superField} = 0;
-    this.{self::D::method}(){() →* dynamic};
-    this.{self::C::superMethod}(){() →* dynamic};
-    this.{self::C::setterOnly}{dynamic};
+    this.{self::D::method}();
+    this.{self::C::superMethod}();
+    this.{self::C::setterOnly};
     this.{self::D::setterOnly} = 0;
-    this.{self::D::getterOnly}{dynamic};
+    this.{self::D::getterOnly};
     this.{self::C::getterOnly} = 0;
-    this.{self::D::field}{dynamic};
-    this.{self::C::superField}{dynamic};
+    this.{self::D::field};
+    this.{self::C::superField};
     this.{self::D::field} = 0;
     this.{self::C::superField} = 0;
-    this.{self::D::method}(){() →* dynamic};
-    this.{self::C::superMethod}(){() →* dynamic};
-    this.{self::C::setterOnly}{dynamic};
+    this.{self::D::method}();
+    this.{self::C::superMethod}();
+    this.{self::C::setterOnly};
     this.{self::D::setterOnly} = 0;
-    this.{self::D::getterOnly}{dynamic};
+    this.{self::D::getterOnly};
     this.{self::C::getterOnly} = 0;
     invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:48:10: Error: The getter 'missingField' isn't defined for the class 'D'.
  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.

@@ -41,13 +41,13 @@ class Sub extends self::Class {
     : super self::Class::•()
     ;
   method test() → void {
-    this.{self::Class::extendedConcreteMixedInAbstractMethod}(){() → void};
+    this.{self::Class::extendedConcreteMixedInAbstractMethod}();
     super.{self::Super::extendedConcreteMixedInAbstractMethod}();
-    this.{self::Class::extendedConcreteMixedInConcreteMethod}(){() → void};
+    this.{self::Class::extendedConcreteMixedInConcreteMethod}();
     super.{self::Class::extendedConcreteMixedInConcreteMethod}();
-    this.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0){(core::int) → void};
+    this.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0);
     super.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0);
-    this.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0){(core::int) → void};
+    this.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0);
     super.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0);
   }
 }

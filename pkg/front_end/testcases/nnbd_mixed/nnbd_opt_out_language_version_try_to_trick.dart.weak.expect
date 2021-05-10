@@ -54,8 +54,8 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  if(!(new self::C::•().{self::C::l}{self::late*}.{self::late::g}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 1))
+  if(!new self::C::•().{self::C::l}.{self::late::g}.{core::num::==}(1))
     throw "Expected 1";
-  if(!(new self::C::•().{self::C::r}{self::required*}.{self::required::g}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 2))
+  if(!new self::C::•().{self::C::r}.{self::required::g}.{core::num::==}(2))
     throw "Expected 2";
 }

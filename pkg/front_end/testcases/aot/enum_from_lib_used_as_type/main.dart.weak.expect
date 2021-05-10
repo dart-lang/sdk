@@ -7,8 +7,8 @@ import "org-dartlang-testcase:///main_lib.dart";
 
 static method main() → dynamic {
   core::List<dynamic> list = <dynamic>[];
-  if(list.{core::Iterable::isNotEmpty}{core::bool}) {
-    new mai::Class::•().{mai::Class::method}((null as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} mai::Enum){(mai::Enum) → core::int};
+  if(list.{core::Iterable::isNotEmpty}) {
+    new mai::Class::•().{mai::Class::method}((null as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} mai::Enum);
   }
 }
 
@@ -32,7 +32,7 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   method method(mai::Enum e) → core::int
-    return e.{mai::Enum::index}{core::int};
+    return e.{mai::Enum::index};
 }
 
 constants  {

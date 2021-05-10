@@ -27,6 +27,6 @@ class Foo extends core::Object {
 }
 static field core::List<core::int*>* list = core::_GrowableList::_literal3<core::int*>(1, 2, 3);
 static method main() → dynamic {
-  exp::Expect::isTrue(typ::Uint8List::fromList(self::list).{core::List::[]}(1){(core::int*) →* core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 2);
-  exp::Expect::isTrue(self::Foo::fac(10).{self::Foo::value}{dynamic} =={core::Object::==}{(core::Object*) →* core::bool*} 10);
+  exp::Expect::isTrue(typ::Uint8List::fromList(self::list).{core::List::[]}(1).{core::num::==}(2));
+  exp::Expect::isTrue(self::Foo::fac(10).{self::Foo::value}.{core::Object::==}(10));
 }

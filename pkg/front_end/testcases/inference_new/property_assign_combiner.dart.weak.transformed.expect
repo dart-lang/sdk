@@ -123,15 +123,15 @@ class G extends core::Object {
 static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;
 static method test1(self::G* g) → void {
-  let final self::G* #t1 = g in #t1.{self::G::target} = #t1.{self::G::target}{self::A*}.{self::A::*}(self::f<self::D*>()){(self::D*) →* self::C*};
-  self::C* x = let final self::G* #t2 = g in #t2.{self::G::target} = #t2.{self::G::target}{self::A*}.{self::A::*}(self::f<self::D*>()){(self::D*) →* self::C*};
+  let final self::G* #t1 = g in #t1.{self::G::target} = #t1.{self::G::target}.{self::A::*}(self::f<self::D*>());
+  self::C* x = let final self::G* #t2 = g in #t2.{self::G::target} = #t2.{self::G::target}.{self::A::*}(self::f<self::D*>());
 }
 static method test2(self::G* g) → void {
-  let final self::G* #t3 = g in #t3.{self::G::target} = #t3.{self::G::target}{self::A*}.{self::A::+}(1){(core::int*) →* self::C*};
-  self::C* x = let final self::G* #t4 = g in #t4.{self::G::target} = #t4.{self::G::target}{self::A*}.{self::A::+}(1){(core::int*) →* self::C*};
+  let final self::G* #t3 = g in #t3.{self::G::target} = #t3.{self::G::target}.{self::A::+}(1);
+  self::C* x = let final self::G* #t4 = g in #t4.{self::G::target} = #t4.{self::G::target}.{self::A::+}(1);
 }
 static method test3(self::G* g) → void {
-  let final self::G* #t5 = g in #t5.{self::G::target} = #t5.{self::G::target}{self::A*}.{self::A::+}(1){(core::int*) →* self::C*};
-  self::A* x = let final self::G* #t6 = g in let final self::A* #t7 = #t6.{self::G::target}{self::A*} in let final self::C* #t8 = #t6.{self::G::target} = #t7.{self::A::+}(1){(core::int*) →* self::C*} in #t7;
+  let final self::G* #t5 = g in #t5.{self::G::target} = #t5.{self::G::target}.{self::A::+}(1);
+  self::A* x = let final self::G* #t6 = g in let final self::A* #t7 = #t6.{self::G::target} in let final self::C* #t8 = #t6.{self::G::target} = #t7.{self::A::+}(1) in #t7;
 }
 static method main() → dynamic {}

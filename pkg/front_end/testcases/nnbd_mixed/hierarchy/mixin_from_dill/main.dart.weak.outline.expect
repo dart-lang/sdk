@@ -112,9 +112,9 @@ class Mixin2 extends core::Object implements opt::Interface2 {
   synthetic constructor •() → opt3::Mixin2
     ;
   no-such-method-forwarder get /* from org-dartlang-testcase:///opt_in_lib1.dart */ _privateGetter() → opt::A
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} opt::A;
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic,ForNonNullableByDefault} opt::A;
   no-such-method-forwarder set /* from org-dartlang-testcase:///opt_in_lib1.dart */ _privateSetter(opt::C c) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(c)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(c)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 
 library;
