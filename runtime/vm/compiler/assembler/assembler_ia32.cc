@@ -14,9 +14,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, inline_alloc);
-DECLARE_FLAG(bool, use_slow_path);
-
 namespace compiler {
 
 class DirectCallRelocation : public AssemblerFixup {

@@ -196,6 +196,12 @@ struct RangeErrorABI {
   static const Register kIndexReg = EBX;
 };
 
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
+  static const Register kResultReg = EAX;
+  static const Register kTempReg = EBX;
+};
+
 // ABI for Allocate<TypedData>ArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kLengthReg = EAX;

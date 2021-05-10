@@ -117,6 +117,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  P(inline_alloc, bool, true, "Whether to use inline allocation fast paths.")  \
   R(null_assertions, false, bool, false,                                       \
     "Enable null assertions for parameters.")                                  \
   R(strict_null_safety_checks, false, bool, false,                             \
@@ -239,6 +240,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, true, "Use field guards and track field types")    \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
+  P(use_slow_path, bool, false, "Whether to avoid inlined fast paths.")        \
   R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \
   R(verbose_gc_hdr, 40, int, 40, "Print verbose GC header interval.")          \
   R(verify_after_gc, false, bool, false,                                       \

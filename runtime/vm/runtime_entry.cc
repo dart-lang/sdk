@@ -336,6 +336,34 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   array.SetTypeArguments(element_type);  // May be null.
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Double::New(0.0)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Integer::New(kMaxInt64)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Float32x4::New(0.0, 0.0, 0.0, 0.0)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Float64x2::New(0.0, 0.0)));
+}
+
 // Allocate typed data array of given class id and length.
 // Arg0: class id.
 // Arg1: number of elements.
@@ -2712,16 +2740,6 @@ static void HandleOSRRequest(Thread* thread) {
   }
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
-  if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
-  }
-  constexpr uint64_t val = 0x7fffffff7fffffff;
-  ASSERT(!Smi::IsValid(static_cast<int64_t>(val)));
-  const auto& integer_box = Integer::Handle(zone, Integer::NewFromUint64(val));
-  arguments.SetReturn(integer_box);
-};
 
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)

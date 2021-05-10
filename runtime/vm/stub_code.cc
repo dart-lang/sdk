@@ -170,12 +170,21 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   const Error& error =
       Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
   ASSERT(error.IsNull());
-  if (cls.id() == kArrayCid) {
-    return object_store->allocate_array_stub();
-  } else if (cls.id() == kContextCid) {
-    return object_store->allocate_context_stub();
-  } else if (cls.id() == kUnhandledExceptionCid) {
-    return object_store->allocate_unhandled_exception_stub();
+  switch (cls.id()) {
+    case kArrayCid:
+      return object_store->allocate_array_stub();
+    case kContextCid:
+      return object_store->allocate_context_stub();
+    case kUnhandledExceptionCid:
+      return object_store->allocate_unhandled_exception_stub();
+    case kMintCid:
+      return object_store->allocate_mint_stub();
+    case kDoubleCid:
+      return object_store->allocate_double_stub();
+    case kFloat32x4Cid:
+      return object_store->allocate_float32x4_stub();
+    case kFloat64x2Cid:
+      return object_store->allocate_float64x2_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
   if (stub.IsNull()) {

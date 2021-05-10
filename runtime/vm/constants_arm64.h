@@ -292,8 +292,14 @@ struct RangeErrorABI {
   static const Register kIndexReg = R1;
 };
 
-// ABI for AllocateMint*Stub.
+// ABI for AllocateMintShared*Stub.
 struct AllocateMintABI {
+  static const Register kResultReg = R0;
+  static const Register kTempReg = R1;
+};
+
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
   static const Register kResultReg = R0;
   static const Register kTempReg = R1;
 };
