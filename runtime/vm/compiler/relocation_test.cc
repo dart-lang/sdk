@@ -40,7 +40,7 @@ struct RelocatorTestHelper {
   explicit RelocatorTestHelper(Thread* thread)
       : thread(thread),
         locker(thread, thread->isolate_group()->program_lock()),
-        safepoint_and_growth_scope(thread) {
+        safepoint_and_growth_scope(thread, SafepointLevel::kGC) {
     // So the relocator uses the correct instruction size layout.
     FLAG_precompiled_mode = true;
     FLAG_use_bare_instructions = true;

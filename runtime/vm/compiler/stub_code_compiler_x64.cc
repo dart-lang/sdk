@@ -383,8 +383,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // the saved THR and the return address. The target will know to skip them.
   __ call(TMP);
 
-  // EnterSafepoint takes care to not clobber *any* registers (besides TMP).
-  __ EnterSafepoint();
+  // Takes care to not clobber *any* registers (besides TMP).
+  __ EnterFullSafepoint();
 
   // Restore THR (callee-saved).
   __ popq(THR);

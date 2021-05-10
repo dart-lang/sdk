@@ -27,8 +27,7 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
     // Fast update failed which means we could potentially be in the middle
     // of a safepoint operation and need to block for it.
     monitor_->Exit();
-    SafepointHandler* handler = thread->isolate_group()->safepoint_handler();
-    handler->ExitSafepointUsingLock(thread);
+    thread->ExitSafepointUsingLock();
     monitor_->Enter();
   }
   thread->set_execution_state(Thread::kThreadInVM);

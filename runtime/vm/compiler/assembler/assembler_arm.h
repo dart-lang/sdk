@@ -584,8 +584,8 @@ class Assembler : public AssemblerBase {
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
                                    bool exit_safepoint);
-  void EnterSafepoint(Register scratch0, Register scratch1);
-  void ExitSafepoint(Register scratch0, Register scratch1);
+  void EnterFullSafepoint(Register scratch0, Register scratch1);
+  void ExitFullSafepoint(Register scratch0, Register scratch1);
 
   // Miscellaneous instructions.
   void clrex();

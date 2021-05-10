@@ -440,9 +440,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Resets CSP and SP, important for EnterSafepoint below.
   __ blr(R10);
 
-  // EnterSafepoint clobbers TMP, TMP2 and R9 -- all volatile and not holding
-  // return values.
-  __ EnterSafepoint(/*scratch=*/R9);
+  // Clobbers TMP, TMP2 and R9 -- all volatile and not holding return values.
+  __ EnterFullSafepoint(/*scratch=*/R9);
 
   // Pop LR and THR from the real stack (CSP).
   RESTORES_LR_FROM_FRAME(__ ldp(

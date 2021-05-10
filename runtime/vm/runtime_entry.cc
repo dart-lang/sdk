@@ -1116,7 +1116,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
                                   caller_frame->pc(), caller_code));
   if (target_code.ptr() !=
       CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
-    SafepointOperationScope safepoint(thread);
+    GcSafepointOperationScope safepoint(thread);
     if (target_code.ptr() !=
         CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
       CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,

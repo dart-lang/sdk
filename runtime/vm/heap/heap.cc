@@ -222,7 +222,8 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       heap_(isolate_group()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
-  isolate_group()->safepoint_handler()->SafepointThreads(thread);
+  isolate_group()->safepoint_handler()->SafepointThreads(thread,
+                                                         SafepointLevel::kGC);
 
   {
     // It's not safe to iterate over old space when concurrent marking or
@@ -273,7 +274,8 @@ HeapIterationScope::~HeapIterationScope() {
     ml.NotifyAll();
   }
 
-  isolate_group()->safepoint_handler()->ResumeThreads(thread());
+  isolate_group()->safepoint_handler()->ResumeThreads(thread(),
+                                                      SafepointLevel::kGC);
 }
 
 void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {
@@ -353,7 +355,7 @@ void Heap::HintFreed(intptr_t size) {
 
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
-  SafepointOperationScope safepoint_operation(thread);
+  GcSafepointOperationScope safepoint_operation(thread);
 
   // Check if we want to collect new-space first, because if we want to collect
   // both new-space and old-space, the new-space collection should run first
@@ -420,7 +422,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(kScavenge, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
                                                 : VMTag::kGCNewSpaceTagId);
@@ -444,7 +446,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(kScavenge, reason);
     {
       VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
@@ -484,7 +486,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     return;
   }
   {
-    SafepointOperationScope safepoint_operation(thread);
+    GcSafepointOperationScope safepoint_operation(thread);
     thread->isolate_group()->ForEachIsolate(
         [&](Isolate* isolate) {
           // Discard regexp backtracking stacks to further reduce memory usage.

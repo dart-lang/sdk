@@ -61,7 +61,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   intptr_t d_size = d.ptr()->untag()->HeapSize();
   {
     // No more allocation; raw pointers ahead.
-    SafepointOperationScope safepoint(thread);
+    GcSafepointOperationScope safepoint(thread);
     ObjectPtr b_raw = b.ptr();
     // Clear handles to cut unintended retained paths.
     b = Array::null();

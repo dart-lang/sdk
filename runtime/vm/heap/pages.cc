@@ -1085,7 +1085,7 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
 
   Thread* thread = Thread::Current();
   const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
-  SafepointOperationScope safepoint_scope(thread);
+  GcSafepointOperationScope safepoint_scope(thread);
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
   // Wait for pending tasks to complete and then account for the driver task.

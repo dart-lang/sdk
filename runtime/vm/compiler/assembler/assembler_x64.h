@@ -318,8 +318,8 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
-  void EnterSafepoint();
-  void LeaveSafepoint();
+  void EnterFullSafepoint();
+  void ExitFullSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
