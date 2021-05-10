@@ -6987,7 +6987,7 @@ static void KillNonMainIsolatesSlow(Thread* thread, Isolate* main_isolate) {
   while (true) {
     bool non_main_isolates_alive = false;
     {
-      SafepointOperationScope safepoint(thread);
+      DeoptSafepointOperationScope safepoint(thread);
       group->ForEachIsolate(
           [&](Isolate* isolate) {
             if (isolate != main_isolate) {

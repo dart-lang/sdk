@@ -714,17 +714,12 @@ word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
                   : stack_overflow_shared_without_fpu_regs_entry_point_offset();
 }
 
-uword Thread::safepoint_state_unacquired() {
-  return dart::Thread::safepoint_state_unacquired();
+uword Thread::full_safepoint_state_unacquired() {
+  return dart::Thread::full_safepoint_state_unacquired();
 }
 
-uword Thread::safepoint_state_acquired() {
-  return dart::Thread::safepoint_state_acquired();
-}
-
-intptr_t Thread::safepoint_state_inside_bit() {
-  COMPILE_ASSERT(dart::Thread::AtSafepointField::bitsize() == 1);
-  return dart::Thread::AtSafepointField::shift();
+uword Thread::full_safepoint_state_acquired() {
+  return dart::Thread::full_safepoint_state_acquired();
 }
 
 uword Thread::generated_execution_state() {

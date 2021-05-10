@@ -242,6 +242,20 @@ enum class RuntimeCallDeoptAbility {
   kCannotLazyDeopt,
 };
 
+// The safepoint level a thread is on or a safepoint operation is requested for
+//
+// The higher the number the stronger the guarantees:
+//   * the time-to-safepoint latency increases with level
+//   * the frequency of hitting possible safe points decreases with level
+enum SafepointLevel {
+  // Safe to GC
+  kGC,
+  // Safe to GC as well as Deopt.
+  kGCAndDeopt,
+  // Number of levels.
+  kNumLevels,
+};
+
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by EnsureInit before entering an isolate, and destroyed
@@ -736,9 +750,14 @@ class Thread : public ThreadState {
    * - Bit 0 of the safepoint_state_ field is used to indicate if the thread is
    *   already at a safepoint,
    * - Bit 1 of the safepoint_state_ field is used to indicate if a safepoint
-   *   operation is requested for this thread.
-   * - Bit 2 of the safepoint_state_ field is used to indicate that the thread
-   *   is blocked for the safepoint operation to complete.
+   *   is requested for this thread.
+   * - Bit 2 of the safepoint_state_ field is used to indicate if the thread is
+   *   already at a deopt safepoint,
+   * - Bit 3 of the safepoint_state_ field is used to indicate if a deopt
+   *   safepoint is requested for this thread.
+   * - Bit 4 of the safepoint_state_ field is used to indicate that the thread
+   *   is blocked at a (deopt)safepoint and has to be woken up once the
+   *   (deopt)safepoint operation is complete.
    *
    * The safepoint execution state (described above) for a thread is stored in
    * in the execution_state_ field.
@@ -748,35 +767,68 @@ class Thread : public ThreadState {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static bool IsAtSafepoint(uword state) {
-    return AtSafepointField::decode(state);
+  static bool IsAtSafepoint(SafepointLevel level, uword state) {
+    const uword mask = AtSafepointBits(level);
+    return (state & mask) == mask;
   }
   bool IsAtSafepoint() const {
-    return AtSafepointField::decode(safepoint_state_);
+    return IsAtSafepoint(current_safepoint_level());
   }
-  static uword SetAtSafepoint(bool value, uword state) {
-    return AtSafepointField::update(value, state);
+  bool IsAtSafepoint(SafepointLevel level) const {
+    return IsAtSafepoint(level, safepoint_state_.load());
   }
   void SetAtSafepoint(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
-    safepoint_state_ = AtSafepointField::update(value, safepoint_state_);
+    if (value) {
+      safepoint_state_ |= AtSafepointBits(current_safepoint_level());
+    } else {
+      safepoint_state_ &= ~AtSafepointBits(current_safepoint_level());
+    }
+  }
+  bool IsSafepointRequestedLocked() const {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    return IsSafepointRequested();
   }
   bool IsSafepointRequested() const {
-    return SafepointRequestedField::decode(safepoint_state_);
+    const uword state = safepoint_state_.load();
+    for (intptr_t level = current_safepoint_level(); level >= 0; --level) {
+      if (IsSafepointLevelRequested(state, static_cast<SafepointLevel>(level)))
+        return true;
+    }
+    return false;
   }
-  static uword SetSafepointRequested(bool value, uword state) {
-    return SafepointRequestedField::update(value, state);
-  }
-  uword SetSafepointRequested(bool value) {
+  bool IsSafepointLevelRequestedLocked(SafepointLevel level) const {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    if (level > current_safepoint_level()) return false;
+    const uword state = safepoint_state_.load();
+    return IsSafepointLevelRequested(state, level);
+  }
+
+  static bool IsSafepointLevelRequested(uword state, SafepointLevel level) {
+    switch (level) {
+      case SafepointLevel::kGC:
+        return (state & SafepointRequestedField::mask_in_place()) != 0;
+      case SafepointLevel::kGCAndDeopt:
+        return (state & DeoptSafepointRequestedField::mask_in_place()) != 0;
+      case SafepointLevel::kNumLevels:
+        UNREACHABLE();
+    }
+  }
+
+  void BlockForSafepoint();
+  uword SetSafepointRequested(SafepointLevel level, bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+
+    const uword mask = level == SafepointLevel::kGC
+                           ? SafepointRequestedField::mask_in_place()
+                           : DeoptSafepointRequestedField::mask_in_place();
+
     if (value) {
       // acquire pulls from the release in TryEnterSafepoint.
-      return safepoint_state_.fetch_or(SafepointRequestedField::encode(true),
-                                       std::memory_order_acquire);
+      return safepoint_state_.fetch_or(mask, std::memory_order_acquire);
     } else {
       // release pushes to the acquire in TryExitSafepoint.
-      return safepoint_state_.fetch_and(~SafepointRequestedField::encode(true),
-                                        std::memory_order_release);
+      return safepoint_state_.fetch_and(~mask, std::memory_order_release);
     }
   }
   static bool IsBlockedForSafepoint(uword state) {
@@ -824,12 +876,21 @@ class Thread : public ThreadState {
            (execution_state() == kThreadInGenerated);
   }
 
-  static uword safepoint_state_unacquired() { return SetAtSafepoint(false, 0); }
-  static uword safepoint_state_acquired() { return SetAtSafepoint(true, 0); }
+  static uword full_safepoint_state_unacquired() {
+    return (0 << AtSafepointField::shift()) |
+           (0 << AtDeoptSafepointField::shift());
+  }
+  static uword full_safepoint_state_acquired() {
+    return (1 << AtSafepointField::shift()) |
+           (1 << AtDeoptSafepointField::shift());
+  }
 
   bool TryEnterSafepoint() {
     uword old_state = 0;
-    uword new_state = SetAtSafepoint(true, 0);
+    uword new_state = AtSafepointField::encode(true);
+    if (current_safepoint_level() == SafepointLevel::kGCAndDeopt) {
+      new_state |= AtDeoptSafepointField::encode(true);
+    }
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_release);
   }
@@ -846,7 +907,10 @@ class Thread : public ThreadState {
   }
 
   bool TryExitSafepoint() {
-    uword old_state = SetAtSafepoint(true, 0);
+    uword old_state = AtSafepointField::encode(true);
+    if (current_safepoint_level() == SafepointLevel::kGCAndDeopt) {
+      old_state |= AtDeoptSafepointField::encode(true);
+    }
     uword new_state = 0;
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_acquire);
@@ -863,6 +927,8 @@ class Thread : public ThreadState {
   }
 
   void CheckForSafepoint() {
+    // If we are in a runtime call that doesn't support lazy deopt, we will only
+    // respond to gc safepointing requests.
     ASSERT(no_safepoint_scope_depth() == 0);
     if (IsSafepointRequested()) {
       BlockForSafepoint();
@@ -926,6 +992,13 @@ class Thread : public ThreadState {
 #endif
 
   PendingDeopts& pending_deopts() { return pending_deopts_; }
+
+  SafepointLevel current_safepoint_level() const {
+    return runtime_call_deopt_ability_ ==
+                   RuntimeCallDeoptAbility::kCannotLazyDeopt
+               ? SafepointLevel::kGC
+               : SafepointLevel::kGCAndDeopt;
+  }
 
  private:
   template <class T>
@@ -1065,11 +1138,32 @@ class Thread : public ThreadState {
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  // Generated code assumes that AtSafepointField is the LSB.
   class AtSafepointField : public BitField<uword, bool, 0, 1> {};
-  class SafepointRequestedField : public BitField<uword, bool, 1, 1> {};
-  class BlockedForSafepointField : public BitField<uword, bool, 2, 1> {};
-  class BypassSafepointsField : public BitField<uword, bool, 3, 1> {};
+  class SafepointRequestedField
+      : public BitField<uword, bool, AtSafepointField::kNextBit, 1> {};
+  class AtDeoptSafepointField
+      : public BitField<uword, bool, SafepointRequestedField::kNextBit, 1> {};
+  class DeoptSafepointRequestedField
+      : public BitField<uword, bool, AtDeoptSafepointField::kNextBit, 1> {};
+  class BlockedForSafepointField
+      : public BitField<uword,
+                        bool,
+                        DeoptSafepointRequestedField::kNextBit,
+                        1> {};
+  class BypassSafepointsField
+      : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
+
+  static uword AtSafepointBits(SafepointLevel level) {
+    switch (level) {
+      case SafepointLevel::kGC:
+        return AtSafepointField::mask_in_place();
+      case SafepointLevel::kGCAndDeopt:
+        return AtSafepointField::mask_in_place() |
+               AtDeoptSafepointField::mask_in_place();
+      case SafepointLevel::kNumLevels:
+        UNREACHABLE();
+    }
+  }
 
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_;
@@ -1096,7 +1190,6 @@ class Thread : public ThreadState {
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
-  void BlockForSafepoint();
 
   void FinishEntering(TaskKind kind);
   void PrepareLeaving();
@@ -1128,6 +1221,11 @@ class Thread : public ThreadState {
   friend class compiler::target::Thread;
   friend class FieldTable;
   friend class RuntimeCallDeoptScope;
+  friend class
+      TransitionGeneratedToVM;  // IsSafepointRequested/BlockForSafepoint
+  friend class
+      TransitionVMToGenerated;  // IsSafepointRequested/BlockForSafepoint
+  friend class MonitorLocker;   // ExitSafepointUsingLock
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
                                                    const char*,
                                                    char**);

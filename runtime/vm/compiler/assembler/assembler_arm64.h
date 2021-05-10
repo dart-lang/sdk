@@ -1909,8 +1909,8 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
-  void EnterSafepoint(Register scratch);
-  void ExitSafepoint(Register scratch);
+  void EnterFullSafepoint(Register scratch);
+  void ExitFullSafepoint(Register scratch);
 
   void CheckCodePointer();
   void RestoreCodePointer();

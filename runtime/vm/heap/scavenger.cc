@@ -1546,7 +1546,7 @@ void Scavenger::Scavenge() {
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
   Thread* thread = Thread::Current();
-  SafepointOperationScope safepoint_scope(thread);
+  GcSafepointOperationScope safepoint_scope(thread);
 
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
@@ -1784,7 +1784,7 @@ void Scavenger::Evacuate() {
   // The latter means even if the scavenge promotes every object in the new
   // space, the new allocation means the space is not empty,
   // causing the assertion below to fail.
-  SafepointOperationScope scope(Thread::Current());
+  GcSafepointOperationScope scope(Thread::Current());
 
   // Forces the next scavenge to promote all the objects in the new space.
   early_tenure_ = true;

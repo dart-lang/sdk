@@ -315,8 +315,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ Bind(&check_done);
 #endif
 
-  // EnterSafepoint takes care to not clobber *any* registers (besides scratch).
-  __ EnterSafepoint(/*scratch=*/ECX);
+  // Takes care to not clobber *any* registers (besides scratch).
+  __ EnterFullSafepoint(/*scratch=*/ECX);
 
   // Restore callee-saved registers.
   __ movl(ECX, EBX);

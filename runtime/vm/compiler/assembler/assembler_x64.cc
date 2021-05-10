@@ -131,7 +131,7 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
   EmitUint8(0xC0 + (dst & 0x07));
 }
 
-void Assembler::EnterSafepoint() {
+void Assembler::EnterFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, to simplify GenerateJitCallbackTrampolines.
   Label done, slow_path;
@@ -139,15 +139,15 @@ void Assembler::EnterSafepoint() {
     jmp(&slow_path);
   }
 
-  // Compare and swap the value at Thread::safepoint_state from unacquired to
-  // acquired. If the CAS fails, go to a slow-path stub.
+  // Compare and swap the value at Thread::safepoint_state from
+  // unacquired to acquired. If the CAS fails, go to a slow-path stub.
   pushq(RAX);
-  movq(RAX, Immediate(target::Thread::safepoint_state_unacquired()));
-  movq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
+  movq(RAX, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  movq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
   LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
   movq(TMP, RAX);
   popq(RAX);
-  cmpq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
+  cmpq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -182,28 +182,29 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
        Immediate(target::Thread::native_execution_state()));
 
   if (enter_safepoint) {
-    EnterSafepoint();
+    EnterFullSafepoint();
   }
 }
 
-void Assembler::LeaveSafepoint() {
+void Assembler::ExitFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
   Label done, slow_path;
   if (FLAG_use_slow_path) {
     jmp(&slow_path);
   }
 
-  // Compare and swap the value at Thread::safepoint_state from acquired to
-  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  // Compare and swap the value at Thread::safepoint_state from
+  // acquired to unacquired. On success, jump to 'success'; otherwise,
+  // fallthrough.
 
   pushq(RAX);
-  movq(RAX, Immediate(target::Thread::safepoint_state_acquired()));
-  movq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
+  movq(RAX, Immediate(target::Thread::full_safepoint_state_acquired()));
+  movq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
   LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
   movq(TMP, RAX);
   popq(RAX);
-  cmpq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
+  cmpq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -223,12 +224,12 @@ void Assembler::LeaveSafepoint() {
 
 void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
   if (leave_safepoint) {
-    LeaveSafepoint();
+    ExitFullSafepoint();
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));
-    andq(TMP, Immediate((1 << target::Thread::safepoint_state_inside_bit())));
+    andq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
     Label ok;
     j(ZERO, &ok);
     Breakpoint();

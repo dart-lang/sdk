@@ -3931,9 +3931,10 @@ void Class::Finalize() const {
 }
 
 #if defined(DEBUG)
-static bool IsMutatorOrAtSafepoint() {
+static bool IsMutatorOrAtDeoptSafepoint() {
   Thread* thread = Thread::Current();
-  return thread->IsMutatorThread() || thread->IsAtSafepoint();
+  return thread->IsMutatorThread() ||
+         thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt);
 }
 #endif
 
@@ -3978,7 +3979,7 @@ void Class::RegisterCHACode(const Code& code) {
               Function::Handle(code.function()).ToQualifiedCString(),
               ToCString());
   }
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  DEBUG_ASSERT(IsMutatorOrAtDeoptSafepoint());
   ASSERT(code.is_optimized());
   CHACodeArray a(*this);
   a.Register(code);
@@ -7060,7 +7061,7 @@ void Function::InstallOptimizedCode(const Code& code) const {
 void Function::SetInstructions(const Code& value) const {
   // Ensure that nobody is executing this function when we install it.
   if (untag()->code() != Code::null() && HasCode()) {
-    SafepointOperationScope safepoint(Thread::Current());
+    GcSafepointOperationScope safepoint(Thread::Current());
     SetInstructionsSafe(value);
   } else {
     ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -7189,7 +7190,7 @@ void Function::set_unoptimized_code(const Code& value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  DEBUG_ASSERT(IsMutatorOrAtDeoptSafepoint());
   ASSERT(value.IsNull() || !value.is_optimized());
   untag()->set_unoptimized_code(value.ptr());
 #endif
@@ -10813,7 +10814,7 @@ class FieldDependentArray : public WeakCodeReferences {
 
 void Field::RegisterDependentCode(const Code& code) const {
   ASSERT(IsOriginal());
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  DEBUG_ASSERT(IsMutatorOrAtDeoptSafepoint());
   ASSERT(code.is_optimized());
   FieldDependentArray a(*this);
   a.Register(code);
@@ -17270,7 +17271,7 @@ bool Code::IsUnknownDartCode(CodePtr code) {
 }
 
 void Code::DisableDartCode() const {
-  SafepointOperationScope safepoint(Thread::Current());
+  GcSafepointOperationScope safepoint(Thread::Current());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixCallersTarget();
@@ -17279,7 +17280,7 @@ void Code::DisableDartCode() const {
 }
 
 void Code::DisableStubCode() const {
-  SafepointOperationScope safepoint(Thread::Current());
+  GcSafepointOperationScope safepoint(Thread::Current());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixAllocationStubTarget();

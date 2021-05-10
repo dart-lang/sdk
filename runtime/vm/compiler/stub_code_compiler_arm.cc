@@ -466,8 +466,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // them.
   __ blx(R5);
 
-  // EnterSafepoint clobbers R4, R5 and TMP, all saved or volatile.
-  __ EnterSafepoint(R4, R5);
+  // Clobbers R4, R5 and TMP, all saved or volatile.
+  __ EnterFullSafepoint(R4, R5);
 
   // Returns.
   __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5));

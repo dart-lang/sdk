@@ -1502,7 +1502,7 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   LeaveFrame();
 }
 
-void Assembler::EnterSafepoint(Register state) {
+void Assembler::EnterFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
 
@@ -1518,10 +1518,10 @@ void Assembler::EnterSafepoint(Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldxr(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_unacquired()));
   b(&slow_path, NE);
 
-  movz(state, Immediate(target::Thread::safepoint_state_acquired()), 0);
+  movz(state, Immediate(target::Thread::full_safepoint_state_acquired()), 0);
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
@@ -1555,13 +1555,13 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   StoreToOffset(tmp, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
-    EnterSafepoint(tmp);
+    EnterFullSafepoint(tmp);
   }
 }
 
-void Assembler::ExitSafepoint(Register state) {
+void Assembler::ExitFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
   Register addr = TMP2;
   ASSERT(addr != state);
 
@@ -1574,10 +1574,10 @@ void Assembler::ExitSafepoint(Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldxr(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_acquired()));
   b(&slow_path, NE);
 
-  movz(state, Immediate(target::Thread::safepoint_state_unacquired()), 0);
+  movz(state, Immediate(target::Thread::full_safepoint_state_unacquired()), 0);
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
@@ -1596,13 +1596,16 @@ void Assembler::ExitSafepoint(Register state) {
 void Assembler::TransitionNativeToGenerated(Register state,
                                             bool exit_safepoint) {
   if (exit_safepoint) {
-    ExitSafepoint(state);
+    ExitFullSafepoint(state);
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
+    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
+    LoadImmediate(state, target::Thread::full_safepoint_state_acquired());
     ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
+    and_(TMP, TMP, Operand(state));
     Label ok;
-    tbz(&ok, TMP, target::Thread::safepoint_state_inside_bit());
+    cbz(&ok, TMP);
     Breakpoint();
     Bind(&ok);
 #endif

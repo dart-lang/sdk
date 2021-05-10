@@ -529,7 +529,7 @@ void Assembler::dmb() {
   Emit(kDataMemoryBarrier);
 }
 
-void Assembler::EnterSafepoint(Register addr, Register state) {
+void Assembler::EnterFullSafepoint(Register addr, Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
   Label slow_path, done, retry;
@@ -541,10 +541,10 @@ void Assembler::EnterSafepoint(Register addr, Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_unacquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::safepoint_state_acquired()));
+  mov(state, Operand(target::Thread::full_safepoint_state_acquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -580,16 +580,16 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   StoreToOffset(tmp1, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
-    EnterSafepoint(tmp1, tmp2);
+    EnterFullSafepoint(tmp1, tmp2);
   }
 }
 
-void Assembler::ExitSafepoint(Register tmp1, Register tmp2) {
+void Assembler::ExitFullSafepoint(Register tmp1, Register tmp2) {
   Register addr = tmp1;
   Register state = tmp2;
 
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
   Label slow_path, done, retry;
   if (FLAG_use_slow_path) {
     b(&slow_path);
@@ -599,10 +599,10 @@ void Assembler::ExitSafepoint(Register tmp1, Register tmp2) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  cmp(state, Operand(target::Thread::full_safepoint_state_acquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::safepoint_state_unacquired()));
+  mov(state, Operand(target::Thread::full_safepoint_state_unacquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -623,13 +623,14 @@ void Assembler::TransitionNativeToGenerated(Register addr,
                                             Register state,
                                             bool exit_safepoint) {
   if (exit_safepoint) {
-    ExitSafepoint(addr, state);
+    ExitFullSafepoint(addr, state);
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
-    LoadImmediate(state, 1 << target::Thread::safepoint_state_inside_bit());
+    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
+    LoadImmediate(state, target::Thread::full_safepoint_state_acquired());
     ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
-    ands(TMP, TMP, Operand(state));  // Is-at-safepoint is the LSB.
+    ands(TMP, TMP, Operand(state));
     Label ok;
     b(&ok, ZERO);
     Breakpoint();

@@ -1062,9 +1062,8 @@ class Thread : public AllStatic {
   static uword vm_tag_dart_id();
 
   static word safepoint_state_offset();
-  static uword safepoint_state_unacquired();
-  static uword safepoint_state_acquired();
-  static intptr_t safepoint_state_inside_bit();
+  static uword full_safepoint_state_unacquired();
+  static uword full_safepoint_state_acquired();
 
   static word execution_state_offset();
   static uword vm_execution_state();

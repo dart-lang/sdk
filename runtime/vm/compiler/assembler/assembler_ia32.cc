@@ -2249,24 +2249,24 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
-void Assembler::EnterSafepoint(Register scratch) {
+void Assembler::EnterFullSafepoint(Register scratch) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
 
-  // Compare and swap the value at Thread::safepoint_state from unacquired to
-  // acquired. On success, jump to 'success'; otherwise, fallthrough.
+  // Compare and swap the value at Thread::safepoint_state from unacquired
+  // to acquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done, slow_path;
   if (FLAG_use_slow_path) {
     jmp(&slow_path);
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::safepoint_state_unacquired()));
-  movl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+  movl(EAX, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  movl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -2299,29 +2299,29 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
        Immediate(target::Thread::native_execution_state()));
 
   if (enter_safepoint) {
-    EnterSafepoint(scratch);
+    EnterFullSafepoint(scratch);
   }
 }
 
-void Assembler::ExitSafepoint(Register scratch) {
+void Assembler::ExitFullSafepoint(Register scratch) {
   ASSERT(scratch != EAX);
   // We generate the same number of instructions whether or not the slow-path is
-  // forced, for consistency with EnterSafepoint.
+  // forced, for consistency with EnterFullSafepoint.
 
-  // Compare and swap the value at Thread::safepoint_state from acquired to
-  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  // Compare and swap the value at Thread::safepoint_state from acquired
+  // to unacquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done, slow_path;
   if (FLAG_use_slow_path) {
     jmp(&slow_path);
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::safepoint_state_acquired()));
-  movl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+  movl(EAX, Immediate(target::Thread::full_safepoint_state_acquired()));
+  movl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -2338,12 +2338,12 @@ void Assembler::ExitSafepoint(Register scratch) {
 void Assembler::TransitionNativeToGenerated(Register scratch,
                                             bool exit_safepoint) {
   if (exit_safepoint) {
-    ExitSafepoint(scratch);
+    ExitFullSafepoint(scratch);
   } else {
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
-    andl(scratch, Immediate(1 << target::Thread::safepoint_state_inside_bit()));
+    andl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
     Label ok;
     j(ZERO, &ok);
     Breakpoint();
