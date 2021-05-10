@@ -11,7 +11,6 @@ import "package:expect/expect.dart";
 const firstVar = firstFn();
 //               ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int firstFn() {
   const List<int> x = [1, 2];
   return x.first;
@@ -20,7 +19,6 @@ int firstFn() {
 const firstCatchVar = firstCatchFn();
 //                    ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int firstCatchFn() {
   try {
     const List<int> x = [];
@@ -31,19 +29,9 @@ int firstCatchFn() {
   return 1;
 }
 
-const hashCodeVar = hashCodeFn();
-//                  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
-int hashCodeFn() {
-  const List<int> x = [1, 2];
-  return x.hashCode;
-}
-
 const isEmptyVar = isEmptyFn();
 //                 ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 bool isEmptyFn() {
   const List<int> x = [1, 2];
   return x.isEmpty;
@@ -52,7 +40,6 @@ bool isEmptyFn() {
 const isNotEmptyVar = isNotEmptyFn();
 //                    ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 bool isNotEmptyFn() {
   const List<int> x = [1, 2];
   return x.isNotEmpty;
@@ -61,7 +48,6 @@ bool isNotEmptyFn() {
 const lastVar = lastFn();
 //              ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int lastFn() {
   const List<int> x = [1, 2];
   return x.last;
@@ -70,7 +56,6 @@ int lastFn() {
 const lastCatchVar = lastCatchFn();
 //                   ^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int lastCatchFn() {
   try {
     const List<int> x = [];
@@ -84,7 +69,6 @@ int lastCatchFn() {
 const lengthVar = lengthFn();
 //                ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int lengthFn() {
   const List<int> x = [1, 2];
   return x.length;
@@ -93,7 +77,6 @@ int lengthFn() {
 const singleVar = singleFn();
 //                ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int singleFn() {
   const List<int> x = [1];
   return x.single;
@@ -102,7 +85,6 @@ int singleFn() {
 const singleCatchVar = singleCatchFn();
 //                     ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int singleCatchFn() {
   try {
     const List<int> x = [];
@@ -116,7 +98,6 @@ int singleCatchFn() {
 const singleCatchVar2 = singleCatchFn2();
 //                      ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
 int singleCatchFn2() {
   try {
     const List<int> x = [1, 2];
@@ -125,16 +106,6 @@ int singleCatchFn2() {
     return 0;
   }
   return 1;
-}
-
-const typeExample = int;
-const typeVar = typeFn();
-//              ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [web] Constant evaluation error:
-Type typeFn() {
-  const List<int> x = [1, 2];
-  return x.runtimeType;
 }
 
 const getWithIndexVar = getWithIndexFn();
@@ -178,7 +149,6 @@ List<int> mutableListAdd() {
 void main() {
   Expect.equals(firstVar, 1);
   Expect.equals(firstCatchVar, 0);
-  Expect.type<int>(hashCodeVar);
   Expect.equals(isEmptyVar, false);
   Expect.equals(isNotEmptyVar, true);
   Expect.equals(lastVar, 2);
@@ -187,7 +157,6 @@ void main() {
   Expect.equals(singleVar, 1);
   Expect.equals(singleCatchVar, 0);
   Expect.equals(singleCatchVar2, 0);
-  Expect.equals(typeVar, int);
   Expect.equals(getWithIndexVar, 1);
   Expect.equals(rangeErrorCatchVar, 0);
   Expect.equals(mutableListVar, const [1, 2]);

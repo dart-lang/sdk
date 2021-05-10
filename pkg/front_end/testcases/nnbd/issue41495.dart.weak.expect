@@ -32,10 +32,10 @@ static method errors() → dynamic {
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
 Try accessing using ?. instead.
   a1.c1;
-     ^^" in a1.{self::A::c1};
+     ^^" in a1.{self::A::c1}{<nullable>}.{core::int};
   let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:15:6: Error: Property 'test' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
 Try accessing using ?. instead.
   a1.test;
-     ^^^^" in a1.{self::A::test};
+     ^^^^" in a1.{self::A::test}{<nullable>}.{() → core::int};
 }

@@ -86,13 +86,6 @@ int singleCatchFn2() {
   return 1;
 }
 
-const typeExample = int;
-const typeVar = typeFn();
-Type typeFn() {
-  const List<int> x = [1, 2];
-  return x.runtimeType;
-}
-
 const getWithIndexVar = getWithIndexFn();
 int getWithIndexFn() {
   const List<int> x = [1];
@@ -134,7 +127,6 @@ void main() {
   Expect.equals(singleVar, 1);
   Expect.equals(singleCatchVar, 0);
   Expect.equals(singleCatchVar2, 0);
-  Expect.equals(typeVar, int);
   Expect.equals(getWithIndexVar, 1);
   Expect.equals(rangeErrorCatchVar, 0);
   Expect.equals(mutableListVar, const [1, 2]);

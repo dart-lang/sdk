@@ -24,7 +24,7 @@ class C extends self::B {
     ;
   method f() → void {}
 }
-static field void x = new self::C::•().{self::C::f}();
+static field void x = new self::C::•().{self::C::f}(){() →* void};
 static method main() → dynamic {
   self::x;
 }

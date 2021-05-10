@@ -74,5 +74,5 @@ class B extends self::A {
 }
 static method main() → dynamic {
   self::Foo* foo = new self::Foo::•();
-  foo.{self::_Foo&Object&C::foo}(new self::B::•());
+  foo.{self::_Foo&Object&C::foo}(new self::B::•()){(self::B*) →* dynamic};
 }

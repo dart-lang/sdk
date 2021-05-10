@@ -263,7 +263,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {

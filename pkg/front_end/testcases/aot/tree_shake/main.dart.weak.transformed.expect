@@ -26,16 +26,16 @@ class UsedClass extends core::Object implements self::UnusedInterface {
     ;
 }
 static method usedMethod(self::UnusedInterface c) → dynamic {
-  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField};
+  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField}{core::int?};
 }
 static method main() → dynamic {
   self::usedMethod(let final self::UsedClass #t1 = new self::UsedClass::•() in block {
-    #t1.{self::UsedClass::usedField};
+    #t1.{self::UsedClass::usedField}{core::int?};
   } =>#t1);
   #C3;
   core::List<self::UnusedEnum> list = core::_GrowableList::•<self::UnusedEnum>(0);
-  if(list.{core::Iterable::isNotEmpty}) {
-    new mai::ConstClass::•().{mai::ConstClass::method}(_in::unsafeCast<mai::ConstEnum>(_in::unsafeCast<dynamic>(null)));
+  if(list.{core::Iterable::isNotEmpty}{core::bool}) {
+    new mai::ConstClass::•().{mai::ConstClass::method}(_in::unsafeCast<mai::ConstEnum>(_in::unsafeCast<dynamic>(null))){(mai::ConstEnum) → core::int};
   }
 }
 
@@ -51,7 +51,7 @@ class ConstClass extends core::Object {
     : super core::Object::•()
     ;
   method method(mai::ConstEnum e) → core::int
-    return e.{mai::ConstEnum::index};
+    return e.{mai::ConstEnum::index}{core::int};
 }
 
 constants  {

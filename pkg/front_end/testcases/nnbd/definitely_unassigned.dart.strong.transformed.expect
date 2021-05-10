@@ -163,10 +163,10 @@ static field () → Null fieldCompound = () → Null {
   late core::int local4;
   local3 = (let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:111:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3 += 0; // error
-  ^^^^^^" in local3).{core::num::+}(0);
+  ^^^^^^" in local3).{core::num::+}(0){(core::num) → core::int};
   local4 = (let final Never #t11 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:112:3: Error: Late variable 'local4' without initializer is definitely unassigned.
   local4 += 0; // error
-  ^^^^^^" in local4).{core::num::+}(0);
+  ^^^^^^" in local4).{core::num::+}(0){(core::num) → core::int};
 };
 static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect::T% value) → dynamic {
   self::methodDirect::T% local1;
@@ -236,9 +236,9 @@ static method methodCompound() → dynamic {
   late core::int local4;
   local3 = (let final Never #t21 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:103:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3 += 0; // error
-  ^^^^^^" in local3).{core::num::+}(0);
+  ^^^^^^" in local3).{core::num::+}(0){(core::num) → core::int};
   local4 = (let final Never #t22 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:104:3: Error: Late variable 'local4' without initializer is definitely unassigned.
   local4 += 0; // error
-  ^^^^^^" in local4).{core::num::+}(0);
+  ^^^^^^" in local4).{core::num::+}(0){(core::num) → core::int};
 }
 static method main() → dynamic {}

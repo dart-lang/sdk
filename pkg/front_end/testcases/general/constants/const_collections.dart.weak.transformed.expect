@@ -220,7 +220,7 @@ class ConstIterable extends col::IterableBase<core::int*> /*hasConstConstructor*
     : super col::IterableBase::•()
     ;
   get iterator() → core::Iterator<core::int*>*
-    return core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
+    return core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::int*>* other) → core::Iterable<core::int*>*; -> core::Iterable::followedBy
   abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* f) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
@@ -264,7 +264,7 @@ class WithEquals extends core::Object /*hasConstConstructor*/  {
     : self::WithEquals::i = i, super core::Object::•()
     ;
   operator ==(core::Object* o) → core::bool* {
-    return o is self::WithEquals* && o{self::WithEquals*}.{self::WithEquals::i}.{core::num::==}(this.{self::WithEquals::i});
+    return o is self::WithEquals* && o{self::WithEquals*}.{self::WithEquals::i}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} this.{self::WithEquals::i}{core::int*};
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -281,7 +281,7 @@ class CustomIterable extends col::IterableBase<core::String*> /*hasConstConstruc
     : super col::IterableBase::•()
     ;
   get iterator() → core::Iterator<core::String*>*
-    return core::_GrowableList::•<core::String*>(0).{core::Iterable::iterator};
+    return core::_GrowableList::•<core::String*>(0).{core::Iterable::iterator}{core::Iterator<core::String*>*};
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::String*>* other) → core::Iterable<core::String*>*; -> core::Iterable::followedBy
   abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* f) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
@@ -402,7 +402,7 @@ static const field core::List<core::String*>* foo = #C8;
 static const field core::List<core::String*>* bar = #C10;
 static field core::List<core::String*>* barAsVar = block {
   final core::List<core::String*>* #t1 = core::List::of<core::String*>(#C8);
-  #t1.{core::List::add}{Invariant}("!");
+  #t1.{core::List::add}("!"){(core::String*) →* void};
 } =>#t1;
 static const field core::List<core::String*>* barWithNullSpread = invalid-expression "Null value during constant evaluation.";
 static const field core::List<core::String*>* barWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
@@ -476,7 +476,7 @@ static method main() → dynamic {
   core::print(#C22);
   core::print( block {
     final core::Set<core::String*>* #t2 = new col::_CompactLinkedHashSet::•<core::String*>();
-    #t2.{core::Set::add}{Invariant}("hello");
+    #t2.{core::Set::add}("hello"){(core::String*) →* core::bool*};
   } =>#t2);
   core::print(#C26);
 }

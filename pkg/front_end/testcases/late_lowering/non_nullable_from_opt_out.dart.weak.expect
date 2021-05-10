@@ -17,10 +17,10 @@ static method main() → dynamic {
   non::Class::staticFinalField = null;
   non::expect(null, non::topLevelField);
   non::expect(null, non::finalTopLevelField);
-  non::expect(null, c.{non::Class::instanceField});
-  non::expect(null, c.{non::Class::finalInstanceField});
-  non::expect(null, c.{non::Class::instanceTypeVariable});
-  non::expect(null, c.{non::Class::finalInstanceTypeVariable});
+  non::expect(null, c.{non::Class::instanceField}{core::int*});
+  non::expect(null, c.{non::Class::finalInstanceField}{dynamic});
+  non::expect(null, c.{non::Class::instanceTypeVariable}{core::int*});
+  non::expect(null, c.{non::Class::finalInstanceTypeVariable}{core::int*});
   non::expect(null, non::Class::staticField);
   non::expect(null, non::Class::staticFinalField);
   non::throws(() → Null => non::finalTopLevelField = null);
@@ -156,25 +156,25 @@ static method method<T extends core::Object>(core::bool b, core::int i, non::met
       return #finalLocalTypeVariable = #t17;
     }
   if(b) {
-    #local#set.call(i);
-    #finalLocal#set.call(i);
-    #localTypeVariable#set.call(t);
-    #finalLocalTypeVariable#set.call(t);
-    non::expect(i, #local#get.call());
-    non::expect(i, #finalLocal#get.call());
-    non::expect(t, #localTypeVariable#get.call());
-    non::expect(t, #finalLocalTypeVariable#get.call());
+    #local#set(i){(core::int) → dynamic};
+    #finalLocal#set(i){(dynamic) → dynamic};
+    #localTypeVariable#set(t){(non::method::T) → dynamic};
+    #finalLocalTypeVariable#set(t){(non::method::T) → dynamic};
+    non::expect(i, #local#get(){() → core::int});
+    non::expect(i, #finalLocal#get(){() → dynamic});
+    non::expect(t, #localTypeVariable#get(){() → non::method::T});
+    non::expect(t, #finalLocalTypeVariable#get(){() → non::method::T});
   }
-  non::throws(() → void => #finalLocal#set.call(i));
-  non::throws(() → void => #finalLocalTypeVariable#set.call(t));
+  non::throws(() → void => #finalLocal#set(i){(dynamic) → dynamic});
+  non::throws(() → void => #finalLocalTypeVariable#set(t){(non::method::T) → dynamic});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → void f) → dynamic {
   try {
-    f.call();
+    f(){() → void};
   }
   on core::Object catch(final core::Object _) {
     return;

@@ -37,7 +37,7 @@ static method bar(dynamic x) → void {}
 static method foo_escaped(dynamic x) → void {}
 static method bar_escaped(dynamic x) → void {}
 static method escape(dynamic fn) → void {
-  fn.call(new self::Baz::•());
+  fn{dynamic}.call(new self::Baz::•());
 }
 static method main() → dynamic {
   self::foo(new self::Foo::•());

@@ -36,6 +36,6 @@ abstract class C extends core::Object implements self::I {
 }
 static method f() → dynamic {
   self::C* c;
-  core::bool* x = c.{self::I::[]}(0);
+  core::bool* x = c.{self::I::[]}(0){(core::int*) →* core::bool*};
 }
 static method main() → dynamic {}

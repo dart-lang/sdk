@@ -190,7 +190,7 @@ Try changing the type of the variable.
     }
   }
   {
-    core::Iterator<core::String*>* :sync-for-iterator = map.{core::Map::keys}.{core::Iterable::iterator};
+    core::Iterator<core::String*>* :sync-for-iterator = map.{core::Map::keys}{core::Iterable<core::String*>*}.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::String* x = :sync-for-iterator.{core::Iterator::current};
       {

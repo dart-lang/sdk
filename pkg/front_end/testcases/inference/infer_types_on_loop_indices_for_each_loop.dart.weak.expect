@@ -135,7 +135,7 @@ Try changing the type of the variable.
                                                                      ^" in map as{TypeError} core::Iterable<dynamic>*) {
     core::String* y = x as{TypeError,ForDynamic} core::String*;
   }
-  for (core::String* x in map.{core::Map::keys}) {
+  for (core::String* x in map.{core::Map::keys}{core::Iterable<core::String*>*}) {
     core::String* y = x;
   }
 }

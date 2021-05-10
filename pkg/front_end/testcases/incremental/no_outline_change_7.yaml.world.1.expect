@@ -38,7 +38,7 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     @#C2
     method toString() → dart.core::String* {
-      return "${this.{main::Foo::message}}";
+      return "${this.{main::Foo::message}{dynamic}}";
     }
   }
   @#C1

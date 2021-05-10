@@ -9,16 +9,16 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     ;
   method f(generic-covariant-impl self::C::T* x) → void {}
   method g1(generic-covariant-impl self::C::T* x) → void {
-    this.{self::C::f}(x);
+    this.{self::C::f}(x){(self::C::T*) →* void};
   }
   method g2(generic-covariant-impl self::C::T* x) → void {
-    this.{self::C::f}(x);
+    this.{self::C::f}(x){(self::C::T*) →* void};
   }
   method g3(generic-covariant-impl self::C<self::C::T*>* c, generic-covariant-impl self::C::T* x) → void {
-    c.{self::C::f}(x);
+    c.{self::C::f}(x){(self::C::T*) →* void};
   }
   method g4() → (self::C::T*) →* dynamic
-    return this.{self::C::f};
+    return this.{self::C::f}{(self::C::T*) →* void};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -42,8 +42,8 @@ class E extends self::C<core::num*> {
   method f(covariant generic-covariant-impl core::int* x) → void {}
 }
 static method test() → dynamic {
-  (core::Object*) →* dynamic x = (new self::D::•().{self::C::g4}() as{TypeError,CovarianceCheck} (core::int*) →* dynamic) as (core::Object*) →* dynamic;
-  x.call("hi");
-  new self::E::•().{self::C::g1}(1.5);
+  (core::Object*) →* dynamic x = (new self::D::•().{self::C::g4}(){() →* (core::int*) →* dynamic} as{TypeError,CovarianceCheck} (core::int*) →* dynamic) as (core::Object*) →* dynamic;
+  x("hi"){(core::Object*) →* dynamic};
+  new self::E::•().{self::C::g1}(1.5){(core::num*) →* void};
 }
 static method main() → dynamic {}

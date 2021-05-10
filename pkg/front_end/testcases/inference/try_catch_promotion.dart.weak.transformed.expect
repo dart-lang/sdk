@@ -39,7 +39,7 @@ class E extends core::StackTrace {
 }
 static method test(() →* void f) → void {
   try {
-    f.call();
+    f(){() →* void};
   }
   on self::C* catch(final self::C* x, final core::StackTrace* y) {
     self::C* x1 = x;

@@ -10,7 +10,7 @@ class Foo<T extends core::Object* = dynamic> extends core::Object {
     : self::Foo::quux = quux, self::Foo::t = t, super core::Object::•()
     ;
   method call() → asy::Future<self::Foo::T*>*
-    return this.{self::Foo::quux}.call().{asy::Future::then}<self::Foo::T*>((dynamic _) → self::Foo::T* => this.{self::Foo::t});
+    return this.{self::Foo::quux}{() →* asy::Future<dynamic>*}(){() →* asy::Future<dynamic>*}.{asy::Future::then}<self::Foo::T*>((dynamic _) → self::Foo::T* => this.{self::Foo::t}{self::Foo::T*}){((dynamic) →* FutureOr<self::Foo::T*>*, {onError: core::Function*}) →* asy::Future<self::Foo::T*>*};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -28,7 +28,7 @@ class Bar extends core::Object {
     : super core::Object::•()
     ;
   method quuz() → asy::Future<void>*
-    return this.{self::Bar::qux}.{self::Foo::call}().{asy::Future::then}<self::Grault*>((self::Baz* baz) → self::Grault* => this.{self::Bar::corge}(baz)).{asy::Future::then}<void>((self::Grault* grault) → void => this.{self::Bar::garply}(grault));
+    return this.{self::Bar::qux}{self::Foo<self::Baz*>*}.{self::Foo::call}(){() →* asy::Future<self::Baz*>*}.{asy::Future::then}<self::Grault*>((self::Baz* baz) → self::Grault* => this.{self::Bar::corge}(baz){(self::Baz*) →* self::Grault*}){((self::Baz*) →* FutureOr<self::Grault*>*, {onError: core::Function*}) →* asy::Future<self::Grault*>*}.{asy::Future::then}<void>((self::Grault* grault) → void => this.{self::Bar::garply}(grault){(self::Grault*) →* void}){((self::Grault*) →* FutureOr<void>*, {onError: core::Function*}) →* asy::Future<void>*};
   method corge(self::Baz* baz) → self::Grault*
     return null;
   method garply(self::Grault* grault) → void {}

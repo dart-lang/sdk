@@ -23,10 +23,10 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field self::C* c = new self::C::•();
-static field core::int* field_ref = self::c.{self::C::field};
-static field core::int* getter_ref = self::c.{self::C::getter};
-static field () →* core::int* function_ref = self::c.{self::C::function};
-static field core::List<core::int*>* field_ref_list = core::_GrowableList::_literal1<core::int*>(self::c.{self::C::field});
-static field core::List<core::int*>* getter_ref_list = core::_GrowableList::_literal1<core::int*>(self::c.{self::C::getter});
-static field core::List<() →* core::int*>* function_ref_list = core::_GrowableList::_literal1<() →* core::int*>(self::c.{self::C::function});
+static field core::int* field_ref = self::c.{self::C::field}{core::int*};
+static field core::int* getter_ref = self::c.{self::C::getter}{core::int*};
+static field () →* core::int* function_ref = self::c.{self::C::function}{() →* core::int*};
+static field core::List<core::int*>* field_ref_list = core::_GrowableList::_literal1<core::int*>(self::c.{self::C::field}{core::int*});
+static field core::List<core::int*>* getter_ref_list = core::_GrowableList::_literal1<core::int*>(self::c.{self::C::getter}{core::int*});
+static field core::List<() →* core::int*>* function_ref_list = core::_GrowableList::_literal1<() →* core::int*>(self::c.{self::C::function}{() →* core::int*});
 static method main() → dynamic {}

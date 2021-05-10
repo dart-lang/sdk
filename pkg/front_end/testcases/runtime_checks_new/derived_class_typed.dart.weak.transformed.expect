@@ -26,10 +26,10 @@ class C extends self::B<core::int*> {
     ;
 }
 static method g1(self::B<core::num*>* b) → void {
-  b.{self::B::f}(1.5);
+  b.{self::B::f}(1.5){(core::num*) →* void};
 }
 static method g2(self::C* c) → void {
-  c.{self::B::f}(1);
+  c.{self::B::f}(1){(core::int*) →* void};
 }
 static method test() → void {
   self::g1(new self::C::•());

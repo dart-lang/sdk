@@ -116,9 +116,9 @@ static method test() → dynamic {
   function f6() → core::num*
     return 42;
   function f7() → dynamic
-    return f7.call();
+    return f7(){() →* dynamic};
   function f8() → asy::Stream<core::int*>*
-    return f5.call();
+    return f5(){() →* asy::Stream<core::int*>*};
   () →* core::int* v0 = f0;
   () →* asy::Future<core::int*>* v1 = f1;
   () →* core::int* v2 = f2;

@@ -50,7 +50,7 @@ class E extends core::Object {
 static method test(() →* void f) → void {
   try {
     core::int* x = 0;
-    f.call();
+    f(){() →* void};
   }
   on self::C* catch(no-exception-var) {
     core::int* x = 0;

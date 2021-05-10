@@ -364,8 +364,8 @@ var v = () => null;
 var x = () => y;
 var y = () => x;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 14, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 31, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
     ]);
 
     var x = _resultUnitElement.topLevelVariables[0];
@@ -381,8 +381,8 @@ var y = () => x;
 var x = () => y;
 var y = () => x;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 14, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 31, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 21, 1),
     ]);
 
     var x = _resultUnitElement.topLevelVariables[0];

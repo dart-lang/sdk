@@ -11,16 +11,16 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   static get lateStaticField1() → core::int
-    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateStaticField1") : #t1{core::int};
+    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1 == null ?{core::int} throw new _in::LateError::fieldNI("lateStaticField1") : #t1{core::int};
   static set lateStaticField1(core::int #t2) → void
-    if(self::Class::_#lateStaticField1.==(null))
+    if(self::Class::_#lateStaticField1 == null)
       self::Class::_#lateStaticField1 = #t2;
     else
       throw new _in::LateError::fieldAI("lateStaticField1");
   static get lateStaticField2() → core::int
-    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateStaticField2") : #t3{core::int};
+    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3 == null ?{core::int} throw new _in::LateError::fieldNI("lateStaticField2") : #t3{core::int};
   static set lateStaticField2(core::int #t4) → void
-    if(self::Class::_#lateStaticField2.==(null))
+    if(self::Class::_#lateStaticField2 == null)
       self::Class::_#lateStaticField2 = #t4;
     else
       throw new _in::LateError::fieldAI("lateStaticField2");
@@ -31,16 +31,16 @@ class Class extends core::Object {
     self::throws(() → core::int => self::Class::lateStaticField2 = 43, "Write value to initialized Class.lateStaticField2");
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateInstanceField") : #t5{core::int};
+    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5 == null ?{core::int} throw new _in::LateError::fieldNI("lateInstanceField") : #t5{core::int};
   set lateInstanceField(core::int #t6) → void
-    if(this.{self::Class::_#Class#lateInstanceField}.==(null))
+    if(this.{self::Class::_#Class#lateInstanceField} == null)
       this.{self::Class::_#Class#lateInstanceField} = #t6;
     else
       throw new _in::LateError::fieldAI("lateInstanceField");
   method instanceMethod() → dynamic {
-    self::throws(() → core::int => this.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
+    self::throws(() → core::int => this.{self::Class::lateInstanceField}{core::int}, "Read value from uninitialized Class.lateInstanceField");
     this.{self::Class::lateInstanceField} = 16;
-    self::expect(16, this.{self::Class::lateInstanceField});
+    self::expect(16, this.{self::Class::lateInstanceField}{core::int});
     self::throws(() → core::int => this.{self::Class::lateInstanceField} = 17, "Write value to initialized Class.lateInstanceField");
   }
 }
@@ -57,23 +57,23 @@ static field core::int? _#lateTopLevelField = null;
 static field core::int? _#Extension|lateExtensionField1 = null;
 static field core::int? _#Extension|lateExtensionField2 = null;
 static get lateTopLevelField() → core::int
-  return let final core::int? #t7 = self::_#lateTopLevelField in #t7.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateTopLevelField") : #t7{core::int};
+  return let final core::int? #t7 = self::_#lateTopLevelField in #t7 == null ?{core::int} throw new _in::LateError::fieldNI("lateTopLevelField") : #t7{core::int};
 static set lateTopLevelField(core::int #t8) → void
-  if(self::_#lateTopLevelField.==(null))
+  if(self::_#lateTopLevelField == null)
     self::_#lateTopLevelField = #t8;
   else
     throw new _in::LateError::fieldAI("lateTopLevelField");
 static get Extension|lateExtensionField1() → core::int
-  return let final core::int? #t9 = self::_#Extension|lateExtensionField1 in #t9.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField1") : #t9{core::int};
+  return let final core::int? #t9 = self::_#Extension|lateExtensionField1 in #t9 == null ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField1") : #t9{core::int};
 static set Extension|lateExtensionField1(core::int #t10) → void
-  if(self::_#Extension|lateExtensionField1.==(null))
+  if(self::_#Extension|lateExtensionField1 == null)
     self::_#Extension|lateExtensionField1 = #t10;
   else
     throw new _in::LateError::fieldAI("lateExtensionField1");
 static get Extension|lateExtensionField2() → core::int
-  return let final core::int? #t11 = self::_#Extension|lateExtensionField2 in #t11.==(null) ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField2") : #t11{core::int};
+  return let final core::int? #t11 = self::_#Extension|lateExtensionField2 in #t11 == null ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField2") : #t11{core::int};
 static set Extension|lateExtensionField2(core::int #t12) → void
-  if(self::_#Extension|lateExtensionField2.==(null))
+  if(self::_#Extension|lateExtensionField2 == null)
     self::_#Extension|lateExtensionField2 = #t12;
   else
     throw new _in::LateError::fieldAI("lateExtensionField2");
@@ -93,7 +93,7 @@ static method main() → dynamic {
   self::expect(87, self::Class::lateStaticField1);
   self::throws(() → core::int => self::Class::lateStaticField1 = 88, "Write value to initialized Class.lateStaticField1");
   self::Class::staticMethod();
-  new self::Class::•().{self::Class::instanceMethod}();
+  new self::Class::•().{self::Class::instanceMethod}(){() → dynamic};
   self::throws(() → core::int => self::Extension|lateExtensionField1, "Read value from uninitialized Extension.lateExtensionField1");
   self::Extension|lateExtensionField1 = 87;
   self::expect(87, self::Extension|lateExtensionField1);
@@ -101,13 +101,13 @@ static method main() → dynamic {
   self::Extension|staticMethod();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → dynamic f, core::String message) → dynamic {
   dynamic value;
   try {
-    value = f.call();
+    value = f();
   }
   on core::Error catch(final core::Error e) {
     core::print(e);

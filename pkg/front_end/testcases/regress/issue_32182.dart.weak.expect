@@ -49,5 +49,5 @@ class C extends self::_C&A&M {
     ;
 }
 static method main() → dynamic {
-  new self::C::•().{self::_C&A&M::m}().+(1);
+  new self::C::•().{self::_C&A&M::m}(){() →* dynamic}{dynamic}.+(1);
 }

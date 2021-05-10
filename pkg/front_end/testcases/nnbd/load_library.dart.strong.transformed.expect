@@ -6,9 +6,9 @@ import "dart:math" deferred as math;
 
 static method main() → dynamic {
   asy::Future<dynamic> v1 = LoadLibrary(math);
-  v1.{asy::Future::then}<Null>((dynamic _) → Null {});
+  v1.{asy::Future::then}<Null>((dynamic _) → Null {}){((dynamic) → FutureOr<Null>, {onError: dart.core::Function?}) → asy::Future<Null>};
   () → asy::Future<dynamic> v2 = #C1;
-  v2.call().{asy::Future::then}<Null>((dynamic _) → Null {});
+  v2(){() → asy::Future<dynamic>}.{asy::Future::then}<Null>((dynamic _) → Null {}){((dynamic) → FutureOr<Null>, {onError: dart.core::Function?}) → asy::Future<Null>};
 }
 static method _#loadLibrary_math() → asy::Future<dynamic>
   return LoadLibrary(math);

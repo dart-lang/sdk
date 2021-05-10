@@ -67,17 +67,17 @@ class X extends core::Object implements self::A, self::B {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method useAsA(self::A* object) → void {
-  dynamic _ = object.{self::A::field};
+  dynamic _ = object.{self::A::field}{dynamic};
 }
 static method useAsB(self::B* object) → void {
-  dynamic _ = object.{self::B::field};
+  dynamic _ = object.{self::B::field}{dynamic};
   self::escape(object);
 }
 static method escape(dynamic x) → void {
-  x.{core::Object::==}(null) ?{dynamic} x = "" : null;
-  x.{core::Object::==}(null) ?{dynamic} x = 45 : null;
+  x == null ?{dynamic} x = "" : null;
+  x == null ?{dynamic} x = 45 : null;
   if(!(x is core::int*) && !(x is core::String*)) {
-    x.field = 45;
+    x{dynamic}.field = 45;
   }
 }
 static method main() → dynamic {

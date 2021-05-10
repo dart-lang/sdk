@@ -34,13 +34,13 @@ class B extends core::Object implements self::A<core::int*> {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder get foo() → core::List<core::int*>*
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::List<core::int*>*;
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::List<core::int*>*;
   no-such-method-forwarder set foo(generic-covariant-impl core::List<core::int*>* value) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
 }
 static method expectTypeError(() →* dynamic callback) → void {
   try {
-    callback.call();
+    callback();
     throw "Expected TypeError, did not occur";
   }
   on core::TypeError* catch(no-exception-var) {
@@ -48,8 +48,8 @@ static method expectTypeError(() →* dynamic callback) → void {
 }
 static method main() → dynamic {
   self::B* b = new self::B::•();
-  self::expectTypeError(() → core::List<core::int*>* => b.{self::A::foo});
-  self::expectTypeError(() → core::List<dynamic>* => (b as dynamic).foo = <dynamic>[]);
+  self::expectTypeError(() → core::List<core::int*>* => b.{self::A::foo}{core::List<core::int*>*});
+  self::expectTypeError(() → core::List<dynamic>* => (b as dynamic){dynamic}.foo = <dynamic>[]);
 }
 
 constants  {

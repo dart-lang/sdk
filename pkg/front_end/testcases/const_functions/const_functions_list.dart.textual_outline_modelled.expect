@@ -2,7 +2,6 @@ import "package:expect/expect.dart";
 
 List<int> mutableList() {}
 List<int> mutableListAdd() {}
-Type typeFn() {}
 bool isEmptyFn() {}
 bool isNotEmptyFn() {}
 const firstCatchVar = firstCatchFn();
@@ -19,8 +18,6 @@ const rangeErrorCatchVar = rangeErrorCatchFn();
 const singleCatchVar = singleCatchFn();
 const singleCatchVar2 = singleCatchFn2();
 const singleVar = singleFn();
-const typeExample = int;
-const typeVar = typeFn();
 int firstCatchFn() {}
 int firstFn() {}
 int getWithIndexFn() {}

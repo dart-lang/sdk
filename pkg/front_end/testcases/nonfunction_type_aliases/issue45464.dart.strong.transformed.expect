@@ -116,26 +116,26 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   method instance1<X extends self::A<self::Class::instance1::X> = self::A<dynamic>>(() → self::A<self::Class::instance1::X> g) → void
-    return g.call();
+    return g(){() → self::A<self::Class::instance1::X>};
   method instance2<X extends self::A<self::Class::instance2::X> = self::A<dynamic>>(() → self::A<self::Class::instance2::X> g) → void
-    return g.call();
+    return g(){() → self::A<self::Class::instance2::X>};
   method test() → void {
     function local1<X extends self::A<X> = self::A<dynamic>>(() → self::A<X> g) → void
-      return g.call();
+      return g(){() → self::A<X>};
     function local2<X extends self::A<X> = self::A<dynamic>>(() → self::A<X> g) → void
-      return g.call();
+      return g(){() → self::A<X>};
     <X extends self::A<X> = self::A<dynamic>>(() → self::A<X>) → void f1 = local1;
     <X extends self::A<X> = self::A<dynamic>>(() → self::A<X>) → void f2 = local2;
     new self::A::•<self::A<core::Object?>>();
     new self::A::•<self::A<core::Object?>>();
-    f1.call<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    f2.call<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    local1.call<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    local2.call<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
+    f1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    f2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    local1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    local2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
     self::topLevel1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
     self::topLevel2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    this.{self::Class::instance1}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    this.{self::Class::instance2}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
+    this.{self::Class::instance1}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    this.{self::Class::instance2}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
   }
 }
 class Subclass extends self::Class {
@@ -154,7 +154,7 @@ static method captureTypeArgument<X extends core::Object? = dynamic>() → self:
   throw "Error";
 }
 static method topLevel1<X extends self::A<self::topLevel1::X> = self::A<dynamic>>(() → self::A<self::topLevel1::X> g) → void
-  return g.call();
+  return g(){() → self::A<self::topLevel1::X>};
 static method topLevel2<X extends self::A<self::topLevel2::X> = self::A<dynamic>>(() → self::A<self::topLevel2::X> g) → void
-  return g.call();
+  return g(){() → self::A<self::topLevel2::X>};
 static method main() → dynamic {}

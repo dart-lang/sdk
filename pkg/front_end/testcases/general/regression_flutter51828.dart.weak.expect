@@ -36,4 +36,4 @@ class B extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic async 
-  return <asy::Future<void>*>[new self::A::•().{self::A::foo}(await null), new self::B::•().{self::B::bar}(await null)];
+  return <asy::Future<void>*>[new self::A::•().{self::A::foo}(await null){(dynamic) →* asy::Future<void>*}, new self::B::•().{self::B::bar}(await null){(dynamic) →* asy::Future<void>*}];

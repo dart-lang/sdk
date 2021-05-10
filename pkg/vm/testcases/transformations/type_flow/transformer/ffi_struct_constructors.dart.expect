@@ -68,7 +68,7 @@ static method testLookupFunctionReturn() → void {
   final () →* self::Struct1* function1 = block {
     _in::_nativeEffect(new self::Struct1::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C18)));
   } =>ffi::_asFunctionInternal<() →* self::Struct1*, () →* self::Struct1*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<() →* self::Struct1*>*>("function1"));
-  final self::Struct1* struct1 = [@vm.call-site-attributes.metadata=receiverType:#lib::Struct1* Function()*] function1.call();
+  final self::Struct1* struct1 = [@vm.call-site-attributes.metadata=receiverType:#lib::Struct1* Function()*] function1(){() →* self::Struct1*};
   core::print(struct1);
 }
 static method testAsFunctionReturn() → void {
@@ -76,7 +76,7 @@ static method testAsFunctionReturn() → void {
   final () →* self::Struct2* function2 = block {
     _in::_nativeEffect(new self::Struct2::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C18)));
   } =>ffi::_asFunctionInternal<() →* self::Struct2*, () →* self::Struct2*>(pointer);
-  final self::Struct2* struct2 = [@vm.call-site-attributes.metadata=receiverType:#lib::Struct2* Function()*] function2.call();
+  final self::Struct2* struct2 = [@vm.call-site-attributes.metadata=receiverType:#lib::Struct2* Function()*] function2(){() →* self::Struct2*};
   core::print(struct2);
 }
 [@vm.unboxing-info.metadata=(b)->i]static method useStruct3(self::Struct3* struct3) → core::int* {
@@ -113,6 +113,6 @@ static method testPointerLoad() → void {
 static method testNestedLoad() → void {
   final ffi::Pointer<self::Struct11*>* pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::Pointer::fromAddress<self::Struct11*>(3735928559);
   final self::Struct11* struct11 = new self::Struct11::#fromTypedDataBase(pointer!);
-  final self::Struct12* struct12 = [@vm.direct-call.metadata=#lib::Struct11.nested] [@vm.inferred-type.metadata=#lib::Struct12] struct11.{self::Struct11::nested};
+  final self::Struct12* struct12 = [@vm.direct-call.metadata=#lib::Struct11.nested] [@vm.inferred-type.metadata=#lib::Struct12] struct11.{self::Struct11::nested}{self::Struct12*};
   core::print(struct12);
 }

@@ -62,12 +62,12 @@ class MyTest2 extends self::_MyTest2&Object&MyTest {
 static const field self::_FailingTest* failingTest = #C1;
 static method main() → dynamic {
   mir::ClassMirror* classMirror = mir::reflectClass(#C2);
-  classMirror.{mir::ClassMirror::instanceMembers}.{core::Map::forEach}((core::Symbol* symbol, mir::MethodMirror* memberMirror) → Null {
-    if(memberMirror.{mir::DeclarationMirror::simpleName}.{core::Symbol::==}(#C3)) {
+  classMirror.{mir::ClassMirror::instanceMembers}{core::Map<core::Symbol*, mir::MethodMirror*>*}.{core::Map::forEach}((core::Symbol* symbol, mir::MethodMirror* memberMirror) → Null {
+    if(memberMirror.{mir::DeclarationMirror::simpleName}{core::Symbol*} =={core::Symbol::==}{(core::Object*) →* core::bool*} (#C3)) {
       core::print(memberMirror);
       core::print(self::_hasFailingTestAnnotation(memberMirror));
     }
-  });
+  }){((core::Symbol*, mir::MethodMirror*) →* void) →* void};
 }
 static method _hasFailingTestAnnotation(mir::MethodMirror* method) → core::bool* {
   core::bool* r = self::_hasAnnotationInstance(method, #C1);
@@ -75,10 +75,10 @@ static method _hasFailingTestAnnotation(mir::MethodMirror* method) → core::boo
   return r;
 }
 static method _hasAnnotationInstance(mir::DeclarationMirror* declaration, dynamic instance) → core::bool*
-  return declaration.{mir::DeclarationMirror::metadata}.{core::Iterable::any}((mir::InstanceMirror* annotation) → core::bool* {
-    core::print("annotation: ${annotation.{mir::InstanceMirror::reflectee}}");
-    return core::identical(annotation.{mir::InstanceMirror::reflectee}, instance);
-  });
+  return declaration.{mir::DeclarationMirror::metadata}{core::List<mir::InstanceMirror*>*}.{core::Iterable::any}((mir::InstanceMirror* annotation) → core::bool* {
+    core::print("annotation: ${annotation.{mir::InstanceMirror::reflectee}{dynamic}}");
+    return core::identical(annotation.{mir::InstanceMirror::reflectee}{dynamic}, instance);
+  }){((mir::InstanceMirror*) →* core::bool*) →* core::bool*};
 
 constants  {
   #C1 = self::_FailingTest {}

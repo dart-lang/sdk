@@ -332,7 +332,7 @@ Try correcting the name to the name of an existing method, or defining a method 
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:84:6: Error: The getter 'instanceMethod' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
   (c.instanceMethod)();
-     ^^^^^^^^^^^^^^".call();
+     ^^^^^^^^^^^^^^"{dynamic}.call();
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:85:5: Error: The getter 'instanceGetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
   c.instanceGetter;
@@ -417,12 +417,12 @@ static method main() → dynamic {
   self::expect(2, self::result);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → dynamic f) → dynamic {
   try {
-    f.call();
+    f();
   }
   on core::Object catch(final core::Object e) {
     core::print(e);

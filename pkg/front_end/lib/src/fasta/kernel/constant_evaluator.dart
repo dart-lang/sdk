@@ -1230,8 +1230,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else {
       bool sentinelInserted = false;
       if (nodeCache.containsKey(node)) {
-        bool isRecursiveFunctionCall =
-            node is MethodInvocation || node is StaticInvocation;
+        bool isRecursiveFunctionCall = node is MethodInvocation ||
+            node is InstanceInvocation ||
+            node is FunctionInvocation ||
+            node is LocalFunctionInvocation ||
+            node is StaticInvocation;
         if (nodeCache[node] == null &&
             !(enableConstFunctions && isRecursiveFunctionCall)) {
           // recursive call
@@ -2021,12 +2024,70 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitFunctionInvocation(FunctionInvocation node) {
-    return createInvalidExpressionConstant(node, "function invocation");
+    if (!enableConstFunctions) {
+      return createInvalidExpressionConstant(node, "function invocation");
+    }
+
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+
+    return _evaluateFunctionInvocation(node, receiver, node.arguments);
   }
 
   @override
   Constant visitLocalFunctionInvocation(LocalFunctionInvocation node) {
-    return createInvalidExpressionConstant(node, "local function invocation");
+    if (!enableConstFunctions) {
+      return createInvalidExpressionConstant(node, "local function invocation");
+    }
+
+    final Constant receiver = env.lookupVariable(node.variable);
+    assert(receiver != null);
+    if (receiver is AbortConstant) return receiver;
+
+    return _evaluateFunctionInvocation(node, receiver, node.arguments);
+  }
+
+  Constant _evaluateFunctionInvocation(
+      TreeNode node, Constant receiver, Arguments argumentsNode) {
+    final List<Constant> arguments =
+        _evaluatePositionalArguments(argumentsNode);
+
+    if (arguments == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(arguments != null);
+
+    // Evaluate type arguments of the function invoked.
+    List<DartType> types = _evaluateTypeArguments(node, argumentsNode);
+    if (types == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(types != null);
+
+    // Evaluate named arguments of the function invoked.
+    final Map<String, Constant> named = _evaluateNamedArguments(argumentsNode);
+    if (named == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(named != null);
+
+    if (receiver is FunctionValue) {
+      return _handleFunctionInvocation(
+          receiver.function, types, arguments, named,
+          functionEnvironment: receiver.environment);
+    } else {
+      return createInvalidExpressionConstant(
+          node, "function invocation with invalid receiver");
+    }
   }
 
   @override
@@ -2537,6 +2598,38 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               interfaceTarget: node.interfaceTarget));
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is ListConstant && enableConstFunctions) {
+      switch (node.name.text) {
+        case 'first':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.first;
+        case 'isEmpty':
+          return new BoolConstant(receiver.entries.isEmpty);
+        case 'isNotEmpty':
+          return new BoolConstant(receiver.entries.isNotEmpty);
+        // TODO(kallentu): case 'iterator'
+        case 'last':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.last;
+        case 'length':
+          return new IntConstant(receiver.entries.length);
+        // TODO(kallentu): case 'reversed'
+        case 'single':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          } else if (receiver.entries.length > 1) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('Too many elements'));
+          }
+          return receiver.entries.single;
+      }
     } else if (receiver is InstanceConstant && enableConstFunctions) {
       for (final Reference fieldRef in receiver.fieldValues.keys) {
         final Field field = fieldRef.asField;
@@ -2629,8 +2722,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 node, new StateError('No element'));
           }
           return receiver.entries.first;
-        case 'hashCode':
-          return new IntConstant(receiver.entries.hashCode);
         case 'isEmpty':
           return new BoolConstant(receiver.entries.isEmpty);
         case 'isNotEmpty':
@@ -2645,8 +2736,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         case 'length':
           return new IntConstant(receiver.entries.length);
         // TODO(kallentu): case 'reversed'
-        case 'runtimeType':
-          return new TypeLiteralConstant(receiver.typeArgument);
         case 'single':
           if (receiver.entries.isEmpty) {
             return new _AbortDueToThrowConstant(

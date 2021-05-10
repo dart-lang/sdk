@@ -36,5 +36,5 @@ class C extends core::Object {
 }
 static method main() → dynamic {
   self::C* c = new self::C::•();
-  c.{self::C::toString}();
+  c.{self::C::toString}(){() →* core::String*};
 }

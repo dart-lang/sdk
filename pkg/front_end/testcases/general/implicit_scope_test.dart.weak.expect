@@ -10,7 +10,7 @@ class ImplicitScopeTest extends core::Object {
     : super core::Object::•()
     ;
   static method alwaysTrue() → core::bool* {
-    return 1.{core::num::+}(1).{core::num::==}(2);
+    return 1.{core::num::+}(1){(core::num*) →* core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 2;
   }
   static method testMain() → dynamic {
     core::String* a = "foo";
@@ -29,7 +29,7 @@ class ImplicitScopeTest extends core::Object {
     }
     exp::Expect::equals("foo", a);
     exp::Expect::equals(null, b);
-    for (core::int* i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    for (core::int* i = 0; i.{core::num::<}(10){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
       core::String* a = "bar";
       core::String* b = "baz";
     }
@@ -39,7 +39,7 @@ class ImplicitScopeTest extends core::Object {
       core::String* a = "bar";
       core::String* b = "baz";
     }
-    while ("black".{core::String::==}("white"))
+    while ("black" =={core::String::==}{(core::Object*) →* core::bool*} "white")
     exp::Expect::equals("foo", a);
     exp::Expect::equals(null, b);
   }

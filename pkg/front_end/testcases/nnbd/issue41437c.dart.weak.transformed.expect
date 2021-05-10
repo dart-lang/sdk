@@ -382,9 +382,9 @@ static method test() → dynamic /* originally async */ {
           :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
           :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
           return :controller_stream;
-        }).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
-        asy::Stream<core::bool> var2 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
-        core::bool var3 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+        })(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+        asy::Stream<core::bool> var2 = (() → dynamic => self::getNull())() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
+        core::bool var3 = (() → dynamic => self::getNull())() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
         asy::Stream<core::bool> var4 = let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:54:5: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   })(); // error
@@ -420,12 +420,12 @@ static method test() → dynamic /* originally async */ {
           :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
           :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
           return :controller_stream;
-        }).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+        })(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
         asy::Stream<core::bool> var5 = let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:55:46: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   Stream<bool> var5 = (() => getStreamNull())(); // error
-                                             ^" in (() → asy::Stream<dynamic> => self::getStreamNull()).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
-        asy::Stream<core::bool> var6 = (() → asy::Stream<core::bool> => self::getStreamBool()).call();
+                                             ^" in (() → asy::Stream<dynamic> => self::getStreamNull())(){() → asy::Stream<dynamic>} as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+        asy::Stream<core::bool> var6 = (() → asy::Stream<core::bool> => self::getStreamBool())(){() → asy::Stream<core::bool>};
         asy::Stream<core::bool> var7 = (() → asy::Stream<core::bool> /* originally async* */ {
           asy::_AsyncStarStreamController<core::bool>? :controller;
           dynamic :controller_stream;
@@ -458,7 +458,7 @@ static method test() → dynamic /* originally async */ {
           :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
           :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
           return :controller_stream;
-        }).call();
+        })(){() → asy::Stream<core::bool>};
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;
