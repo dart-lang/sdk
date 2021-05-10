@@ -2442,7 +2442,9 @@ class _ConnectionTarget {
       }
       return socketFuture.then((socket) {
         _connecting--;
-        socket.setOption(SocketOption.tcpNoDelay, true);
+        if (socket.address.type != InternetAddressType.unix) {
+          socket.setOption(SocketOption.tcpNoDelay, true);
+        }
         var connection =
             new _HttpClientConnection(key, socket, client, false, context);
         if (isSecure && !proxy.isDirect) {
@@ -3177,7 +3179,9 @@ class _HttpServer extends Stream<HttpRequest>
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event)?,
       {Function? onError, void onDone()?, bool? cancelOnError}) {
     _serverSocket.listen((Socket socket) {
-      socket.setOption(SocketOption.tcpNoDelay, true);
+      if (socket.address.type != InternetAddressType.unix) {
+        socket.setOption(SocketOption.tcpNoDelay, true);
+      }
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(socket, this);
       _idleConnections.add(connection);
