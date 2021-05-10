@@ -58,7 +58,7 @@ class AstResolver {
         false,
         _unitElement.library.isNonNullableByDefault);
     if (isTopLevelVariableInitializer) {
-      flowAnalysis.topLevelDeclaration_enter(node.parent!, null, null);
+      flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
     }
 
     var resolverVisitor = ResolverVisitor(

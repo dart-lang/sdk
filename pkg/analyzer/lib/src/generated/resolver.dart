@@ -1223,7 +1223,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     var outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
-    flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
+    flowAnalysis!.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
 
     var returnType = _enclosingFunction!.type.returnType;
@@ -1461,11 +1461,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     if (isLocal) {
       flowAnalysis!.flow!.functionExpression_begin(node);
     } else {
-      flowAnalysis!.topLevelDeclaration_enter(
-        node,
-        node.functionExpression.parameters,
-        node.functionExpression.body,
-      );
+      flowAnalysis!
+          .topLevelDeclaration_enter(node, node.functionExpression.parameters);
     }
     flowAnalysis!.executableDeclaration_enter(
       node,
@@ -1713,7 +1710,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     var outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
-    flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
+    flowAnalysis!.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
 
     DartType returnType = _enclosingFunction!.returnType;

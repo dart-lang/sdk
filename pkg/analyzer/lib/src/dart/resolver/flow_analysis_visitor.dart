@@ -223,7 +223,7 @@ class FlowAnalysisHelper {
   }
 
   void topLevelDeclaration_enter(
-      AstNode node, FormalParameterList? parameters, FunctionBody? body) {
+      AstNode node, FormalParameterList? parameters) {
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters,
         retainDataForTesting: dataForTesting != null);
@@ -345,8 +345,8 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
 
   @override
   void topLevelDeclaration_enter(
-      AstNode node, FormalParameterList? parameters, FunctionBody? body) {
-    super.topLevelDeclaration_enter(node, parameters, body);
+      AstNode node, FormalParameterList? parameters) {
+    super.topLevelDeclaration_enter(node, parameters);
     migrationResolutionHooks.setFlowAnalysis(flow);
   }
 
