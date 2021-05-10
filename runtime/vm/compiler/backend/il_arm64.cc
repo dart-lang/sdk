@@ -735,7 +735,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ tbnz(&done, AssertBooleanABI::kObjectReg, kBoolVsNullBitPosition);
   compiler->GenerateStubCall(source(), assert_boolean_stub,
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id());
+                             deopt_id(), env());
   __ Bind(&done);
 }
 
@@ -1205,8 +1205,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GeneratePatchableCall(source(), *stub,
                                     UntaggedPcDescriptors::kOther, locs());
   } else {
-    compiler->GenerateStubCall(source(), *stub, UntaggedPcDescriptors::kOther,
-                               locs());
+    // We can never lazy-deopt here because natives are never optimized.
+    ASSERT(!compiler->is_optimizing());
+    compiler->GenerateNonLazyDeoptableStubCall(
+        source(), *stub, UntaggedPcDescriptors::kOther, locs());
   }
   __ Pop(result);
 
@@ -2610,7 +2612,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == TypeTestABI::kInstantiatorTypeArgumentsReg);
   ASSERT(locs()->in(2).reg() == TypeTestABI::kFunctionTypeArgumentsReg);
 
-  compiler->GenerateInstanceOf(source(), deopt_id(), type(), locs());
+  compiler->GenerateInstanceOf(source(), deopt_id(), env(), type(), locs());
   ASSERT(locs()->out(0).reg() == R0);
 }
 
@@ -2717,7 +2719,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const auto& allocate_array_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
   compiler->GenerateStubCall(source(), allocate_array_stub,
-                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
+                             env());
   ASSERT(locs()->out(0).reg() == kResultReg);
   __ Bind(&done);
 }
@@ -3033,7 +3036,8 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
   __ LoadImmediate(R1, num_context_variables());
   compiler->GenerateStubCall(source(), allocate_context_stub,
-                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
+                             env());
 }
 
 LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
@@ -3056,7 +3060,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
   compiler->GenerateStubCall(source(), clone_context_stub,
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id());
+                             deopt_id(), env());
 }
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
@@ -6517,7 +6521,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
-                             locs(), deopt_id());
+                             locs(), deopt_id(), env());
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

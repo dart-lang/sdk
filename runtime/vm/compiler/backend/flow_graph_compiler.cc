@@ -1401,8 +1401,19 @@ void FlowGraphCompiler::GenerateStubCall(const InstructionSource& source,
                                          LocationSummary* locs,
                                          intptr_t deopt_id,
                                          Environment* env) {
+  ASSERT(FLAG_precompiled_mode ||
+         (deopt_id != DeoptId::kNone && (!is_optimizing() || env != nullptr)));
   EmitCallToStub(stub);
   EmitCallsiteMetadata(source, deopt_id, kind, locs, env);
+}
+
+void FlowGraphCompiler::GenerateNonLazyDeoptableStubCall(
+    const InstructionSource& source,
+    const Code& stub,
+    UntaggedPcDescriptors::Kind kind,
+    LocationSummary* locs) {
+  EmitCallToStub(stub);
+  EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs, /*env=*/nullptr);
 }
 
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
@@ -2763,6 +2774,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 // - true or false in kInstanceOfResultReg.
 void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
                                            intptr_t deopt_id,
+                                           Environment* env,
                                            const AbstractType& type,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
@@ -2799,7 +2811,8 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
     __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
     __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, test_cache);
     GenerateStubCall(source, StubCode::InstanceOf(),
-                     /*kind=*/UntaggedPcDescriptors::kOther, locs, deopt_id);
+                     /*kind=*/UntaggedPcDescriptors::kOther, locs, deopt_id,
+                     env);
     __ Jump(&done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
@@ -2864,6 +2877,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     CompileType* receiver_type,
     const InstructionSource& source,
     intptr_t deopt_id,
+    Environment* env,
     const String& dst_name,
     LocationSummary* locs) {
   ASSERT(!source.token_pos.IsClassifying());
@@ -2896,7 +2910,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     }
   }
 
-  GenerateTTSCall(source, deopt_id, type_reg, dst_type, dst_name, locs);
+  GenerateTTSCall(source, deopt_id, env, type_reg, dst_type, dst_name, locs);
   __ Bind(&done);
 }
 
@@ -2905,6 +2919,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
 // time.
 void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
                                         intptr_t deopt_id,
+                                        Environment* env,
                                         Register reg_with_type,
                                         const AbstractType& dst_type,
                                         const String& dst_name,
@@ -2936,7 +2951,8 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
     GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
   }
 
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs,
+                       env);
 }
 
 // Optimize assignable type check by adding inlined tests for:
