@@ -118,7 +118,7 @@ class RuntimeEntry : public BaseRuntimeEntry {
       HANDLESCOPE(thread);                                                     \
       CHECK_SIMULATOR_STACK_OVERFLOW();                                        \
       if (FLAG_deoptimize_on_runtime_call_every > 0) {                         \
-        OnEveryRuntimeEntryCall(thread, "" #name);                             \
+        OnEveryRuntimeEntryCall(thread, "" #name, can_lazy_deopt);             \
       }                                                                        \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
@@ -172,7 +172,9 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
-void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name);
+void OnEveryRuntimeEntryCall(Thread* thread,
+                             const char* runtime_call_name,
+                             bool can_lazy_deopt);
 
 void DeoptimizeAt(Thread* mutator_thread,
                   const Code& optimized_code,

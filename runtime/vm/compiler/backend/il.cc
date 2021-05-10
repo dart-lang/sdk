@@ -51,6 +51,9 @@ DEFINE_FLAG(bool,
             true,
             "Generate special IC stubs for two args Smi operations");
 
+DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, use_slow_path);
+
 class SubclassFinder {
  public:
   SubclassFinder(Zone* zone,
@@ -5577,8 +5580,12 @@ void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
     auto slow_path = new BoxAllocationSlowPath(instruction, cls, result);
     compiler->AddSlowPathCode(slow_path);
 
-    __ TryAllocate(cls, slow_path->entry_label(), compiler::Assembler::kFarJump,
-                   result, temp);
+    if (FLAG_inline_alloc && !FLAG_use_slow_path) {
+      __ TryAllocate(cls, slow_path->entry_label(),
+                     compiler::Assembler::kFarJump, result, temp);
+    } else {
+      __ Jump(slow_path->entry_label());
+    }
     __ Bind(slow_path->exit_label());
   }
 }
