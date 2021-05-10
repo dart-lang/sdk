@@ -50,12 +50,12 @@ class ConstIterable extends col::IterableBase<core::int*> /*hasConstConstructor*
     ;
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::int*>* other) → core::Iterable<core::int*>*; -> core::Iterable::followedBy
-  abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* f) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* toElement) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
   abstract member-signature method where((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::where
   abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::whereType::T*>*; -> core::Iterable::whereType
-  abstract member-signature method expand<T extends core::Object* = dynamic>((core::int*) →* core::Iterable<self::ConstIterable::expand::T*>* f) → core::Iterable<self::ConstIterable::expand::T*>*; -> core::Iterable::expand
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::int*) →* core::Iterable<self::ConstIterable::expand::T*>* toElements) → core::Iterable<self::ConstIterable::expand::T*>*; -> core::Iterable::expand
   abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
-  abstract member-signature method forEach((core::int*) →* void f) → void; -> core::Iterable::forEach
+  abstract member-signature method forEach((core::int*) →* void action) → void; -> core::Iterable::forEach
   abstract member-signature method reduce(generic-covariant-impl (core::int*, core::int*) →* core::int* combine) → core::int*; -> core::Iterable::reduce
   abstract member-signature method fold<T extends core::Object* = dynamic>(self::ConstIterable::fold::T* initialValue, (self::ConstIterable::fold::T*, core::int*) →* self::ConstIterable::fold::T* combine) → self::ConstIterable::fold::T*; -> core::Iterable::fold
   abstract member-signature method every((core::int*) →* core::bool* test) → core::bool*; -> core::Iterable::every
@@ -110,12 +110,12 @@ class CustomIterable extends col::IterableBase<core::String*> /*hasConstConstruc
     ;
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::String*>* other) → core::Iterable<core::String*>*; -> core::Iterable::followedBy
-  abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* f) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* toElement) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
   abstract member-signature method where((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::where
   abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::whereType::T*>*; -> core::Iterable::whereType
-  abstract member-signature method expand<T extends core::Object* = dynamic>((core::String*) →* core::Iterable<self::CustomIterable::expand::T*>* f) → core::Iterable<self::CustomIterable::expand::T*>*; -> core::Iterable::expand
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::String*) →* core::Iterable<self::CustomIterable::expand::T*>* toElements) → core::Iterable<self::CustomIterable::expand::T*>*; -> core::Iterable::expand
   abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
-  abstract member-signature method forEach((core::String*) →* void f) → void; -> core::Iterable::forEach
+  abstract member-signature method forEach((core::String*) →* void action) → void; -> core::Iterable::forEach
   abstract member-signature method reduce(generic-covariant-impl (core::String*, core::String*) →* core::String* combine) → core::String*; -> core::Iterable::reduce
   abstract member-signature method fold<T extends core::Object* = dynamic>(self::CustomIterable::fold::T* initialValue, (self::CustomIterable::fold::T*, core::String*) →* self::CustomIterable::fold::T* combine) → self::CustomIterable::fold::T*; -> core::Iterable::fold
   abstract member-signature method every((core::String*) →* core::bool* test) → core::bool*; -> core::Iterable::every
