@@ -12,15 +12,18 @@ build/
 ''';
 
 final String analysisOptions = '''
-# Defines a default set of lint rules enforced for projects at Google. For
-# details and rationale, see
-# https://github.com/dart-lang/pedantic#enabled-lints.
+# This file configures the static analysis results for your project (errors,
+# warnings, and lints).
 
-include: package:pedantic/analysis_options.yaml
+# The following line activates a set of core lints for Dart apps; this is the
+# set that is used by pub.dev for scoring packages. For many projects, consider
+# changing this to specify 'package:lints/recommended.yaml'; that's an
+# additional set of lints designed to encourage good coding practices.
 
-# For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
+include: package:lints/core.yaml
 
-# Uncomment to specify additional rules.
+# Uncomment the following section to specify additional rules.
+
 # linter:
 #   rules:
 #     - camel_case_types
@@ -28,6 +31,12 @@ include: package:pedantic/analysis_options.yaml
 # analyzer:
 #   exclude:
 #     - path/to/excluded/files/**
+
+# For more information about the core and recommended set of lints, see
+# https://dart.dev/go/core-lints
+
+# For additional information about configuring this file, see
+# https://dart.dev/guides/language/analysis-options
 ''';
 
 final String changelog = '''
