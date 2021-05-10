@@ -1843,6 +1843,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
+                            JumpDistance distance,
                             Register instance_reg,
                             Register top_reg,
                             bool tag_result) {

@@ -278,6 +278,26 @@ class TemplateSlowPathCode : public SlowPathCode {
   }
 };
 
+class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
+ public:
+  BoxAllocationSlowPath(Instruction* instruction,
+                        const Class& cls,
+                        Register result)
+      : TemplateSlowPathCode(instruction), cls_(cls), result_(result) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  static void Allocate(FlowGraphCompiler* compiler,
+                       Instruction* instruction,
+                       const Class& cls,
+                       Register result,
+                       Register temp);
+
+ private:
+  const Class& cls_;
+  const Register result_;
+};
+
 // Slow path code which calls runtime entry to throw an exception.
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:

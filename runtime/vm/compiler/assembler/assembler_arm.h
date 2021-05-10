@@ -1280,6 +1280,7 @@ class Assembler : public AssemblerBase {
   // Only the tags field of the object is initialized.
   void TryAllocate(const Class& cls,
                    Label* failure,
+                   JumpDistance distance,
                    Register instance_reg,
                    Register temp_reg);
 

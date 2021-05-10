@@ -59,7 +59,7 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
 
   // Try allocating in new space.
   const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, R0, R1);
+  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, R0, R1);
 
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
@@ -989,7 +989,7 @@ static void DoubleArithmeticOperations(Assembler* assembler,
       UNREACHABLE();
   }
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
 
@@ -1030,7 +1030,7 @@ void AsmIntrinsifier::Double_mulFromInteger(Assembler* assembler,
   __ LoadDFieldFromOffset(V0, R0, target::Double::value_offset());
   __ fmuld(V0, V0, V1);
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1048,7 +1048,7 @@ void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
   __ scvtfdw(V0, R0);
 #endif
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1196,7 +1196,7 @@ void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&double_op);
   __ fsqrtd(V0, V1);
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(&is_smi);

@@ -56,7 +56,7 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
 
   // Try allocating in new space.
   const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, R0, R1);
+  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, R0, R1);
 
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
@@ -128,7 +128,7 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   __ mov(R1, Operand(R1, LSL, R0));  // R1 gets the low bits.
 
   const Class& mint_class = MintClass();
-  __ TryAllocate(mint_class, normal_ir_body, R0, R2);
+  __ TryAllocate(mint_class, normal_ir_body, Assembler::kFarJump, R0, R2);
 
   __ str(R1, FieldAddress(R0, target::Mint::value_offset()));
   __ str(R8,
@@ -871,7 +871,7 @@ static void DoubleArithmeticOperations(Assembler* assembler,
         UNREACHABLE();
     }
     const Class& double_class = DoubleClass();
-    __ TryAllocate(double_class, normal_ir_body, R0,
+    __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0,
                    R1);  // Result register.
     __ StoreDToOffset(D0, R0, target::Double::value_offset() - kHeapObjectTag);
     __ Ret();
@@ -917,7 +917,7 @@ void AsmIntrinsifier::Double_mulFromInteger(Assembler* assembler,
     __ LoadDFromOffset(D0, R0, target::Double::value_offset() - kHeapObjectTag);
     __ vmuld(D0, D0, D1);
     const Class& double_class = DoubleClass();
-    __ TryAllocate(double_class, normal_ir_body, R0,
+    __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0,
                    R1);  // Result register.
     __ StoreDToOffset(D0, R0, target::Double::value_offset() - kHeapObjectTag);
     __ Ret();
@@ -938,7 +938,7 @@ void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
     __ vmovsr(S0, R0);
     __ vcvtdi(D0, S0);
     const Class& double_class = DoubleClass();
-    __ TryAllocate(double_class, normal_ir_body, R0,
+    __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0,
                    R1);  // Result register.
     __ StoreDToOffset(D0, R0, target::Double::value_offset() - kHeapObjectTag);
     __ Ret();
@@ -1094,7 +1094,7 @@ void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
     __ Bind(&double_op);
     __ vsqrtd(D0, D1);
     const Class& double_class = DoubleClass();
-    __ TryAllocate(double_class, normal_ir_body, R0,
+    __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0,
                    R1);  // Result register.
     __ StoreDToOffset(D0, R0, target::Double::value_offset() - kHeapObjectTag);
     __ Ret();

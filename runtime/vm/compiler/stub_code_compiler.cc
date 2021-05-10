@@ -19,6 +19,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, use_slow_path);
+
 namespace compiler {
 
 intptr_t StubCodeCompiler::WordOffsetFromFpToCpuRegister(
@@ -901,19 +904,12 @@ void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-#define EMIT_JUMP_DIST(...) __VA_ARGS__
-#else
-#define EMIT_JUMP_DIST(...)
-#endif
-
 #define EMIT_BOX_ALLOCATION(Name)                                              \
   void StubCodeCompiler::GenerateAllocate##Name##Stub(Assembler* assembler) {  \
     Label call_runtime;                                                        \
     if (!FLAG_use_slow_path && FLAG_inline_alloc) {                            \
       __ TryAllocate(compiler::Name##Class(), &call_runtime,                   \
-                     EMIT_JUMP_DIST(Assembler::kNearJump, ) /* NOLINT */       \
-                     AllocateBoxABI::kResultReg,                               \
+                     Assembler::kNearJump, AllocateBoxABI::kResultReg,         \
                      AllocateBoxABI::kTempReg);                                \
       __ Ret();                                                                \
     }                                                                          \
@@ -932,7 +928,6 @@ EMIT_BOX_ALLOCATION(Float32x4)
 EMIT_BOX_ALLOCATION(Float64x2)
 
 #undef EMIT_BOX_ALLOCATION
-#undef EMIT_JUMP_DIST
 
 }  // namespace compiler
 

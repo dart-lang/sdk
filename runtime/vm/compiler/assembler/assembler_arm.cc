@@ -3423,6 +3423,7 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
+                            JumpDistance distance,
                             Register instance_reg,
                             Register temp_reg) {
   ASSERT(failure != NULL);
