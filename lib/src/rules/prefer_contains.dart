@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -51,7 +50,7 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addSimpleIdentifier(this, visitor);
+    registry.addMethodInvocation(this, visitor);
   }
 
   void reportLintWithDescription(AstNode? node, String description) {
@@ -79,37 +78,21 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    // Should be "indexOf".
-    var propertyElement = node.staticElement;
-    if (propertyElement?.name != 'indexOf') {
+  void visitMethodInvocation(MethodInvocation node) {
+    if (node.methodName.name != 'indexOf') {
       return;
     }
 
-    MethodInvocation indexOfAccess;
-    InterfaceType type;
-
-    var parent = node.parent;
-    if (parent is MethodInvocation && node == parent.methodName) {
-      indexOfAccess = parent;
-      var parentType = parent.target?.staticType;
-      if (parentType is! InterfaceType) {
-        return;
-      }
-      type = parentType;
-    } else {
+    var parentType = node.target?.staticType;
+    if (parentType == null ||
+        !DartTypeUtilities.implementsAnyInterface(parentType, [
+          InterfaceTypeDefinition('Iterable', 'dart.core'),
+          InterfaceTypeDefinition('String', 'dart.core'),
+        ])) {
       return;
     }
 
-    if (!DartTypeUtilities.implementsAnyInterface(
-        type, <InterfaceTypeDefinition>[
-      InterfaceTypeDefinition('Iterable', 'dart.core'),
-      InterfaceTypeDefinition('String', 'dart.core'),
-    ])) {
-      return;
-    }
-
-    if (indexOfAccess.parent is AssignmentExpression) {
+    if (node.parent is AssignmentExpression) {
       // The result of `indexOf` is being assigned before being compared, so
       // it's important. E.g.  `(next = list.indexOf('{')) != -1)`.
       return;
@@ -118,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Going up in AST structure to find binary comparison operator for this
     // `indexOf` access. Most of the time it will be a parent, but sometimes
     // it can be wrapped in parentheses or `as` operator.
-    AstNode? search = indexOfAccess;
+    AstNode? search = node;
     while (
         search != null && search is Expression && search is! BinaryExpression) {
       search = search.parent;
