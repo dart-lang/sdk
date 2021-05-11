@@ -766,12 +766,6 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   @override
-  int compareTo(js.Name other) {
-    assert(_value != null, 'value not set for $this');
-    return _value.compareTo(other);
-  }
-
-  @override
   Iterable<js.Node> get containedNodes {
     return _value != null ? [_value] : const [];
   }

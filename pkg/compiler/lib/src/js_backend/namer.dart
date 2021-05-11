@@ -559,14 +559,6 @@ class Namer extends ModularNamer {
         entity.rootOfScope, () => new NamingScope());
   }
 
-  /// Return a reference to the given [name].
-  ///
-  /// This is used to ensure that every use site of a name has a unique node so
-  /// that we can properly attribute source information.
-  jsAst.Name _newReference(jsAst.Name name) {
-    return new _NameReference(name);
-  }
-
   /// Disambiguated name for [constant].
   ///
   /// Unique within the global-member namespace.
@@ -581,7 +573,7 @@ class Namer extends ModularNamer {
       result = getFreshName(_constantScope, longName);
       _constantNames[constant] = result;
     }
-    return _newReference(result);
+    return result;
   }
 
   /// Proposed name for [constant].
@@ -946,7 +938,7 @@ class Namer extends ModularNamer {
       newName = getFreshName(globalScope, name);
       internalGlobals[name] = newName;
     }
-    return _newReference(newName);
+    return newName;
   }
 
   /// Generates a unique key for [library].
@@ -986,7 +978,7 @@ class Namer extends ModularNamer {
       newName = getFreshName(globalScope, proposedName);
       globals[element] = newName;
     }
-    return _newReference(newName);
+    return newName;
   }
 
   /// Returns the disambiguated name for an instance method or field
@@ -1027,7 +1019,7 @@ class Namer extends ModularNamer {
       userInstanceMembers[key] = newName;
       userInstanceMembersOriginalName[key] = '$originalName';
     }
-    return _newReference(newName);
+    return newName;
   }
 
   /// Returns the disambiguated name for the instance member identified by
@@ -1051,7 +1043,7 @@ class Namer extends ModularNamer {
       // TODO(sigmund): consider plumbing the original name instead.
       userInstanceMembersOriginalName[key] = name;
     }
-    return _newReference(newName);
+    return newName;
   }
 
   /// Forces the public instance member with [originalName] to have the given
@@ -1099,7 +1091,7 @@ class Namer extends ModularNamer {
         internalInstanceMembers[element] = newName;
       }
     }
-    return _newReference(newName);
+    return newName;
   }
 
   /// Disambiguated name for the given operator.
@@ -1114,7 +1106,7 @@ class Namer extends ModularNamer {
       newName = getFreshName(instanceScope, operatorIdentifier);
       userInstanceOperators[operatorIdentifier] = newName;
     }
-    return _newReference(newName);
+    return newName;
   }
 
   String _generateFreshStringForName(String proposedName, NamingScope scope,

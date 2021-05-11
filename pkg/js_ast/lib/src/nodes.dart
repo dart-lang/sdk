@@ -445,8 +445,6 @@ abstract class Node {
     return clone;
   }
 
-  VariableUse asVariableUse() => null;
-
   bool get isCommaOperator => false;
 
   bool get isFinalized => true;
@@ -1001,21 +999,27 @@ abstract class Expression extends Node {
 
 abstract class Declaration implements VariableReference {}
 
-/// An implementation of [Name] represents a potentially late bound name in
-/// the generated ast.
+/// [Name] is an extension point to allow a JavaScript AST to contain
+/// identifiers that are bound later. This is used in minification.
 ///
-/// While [Name] implements comparable, there is no requirement on the actual
-/// implementation of [compareTo] other than that it needs to be stable.
-/// In particular, there is no guarantee that implementations of [compareTo]
-/// will implement some form of lexicographic ordering like [String.compareTo].
-abstract class Name extends Literal
-    implements Declaration, Parameter, Comparable<Name> {
+/// [Name] is a [Literal] so that it can occur as a property access selector.
+//
+// TODO(sra): Figure out why [Name] is a Declaration and Parameter, and where
+// that is used. How should the printer know if an occurrence of a Name is meant
+// to be a Literal or a Declaration (which includes a VariableUse)?
+abstract class Name extends Literal implements Declaration, Parameter {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitName(this);
 
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitName(this, arg);
 
   Name _clone();
+
+  /// Returns the text of this name.
+  ///
+  /// May throw if the text has not been decided. Typically the text is decided
+  /// in some finalization phase that happens before the AST is printed.
+  String get name;
 
   /// Returns a unique [key] for this name.
   ///
@@ -1394,8 +1398,6 @@ class VariableUse extends VariableReference {
       visitor.visitVariableUse(this, arg);
 
   VariableUse _clone() => new VariableUse(name);
-
-  VariableUse asVariableUse() => this;
 
   String toString() => 'VariableUse($name)';
 }

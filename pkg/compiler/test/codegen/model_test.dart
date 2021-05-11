@@ -14,7 +14,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
@@ -99,7 +98,6 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         String name;
         if (selector is js.Name) {
           name = selector.key;
-          fixedNameCall = selector is StringBackedName;
         } else if (selector is js.LiteralString) {
           /// Call to fixed backend name, so we include the argument
           /// values to test encoding of optional parameters in native
