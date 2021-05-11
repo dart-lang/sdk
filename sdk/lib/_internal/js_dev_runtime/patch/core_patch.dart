@@ -128,43 +128,31 @@ class Function {
   }
 }
 
-// TODO(jmesserly): switch to WeakMap
 // Patch for Expando implementation.
 @patch
 class Expando<T extends Object> {
+  final Object _jsWeakMap = JS('=Object', 'new WeakMap()');
+
   @patch
-  Expando([String? name]) : this.name = name;
+  Expando([this.name]);
 
   @patch
   T? operator [](Object object) {
-    var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    return (values == null)
-        ? null
-        : Primitives.getProperty(values, _getKey()) as T?;
+    _checkType(object); // WeakMap doesn't check on reading, only writing.
+    return JS('', '#.get(#)', _jsWeakMap, object);
   }
 
   @patch
   void operator []=(Object object, T? value) {
-    var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    if (values == null) {
-      values = Object();
-      Primitives.setProperty(object, _EXPANDO_PROPERTY_NAME, values);
-    }
-    Primitives.setProperty(values, _getKey(), value);
+    JS('void', '#.set(#, #)', _jsWeakMap, object, value);
   }
 
-  String _getKey() {
-    var key = Primitives.getProperty(this, _KEY_PROPERTY_NAME) as String?;
-    if (key == null) {
-      key = "expando\$key\$${_keyCount++}";
-      Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);
+  static _checkType(object) {
+    if (object == null || object is bool || object is num || object is String) {
+      throw new ArgumentError.value(object,
+          "Expandos are not allowed on strings, numbers, booleans or null");
     }
-    return key;
   }
-
-  static const String _KEY_PROPERTY_NAME = 'expando\$key';
-  static const String _EXPANDO_PROPERTY_NAME = 'expando\$values';
-  static int _keyCount = 0;
 }
 
 @patch
