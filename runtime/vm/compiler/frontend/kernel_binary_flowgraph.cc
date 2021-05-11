@@ -1487,8 +1487,12 @@ LocalVariable* StreamingFlowGraphBuilder::LookupVariable(
   return flow_graph_builder_->LookupVariable(kernel_offset);
 }
 
-LocalVariable* StreamingFlowGraphBuilder::MakeTemporary() {
-  return flow_graph_builder_->MakeTemporary();
+LocalVariable* StreamingFlowGraphBuilder::MakeTemporary(const char* suffix) {
+  return flow_graph_builder_->MakeTemporary(suffix);
+}
+
+Fragment StreamingFlowGraphBuilder::DropTemporary(LocalVariable** variable) {
+  return flow_graph_builder_->DropTemporary(variable);
 }
 
 Function& StreamingFlowGraphBuilder::FindMatchingFunction(
@@ -4370,15 +4374,14 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   Fragment instructions = BuildExpression();
   LocalVariable* original_closure = MakeTemporary();
 
-  instructions += AllocateObject(
-      TokenPosition::kNoSource,
-      Class::ZoneHandle(Z, IG->object_store()->closure_class()), 0);
+  // The closure function isn't known at compile time.
+  instructions += flow_graph_builder_->AllocateClosure(Object::null_function());
   LocalVariable* new_closure = MakeTemporary();
 
   intptr_t num_type_args = ReadListLength();
   const TypeArguments& type_args = T.BuildTypeArguments(num_type_args);
   instructions += TranslateInstantiatedTypeArguments(type_args);
-  LocalVariable* type_args_vec = MakeTemporary();
+  LocalVariable* type_args_vec = MakeTemporary("type_args");
 
   // Check the bounds.
   //
@@ -4401,7 +4404,7 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_delayed_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
-  instructions += Drop();  // Drop type args.
+  instructions += DropTemporary(&type_args_vec);
 
   // Copy over the target function.
   instructions += LoadLocal(new_closure);
@@ -5565,8 +5568,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
-  Fragment instructions =
-      flow_graph_builder_->AllocateClosure(TokenPosition::kNoSource, function);
+  Fragment instructions = flow_graph_builder_->AllocateClosure(function);
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.

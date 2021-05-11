@@ -1841,46 +1841,48 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 }
 #endif  // !PRODUCT
 
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            JumpDistance distance,
-                            Register instance_reg,
-                            Register top_reg,
-                            bool tag_result) {
+void Assembler::TryAllocateObject(intptr_t cid,
+                                  intptr_t instance_size,
+                                  Label* failure,
+                                  JumpDistance distance,
+                                  Register instance_reg,
+                                  Register temp_reg) {
   ASSERT(failure != NULL);
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_size != 0);
+  ASSERT(instance_reg != temp_reg);
+  ASSERT(temp_reg != kNoRegister);
+  ASSERT(Utils::IsAligned(instance_size,
+                          target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    const classid_t cid = target::Class::GetId(cls);
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, /*temp_reg=*/top_reg, failure));
-
-    const Register kEndReg = TMP;
-
-    // instance_reg: potential next object start.
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure));
     RELEASE_ASSERT((target::Thread::top_offset() + target::kWordSize) ==
                    target::Thread::end_offset());
-    ldp(instance_reg, kEndReg,
+    ldp(instance_reg, temp_reg,
         Address(THR, target::Thread::top_offset(), Address::PairOffset));
+    // instance_reg: current top (next object start).
+    // temp_reg: heap end
 
     // TODO(koda): Protect against unsigned overflow here.
-    AddImmediate(top_reg, instance_reg, instance_size);
-    cmp(kEndReg, Operand(top_reg));
-    b(failure, LS);  // Unsigned lower or equal.
+    AddImmediate(instance_reg, instance_size);
+    // instance_reg: potential top (next object start).
+    // fail if heap end unsigned less than or equal to new heap top.
+    cmp(temp_reg, Operand(instance_reg));
+    b(failure, LS);
 
-    // Successfully allocated the object, now update top to point to
+    // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
-    str(top_reg, Address(THR, target::Thread::top_offset()));
+    str(instance_reg, Address(THR, target::Thread::top_offset()));
+    // Move instance_reg back to the start of the object and tag it.
+    AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
 
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    LoadImmediate(TMP, tags);
-    StoreToOffset(TMP, instance_reg, target::Object::tags_offset());
-
-    if (tag_result) {
-      AddImmediate(instance_reg, kHeapObjectTag);
-    }
+    LoadImmediate(temp_reg, tags);
+    StoreToOffset(temp_reg,
+                  FieldAddress(instance_reg, target::Object::tags_offset()));
   } else {
     b(failure);
   }

@@ -26,7 +26,6 @@
 #define __ assembler->
 
 namespace dart {
-
 namespace compiler {
 
 // Ensures that [EAX] is a new object, if not it will be added to the remembered
@@ -34,8 +33,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
 // The caller should simply call LeaveFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;

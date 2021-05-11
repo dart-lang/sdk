@@ -212,6 +212,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_float32x4_array_stub)                                      \
   RW(Code, allocate_int32x4_array_stub)                                        \
   RW(Code, allocate_float64x2_array_stub)                                      \
+  RW(Code, allocate_closure_stub)                                              \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
@@ -285,6 +286,7 @@ class ObjectPointerVisitor;
   DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
   DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
   DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
+  DO(allocate_closure_stub, AllocateClosure)                                   \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \

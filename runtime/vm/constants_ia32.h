@@ -202,6 +202,12 @@ struct AllocateBoxABI {
   static const Register kTempReg = EBX;
 };
 
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = EAX;
+  static const Register kScratchReg = EDX;
+};
+
 // ABI for Allocate<TypedData>ArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kLengthReg = EAX;

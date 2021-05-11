@@ -15,6 +15,7 @@ namespace dart {
   V(AllocateFloat64x2)                                                         \
   V(AllocateInt32x4)                                                           \
   V(AllocateTypedData)                                                         \
+  V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(BreakpointRuntimeHandler)                                                  \

@@ -1512,11 +1512,8 @@ class CallSiteInliner : public ValueObject {
       Function& target = Function::ZoneHandle();
       Definition* receiver =
           call->Receiver()->definition()->OriginalDefinition();
-      if (AllocateObjectInstr* alloc = receiver->AsAllocateObject()) {
-        if (!alloc->closure_function().IsNull()) {
-          target = alloc->closure_function().ptr();
-          ASSERT(alloc->cls().IsClosureClass());
-        }
+      if (const auto* alloc = receiver->AsAllocateClosure()) {
+        target = alloc->closure_function().ptr();
       } else if (ConstantInstr* constant = receiver->AsConstant()) {
         if (constant->value().IsClosure()) {
           target = Closure::Cast(constant->value()).function();

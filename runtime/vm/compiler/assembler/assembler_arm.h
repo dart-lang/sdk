@@ -388,9 +388,8 @@ class Assembler : public AssemblerBase {
   // Unconditional jump to a given address in memory.
   void Jump(const Address& address) { Branch(address); }
 
-  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
-  void LoadCompressedField(Register dst, FieldAddress address) {
-    LoadField(dst, address);
+  void LoadField(Register dst, const FieldAddress& address) override {
+    ldr(dst, address);
   }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset);
@@ -854,11 +853,6 @@ class Assembler : public AssemblerBase {
   }
   void CompareObject(Register rn, const Object& object);
 
-  enum CanBeSmi {
-    kValueIsNotSmi,
-    kValueCanBeSmi,
-  };
-
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
   // if the value can be proven either Smi or old-and-premarked, its NoBarrier
@@ -867,7 +861,7 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
@@ -879,7 +873,7 @@ class Assembler : public AssemblerBase {
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value);
+                                Register value) override;
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
@@ -1274,15 +1268,12 @@ class Assembler : public AssemblerBase {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(Register stats_addr_reg, Label* trace);
 
-  // Inlined allocation of an instance of class 'cls', code has no runtime
-  // calls. Jump to 'failure' if the instance cannot be allocated here.
-  // Allocated instance is returned in 'instance_reg'.
-  // Only the tags field of the object is initialized.
-  void TryAllocate(const Class& cls,
-                   Label* failure,
-                   JumpDistance distance,
-                   Register instance_reg,
-                   Register temp_reg);
+  void TryAllocateObject(intptr_t cid,
+                         intptr_t instance_size,
+                         Label* failure,
+                         JumpDistance distance,
+                         Register instance_reg,
+                         Register temp_reg) override;
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,

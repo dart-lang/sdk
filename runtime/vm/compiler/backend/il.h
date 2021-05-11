@@ -429,6 +429,7 @@ struct InstrAttrs {
   M(InstanceOf, _)                                                             \
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
+  M(AllocateClosure, _)                                                        \
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
@@ -6121,6 +6122,8 @@ class AllocationInstr : public Definition {
     return InputCount();
   }
 
+  PRINT_OPERANDS_TO_SUPPORT
+
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
 
  private:
@@ -6158,8 +6161,7 @@ class AllocateObjectInstr : public AllocationInstr {
                       Value* type_arguments = nullptr)
       : AllocationInstr(source, deopt_id),
         cls_(cls),
-        type_arguments_(type_arguments),
-        closure_function_(Function::ZoneHandle()) {
+        type_arguments_(type_arguments) {
     ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
     if (type_arguments != nullptr) {
       SetInputAt(0, type_arguments);
@@ -6171,11 +6173,6 @@ class AllocateObjectInstr : public AllocationInstr {
 
   const Class& cls() const { return cls_; }
   Value* type_arguments() const { return type_arguments_; }
-
-  const Function& closure_function() const { return closure_function_; }
-  void set_closure_function(const Function& function) {
-    closure_function_ = function.ptr();
-  }
 
   virtual intptr_t InputCount() const {
     return (type_arguments_ != nullptr) ? 1 : 0;
@@ -6206,9 +6203,39 @@ class AllocateObjectInstr : public AllocationInstr {
 
   const Class& cls_;
   Value* type_arguments_;
-  Function& closure_function_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
+};
+
+// Allocates and null initializes a closure object. The closure function, when
+// non-null, is used to determine the precise type of the resulting closure
+// and to inline the closure function when applicable.
+class AllocateClosureInstr : public TemplateAllocation<0> {
+ public:
+  AllocateClosureInstr(const InstructionSource& source,
+                       const Function& closure_function,
+                       intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id),
+        closure_function_(closure_function) {}
+
+  DECLARE_INSTRUCTION(AllocateClosure)
+  virtual CompileType ComputeType() const;
+
+  const Function& closure_function() const { return closure_function_; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    return Heap::IsAllocatableInNewSpace(
+        compiler::target::Closure::InstanceSize());
+  }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Function& closure_function_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocateClosureInstr);
 };
 
 class AllocateUninitializedContextInstr : public TemplateAllocation<0> {

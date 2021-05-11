@@ -1078,12 +1078,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
 
-    EXPECT_SUBSTRING("DRT_AllocateObject", walker.VMTagName());
-#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate _Closure", walker.CurrentName());
-#else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
-#endif
+    EXPECT_SUBSTRING("DRT_AllocateClosure", walker.VMTagName());
+    EXPECT_STREQ("[Stub] AllocateClosure", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());

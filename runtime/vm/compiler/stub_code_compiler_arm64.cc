@@ -27,9 +27,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DECLARE_FLAG(bool, precompiled_mode);
-
 namespace compiler {
 
 // Ensures that [R0] is a new object, if not it will be added to the remembered
@@ -37,8 +34,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
