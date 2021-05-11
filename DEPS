@@ -155,7 +155,7 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
-  "sse_tag": "5da8fedcdc56f306933d202e2d204753eecefd36",
+  "sse_tag": "adc3ac8027784ed9783d066dccadad44458788e4",
   "stack_trace_tag": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
