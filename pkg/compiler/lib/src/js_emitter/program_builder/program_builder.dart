@@ -21,7 +21,7 @@ import '../../js_backend/backend_usage.dart';
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/namer.dart' show Namer, StringBackedName;
+import '../../js_backend/namer.dart' show Namer, StringBackedName, compareNames;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
@@ -998,7 +998,7 @@ class ProgramBuilder {
           "${interceptorMap[name]}, new ${interceptor}.");
       interceptorMap[name] = interceptor;
     }
-    names.sort();
+    names.sort(compareNames);
     return names.map((js.Name name) {
       SpecializedGetInterceptor interceptor = interceptorMap[name];
       js.Expression code =
@@ -1099,7 +1099,7 @@ class ProgramBuilder {
           "${interceptorMap[name]}, new ${interceptor}.");
       interceptorMap[name] = interceptor;
     }
-    names.sort();
+    names.sort(compareNames);
     return names.map((js.Name name) {
       OneShotInterceptor interceptor = interceptorMap[name];
       js.Expression code =
