@@ -57,9 +57,27 @@ Future writeBenchmarks(
     });
   }
 
+  var coreRuleset = await coreRules;
+  var recommendedRuleset = await recommendedRules;
+  var flutterRuleset = await flutterRules;
   var pedanticRuleset = await pedanticRules;
+
   var stats = timings.keys.map((t) {
-    var details = pedanticRuleset.contains(t) ? ' [pedantic]' : '';
+    var sets = <String>[];
+    if (coreRuleset.contains(t)) {
+      sets.add('core');
+    }
+    if (recommendedRuleset.contains(t)) {
+      sets.add('recommended');
+    }
+    if (flutterRuleset.contains(t)) {
+      sets.add('flutter');
+    }
+    if (pedanticRuleset.contains(t)) {
+      sets.add('pedantic');
+    }
+
+    var details = sets.isEmpty ? '' : " [${sets.join(', ')}]";
     return _Stat('$t$details', timings[t] ?? 0);
   }).toList();
   _writeTimings(out, stats, 0);
