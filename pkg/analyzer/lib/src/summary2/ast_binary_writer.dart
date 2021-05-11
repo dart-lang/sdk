@@ -141,21 +141,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitConfiguration(Configuration node) {
-    _writeByte(Tag.Configuration);
-
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasEqual: node.equalToken != null,
-      ),
-    );
-
-    _writeNode(node.name);
-    _writeOptionalNode(node.value);
-    _writeNode(node.uri);
-  }
-
-  @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _writeByte(Tag.ConstructorFieldInitializer);
 
@@ -360,12 +345,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitImplementsClause(ImplementsClause node) {
-    _writeByte(Tag.ImplementsClause);
-    _writeNodeList(node.interfaces);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     _writeByte(Tag.IndexExpression);
     _writeByte(
@@ -463,12 +442,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitLabel(Label node) {
-    _writeByte(Tag.Label);
-    _writeNode(node.label);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     _writeByte(Tag.ListLiteral);
 
@@ -517,20 +490,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitNativeClause(NativeClause node) {
-    _writeByte(Tag.NativeClause);
-    _writeOptionalNode(node.name);
-  }
-
-  @override
   void visitNullLiteral(NullLiteral node) {
     _writeByte(Tag.NullLiteral);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    _writeByte(Tag.OnClause);
-    _writeNodeList(node.superclassConstraints);
   }
 
   @override
@@ -782,12 +743,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.type);
     _writeNodeList(node.variables);
     _storeAnnotatedNode(node);
-  }
-
-  @override
-  void visitWithClause(WithClause node) {
-    _writeByte(Tag.WithClause);
-    _writeNodeList(node.mixinTypes);
   }
 
   void _pushScopeTypeParameters(TypeParameterList? node) {
