@@ -178,13 +178,13 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
   std::vector<const char*> expected_stores_jit;
   std::vector<const char*> expected_stores_aot;
 
-  expected_stores_jit.insert(expected_stores_jit.end(),
-                             {"value", "Context.parent", "Context.parent",
-                              "value", "Closure.function_type_arguments",
-                              "Closure.function", "Closure.context"});
-  expected_stores_aot.insert(expected_stores_aot.end(),
-                             {"value", "Closure.function_type_arguments",
-                              "Closure.function", "Closure.context"});
+  expected_stores_jit.insert(
+      expected_stores_jit.end(),
+      {"value", "Context.parent", "Context.parent", "value",
+       "Closure.function_type_arguments", "Closure.context"});
+  expected_stores_aot.insert(
+      expected_stores_aot.end(),
+      {"value", "Closure.function_type_arguments", "Closure.context"});
 
   RunInitializingStoresTest(root_library, "f4", CompilerPass::kJIT,
                             expected_stores_jit);

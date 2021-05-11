@@ -4374,8 +4374,11 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   Fragment instructions = BuildExpression();
   LocalVariable* original_closure = MakeTemporary();
 
-  // The closure function isn't known at compile time.
-  instructions += flow_graph_builder_->AllocateClosure(Object::null_function());
+  // Load the target function and allocate the closure.
+  instructions += LoadLocal(original_closure);
+  instructions +=
+      flow_graph_builder_->LoadNativeField(Slot::Closure_function());
+  instructions += flow_graph_builder_->AllocateClosure();
   LocalVariable* new_closure = MakeTemporary();
 
   intptr_t num_type_args = ReadListLength();
@@ -4405,14 +4408,6 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       Slot::Closure_delayed_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
   instructions += DropTemporary(&type_args_vec);
-
-  // Copy over the target function.
-  instructions += LoadLocal(new_closure);
-  instructions += LoadLocal(original_closure);
-  instructions +=
-      flow_graph_builder_->LoadNativeField(Slot::Closure_function());
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_function(), StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Copy over the instantiator type arguments.
   instructions += LoadLocal(new_closure);
@@ -5568,7 +5563,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
-  Fragment instructions = flow_graph_builder_->AllocateClosure(function);
+  Fragment instructions;
+  instructions += Constant(function);
+  instructions += flow_graph_builder_->AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.
@@ -5598,12 +5595,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
-  // Store the function and the context in the closure.
-  instructions += LoadLocal(closure);
-  instructions += Constant(function);
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_function(), StoreInstanceFieldInstr::Kind::kInitializing);
-
+  // Store the context in the closure.
   instructions += LoadLocal(closure);
   instructions += LoadLocal(parsed_function()->current_context_var());
   instructions += flow_graph_builder_->StoreNativeField(

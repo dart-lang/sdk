@@ -918,6 +918,9 @@ class Assembler : public AssemblerBase {
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+  void EnsureHasClassIdInDEBUG(intptr_t cid,
+                               Register src,
+                               Register scratch) override;
 
   intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;

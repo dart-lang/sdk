@@ -1584,7 +1584,8 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     const Function& target) {
   Fragment fragment;
-  fragment += AllocateClosure(target);
+  fragment += Constant(target);
+  fragment += AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.
@@ -1605,12 +1606,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += AllocateContext(implicit_closure_scope->context_slots());
   LocalVariable* context = MakeTemporary();
 
-  // Store the function and the context in the closure.
-  fragment += LoadLocal(closure);
-  fragment += Constant(target);
-  fragment += StoreNativeField(Slot::Closure_function(),
-                               StoreInstanceFieldInstr::Kind::kInitializing);
-
+  // Store the context in the closure.
   fragment += LoadLocal(closure);
   fragment += LoadLocal(context);
   fragment += StoreNativeField(Slot::Closure_context(),
@@ -1659,7 +1655,7 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
     return true;
   }
   if (auto const alloc = definition->AsAllocateClosure()) {
-    return !alloc->closure_function().IsNull();
+    return !alloc->known_function().IsNull();
   }
   return definition->IsLoadLocal();
 }

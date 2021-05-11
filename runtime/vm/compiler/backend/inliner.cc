@@ -1513,7 +1513,7 @@ class CallSiteInliner : public ValueObject {
       Definition* receiver =
           call->Receiver()->definition()->OriginalDefinition();
       if (const auto* alloc = receiver->AsAllocateClosure()) {
-        target = alloc->closure_function().ptr();
+        target = alloc->known_function().ptr();
       } else if (ConstantInstr* constant = receiver->AsConstant()) {
         if (constant->value().IsClosure()) {
           target = Closure::Cast(constant->value()).function();

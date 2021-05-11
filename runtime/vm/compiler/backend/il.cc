@@ -993,10 +993,12 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
 
 LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = 0;
+  const intptr_t kNumInputs = inputs_.length();
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(kFunctionPos,
+               Location::RegisterLocation(AllocateClosureABI::kFunctionReg));
   locs->set_out(0, Location::RegisterLocation(AllocateClosureABI::kResultReg));
   return locs;
 }

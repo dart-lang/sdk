@@ -6207,21 +6207,31 @@ class AllocateObjectInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
-// Allocates and null initializes a closure object. The closure function, when
-// non-null, is used to determine the precise type of the resulting closure
-// and to inline the closure function when applicable.
-class AllocateClosureInstr : public TemplateAllocation<0> {
+// Allocates and null initializes a closure object, given the closure function
+// as a value.
+class AllocateClosureInstr : public TemplateAllocation<1> {
  public:
+  enum Inputs { kFunctionPos = 0 };
   AllocateClosureInstr(const InstructionSource& source,
-                       const Function& closure_function,
+                       Value* closure_function,
                        intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id),
-        closure_function_(closure_function) {}
+      : TemplateAllocation(source, deopt_id) {
+    SetInputAt(kFunctionPos, closure_function);
+  }
 
   DECLARE_INSTRUCTION(AllocateClosure)
   virtual CompileType ComputeType() const;
 
-  const Function& closure_function() const { return closure_function_; }
+  Value* closure_function() const { return inputs_[kFunctionPos]; }
+
+  const Function& known_function() const {
+    Value* const value = closure_function();
+    if (value->BindsToConstant()) {
+      ASSERT(value->BoundConstant().IsFunction());
+      return Function::Cast(value->BoundConstant());
+    }
+    return Object::null_function();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6230,11 +6240,7 @@ class AllocateClosureInstr : public TemplateAllocation<0> {
         compiler::target::Closure::InstanceSize());
   }
 
-  PRINT_OPERANDS_TO_SUPPORT
-
  private:
-  const Function& closure_function_;
-
   DISALLOW_COPY_AND_ASSIGN(AllocateClosureInstr);
 };
 

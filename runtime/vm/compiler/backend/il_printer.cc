@@ -672,14 +672,6 @@ void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   AllocationInstr::PrintOperandsTo(f);
 }
 
-void AllocateClosureInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("function=%s", closure_function().ToCString());
-  if (InputCount() > 0 || Identity().IsNotAliased()) {
-    f->AddString(", ");
-  }
-  TemplateAllocation::PrintOperandsTo(f);
-}
-
 void MaterializeObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s", String::Handle(cls_.ScrubbedName()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
