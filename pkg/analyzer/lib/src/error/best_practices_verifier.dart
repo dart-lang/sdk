@@ -338,6 +338,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var element = node.declaredElement as ConstructorElementImpl;
     if (!_isNonNullableByDefault && node.declaredElement!.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
@@ -349,7 +350,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     _checkStrictInferenceInParameters(node.parameters,
         body: node.body, initializers: node.initializers);
-    super.visitConstructorDeclaration(node);
+    _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
+    try {
+      super.visitConstructorDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override
