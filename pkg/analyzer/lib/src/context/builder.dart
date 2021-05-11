@@ -57,10 +57,6 @@ class ContextBuilder {
   /// they can be shared across contexts.
   final DartSdkManager sdkManager;
 
-  /// The cache containing the contents of overlaid files. If this builder will
-  /// be used to build analysis drivers, set the [fileContentOverlay] instead.
-  final ContentCache? contentCache;
-
   /// The options used by the context builder.
   final ContextBuilderOptions builderOptions;
 
@@ -92,7 +88,7 @@ class ContextBuilder {
 
   /// Initialize a newly created builder to be ready to build a context rooted in
   /// the directory with the given [rootDirectoryPath].
-  ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
+  ContextBuilder(this.resourceProvider, this.sdkManager,
       {ContextBuilderOptions? options})
       : builderOptions = options ?? ContextBuilderOptions();
 

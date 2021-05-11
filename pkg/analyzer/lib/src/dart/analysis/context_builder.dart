@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
-import 'package:analyzer/src/generated/source.dart' show ContentCache;
 import 'package:cli_util/cli_util.dart';
 
 /// An implementation of a context builder.
@@ -82,9 +81,8 @@ class ContextBuilderImpl implements ContextBuilder {
     options.defaultAnalysisOptionsFilePath = contextRoot.optionsFile?.path;
     options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 
-    old.ContextBuilder builder = old.ContextBuilder(
-        resourceProvider, sdkManager, ContentCache(),
-        options: options);
+    old.ContextBuilder builder =
+        old.ContextBuilder(resourceProvider, sdkManager, options: options);
     builder.analysisDriverScheduler = scheduler;
     builder.byteStore = byteStore;
     builder.fileContentOverlay = fileContentOverlay;
