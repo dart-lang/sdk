@@ -829,6 +829,9 @@ class Assembler : public AssemblerBase {
 
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+  void EnsureHasClassIdInDEBUG(intptr_t cid,
+                               Register src,
+                               Register scratch) override;
 
   void SmiUntagOrCheckClass(Register object,
                             intptr_t class_id,

@@ -473,7 +473,8 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ Bind(&no_type_args);
 
   // Push type arguments & extracted method.
-  __ PushPair(R3, R1);
+  __ Push(R3);
+  __ Push(R1);
 
   // Allocate context.
   {
@@ -504,32 +505,41 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ StoreIntoObject(R0, FieldAddress(R0, target::Context::variable_offset(0)),
                      R1);
 
+  // Pop function before pushing context.
+  __ Pop(AllocateClosureABI::kFunctionReg);
+
   // Push context.
   __ Push(R0);
 
-  // Allocate closure.
+  // Allocate closure. After this point, we only use the registers in
+  // AllocateClosureABI.
   __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
-                                        CodeEntryKind::kUnchecked)));
-  __ blr(R1);
+  __ ldr(AllocateClosureABI::kScratchReg,
+         FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ blr(AllocateClosureABI::kScratchReg);
 
   // Populate closure object.
-  __ Pop(R1);  // Pop context.
-  __ StoreIntoObject(R0, FieldAddress(R0, target::Closure::context_offset()),
-                     R1);
-  __ PopPair(R3, R1);  // Pop type arguments & extracted method.
+  __ Pop(AllocateClosureABI::kScratchReg);  // Pop context.
+  __ StoreIntoObject(AllocateClosureABI::kResultReg,
+                     FieldAddress(AllocateClosureABI::kResultReg,
+                                  target::Closure::context_offset()),
+                     AllocateClosureABI::kScratchReg);
+  __ Pop(AllocateClosureABI::kScratchReg);  // Pop type arguments.
   __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Closure::function_offset()), R1);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::instantiator_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
+  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
   __ StoreIntoObjectNoBarrier(
-      R0,
-      FieldAddress(R0, target::Closure::instantiator_type_arguments_offset()),
-      R3);
-  __ LoadObject(R1, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Closure::delayed_type_arguments_offset()),
-      R1);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::delayed_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
 
   __ LeaveStubFrame();
+  // No-op if the two are the same.
+  __ MoveRegister(R0, AllocateClosureABI::kResultReg);
   __ Ret();
 }
 

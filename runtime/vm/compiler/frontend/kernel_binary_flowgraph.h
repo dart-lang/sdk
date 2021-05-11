@@ -209,7 +209,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment AllocateObject(TokenPosition position,
                           const Class& klass,
                           intptr_t argument_count);
-  Fragment AllocateObject(const Class& klass, const Function& closure_function);
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& context_slots);
   Fragment LoadNativeField(const Slot& field);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);

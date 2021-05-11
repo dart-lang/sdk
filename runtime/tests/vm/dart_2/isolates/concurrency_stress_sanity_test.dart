@@ -20,7 +20,7 @@ import '../../../concurrency/generate_stress_test.dart'
 // fuzzing test).
 main() async {
   if (!Platform.isLinux) return;
-  if (!Platform.executable.contains("ReleaseX64/dart")) return;
+  if (!Platform.executable.endsWith("ReleaseX64/dart")) return;
 
   final dartExecutable = Platform.executable;
   await withTempDir((String tempDir) async {

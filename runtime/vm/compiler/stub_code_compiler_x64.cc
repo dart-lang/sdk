@@ -448,32 +448,39 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ StoreIntoObject(
       RAX, FieldAddress(RAX, target::Context::variable_offset(0)), RSI);
 
+  // Pop function before pushing context.
+  __ popq(AllocateClosureABI::kFunctionReg);
+
   // Push context.
   __ pushq(RAX);
 
-  // Allocate closure.
+  // Allocate closure. After this point, we only use the registers in
+  // AllocateClosureABI.
   __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ call(FieldAddress(
-      CODE_REG, target::Code::entry_point_offset(CodeEntryKind::kUnchecked)));
+  __ call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 
   // Populate closure object.
-  __ popq(RCX);  // Pop context.
-  __ StoreIntoObject(RAX, FieldAddress(RAX, target::Closure::context_offset()),
-                     RCX);
-  __ popq(RCX);  // Pop extracted method.
+  __ popq(AllocateClosureABI::kScratchReg);  // Pop context.
+  __ StoreIntoObject(AllocateClosureABI::kResultReg,
+                     FieldAddress(AllocateClosureABI::kResultReg,
+                                  target::Closure::context_offset()),
+                     AllocateClosureABI::kScratchReg);
+  __ popq(AllocateClosureABI::kScratchReg);  // Pop type argument vector.
   __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Closure::function_offset()), RCX);
-  __ popq(RCX);  // Pop type argument vector.
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::instantiator_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
+  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
   __ StoreIntoObjectNoBarrier(
-      RAX,
-      FieldAddress(RAX, target::Closure::instantiator_type_arguments_offset()),
-      RCX);
-  __ LoadObject(RCX, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Closure::delayed_type_arguments_offset()),
-      RCX);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::delayed_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
 
   __ LeaveStubFrame();
+  // No-op if the two are the same.
+  __ MoveRegister(RAX, AllocateClosureABI::kResultReg);
   __ Ret();
 }
 

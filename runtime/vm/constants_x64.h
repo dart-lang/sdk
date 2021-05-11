@@ -266,6 +266,7 @@ struct RangeErrorABI {
 // ABI for AllocateClosureStub.
 struct AllocateClosureABI {
   static const Register kResultReg = RAX;
+  static const Register kFunctionReg = RBX;
   static const Register kScratchReg = R13;
 };
 

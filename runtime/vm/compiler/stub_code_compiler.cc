@@ -756,6 +756,8 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 #endif  // !defined(TARGET_ARCH_IA32)
 
 // Called for inline allocation of closure.
+// Input (preserved):
+//   AllocateClosureABI::kFunctionReg: closure function.
 // Output:
 //   AllocateClosureABI::kResultReg: new allocated Closure object.
 // Clobbered:
@@ -763,6 +765,8 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
   const intptr_t instance_size =
       target::RoundedAllocationSize(target::Closure::InstanceSize());
+  __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
+                             AllocateClosureABI::kScratchReg);
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ Comment("Inline allocation of uninitialized closure");
@@ -777,8 +781,10 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
                          AllocateClosureABI::kScratchReg);
 
     __ Comment("Inline initialization of allocated closure");
-    // Put null in the scratch register for initializing boxed fields.
+    // Put null in the scratch register for initializing most boxed fields.
     // We initialize the fields in offset order below.
+    // Since the TryAllocateObject above did not go to the slow path, we're
+    // guaranteed an object in new space here, and thus no barriers are needed.
     __ LoadObject(AllocateClosureABI::kScratchReg, NullObject());
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
@@ -789,7 +795,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_delayed_type_arguments());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_function());
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
@@ -808,7 +814,9 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
   __ Comment("Closure allocation via runtime");
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
-  __ CallRuntime(kAllocateClosureRuntimeEntry, 0);
+  __ PushRegister(AllocateClosureABI::kFunctionReg);
+  __ CallRuntime(kAllocateClosureRuntimeEntry, 1);
+  __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
   ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));
   EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);

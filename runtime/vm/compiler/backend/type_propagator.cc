@@ -1491,7 +1491,7 @@ CompileType AllocateObjectInstr::ComputeType() const {
 }
 
 CompileType AllocateClosureInstr::ComputeType() const {
-  const auto& func = closure_function();
+  const auto& func = known_function();
   if (!func.IsNull()) {
     const auto& sig = FunctionType::ZoneHandle(func.signature());
     return CompileType(CompileType::kNonNullable, kClosureCid, &sig);

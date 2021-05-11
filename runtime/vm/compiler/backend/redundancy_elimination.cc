@@ -2087,6 +2087,10 @@ class LoadOptimizer : public ValueObject {
               // explicitly initializes each non-null closure field in the flow
               // graph with StoreInstanceField instructions post-allocation.
               Definition* forward_def = graph_->constant_null();
+              // Forward values passed as AllocateClosureInstr inputs.
+              if (slot->IsIdentical(Slot::Closure_function())) {
+                forward_def = alloc->closure_function()->definition();
+              }
               gen->Add(place_id);
               if (out_values == nullptr) out_values = CreateBlockOutValues();
               (*out_values)[place_id] = forward_def;
@@ -3727,8 +3731,10 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     }
   }
   if (auto alloc_closure = alloc->AsAllocateClosure()) {
-    // Any closure slots that are non-null are explicitly initialized
-    // post-allocation using StoreInstanceField instructions.
+    // Add slots for any instruction inputs. Any closure slots not listed below
+    // that are non-null are explicitly initialized post-allocation using
+    // StoreInstanceField instructions.
+    AddSlot(slots, Slot::Closure_function());
   }
   if (alloc->IsCreateArray()) {
     AddSlot(

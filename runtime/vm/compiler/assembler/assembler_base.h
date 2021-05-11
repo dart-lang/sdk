@@ -655,6 +655,10 @@ class AssemblerBase : public StackResource {
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
+  virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
+                                       Register src,
+                                       Register scratch) = 0;
+
   intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
 
   void Unimplemented(const char* message);
