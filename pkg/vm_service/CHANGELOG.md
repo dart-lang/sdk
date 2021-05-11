@@ -1,6 +1,6 @@
 # Changelog
-
-## 6.3.0-dev
+## 7.0.0
+- *breaking bug fix*: Fixed issue where response parsing could fail for `Context`.
 - Add support for `setBreakpointState` RPC and updated `Breakpoint` class to include
   `enabled` property.
 
