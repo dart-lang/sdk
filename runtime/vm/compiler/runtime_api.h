@@ -117,6 +117,7 @@ const Class& DoubleClass();
 const Class& Float32x4Class();
 const Class& Float64x2Class();
 const Class& Int32x4Class();
+const Class& ClosureClass();
 const Array& OneArgArgumentsDescriptor();
 
 template <typename To, typename From>
@@ -409,6 +410,8 @@ bool CanEmbedAsRawPointerInGeneratedCode(const dart::Object& obj);
 // if CanEmbedAsRawPointerInGeneratedCode returns true.
 word ToRawPointer(const dart::Object& a);
 #endif  // defined(TARGET_ARCH_IA32)
+
+bool WillAllocateNewOrRememberedObject(intptr_t instance_size);
 
 bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables);
 

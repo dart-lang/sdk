@@ -345,12 +345,23 @@ const Slot& Slot::Get(const Field& field,
 CompileType Slot::ComputeCompileType() const {
   // If we unboxed the slot, we may know a more precise type.
   switch (representation()) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+    // Int32/Uint32 values are not guaranteed to fit in a Smi.
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+#endif
     case kUnboxedInt64:
       if (nullable_cid() == kDynamicCid) {
         return CompileType::Int();
       }
-      // Might be an CID like nullable_cid == kSmiCid.
       break;
+#if defined(TARGET_ARCH_IS_64_BIT)
+    // Int32/Uint32 values are guaranteed to fit in a Smi.
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+#endif
+    case kUnboxedUint8:
+      return CompileType::Smi();
     case kUnboxedDouble:
       return CompileType::FromCid(kDoubleCid);
     case kUnboxedInt32x4:

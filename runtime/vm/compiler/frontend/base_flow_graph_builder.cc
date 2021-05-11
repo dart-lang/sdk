@@ -889,13 +889,10 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
   return Fragment(allocate);
 }
 
-Fragment BaseFlowGraphBuilder::AllocateClosure(
-    TokenPosition position,
-    const Function& closure_function) {
-  const Class& cls = Class::ZoneHandle(Z, IG->object_store()->closure_class());
-  AllocateObjectInstr* allocate = new (Z)
-      AllocateObjectInstr(InstructionSource(position), cls, GetNextDeoptId());
-  allocate->set_closure_function(closure_function);
+Fragment BaseFlowGraphBuilder::AllocateClosure(const Function& closure_function,
+                                               TokenPosition position) {
+  auto* allocate = new (Z) AllocateClosureInstr(
+      InstructionSource(position), closure_function, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
@@ -1009,7 +1006,7 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   code += LoadLocal(pointer);
   code += StoreNativeField(*context_slots[0]);
 
-  code += AllocateClosure(TokenPosition::kNoSource, target);
+  code += AllocateClosure(target);
   LocalVariable* closure = MakeTemporary();
 
   code += LoadLocal(closure);

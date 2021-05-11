@@ -654,15 +654,30 @@ void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   right()->PrintTo(f);
 }
 
-void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < InputCount(); ++i) {
+void AllocationInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  Definition::PrintOperandsTo(f);
+  if (InputCount() > 0) {
     f->AddString(", ");
-    InputAt(i)->PrintTo(f);
   }
   if (Identity().IsNotAliased()) {
-    f->AddString(" <not-aliased>");
+    f->AddString("<not-aliased>");
   }
+}
+
+void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("cls=%s", String::Handle(cls().ScrubbedName()).ToCString());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
+  }
+  AllocationInstr::PrintOperandsTo(f);
+}
+
+void AllocateClosureInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("function=%s", closure_function().ToCString());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
+  }
+  TemplateAllocation::PrintOperandsTo(f);
 }
 
 void MaterializeObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -710,16 +725,20 @@ void InstantiateTypeArgumentsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void AllocateContextInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%" Pd "", num_context_variables());
+  f->Printf("num_variables=%" Pd "", num_context_variables());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
+  }
+  TemplateAllocation::PrintOperandsTo(f);
 }
 
 void AllocateUninitializedContextInstr::PrintOperandsTo(
     BaseTextBuffer* f) const {
-  f->Printf("%" Pd "", num_context_variables());
-
-  if (Identity().IsNotAliased()) {
-    f->AddString(" <not-aliased>");
+  f->Printf("num_variables=%" Pd "", num_context_variables());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
   }
+  TemplateAllocation::PrintOperandsTo(f);
 }
 
 void MathUnaryInstr::PrintOperandsTo(BaseTextBuffer* f) const {

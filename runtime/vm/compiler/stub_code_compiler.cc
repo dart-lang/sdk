@@ -18,10 +18,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DECLARE_FLAG(bool, inline_alloc);
-DECLARE_FLAG(bool, use_slow_path);
-
 namespace compiler {
 
 intptr_t StubCodeCompiler::WordOffsetFromFpToCpuRegister(
@@ -758,6 +754,69 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 
 #undef GENERATE_BREAKPOINT_STUB
 #endif  // !defined(TARGET_ARCH_IA32)
+
+// Called for inline allocation of closure.
+// Output:
+//   AllocateClosureABI::kResultReg: new allocated Closure object.
+// Clobbered:
+//   AllocateClosureABI::kScratchReg
+void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
+  const intptr_t instance_size =
+      target::RoundedAllocationSize(target::Closure::InstanceSize());
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
+    __ Comment("Inline allocation of uninitialized closure");
+#if defined(DEBUG)
+    // Need to account for the debug checks added by StoreToSlotNoBarrier.
+    const auto distance = Assembler::kFarJump;
+#else
+    const auto distance = Assembler::kNearJump;
+#endif
+    __ TryAllocateObject(kClosureCid, instance_size, &slow_case, distance,
+                         AllocateClosureABI::kResultReg,
+                         AllocateClosureABI::kScratchReg);
+
+    __ Comment("Inline initialization of allocated closure");
+    // Put null in the scratch register for initializing boxed fields.
+    // We initialize the fields in offset order below.
+    __ LoadObject(AllocateClosureABI::kScratchReg, NullObject());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_instantiator_type_arguments());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_function_type_arguments());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_delayed_type_arguments());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_function());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_context());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                            AllocateClosureABI::kResultReg,
+                            Slot::Closure_hash());
+
+    // AllocateClosureABI::kResultReg: new object.
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+
+  __ Comment("Closure allocation via runtime");
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Space on the stack for the return value.
+  __ CallRuntime(kAllocateClosureRuntimeEntry, 0);
+  __ PopRegister(AllocateClosureABI::kResultReg);
+  ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  __ LeaveStubFrame();
+
+  // AllocateClosureABI::kResultReg: new object
+  __ Ret();
+}
 
 // The UnhandledException class lives in the VM isolate, so it cannot cache
 // an allocation stub for itself. Instead, we cache it in the stub code list.

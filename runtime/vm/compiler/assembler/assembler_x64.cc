@@ -2061,16 +2061,18 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 }
 #endif  // !PRODUCT
 
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            JumpDistance distance,
-                            Register instance_reg,
-                            Register temp) {
+void Assembler::TryAllocateObject(intptr_t cid,
+                                  intptr_t instance_size,
+                                  Label* failure,
+                                  JumpDistance distance,
+                                  Register instance_reg,
+                                  Register temp_reg) {
   ASSERT(failure != NULL);
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_size != 0);
+  ASSERT(Utils::IsAligned(instance_size,
+                          target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    const classid_t cid = target::Class::GetId(cls);
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.

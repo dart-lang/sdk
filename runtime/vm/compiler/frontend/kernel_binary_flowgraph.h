@@ -137,7 +137,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   intptr_t PeekArgumentsCount();
 
   // See BaseFlowGraphBuilder::MakeTemporary.
-  LocalVariable* MakeTemporary();
+  LocalVariable* MakeTemporary(const char* suffix = nullptr);
+  Fragment DropTemporary(LocalVariable** variable);
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   Function& FindMatchingFunction(const Class& klass,

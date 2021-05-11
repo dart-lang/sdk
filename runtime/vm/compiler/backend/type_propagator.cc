@@ -1486,14 +1486,17 @@ CompileType AllocateTypedDataInstr::ComputeType() const {
 }
 
 CompileType AllocateObjectInstr::ComputeType() const {
-  if (!closure_function().IsNull()) {
-    ASSERT(cls().id() == kClosureCid);
-    const FunctionType& sig =
-        FunctionType::ZoneHandle(closure_function().signature());
-    return CompileType(CompileType::kNonNullable, kClosureCid, &sig);
-  }
   // TODO(vegorov): Incorporate type arguments into the returned type.
   return CompileType::FromCid(cls().id());
+}
+
+CompileType AllocateClosureInstr::ComputeType() const {
+  const auto& func = closure_function();
+  if (!func.IsNull()) {
+    const auto& sig = FunctionType::ZoneHandle(func.signature());
+    return CompileType(CompileType::kNonNullable, kClosureCid, &sig);
+  }
+  return CompileType::FromCid(kClosureCid);
 }
 
 CompileType LoadUntaggedInstr::ComputeType() const {

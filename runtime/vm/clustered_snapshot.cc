@@ -2481,6 +2481,13 @@ class WeakSerializationReferenceSerializationCluster
 
   intptr_t Count(Serializer* s) { return objects_.length(); }
 
+  void CreateArtificialTargetNodesIfNeeded(Serializer* s) {
+    for (intptr_t i = 0; i < objects_.length(); i++) {
+      WeakSerializationReferencePtr weak = objects_[i];
+      s->CreateArtificialNodeIfNeeded(weak->untag()->target());
+    }
+  }
+
   void WriteAlloc(Serializer* s) {
     UNREACHABLE();  // No WSRs are serialized, and so this cluster is not added.
   }
@@ -6268,34 +6275,29 @@ void Serializer::AttributeReference(
     ObjectPtr object,
     const V8SnapshotProfileWriter::Reference& reference) {
   if (profile_writer_ == nullptr) return;
-
+  const auto& object_id = GetProfileId(object);
 #if defined(DART_PRECOMPILER)
-  // Make artificial nodes for dropped targets in WSRs.
   if (object->IsHeapObject() && object->IsWeakSerializationReference()) {
-    const auto& wsr = WeakSerializationReference::RawCast(object);
-    const auto& target = wsr->untag()->target();
-    const bool wsr_reachable = !CreateArtificialNodeIfNeeded(wsr);
-    if (wsr_reachable && HasArtificialRef(target)) {
-      // The target has artificial information used for snapshot analysis and
-      // the replacement is part of the snapshot, so write information for both.
-      const auto& replacement = wsr->untag()->replacement();
+    auto const wsr = WeakSerializationReference::RawCast(object);
+    auto const target = wsr->untag()->target();
+    const auto& target_id = GetProfileId(target);
+    if (object_id != target_id) {
+      const auto& replacement_id = GetProfileId(wsr->untag()->replacement());
+      ASSERT(object_id == replacement_id);
+      // The target of the WSR will be replaced in the snapshot, so write
+      // attributions for both the dropped target and for the replacement.
       profile_writer_->AttributeDroppedReferenceTo(
-          object_currently_writing_.id_, reference, GetProfileId(target),
-          GetProfileId(replacement));
+          object_currently_writing_.id_, reference, target_id, replacement_id);
       return;
     }
-    // The replacement isn't used, as either the target is strongly referenced
-    // or the WSR itself is unreachable, so fall through to attributing a
-    // reference to the WSR (which shares a profile ID with the target).
-    ASSERT(GetProfileId(wsr) == GetProfileId(target));
-  } else if (object_currently_writing_.id_.IsArtificial()) {
-    // We may need to recur when writing members of artificial nodes in
-    // CreateArtificialNodeIfNeeded.
-    CreateArtificialNodeIfNeeded(object);
+    // The replacement isn't used for this WSR in the snapshot, as either the
+    // target is strongly referenced or the WSR itself is unreachable, so fall
+    // through to attributing a reference to the WSR (which shares the profile
+    // ID of the target).
   }
 #endif
   profile_writer_->AttributeReferenceTo(object_currently_writing_.id_,
-                                        reference, GetProfileId(object));
+                                        reference, object_id);
 }
 
 Serializer::WritingObjectScope::WritingObjectScope(
@@ -6364,33 +6366,19 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
   // UnsafeRefId will do lazy reference allocation for WSRs.
   intptr_t id = UnsafeRefId(obj);
   ASSERT(id != kUnallocatedReference);
-  if (IsArtificialReference(id)) {
-    return true;
+  if (id != kUnreachableReference) {
+    return IsArtificialReference(id);
   }
   if (obj->IsHeapObject() && obj->IsWeakSerializationReference()) {
-    // The object ID for the WSR may need lazy resolution.
-    if (id == kUnallocatedReference) {
-      id = UnsafeRefId(obj);
-    }
-    ASSERT(id != kUnallocatedReference);
-    // Create an artificial node for an unreachable target at this point,
-    // whether or not the WSR itself is reachable.
-    const auto& target =
+    auto const target =
         WeakSerializationReference::RawCast(obj)->untag()->target();
     CreateArtificialNodeIfNeeded(target);
-    if (id == kUnreachableReference) {
-      ASSERT(HasArtificialRef(target));
-      // We can safely set the WSR's object ID to the target's artificial one,
-      // as that won't make it look reachable.
-      heap_->SetObjectId(obj, heap_->GetObjectId(target));
-      return true;
-    }
-    // The WSR is reachable, so continue to the IsAllocatedReference behavior.
+    // Since the WSR is unreachable, we can replace its id with whatever the
+    // ID of the target is, whether real or artificial.
+    id = heap_->GetObjectId(target);
+    heap_->SetObjectId(obj, id);
+    return IsArtificialReference(id);
   }
-  if (IsAllocatedReference(id)) {
-    return false;
-  }
-  ASSERT_EQUAL(id, kUnreachableReference);
 
   const char* type = nullptr;
   const char* name = nullptr;
@@ -6490,6 +6478,7 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
   id = AssignArtificialRef(obj);
   Serializer::WritingObjectScope scope(this, type, obj, name);
   for (const auto& link : links) {
+    CreateArtificialNodeIfNeeded(link.first);
     AttributeReference(link.first, link.second);
   }
   return true;
@@ -7045,10 +7034,11 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   }
 
 #if defined(DART_PRECOMPILER)
-  if (auto const cluster = CID_CLUSTER(WeakSerializationReference)) {
+  auto const wsr_cluster = CID_CLUSTER(WeakSerializationReference);
+  if (wsr_cluster != nullptr) {
     // Now that we have computed the reachability fixpoint, we remove the
     // count of now-reachable WSRs as they are not actually serialized.
-    num_written_objects_ -= cluster->Count(this);
+    num_written_objects_ -= wsr_cluster->Count(this);
     // We don't need to write this cluster, so remove it from consideration.
     clusters_by_cid_[kWeakSerializationReferenceCid] = nullptr;
   }
@@ -7136,6 +7126,19 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   ASSERT((next_ref_index_ - 1) == num_objects);
   // And recorded them all in [objects_].
   ASSERT(objects_->length() == num_objects);
+
+#if defined(DART_PRECOMPILER)
+  if (profile_writer_ != nullptr && wsr_cluster != nullptr) {
+    // Post-WriteAlloc, we eagerly create artificial nodes for any unreachable
+    // targets in reachable WSRs if writing a v8 snapshot profile, since they
+    // will be used in AttributeReference().
+    //
+    // Unreachable WSRs may also need artifical nodes, as they may be members
+    // of other unreachable objects that have artificial nodes in the profile,
+    // but they are instead lazily handled in CreateArtificialNodeIfNeeded().
+    wsr_cluster->CreateArtificialTargetNodesIfNeeded(this);
+  }
+#endif
 
   for (SerializationCluster* cluster : clusters) {
     cluster->WriteAndMeasureFill(this);

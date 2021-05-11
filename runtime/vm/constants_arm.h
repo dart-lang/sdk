@@ -451,6 +451,12 @@ struct RangeErrorABI {
   static const Register kIndexReg = R1;
 };
 
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = R0;
+  static const Register kScratchReg = R4;
+};
+
 // ABI for AllocateMintShared*Stub.
 struct AllocateMintABI {
   static const Register kResultReg = R0;

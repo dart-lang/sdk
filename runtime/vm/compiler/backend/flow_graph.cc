@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
@@ -336,6 +337,8 @@ class BlockTraversalState {
 };
 
 void FlowGraph::DiscoverBlocks() {
+  COMPILER_TIMINGS_TIMER_SCOPE(thread(), DiscoverBlocks);
+
   StackZone zone(thread());
 
   // Initialize state.

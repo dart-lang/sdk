@@ -704,7 +704,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
         FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
-    Timer per_compile_timer(trace_compiler, "Compilation time");
+    Timer per_compile_timer;
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new (zone)

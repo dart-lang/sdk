@@ -991,6 +991,24 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
   ASSERT(!CompilerState::Current().is_aot());
 }
 
+LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
+                                                           bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_out(0, Location::RegisterLocation(AllocateClosureABI::kResultReg));
+  return locs;
+}
+
+void AllocateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(),
+      compiler->isolate_group()->object_store()->allocate_closure_stub());
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+}
+
 LocationSummary* AllocateTypedDataInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 1;

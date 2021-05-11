@@ -341,8 +341,10 @@ class BaseFlowGraphBuilder {
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
-  Fragment AllocateClosure(TokenPosition position,
-                           const Function& closure_function);
+  // closure_function can be null if not statically known (i.e., copying from
+  // another closure object).
+  Fragment AllocateClosure(const Function& closure_function,
+                           TokenPosition position = TokenPosition::kNoSource);
   Fragment CreateArray();
   Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);

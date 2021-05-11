@@ -595,6 +595,17 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   UNREACHABLE();
 }
 
+// Allocate a new closure and initialize its fields to null.
+// Return value: newly allocated closure.
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 0) {
+  const Closure& closure = Closure::Handle(
+      zone, Closure::New(
+                Object::null_type_arguments(), Object::null_type_arguments(),
+                Object::null_type_arguments(), Object::null_function(),
+                Context::Handle(Context::null()), SpaceForRuntimeAllocation()));
+  arguments.SetReturn(closure);
+}
+
 // Allocate a new context large enough to hold the given number of variables.
 // Arg0: number of variables.
 // Return value: newly allocated context.

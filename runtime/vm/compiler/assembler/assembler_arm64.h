@@ -547,8 +547,10 @@ class Assembler : public AssemblerBase {
     br(TMP);
   }
 
-  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
-  void LoadCompressedField(Register dst, FieldAddress address) {
+  void LoadField(Register dst, const FieldAddress& address) override {
+    ldr(dst, address);
+  }
+  void LoadCompressedField(Register dst, const FieldAddress& address) override {
     LoadCompressed(dst, address);
   }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
@@ -1762,11 +1764,6 @@ class Assembler : public AssemblerBase {
     StoreQToOffset(src, base, offset - kHeapObjectTag);
   }
 
-  enum CanBeSmi {
-    kValueIsNotSmi,
-    kValueCanBeSmi,
-  };
-
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedSmi(Register dest, const Address& slot);
 
@@ -1778,11 +1775,12 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
-  void StoreCompressedIntoObject(Register object,
-                                 const Address& dest,
-                                 Register value,
-                                 CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+  void StoreCompressedIntoObject(
+      Register object,
+      const Address& dest,
+      Register value,
+      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
   void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
   void StoreIntoArray(Register object,
                       Register slot,
@@ -1800,10 +1798,10 @@ class Assembler : public AssemblerBase {
       CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value);
+                                Register value) override;
   void StoreCompressedIntoObjectNoBarrier(Register object,
                                           const Address& dest,
-                                          Register value);
+                                          Register value) override;
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       Register value);
@@ -1990,19 +1988,12 @@ class Assembler : public AssemblerBase {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
 
-  // Inlined allocation of an instance of class 'cls', code has no runtime
-  // calls. Jump to 'failure' if the instance cannot be allocated here.
-  // Allocated instance is returned in 'instance_reg'.
-  // Only the tags field of the object is initialized.
-  // Result:
-  //   * [instance_reg] will contain allocated new-space object
-  //   * [top_reg] will contain Thread::top_offset()
-  void TryAllocate(const Class& cls,
-                   Label* failure,
-                   JumpDistance distance,
-                   Register instance_reg,
-                   Register top_reg,
-                   bool tag_result = true);
+  void TryAllocateObject(intptr_t cid,
+                         intptr_t instance_size,
+                         Label* failure,
+                         JumpDistance distance,
+                         Register instance_reg,
+                         Register top_reg) override;
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,

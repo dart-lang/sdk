@@ -29,6 +29,11 @@ bool IsSmi(int64_t v) {
   return Utils::IsInt(kSmiBits + 1, v);
 }
 
+bool WillAllocateNewOrRememberedObject(intptr_t instance_size) {
+  ASSERT(Utils::IsAligned(instance_size, ObjectAlignment::kObjectAlignment));
+  return dart::Heap::IsAllocatableInNewSpace(instance_size);
+}
+
 bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables) {
   if (!dart::Context::IsValidLength(num_context_variables)) return false;
   return dart::Heap::IsAllocatableInNewSpace(
@@ -189,6 +194,11 @@ const Class& Float64x2Class() {
 const Class& Int32x4Class() {
   auto object_store = IsolateGroup::Current()->object_store();
   return Class::Handle(object_store->int32x4_class());
+}
+
+const Class& ClosureClass() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->closure_class());
 }
 
 const Array& OneArgArgumentsDescriptor() {

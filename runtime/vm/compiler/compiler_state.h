@@ -13,6 +13,7 @@
 #include "vm/compiler/cha.h"
 #include "vm/heap/safepoint.h"
 #include "vm/thread.h"
+#include "vm/timer.h"
 
 namespace dart {
 

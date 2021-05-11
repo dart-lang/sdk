@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/object.h"
 #include "vm/zone.h"
@@ -37,6 +38,7 @@ uword FindDoubleConstant(double value) {
 }
 
 void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
+  COMPILER_TIMINGS_TIMER_SCOPE(callee_graph->thread(), PrepareGraphs);
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
   ASSERT(callee_graph->max_block_id() > caller_graph_->max_block_id());
   ASSERT(callee_graph->max_virtual_register_number() >

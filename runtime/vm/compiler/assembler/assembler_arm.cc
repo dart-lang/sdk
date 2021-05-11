@@ -3421,28 +3421,31 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
 }
 #endif  // !PRODUCT
 
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            JumpDistance distance,
-                            Register instance_reg,
-                            Register temp_reg) {
+void Assembler::TryAllocateObject(intptr_t cid,
+                                  intptr_t instance_size,
+                                  Label* failure,
+                                  JumpDistance distance,
+                                  Register instance_reg,
+                                  Register temp_reg) {
   ASSERT(failure != NULL);
-  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
+  ASSERT(instance_reg != kNoRegister);
+  ASSERT(instance_reg != temp_reg);
+  ASSERT(instance_reg != IP);
+  ASSERT(temp_reg != kNoRegister);
+  ASSERT(temp_reg != IP);
+  ASSERT(instance_size != 0);
+  ASSERT(Utils::IsAligned(instance_size,
+                          target::ObjectAlignment::kObjectAlignment));
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
-    const classid_t cid = target::Class::GetId(cls);
-    ASSERT(instance_reg != temp_reg);
-    ASSERT(temp_reg != IP);
-    ASSERT(instance_size != 0);
     NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cid));
     ldr(instance_reg, Address(THR, target::Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
-    AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
-
-    // instance_reg: potential next object start.
+    AddImmediate(instance_reg, instance_size);
+    // instance_reg: potential top (next object start).
     ldr(IP, Address(THR, target::Thread::end_offset()));
     cmp(IP, Operand(instance_reg));
-    // fail if heap end unsigned less than or equal to instance_reg.
+    // fail if heap end unsigned less than or equal to new heap top.
     b(failure, LS);
 
     // If this allocation is traced, program will jump to failure path
@@ -3453,13 +3456,12 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(THR, target::Thread::top_offset()));
-
-    ASSERT(instance_size >= kHeapObjectTag);
+    // Move instance_reg back to the start of the object and tag it.
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
 
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    LoadImmediate(IP, tags);
-    str(IP, FieldAddress(instance_reg, target::Object::tags_offset()));
+    LoadImmediate(temp_reg, tags);
+    str(temp_reg, FieldAddress(instance_reg, target::Object::tags_offset()));
   } else {
     b(failure);
   }
