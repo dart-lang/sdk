@@ -8,9 +8,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
-import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:_fe_analyzer_shared/src/parser/listener.dart';
-import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;

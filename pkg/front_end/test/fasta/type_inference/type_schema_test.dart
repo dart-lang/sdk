@@ -6,7 +6,6 @@
 
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

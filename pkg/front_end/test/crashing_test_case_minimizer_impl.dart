@@ -23,8 +23,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
