@@ -1812,25 +1812,24 @@ class CodeSerializationCluster : public SerializationCluster {
   void Trace(Serializer* s, ObjectPtr object) {
     CodePtr code = Code::RawCast(object);
 
-    if (s->InCurrentLoadingUnit(code, /*record*/ true)) {
+    const bool is_deferred = !s->InCurrentLoadingUnitOrRoot(code);
+    if (is_deferred) {
+      s->RecordDeferredCode(code);
+    } else {
       objects_.Add(code);
     }
 
+    // Even if this code object is itself deferred we still need to scan
+    // the pool for references to other code objects (which might reside
+    // in the current loading unit).
+    ObjectPoolPtr pool = code->untag()->object_pool_;
     if (s->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions) {
-      ObjectPoolPtr pool = code->untag()->object_pool_;
-      if ((pool != ObjectPool::null()) && s->InCurrentLoadingUnit(code)) {
-        const intptr_t length = pool->untag()->length_;
-        uint8_t* entry_bits = pool->untag()->entry_bits();
-        for (intptr_t i = 0; i < length; i++) {
-          auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
-          if (entry_type == ObjectPool::EntryType::kTaggedObject) {
-            s->Push(pool->untag()->data()[i].raw_obj_);
-          }
-        }
-      }
+      TracePool(s, pool, /*only_code=*/is_deferred);
     } else {
-      if (s->InCurrentLoadingUnit(code->untag()->object_pool_)) {
-        s->Push(code->untag()->object_pool_);
+      if (s->InCurrentLoadingUnitOrRoot(pool)) {
+        s->Push(pool);
+      } else {
+        TracePool(s, pool, /*only_code=*/true);
       }
     }
 
@@ -1868,7 +1867,7 @@ class CodeSerializationCluster : public SerializationCluster {
 #endif
     }
 
-    if (s->InCurrentLoadingUnit(code->untag()->compressed_stackmaps_)) {
+    if (s->InCurrentLoadingUnitOrRoot(code->untag()->compressed_stackmaps_)) {
       s->Push(code->untag()->compressed_stackmaps_);
     }
 
@@ -1886,7 +1885,7 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->untag()->catch_entry_);
     if (!FLAG_precompiled_mode || !FLAG_dwarf_stack_traces_mode) {
       s->Push(code->untag()->inlined_id_to_function_);
-      if (s->InCurrentLoadingUnit(code->untag()->code_source_map_)) {
+      if (s->InCurrentLoadingUnitOrRoot(code->untag()->code_source_map_)) {
         s->Push(code->untag()->code_source_map_);
       }
     }
@@ -1896,6 +1895,24 @@ class CodeSerializationCluster : public SerializationCluster {
       s->Push(code->untag()->comments_);
     }
 #endif
+  }
+
+  void TracePool(Serializer* s, ObjectPoolPtr pool, bool only_code) {
+    if (pool == ObjectPool::null()) {
+      return;
+    }
+
+    const intptr_t length = pool->untag()->length_;
+    uint8_t* entry_bits = pool->untag()->entry_bits();
+    for (intptr_t i = 0; i < length; i++) {
+      auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
+      if (entry_type == ObjectPool::EntryType::kTaggedObject) {
+        const ObjectPtr target = pool->untag()->data()[i].raw_obj_;
+        if (!only_code || target->IsCode()) {
+          s->Push(target);
+        }
+      }
+    }
   }
 
   struct CodeOrderInfo {
@@ -2074,7 +2091,7 @@ class CodeSerializationCluster : public SerializationCluster {
     // No need to write object pool out if we are producing full AOT
     // snapshot with bare instructions.
     if (!(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
-      if (s->InCurrentLoadingUnit(code->untag()->object_pool_)) {
+      if (s->InCurrentLoadingUnitOrRoot(code->untag()->object_pool_)) {
         WriteField(code, object_pool_);
       } else {
         WriteFieldValue(object_pool_, ObjectPool::null());
@@ -2084,7 +2101,7 @@ class CodeSerializationCluster : public SerializationCluster {
     WriteField(code, exception_handlers_);
     WriteField(code, pc_descriptors_);
     WriteField(code, catch_entry_);
-    if (s->InCurrentLoadingUnit(code->untag()->compressed_stackmaps_)) {
+    if (s->InCurrentLoadingUnitOrRoot(code->untag()->compressed_stackmaps_)) {
       WriteField(code, compressed_stackmaps_);
     } else {
       WriteFieldValue(compressed_stackmaps_, CompressedStackMaps::null());
@@ -2094,7 +2111,7 @@ class CodeSerializationCluster : public SerializationCluster {
       WriteFieldValue(code_source_map_, CodeSourceMap::null());
     } else {
       WriteField(code, inlined_id_to_function_);
-      if (s->InCurrentLoadingUnit(code->untag()->code_source_map_)) {
+      if (s->InCurrentLoadingUnitOrRoot(code->untag()->code_source_map_)) {
         WriteField(code, code_source_map_);
       } else {
         WriteFieldValue(code_source_map_, CodeSourceMap::null());
@@ -6701,7 +6718,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
-bool Serializer::InCurrentLoadingUnit(ObjectPtr obj, bool record) {
+bool Serializer::InCurrentLoadingUnitOrRoot(ObjectPtr obj) {
   if (loading_units_ == nullptr) return true;
 
   intptr_t unit_id = heap_->GetLoadingUnit(obj);
@@ -6709,17 +6726,15 @@ bool Serializer::InCurrentLoadingUnit(ObjectPtr obj, bool record) {
     // Not found in early assignment. Conservatively choose the root.
     // TODO(41974): Are these always type testing stubs?
     unit_id = LoadingUnit::kRootId;
+    heap_->SetLoadingUnit(obj, unit_id);
   }
-  if (unit_id == LoadingUnit::kRootId) {
-    return true;
-  }
-  if (unit_id != current_loading_unit_id_) {
-    if (record) {
-      (*loading_units_)[unit_id]->AddDeferredObject(static_cast<CodePtr>(obj));
-    }
-    return false;
-  }
-  return true;
+  return unit_id == LoadingUnit::kRootId || unit_id == current_loading_unit_id_;
+}
+
+void Serializer::RecordDeferredCode(CodePtr code) {
+  const intptr_t unit_id = heap_->GetLoadingUnit(code);
+  ASSERT(unit_id != WeakTable::kNoValue && unit_id != LoadingUnit::kRootId);
+  (*loading_units_)[unit_id]->AddDeferredObject(code);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -6786,7 +6801,7 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
                                    bool deferred) {
   ASSERT(code != Code::null());
 
-  ASSERT(InCurrentLoadingUnit(code) != deferred);
+  ASSERT(InCurrentLoadingUnitOrRoot(code) != deferred);
   if (deferred) {
     return;
   }
