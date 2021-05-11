@@ -189,12 +189,17 @@ Future<void> testAOT(String dillPath,
     final expectedSize =
         profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
 
+    // May not be ELF, but another format.
+    final elf = Elf.fromFile(snapshotPath);
+
     var checkedSize = false;
     if (!useAsm) {
-      // Verify that the total size of the snapshot text and data sections is
-      // the same as the sum of the shallow sizes of all objects in the profile.
-      // This ensures that all bytes are accounted for in some way.
-      final elf = Elf.fromFile(snapshotPath);
+      // Verify that the total size of the snapshot text and data section
+      // symbols is the same as the sum of the shallow sizes of all objects in
+      // the profile. This ensures that all bytes are accounted for in some way.
+      //
+      // We only check this when generating ELF directly because that's when
+      // we're guaranteed the symbols will have non-zero size.
       Expect.isNotNull(elf);
       elf!; // To refine type to non-nullable version.
 
@@ -215,10 +220,54 @@ Future<void> testAOT(String dillPath,
 
       Expect.equals(
           expectedSize, actualSize, "failed on $description snapshot");
+      Expect.equals(expectedSize, actualSize,
+          "symbol size check failed on $description snapshot");
+      checkedSize = true;
+    }
+
+    // See Elf::kPages in runtime/vm/elf.h, which is also used for assembly
+    // padding.
+    final segmentAlignment = 16 * 1024;
+
+    if (elf != null) {
+      // Verify that the total size of the snapshot text and data sections is
+      // approximately the sum of the shallow sizes of all objects in the
+      // profile. As sections might be merged by the assembler when useAsm is
+      // true, we need to account for possible padding.
+      final textSections = elf.namedSections(".text");
+      Expect.isNotEmpty(textSections);
+      Expect.isTrue(
+          textSections.length <= 2, "More text sections than expected");
+      final dataSections = elf.namedSections(".rodata");
+      Expect.isNotEmpty(dataSections);
+      Expect.isTrue(
+          dataSections.length <= 2, "More data sections than expected");
+
+      var actualSize = 0;
+      for (final section in textSections) {
+        actualSize += section.length;
+      }
+      for (final section in dataSections) {
+        actualSize += section.length;
+      }
+
+      final mergedCount = (2 - textSections.length) + (2 - dataSections.length);
+      final possiblePadding = mergedCount * segmentAlignment;
+
+      Expect.approxEquals(
+          expectedSize,
+          actualSize,
+          possiblePadding,
+          "section size failed on $description snapshot" +
+              (!useAsm ? ", but symbol size test passed" : ""));
       checkedSize = true;
     }
 
     if (stripUtil || stripFlag) {
+      // Verify that the actual size of the stripped snapshot is close to the
+      // sum of the shallow sizes of all objects in the profile. They will not
+      // be exactly equal because of global headers, padding, and non-text/data
+      // sections.
       var strippedSnapshotPath = snapshotPath;
       if (stripUtil) {
         strippedSnapshotPath = snapshotPath + '.stripped';
@@ -227,20 +276,18 @@ Future<void> testAOT(String dillPath,
         print("Stripped snapshot generated at $strippedSnapshotPath.");
       }
 
-      // Verify that the actual size of the stripped snapshot is close to the
-      // sum of the shallow sizes of all objects in the profile. They will not
-      // be exactly equal because of global headers and padding.
       final actualSize = await File(strippedSnapshotPath).length();
 
-      // See Elf::kPages in runtime/vm/elf.h, which is also used for assembly
-      // padding.
-      final segmentAlignment = 16 * 1024;
       // Not every byte is accounted for by the snapshot profile, and data and
       // instruction segments are padded to an alignment boundary.
       final tolerance = 0.03 * actualSize + 2 * segmentAlignment;
 
-      Expect.approxEquals(expectedSize, actualSize, tolerance,
-          "failed on $description snapshot");
+      Expect.approxEquals(
+          expectedSize,
+          actualSize,
+          tolerance,
+          "total size check failed on $description snapshot" +
+              (elf != null ? ", but section size checks passed" : ""));
       checkedSize = true;
     }
 

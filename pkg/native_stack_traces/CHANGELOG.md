@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+- Exported some more of the ELF utilities for use in Dart tests.
+
 ## 0.4.2
 
 - When decoding a stack trace, frames corresponding to the functions
