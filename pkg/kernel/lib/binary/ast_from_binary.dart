@@ -1416,6 +1416,8 @@ class BinaryBuilder {
 
     node.fileOffset = readOffset();
 
+    node.flags = readByte();
+
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType onType = readDartType();
     typeParameterStack.length = 0;

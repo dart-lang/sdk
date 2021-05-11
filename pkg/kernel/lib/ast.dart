@@ -1522,6 +1522,11 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   @override
   List<Expression> annotations = const <Expression>[];
 
+  // Must match serialized bit positions.
+  static const int FlagExtensionTypeDeclaration = 1 << 0;
+
+  int flags = 0;
+
   @override
   void addAnnotation(Expression node) {
     if (annotations.isEmpty) {
@@ -1552,6 +1557,16 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   }
 
   Library get enclosingLibrary => parent as Library;
+
+  bool get isExtensionTypeDeclaration {
+    return flags & FlagExtensionTypeDeclaration != 0;
+  }
+
+  void set isExtensionTypeDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagExtensionTypeDeclaration)
+        : (flags & ~FlagExtensionTypeDeclaration);
+  }
 
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitExtension(this);

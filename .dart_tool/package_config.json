@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-05T10:52:59.908934",
+  "generated": "2021-05-10T19:21:13.245788",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -533,7 +533,7 @@
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.12"
     },
     {
       "name": "pub_semver",

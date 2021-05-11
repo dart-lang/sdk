@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 64;
+  UInt32 formatVersion = 65;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -343,6 +343,7 @@ type Extension extends Node {
   List<Expression> annotations;
   UriReference fileUri;
   FileOffset fileOffset;
+  Byte flags (isExtensionTypeDeclaration);
   List<TypeParameter> typeParameters;
   DartType onType;
   List<ExtensionMemberDescriptor> members;
