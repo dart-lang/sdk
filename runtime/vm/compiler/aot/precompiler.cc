@@ -27,6 +27,7 @@
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
@@ -60,6 +61,10 @@ namespace dart {
 #define IG (isolate_group())
 #define Z (zone())
 
+DEFINE_FLAG(bool,
+            print_precompiler_timings,
+            false,
+            "Print per-phase breakdown of time spent precompiling");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
 DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
@@ -331,10 +336,19 @@ ErrorPtr Precompiler::CompileAll() {
   if (setjmp(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
     precompiler.DoCompileAll();
+    precompiler.ReportStats();
     return Error::null();
   } else {
     return Thread::Current()->StealStickyError();
   }
+}
+
+void Precompiler::ReportStats() {
+  if (!FLAG_print_precompiler_timings) {
+    return;
+  }
+
+  thread()->compiler_timings()->Print();
 }
 
 Precompiler::Precompiler(Thread* thread)
@@ -378,6 +392,10 @@ Precompiler::Precompiler(Thread* thread)
       get_runtime_type_is_unique_(false) {
   ASSERT(Precompiler::singleton_ == NULL);
   Precompiler::singleton_ = this;
+
+  if (FLAG_print_precompiler_timings) {
+    thread->set_compiler_timings(new CompilerTimings());
+  }
 }
 
 Precompiler::~Precompiler() {
@@ -389,9 +407,13 @@ Precompiler::~Precompiler() {
 
   ASSERT(Precompiler::singleton_ == this);
   Precompiler::singleton_ = NULL;
+
+  delete thread()->compiler_timings();
+  thread()->set_compiler_timings(nullptr);
 }
 
 void Precompiler::DoCompileAll() {
+  PRECOMPILER_TIMER_SCOPE(this, CompileAll);
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
@@ -530,44 +552,60 @@ void Precompiler::DoCompileAll() {
         tracer_ = nullptr;
       }
 
-      TraceForRetainedFunctions();
+      {
+        PRECOMPILER_TIMER_SCOPE(this, TraceForRetainedFunctions);
+        TraceForRetainedFunctions();
+      }
+
       FinalizeDispatchTable();
       ReplaceFunctionStaticCallEntries();
 
-      DropFunctions();
-      DropFields();
-      TraceTypesFromRetainedClasses();
-      DropTypes();
-      DropFunctionTypes();
-      DropTypeParameters();
-      DropTypeArguments();
+      {
+        PRECOMPILER_TIMER_SCOPE(this, Drop);
 
-      // Clear these before dropping classes as they may hold onto otherwise
-      // dead instances of classes we will remove or otherwise unused symbols.
-      IG->object_store()->set_unique_dynamic_targets(Array::null_array());
-      Class& null_class = Class::Handle(Z);
-      Function& null_function = Function::Handle(Z);
-      Field& null_field = Field::Handle(Z);
-      IG->object_store()->set_pragma_class(null_class);
-      IG->object_store()->set_pragma_name(null_field);
-      IG->object_store()->set_pragma_options(null_field);
-      IG->object_store()->set_completer_class(null_class);
-      IG->object_store()->set_symbol_class(null_class);
-      IG->object_store()->set_compiletime_error_class(null_class);
-      IG->object_store()->set_growable_list_factory(null_function);
-      IG->object_store()->set_simple_instance_of_function(null_function);
-      IG->object_store()->set_simple_instance_of_true_function(null_function);
-      IG->object_store()->set_simple_instance_of_false_function(null_function);
-      IG->object_store()->set_async_star_move_next_helper(null_function);
-      IG->object_store()->set_complete_on_async_return(null_function);
-      IG->object_store()->set_async_star_stream_controller(null_class);
-      DropMetadata();
-      DropLibraryEntries();
+        DropFunctions();
+        DropFields();
+        TraceTypesFromRetainedClasses();
+        DropTypes();
+        DropFunctionTypes();
+        DropTypeParameters();
+        DropTypeArguments();
+
+        // Clear these before dropping classes as they may hold onto otherwise
+        // dead instances of classes we will remove or otherwise unused symbols.
+        IG->object_store()->set_unique_dynamic_targets(Array::null_array());
+        Class& null_class = Class::Handle(Z);
+        Function& null_function = Function::Handle(Z);
+        Field& null_field = Field::Handle(Z);
+        IG->object_store()->set_pragma_class(null_class);
+        IG->object_store()->set_pragma_name(null_field);
+        IG->object_store()->set_pragma_options(null_field);
+        IG->object_store()->set_completer_class(null_class);
+        IG->object_store()->set_symbol_class(null_class);
+        IG->object_store()->set_compiletime_error_class(null_class);
+        IG->object_store()->set_growable_list_factory(null_function);
+        IG->object_store()->set_simple_instance_of_function(null_function);
+        IG->object_store()->set_simple_instance_of_true_function(null_function);
+        IG->object_store()->set_simple_instance_of_false_function(
+            null_function);
+        IG->object_store()->set_async_star_move_next_helper(null_function);
+        IG->object_store()->set_complete_on_async_return(null_function);
+        IG->object_store()->set_async_star_stream_controller(null_class);
+        DropMetadata();
+        DropLibraryEntries();
+      }
     }
-    DropClasses();
-    DropLibraries();
 
-    Obfuscate();
+    {
+      PRECOMPILER_TIMER_SCOPE(this, Drop);
+      DropClasses();
+      DropLibraries();
+    }
+
+    {
+      PRECOMPILER_TIMER_SCOPE(this, Obfuscate);
+      Obfuscate();
+    }
 
 #if defined(DEBUG)
     const auto& non_visited =
@@ -578,7 +616,11 @@ void Precompiler::DoCompileAll() {
     }
 #endif
     DiscardCodeObjects();
-    ProgramVisitor::Dedup(T);
+
+    {
+      PRECOMPILER_TIMER_SCOPE(this, Dedup);
+      ProgramVisitor::Dedup(T);
+    }
 
     if (FLAG_write_retained_reasons_to != nullptr) {
       reasons_writer.Write();
@@ -614,6 +656,7 @@ void Precompiler::DoCompileAll() {
 }
 
 void Precompiler::PrecompileConstructors() {
+  PRECOMPILER_TIMER_SCOPE(this, PrecompileConstructors);
   class ConstructorVisitor : public FunctionVisitor {
    public:
     explicit ConstructorVisitor(Precompiler* precompiler, Zone* zone)
@@ -683,6 +726,8 @@ void Precompiler::AddRoots() {
 }
 
 void Precompiler::Iterate() {
+  PRECOMPILER_TIMER_SCOPE(this, Iterate);
+
   Function& function = Function::Handle(Z);
 
   phase_ = Phase::kFixpointCodeGeneration;
@@ -792,6 +837,7 @@ void Precompiler::ProcessFunction(const Function& function) {
   if (!error_.IsNull()) {
     Jump(error_);
   }
+
   // Used in the JIT to save type-feedback across compilations.
   function.ClearICDataArray();
   AddCalleesOf(function, gop_offset);
@@ -1886,6 +1932,7 @@ void Precompiler::TraceForRetainedFunctions() {
 }
 
 void Precompiler::FinalizeDispatchTable() {
+  PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
   if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
@@ -1918,6 +1965,7 @@ void Precompiler::FinalizeDispatchTable() {
 }
 
 void Precompiler::ReplaceFunctionStaticCallEntries() {
+  PRECOMPILER_TIMER_SCOPE(this, ReplaceFunctionStaticCallEntries);
   class StaticCallTableEntryFixer : public CodeVisitor {
    public:
     explicit StaticCallTableEntryFixer(Zone* zone)
@@ -2162,6 +2210,7 @@ void Precompiler::DropFields() {
 }
 
 void Precompiler::AttachOptimizedTypeTestingStub() {
+  PRECOMPILER_TIMER_SCOPE(this, AttachOptimizedTypeTestingStub);
   IsolateGroup::Current()->heap()->CollectAllGarbage();
   GrowableHandlePtrArray<const AbstractType> types(Z, 200);
   {
@@ -3083,6 +3132,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
 
         TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
+        COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
         flow_graph =
             pipeline->BuildFlowGraph(zone, parsed_function(), ic_data_array,
                                      Compiler::kNoOSRDeoptId, optimized());
@@ -3169,10 +3219,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array, function_stats);
       {
+        COMPILER_TIMINGS_TIMER_SCOPE(thread(), EmitCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
       }
       {
+        COMPILER_TIMINGS_TIMER_SCOPE(thread(), FinalizeCode);
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
@@ -3282,7 +3334,7 @@ static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
         FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
-    Timer per_compile_timer(trace_compiler, "Compilation time");
+    Timer per_compile_timer;
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new (zone)
@@ -3346,6 +3398,7 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
                                       Thread* thread,
                                       Zone* zone,
                                       const Function& function) {
+  PRECOMPILER_TIMER_SCOPE(precompiler, CompileFunction);
   NoActiveIsolateScope no_isolate_scope;
 
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);

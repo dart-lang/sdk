@@ -87,6 +87,8 @@ compiler_sources = [
   "compiler_pass.h",
   "compiler_state.cc",
   "compiler_state.h",
+  "compiler_timings.cc",
+  "compiler_timings.h",
   "ffi/abi.cc",
   "ffi/abi.h",
   "ffi/call.cc",

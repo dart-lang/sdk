@@ -32,6 +32,7 @@ class AbstractType;
 class ApiLocalScope;
 class Array;
 class CompilerState;
+class CompilerTimings;
 class Class;
 class Code;
 class Error;
@@ -504,6 +505,12 @@ class Thread : public ThreadState {
     ASSERT((type_usage_info_ == nullptr && value != nullptr) ||
            (type_usage_info_ != nullptr && value == nullptr));
     type_usage_info_ = value;
+  }
+
+  CompilerTimings* compiler_timings() const { return compiler_timings_; }
+
+  void set_compiler_timings(CompilerTimings* stats) {
+    compiler_timings_ = stats;
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
@@ -1116,6 +1123,8 @@ class Thread : public ThreadState {
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
   GrowableObjectArrayPtr pending_functions_;
+
+  CompilerTimings* compiler_timings_ = nullptr;
 
   ErrorPtr sticky_error_;
 

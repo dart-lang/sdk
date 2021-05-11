@@ -16,6 +16,7 @@
 #include "vm/hash_table.h"
 #include "vm/object.h"
 #include "vm/symbols.h"
+#include "vm/timer.h"
 
 namespace dart {
 
@@ -267,6 +268,10 @@ class Precompiler : public ValueObject {
 
   bool is_tracing() const { return is_tracing_; }
 
+  Thread* thread() const { return thread_; }
+  Zone* zone() const { return zone_; }
+  Isolate* isolate() const { return isolate_; }
+
  private:
   static Precompiler* singleton_;
 
@@ -288,6 +293,8 @@ class Precompiler : public ValueObject {
 
   explicit Precompiler(Thread* thread);
   ~Precompiler();
+
+  void ReportStats();
 
   void DoCompileAll();
   void AddRoots();
@@ -348,9 +355,6 @@ class Precompiler : public ValueObject {
 
   void FinalizeAllClasses();
 
-  Thread* thread() const { return thread_; }
-  Zone* zone() const { return zone_; }
-  Isolate* isolate() const { return isolate_; }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
   Thread* thread_;

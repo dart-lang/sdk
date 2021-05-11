@@ -3952,7 +3952,6 @@ class TemplateDartCall : public Definition {
         ArgumentsSizeWithoutTypeArgs(), argument_names());
   }
 
-
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
