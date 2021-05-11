@@ -1187,6 +1187,7 @@ void KernelLoader::FinishTopLevelClassLoading(
       helper_.SkipListOfExpressions();       // skip annotations.
       helper_.ReadUInt();                    // read source uri index.
       helper_.ReadPosition();                // read file offset.
+      helper_.ReadByte();                    // skip flags.
       helper_.SkipTypeParametersList();      // skip type parameter list.
       helper_.SkipDartType();                // skip on-type.
 
