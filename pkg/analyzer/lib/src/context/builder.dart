@@ -73,10 +73,6 @@ class ContextBuilder {
   /// The byte store used by any analysis drivers created through this interface.
   late final ByteStore byteStore;
 
-  /// The file content overlay used by analysis drivers. If this builder will be
-  /// used to build analysis contexts, set the [contentCache] instead.
-  FileContentOverlay? fileContentOverlay;
-
   /// Whether any analysis driver created through this interface should support
   /// indexing and search.
   bool enableIndex = false;
@@ -119,7 +115,7 @@ class ContextBuilder {
       performanceLog,
       resourceProvider,
       byteStore,
-      fileContentOverlay,
+      FileContentOverlay(),
       contextRoot,
       sf,
       options,
