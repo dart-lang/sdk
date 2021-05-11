@@ -54,13 +54,11 @@ class PreferIsEmpty extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addSimpleIdentifier(this, visitor);
+    registry.addBinaryExpression(this, visitor);
   }
 
-  void reportLintWithDescription(AstNode? node, String description) {
-    if (node != null) {
-      reporter.reportErrorForNode(_LintCode(name, description), node, []);
-    }
+  void reportLintWithDescription(AstNode node, String description) {
+    reporter.reportErrorForNode(_LintCode(name, description), node, []);
   }
 }
 
@@ -81,57 +79,28 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier identifier) {
-    // Should be "length".
-    var propertyElement = identifier.staticElement;
-    if (propertyElement?.name != 'length') {
-      return;
-    }
-
-    AstNode? lengthAccess;
-    InterfaceType? type;
-
-    var parent = identifier.parent;
-    if (parent is PropertyAccess && identifier == parent.propertyName) {
-      lengthAccess = parent;
-      var parentType = parent.target?.staticType;
-      if (parentType is InterfaceType) {
-        type = parentType;
+  void visitBinaryExpression(BinaryExpression node) {
+    var value = _getIntValue(node.rightOperand);
+    if (value != null) {
+      if (_isLengthAccess(node.leftOperand)) {
+        _check(node, value, constantOnRight: true);
       }
-    } else if (parent is PrefixedIdentifier &&
-        identifier == parent.identifier) {
-      lengthAccess = parent;
-      var parentType = parent.prefix.staticType;
-      if (parentType is InterfaceType) {
-        type = parentType;
+    } else {
+      value = _getIntValue(node.leftOperand);
+      // ignore: invariant_booleans
+      if (value != null) {
+        if (_isLengthAccess(node.rightOperand)) {
+          _check(node, value, constantOnRight: false);
+        }
       }
     }
+  }
 
-    if (type == null) {
-      return;
-    }
-
-    // Should be subtype of Iterable, Map or String.
-    if (!DartTypeUtilities.implementsInterface(type, 'Iterable', 'dart.core') &&
-        !DartTypeUtilities.implementsInterface(type, 'Map', 'dart.core') &&
-        !type.isDartCoreString) {
-      return;
-    }
-
-    var search = lengthAccess;
-    while (
-        search != null && search is Expression && search is! BinaryExpression) {
-      search = search.parent;
-    }
-
-    if (search is! BinaryExpression) {
-      return;
-    }
-    var binaryExpression = search;
-
+  void _check(BinaryExpression expression, int value,
+      {required bool constantOnRight}) {
     // Don't lint if we're in a const constructor initializer.
     var constructorInitializer =
-        search.thisOrAncestorOfType<ConstructorInitializer>();
+        expression.thisOrAncestorOfType<ConstructorInitializer>();
     if (constructorInitializer != null) {
       var constructorDecl = constructorInitializer.parent;
       if (constructorDecl is! ConstructorDeclaration ||
@@ -142,90 +111,84 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Or in a const context.
     // See: https://github.com/dart-lang/linter/issues/1719
-    if (binaryExpression.inConstantContext) {
+    if (expression.inConstantContext) {
       return;
     }
 
-    var operator = binaryExpression.operator;
-
-    // Comparing constants with length.
-    var value = _getIntValue(binaryExpression.rightOperand);
-
-    if (value != null) {
-      // Constant is on right side of comparison operator.
-      if (value == 0) {
-        if (operator.type == TokenType.EQ_EQ ||
-            operator.type == TokenType.LT_EQ) {
-          rule.reportLintWithDescription(binaryExpression, useIsEmpty);
-        } else if (operator.type == TokenType.GT ||
-            operator.type == TokenType.BANG_EQ) {
-          rule.reportLintWithDescription(binaryExpression, useIsNotEmpty);
-        } else if (operator.type == TokenType.LT) {
-          rule.reportLintWithDescription(binaryExpression, alwaysFalse);
-        } else if (operator.type == TokenType.GT_EQ) {
-          rule.reportLintWithDescription(binaryExpression, alwaysTrue);
-        }
-      } else if (value == 1) {
+    var operator = expression.operator;
+    if (value == 0) {
+      if (operator.type == TokenType.EQ_EQ ||
+          operator.type == TokenType.LT_EQ) {
+        rule.reportLintWithDescription(expression, useIsEmpty);
+      } else if (operator.type == TokenType.GT ||
+          operator.type == TokenType.BANG_EQ) {
+        rule.reportLintWithDescription(expression, useIsNotEmpty);
+      } else if (operator.type == TokenType.LT) {
+        rule.reportLintWithDescription(expression, alwaysFalse);
+      } else if (operator.type == TokenType.GT_EQ) {
+        rule.reportLintWithDescription(expression, alwaysTrue);
+      }
+    } else if (value == 1) {
+      if (constantOnRight) {
         // 'length >= 1' is same as 'isNotEmpty',
         // and 'length < 1' is same as 'isEmpty'
         if (operator.type == TokenType.GT_EQ) {
-          rule.reportLintWithDescription(binaryExpression, useIsNotEmpty);
+          rule.reportLintWithDescription(expression, useIsNotEmpty);
         } else if (operator.type == TokenType.LT) {
-          rule.reportLintWithDescription(binaryExpression, useIsEmpty);
+          rule.reportLintWithDescription(expression, useIsEmpty);
         }
-      } else if (value < 0) {
-        // 'length' is always >= 0, so comparing with negative makes no sense.
-        if (operator.type == TokenType.EQ_EQ ||
-            operator.type == TokenType.LT_EQ ||
-            operator.type == TokenType.LT) {
-          rule.reportLintWithDescription(binaryExpression, alwaysFalse);
-        } else if (operator.type == TokenType.BANG_EQ ||
-            operator.type == TokenType.GT_EQ ||
-            operator.type == TokenType.GT) {
-          rule.reportLintWithDescription(binaryExpression, alwaysTrue);
-        }
-      }
-      return;
-    }
-
-    value = _getIntValue(binaryExpression.leftOperand);
-
-    // ignore: invariant_booleans
-    if (value != null) {
-      // Constant is on left side of comparison operator.
-      if (value == 0) {
-        if (operator.type == TokenType.EQ_EQ ||
-            operator.type == TokenType.GT_EQ) {
-          rule.reportLintWithDescription(binaryExpression, useIsEmpty);
-        } else if (operator.type == TokenType.LT ||
-            operator.type == TokenType.BANG_EQ) {
-          rule.reportLintWithDescription(binaryExpression, useIsNotEmpty);
-        } else if (operator.type == TokenType.GT) {
-          rule.reportLintWithDescription(binaryExpression, alwaysFalse);
-        } else if (operator.type == TokenType.LT_EQ) {
-          rule.reportLintWithDescription(binaryExpression, alwaysTrue);
-        }
-      } else if (value == 1) {
+      } else {
         // '1 <= length' is same as 'isNotEmpty',
         // and '1 > length' is same as 'isEmpty'
         if (operator.type == TokenType.LT_EQ) {
-          rule.reportLintWithDescription(binaryExpression, useIsNotEmpty);
+          rule.reportLintWithDescription(expression, useIsNotEmpty);
         } else if (operator.type == TokenType.GT) {
-          rule.reportLintWithDescription(binaryExpression, useIsEmpty);
+          rule.reportLintWithDescription(expression, useIsEmpty);
         }
-      } else if (value < 0) {
+      }
+    } else if (value < 0) {
+      if (constantOnRight) {
+        // 'length' is always >= 0, so comparing with negative makes no sense.
+        if (operator.type == TokenType.EQ_EQ ||
+            operator.type == TokenType.LT_EQ ||
+            operator.type == TokenType.LT) {
+          rule.reportLintWithDescription(expression, alwaysFalse);
+        } else if (operator.type == TokenType.BANG_EQ ||
+            operator.type == TokenType.GT_EQ ||
+            operator.type == TokenType.GT) {
+          rule.reportLintWithDescription(expression, alwaysTrue);
+        }
+      } else {
         // 'length' is always >= 0, so comparing with negative makes no sense.
         if (operator.type == TokenType.EQ_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
-          rule.reportLintWithDescription(binaryExpression, alwaysFalse);
+          rule.reportLintWithDescription(expression, alwaysFalse);
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
-          rule.reportLintWithDescription(binaryExpression, alwaysTrue);
+          rule.reportLintWithDescription(expression, alwaysTrue);
         }
       }
     }
+  }
+
+  /// todo(pq): consider sharing
+  T? _drillDownTo<T extends Expression>(Expression expression,
+      {required bool ignoreParens, required bool ignoreAs}) {
+    var search = expression;
+    // ignore: literal_only_boolean_expressions
+    while (true) {
+      if (ignoreParens && search is ParenthesizedExpression) {
+        search = search.expression;
+      } else if (ignoreAs && search is AsExpression) {
+        search = search.expression;
+      } else {
+        break;
+      }
+    }
+
+    return search is T ? search : null;
   }
 
   /// Returns the value of an [IntegerLiteral] or [PrefixExpression] with a
@@ -245,5 +208,43 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     // ignore: avoid_returning_null
     return null;
+  }
+
+  bool _isLengthAccess(Expression operand) {
+    var node = _drillDownTo(operand, ignoreParens: true, ignoreAs: true);
+    if (node == null) {
+      return false;
+    }
+
+    SimpleIdentifier? identifier;
+    InterfaceType? type;
+
+    if (node is PrefixedIdentifier) {
+      identifier = node.identifier;
+      var operandType = node.prefix.staticType;
+      if (operandType is InterfaceType) {
+        type = operandType;
+      }
+    } else if (node is PropertyAccess) {
+      identifier = node.propertyName;
+      var parentType = node.target?.staticType;
+      if (parentType is InterfaceType) {
+        type = parentType;
+      }
+    }
+
+    if (identifier?.name != 'length') {
+      return false;
+    }
+
+    // Should be subtype of Iterable, Map or String.
+    if (type == null ||
+        !DartTypeUtilities.implementsInterface(type, 'Iterable', 'dart.core') &&
+            !DartTypeUtilities.implementsInterface(type, 'Map', 'dart.core') &&
+            !type.isDartCoreString) {
+      return false;
+    }
+
+    return true;
   }
 }
