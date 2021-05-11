@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -55,14 +54,6 @@ class _MyWidgetState extends State<MyWidget> {
 ''';
 
 class UseBuildContextSynchronously extends LintRule implements NodeLintRule {
-  // todo (pq): use LinterContext.inTestDir() when available
-  static final _testDirectories = [
-    '${path.separator}test${path.separator}',
-    '${path.separator}integration_test${path.separator}',
-    '${path.separator}test_driver${path.separator}',
-    '${path.separator}testing${path.separator}',
-  ];
-
   /// Flag to short-circuit `inTestDir` checking when running tests.
   final bool inTestMode;
 
@@ -78,17 +69,12 @@ class UseBuildContextSynchronously extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var unit = context.currentUnit.unit;
-    if (inTestMode || !inTestDir(unit)) {
+    if (inTestMode || !context.inTestDir(unit)) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);
       registry.addFunctionExpressionInvocation(this, visitor);
     }
-  }
-
-  static bool inTestDir(CompilationUnit unit) {
-    var path = unit.declaredElement?.source.fullName;
-    return path != null && _testDirectories.any(path.contains);
   }
 }
 
