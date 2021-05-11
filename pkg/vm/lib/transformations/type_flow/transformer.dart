@@ -75,6 +75,9 @@ Component transformComponent(
     typeFlowAnalysis.addRawCall(mainSelector);
   }
 
+  CleanupAnnotations(coreTypes, libraryIndex, protobufHandler)
+      .visitComponent(component);
+
   typeFlowAnalysis.process();
 
   analysisStopWatch.stop();
@@ -116,6 +119,56 @@ Component transformComponent(
   Statistics.print("TFA statistics");
 
   return component;
+}
+
+// Pass which removes all annotations except @ExternalName and @pragma
+// on members, classes and libraries. May also keep @TagNumber which is used
+// by protobuf handler.
+class CleanupAnnotations extends RecursiveVisitor {
+  final Class externalNameClass;
+  final Class pragmaClass;
+  final ProtobufHandler protobufHandler;
+
+  CleanupAnnotations(
+      CoreTypes coreTypes, LibraryIndex index, this.protobufHandler)
+      : externalNameClass = index.getClass('dart:_internal', 'ExternalName'),
+        pragmaClass = coreTypes.pragmaClass;
+
+  @override
+  defaultNode(Node node) {
+    if (node is Annotatable && node.annotations.isNotEmpty) {
+      _cleanupAnnotations(node, node.annotations);
+    }
+    super.defaultNode(node);
+  }
+
+  @override
+  visitTypedef(Typedef node) {
+    super.visitTypedef(node);
+    // These sub-nodes can have annotations but are not visited by
+    // Typedef.visitChildren.
+    visitList(node.positionalParameters, this);
+    visitList(node.namedParameters, this);
+  }
+
+  void _cleanupAnnotations(Node node, List<Expression> annotations) {
+    if (node is Member || node is Class || node is Library) {
+      annotations.removeWhere((a) => !_keepAnnotation(a));
+    } else {
+      annotations.clear();
+    }
+  }
+
+  bool _keepAnnotation(Expression annotation) {
+    final constant = (annotation as ConstantExpression).constant;
+    if (constant is InstanceConstant) {
+      final cls = constant.classNode;
+      return (cls == externalNameClass) ||
+          (cls == pragmaClass) ||
+          (protobufHandler != null && protobufHandler.usesAnnotationClass(cls));
+    }
+    return false;
+  }
 }
 
 /// Devirtualization based on results of type flow analysis.
@@ -731,6 +784,7 @@ class TreeShaker {
 
   void addUsedExtension(Extension node) {
     if (_usedExtensions.add(node)) {
+      node.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(node.typeParameters, node);
       node.onType?.accept(typeVisitor);
     }
@@ -738,7 +792,7 @@ class TreeShaker {
 
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
-      _pass1.transformExpressionList(typedef.annotations, typedef);
+      typedef.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(typedef.typeParameters, typedef);
       _pass1.transformTypeParameterList(
           typedef.typeParametersOfFunctionType, typedef);
@@ -1719,7 +1773,10 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
     shaker.addClassUsedInType(constant.classNode);
     visitList(constant.typeArguments, typeVisitor);
     constant.fieldValues.forEach((Reference fieldRef, Constant value) {
-      shaker.addUsedMember(fieldRef.asField);
+      if (!shaker.retainField(fieldRef.asField)) {
+        throw 'Constant $constant references field ${fieldRef.asField} '
+            'which is not retained';
+      }
       analyzeConstant(value);
     });
   }

@@ -774,6 +774,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
       _summary.result = _returnValue;
     }
 
+    // Visit annotations on members, classes and libraries.
+    // Other nodes currently do not have annotations used by the VM.
+    member.annotations.forEach(_visit);
+    member.enclosingClass?.annotations?.forEach(_visit);
+    member.enclosingLibrary?.annotations?.forEach(_visit);
+
     _staticTypeContext = null;
 
     debugPrint("------------ SUMMARY ------------");
