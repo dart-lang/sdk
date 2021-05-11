@@ -68,6 +68,13 @@ class Sdk {
         'dds.dart.snapshot',
       );
 
+  String get devToolsBinaries => path.absolute(
+        sdkPath,
+        'bin',
+        'resources',
+        'devtools',
+      );
+
   String get pubSnapshot => path.absolute(
         sdkPath,
         'bin',

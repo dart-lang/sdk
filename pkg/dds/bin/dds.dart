@@ -4,6 +4,7 @@
 
 // @dart=2.10
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dds/dds.dart';
@@ -16,6 +17,9 @@ import 'package:dds/dds.dart';
 ///   - DDS bind address
 ///   - DDS port
 ///   - Disable service authentication codes
+///   - Start DevTools
+///   - DevTools build directory
+///   - Enable logging
 Future<void> main(List<String> args) async {
   if (args.isEmpty) return;
 
@@ -37,16 +41,37 @@ Future<void> main(List<String> args) async {
     port: int.parse(args[2]),
   );
   final disableServiceAuthCodes = args[3] == 'true';
+
+  final startDevTools = args[4] == 'true';
+  Uri devToolsBuildDirectory;
+  if (args[5].isNotEmpty) {
+    devToolsBuildDirectory = Uri.file(args[5]);
+  }
+  final logRequests = args[6] == 'true';
   try {
     // TODO(bkonyi): add retry logic similar to that in vmservice_server.dart
     // See https://github.com/dart-lang/sdk/issues/43192.
-    await DartDevelopmentService.startDartDevelopmentService(
+    final dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
+      devToolsConfiguration: startDevTools
+          ? DevToolsConfiguration(
+              enable: startDevTools,
+              customBuildDirectoryPath: devToolsBuildDirectory,
+            )
+          : null,
+      logRequests: logRequests,
     );
-    stderr.write('DDS started');
-  } catch (e) {
-    stderr.writeln('Failed to start DDS:\n$e');
+    stderr.write(json.encode({
+      'state': 'started',
+      if (dds.devToolsUri != null) 'devToolsUri': dds.devToolsUri.toString(),
+    }));
+  } catch (e, st) {
+    stderr.write(json.encode({
+      'state': 'error',
+      'error': '$e',
+      'stacktrace': '$st',
+    }));
   }
 }

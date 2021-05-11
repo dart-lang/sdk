@@ -80,6 +80,7 @@ vars = {
   "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",
   "boringssl_rev" : "1607f54fed72c6589d560254626909a64124f091",
   "browser-compat-data_tag": "v1.0.22",
+  "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
   "chrome_rev" : "19997",
   "cli_util_rev" : "8c504de5deb08fe32ecf51f9662bb37d8c708e57",
@@ -105,7 +106,6 @@ vars = {
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
   "chromedriver_tag": "83.0.4103.39",
-  "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
   "dartdoc_rev" : "505f163f7cb48e917503e4a23fbff1227e08b263",
   "devtools_rev" : "12ad5341ae0a275042c84a4e7be9a6c98db65612",
   "jsshell_tag": "version:88.0",
@@ -320,6 +320,9 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
+  Var("dart_root") + "/third_party/pkg/browser_launcher":
+      Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
+
   Var("dart_root") + "/third_party/tcmalloc/gperftools":
       Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
       "@" + Var("gperftools_revision"),
@@ -336,9 +339,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_rev"),
-  Var("dart_root") + "/third_party/pkg/browser_launcher":
-      Var("dart_git") + "browser_launcher.git" +
-      "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
