@@ -549,6 +549,33 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   arguments.SetReturn(type_arguments);
 }
 
+// Helper routine for tracing a subtype check.
+static void PrintSubtypeCheck(const AbstractType& subtype,
+                              const AbstractType& supertype,
+                              const bool result) {
+  DartFrameIterator iterator(Thread::Current(),
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+
+  OS::PrintErr("SubtypeCheck: '%s' %d %s '%s' %d (pc: %#" Px ").\n",
+               String::Handle(subtype.Name()).ToCString(),
+               subtype.type_class_id(), result ? "is" : "is !",
+               String::Handle(supertype.Name()).ToCString(),
+               supertype.type_class_id(), caller_frame->pc());
+
+  const Function& function =
+      Function::Handle(caller_frame->LookupDartFunction());
+  if (function.HasSavedArgumentsDescriptor()) {
+    const auto& args_desc_array = Array::Handle(function.saved_args_desc());
+    const ArgumentsDescriptor args_desc(args_desc_array);
+    OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
+                 args_desc.ToCString());
+  } else {
+    OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
+  }
+}
+
 // Instantiate type.
 // Arg0: instantiator type arguments
 // Arg1: function type arguments
@@ -580,13 +607,18 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   }
   ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
 
-  // TODO(regis): Support for FLAG_trace_type_checks is missing here. Is it
-  // still useful or should we remove it everywhere?
-
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(
           &subtype, &supertype, instantiator_type_args, function_type_args)) {
+    if (FLAG_trace_type_checks) {
+      // The supertype and subtype are now instantiated. Subtype check passed.
+      PrintSubtypeCheck(subtype, supertype, true);
+    }
     return;
+  }
+  if (FLAG_trace_type_checks) {
+    // The supertype and subtype are now instantiated. Subtype check failed.
+    PrintSubtypeCheck(subtype, supertype, false);
   }
 
   // Throw a dynamic type error.
