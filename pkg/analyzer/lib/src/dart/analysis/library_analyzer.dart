@@ -68,7 +68,6 @@ class LibraryAnalyzer {
   final FileState _library;
 
   final InheritanceManager3 _inheritance;
-  final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
 
   final LibraryElementImpl _libraryElement;
@@ -88,7 +87,6 @@ class LibraryAnalyzer {
       this._analysisOptions,
       this._declaredVariables,
       this._sourceFactory,
-      this._isLibraryUri,
       this._context,
       this._libraryElement,
       this._inheritance,
@@ -506,11 +504,6 @@ class LibraryAnalyzer {
     return source == _library.source;
   }
 
-  /// Return `true` if the given [source] is a library.
-  bool _isLibrarySource(Source source) {
-    return _isLibraryUri(source.uri);
-  }
-
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
@@ -548,12 +541,14 @@ class LibraryAnalyzer {
           if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
             directive.prefix?.staticElement = importElement.prefix;
-            Source? source = importElement.importedLibrary?.source;
-            if (source != null && !_isLibrarySource(source)) {
-              libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [directive.uri]);
+            var importedLibrary = importElement.importedLibrary;
+            if (importedLibrary is LibraryElementImpl) {
+              if (importedLibrary.hasPartOfDirective) {
+                libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [directive.uri]);
+              }
             }
           }
         }
@@ -561,12 +556,14 @@ class LibraryAnalyzer {
         for (ExportElement exportElement in _libraryElement.exports) {
           if (matchNodeElement(directive, exportElement)) {
             directive.element = exportElement;
-            Source? source = exportElement.exportedLibrary?.source;
-            if (source != null && !_isLibrarySource(source)) {
-              libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [directive.uri]);
+            var exportedLibrary = exportElement.exportedLibrary;
+            if (exportedLibrary is LibraryElementImpl) {
+              if (exportedLibrary.hasPartOfDirective) {
+                libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [directive.uri]);
+              }
             }
           }
         }

@@ -232,6 +232,34 @@ class B implements A {
 ''');
   }
 
+  test_class_documentation_add() async {
+    assertSameSignature(r'''
+class C {}
+''', r'''
+/// foo
+class C {}
+''');
+  }
+
+  test_class_documentation_change() async {
+    assertSameSignature(r'''
+/// foo
+class C {}
+''', r'''
+/// bar bar
+class C {}
+''');
+  }
+
+  test_class_documentation_remove() async {
+    assertSameSignature(r'''
+/// foo
+class C {}
+''', r'''
+class C {}
+''');
+  }
+
   test_class_extends() {
     assertNotSameSignature(r'''
 class A {}
@@ -901,6 +929,54 @@ var c = 3;
 var a = 1;
 var b = 2;
 var c = 3;
+''');
+  }
+
+  test_directive_library_add() {
+    assertNotSameSignature(r'''
+class A {}
+''', r'''
+library foo;
+class A {}
+''');
+  }
+
+  test_directive_library_change_name() {
+    assertNotSameSignature(r'''
+library foo;
+class A {}
+''', r'''
+library bar;
+class A {}
+''');
+  }
+
+  test_directive_library_change_name_length() {
+    assertSameSignature(r'''
+library foo.bar;
+class A {}
+''', r'''
+library foo. bar;
+class A {}
+''');
+  }
+
+  test_directive_library_change_name_offset() {
+    assertSameSignature(r'''
+library foo;
+class A {}
+''', r'''
+library  foo;
+class A {}
+''');
+  }
+
+  test_directive_library_remove() {
+    assertNotSameSignature(r'''
+library foo;
+class A {}
+''', r'''
+class A {}
 ''');
   }
 

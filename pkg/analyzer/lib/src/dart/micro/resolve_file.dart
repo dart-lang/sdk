@@ -794,7 +794,6 @@ class _LibraryContext {
     }
 
     for (var cycle in loadedBundles) {
-      addIfNotNull(cycle.astId);
       addIfNotNull(cycle.resolutionId);
     }
     loadedBundles.clear();
@@ -818,14 +817,21 @@ class _LibraryContext {
 
       cycle.directDependencies.forEach(loadBundle);
 
-      var astKey = '${cycle.cyclePathsHash}.ast';
       var resolutionKey = '${cycle.cyclePathsHash}.resolution';
-      var astData = byteStore.get(astKey, cycle.signature);
       var resolutionData = byteStore.get(resolutionKey, cycle.signature);
-      var astBytes = astData?.bytes;
       var resolutionBytes = resolutionData?.bytes;
 
-      if (astBytes == null || resolutionBytes == null) {
+      var unitsInformativeBytes = <Uri, Uint8List>{};
+      for (var library in cycle.libraries) {
+        for (var file in library.libraryFiles) {
+          var informativeBytes = file.informativeBytes;
+          if (informativeBytes != null) {
+            unitsInformativeBytes[file.uri] = informativeBytes;
+          }
+        }
+      }
+
+      if (resolutionBytes == null) {
         librariesLinkedTimer.start();
 
         inputsTimer.start();
@@ -872,13 +878,7 @@ class _LibraryContext {
         var linkResult = link2.link(elementFactory, inputLibraries, true);
         librariesLinked += cycle.libraries.length;
 
-        astBytes = linkResult.astBytes;
         resolutionBytes = linkResult.resolutionBytes;
-
-        astData = byteStore.putGet(astKey, cycle.signature, astBytes);
-        astBytes = astData.bytes;
-        performance.getDataInt('bytesPut').add(astBytes.length);
-
         resolutionData =
             byteStore.putGet(resolutionKey, cycle.signature, resolutionBytes);
         resolutionBytes = resolutionData.bytes;
@@ -886,17 +886,15 @@ class _LibraryContext {
 
         librariesLinkedTimer.stop();
       } else {
-        performance.getDataInt('bytesGet').add(astBytes.length);
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
-      cycle.astId = astData!.id;
       cycle.resolutionId = resolutionData!.id;
 
       elementFactory.addBundle(
         BundleReader(
           elementFactory: elementFactory,
-          astBytes: astBytes as Uint8List,
+          unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: resolutionBytes as Uint8List,
         ),
       );
@@ -933,7 +931,6 @@ class _LibraryContext {
 
     loadedBundles.removeWhere((cycle) {
       if (cycle.libraries.any(removedSet.contains)) {
-        addIfNotNull(cycle.astId);
         addIfNotNull(cycle.resolutionId);
         return true;
       }

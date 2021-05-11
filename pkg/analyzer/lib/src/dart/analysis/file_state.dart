@@ -34,7 +34,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary2/bundle_writer.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -385,7 +385,7 @@ class FileState {
     var bytes = _fsState._byteStore.get(_astKey!) as Uint8List?;
     if (bytes == null) {
       unit ??= parse();
-      bytes = writeUnitToBytes(unit: unit);
+      bytes = writeUnitInformative(unit);
       _fsState._byteStore.put(_astKey!, bytes);
     }
     return bytes;

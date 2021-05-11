@@ -1486,7 +1486,7 @@ class A {
     checkElementText(library, r'''
 class A {
   int f;
-  A([int this.f = 'hello']);
+  A([final int this.f = 'hello']);
 }
 ''');
   }

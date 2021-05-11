@@ -3120,7 +3120,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (withClause == null) {
       return;
     }
-    var declaredSupertype = superclassName?.type;
+    var declaredSupertype = superclassName?.type ?? _typeProvider.objectType;
     if (declaredSupertype is! InterfaceType) {
       return;
     }

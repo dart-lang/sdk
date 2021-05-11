@@ -90,6 +90,11 @@ class ConstantInitializersResolver {
             contextType: typeNode.type);
       }
     }
+
+    if (element is ConstVariableElement) {
+      var constElement = element as ConstVariableElement;
+      constElement.constantInitializer = variable.initializer;
+    }
   }
 }
 

@@ -308,9 +308,6 @@ class SynchronousSession {
       throw StateError('TypeProvider(s) can be set only once.');
     }
 
-    _typeProviderLegacy = legacy;
-    _typeProviderNonNullableByDefault = nonNullableByDefault;
-
     _typeSystemLegacy = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
@@ -324,5 +321,8 @@ class SynchronousSession {
       strictInference: _analysisOptions.strictInference,
       typeProvider: nonNullableByDefault,
     );
+
+    _typeProviderLegacy = legacy;
+    _typeProviderNonNullableByDefault = nonNullableByDefault;
   }
 }
