@@ -6,16 +6,16 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
-bool _shouldLowerVariable(VariableDeclaration node) => node.isLate;
+bool _shouldLowerVariable(VariableDeclaration variable) => variable.isLate;
 
-bool _shouldLowerUninitializedVariable(VariableDeclaration node) =>
-    _shouldLowerVariable(node) && node.initializer == null;
+bool _shouldLowerUninitializedVariable(VariableDeclaration variable) =>
+    _shouldLowerVariable(variable) && variable.initializer == null;
 
-bool _shouldLowerInitializedVariable(VariableDeclaration node) =>
-    _shouldLowerVariable(node) && node.initializer != null;
+bool _shouldLowerInitializedVariable(VariableDeclaration variable) =>
+    _shouldLowerVariable(variable) && variable.initializer != null;
 
-bool _shouldLowerField(Field node) =>
-    node.isLate && node.isStatic && node.initializer == null;
+bool _shouldLowerField(Field field) =>
+    field.isLate && field.isStatic && field.initializer == null;
 
 class _Reader {
   final Procedure _procedure;
@@ -35,8 +35,10 @@ class LateLowering {
   final _Reader _readInitialized;
   final _Reader _readInitializedFinal;
 
-  // TODO(fishythefish): Remove cells when exiting their scope.
-  final Map<VariableDeclaration, VariableDeclaration> _variableCells = {};
+  // Each map contains the mapping from late local variables to cells for a
+  // given function scope.
+  final List<Map<VariableDeclaration, VariableDeclaration>> _variableCells = [];
+
   final Map<Field, Field> _fieldCells = {};
 
   Member _contextMember;
@@ -47,8 +49,8 @@ class LateLowering {
         _readInitialized = _Reader(_coreTypes.initializedCellRead),
         _readInitializedFinal = _Reader(_coreTypes.initializedCellReadFinal);
 
-  void transformAdditionalExports(Library node) {
-    List<Reference> additionalExports = node.additionalExports;
+  void transformAdditionalExports(Library library) {
+    List<Reference> additionalExports = library.additionalExports;
     Set<Reference> newExports = {};
     additionalExports.removeWhere((Reference reference) {
       Field cell = _fieldCells[reference.node];
@@ -92,17 +94,50 @@ class LateLowering {
           interfaceTarget: _setter)
         ..fileOffset = fileOffset;
 
+  void enterFunction() {
+    _variableCells.add(null);
+  }
+
+  void exitFunction() {
+    _variableCells.removeLast();
+  }
+
+  VariableDeclaration _lookupVariableCell(VariableDeclaration variable) {
+    assert(_shouldLowerVariable(variable));
+    for (final scope in _variableCells) {
+      if (scope == null) continue;
+      final cell = scope[variable];
+      if (cell != null) return cell;
+    }
+    return null;
+  }
+
+  VariableDeclaration _addToCurrentScope(
+      VariableDeclaration variable, VariableDeclaration cell) {
+    assert(_shouldLowerVariable(variable));
+    assert(_lookupVariableCell(variable) == null);
+    return (_variableCells.last ??= {})[variable] = cell;
+  }
+
+  VariableDeclaration _variableCell(VariableDeclaration variable) {
+    assert(_shouldLowerVariable(variable));
+    final cell = _lookupVariableCell(variable);
+    if (cell != null) return cell;
+    return variable.initializer == null
+        ? _uninitializedVariableCell(variable)
+        : _initializedVariableCell(variable);
+  }
+
   VariableDeclaration _uninitializedVariableCell(VariableDeclaration variable) {
     assert(_shouldLowerUninitializedVariable(variable));
-    return _variableCells.putIfAbsent(variable, () {
-      int fileOffset = variable.fileOffset;
-      return VariableDeclaration(variable.name,
-          initializer: _callCellConstructor(fileOffset),
-          type: InterfaceType(_coreTypes.cellClass,
-              _contextMember.enclosingLibrary.nonNullable),
-          isFinal: true)
-        ..fileOffset = fileOffset;
-    });
+    int fileOffset = variable.fileOffset;
+    final cell = VariableDeclaration(variable.name,
+        initializer: _callCellConstructor(fileOffset),
+        type: InterfaceType(
+            _coreTypes.cellClass, _contextMember.enclosingLibrary.nonNullable),
+        isFinal: true)
+      ..fileOffset = fileOffset;
+    return _addToCurrentScope(variable, cell);
   }
 
   FunctionExpression _initializerClosure(
@@ -117,41 +152,35 @@ class LateLowering {
 
   VariableDeclaration _initializedVariableCell(VariableDeclaration variable) {
     assert(_shouldLowerInitializedVariable(variable));
-    return _variableCells.putIfAbsent(variable, () {
-      int fileOffset = variable.fileOffset;
-      return VariableDeclaration(variable.name,
-          initializer: _callInitializedCellConstructor(
-              _initializerClosure(variable.initializer, variable.type),
-              fileOffset),
-          type: InterfaceType(_coreTypes.initializedCellClass,
-              _contextMember.enclosingLibrary.nonNullable),
-          isFinal: true)
-        ..fileOffset = fileOffset;
-    });
+    int fileOffset = variable.fileOffset;
+    final cell = VariableDeclaration(variable.name,
+        initializer: _callInitializedCellConstructor(
+            _initializerClosure(variable.initializer, variable.type),
+            fileOffset),
+        type: InterfaceType(_coreTypes.initializedCellClass,
+            _contextMember.enclosingLibrary.nonNullable),
+        isFinal: true)
+      ..fileOffset = fileOffset;
+    return _addToCurrentScope(variable, cell);
   }
-
-  VariableDeclaration _variableCell(VariableDeclaration variable) {
-    assert(_shouldLowerVariable(variable));
-    return variable.initializer == null
-        ? _uninitializedVariableCell(variable)
-        : _initializedVariableCell(variable);
-  }
-
-  VariableGet _variableCellAccess(
-          VariableDeclaration variable, int fileOffset) =>
-      VariableGet(_variableCell(variable))..fileOffset = fileOffset;
 
   TreeNode transformVariableDeclaration(
-      VariableDeclaration node, Member contextMember) {
+      VariableDeclaration variable, Member contextMember) {
     _contextMember = contextMember;
 
-    if (!_shouldLowerVariable(node)) return node;
+    if (!_shouldLowerVariable(variable)) return variable;
 
     // A [VariableDeclaration] being used as a statement must be a direct child
     // of a [Block].
-    if (node.parent is! Block) return node;
+    if (variable.parent is! Block) return variable;
 
-    return _variableCell(node);
+    return _variableCell(variable);
+  }
+
+  VariableGet _variableCellAccess(
+      VariableDeclaration variable, int fileOffset) {
+    assert(_shouldLowerVariable(variable));
+    return VariableGet(_variableCell(variable))..fileOffset = fileOffset;
   }
 
   TreeNode transformVariableGet(VariableGet node, Member contextMember) {
@@ -208,12 +237,12 @@ class LateLowering {
   StaticGet _fieldCellAccess(Field field, int fileOffset) =>
       StaticGet(_fieldCell(field))..fileOffset = fileOffset;
 
-  TreeNode transformField(Field node, Member contextMember) {
+  TreeNode transformField(Field field, Member contextMember) {
     _contextMember = contextMember;
 
-    if (!_shouldLowerField(node)) return node;
+    if (!_shouldLowerField(field)) return field;
 
-    return _fieldCell(node);
+    return _fieldCell(field);
   }
 
   TreeNode transformStaticGet(StaticGet node, Member contextMember) {

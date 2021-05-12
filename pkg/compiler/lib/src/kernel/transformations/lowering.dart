@@ -52,6 +52,14 @@ class _Lowering extends Transformer {
   }
 
   @override
+  TreeNode visitFunctionNode(FunctionNode node) {
+    _lateLowering.enterFunction();
+    node.transformChildren(this);
+    _lateLowering.exitFunction();
+    return node;
+  }
+
+  @override
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     node.transformChildren(this);
     return _lateLowering.transformVariableDeclaration(node, _currentMember);
@@ -71,6 +79,7 @@ class _Lowering extends Transformer {
 
   @override
   TreeNode visitField(Field node) {
+    _currentMember = node;
     node.transformChildren(this);
     return _lateLowering.transformField(node, _currentMember);
   }
