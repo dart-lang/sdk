@@ -6265,10 +6265,6 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   PrefixElementImpl(String name, int nameOffset, {Reference? reference})
       : super(name, nameOffset, reference: reference);
 
-  PrefixElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, SimpleIdentifier linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
   @override
   String get displayName => name;
 
@@ -6281,18 +6277,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
   @override
   String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return (linkedNode as SimpleIdentifier).offset;
-    }
-    return super.nameOffset;
   }
 
   @override

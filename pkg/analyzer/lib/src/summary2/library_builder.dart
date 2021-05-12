@@ -406,9 +406,7 @@ class _ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExportDirective(ast.ExportDirective node) {
-    node as ast.ExportDirectiveImpl;
-
+  void visitExportDirective(covariant ast.ExportDirectiveImpl node) {
     var element = ExportElementImpl(node.keyword.offset);
     element.combinators = _buildCombinators(node.combinators);
     element.exportedLibrary = _selectLibrary(node);
@@ -420,9 +418,7 @@ class _ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitImportDirective(ast.ImportDirective node) {
-    node as ast.ImportDirectiveImpl;
-
+  void visitImportDirective(covariant ast.ImportDirectiveImpl node) {
     var element = ImportElementImpl(node.keyword.offset);
     element.combinators = _buildCombinators(node.combinators);
     element.importedLibrary = _selectLibrary(node);
