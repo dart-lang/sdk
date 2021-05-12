@@ -532,7 +532,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     null_ = static_cast<InstancePtr>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize(),
-                     /*compressed*/ false);
+                     Instance::ContainsCompressedPointers());
     null_->untag()->SetCanonical();
   }
 
@@ -544,7 +544,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     // Allocate a dummy bool object to give true the desired alignment.
     uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
-                     /*compressed*/ false);
+                     Bool::ContainsCompressedPointers());
     static_cast<BoolPtr>(address + kHeapObjectTag)->untag()->value_ = false;
   }
   {
@@ -552,7 +552,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
     true_ = static_cast<BoolPtr>(address + kHeapObjectTag);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
-                     /*compressed*/ false);
+                     Bool::ContainsCompressedPointers());
     true_->untag()->value_ = true;
     true_->untag()->SetCanonical();
   }
@@ -561,7 +561,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
     false_ = static_cast<BoolPtr>(address + kHeapObjectTag);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
-                     /*compressed*/ false);
+                     Bool::ContainsCompressedPointers());
     false_->untag()->value_ = false;
     false_->untag()->SetCanonical();
   }
@@ -710,7 +710,8 @@ void Object::Init(IsolateGroup* isolate_group) {
     intptr_t size = Class::InstanceSize();
     uword address = heap->Allocate(size, Heap::kOld);
     class_class_ = static_cast<ClassPtr>(address + kHeapObjectTag);
-    InitializeObject(address, Class::kClassId, size, /*compressed*/ true);
+    InitializeObject(address, Class::kClassId, size,
+                     Class::ContainsCompressedPointers());
 
     Class fake;
     // Initialization from Class::New<Class>.
@@ -770,19 +771,23 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the sentinel values.
   {
-    *sentinel_ ^= Object::Allocate(kNeverCid, Instance::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ false);
+    *sentinel_ ^=
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
+                         Instance::ContainsCompressedPointers());
 
-    *transition_sentinel_ ^= Object::Allocate(
-        kNeverCid, Instance::InstanceSize(), Heap::kOld, /*compressed*/ false);
+    *transition_sentinel_ ^=
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
+                         Instance::ContainsCompressedPointers());
   }
 
   // Allocate and initialize optimizing compiler constants.
   {
-    *unknown_constant_ ^= Object::Allocate(kNeverCid, Instance::InstanceSize(),
-                                           Heap::kOld, /*compressed*/ false);
-    *non_constant_ ^= Object::Allocate(kNeverCid, Instance::InstanceSize(),
-                                       Heap::kOld, /*compressed*/ false);
+    *unknown_constant_ ^=
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
+                         Instance::ContainsCompressedPointers());
+    *non_constant_ ^=
+        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
+                         Instance::ContainsCompressedPointers());
   }
 
   // Allocate the remaining VM internal classes.
@@ -945,7 +950,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0),
-                     /*compressed*/ false);
+                     Array::ContainsCompressedPointers());
     Array::initializeHandle(empty_array_,
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     empty_array_->untag()->set_length(Smi::New(0));
@@ -957,7 +962,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1),
-                     /*compressed*/ false);
+                     Array::ContainsCompressedPointers());
     Array::initializeHandle(zero_array_,
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     zero_array_->untag()->set_length(Smi::New(1));
@@ -970,7 +975,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(ContextScope::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kContextScopeCid, ContextScope::InstanceSize(0),
-                     /*compressed*/ true);
+                     ContextScope::ContainsCompressedPointers());
     ContextScope::initializeHandle(
         empty_context_scope_,
         static_cast<ContextScopePtr>(address + kHeapObjectTag));
@@ -985,7 +990,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(ObjectPool::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kObjectPoolCid, ObjectPool::InstanceSize(0),
-                     /*compressed*/ false);
+                     ObjectPool::ContainsCompressedPointers());
     ObjectPool::initializeHandle(
         empty_object_pool_,
         static_cast<ObjectPoolPtr>(address + kHeapObjectTag));
@@ -999,7 +1004,7 @@ void Object::Init(IsolateGroup* isolate_group) {
     const intptr_t instance_size = CompressedStackMaps::InstanceSize(0);
     uword address = heap->Allocate(instance_size, Heap::kOld);
     InitializeObject(address, kCompressedStackMapsCid, instance_size,
-                     /*compressed*/ true);
+                     CompressedStackMaps::ContainsCompressedPointers());
     CompressedStackMaps::initializeHandle(
         empty_compressed_stackmaps_,
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
@@ -1012,7 +1017,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kPcDescriptorsCid, PcDescriptors::InstanceSize(0),
-                     /*compressed*/ true);
+                     PcDescriptors::ContainsCompressedPointers());
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         static_cast<PcDescriptorsPtr>(address + kHeapObjectTag));
@@ -1026,7 +1031,8 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(LocalVarDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kLocalVarDescriptorsCid,
-                     LocalVarDescriptors::InstanceSize(0), /*compressed*/ true);
+                     LocalVarDescriptors::InstanceSize(0),
+                     LocalVarDescriptors::ContainsCompressedPointers());
     LocalVarDescriptors::initializeHandle(
         empty_var_descriptors_,
         static_cast<LocalVarDescriptorsPtr>(address + kHeapObjectTag));
@@ -1042,7 +1048,8 @@ void Object::Init(IsolateGroup* isolate_group) {
     uword address =
         heap->Allocate(ExceptionHandlers::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kExceptionHandlersCid,
-                     ExceptionHandlers::InstanceSize(0), /*compressed*/ true);
+                     ExceptionHandlers::InstanceSize(0),
+                     ExceptionHandlers::ContainsCompressedPointers());
     ExceptionHandlers::initializeHandle(
         empty_exception_handlers_,
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
@@ -1055,7 +1062,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kTypeArgumentsCid, TypeArguments::InstanceSize(0),
-                     /*compressed*/ true);
+                     TypeArguments::ContainsCompressedPointers());
     TypeArguments::initializeHandle(
         empty_type_arguments_,
         static_cast<TypeArgumentsPtr>(address + kHeapObjectTag));
@@ -2736,7 +2743,7 @@ ObjectPtr Object::Clone(const Object& orig, Heap::Space space) {
   const Class& cls = Class::Handle(orig.clazz());
   intptr_t size = orig.ptr()->untag()->HeapSize();
   ObjectPtr raw_clone =
-      Object::Allocate(cls.id(), size, space, /*compressed*/ false);
+      Object::Allocate(cls.id(), size, space, cls.HasCompressedPointers());
   NoSafepointScope no_safepoint;
   // Copy the body of the original into the clone.
   uword orig_addr = UntaggedObject::ToAddr(orig.ptr());
@@ -2754,6 +2761,42 @@ ObjectPtr Object::Clone(const Object& orig, Heap::Space space) {
   WriteBarrierUpdateVisitor visitor(Thread::Current(), raw_clone);
   raw_clone->untag()->VisitPointers(&visitor);
   return raw_clone;
+}
+
+bool Class::HasCompressedPointers() const {
+  const intptr_t cid = id();
+  switch (cid) {
+    // Only a couple of FFI cids correspond to actual Dart classes. so they're
+    // explicitly listed here.
+    case kFfiPointerCid:
+      return Pointer::ContainsCompressedPointers();
+    case kFfiDynamicLibraryCid:
+      return DynamicLibrary::ContainsCompressedPointers();
+    case kByteBufferCid:
+      return ByteBuffer::ContainsCompressedPointers();
+#define HANDLE_CASE(clazz)                                                     \
+  case k##clazz##Cid:                                                          \
+    return dart::clazz::ContainsCompressedPointers();
+      CLASS_LIST(HANDLE_CASE)
+#undef HANDLE_CASE
+#define HANDLE_CASE(clazz)                                                     \
+  case kTypedData##clazz##Cid:                                                 \
+    return dart::TypedData::ContainsCompressedPointers();                      \
+  case kTypedData##clazz##ViewCid:                                             \
+    return dart::TypedDataView::ContainsCompressedPointers();                  \
+  case kExternalTypedData##clazz##Cid:                                         \
+    return dart::ExternalTypedData::ContainsCompressedPointers();
+      CLASS_LIST_TYPED_DATA(HANDLE_CASE)
+#undef HANDLE_CASE
+    default:
+      if (cid >= kNumPredefinedCids) {
+        return dart::Instance::ContainsCompressedPointers();
+      }
+  }
+  FATAL("Unsupported class for compressed pointers translation: %s (id=%" Pd
+        ", kNumPredefinedCids=%" Pd ")\n",
+        ToCString(), cid, kNumPredefinedCids);
+  return false;
 }
 
 StringPtr Class::Name() const {
@@ -2834,8 +2877,9 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
-    ObjectPtr raw = Object::Allocate(Class::kClassId, Class::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(Class::kClassId, Class::InstanceSize(), Heap::kOld,
+                         Class::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -4534,8 +4578,9 @@ ClassPtr Class::NewCommon(intptr_t index) {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
-    ObjectPtr raw = Object::Allocate(Class::kClassId, Class::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(Class::kClassId, Class::InstanceSize(), Heap::kOld,
+                         Class::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -6176,9 +6221,9 @@ const char* TypeParameters::ToCString() const {
 
 TypeParametersPtr TypeParameters::New(Heap::Space space) {
   ASSERT(Object::type_parameters_class() != Class::null());
-  ObjectPtr ptr = Object::Allocate(TypeParameters::kClassId,
-                                   TypeParameters::InstanceSize(), space,
-                                   /*compressed*/ false);
+  ObjectPtr ptr =
+      Object::Allocate(TypeParameters::kClassId, TypeParameters::InstanceSize(),
+                       space, TypeParameters::ContainsCompressedPointers());
   return static_cast<TypeParametersPtr>(ptr);
 }
 
@@ -6873,9 +6918,9 @@ TypeArgumentsPtr TypeArguments::New(intptr_t len, Heap::Space space) {
   }
   TypeArguments& result = TypeArguments::Handle();
   {
-    ObjectPtr raw = Object::Allocate(TypeArguments::kClassId,
-                                     TypeArguments::InstanceSize(len), space,
-                                     /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        TypeArguments::kClassId, TypeArguments::InstanceSize(len), space,
+        TypeArguments::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     // Length must be set before we start storing into the array.
@@ -7021,7 +7066,7 @@ PatchClassPtr PatchClass::New() {
   ASSERT(Object::patch_class_class() != Class::null());
   ObjectPtr raw =
       Object::Allocate(PatchClass::kClassId, PatchClass::InstanceSize(),
-                       Heap::kOld, /*compressed*/ true);
+                       Heap::kOld, PatchClass::ContainsCompressedPointers());
   return static_cast<PatchClassPtr>(raw);
 }
 
@@ -8890,8 +8935,9 @@ bool Function::IsImplicitStaticClosureFunction(FunctionPtr func) {
 
 FunctionPtr Function::New(Heap::Space space) {
   ASSERT(Object::function_class() != Class::null());
-  ObjectPtr raw = Object::Allocate(Function::kClassId, Function::InstanceSize(),
-                                   space, /*compressed*/ true);
+  ObjectPtr raw =
+      Object::Allocate(Function::kClassId, Function::InstanceSize(), space,
+                       Function::ContainsCompressedPointers());
   return static_cast<FunctionPtr>(raw);
 }
 
@@ -10079,7 +10125,7 @@ ClosureDataPtr ClosureData::New() {
   ASSERT(Object::closure_data_class() != Class::null());
   ObjectPtr raw =
       Object::Allocate(ClosureData::kClassId, ClosureData::InstanceSize(),
-                       Heap::kOld, /*compressed*/ true);
+                       Heap::kOld, ClosureData::ContainsCompressedPointers());
   return static_cast<ClosureDataPtr>(raw);
 }
 
@@ -10156,7 +10202,7 @@ void FunctionType::SetNumOptionalParameters(
 FunctionTypePtr FunctionType::New(Heap::Space space) {
   ObjectPtr raw =
       Object::Allocate(FunctionType::kClassId, FunctionType::InstanceSize(),
-                       space, /*compressed*/ true);
+                       space, FunctionType::ContainsCompressedPointers());
   return static_cast<FunctionTypePtr>(raw);
 }
 
@@ -10252,9 +10298,9 @@ void FfiTrampolineData::set_callback_exceptional_return(
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {
   ASSERT(Object::ffi_trampoline_data_class() != Class::null());
-  ObjectPtr raw = Object::Allocate(FfiTrampolineData::kClassId,
-                                   FfiTrampolineData::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ true);
+  ObjectPtr raw = Object::Allocate(
+      FfiTrampolineData::kClassId, FfiTrampolineData::InstanceSize(),
+      Heap::kOld, FfiTrampolineData::ContainsCompressedPointers());
   FfiTrampolineDataPtr data = static_cast<FfiTrampolineDataPtr>(raw);
   data->untag()->callback_id_ = 0;
   return data;
@@ -10515,8 +10561,9 @@ void Field::SetFieldType(const AbstractType& value) const {
 
 FieldPtr Field::New() {
   ASSERT(Object::field_class() != Class::null());
-  ObjectPtr raw = Object::Allocate(Field::kClassId, Field::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ true);
+  ObjectPtr raw =
+      Object::Allocate(Field::kClassId, Field::InstanceSize(), Heap::kOld,
+                       Field::ContainsCompressedPointers());
   return static_cast<FieldPtr>(raw);
 }
 
@@ -11943,8 +11990,9 @@ StringPtr Script::GetSnippet(intptr_t from_line,
 
 ScriptPtr Script::New() {
   ASSERT(Object::script_class() != Class::null());
-  ObjectPtr raw = Object::Allocate(Script::kClassId, Script::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ true);
+  ObjectPtr raw =
+      Object::Allocate(Script::kClassId, Script::InstanceSize(), Heap::kOld,
+                       Script::ContainsCompressedPointers());
   return static_cast<ScriptPtr>(raw);
 }
 
@@ -13003,8 +13051,9 @@ void Library::InitImportList() const {
 
 LibraryPtr Library::New() {
   ASSERT(Object::library_class() != Class::null());
-  ObjectPtr raw = Object::Allocate(Library::kClassId, Library::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ true);
+  ObjectPtr raw =
+      Object::Allocate(Library::kClassId, Library::InstanceSize(), Heap::kOld,
+                       Library ::ContainsCompressedPointers());
   return static_cast<LibraryPtr>(raw);
 }
 
@@ -13711,7 +13760,7 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
 LibraryPrefixPtr LibraryPrefix::New() {
   ObjectPtr raw =
       Object::Allocate(LibraryPrefix::kClassId, LibraryPrefix::InstanceSize(),
-                       Heap::kOld, /*compressed*/ false);
+                       Heap::kOld, LibraryPrefix::ContainsCompressedPointers());
   return static_cast<LibraryPrefixPtr>(raw);
 }
 
@@ -13867,7 +13916,7 @@ NamespacePtr Namespace::New() {
   ASSERT(Object::namespace_class() != Class::null());
   ObjectPtr raw =
       Object::Allocate(Namespace::kClassId, Namespace::InstanceSize(),
-                       Heap::kOld, /*compressed*/ true);
+                       Heap::kOld, Namespace::ContainsCompressedPointers());
   return static_cast<NamespacePtr>(raw);
 }
 
@@ -13886,9 +13935,9 @@ NamespacePtr Namespace::New(const Library& target,
 }
 
 KernelProgramInfoPtr KernelProgramInfo::New() {
-  ObjectPtr raw = Object::Allocate(KernelProgramInfo::kClassId,
-                                   KernelProgramInfo::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ true);
+  ObjectPtr raw = Object::Allocate(
+      KernelProgramInfo::kClassId, KernelProgramInfo::InstanceSize(),
+      Heap::kOld, KernelProgramInfo::ContainsCompressedPointers());
   return static_cast<KernelProgramInfoPtr>(raw);
 }
 
@@ -14289,8 +14338,9 @@ InstructionsPtr Instructions::New(intptr_t size, bool has_monomorphic_entry) {
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
-    ObjectPtr raw = Object::Allocate(Instructions::kClassId, aligned_size,
-                                     Heap::kCode, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(Instructions::kClassId, aligned_size, Heap::kCode,
+                         Instructions::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetSize(size);
@@ -14350,8 +14400,9 @@ InstructionsTablePtr InstructionsTable::New(intptr_t length,
   InstructionsTable& result = InstructionsTable::Handle(thread->zone());
   {
     uword size = InstructionsTable::InstanceSize(length);
-    ObjectPtr raw = Object::Allocate(InstructionsTable::kClassId, size,
-                                     Heap::kOld, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(InstructionsTable::kClassId, size, Heap::kOld,
+                         InstructionsTable::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_length(length);
@@ -14452,7 +14503,7 @@ ObjectPoolPtr ObjectPool::New(intptr_t len) {
   {
     uword size = ObjectPool::InstanceSize(len);
     ObjectPtr raw = Object::Allocate(ObjectPool::kClassId, size, Heap::kOld,
-                                     /*compressed*/ false);
+                                     ObjectPool::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -14567,9 +14618,9 @@ PcDescriptorsPtr PcDescriptors::New(const void* delta_encoded_data,
   Thread* thread = Thread::Current();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
-    ObjectPtr raw = Object::Allocate(PcDescriptors::kClassId,
-                                     PcDescriptors::InstanceSize(size),
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        PcDescriptors::kClassId, PcDescriptors::InstanceSize(size), Heap::kOld,
+        PcDescriptors::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(size);
@@ -14584,8 +14635,9 @@ PcDescriptorsPtr PcDescriptors::New(intptr_t length) {
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
     uword size = PcDescriptors::InstanceSize(length);
-    ObjectPtr raw = Object::Allocate(PcDescriptors::kClassId, size, Heap::kOld,
-                                     /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(PcDescriptors::kClassId, size, Heap::kOld,
+                         PcDescriptors::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
@@ -14717,8 +14769,9 @@ CodeSourceMapPtr CodeSourceMap::New(intptr_t length) {
   CodeSourceMap& result = CodeSourceMap::Handle(thread->zone());
   {
     uword size = CodeSourceMap::InstanceSize(length);
-    ObjectPtr raw = Object::Allocate(CodeSourceMap::kClassId, size, Heap::kOld,
-                                     /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(CodeSourceMap::kClassId, size, Heap::kOld,
+                         CodeSourceMap::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
@@ -14907,9 +14960,9 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
   {
     // CompressedStackMaps data objects are associated with a code object,
     // allocate them in old generation.
-    ObjectPtr raw = Object::Allocate(CompressedStackMaps::kClassId,
-                                     CompressedStackMaps::InstanceSize(size),
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        CompressedStackMaps::kClassId, CompressedStackMaps::InstanceSize(size),
+        Heap::kOld, CompressedStackMaps::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(
@@ -15057,8 +15110,9 @@ LocalVarDescriptorsPtr LocalVarDescriptors::New(intptr_t num_variables) {
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
     uword size = LocalVarDescriptors::InstanceSize(num_variables);
-    ObjectPtr raw = Object::Allocate(LocalVarDescriptors::kClassId, size,
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(LocalVarDescriptors::kClassId, size, Heap::kOld,
+                         LocalVarDescriptors::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.untag()->num_entries_, num_variables);
@@ -15158,8 +15212,9 @@ ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
   ExceptionHandlers& result = ExceptionHandlers::Handle();
   {
     uword size = ExceptionHandlers::InstanceSize(num_handlers);
-    ObjectPtr raw = Object::Allocate(ExceptionHandlers::kClassId, size,
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(ExceptionHandlers::kClassId, size, Heap::kOld,
+                         ExceptionHandlers::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.untag()->num_entries_, num_handlers);
@@ -15183,8 +15238,9 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
   ExceptionHandlers& result = ExceptionHandlers::Handle();
   {
     uword size = ExceptionHandlers::InstanceSize(num_handlers);
-    ObjectPtr raw = Object::Allocate(ExceptionHandlers::kClassId, size,
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(ExceptionHandlers::kClassId, size, Heap::kOld,
+                         ExceptionHandlers::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.untag()->num_entries_, num_handlers);
@@ -15257,9 +15313,9 @@ SingleTargetCachePtr SingleTargetCache::New() {
   SingleTargetCache& result = SingleTargetCache::Handle();
   {
     // IC data objects are long living objects, allocate them in old generation.
-    ObjectPtr raw = Object::Allocate(SingleTargetCache::kClassId,
-                                     SingleTargetCache::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ false);
+    ObjectPtr raw = Object::Allocate(
+        SingleTargetCache::kClassId, SingleTargetCache::InstanceSize(),
+        Heap::kOld, SingleTargetCache::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -15292,7 +15348,7 @@ UnlinkedCallPtr UnlinkedCall::New() {
   UnlinkedCall& result = UnlinkedCall::Handle();
   result ^=
       Object::Allocate(UnlinkedCall::kClassId, UnlinkedCall::InstanceSize(),
-                       Heap::kOld, /*compressed*/ false);
+                       Heap::kOld, UnlinkedCall::ContainsCompressedPointers());
   result.set_can_patch_to_monomorphic(!FLAG_precompiled_mode);
   return result.ptr();
 }
@@ -15300,9 +15356,9 @@ UnlinkedCallPtr UnlinkedCall::New() {
 MonomorphicSmiableCallPtr MonomorphicSmiableCall::New(classid_t expected_cid,
                                                       const Code& target) {
   auto& result = MonomorphicSmiableCall::Handle();
-  result ^= Object::Allocate(MonomorphicSmiableCall::kClassId,
-                             MonomorphicSmiableCall::InstanceSize(), Heap::kOld,
-                             /*compressed*/ false);
+  result ^= Object::Allocate(
+      MonomorphicSmiableCall::kClassId, MonomorphicSmiableCall::InstanceSize(),
+      Heap::kOld, MonomorphicSmiableCall::ContainsCompressedPointers());
   result.untag()->set_target(target.ptr());
   result.StoreNonPointer(&result.untag()->expected_cid_, expected_cid);
   result.StoreNonPointer(&result.untag()->entrypoint_, target.EntryPoint());
@@ -16257,8 +16313,9 @@ ICDataPtr ICData::NewDescriptor(Zone* zone,
   ICData& result = ICData::Handle(zone);
   {
     // IC data objects are long living objects, allocate them in old generation.
-    ObjectPtr raw = Object::Allocate(ICData::kClassId, ICData::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(ICData::kClassId, ICData::InstanceSize(), Heap::kOld,
+                         ICData::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -16281,8 +16338,9 @@ ICDataPtr ICData::New() {
   ICData& result = ICData::Handle();
   {
     // IC data objects are long living objects, allocate them in old generation.
-    ObjectPtr raw = Object::Allocate(ICData::kClassId, ICData::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(ICData::kClassId, ICData::InstanceSize(), Heap::kOld,
+                         ICData::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -16437,9 +16495,10 @@ WeakSerializationReferencePtr WeakSerializationReference::New(
   ASSERT(Object::weak_serialization_reference_class() != Class::null());
   WeakSerializationReference& result = WeakSerializationReference::Handle();
   {
-    ObjectPtr raw = Object::Allocate(WeakSerializationReference::kClassId,
-                                     WeakSerializationReference::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        WeakSerializationReference::kClassId,
+        WeakSerializationReference::InstanceSize(), Heap::kOld,
+        WeakSerializationReference::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
 
     result ^= raw;
@@ -16874,7 +16933,7 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
   {
     uword size = Code::InstanceSize(pointer_offsets_length);
     ObjectPtr raw = Object::Allocate(Code::kClassId, size, Heap::kOld,
-                                     /*compressed*/ false);
+                                     Code::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
@@ -17413,9 +17472,9 @@ ContextPtr Context::New(intptr_t num_variables, Heap::Space space) {
   }
   Context& result = Context::Handle();
   {
-    ObjectPtr raw = Object::Allocate(Context::kClassId,
-                                     Context::InstanceSize(num_variables),
-                                     space, /*compressed*/ false);
+    ObjectPtr raw = Object::Allocate(
+        Context::kClassId, Context::InstanceSize(num_variables), space,
+        Context::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_num_variables(num_variables);
@@ -17484,8 +17543,9 @@ ContextScopePtr ContextScope::New(intptr_t num_variables, bool is_implicit) {
   intptr_t size = ContextScope::InstanceSize(num_variables);
   ContextScope& result = ContextScope::Handle();
   {
-    ObjectPtr raw = Object::Allocate(ContextScope::kClassId, size, Heap::kOld,
-                                     /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(ContextScope::kClassId, size, Heap::kOld,
+                         ContextScope::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_num_variables(num_variables);
@@ -17663,9 +17723,9 @@ void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
 MegamorphicCachePtr MegamorphicCache::New() {
   MegamorphicCache& result = MegamorphicCache::Handle();
   {
-    ObjectPtr raw = Object::Allocate(MegamorphicCache::kClassId,
-                                     MegamorphicCache::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ false);
+    ObjectPtr raw = Object::Allocate(
+        MegamorphicCache::kClassId, MegamorphicCache::InstanceSize(),
+        Heap::kOld, MegamorphicCache::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -17677,9 +17737,9 @@ MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
                                           const Array& arguments_descriptor) {
   MegamorphicCache& result = MegamorphicCache::Handle();
   {
-    ObjectPtr raw = Object::Allocate(MegamorphicCache::kClassId,
-                                     MegamorphicCache::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ false);
+    ObjectPtr raw = Object::Allocate(
+        MegamorphicCache::kClassId, MegamorphicCache::InstanceSize(),
+        Heap::kOld, MegamorphicCache::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -17863,9 +17923,9 @@ SubtypeTestCachePtr SubtypeTestCache::New() {
   {
     // SubtypeTestCache objects are long living objects, allocate them in the
     // old generation.
-    ObjectPtr raw = Object::Allocate(SubtypeTestCache::kClassId,
-                                     SubtypeTestCache::InstanceSize(),
-                                     Heap::kOld, /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        SubtypeTestCache::kClassId, SubtypeTestCache::InstanceSize(),
+        Heap::kOld, SubtypeTestCache::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -18146,7 +18206,7 @@ LoadingUnitPtr LoadingUnit::New() {
     // old generation.
     ObjectPtr raw =
         Object::Allocate(LoadingUnit::kClassId, LoadingUnit::InstanceSize(),
-                         Heap::kOld, /*compressed*/ true);
+                         Heap::kOld, LoadingUnit::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -18218,8 +18278,9 @@ const char* Error::ToCString() const {
 
 ApiErrorPtr ApiError::New() {
   ASSERT(Object::api_error_class() != Class::null());
-  ObjectPtr raw = Object::Allocate(ApiError::kClassId, ApiError::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ true);
+  ObjectPtr raw =
+      Object::Allocate(ApiError::kClassId, ApiError::InstanceSize(), Heap::kOld,
+                       ApiError::ContainsCompressedPointers());
   return static_cast<ApiErrorPtr>(raw);
 }
 
@@ -18236,7 +18297,7 @@ ApiErrorPtr ApiError::New(const String& message, Heap::Space space) {
   {
     ObjectPtr raw =
         Object::Allocate(ApiError::kClassId, ApiError::InstanceSize(), space,
-                         /*compressed*/ true);
+                         ApiError::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -18261,7 +18322,7 @@ LanguageErrorPtr LanguageError::New() {
   ASSERT(Object::language_error_class() != Class::null());
   ObjectPtr raw =
       Object::Allocate(LanguageError::kClassId, LanguageError::InstanceSize(),
-                       Heap::kOld, /*compressed*/ true);
+                       Heap::kOld, LanguageError::ContainsCompressedPointers());
   return static_cast<LanguageErrorPtr>(raw);
 }
 
@@ -18278,7 +18339,7 @@ LanguageErrorPtr LanguageError::NewFormattedV(const Error& prev_error,
   {
     ObjectPtr raw =
         Object::Allocate(LanguageError::kClassId, LanguageError::InstanceSize(),
-                         space, /*compressed*/ true);
+                         space, LanguageError::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -18318,7 +18379,7 @@ LanguageErrorPtr LanguageError::New(const String& formatted_message,
   {
     ObjectPtr raw =
         Object::Allocate(LanguageError::kClassId, LanguageError::InstanceSize(),
-                         space, /*compressed*/ true);
+                         space, LanguageError::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -18388,9 +18449,9 @@ UnhandledExceptionPtr UnhandledException::New(const Instance& exception,
   ASSERT(Object::unhandled_exception_class() != Class::null());
   UnhandledException& result = UnhandledException::Handle();
   {
-    ObjectPtr raw = Object::Allocate(UnhandledException::kClassId,
-                                     UnhandledException::InstanceSize(), space,
-                                     /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        UnhandledException::kClassId, UnhandledException::InstanceSize(), space,
+        UnhandledException::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -18403,9 +18464,9 @@ UnhandledExceptionPtr UnhandledException::New(Heap::Space space) {
   ASSERT(Object::unhandled_exception_class() != Class::null());
   UnhandledException& result = UnhandledException::Handle();
   {
-    ObjectPtr raw = Object::Allocate(UnhandledException::kClassId,
-                                     UnhandledException::InstanceSize(), space,
-                                     /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        UnhandledException::kClassId, UnhandledException::InstanceSize(), space,
+        UnhandledException::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -18463,7 +18524,7 @@ UnwindErrorPtr UnwindError::New(const String& message, Heap::Space space) {
   {
     ObjectPtr raw =
         Object::Allocate(UnwindError::kClassId, UnwindError::InstanceSize(),
-                         space, /*compressed*/ true);
+                         space, UnwindError::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -19325,8 +19386,8 @@ InstancePtr Instance::New(const Class& cls, Heap::Space space) {
   }
   intptr_t instance_size = cls.host_instance_size();
   ASSERT(instance_size > 0);
-  ObjectPtr raw =
-      Object::Allocate(cls.id(), instance_size, space, /*compressed*/ false);
+  ObjectPtr raw = Object::Allocate(cls.id(), instance_size, space,
+                                   Instance::ContainsCompressedPointers());
   return static_cast<InstancePtr>(raw);
 }
 
@@ -19335,8 +19396,8 @@ InstancePtr Instance::NewFromCidAndSize(SharedClassTable* shared_class_table,
                                         Heap::Space heap) {
   const intptr_t instance_size = shared_class_table->SizeAt(cid);
   ASSERT(instance_size > 0);
-  ObjectPtr raw =
-      Object::Allocate(cid, instance_size, heap, /*compressed*/ false);
+  ObjectPtr raw = Object::Allocate(cid, instance_size, heap,
+                                   Instance::ContainsCompressedPointers());
   return static_cast<InstancePtr>(raw);
 }
 
@@ -20900,7 +20961,7 @@ void Type::set_arguments(const TypeArguments& value) const {
 
 TypePtr Type::New(Heap::Space space) {
   ObjectPtr raw = Object::Allocate(Type::kClassId, Type::InstanceSize(), space,
-                                   /*compressed*/ true);
+                                   Type::ContainsCompressedPointers());
   return static_cast<TypePtr>(raw);
 }
 
@@ -21308,8 +21369,9 @@ uword TypeRef::Hash() const {
 }
 
 TypeRefPtr TypeRef::New() {
-  ObjectPtr raw = Object::Allocate(TypeRef::kClassId, TypeRef::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ true);
+  ObjectPtr raw =
+      Object::Allocate(TypeRef::kClassId, TypeRef::InstanceSize(), Heap::kOld,
+                       TypeRef::ContainsCompressedPointers());
   return static_cast<TypeRefPtr>(raw);
 }
 
@@ -21719,7 +21781,7 @@ uword TypeParameter::ComputeHash() const {
 TypeParameterPtr TypeParameter::New() {
   ObjectPtr raw =
       Object::Allocate(TypeParameter::kClassId, TypeParameter::InstanceSize(),
-                       Heap::kOld, /*compressed*/ true);
+                       Heap::kOld, TypeParameter::ContainsCompressedPointers());
   return static_cast<TypeParameterPtr>(raw);
 }
 
@@ -22156,7 +22218,7 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
   Mint& result = Mint::Handle();
   {
     ObjectPtr raw = Object::Allocate(Mint::kClassId, Mint::InstanceSize(),
-                                     space, /*compressed*/ false);
+                                     space, Mint::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -22277,8 +22339,9 @@ DoublePtr Double::New(double d, Heap::Space space) {
          Class::null());
   Double& result = Double::Handle();
   {
-    ObjectPtr raw = Object::Allocate(Double::kClassId, Double::InstanceSize(),
-                                     space, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(Double::kClassId, Double::InstanceSize(), space,
+                         Double::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -23399,9 +23462,9 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
     FATAL1("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
   }
   {
-    ObjectPtr raw = Object::Allocate(OneByteString::kClassId,
-                                     OneByteString::InstanceSize(len), space,
-                                     /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        OneByteString::kClassId, OneByteString::InstanceSize(len), space,
+        OneByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     OneByteStringPtr result = static_cast<OneByteStringPtr>(raw);
     result->untag()->set_length(Smi::New(len));
@@ -23607,9 +23670,9 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
   }
   String& result = String::Handle();
   {
-    ObjectPtr raw = Object::Allocate(TwoByteString::kClassId,
-                                     TwoByteString::InstanceSize(len), space,
-                                     /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        TwoByteString::kClassId, TwoByteString::InstanceSize(len), space,
+        TwoByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -23764,9 +23827,9 @@ ExternalOneByteStringPtr ExternalOneByteString::New(
   }
   String& result = String::Handle();
   {
-    ObjectPtr raw = Object::Allocate(ExternalOneByteString::kClassId,
-                                     ExternalOneByteString::InstanceSize(),
-                                     space, /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        ExternalOneByteString::kClassId, ExternalOneByteString::InstanceSize(),
+        space, ExternalOneByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -23794,9 +23857,9 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
   }
   String& result = String::Handle();
   {
-    ObjectPtr raw = Object::Allocate(ExternalTwoByteString::kClassId,
-                                     ExternalTwoByteString::InstanceSize(),
-                                     space, /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        ExternalTwoByteString::kClassId, ExternalTwoByteString::InstanceSize(),
+        space, ExternalTwoByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -23901,8 +23964,9 @@ ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
     FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
   }
   {
-    ArrayPtr raw = static_cast<ArrayPtr>(Object::Allocate(
-        class_id, Array::InstanceSize(len), space, /*compressed*/ false));
+    ArrayPtr raw = static_cast<ArrayPtr>(
+        Object::Allocate(class_id, Array::InstanceSize(len), space,
+                         Array::ContainsCompressedPointers()));
     NoSafepointScope no_safepoint;
     raw->untag()->set_length(Smi::New(len));
     return raw;
@@ -24109,9 +24173,9 @@ GrowableObjectArrayPtr GrowableObjectArray::New(const Array& array,
       Class::null());
   GrowableObjectArray& result = GrowableObjectArray::Handle();
   {
-    ObjectPtr raw = Object::Allocate(GrowableObjectArray::kClassId,
-                                     GrowableObjectArray::InstanceSize(), space,
-                                     /*compressed*/ false);
+    ObjectPtr raw = Object::Allocate(
+        GrowableObjectArray::kClassId, GrowableObjectArray::InstanceSize(),
+        space, GrowableObjectArray::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(0);
@@ -24199,7 +24263,7 @@ LinkedHashMapPtr LinkedHashMap::NewUninitialized(Heap::Space space) {
   {
     ObjectPtr raw =
         Object::Allocate(LinkedHashMap::kClassId, LinkedHashMap::InstanceSize(),
-                         space, /*compressed*/ false);
+                         space, LinkedHashMap::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24227,7 +24291,7 @@ Float32x4Ptr Float32x4::New(float v0,
   {
     ObjectPtr raw =
         Object::Allocate(Float32x4::kClassId, Float32x4::InstanceSize(), space,
-                         /*compressed*/ false);
+                         Float32x4::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24245,7 +24309,7 @@ Float32x4Ptr Float32x4::New(simd128_value_t value, Heap::Space space) {
   {
     ObjectPtr raw =
         Object::Allocate(Float32x4::kClassId, Float32x4::InstanceSize(), space,
-                         /*compressed*/ false);
+                         Float32x4::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24313,8 +24377,9 @@ Int32x4Ptr Int32x4::New(int32_t v0,
          Class::null());
   Int32x4& result = Int32x4::Handle();
   {
-    ObjectPtr raw = Object::Allocate(Int32x4::kClassId, Int32x4::InstanceSize(),
-                                     space, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(Int32x4::kClassId, Int32x4::InstanceSize(), space,
+                         Int32x4::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24330,8 +24395,9 @@ Int32x4Ptr Int32x4::New(simd128_value_t value, Heap::Space space) {
          Class::null());
   Int32x4& result = Int32x4::Handle();
   {
-    ObjectPtr raw = Object::Allocate(Int32x4::kClassId, Int32x4::InstanceSize(),
-                                     space, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(Int32x4::kClassId, Int32x4::InstanceSize(), space,
+                         Int32x4::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24397,7 +24463,7 @@ Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
   {
     ObjectPtr raw =
         Object::Allocate(Float64x2::kClassId, Float64x2::InstanceSize(), space,
-                         /*compressed*/ false);
+                         Float64x2::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24413,7 +24479,7 @@ Float64x2Ptr Float64x2::New(simd128_value_t value, Heap::Space space) {
   {
     ObjectPtr raw =
         Object::Allocate(Float64x2::kClassId, Float64x2::InstanceSize(), space,
-                         /*compressed*/ false);
+                         Float64x2::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24517,7 +24583,7 @@ TypedDataPtr TypedData::New(intptr_t class_id,
     const intptr_t length_in_bytes = len * ElementSizeInBytes(class_id);
     ObjectPtr raw =
         Object::Allocate(class_id, TypedData::InstanceSize(length_in_bytes),
-                         space, /*compressed*/ true);
+                         space, TypedData::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -24564,7 +24630,7 @@ ExternalTypedDataPtr ExternalTypedData::New(
   {
     ObjectPtr raw =
         Object::Allocate(class_id, ExternalTypedData::InstanceSize(), space,
-                         /*compressed*/ true);
+                         ExternalTypedData::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -24585,8 +24651,9 @@ ExternalTypedDataPtr ExternalTypedData::NewFinalizeWithFree(uint8_t* data,
 TypedDataViewPtr TypedDataView::New(intptr_t class_id, Heap::Space space) {
   auto& result = TypedDataView::Handle();
   {
-    ObjectPtr raw = Object::Allocate(class_id, TypedDataView::InstanceSize(),
-                                     space, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(class_id, TypedDataView::InstanceSize(), space,
+                         TypedDataView::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.Clear();
@@ -24636,7 +24703,7 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
 
   Pointer& result = Pointer::Handle(zone);
   result ^= Object::Allocate(kFfiPointerCid, Pointer::InstanceSize(), space,
-                             /*compressed*/ false);
+                             Pointer::ContainsCompressedPointers());
   result.SetTypeArguments(type_args);
   result.SetNativeAddress(native_address);
 
@@ -24654,7 +24721,7 @@ DynamicLibraryPtr DynamicLibrary::New(void* handle, Heap::Space space) {
   DynamicLibrary& result = DynamicLibrary::Handle();
   result ^=
       Object::Allocate(kFfiDynamicLibraryCid, DynamicLibrary::InstanceSize(),
-                       space, /*compressed*/ false);
+                       space, DynamicLibrary::ContainsCompressedPointers());
   NoSafepointScope no_safepoint;
   result.SetHandle(handle);
   return result.ptr();
@@ -24678,7 +24745,7 @@ CapabilityPtr Capability::New(uint64_t id, Heap::Space space) {
   {
     ObjectPtr raw =
         Object::Allocate(Capability::kClassId, Capability::InstanceSize(),
-                         space, /*compressed*/ false);
+                         space, Capability::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.untag()->id_, id);
@@ -24708,7 +24775,7 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   {
     ObjectPtr raw =
         Object::Allocate(ReceivePort::kClassId, ReceivePort::InstanceSize(),
-                         space, /*compressed*/ true);
+                         space, ReceivePort::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.untag()->set_send_port(send_port.ptr());
@@ -24741,7 +24808,7 @@ SendPortPtr SendPort::New(Dart_Port id,
   {
     ObjectPtr raw =
         Object::Allocate(SendPort::kClassId, SendPort::InstanceSize(), space,
-                         /*compressed*/ false);
+                         SendPort::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.untag()->id_, id);
@@ -24767,9 +24834,9 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
   Thread* thread = Thread::Current();
   TransferableTypedData& result = TransferableTypedData::Handle();
   {
-    ObjectPtr raw = Object::Allocate(TransferableTypedData::kClassId,
-                                     TransferableTypedData::InstanceSize(),
-                                     space, /*compressed*/ false);
+    ObjectPtr raw = Object::Allocate(
+        TransferableTypedData::kClassId, TransferableTypedData::InstanceSize(),
+        space, TransferableTypedData::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     thread->heap()->SetPeer(raw, peer);
     result ^= raw;
@@ -24906,8 +24973,9 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         Heap::Space space) {
   Closure& result = Closure::Handle();
   {
-    ObjectPtr raw = Object::Allocate(Closure::kClassId, Closure::InstanceSize(),
-                                     space, /*compressed*/ false);
+    ObjectPtr raw =
+        Object::Allocate(Closure::kClassId, Closure::InstanceSize(), space,
+                         Closure::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.untag()->set_instantiator_type_arguments(
@@ -24921,8 +24989,9 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
 }
 
 ClosurePtr Closure::New() {
-  ObjectPtr raw = Object::Allocate(Closure::kClassId, Closure::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ false);
+  ObjectPtr raw =
+      Object::Allocate(Closure::kClassId, Closure::InstanceSize(), Heap::kOld,
+                       Closure::ContainsCompressedPointers());
   return static_cast<ClosurePtr>(raw);
 }
 
@@ -25019,7 +25088,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
   {
     ObjectPtr raw =
         Object::Allocate(StackTrace::kClassId, StackTrace::InstanceSize(),
-                         space, /*compressed*/ true);
+                         space, StackTrace::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -25039,7 +25108,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
   {
     ObjectPtr raw =
         Object::Allocate(StackTrace::kClassId, StackTrace::InstanceSize(),
-                         space, /*compressed*/ true);
+                         space, StackTrace::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -25399,8 +25468,9 @@ void RegExp::set_capture_name_map(const Array& array) const {
 RegExpPtr RegExp::New(Heap::Space space) {
   RegExp& result = RegExp::Handle();
   {
-    ObjectPtr raw = Object::Allocate(RegExp::kClassId, RegExp::InstanceSize(),
-                                     space, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(RegExp::kClassId, RegExp::InstanceSize(), space,
+                         RegExp::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_type(kUninitialized);
@@ -25482,7 +25552,7 @@ WeakPropertyPtr WeakProperty::New(Heap::Space space) {
          Class::null());
   ObjectPtr raw =
       Object::Allocate(WeakProperty::kClassId, WeakProperty::InstanceSize(),
-                       space, /*compressed*/ false);
+                       space, WeakProperty::ContainsCompressedPointers());
   return static_cast<WeakPropertyPtr>(raw);
 }
 
@@ -25529,9 +25599,9 @@ MirrorReferencePtr MirrorReference::New(const Object& referent,
                                         Heap::Space space) {
   MirrorReference& result = MirrorReference::Handle();
   {
-    ObjectPtr raw = Object::Allocate(MirrorReference::kClassId,
-                                     MirrorReference::InstanceSize(), space,
-                                     /*compressed*/ true);
+    ObjectPtr raw = Object::Allocate(
+        MirrorReference::kClassId, MirrorReference::InstanceSize(), space,
+        MirrorReference::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -25568,8 +25638,9 @@ UserTagPtr UserTag::New(const String& label, Heap::Space space) {
   }
   // No tag with label exists, create and register with isolate tag table.
   {
-    ObjectPtr raw = Object::Allocate(UserTag::kClassId, UserTag::InstanceSize(),
-                                     space, /*compressed*/ true);
+    ObjectPtr raw =
+        Object::Allocate(UserTag::kClassId, UserTag::InstanceSize(), space,
+                         UserTag::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
