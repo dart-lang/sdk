@@ -110,7 +110,7 @@ features:
     help: "Sound variance"
 
   alternative-invalidation-strategy:
-    help: "Alternative invalidation strategy for incremental compilation"
+    help: "Alternative invalidation strategy for incremental compilation."
     category: "CFE"
 
   value-class:
@@ -124,6 +124,12 @@ features:
 
   constructor-tearoffs:
     help: "Allow constructor tear-offs and explicit generic instantiations."
+
+# Experiment flag only used for testing.
+  test-experiment:
+    help: >-
+      Has no effect. Can be used for testing the --enable-experiment
+      command line functionality.
 
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
