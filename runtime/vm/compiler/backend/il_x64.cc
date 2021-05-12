@@ -4074,7 +4074,11 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   summary->set_in(0, needs_writable_input ? Location::WritableRegister()
                                           : Location::RequiresRegister());
   if (RepresentationUtils::IsUnboxedInteger(representation())) {
+#if !defined(DART_COMPRESSED_POINTERS)
     summary->set_out(0, Location::SameAsFirstInput());
+#else
+    summary->set_out(0, Location::RequiresRegister());
+#endif
   } else {
     summary->set_out(0, Location::RequiresFpuRegister());
   }
@@ -4122,14 +4126,16 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedInt32:
-    case kUnboxedInt64: {
+    case kUnboxedInt32: {
       const Register result = locs()->out(0).reg();
-      ASSERT(result == box);
-      __ SmiUntagAndSignExtend(box);
+      __ SmiUntag(result, box);
       break;
     }
-
+    case kUnboxedInt64: {
+      const Register result = locs()->out(0).reg();
+      __ SmiUntagAndSignExtend(result, box);
+      break;
+    }
     case kUnboxedDouble: {
       const FpuRegister result = locs()->out(0).fpu_reg();
       __ SmiUntag(box);
@@ -4146,22 +4152,18 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
+  ASSERT(value == result);
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
   __ movsxw(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
 #else
-  // Cannot speculatively untag because it erases the upper bits needed to
-  // dereference when it is a Mint.
-  // TODO(compressed-pointers): It would probably be cheaper to make
-  // result != value with compressed pointers.
-  compiler::Label not_smi;
-  __ BranchIfNotSmi(value, &not_smi, compiler::Assembler::kNearJump);
-  __ SmiUntagAndSignExtend(value);
-  __ jmp(&done, compiler::Assembler::kNearJump);
-  __ Bind(&not_smi);
+  ASSERT(value != result);
+  // Cannot speculatively untag with value == result because it erases the
+  // upper bits needed to dereference when it is a Mint.
+  __ SmiUntagAndSignExtend(result, value);
+  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
   __ movsxw(result, compiler::FieldAddress(value, Mint::value_offset()));
 #endif
   __ Bind(&done);
@@ -4170,24 +4172,21 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
+  ASSERT(value == result);
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movq(value, compiler::Address(value, TIMES_2, Mint::value_offset()));
-  __ Bind(&done);
+  __ movq(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
 #else
-  // Cannot speculatively untag because it erases the upper bits needed to
-  // dereference when it is a Mint.
-  compiler::Label not_smi;
-  __ BranchIfNotSmi(value, &not_smi, compiler::Assembler::kNearJump);
-  __ SmiUntagAndSignExtend(value);
-  __ jmp(&done, compiler::Assembler::kNearJump);
-  __ Bind(&not_smi);
-  __ movq(value, compiler::FieldAddress(value, Mint::value_offset()));
-  __ Bind(&done);
+  ASSERT(value != result);
+  // Cannot speculatively untag with value == result because it erases the
+  // upper bits needed to dereference when it is a Mint.
+  __ SmiUntagAndSignExtend(result, value);
+  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
+  __ movq(result, compiler::FieldAddress(value, Mint::value_offset()));
 #endif
+  __ Bind(&done);
 }
 
 LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
