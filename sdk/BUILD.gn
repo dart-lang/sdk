@@ -280,19 +280,6 @@ foreach(library, _full_sdk_libraries) {
   ]
 }
 
-if (is_win) {
-  copy_tree_specs += [
-    {
-      target = "copy_7zip"
-      visibility = [ ":create_common_sdk" ]
-      deps = [ ":copy_libraries" ]
-      source = "../third_party/7zip"
-      dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
-      ignore_patterns = ".svn"
-    },
-  ]
-}
-
 # This generates targets for everything in copy_tree_specs. The targets have the
 # same name as the "target" fields in the scopes of copy_tree_specs.
 copy_trees("copy_trees") {
@@ -835,10 +822,6 @@ group("create_common_sdk") {
   # dart2native script (since there is no AOT compiler/runtime available)
   if (dart_target_arch != "ia32") {
     public_deps += [ ":copy_dart2native" ]
-  }
-
-  if (is_win) {
-    public_deps += [ ":copy_7zip" ]
   }
 }
 
