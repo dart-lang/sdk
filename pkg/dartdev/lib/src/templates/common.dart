@@ -14,13 +14,18 @@ build/
 final String analysisOptions = '''
 # This file configures the static analysis results for your project (errors,
 # warnings, and lints).
+#
+# This enables the 'recommended' set of lints from `package:lints`.
+# This set helps identify many issues that may lead to problems when running
+# or consuming Dart code, and enforces writing Dart using a single, idiomatic
+# style and format.
+#
+# If you want a smaller set of lints you can change this to specify
+# 'package:lints/core.yaml'. These are just the most critical lints
+# (the recommended set includes the core lints).
+# The core lints are also what is used by pub.dev for scoring packages.
 
-# The following line activates a set of core lints for Dart apps; this is the
-# set that is used by pub.dev for scoring packages. For many projects, consider
-# changing this to specify 'package:lints/recommended.yaml'; that's an
-# additional set of lints designed to encourage good coding practices.
-
-include: package:lints/core.yaml
+include: package:lints/recommended.yaml
 
 # Uncomment the following section to specify additional rules.
 
