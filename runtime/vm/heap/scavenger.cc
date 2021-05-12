@@ -9,6 +9,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
 #include "vm/heap/become.h"
+#include "vm/heap/pages.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/heap/safepoint.h"
 #include "vm/heap/verifier.h"
@@ -867,17 +868,15 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     if (raw_obj->IsPseudoObject()) return;
     RELEASE_ASSERT(raw_obj->IsOldObject());
 
-    if (raw_obj->untag()->IsCardRemembered()) {
-      RELEASE_ASSERT(!raw_obj->untag()->IsRemembered());
-      // TODO(rmacnak): Verify card tables.
-      return;
-    }
-
     RELEASE_ASSERT(raw_obj->untag()->IsRemembered() ==
                    in_store_buffer_->Contains(raw_obj));
 
     visiting_ = raw_obj;
     is_remembered_ = raw_obj->untag()->IsRemembered();
+    is_card_remembered_ = raw_obj->untag()->IsCardRemembered();
+    if (is_card_remembered_) {
+      RELEASE_ASSERT(!is_remembered_);
+    }
     raw_obj->untag()->VisitPointers(this);
   }
 
@@ -885,12 +884,24 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        if (!is_remembered_) {
+        if (is_card_remembered_) {
+          if (!OldPage::Of(visiting_)->IsCardRemembered(ptr)) {
+            FATAL3(
+                "Old object %#" Px " references new object %#" Px
+                ", but the "
+                "slot's card is not remembered. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
+          }
+        } else if (!is_remembered_) {
           FATAL3(
               "Old object %#" Px " references new object %#" Px
-              ", but it is not"
-              " in any store buffer. Consider using rr to watch the slot %p and"
-              " reverse-continue to find the store with a missing barrier.\n",
+              ", but it is "
+              "not in any store buffer. Consider using rr to watch the "
+              "slot %p and reverse-continue to find the store with a missing "
+              "barrier.\n",
               static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
@@ -904,12 +915,24 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = ptr->Decompress(heap_base);
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        if (!is_remembered_) {
+        if (is_card_remembered_) {
+          if (!OldPage::Of(visiting_)->IsCardRemembered(ptr)) {
+            FATAL3(
+                "Old object %#" Px " references new object %#" Px
+                ", but the "
+                "slot's card is not remembered. Consider using rr to watch the "
+                "slot %p and reverse-continue to find the store with a missing "
+                "barrier.\n",
+                static_cast<uword>(visiting_), static_cast<uword>(raw_obj),
+                ptr);
+          }
+        } else if (!is_remembered_) {
           FATAL3(
               "Old object %#" Px " references new object %#" Px
-              ", but it is not"
-              " in any store buffer. Consider using rr to watch the slot %p and"
-              " reverse-continue to find the store with a missing barrier.\n",
+              ", but it is "
+              "not in any store buffer. Consider using rr to watch the "
+              "slot %p and reverse-continue to find the store with a missing "
+              "barrier.\n",
               static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
         }
         RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
@@ -922,6 +945,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   const SemiSpace* const to_;
   ObjectPtr visiting_;
   bool is_remembered_;
+  bool is_card_remembered_;
 };
 
 void Scavenger::VerifyStoreBuffers() {
