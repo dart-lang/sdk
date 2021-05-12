@@ -1,4 +1,4 @@
-# 1.8.0-dev
+# 1.8.0
 - Add support for launching DevTools from DDS.
 - Fixed issue where two clients subscribing to the same stream in close succession
   could result in DDS sending multiple `streamListen` requests to the VM service.
