@@ -2093,7 +2093,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 24;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 16;
 static constexpr dart::compiler::target::word Array_header_size = 24;
@@ -3182,7 +3182,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 24;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 16;
 static constexpr dart::compiler::target::word Array_header_size = 24;
@@ -5324,7 +5324,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 24;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 16;
 static constexpr dart::compiler::target::word Array_header_size = 24;
@@ -6401,7 +6401,7 @@ static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 24;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 16;
 static constexpr dart::compiler::target::word Array_header_size = 24;
@@ -8206,7 +8206,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     24;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 16;
@@ -9417,7 +9417,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     24;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 16;
@@ -11213,7 +11213,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     24;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 16;
@@ -12410,7 +12410,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
         1376, 1384, 1392, 1400, 1408, 1416, 1424, 1432, 1440, 1448, 1456,
         1464, 1472, 1480, 1488, -1,   -1,   -1,   -1,   1496, 1504, -1,
-        -1,   -1,   1512, 1520, -1,   -1,   -1,   -1,   -1,   -1};
+        -1,   1512, 1520, 1528, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     24;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 16;
