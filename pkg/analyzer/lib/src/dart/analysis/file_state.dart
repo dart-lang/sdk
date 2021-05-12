@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -403,15 +402,9 @@ class FileState {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  ///
-  /// If an exception happens during parsing, an empty unit is returned.
   CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
-    try {
-      return _parse(errorListener);
-    } catch (_) {
-      return _createEmptyCompilationUnit();
-    }
+    return _parse(errorListener);
   }
 
   /// Read the file content and ensure that all of the file properties are
@@ -523,24 +516,6 @@ class FileState {
   @override
   String toString() {
     return '[id: $id][rid: $refreshId]$uri = $path';
-  }
-
-  CompilationUnitImpl _createEmptyCompilationUnit() {
-    var token = Token.eof(0);
-    var unit = astFactory.compilationUnit(
-      beginToken: token,
-      endToken: token,
-      featureSet: _contextFeatureSet,
-    );
-
-    unit.lineInfo = LineInfo(const <int>[0]);
-
-    unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
-      override: null,
-    );
-
-    return unit;
   }
 
   /// Return the [FileState] for the given [relativeUri], or `null` if the
