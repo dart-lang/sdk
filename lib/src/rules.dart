@@ -191,6 +191,7 @@ import 'rules/use_raw_strings.dart';
 import 'rules/use_rethrow_when_possible.dart';
 import 'rules/use_setters_to_change_properties.dart';
 import 'rules/use_string_buffers.dart';
+import 'rules/use_test_throws_matchers.dart';
 import 'rules/use_to_and_as_if_applicable.dart';
 import 'rules/valid_regexps.dart';
 import 'rules/void_checks.dart';
@@ -388,6 +389,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(UseRawStrings())
     ..register(UseSettersToChangeAProperty())
     ..register(UseStringBuffers())
+    ..register(UseTestThrowsMatchers())
     ..register(UseToAndAsIfApplicable())
     ..register(ValidRegExps())
     ..register(VoidChecks());

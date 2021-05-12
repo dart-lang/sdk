@@ -1,3 +1,4 @@
 fixnum:../mock_packages/fixnum/lib/
 flutter:../mock_packages/flutter/lib/
 meta:../mock_packages/meta/lib/
+test_api:../mock_packages/test_api/lib/
