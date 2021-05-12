@@ -1499,7 +1499,9 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     StackZone zone(T);
     HandleScope handle_scope(T);
 #if defined(DEBUG)
-    T->isolate_group()->ValidateConstants();
+    if (T->isolate()->origin_id() == 0) {
+      T->isolate_group()->ValidateConstants();
+    }
 #endif
     Dart::RunShutdownCallback();
   }
