@@ -11,8 +11,13 @@ import '../util/dart_type_utilities.dart';
 const _desc = r'Await only futures.';
 
 const _details = r'''
+**AVOID** using await on anything which is not a future.
 
-**AVOID** using await on anything other than a future.
+Await is allowed on the types: `Future<X>`, `FutureOr<X>`, `Future<X>?`, 
+`FutureOr<X>?` and `dynamic`.
+
+Further, using `await null` is specifically allowed as a way to introduce a
+microtask delay.
 
 **BAD:**
 ```dart
@@ -20,14 +25,13 @@ main() async {
   print(await 23);
 }
 ```
-
 **GOOD:**
 ```dart
 main() async {
-  print(await Future.value(23));
+  await null; // If a delay is really intended.
+  print(23);
 }
 ```
-
 ''';
 
 class AwaitOnlyFutures extends LintRule implements NodeLintRule {
