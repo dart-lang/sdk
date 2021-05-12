@@ -13,8 +13,8 @@ import "org-dartlang-testcase:///late_statics_lib.dart" as lib;
 export "org-dartlang-testcase:///late_statics_lib.dart";
 
 class Statics extends core::Object {
-  static final field _la::_Cell a = new _la::_Cell::•();
-  static final field _la::_Cell b = new _la::_Cell::•();
+  static final field _la::_Cell a = new _la::_Cell::named("a");
+  static final field _la::_Cell b = new _la::_Cell::named("b");
   late static field core::int c = 1.{core::int::unary-}(){() → core::int};
   late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
   synthetic constructor •() → self::Statics
@@ -73,8 +73,8 @@ import self as lat;
 import "dart:_late_helper" as _la;
 import "dart:core" as core;
 
-static final field _la::_Cell a = new _la::_Cell::•();
-static final field _la::_Cell b = new _la::_Cell::•();
+static final field _la::_Cell a = new _la::_Cell::named("a");
+static final field _la::_Cell b = new _la::_Cell::named("b");
 late static field core::int c = 1.{core::int::unary-}(){() → core::int};
 late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
 

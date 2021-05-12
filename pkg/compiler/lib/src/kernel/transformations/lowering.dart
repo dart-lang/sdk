@@ -14,8 +14,11 @@ import 'late_lowering.dart';
 /// Each transformation is applied locally to AST nodes of certain types after
 /// transforming children nodes.
 void transformLibraries(
-    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer = _Lowering(coreTypes, hierarchy);
+    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy,
+    {bool omitLateNames}) {
+  assert(omitLateNames != null);
+  final transformer =
+      _Lowering(coreTypes, hierarchy, omitLateNames: omitLateNames);
   libraries.forEach(transformer.visitLibrary);
 
   // Do a second pass to remove/replace now-unused nodes.
@@ -31,9 +34,10 @@ class _Lowering extends Transformer {
 
   Member _currentMember;
 
-  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
-        _lateLowering = LateLowering(coreTypes);
+  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, {bool omitLateNames})
+      : assert(omitLateNames != null),
+        factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
+        _lateLowering = LateLowering(coreTypes, omitLateNames: omitLateNames);
 
   void transformAdditionalExports(Library node) {
     _lateLowering.transformAdditionalExports(node);

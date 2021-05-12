@@ -248,6 +248,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// which case [_disableMinification] wins.
   bool _disableMinification = false;
 
+  /// Whether to omit names of late variables from error messages.
+  bool omitLateNames = false;
+
+  /// Flag to turn off `omitLateNames` even if enabled elsewhere, e.g. via
+  /// `-O2`. Both [omitLateNames] and [_noOmitLateNames] can be true, in which
+  /// case [_noOmitLateNames] wins.
+  bool _noOmitLateNames = false;
+
   /// Whether to model which native classes are live based on annotations on the
   /// core libraries. If false, all native classes will be included by default.
   bool enableNativeLiveTypeAnalysis = true;
@@ -490,6 +498,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '${Flags.dumpSsa}=', null)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
+      ..omitLateNames = _hasOption(options, Flags.omitLateNames)
+      .._noOmitLateNames = _hasOption(options, Flags.noOmitLateNames)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
@@ -623,6 +633,7 @@ class CompilerOptions implements DiagnosticOptions {
       if (optimizationLevel >= 2) {
         enableMinification = true;
         laxRuntimeTypeToString = true;
+        omitLateNames = true;
       }
       if (optimizationLevel >= 3) {
         omitImplicitChecks = true;
@@ -656,6 +667,10 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_disableMinification) {
       enableMinification = false;
+    }
+
+    if (_noOmitLateNames) {
+      omitLateNames = false;
     }
 
     if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {

@@ -983,17 +983,20 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitConstructorInvocation(
       ir.ConstructorInvocation node) {
+    ir.Constructor target = node.target;
+    ir.Class enclosingClass = target.enclosingClass;
+
     // TODO(45681): Investigate if other initializers should be made eager.
 
-    // Lazily invoking the `_Cell` constructor pessimizes certain uses of late
-    // variables, so we ensure it gets called eagerly.
-    if (node.target == _coreTypes.cellConstructor) {
+    // Lazily constructing cells pessimizes certain uses of late variables, so
+    // we ensure they get constructed eagerly.
+    if (enclosingClass == _coreTypes.cellClass) {
       return EvaluationComplexity.eager();
     }
 
     if (node.arguments.types.isNotEmpty) {
       visitNodesInContext(node.arguments.types,
-          new VariableUse.constructorTypeArgument(node.target));
+          new VariableUse.constructorTypeArgument(target));
     }
     visitArguments(node.arguments);
     return node.isConst

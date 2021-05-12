@@ -11,5 +11,5 @@ library from "org-dartlang-test:///late_statics.dart" as lat {
 }
 library from "org-dartlang-test:///late_statics_lib.dart" as lat2 {
 
-  static final field _late_helper::_Cell a = new _late_helper::_Cell::•();
+  static final field _late_helper::_Cell a = new _late_helper::_Cell::named("a");
 }

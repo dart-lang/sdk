@@ -77,9 +77,11 @@ class Dart2jsTarget extends Target {
   @override
   final String name;
 
+  final bool omitLateNames;
+
   Map<String, ir.Class> _nativeClasses;
 
-  Dart2jsTarget(this.name, this.flags);
+  Dart2jsTarget(this.name, this.flags, {this.omitLateNames = false});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -158,7 +160,8 @@ class Dart2jsTarget extends Target {
               _nativeClasses)
           .visitLibrary(library);
     }
-    lowering.transformLibraries(libraries, coreTypes, hierarchy);
+    lowering.transformLibraries(libraries, coreTypes, hierarchy,
+        omitLateNames: omitLateNames);
     logger?.call("Lowering transformations performed");
   }
 

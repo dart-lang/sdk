@@ -30,6 +30,8 @@ class _Reader {
 class LateLowering {
   final CoreTypes _coreTypes;
 
+  final bool omitLateNames;
+
   final _Reader _readLocal;
   final _Reader _readField;
   final _Reader _readInitialized;
@@ -43,11 +45,14 @@ class LateLowering {
 
   Member _contextMember;
 
-  LateLowering(this._coreTypes)
-      : _readLocal = _Reader(_coreTypes.cellReadLocal),
+  LateLowering(this._coreTypes, {this.omitLateNames})
+      : assert(omitLateNames != null),
+        _readLocal = _Reader(_coreTypes.cellReadLocal),
         _readField = _Reader(_coreTypes.cellReadField),
         _readInitialized = _Reader(_coreTypes.initializedCellRead),
         _readInitializedFinal = _Reader(_coreTypes.initializedCellReadFinal);
+
+  Nullability get nonNullable => _contextMember.enclosingLibrary.nonNullable;
 
   void transformAdditionalExports(Library library) {
     List<Reference> additionalExports = library.additionalExports;
@@ -61,16 +66,42 @@ class LateLowering {
     additionalExports.addAll(newExports);
   }
 
-  ConstructorInvocation _callCellConstructor(int fileOffset) =>
+  ConstructorInvocation _callCellConstructor(Expression name, int fileOffset) =>
+      omitLateNames
+          ? _callCellUnnamedConstructor(fileOffset)
+          : _callCellNamedConstructor(name, fileOffset);
+
+  ConstructorInvocation _callCellUnnamedConstructor(int fileOffset) =>
       ConstructorInvocation(_coreTypes.cellConstructor,
           Arguments.empty()..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
 
+  ConstructorInvocation _callCellNamedConstructor(
+          Expression name, int fileOffset) =>
+      ConstructorInvocation(_coreTypes.cellNamedConstructor,
+          Arguments([name])..fileOffset = fileOffset)
+        ..fileOffset = fileOffset;
+
   ConstructorInvocation _callInitializedCellConstructor(
+          Expression name, Expression initializer, int fileOffset) =>
+      omitLateNames
+          ? _callInitializedCellUnnamedConstructor(initializer, fileOffset)
+          : _callInitializedCellNamedConstructor(name, initializer, fileOffset);
+
+  ConstructorInvocation _callInitializedCellUnnamedConstructor(
           Expression initializer, int fileOffset) =>
       ConstructorInvocation(_coreTypes.initializedCellConstructor,
           Arguments([initializer])..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
+
+  ConstructorInvocation _callInitializedCellNamedConstructor(
+          Expression name, Expression initializer, int fileOffset) =>
+      ConstructorInvocation(_coreTypes.initializedCellNamedConstructor,
+          Arguments([name, initializer])..fileOffset = fileOffset)
+        ..fileOffset = fileOffset;
+
+  StringLiteral _nameLiteral(String name, int fileOffset) =>
+      StringLiteral(name ?? '')..fileOffset = fileOffset;
 
   InstanceInvocation _callReader(
       _Reader reader, Expression receiver, DartType type, int fileOffset) {
@@ -131,10 +162,11 @@ class LateLowering {
   VariableDeclaration _uninitializedVariableCell(VariableDeclaration variable) {
     assert(_shouldLowerUninitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    final cell = VariableDeclaration(variable.name,
-        initializer: _callCellConstructor(fileOffset),
-        type: InterfaceType(
-            _coreTypes.cellClass, _contextMember.enclosingLibrary.nonNullable),
+    String name = variable.name;
+    final cell = VariableDeclaration(name,
+        initializer:
+            _callCellConstructor(_nameLiteral(name, fileOffset), fileOffset),
+        type: InterfaceType(_coreTypes.cellClass, nonNullable),
         isFinal: true)
       ..fileOffset = fileOffset;
     return _addToCurrentScope(variable, cell);
@@ -153,12 +185,13 @@ class LateLowering {
   VariableDeclaration _initializedVariableCell(VariableDeclaration variable) {
     assert(_shouldLowerInitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    final cell = VariableDeclaration(variable.name,
+    String name = variable.name;
+    final cell = VariableDeclaration(name,
         initializer: _callInitializedCellConstructor(
+            _nameLiteral(name, fileOffset),
             _initializerClosure(variable.initializer, variable.type),
             fileOffset),
-        type: InterfaceType(_coreTypes.initializedCellClass,
-            _contextMember.enclosingLibrary.nonNullable),
+        type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
         isFinal: true)
       ..fileOffset = fileOffset;
     return _addToCurrentScope(variable, cell);
@@ -220,12 +253,13 @@ class LateLowering {
     assert(_shouldLowerField(field));
     return _fieldCells.putIfAbsent(field, () {
       int fileOffset = field.fileOffset;
+      Name name = field.name;
       field.getterReference.canonicalName?.unbind();
       field.setterReference?.canonicalName?.unbind();
-      return Field.immutable(field.name,
-          type: InterfaceType(
-              _coreTypes.cellClass, field.enclosingLibrary.nonNullable),
-          initializer: _callCellConstructor(fileOffset),
+      return Field.immutable(name,
+          type: InterfaceType(_coreTypes.cellClass, nonNullable),
+          initializer: _callCellConstructor(
+              _nameLiteral(name.text, fileOffset), fileOffset),
           isFinal: true,
           isStatic: true,
           fileUri: field.fileUri)

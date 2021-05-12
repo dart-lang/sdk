@@ -332,11 +332,17 @@ class CoreTypes {
   late final Constructor cellConstructor =
       index.getMember('dart:_late_helper', '_Cell', '') as Constructor;
 
+  late final Constructor cellNamedConstructor =
+      index.getMember('dart:_late_helper', '_Cell', 'named') as Constructor;
+
   late final Class initializedCellClass =
       index.getClass('dart:_late_helper', '_InitializedCell');
 
   late final Constructor initializedCellConstructor = index.getMember(
       'dart:_late_helper', '_InitializedCell', '') as Constructor;
+
+  late final Constructor initializedCellNamedConstructor = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'named') as Constructor;
 
   late final Procedure cellReadLocal =
       index.getMember('dart:_late_helper', '_Cell', 'readLocal') as Procedure;
