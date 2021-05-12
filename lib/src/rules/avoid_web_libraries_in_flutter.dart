@@ -41,6 +41,9 @@ YamlMap _parseYaml(String content) {
 }
 
 class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
+  /// Cache of most recent analysis root to parsed "hasFlutter" state.
+  static final Map<String, bool> _rootHasFlutterCache = {};
+
   AvoidWebLibrariesInFlutter()
       : super(
             name: 'avoid_web_libraries_in_flutter',
@@ -49,34 +52,14 @@ class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
             maturity: Maturity.stable,
             group: Group.errors);
 
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addCompilationUnit(this, visitor);
-    registry.addImportDirective(this, visitor);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  File? pubspecFile;
-
-  final LintRule rule;
-  bool? _shouldValidateUri;
-
-  _Visitor(this.rule);
-
-  bool get shouldValidateUri => _shouldValidateUri ??= checkForValidation();
-
-  bool checkForValidation() {
-    var file = pubspecFile;
-    if (file == null) {
+  bool hasFlutterDep(File? pubspec) {
+    if (pubspec == null) {
       return false;
     }
 
     YamlMap parsedPubspec;
     try {
-      var content = file.readAsStringSync();
+      var content = pubspec.readAsStringSync();
       parsedPubspec = _parseYaml(content);
       // ignore: avoid_catches_without_on_clauses
     } catch (_) {
@@ -95,6 +78,36 @@ class _Visitor extends SimpleAstVisitor<void> {
         null;
   }
 
+  @override
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    bool hasFlutter(String root) {
+      var hasFlutter = _rootHasFlutterCache[root];
+      if (hasFlutter == null) {
+        // clear previous cache
+        _rootHasFlutterCache.clear();
+        var pubspecFile = locatePubspecFile(context.currentUnit.unit);
+        hasFlutter = hasFlutterDep(pubspecFile);
+        _rootHasFlutterCache[root] = hasFlutter;
+      }
+      return hasFlutter;
+    }
+
+    var root = context.package?.root;
+    if (root != null) {
+      if (hasFlutter(root)) {
+        var visitor = _Visitor(this);
+        registry.addImportDirective(this, visitor);
+      }
+    }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
   bool isWebUri(String uri) {
     var uriLength = uri.length;
     return (uriLength == 9 && uri == 'dart:html') ||
@@ -103,17 +116,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    pubspecFile = locatePubspecFile(node);
-  }
-
-  @override
   void visitImportDirective(ImportDirective node) {
-    if (shouldValidateUri) {
-      var uriString = node.uri.stringValue;
-      if (uriString != null && isWebUri(uriString)) {
-        rule.reportLint(node);
-      }
+    var uriString = node.uri.stringValue;
+    if (uriString != null && isWebUri(uriString)) {
+      rule.reportLint(node);
     }
   }
 }
