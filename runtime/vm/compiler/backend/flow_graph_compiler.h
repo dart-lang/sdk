@@ -632,12 +632,6 @@ class FlowGraphCompiler : public ValueObject {
                                       intptr_t sub_type_cache_index);
 #endif
 
-  void GenerateRuntimeCall(const InstructionSource& source,
-                           intptr_t deopt_id,
-                           const RuntimeEntry& entry,
-                           intptr_t argument_count,
-                           LocationSummary* locs);
-
   void GenerateStubCall(const InstructionSource& source,
                         const Code& stub,
                         UntaggedPcDescriptors::Kind kind,

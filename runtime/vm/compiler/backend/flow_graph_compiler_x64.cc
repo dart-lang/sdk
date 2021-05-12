@@ -461,15 +461,6 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   }
 }
 
-void FlowGraphCompiler::GenerateRuntimeCall(const InstructionSource& source,
-                                            intptr_t deopt_id,
-                                            const RuntimeEntry& entry,
-                                            intptr_t argument_count,
-                                            LocationSummary* locs) {
-  __ CallRuntime(entry, argument_count);
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
-}
-
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t size_with_type_args,
     intptr_t deopt_id,

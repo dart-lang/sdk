@@ -1903,7 +1903,6 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
 
     if (deopt == NULL) {
-      ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
       __ cmpw(compiler::FieldAddress(field_reg, Field::guarded_cid_offset()),
@@ -1912,6 +1911,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ pushl(field_reg);
       __ pushl(value_reg);
+      ASSERT(!compiler->is_optimizing());  // No deopt info needed.
       __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
       __ Drop(2);  // Drop the field and the value.
     } else {
@@ -2021,6 +2021,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ pushl(field_reg);
       __ pushl(value_reg);
+      ASSERT(!compiler->is_optimizing());  // No deopt info needed.
       __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
       __ Drop(2);  // Drop the field and the value.
     } else {
@@ -2831,6 +2832,8 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
 class CheckStackOverflowSlowPath
     : public TemplateSlowPathCode<CheckStackOverflowInstr> {
  public:
+  static constexpr intptr_t kNumSlowPathArgs = 0;
+
   explicit CheckStackOverflowSlowPath(CheckStackOverflowInstr* instruction)
       : TemplateSlowPathCode(instruction) {}
 
@@ -2850,9 +2853,11 @@ class CheckStackOverflowSlowPath
     Environment* env = compiler->SlowPathEnvironmentFor(
         instruction(), /*num_slow_path_args=*/0);
     compiler->pending_deoptimization_env_ = env;
-    compiler->GenerateRuntimeCall(
+
+    __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+    compiler->EmitCallsiteMetadata(
         instruction()->source(), instruction()->deopt_id(),
-        kStackOverflowRuntimeEntry, 0, instruction()->locs());
+        UntaggedPcDescriptors::kOther, instruction()->locs());
 
     if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
@@ -4787,8 +4792,6 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(TargetFunction().is_leaf());
-
   // Save ESP. EDI is chosen because it is callee saved so we do not need to
   // back it up before calling into the runtime.
   static const Register kSavedSPReg = EDI;
@@ -4801,6 +4804,7 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(compiler::Address(ESP, +3 * kWordSize), locs()->in(3).reg());
 
   // Call the function.
+  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
 
   // Restore ESP and pop the old value off the stack.
@@ -5287,6 +5291,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   for (intptr_t i = 0; i < kInputCount; i++) {
     __ movsd(compiler::Address(ESP, kDoubleSize * i), locs->in(i).fpu_reg());
   }
+  ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(instr->TargetFunction(), kInputCount);
   __ fstpl(compiler::Address(ESP, 0));
   __ movsd(locs->out(0).fpu_reg(), compiler::Address(ESP, 0));
@@ -5296,8 +5301,6 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 }
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(TargetFunction().is_leaf());
-
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     InvokeDoublePow(compiler, this);
     return;
@@ -5309,6 +5312,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movsd(compiler::Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
   }
 
+  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), InputCount());
   __ fstpl(compiler::Address(ESP, 0));
   __ movsd(locs()->out(0).fpu_reg(), compiler::Address(ESP, 0));

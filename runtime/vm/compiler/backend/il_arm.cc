@@ -2401,7 +2401,6 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
 
     if (deopt == NULL) {
-      ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
       __ ldrh(IP,
@@ -2412,6 +2411,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ Push(field_reg);
       __ Push(value_reg);
+      ASSERT(!compiler->is_optimizing());  // No deopt info needed.
       __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
       __ Drop(2);  // Drop the field and the value.
     } else {
@@ -2525,6 +2525,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ Push(field_reg);
       __ Push(value_reg);
+      ASSERT(!compiler->is_optimizing());  // No deopt info needed.
       __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
       __ Drop(2);  // Drop the field and the value.
     } else {
@@ -3586,9 +3587,10 @@ class CheckStackOverflowSlowPath
           instruction()->deopt_id(), instruction()->source(),
           compiler->CurrentTryIndex());
     } else {
-      compiler->GenerateRuntimeCall(
+      __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
-          kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
+          UntaggedPcDescriptors::kOther, instruction()->locs());
     }
 
     if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&
@@ -5587,9 +5589,8 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(TargetFunction().is_leaf());
-
   // Call the function.
+  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
 }
 
@@ -6057,6 +6058,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
   __ vmovd(D1, D2);
   if (TargetCPUFeatures::hardfp_supported()) {
+    ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
     __ CallRuntime(instr->TargetFunction(), kInputCount);
   } else {
     // If the ABI is not "hardfp", then we have to move the double arguments
@@ -6064,6 +6066,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
     // registers.
     __ vmovrrd(R0, R1, D0);
     __ vmovrrd(R2, R3, D1);
+    ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
     __ CallRuntime(instr->TargetFunction(), kInputCount);
     __ vmovdrr(D0, R0, R1);
     __ vmovdrr(D1, R2, R3);
@@ -6072,8 +6075,6 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 }
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(TargetFunction().is_leaf());
-
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     InvokeDoublePow(compiler, this);
     return;
@@ -6084,6 +6085,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmovd(D1, D2);
   }
   if (TargetCPUFeatures::hardfp_supported()) {
+    ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
     __ CallRuntime(TargetFunction(), InputCount());
   } else {
     // If the ABI is not "hardfp", then we have to move the double arguments
@@ -6091,6 +6093,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // registers.
     __ vmovrrd(R0, R1, D0);
     __ vmovrrd(R2, R3, D1);
+    ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
     __ CallRuntime(TargetFunction(), InputCount());
     __ vmovdrr(D0, R0, R1);
     __ vmovdrr(D1, R2, R3);
