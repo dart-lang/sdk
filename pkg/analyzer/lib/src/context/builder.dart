@@ -13,7 +13,6 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -110,15 +109,13 @@ class ContextBuilder {
     final sf =
         createSourceFactoryFromWorkspace(workspace, summaryData: summaryData);
 
-    AnalysisDriver driver = AnalysisDriver(
-      analysisDriverScheduler,
-      performanceLog,
-      resourceProvider,
-      byteStore,
-      FileContentOverlay(),
-      contextRoot,
-      sf,
-      options,
+    AnalysisDriver driver = AnalysisDriver.tmp1(
+      scheduler: analysisDriverScheduler,
+      logger: performanceLog,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: sf,
+      analysisOptions: options,
       packages: createPackageMap(
         resourceProvider: resourceProvider,
         options: builderOptions,

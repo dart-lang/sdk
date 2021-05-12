@@ -10,7 +10,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -54,7 +53,6 @@ Future pumpEventQueue([int times = 5000]) {
 class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   late DartSdk sdk;
   final ByteStore byteStore = MemoryByteStore();
-  final FileContentOverlay contentOverlay = FileContentOverlay();
 
   final StringBuffer logBuffer = StringBuffer();
   late final PerformanceLog logger;
@@ -65,18 +63,17 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
   AnalysisDriver newDriver() {
     sdk = MockSdk(resourceProvider: resourceProvider);
-    AnalysisDriver driver = AnalysisDriver(
-        scheduler,
-        logger,
-        resourceProvider,
-        byteStore,
-        contentOverlay,
-        null,
-        SourceFactory(
-          [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
-        ),
-        AnalysisOptionsImpl(),
-        packages: Packages.empty);
+    AnalysisDriver driver = AnalysisDriver.tmp1(
+      scheduler: scheduler,
+      logger: logger,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: SourceFactory(
+        [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
+      ),
+      analysisOptions: AnalysisOptionsImpl(),
+      packages: Packages.empty,
+    );
     driver.results.forEach(allResults.add);
     return driver;
   }
@@ -2415,25 +2412,6 @@ class C {
     // The class C has an old field 'foo', not the new 'bar'.
     expect(typeC.element.getField('foo'), isNotNull);
     expect(typeC.element.getField('bar'), isNull);
-  }
-
-  test_hermetic_overlayOnly_part() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-    contentOverlay[a] = r'''
-library a;
-part 'b.dart';
-class A {}
-var b = new B();
-''';
-    contentOverlay[b] = 'part of a; class B {}';
-
-    driver.addFile(a);
-    driver.addFile(b);
-
-    ResolvedUnitResult result = await driver.getResultValid(a);
-    expect(result.errors, isEmpty);
-    _assertTopLevelVarType(result.unit!, 'b', 'B');
   }
 
   test_importOfNonLibrary_part_afterLibrary() async {

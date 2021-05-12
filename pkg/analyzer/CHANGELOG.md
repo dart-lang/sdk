@@ -1,3 +1,7 @@
+## 1.6.0-dev
+* Deprecated `AnalysisDriver` default constructor.  Added `tmp1`. The goal
+  is to allow deprecating and removing unused  parameters.
+
 ## 1.5.0
 * Support for the language version `2.14`.
 * Deprecated `AnalysisSession.getUnitElement()`.

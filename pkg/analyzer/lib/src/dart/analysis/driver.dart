@@ -126,10 +126,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The declared environment variables.
   DeclaredVariables declaredVariables = DeclaredVariables();
 
-  /// Information about the context root being analyzed by this driver.
-  @Deprecated('Use analysisContext instead')
-  final ContextRoot? contextRoot;
-
   /// The analysis context that created this driver / session.
   api.AnalysisContext? analysisContext;
 
@@ -263,21 +259,62 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
   /// reference to a [AnalysisContext] in which it could have been used.
-  AnalysisDriver(
-      this._scheduler,
-      PerformanceLog logger,
-      this._resourceProvider,
-      this._byteStore,
-      this._contentOverlay,
-      this.contextRoot,
-      SourceFactory sourceFactory,
-      this._analysisOptions,
-      {Packages? packages,
-      this.enableIndex = false,
-      SummaryDataStore? externalSummaries,
-      bool retainDataForTesting = false})
-      : _logger = logger,
-        _packages = packages ?? Packages.empty,
+  @Deprecated('Use AnalysisDriver.tmp1() instead')
+  factory AnalysisDriver(
+    AnalysisDriverScheduler scheduler,
+    PerformanceLog logger,
+    ResourceProvider resourceProvider,
+    ByteStore byteStore,
+    FileContentOverlay? contentOverlay,
+    // ignore: avoid_unused_constructor_parameters
+    ContextRoot? contextRoot,
+    SourceFactory sourceFactory,
+    AnalysisOptionsImpl analysisOptions, {
+    Packages? packages,
+    bool enableIndex = false,
+    SummaryDataStore? externalSummaries,
+    bool retainDataForTesting = false,
+  }) {
+    return AnalysisDriver.tmp1(
+      scheduler: scheduler,
+      logger: logger,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      contentOverlay: contentOverlay,
+      sourceFactory: sourceFactory,
+      analysisOptions: analysisOptions,
+      packages: packages ?? Packages.empty,
+      enableIndex: enableIndex,
+      externalSummaries: externalSummaries,
+      retainDataForTesting: retainDataForTesting,
+    );
+  }
+
+  /// Create a new instance of [AnalysisDriver].
+  ///
+  /// The given [SourceFactory] is cloned to ensure that it does not contain a
+  /// reference to a [AnalysisContext] in which it could have been used.
+  AnalysisDriver.tmp1({
+    required AnalysisDriverScheduler scheduler,
+    required PerformanceLog logger,
+    required ResourceProvider resourceProvider,
+    required ByteStore byteStore,
+    @Deprecated('Use OverlayResourceProvider instead')
+        FileContentOverlay? contentOverlay,
+    required SourceFactory sourceFactory,
+    required AnalysisOptionsImpl analysisOptions,
+    required Packages packages,
+    bool enableIndex = false,
+    SummaryDataStore? externalSummaries,
+    bool retainDataForTesting = false,
+  })  : _scheduler = scheduler,
+        _resourceProvider = resourceProvider,
+        _byteStore = byteStore,
+        _contentOverlay = contentOverlay ?? FileContentOverlay(),
+        _analysisOptions = analysisOptions,
+        enableIndex = enableIndex,
+        _logger = logger,
+        _packages = packages,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {

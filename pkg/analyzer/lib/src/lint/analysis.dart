@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
     as api;
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -159,15 +158,13 @@ class LintDriver {
 
     PerformanceLog log = PerformanceLog(null);
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
-    AnalysisDriver analysisDriver = AnalysisDriver(
-      scheduler,
-      log,
-      resourceProvider,
-      MemoryByteStore(),
-      FileContentOverlay(),
-      null,
-      sourceFactory,
-      _buildAnalyzerOptions(options),
+    AnalysisDriver analysisDriver = AnalysisDriver.tmp1(
+      scheduler: scheduler,
+      logger: log,
+      resourceProvider: resourceProvider,
+      byteStore: MemoryByteStore(),
+      sourceFactory: sourceFactory,
+      analysisOptions: _buildAnalyzerOptions(options),
       packages: Packages.empty,
     );
 
