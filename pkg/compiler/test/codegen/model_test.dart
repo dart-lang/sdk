@@ -17,7 +17,6 @@ import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:js_ast/js_ast.dart' as js;
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
