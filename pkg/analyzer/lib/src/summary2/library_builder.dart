@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
@@ -45,42 +46,36 @@ class LibraryBuilder {
   LibraryBuilder._(this.linker, this.uri, this.reference);
 
   void addExporters() {
-    var unitContext = context.definingUnit;
-    for (var directive in unitContext.unit.directives) {
-      if (directive is ast.ExportDirective) {
-        Uri? uri;
-        try {
-          uri = _selectAbsoluteUri(directive);
-          if (uri == null) continue;
-        } on FormatException {
-          continue;
-        }
+    for (var element in element.exports) {
+      var exportedLibrary = element.exportedLibrary;
+      if (exportedLibrary == null) {
+        continue;
+      }
 
-        var combinators = directive.combinators.map((node) {
-          if (node is ast.ShowCombinator) {
-            var nameList = node.shownNames.map((i) => i.name).toList();
-            return Combinator.show(nameList);
-          } else if (node is ast.HideCombinator) {
-            var nameList = node.hiddenNames.map((i) => i.name).toList();
-            return Combinator.hide(nameList);
-          } else {
-            throw UnimplementedError();
-          }
-        }).toList();
-
-        var exported = linker.builders[uri];
-        var export = Export(this, exported, combinators);
-        if (exported != null) {
-          exported.exporters.add(export);
+      var combinators = element.combinators.map((combinator) {
+        if (combinator is ShowElementCombinator) {
+          return Combinator.show(combinator.shownNames);
+        } else if (combinator is HideElementCombinator) {
+          return Combinator.hide(combinator.hiddenNames);
         } else {
-          var references = linker.elementFactory.exportsOfLibrary('$uri');
-          for (var reference in references) {
-            var name = reference.name;
-            if (reference.isSetter) {
-              export.addToExportScope('$name=', reference);
-            } else {
-              export.addToExportScope(name, reference);
-            }
+          throw UnimplementedError();
+        }
+      }).toList();
+
+      var exportedUri = exportedLibrary.source.uri;
+      var exportedBuilder = linker.builders[exportedUri];
+
+      var export = Export(this, exportedBuilder, combinators);
+      if (exportedBuilder != null) {
+        exportedBuilder.exporters.add(export);
+      } else {
+        var references = linker.elementFactory.exportsOfLibrary('$exportedUri');
+        for (var reference in references) {
+          var name = reference.name;
+          if (reference.isSetter) {
+            export.addToExportScope('$name=', reference);
+          } else {
+            export.addToExportScope(name, reference);
           }
         }
       }
@@ -259,49 +254,13 @@ class LibraryBuilder {
   }
 
   void buildDirectives() {
-    var exports = <ExportElement>[];
-    var imports = <ImportElement>[];
-    var hasCoreImport = false;
-
-    // Build elements directives in all units.
-    // Store elements only for the defining unit of the library.
-    var isDefiningUnit = true;
-    for (var unitContext in context.units) {
-      for (var node in unitContext.unit.directives) {
-        if (node is ast.ExportDirectiveImpl) {
-          var exportElement = ExportElementImpl.forLinkedNode(element, node);
-          if (isDefiningUnit) {
-            exports.add(exportElement);
-          }
-        } else if (node is ast.ImportDirectiveImpl) {
-          var importElement = ImportElementImpl.forLinkedNode(element, node);
-          if (isDefiningUnit) {
-            imports.add(importElement);
-            if (!hasCoreImport) {
-              if (node.uri.stringValue == 'dart:core') {
-                hasCoreImport = true;
-              }
-            }
-          }
-        } else if (isDefiningUnit && node is ast.PartOfDirective) {
-          element.hasPartOfDirective = true;
-        }
-      }
-      isDefiningUnit = false;
-    }
-
-    element.exports = exports;
-
-    if (!hasCoreImport) {
-      var dartCore = linker.elementFactory.libraryOfUri2('dart:core');
-      imports.add(
-        ImportElementImpl(-1)
-          ..importedLibrary = dartCore
-          ..isSynthetic = true
-          ..uri = 'dart:core',
-      );
-    }
-    element.imports = imports;
+    var definingUnit = context.definingUnit;
+    var elementBuilder = _ElementBuilder(
+      libraryBuilder: this,
+      unitElement: definingUnit.element,
+    );
+    definingUnit.unit.directives.accept(elementBuilder);
+    elementBuilder.setExportsImports();
   }
 
   void buildElement() {
@@ -369,29 +328,6 @@ class LibraryBuilder {
     }
   }
 
-  void resolveUriDirectives() {
-    var unitContext = context.units[0];
-    for (var directive in unitContext.unit.directives) {
-      if (directive is ast.NamespaceDirective) {
-        try {
-          var uri = _selectAbsoluteUri(directive);
-          if (uri != null) {
-            var library = linker.elementFactory.libraryOfUri('$uri');
-            if (directive is ast.ExportDirective) {
-              var exportElement = directive.element as ExportElementImpl;
-              exportElement.exportedLibrary = library;
-            } else if (directive is ast.ImportDirective) {
-              var importElement = directive.element as ImportElementImpl;
-              importElement.importedLibrary = library;
-            }
-          }
-        } on FormatException {
-          // ignored
-        }
-      }
-    }
-  }
-
   void storeExportScope() {
     exports = exportScope.map.values.toList();
     linker.elementFactory.linkingExports['$uri'] = exports;
@@ -401,32 +337,6 @@ class LibraryBuilder {
     //   var index = linkingBundleContext.indexOfReference(reference);
     //   context.exports.add(index);
     // }
-  }
-
-  Uri? _selectAbsoluteUri(ast.NamespaceDirective directive) {
-    var relativeUriStr = _selectRelativeUri(
-      directive.configurations,
-      directive.uri.stringValue,
-    );
-    if (relativeUriStr == null) {
-      return null;
-    }
-    var relativeUri = Uri.parse(relativeUriStr);
-    return resolveRelativeUri(uri, relativeUri);
-  }
-
-  String? _selectRelativeUri(
-    List<ast.Configuration> configurations,
-    String? defaultUri,
-  ) {
-    for (var configuration in configurations) {
-      var name = configuration.name.components.join('.');
-      var value = configuration.value?.stringValue ?? 'true';
-      if (linker.declaredVariables.get(name) == value) {
-        return configuration.uri.stringValue;
-      }
-    }
-    return defaultUri;
   }
 
   static void build(Linker linker, LinkInputLibrary inputLibrary) {
@@ -457,5 +367,173 @@ class LibraryBuilder {
     var builder = LibraryBuilder._(linker, inputLibrary.uri, reference);
     linker.builders[builder.uri] = builder;
     builder.context = context;
+  }
+}
+
+class _ElementBuilder extends ThrowingAstVisitor<void> {
+  final LibraryBuilder _libraryBuilder;
+  final CompilationUnitElementImpl _unitElement;
+
+  final _exports = <ExportElement>[];
+  final _imports = <ImportElement>[];
+  var _hasCoreImport = false;
+
+  _ElementBuilder({
+    required LibraryBuilder libraryBuilder,
+    required CompilationUnitElementImpl unitElement,
+  })  : _libraryBuilder = libraryBuilder,
+        _unitElement = unitElement;
+
+  LibraryElementImpl get _libraryElement => _libraryBuilder.element;
+
+  Linker get _linker => _libraryBuilder.linker;
+
+  /// This method should be invoked after visiting directive nodes, it
+  /// will set created exports and imports into [_libraryElement].
+  void setExportsImports() {
+    _libraryElement.exports = _exports;
+
+    if (!_hasCoreImport) {
+      var dartCore = _linker.elementFactory.libraryOfUri2('dart:core');
+      _imports.add(
+        ImportElementImpl(-1)
+          ..importedLibrary = dartCore
+          ..isSynthetic = true
+          ..uri = 'dart:core',
+      );
+    }
+    _libraryElement.imports = _imports;
+  }
+
+  @override
+  void visitExportDirective(ast.ExportDirective node) {
+    node as ast.ExportDirectiveImpl;
+
+    var element = ExportElementImpl(node.keyword.offset);
+    element.combinators = _buildCombinators(node.combinators);
+    element.exportedLibrary = _selectLibrary(node);
+    element.metadata = _buildAnnotations(node.metadata);
+    element.uri = node.uri.stringValue;
+
+    node.element = element;
+    _exports.add(element);
+  }
+
+  @override
+  void visitImportDirective(ast.ImportDirective node) {
+    node as ast.ImportDirectiveImpl;
+
+    var element = ImportElementImpl(node.keyword.offset);
+    element.combinators = _buildCombinators(node.combinators);
+    element.importedLibrary = _selectLibrary(node);
+    element.isDeferred = node.deferredKeyword != null;
+    element.metadata = _buildAnnotations(node.metadata);
+    element.uri = node.uri.stringValue;
+
+    var prefixNode = node.prefix;
+    if (prefixNode != null) {
+      element.prefix = PrefixElementImpl(
+        prefixNode.name,
+        prefixNode.offset,
+        reference: _libraryBuilder.reference
+            .getChild('@prefix')
+            .getChild(prefixNode.name),
+      );
+    }
+
+    node.element = element;
+
+    _imports.add(element);
+    if (!_hasCoreImport) {
+      if (node.uri.stringValue == 'dart:core') {
+        _hasCoreImport = true;
+      }
+    }
+  }
+
+  @override
+  void visitLibraryDirective(ast.LibraryDirective node) {}
+
+  @override
+  void visitPartDirective(ast.PartDirective node) {}
+
+  @override
+  void visitPartOfDirective(ast.PartOfDirective node) {
+    _libraryElement.hasPartOfDirective = true;
+  }
+
+  List<ElementAnnotation> _buildAnnotations(
+    List<ast.Annotation> nodeList,
+  ) {
+    var length = nodeList.length;
+    if (length == 0) {
+      return const <ElementAnnotation>[];
+    }
+
+    var annotations = <ElementAnnotation>[];
+    for (int i = 0; i < length; i++) {
+      var ast = nodeList[i];
+      annotations.add(ElementAnnotationImpl(_unitElement)
+        ..annotationAst = ast
+        ..element = ast.element);
+    }
+    return annotations;
+  }
+
+  Uri? _selectAbsoluteUri(ast.NamespaceDirective directive) {
+    var relativeUriStr = _selectRelativeUri(
+      directive.configurations,
+      directive.uri.stringValue,
+    );
+    if (relativeUriStr == null) {
+      return null;
+    }
+    var relativeUri = Uri.parse(relativeUriStr);
+    return resolveRelativeUri(_libraryBuilder.uri, relativeUri);
+  }
+
+  LibraryElement? _selectLibrary(ast.NamespaceDirective node) {
+    try {
+      var uri = _selectAbsoluteUri(node);
+      return _linker.elementFactory.libraryOfUri('$uri');
+    } on FormatException {
+      return null;
+    }
+  }
+
+  String? _selectRelativeUri(
+    List<ast.Configuration> configurations,
+    String? defaultUri,
+  ) {
+    for (var configuration in configurations) {
+      var name = configuration.name.components.join('.');
+      var value = configuration.value?.stringValue ?? 'true';
+      if (_linker.declaredVariables.get(name) == value) {
+        return configuration.uri.stringValue;
+      }
+    }
+    return defaultUri;
+  }
+
+  static List<NamespaceCombinator> _buildCombinators(
+    List<ast.Combinator> combinators,
+  ) {
+    return combinators.map((node) {
+      if (node is ast.HideCombinator) {
+        return HideElementCombinatorImpl()
+          ..hiddenNames = node.hiddenNames.nameList;
+      }
+      if (node is ast.ShowCombinator) {
+        return ShowElementCombinatorImpl()
+          ..shownNames = node.shownNames.nameList;
+      }
+      throw UnimplementedError('${node.runtimeType}');
+    }).toList();
+  }
+}
+
+extension on Iterable<ast.SimpleIdentifier> {
+  List<String> get nameList {
+    return map((e) => e.name).toList();
   }
 }

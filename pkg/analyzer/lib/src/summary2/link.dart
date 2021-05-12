@@ -107,10 +107,6 @@ class Linker {
     }
 
     for (var library in builders.values) {
-      library.resolveUriDirectives();
-    }
-
-    for (var library in builders.values) {
       library.buildInitialExportScope();
     }
 
