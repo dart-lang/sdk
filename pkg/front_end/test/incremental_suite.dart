@@ -56,21 +56,6 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 
-import 'package:kernel/kernel.dart'
-    show
-        Class,
-        Component,
-        EmptyStatement,
-        Field,
-        Library,
-        LibraryDependency,
-        Member,
-        Name,
-        Procedure,
-        Supertype,
-        TreeNode,
-        Version;
-
 import 'package:kernel/target/targets.dart'
     show NoneTarget, LateLowering, Target, TargetFlags;
 

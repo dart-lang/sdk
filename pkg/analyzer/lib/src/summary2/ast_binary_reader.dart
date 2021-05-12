@@ -51,8 +51,6 @@ class AstBinaryReader {
         return _readCascadeExpression();
       case Tag.ConditionalExpression:
         return _readConditionalExpression();
-      case Tag.Configuration:
-        return _readConfiguration();
       case Tag.ConstructorFieldInitializer:
         return _readConstructorFieldInitializer();
       case Tag.ConstructorName:
@@ -89,8 +87,6 @@ class AstBinaryReader {
         return _readGenericFunctionType();
       case Tag.IfElement:
         return _readIfElement();
-      case Tag.ImplementsClause:
-        return _readImplementsClause();
       case Tag.IndexExpression:
         return _readIndexExpression();
       case Tag.IntegerLiteralNegative1:
@@ -109,8 +105,6 @@ class AstBinaryReader {
         return _readInterpolationString();
       case Tag.IsExpression:
         return _readIsExpression();
-      case Tag.Label:
-        return _readLabel();
       case Tag.ListLiteral:
         return _readListLiteral();
       case Tag.MapLiteralEntry:
@@ -121,12 +115,8 @@ class AstBinaryReader {
         return _readMethodInvocation();
       case Tag.NamedExpression:
         return _readNamedExpression();
-      case Tag.NativeClause:
-        return _readNativeClause();
       case Tag.NullLiteral:
         return _readNullLiteral();
-      case Tag.OnClause:
-        return _readOnClause();
       case Tag.InstanceCreationExpression:
         return _readInstanceCreationExpression();
       case Tag.ParenthesizedExpression:
@@ -175,8 +165,6 @@ class AstBinaryReader {
         return _readVariableDeclaration();
       case Tag.VariableDeclarationList:
         return _readVariableDeclarationList();
-      case Tag.WithClause:
-        return _readWithClause();
       default:
         throw UnimplementedError('Unexpected tag: $tag');
     }
@@ -332,22 +320,6 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     return node;
-  }
-
-  Configuration _readConfiguration() {
-    var flags = _readByte();
-    var name = readNode() as DottedName;
-    var value = _readOptionalNode() as StringLiteral?;
-    var uri = readNode() as StringLiteral;
-    return astFactory.configuration(
-      Tokens.IF,
-      Tokens.OPEN_PAREN,
-      name,
-      AstBinaryFlags.hasEqual(flags) ? Tokens.EQ : null,
-      value,
-      Tokens.CLOSE_PAREN,
-      uri,
-    );
   }
 
   ConstructorFieldInitializer _readConstructorFieldInitializer() {
@@ -647,11 +619,6 @@ class AstBinaryReader {
     );
   }
 
-  ImplementsClause _readImplementsClause() {
-    var interfaces = _readNodeList<TypeName>();
-    return astFactory.implementsClause(Tokens.IMPLEMENTS, interfaces);
-  }
-
   IndexExpression _readIndexExpression() {
     var flags = _readByte();
     var target = _readOptionalNode() as Expression?;
@@ -776,11 +743,6 @@ class AstBinaryReader {
     return node;
   }
 
-  Label _readLabel() {
-    var label = readNode() as SimpleIdentifier;
-    return astFactory.label(label, Tokens.COLON);
-  }
-
   ListLiteral _readListLiteral() {
     var flags = _readByte();
     var typeArguments = _readOptionalNode() as TypeArgumentList?;
@@ -863,11 +825,6 @@ class AstBinaryReader {
     return node;
   }
 
-  NativeClause _readNativeClause() {
-    var name = _readOptionalNode() as StringLiteral?;
-    return astFactory.nativeClause(Tokens.NATIVE, name);
-  }
-
   List<T> _readNodeList<T>() {
     var length = _reader.readUInt30();
     return List.generate(length, (_) => readNode() as T);
@@ -877,11 +834,6 @@ class AstBinaryReader {
     return astFactory.nullLiteral(
       Tokens.NULL,
     );
-  }
-
-  OnClause _readOnClause() {
-    var superclassConstraints = _readNodeList<TypeName>();
-    return astFactory.onClause(Tokens.ON, superclassConstraints);
   }
 
   AstNode? _readOptionalNode() {
@@ -1220,11 +1172,6 @@ class AstBinaryReader {
       type: type,
       variables: variables,
     );
-  }
-
-  WithClause _readWithClause() {
-    var mixins = _readNodeList<TypeName>();
-    return astFactory.withClause(Tokens.WITH, mixins);
   }
 
   void _resolveNamedExpressions(

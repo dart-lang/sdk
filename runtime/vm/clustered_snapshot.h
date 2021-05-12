@@ -434,7 +434,8 @@ class Serializer : public ThreadStackResource {
   // Returns true if [obj] has an artificial profile node associated with it.
   bool CreateArtificialNodeIfNeeded(ObjectPtr obj);
 
-  bool InCurrentLoadingUnit(ObjectPtr obj, bool record = false);
+  bool InCurrentLoadingUnitOrRoot(ObjectPtr obj);
+  void RecordDeferredCode(CodePtr ptr);
   GrowableArray<LoadingUnitSerializationData*>* loading_units() const {
     return loading_units_;
   }

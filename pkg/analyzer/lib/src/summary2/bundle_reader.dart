@@ -232,7 +232,6 @@ abstract class ElementLinkedData<E extends ElementImpl> {
         var initializer = reader._readOptionalExpression();
         if (initializer != null) {
           defaultParameter.constantInitializer = initializer;
-          ExpressionImpl.inConstContextWithoutParent[initializer] = true;
         }
       }
       if (parameter is FieldFormalParameterElementImpl) {
@@ -326,7 +325,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
-        ExpressionImpl.inConstContextWithoutParent[initializer] = true;
+        ConstantContextForExpressionImpl(initializer);
       }
     }
   }
@@ -1672,9 +1671,9 @@ class ResolutionReader {
     return NullabilitySuffix.values[index];
   }
 
-  Expression? _readOptionalExpression() {
+  ExpressionImpl? _readOptionalExpression() {
     if (_reader.readBool()) {
-      return _readRequiredNode() as Expression;
+      return _readRequiredNode() as ExpressionImpl;
     }
   }
 
@@ -1762,7 +1761,7 @@ class TopLevelVariableElementLinkedData
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
-        ExpressionImpl.inConstContextWithoutParent[initializer] = true;
+        ConstantContextForExpressionImpl(initializer);
       }
     }
   }

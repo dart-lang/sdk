@@ -23,11 +23,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
 
-import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
-    show Utf8BytesScanner;
-
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 

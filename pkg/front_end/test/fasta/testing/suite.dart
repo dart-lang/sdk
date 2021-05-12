@@ -26,9 +26,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
         parseExperimentalArguments,
         parseExperimentalFlags;
 
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
-
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, EvaluationMode;
 

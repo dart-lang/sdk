@@ -15,13 +15,10 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart'
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart'
-    show FileContentOverlay;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
-import 'package:analyzer/src/generated/source.dart' show ContentCache;
 import 'package:cli_util/cli_util.dart';
 
 /// An implementation of a context builder.
@@ -43,7 +40,6 @@ class ContextBuilderImpl implements ContextBuilder {
     DeclaredVariables? declaredVariables,
     bool drainStreams = true,
     bool enableIndex = false,
-    FileContentOverlay? fileContentOverlay,
     List<String>? librarySummaryPaths,
     PerformanceLog? performanceLog,
     bool retainDataForTesting = false,
@@ -57,7 +53,6 @@ class ContextBuilderImpl implements ContextBuilder {
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
 
     byteStore ??= MemoryByteStore();
-    fileContentOverlay ??= FileContentOverlay();
     performanceLog ??= PerformanceLog(StringBuffer());
 
     DartSdkManager sdkManager = DartSdkManager(sdkPath);
@@ -82,12 +77,10 @@ class ContextBuilderImpl implements ContextBuilder {
     options.defaultAnalysisOptionsFilePath = contextRoot.optionsFile?.path;
     options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 
-    old.ContextBuilder builder = old.ContextBuilder(
-        resourceProvider, sdkManager, ContentCache(),
-        options: options);
+    old.ContextBuilder builder =
+        old.ContextBuilder(resourceProvider, sdkManager, options: options);
     builder.analysisDriverScheduler = scheduler;
     builder.byteStore = byteStore;
-    builder.fileContentOverlay = fileContentOverlay;
     builder.enableIndex = enableIndex;
     builder.performanceLog = performanceLog;
     builder.retainDataForTesting = retainDataForTesting;

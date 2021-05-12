@@ -68,6 +68,8 @@ class ProtobufHandler {
         _builderInfoAddMethod =
             libraryIndex.getMember(protobufLibraryUri, 'BuilderInfo', 'add');
 
+  bool usesAnnotationClass(Class cls) => cls == _tagNumberClass;
+
   /// This method is called from summary collector when analysis discovered
   /// that [member] is called and needs to construct a summary for its body.
   ///

@@ -32,7 +32,6 @@ class Tag {
   static const int BooleanLiteral = 4;
   static const int CascadeExpression = 95;
   static const int ConditionalExpression = 51;
-  static const int Configuration = 46;
   static const int ConstructorFieldInitializer = 50;
   static const int ConstructorName = 7;
   static const int DeclaredIdentifier = 90;
@@ -54,7 +53,6 @@ class Tag {
   static const int GenericFunctionType = 21;
   static const int HideCombinator = 48;
   static const int IfElement = 63;
-  static const int ImplementsClause = 23;
   static const int IndexExpression = 98;
   static const int InstanceCreationExpression = 25;
   static const int IntegerLiteralNegative = 73;
@@ -65,7 +63,6 @@ class Tag {
   static const int InterpolationExpression = 77;
   static const int InterpolationString = 78;
   static const int IsExpression = 83;
-  static const int Label = 61;
   static const int ListLiteral = 56;
   static const int MapLiteralEntry = 66;
   static const int MethodDeclaration_getter = 85;
@@ -73,8 +70,6 @@ class Tag {
   static const int MethodInvocation = 59;
   static const int MixinDeclaration = 67;
   static const int NamedExpression = 60;
-  static const int NativeClause = 92;
-  static const int OnClause = 68;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PostfixExpression = 94;
@@ -100,7 +95,6 @@ class Tag {
   static const int TypeParameterList = 41;
   static const int VariableDeclaration = 42;
   static const int VariableDeclarationList = 43;
-  static const int WithClause = 45;
 
   static const int RawElement = 0;
   static const int MemberLegacyWithoutTypeArguments = 1;

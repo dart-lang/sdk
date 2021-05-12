@@ -2308,6 +2308,19 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 }
 
+/// This class is used as a marker of constant context for initializers
+/// of constant fields and top-level variables read from summaries.
+class ConstantContextForExpressionImpl extends AstNodeImpl {
+  final ExpressionImpl expression;
+
+  ConstantContextForExpressionImpl(this.expression) {
+    _becomeParentOf(expression);
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// A constructor declaration.
 ///
 ///    constructorDeclaration ::=
@@ -3446,13 +3459,6 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 ///      | [ThrowExpression]
 abstract class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
-  /// To support [inConstantContext] we need to know if an expression is
-  /// an initializer of a constant variable. But when the initializer is
-  /// a part of the element model, there is no parent AST node.
-  ///
-  /// TODO(scheglov) Consider alternative solutions.
-  static final inConstContextWithoutParent = Expando<bool>();
-
   /// The static type of this expression, or `null` if the AST structure has not
   /// been resolved.
   @override
@@ -3468,8 +3474,8 @@ abstract class ExpressionImpl extends AstNodeImpl
         child is IfElement ||
         child is ForElement) {
       var parent = child.parent;
-      if (parent == null) {
-        return inConstContextWithoutParent[child] ?? false;
+      if (parent is ConstantContextForExpressionImpl) {
+        return true;
       } else if (parent is TypedLiteralImpl && parent.constKeyword != null) {
         // Inside an explicitly `const` list or map literal.
         return true;
@@ -3488,6 +3494,8 @@ abstract class ExpressionImpl extends AstNodeImpl
       } else if (parent is SwitchCase) {
         // Inside a switch case.
         return true;
+      } else if (parent == null) {
+        break;
       }
       child = parent;
     }

@@ -57,10 +57,6 @@ class ContextBuilder {
   /// they can be shared across contexts.
   final DartSdkManager sdkManager;
 
-  /// The cache containing the contents of overlaid files. If this builder will
-  /// be used to build analysis drivers, set the [fileContentOverlay] instead.
-  final ContentCache? contentCache;
-
   /// The options used by the context builder.
   final ContextBuilderOptions builderOptions;
 
@@ -77,10 +73,6 @@ class ContextBuilder {
   /// The byte store used by any analysis drivers created through this interface.
   late final ByteStore byteStore;
 
-  /// The file content overlay used by analysis drivers. If this builder will be
-  /// used to build analysis contexts, set the [contentCache] instead.
-  FileContentOverlay? fileContentOverlay;
-
   /// Whether any analysis driver created through this interface should support
   /// indexing and search.
   bool enableIndex = false;
@@ -92,7 +84,7 @@ class ContextBuilder {
 
   /// Initialize a newly created builder to be ready to build a context rooted in
   /// the directory with the given [rootDirectoryPath].
-  ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
+  ContextBuilder(this.resourceProvider, this.sdkManager,
       {ContextBuilderOptions? options})
       : builderOptions = options ?? ContextBuilderOptions();
 
@@ -123,7 +115,7 @@ class ContextBuilder {
       performanceLog,
       resourceProvider,
       byteStore,
-      fileContentOverlay,
+      FileContentOverlay(),
       contextRoot,
       sf,
       options,

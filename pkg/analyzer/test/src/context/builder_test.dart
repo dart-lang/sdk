@@ -37,9 +37,6 @@ class ContextBuilderTest with ResourceProviderMixin {
   /// The SDK manager used by the tests;
   late final DartSdkManager sdkManager;
 
-  /// The content cache used by the tests.
-  late final ContentCache contentCache;
-
   /// The options passed to the context builder.
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
 
@@ -63,11 +60,9 @@ class ContextBuilderTest with ResourceProviderMixin {
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
     sdkManager = DartSdkManager(convertPath('/sdk'));
-    contentCache = ContentCache();
     builder = ContextBuilder(
       resourceProvider,
       sdkManager,
-      contentCache,
       options: builderOptions,
     );
   }
@@ -372,8 +367,8 @@ b:${resourceProvider.pathContext.toUri(packageB)}
     newFile('/workspace/out/debug/gen/dart.sources/foo_pkg',
         content: convertPath('/workspace/foo_pkg/lib'));
     newFolder(projectPath);
-    builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: builderOptions);
+    builder =
+        ContextBuilder(resourceProvider, sdkManager, options: builderOptions);
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     var options = _getAnalysisOptions(builder, projectPath);
     _expectEqualOptions(options, expected);
