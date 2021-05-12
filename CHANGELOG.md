@@ -132,7 +132,7 @@ Updated the Linter to `1.4.0`, which includes:
     }
     ```
 
-## 2.13.0
+## 2.13.0 - 2021-05-18
 
 ### Language
 

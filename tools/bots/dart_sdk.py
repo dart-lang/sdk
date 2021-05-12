@@ -74,7 +74,6 @@ def CreateAndUploadSDKZip(arch, sdk_path):
     DartArchiveUploadSDKs(BUILD_OS, arch, sdk_zip)
 
 
-
 def DartArchiveUploadSDKs(system, arch, sdk_zip):
     namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
     git_number = utils.GetArchiveVersion()
@@ -171,26 +170,12 @@ def GsutilExists(gsu_path):
 
 
 def CreateZip(directory, target_file):
-    if 'win' in BUILD_OS:
-        CreateZipWindows(directory, target_file)
-    else:
-        CreateZipPosix(directory, target_file)
-
-
-def CreateZipPosix(directory, target_file):
-    with utils.ChangedWorkingDirectory(os.path.dirname(directory)):
-        command = ['zip', '-yrq9', target_file, os.path.basename(directory)]
-        Run(command)
-
-
-def CreateZipWindows(directory, target_file):
-    with utils.ChangedWorkingDirectory(os.path.dirname(directory)):
-        zip_win = os.path.join(bot_utils.DART_DIR, 'third_party', '7zip', '7za')
-        command = [
-            zip_win, 'a', '-tzip', target_file,
-            os.path.basename(directory)
-        ]
-        Run(command)
+    root = os.path.dirname(directory)
+    base = os.path.basename(directory)
+    f = shutil.make_archive(target_file, 'zip', root, base)
+    # make_archive will appened '.zip' to the filename, so we have to rename
+    # to avoid having it being '.zip.zip'
+    shutil.move(f, target_file)
 
 
 def FileDelete(f):

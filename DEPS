@@ -710,20 +710,4 @@ hooks = [
     'action': ['python3', 'sdk/build/vs_toolchain.py', 'update'],
     'condition': 'checkout_win'
   },
-  {
-    "name": "7zip",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--platform=win32",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
-    ],
-    'condition': 'checkout_win'
-  },
 ]

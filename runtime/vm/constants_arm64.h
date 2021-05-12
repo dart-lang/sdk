@@ -54,12 +54,12 @@ enum Register {
   R20 = 20,
   R21 = 21,  // DISPATCH_TABLE_REG
   R22 = 22,  // NULL_REG
-  R23 = 23,  // HEAP_BASE
+  R23 = 23,
   R24 = 24,
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
-  R28 = 28,  // BARRIER_MASK
+  R28 = 28,  // HEAP_BITS
   R29 = 29,  // FP
   R30 = 30,  // LR
   R31 = 31,  // ZR, CSP
@@ -141,9 +141,8 @@ const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
-const Register BARRIER_MASK = R28;
+const Register HEAP_BITS = R28;  // write_barrier_mask << 32 | heap_base >> 32
 const Register NULL_REG = R22;  // Caches NullObject() value.
-const Register HEAP_BASE = R23;
 
 // ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
@@ -367,11 +366,11 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
-const intptr_t kReservedCpuRegisters =
-    R(SPREG) |  // Dart SP
-    R(FPREG) | R(TMP) | R(TMP2) | R(PP) | R(THR) | R(LR) | R(BARRIER_MASK) |
-    R(NULL_REG) | R(HEAP_BASE) | R(R31) |  // C++ SP
-    R(R18) | R(DISPATCH_TABLE_REG);
+const intptr_t kReservedCpuRegisters = R(SPREG) |  // Dart SP
+                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
+                                       R(THR) | R(LR) | R(HEAP_BITS) |
+                                       R(NULL_REG) | R(R31) |  // C++ SP
+                                       R(R18) | R(DISPATCH_TABLE_REG);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 13;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =

@@ -136,7 +136,8 @@ class KernelLoaderTask extends CompilerTask {
         }
       } else {
         bool verbose = false;
-        Target target = Dart2jsTarget(targetName, TargetFlags());
+        Target target = Dart2jsTarget(targetName, TargetFlags(),
+            omitLateNames: _options.omitLateNames);
         fe.FileSystem fileSystem = CompilerFileSystem(_compilerInput);
         fe.Verbosity verbosity = _options.verbosity;
         fe.DiagnosticMessageHandler onDiagnostic =

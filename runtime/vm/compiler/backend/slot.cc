@@ -122,18 +122,17 @@ enum NativeSlotsEnumeration {
 const Slot& Slot::GetNativeSlot(Kind kind) {
   if (native_fields_.load() == nullptr) {
     Slot* new_value = new Slot[kNativeSlotsCount]{
-#define NULLABLE_FIELD_FINAL                                                   \
-  (IsNullableBit::encode(true) | IsImmutableBit::encode(true))
-#define NULLABLE_FIELD_FINAL_COMPRESSED                                        \
+#define NULLABLE_FIELD_FINAL(ClassName)                                        \
   (IsNullableBit::encode(true) | IsImmutableBit::encode(true) |                \
-   IsCompressedBit::encode(true))
-#define NULLABLE_FIELD_VAR (IsNullableBit::encode(true))
-#define NULLABLE_FIELD_VAR_COMPRESSED                                          \
-  (IsNullableBit::encode(true) | IsCompressedBit::encode(true))
+   IsCompressedBit::encode(ClassName::ContainsCompressedPointers()))
+#define NULLABLE_FIELD_VAR(ClassName)                                          \
+  (IsNullableBit::encode(true) |                                               \
+   IsCompressedBit::encode(ClassName::ContainsCompressedPointers()))
 #define DEFINE_NULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,          \
                                            FieldName, cid, mutability)         \
-  Slot(Kind::k##ClassName##_##FieldName, NULLABLE_FIELD_##mutability,          \
-       k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
+  Slot(Kind::k##ClassName##_##FieldName,                                       \
+       NULLABLE_FIELD_##mutability(ClassName), k##cid##Cid,                    \
+       compiler::target::ClassName::FieldName##_offset(),                      \
        #ClassName "." #FieldName, nullptr, kTagged),
 
         NULLABLE_BOXED_NATIVE_SLOTS_LIST(DEFINE_NULLABLE_BOXED_NATIVE_FIELD)
@@ -142,24 +141,30 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
 #undef NULLABLE_FIELD_FINAL
 #undef NULLABLE_FIELD_VAR
 
-#define NONNULLABLE_FIELD_FINAL (Slot::IsImmutableBit::encode(true))
-#define NONNULLABLE_FIELD_FINAL_COMPRESSED                                     \
-  (Slot::IsImmutableBit::encode(true) | Slot::IsCompressedBit::encode(true))
-#define NONNULLABLE_FIELD_VAR (0)
-#define NONNULLABLE_FIELD_VAR_COMPRESSED (Slot::IsCompressedBit::encode(true))
+#define NONNULLABLE_FIELD_FINAL(ClassName)                                     \
+  (Slot::IsImmutableBit::encode(true) |                                        \
+   IsCompressedBit::encode(ClassName::ContainsCompressedPointers()))
+#define NONNULLABLE_FIELD_VAR(ClassName)                                       \
+  (IsCompressedBit::encode(ClassName::ContainsCompressedPointers()))
 #define DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,       \
                                               FieldName, cid, mutability)      \
-  Slot(Kind::k##ClassName##_##FieldName, NONNULLABLE_FIELD_##mutability,       \
-       k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
+  Slot(Kind::k##ClassName##_##FieldName,                                       \
+       NONNULLABLE_FIELD_##mutability(ClassName), k##cid##Cid,                 \
+       compiler::target::ClassName::FieldName##_offset(),                      \
        #ClassName "." #FieldName, nullptr, kTagged),
 
             NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(
                 DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD)
 
 #undef DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD
+#undef NONNULLABLE_FIELD_VAR
+#undef NONNULLABLE_FIELD_FINAL
+
+#define UNBOXED_FIELD_FINAL (Slot::IsImmutableBit::encode(true))
+#define UNBOXED_FIELD_VAR (0)
 #define DEFINE_UNBOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName,      \
                                     representation, mutability)                \
-  Slot(Kind::k##ClassName##_##FieldName, NONNULLABLE_FIELD_##mutability,       \
+  Slot(Kind::k##ClassName##_##FieldName, UNBOXED_FIELD_##mutability,           \
        GetUnboxedNativeSlotCid(kUnboxed##representation),                      \
        compiler::target::ClassName::FieldName##_offset(),                      \
        #ClassName "." #FieldName, nullptr, kUnboxed##representation),
@@ -167,8 +172,8 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
                 UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
 
 #undef DEFINE_UNBOXED_NATIVE_FIELD
-#undef NONNULLABLE_FIELD_VAR
-#undef NONNULLABLE_FIELD_FINAL
+#undef UNBOXED_FIELD_VAR
+#undef UNBOXED_FIELD_FINAL
     };
     Slot* old_value = nullptr;
     if (!native_fields_.compare_exchange_strong(old_value, new_value)) {
@@ -211,10 +216,12 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
 
 const Slot& Slot::GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset) {
   ASSERT(offset != Class::kNoTypeArguments);
-  return SlotCache::Instance(thread).Canonicalize(
-      Slot(Kind::kTypeArguments, IsImmutableBit::encode(true),
-           kTypeArgumentsCid, offset, ":type_arguments",
-           /*static_type=*/nullptr, kTagged));
+  return SlotCache::Instance(thread).Canonicalize(Slot(
+      Kind::kTypeArguments,
+      IsImmutableBit::encode(true) |
+          IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers()),
+      kTypeArgumentsCid, offset, ":type_arguments",
+      /*static_type=*/nullptr, kTagged));
 }
 
 const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
@@ -228,7 +235,8 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
   return SlotCache::Instance(thread).Canonicalize(
       Slot(Kind::kCapturedVariable,
            IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
-               IsNullableBit::encode(true),
+               IsNullableBit::encode(true) |
+               IsCompressedBit::encode(Context::ContainsCompressedPointers()),
            kDynamicCid,
            compiler::target::Context::variable_offset(variable.index().value()),
            &variable.name(), &variable.type(), kTagged));
@@ -237,18 +245,22 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
 const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
   const intptr_t offset =
       compiler::target::TypeArguments::type_at_offset(index);
-  const Slot& slot =
-      Slot(Kind::kTypeArgumentsIndex,
-           IsImmutableBit::encode(true) | IsCompressedBit::encode(true),
-           kDynamicCid, offset, ":argument", /*static_type=*/nullptr, kTagged);
+  const Slot& slot = Slot(
+      Kind::kTypeArgumentsIndex,
+      IsImmutableBit::encode(true) |
+          IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers()),
+      kDynamicCid, offset, ":argument", /*static_type=*/nullptr, kTagged);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
 const Slot& Slot::GetArrayElementSlot(Thread* thread,
                                       intptr_t offset_in_bytes) {
   const Slot& slot =
-      Slot(Kind::kArrayElement, IsNullableBit::encode(true), kDynamicCid,
-           offset_in_bytes, ":array_element", /*static_type=*/nullptr, kTagged);
+      Slot(Kind::kArrayElement,
+           IsNullableBit::encode(true) |
+               IsCompressedBit::encode(Array::ContainsCompressedPointers()),
+           kDynamicCid, offset_in_bytes, ":array_element",
+           /*static_type=*/nullptr, kTagged);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
@@ -306,12 +318,15 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
+  Class& owner = Class::Handle(zone, field.Owner());
   const Slot& slot = SlotCache::Instance(thread).Canonicalize(
       Slot(Kind::kDartField,
            IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
                                   field.is_const()) |
                IsNullableBit::encode(is_nullable) |
-               IsGuardedBit::encode(used_guarded_state),
+               IsGuardedBit::encode(used_guarded_state) |
+               IsCompressedBit::encode(
+                   compiler::target::Class::HasCompressedPointers(owner)),
            nullable_cid, compiler::target::Field::OffsetOf(field), &field,
            &type, rep));
 

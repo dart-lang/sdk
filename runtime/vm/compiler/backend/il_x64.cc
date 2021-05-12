@@ -2159,7 +2159,6 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
 
     if (deopt == NULL) {
-      ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
       __ cmpw(compiler::FieldAddress(field_reg, Field::guarded_cid_offset()),
@@ -2168,6 +2167,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ pushq(field_reg);
       __ pushq(value_reg);
+      ASSERT(!compiler->is_optimizing());  // No deopt info needed.
       __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
       __ Drop(2);  // Drop the field and the value.
     } else {
@@ -2273,6 +2273,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ pushq(field_reg);
       __ pushq(value_reg);
+      ASSERT(!compiler->is_optimizing());  // No deopt info needed.
       __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
       __ Drop(2);  // Drop the field and the value.
     } else {
@@ -2367,6 +2368,7 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&call_runtime);
     __ PushObject(original);
     __ pushq(value_reg);
+    ASSERT(!compiler->is_optimizing());  // No deopt info needed.
     __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
     __ Drop(2);
   }
@@ -3267,9 +3269,10 @@ class CheckStackOverflowSlowPath
           instruction()->deopt_id(), instruction()->source(),
           compiler->CurrentTryIndex());
     } else {
-      compiler->GenerateRuntimeCall(
+      __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
-          kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
+          UntaggedPcDescriptors::kOther, instruction()->locs());
     }
 
     if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&
@@ -4071,7 +4074,11 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   summary->set_in(0, needs_writable_input ? Location::WritableRegister()
                                           : Location::RequiresRegister());
   if (RepresentationUtils::IsUnboxedInteger(representation())) {
+#if !defined(DART_COMPRESSED_POINTERS)
     summary->set_out(0, Location::SameAsFirstInput());
+#else
+    summary->set_out(0, Location::RequiresRegister());
+#endif
   } else {
     summary->set_out(0, Location::RequiresFpuRegister());
   }
@@ -4119,14 +4126,16 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedInt32:
-    case kUnboxedInt64: {
+    case kUnboxedInt32: {
       const Register result = locs()->out(0).reg();
-      ASSERT(result == box);
-      __ SmiUntagAndSignExtend(box);
+      __ SmiUntag(result, box);
       break;
     }
-
+    case kUnboxedInt64: {
+      const Register result = locs()->out(0).reg();
+      __ SmiUntagAndSignExtend(result, box);
+      break;
+    }
     case kUnboxedDouble: {
       const FpuRegister result = locs()->out(0).fpu_reg();
       __ SmiUntag(box);
@@ -4143,22 +4152,18 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
+  ASSERT(value == result);
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
   __ movsxw(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
 #else
-  // Cannot speculatively untag because it erases the upper bits needed to
-  // dereference when it is a Mint.
-  // TODO(compressed-pointers): It would probably be cheaper to make
-  // result != value with compressed pointers.
-  compiler::Label not_smi;
-  __ BranchIfNotSmi(value, &not_smi, compiler::Assembler::kNearJump);
-  __ SmiUntagAndSignExtend(value);
-  __ jmp(&done, compiler::Assembler::kNearJump);
-  __ Bind(&not_smi);
+  ASSERT(value != result);
+  // Cannot speculatively untag with value == result because it erases the
+  // upper bits needed to dereference when it is a Mint.
+  __ SmiUntagAndSignExtend(result, value);
+  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
   __ movsxw(result, compiler::FieldAddress(value, Mint::value_offset()));
 #endif
   __ Bind(&done);
@@ -4167,24 +4172,21 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
+  ASSERT(value == result);
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movq(value, compiler::Address(value, TIMES_2, Mint::value_offset()));
-  __ Bind(&done);
+  __ movq(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
 #else
-  // Cannot speculatively untag because it erases the upper bits needed to
-  // dereference when it is a Mint.
-  compiler::Label not_smi;
-  __ BranchIfNotSmi(value, &not_smi, compiler::Assembler::kNearJump);
-  __ SmiUntagAndSignExtend(value);
-  __ jmp(&done, compiler::Assembler::kNearJump);
-  __ Bind(&not_smi);
-  __ movq(value, compiler::FieldAddress(value, Mint::value_offset()));
-  __ Bind(&done);
+  ASSERT(value != result);
+  // Cannot speculatively untag with value == result because it erases the
+  // upper bits needed to dereference when it is a Mint.
+  __ SmiUntagAndSignExtend(result, value);
+  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
+  __ movq(result, compiler::FieldAddress(value, Mint::value_offset()));
 #endif
+  __ Bind(&done);
 }
 
 LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
@@ -4989,8 +4991,6 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
 }
 
 void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(TargetFunction().is_leaf());
-
   // Save RSP. R13 is chosen because it is callee saved so we do not need to
   // back it up before calling into the runtime.
   static const Register kSavedSPReg = R13;
@@ -4998,6 +4998,7 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ ReserveAlignedFrameSpace(0);
 
   // Call the function. Parameters are already in their correct spots.
+  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
 
   // Restore RSP.
@@ -5470,6 +5471,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ movaps(XMM0, locs->in(0).fpu_reg());
   ASSERT(locs->in(1).fpu_reg() == XMM1);
 
+  ASSERT(instr->TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(instr->TargetFunction(), kInputCount);
   __ movaps(locs->out(0).fpu_reg(), XMM0);
   // Restore RSP.
@@ -5478,8 +5480,6 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 }
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(TargetFunction().is_leaf());
-
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     InvokeDoublePow(compiler, this);
     return;
@@ -5492,6 +5492,7 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).fpu_reg() == XMM1);
   }
 
+  ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), InputCount());
   __ movaps(locs()->out(0).fpu_reg(), XMM0);
   // Restore RSP.

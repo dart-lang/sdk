@@ -861,7 +861,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   Object::VerifyBuiltinVtables();
-  DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+  if (T->isolate()->origin_id() == 0) {
+    DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+  }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool kIsAotRuntime = true;

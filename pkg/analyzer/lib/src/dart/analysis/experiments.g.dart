@@ -25,6 +25,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
       ExperimentalFeatures.nonfunction_type_aliases,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
+  EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
@@ -65,6 +66,9 @@ class EnableString {
 
   /// String to enable the experiment "spread-collections"
   static const String spread_collections = 'spread-collections';
+
+  /// String to enable the experiment "test-experiment"
+  static const String test_experiment = 'test-experiment';
 
   /// String to enable the experiment "triple-shift"
   static const String triple_shift = 'triple-shift';
@@ -190,8 +194,19 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.0.0'),
   );
 
-  static final triple_shift = ExperimentalFeature(
+  static final test_experiment = ExperimentalFeature(
     index: 11,
+    enableString: EnableString.test_experiment,
+    isEnabledByDefault: IsEnabledByDefault.test_experiment,
+    isExpired: IsExpired.test_experiment,
+    documentation:
+        'Has no effect. Can be used for testing the --enable-experiment command line functionality.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final triple_shift = ExperimentalFeature(
+    index: 12,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -201,7 +216,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 12,
+    index: 13,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -211,7 +226,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 13,
+    index: 14,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -256,6 +271,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Default state of the experiment "test-experiment"
+  static const bool test_experiment = false;
 
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = true;
@@ -303,6 +321,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Expiration status of the experiment "test-experiment"
+  static const bool test_experiment = false;
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = false;
@@ -353,6 +374,9 @@ mixin _CurrentState {
   /// Current state for the flag "spread-collections"
   bool get spread_collections =>
       isEnabled(ExperimentalFeatures.spread_collections);
+
+  /// Current state for the flag "test-experiment"
+  bool get test_experiment => isEnabled(ExperimentalFeatures.test_experiment);
 
   /// Current state for the flag "triple-shift"
   bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);

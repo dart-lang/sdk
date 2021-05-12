@@ -927,7 +927,7 @@ void Assembler::LoadCompressed(Register dest, const Address& slot) {
   ldr(dest, slot);
 #else
   ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
-  add(dest, dest, Operand(HEAP_BASE));
+  add(dest, dest, Operand(HEAP_BITS, LSL, 32));
 #endif
 }
 
@@ -1054,7 +1054,7 @@ void Assembler::StoreBarrier(Register object,
       kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
-  tst(TMP, Operand(BARRIER_MASK));
+  tst(TMP, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
 
   if (spill_lr) {
@@ -1122,7 +1122,7 @@ void Assembler::StoreIntoArray(Register object,
       kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
-  tst(TMP, Operand(BARRIER_MASK));
+  tst(TMP, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
   if (spill_lr) {
     SPILLS_LR_TO_FRAME(Push(LR));
@@ -1374,11 +1374,13 @@ void Assembler::RestoreCodePointer() {
 }
 
 void Assembler::RestorePinnedRegisters() {
-  ldr(BARRIER_MASK,
+  ldr(HEAP_BITS,
       compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
+  LslImmediate(HEAP_BITS, HEAP_BITS, 32);
   ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
 #if defined(DART_COMPRESSED_POINTERS)
-  ldr(HEAP_BASE, compiler::Address(THR, target::Thread::heap_base_offset()));
+  ldr(TMP, compiler::Address(THR, target::Thread::heap_base_offset()));
+  orr(HEAP_BITS, HEAP_BITS, Operand(TMP, LSR, 32));
 #endif
 }
 

@@ -81,7 +81,7 @@ void run() {
     p.file('main.dart', 'void main(args) { print(args); }');
     ProcessResult result = p.runSync([
       'run',
-      '--enable-experiment=triple-shift',
+      '--enable-experiment=test-experiment',
       'main.dart',
       'argument1',
       'argument2',
@@ -133,7 +133,7 @@ void main(List<String> args) => print("$b $args");
     final name = path.join(p.dirPath, 'main.dart');
     final result = p.runSync([
       'run',
-      '--enable-experiment=triple-shift',
+      '--enable-experiment=test-experiment',
       name,
       '--argument1',
       'argument2',

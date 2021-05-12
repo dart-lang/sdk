@@ -444,6 +444,16 @@ uword Class::GetInstanceSize(const dart::Class& handle) {
                         ObjectAlignment::kObjectAlignment);
 }
 
+// Currently, we only have compressed pointers on the target if we also have
+// compressed pointers on the host, since only 64-bit architectures can have
+// compressed pointers and there is no 32-bit host/64-bit target combination.
+// Thus, we cheat a little here and use the host information about compressed
+// pointers for the target, instead of storing this information in the extracted
+// offsets information.
+bool Class::HasCompressedPointers(const dart::Class& handle) {
+  return handle.HasCompressedPointers();
+}
+
 intptr_t Class::NumTypeArguments(const dart::Class& klass) {
   return klass.NumTypeArguments();
 }

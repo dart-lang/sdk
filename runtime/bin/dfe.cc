@@ -281,10 +281,7 @@ static bool TryReadFile(const char* script_uri, uint8_t** buffer,
   }
   DartUtils::ReadFile(buffer, size, script_file);
   DartUtils::CloseFile(script_file);
-  if (buffer == nullptr) {
-    return false;
-  }
-  return true;
+  return *buffer != nullptr;
 }
 
 class KernelIRNode {

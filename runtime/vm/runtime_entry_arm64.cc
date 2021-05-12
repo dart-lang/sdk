@@ -76,8 +76,7 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     COMPILE_ASSERT(IsAbiPreservedRegister(THR));
     COMPILE_ASSERT(IsAbiPreservedRegister(PP));
     COMPILE_ASSERT(IsAbiPreservedRegister(NULL_REG));
-    COMPILE_ASSERT(IsAbiPreservedRegister(BARRIER_MASK));
-    COMPILE_ASSERT(IsAbiPreservedRegister(HEAP_BASE));
+    COMPILE_ASSERT(IsAbiPreservedRegister(HEAP_BITS));
     COMPILE_ASSERT(IsAbiPreservedRegister(DISPATCH_TABLE_REG));
     // These registers must be preserved by the runtime functions, otherwise
     // we'd need to restore them here.

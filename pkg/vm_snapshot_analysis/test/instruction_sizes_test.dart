@@ -821,9 +821,14 @@ void main() async {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
+                        // Type of returned list is more precise, as closures
+                        // that returned non-K objects were removed, causing the
+                        // type K* to be attributed to makeSomeClosures instead
+                        // of just those inner closures that returned that type.
+                        '#size': greaterThan(0),
                         '<anonymous closure>': {
                           '#type': 'function',
-                          '#size': lessThan(0),
+                          '#size': lessThan(0), // Some inner closures removed.
                         },
                       },
                     },

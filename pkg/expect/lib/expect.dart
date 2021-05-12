@@ -712,14 +712,14 @@ class Expect {
   /// because the types appear to be unrelated.
   static void _subtypeAtRuntime<Sub, Super>() {
     if (<Sub>[] is! List<Super>) {
-      fail("$Sub is not a subtype of $Super");
+      _fail("Expect.subtype<$Sub, $Super>: $Sub is not a subtype of $Super");
     }
   }
 
   /// Checks that `Sub` is not a subtype of `Super` at run time.
   static void notSubtype<Sub, Super>() {
     if (<Sub>[] is List<Super>) {
-      fail("$Sub is a subtype of $Super");
+      _fail("Expect.notSubtype<$Sub, $Super>: $Sub is a subtype of $Super");
     }
   }
 
@@ -727,7 +727,7 @@ class Expect {
       (reason.isEmpty) ? "" : ", '$reason'";
 
   @alwaysThrows
-  static void _fail(String message) {
+  static Never _fail(String message) {
     throw new ExpectException(message);
   }
 }

@@ -895,6 +895,12 @@ class Assembler : public AssemblerBase {
   void SmiTag(Register reg) { OBJ(add)(reg, reg); }
 
   void SmiUntag(Register reg) { OBJ(sar)(reg, Immediate(kSmiTagSize)); }
+  void SmiUntag(Register dst, Register src) {
+    if (dst != src) {
+      OBJ(mov)(dst, src);
+    }
+    OBJ(sar)(dst, Immediate(kSmiTagSize));
+  }
 
   void SmiUntagAndSignExtend(Register reg) {
 #if !defined(DART_COMPRESSED_POINTERS)
@@ -903,8 +909,20 @@ class Assembler : public AssemblerBase {
     // This is shorter than
     // shlq reg, 32
     // sraq reg, 33
-    sarl(reg, Immediate(1));
+    sarl(reg, Immediate(kSmiTagSize));
     movsxd(reg, reg);
+#endif
+  }
+
+  void SmiUntagAndSignExtend(Register dst, Register src) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    if (dst != src) {
+      movq(dst, src);
+    }
+    sarq(dst, Immediate(kSmiTagSize));
+#else
+    movsxd(dst, src);
+    sarq(dst, Immediate(kSmiTagSize));
 #endif
   }
 

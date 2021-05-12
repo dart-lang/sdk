@@ -79,6 +79,10 @@ class Flags {
   static const String noNativeNullAssertions = '--no-native-null-assertions';
 
   static const String noSourceMaps = '--no-source-maps';
+
+  static const String omitLateNames = '--omit-late-names';
+  static const String noOmitLateNames = '--no-omit-late-names';
+
   static const String preserveUris = '--preserve-uris';
   static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';

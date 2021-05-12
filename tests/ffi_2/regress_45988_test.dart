@@ -2,15 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:ffi';
 
 import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
 
-typedef TEST_TYPEDEF<TT extends T Function<T>(T)> = void
-    Function<TTT extends TT>();
-void testme<TT extends T Function<T>(T)>() {}
+class DartValueFields extends Union {
+  Pointer p1;
+  Pointer p2;
+  Pointer p3;
+  Pointer p4;
+}
 
-main() {
-  Expect.isTrue(testme is TEST_TYPEDEF);
-  TEST_TYPEDEF ttttt = testme;
-  Expect.isTrue(ttttt is TEST_TYPEDEF);
+void main() {
+  final p = calloc<DartValueFields>();
+  Expect.equals(0, p.ref.p4.address);
+  calloc.free(p);
 }

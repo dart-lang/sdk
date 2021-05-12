@@ -81,7 +81,6 @@ io/http_basic_test: Slow, Pass # Issue 28046, These tests might be slow on an op
 [ $system == macos && ($runtime == dart_precompiled || $runtime == vm) ]
 io/raw_secure_server_socket_test: Crash
 io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs on Mac.
-io/secure_server_client_certificate_test: Skip # Re-enable once the bots have been updated. Issue #26057
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
 [ $arch == arm || $arch == arm64 || $runtime != vm || $system == android ]
