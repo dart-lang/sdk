@@ -3741,42 +3741,14 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 /// A concrete implementation of an [ExportElement].
 class ExportElementImpl extends UriReferencedElementImpl
     implements ExportElement {
-  /// The library that is exported from this library by this export directive.
-  LibraryElement? _exportedLibrary;
+  @override
+  LibraryElement? exportedLibrary;
 
-  /// The combinators that were specified as part of the export directive in the
-  /// order in which they were specified.
-  List<NamespaceCombinator> _combinators = _Sentinel.namespaceCombinator;
+  @override
+  List<NamespaceCombinator> combinators = const [];
 
   /// Initialize a newly created export element at the given [offset].
   ExportElementImpl(int offset) : super(null, offset);
-
-  ExportElementImpl.forLinkedNode(
-      LibraryElementImpl enclosing, ExportDirectiveImpl linkedNode)
-      : super.forLinkedNode(enclosing, null, linkedNode) {
-    linkedNode.element = this;
-  }
-
-  @override
-  List<NamespaceCombinator> get combinators {
-    if (!identical(_combinators, _Sentinel.namespaceCombinator)) {
-      return _combinators;
-    }
-
-    if (linkedNode != null) {
-      var node = linkedNode as ExportDirective;
-      return _combinators = ImportElementImpl._buildCombinators2(
-        enclosingUnit.linkedContext!,
-        node.combinators,
-      );
-    }
-
-    return _combinators;
-  }
-
-  set combinators(List<NamespaceCombinator> combinators) {
-    _combinators = combinators;
-  }
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -3785,38 +3757,10 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  LibraryElement? get exportedLibrary {
-    return _exportedLibrary;
-  }
-
-  set exportedLibrary(LibraryElement? exportedLibrary) {
-    _exportedLibrary = exportedLibrary;
-  }
-
-  @override
   String get identifier => exportedLibrary!.name ?? 'unknown';
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getDirectiveOffset(linkedNode as Directive);
-    }
-
-    return super.nameOffset;
-  }
-
-  @override
-  String? get uri {
-    if (linkedNode != null) {
-      var node = linkedNode as ExportDirective;
-      return node.uri.stringValue;
-    }
-
-    return super.uri;
-  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitExportElement(this);
@@ -4599,35 +4543,8 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of a [HideElementCombinator].
 class HideElementCombinatorImpl implements HideElementCombinator {
-  final LinkedUnitContext? linkedContext;
-  final HideCombinator? linkedNode;
-
-  /// The names that are not to be made visible in the importing library even if
-  /// they are defined in the imported library.
-  List<String> _hiddenNames = _Sentinel.string;
-
-  HideElementCombinatorImpl()
-      : linkedContext = null,
-        linkedNode = null;
-
-  HideElementCombinatorImpl.forLinkedNode(this.linkedContext, this.linkedNode);
-
   @override
-  List<String> get hiddenNames {
-    if (!identical(_hiddenNames, _Sentinel.string)) {
-      return _hiddenNames;
-    }
-
-    if (linkedNode != null) {
-      return _hiddenNames = linkedNode!.hiddenNames.map((i) => i.name).toList();
-    }
-
-    return _hiddenNames;
-  }
-
-  set hiddenNames(List<String> hiddenNames) {
-    _hiddenNames = hiddenNames;
-  }
+  List<String> hiddenNames = const [];
 
   @override
   String toString() {
@@ -4647,20 +4564,17 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 /// A concrete implementation of an [ImportElement].
 class ImportElementImpl extends UriReferencedElementImpl
     implements ImportElement {
-  /// The offset of the prefix of this import in the file that contains the this
-  /// import directive, or `-1` if this import is synthetic.
-  int _prefixOffset = 0;
+  @override
+  LibraryElement? importedLibrary;
 
-  /// The library that is imported into this library by this import directive.
-  LibraryElement? _importedLibrary;
+  @override
+  PrefixElement? prefix;
 
-  /// The combinators that were specified as part of the import directive in the
-  /// order in which they were specified.
-  List<NamespaceCombinator> _combinators = _Sentinel.namespaceCombinator;
+  @override
+  int prefixOffset = -1;
 
-  /// The prefix that was specified as part of the import directive, or `null
-  ///` if there was no prefix specified.
-  PrefixElement? _prefix;
+  @override
+  List<NamespaceCombinator> combinators = const [];
 
   /// The cached value of [namespace].
   Namespace? _namespace;
@@ -4668,33 +4582,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   /// Initialize a newly created import element at the given [offset].
   /// The offset may be `-1` if the import is synthetic.
   ImportElementImpl(int offset) : super(null, offset);
-
-  ImportElementImpl.forLinkedNode(
-      LibraryElementImpl enclosing, ImportDirectiveImpl linkedNode)
-      : super.forLinkedNode(enclosing, null, linkedNode) {
-    linkedNode.element = this;
-  }
-
-  @override
-  List<NamespaceCombinator> get combinators {
-    if (!identical(_combinators, _Sentinel.namespaceCombinator)) {
-      return _combinators;
-    }
-
-    if (linkedNode != null) {
-      var node = linkedNode as ImportDirective;
-      return _combinators = ImportElementImpl._buildCombinators2(
-        enclosingUnit.linkedContext!,
-        node.combinators,
-      );
-    }
-
-    return _combinators;
-  }
-
-  set combinators(List<NamespaceCombinator> combinators) {
-    _combinators = combinators;
-  }
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -4706,20 +4593,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   String get identifier => "${importedLibrary?.identifier}@$nameOffset";
 
   @override
-  LibraryElement? get importedLibrary {
-    return _importedLibrary;
-  }
-
-  set importedLibrary(LibraryElement? importedLibrary) {
-    _importedLibrary = importedLibrary;
-  }
-
-  @override
   bool get isDeferred {
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as ImportDirective;
-      return linkedNode.deferredKeyword != null;
-    }
     return hasModifier(Modifier.DEFERRED);
   }
 
@@ -4732,66 +4606,9 @@ class ImportElementImpl extends UriReferencedElementImpl
   ElementKind get kind => ElementKind.IMPORT;
 
   @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getDirectiveOffset(linkedNode as Directive);
-    }
-
-    return super.nameOffset;
-  }
-
-  @override
   Namespace get namespace {
     return _namespace ??=
         NamespaceBuilder().createImportNamespaceForDirective(this);
-  }
-
-  @override
-  PrefixElement? get prefix {
-    if (_prefix != null) return _prefix;
-
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as ImportDirective;
-      var prefix = linkedNode.prefix;
-      if (prefix != null) {
-        var name = prefix.name;
-        var library = enclosingElement as LibraryElementImpl;
-        _prefix = PrefixElementImpl.forLinkedNode(
-          library,
-          library.reference!.getChild('@prefix').getChild(name),
-          prefix,
-        );
-      }
-    }
-
-    return _prefix;
-  }
-
-  set prefix(PrefixElement? prefix) {
-    _prefix = prefix;
-  }
-
-  @override
-  int get prefixOffset {
-    if (linkedNode != null) {
-      var node = linkedNode as ImportDirective;
-      return node.prefix?.offset ?? -1;
-    }
-    return _prefixOffset;
-  }
-
-  set prefixOffset(int prefixOffset) {
-    _prefixOffset = prefixOffset;
-  }
-
-  @override
-  String? get uri {
-    if (linkedNode != null) {
-      var node = linkedNode as ImportDirective;
-      return node.uri.stringValue;
-    }
-
-    return super.uri;
   }
 
   @override
@@ -4806,19 +4623,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     prefix?.accept(visitor);
-  }
-
-  static List<NamespaceCombinator> _buildCombinators2(
-      LinkedUnitContext context, List<Combinator> combinators) {
-    return combinators.map((node) {
-      if (node is HideCombinator) {
-        return HideElementCombinatorImpl.forLinkedNode(context, node);
-      }
-      if (node is ShowCombinator) {
-        return ShowElementCombinatorImpl.forLinkedNode(context, node);
-      }
-      throw UnimplementedError('${node.runtimeType}');
-    }).toList();
   }
 }
 
@@ -6899,66 +6703,14 @@ abstract class PropertyInducingElementTypeInference {
 
 /// A concrete implementation of a [ShowElementCombinator].
 class ShowElementCombinatorImpl implements ShowElementCombinator {
-  final LinkedUnitContext? linkedContext;
-  final ShowCombinator? linkedNode;
-
-  /// The names that are to be made visible in the importing library if they are
-  /// defined in the imported library.
-  List<String> _shownNames = _Sentinel.string;
-
-  /// The offset of the character immediately following the last character of
-  /// this node.
-  int _end = -1;
-
-  /// The offset of the 'show' keyword of this element.
-  int _offset = 0;
-
-  ShowElementCombinatorImpl()
-      : linkedContext = null,
-        linkedNode = null;
-
-  ShowElementCombinatorImpl.forLinkedNode(this.linkedContext, this.linkedNode);
+  @override
+  List<String> shownNames = const [];
 
   @override
-  int get end {
-    if (linkedNode != null) {
-      return linkedNode!.end;
-    }
-    return _end;
-  }
-
-  set end(int end) {
-    _end = end;
-  }
+  int offset = 0;
 
   @override
-  int get offset {
-    if (linkedNode != null) {
-      return linkedNode!.keyword.offset;
-    }
-    return _offset;
-  }
-
-  set offset(int offset) {
-    _offset = offset;
-  }
-
-  @override
-  List<String> get shownNames {
-    if (!identical(_shownNames, _Sentinel.string)) {
-      return _shownNames;
-    }
-
-    if (linkedNode != null) {
-      return _shownNames = linkedNode!.shownNames.map((i) => i.name).toList();
-    }
-
-    return _shownNames;
-  }
-
-  set shownNames(List<String> shownNames) {
-    _shownNames = shownNames;
-  }
+  int end = -1;
 
   @override
   String toString() {
@@ -7699,12 +7451,9 @@ class _Sentinel {
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<InterfaceType> interfaceType = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
-  static final List<NamespaceCombinator> namespaceCombinator =
-      List.unmodifiable([]);
   static final List<ParameterElement> parameterElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
       List.unmodifiable([]);
-  static final List<String> string = List.unmodifiable([]);
   static final List<TopLevelVariableElement> topLevelVariables =
       List.unmodifiable([]);
   static final List<TypeAliasElement> typeAliasElement = List.unmodifiable([]);

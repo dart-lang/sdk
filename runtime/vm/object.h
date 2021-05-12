@@ -81,10 +81,32 @@ class BaseTextBuffer;
 #define CHECK_HANDLE()
 #endif
 
+// For AllStatic classes like OneByteString. Checks that
+// ContainsCompressedPointers() returns the same value for AllStatic class and
+// class used for handles.
+#define ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(object, handle)           \
+  static_assert(std::is_base_of<dart::handle##Ptr, dart::object##Ptr>::value,  \
+                #object "Ptr must be a subtype of " #handle "Ptr");            \
+  static_assert(dart::handle::ContainsCompressedPointers() ==                  \
+                    dart::Untagged##object::kContainsCompressedPointers,       \
+                "Pointer compression in Untagged" #object                      \
+                " must match pointer compression in Untagged" #handle);        \
+  static constexpr bool ContainsCompressedPointers() {                         \
+    return dart::Untagged##object::kContainsCompressedPointers;                \
+  }
+
 #define BASE_OBJECT_IMPLEMENTATION(object, super)                              \
  public: /* NOLINT */                                                          \
   using UntaggedObjectType = dart::Untagged##object;                           \
   using ObjectPtrType = dart::object##Ptr;                                     \
+  static_assert(!dart::super::ContainsCompressedPointers() ||                  \
+                    UntaggedObjectType::kContainsCompressedPointers,           \
+                "Untagged" #object                                             \
+                " must have compressed pointers, as supertype Untagged" #super \
+                " has compressed pointers");                                   \
+  static constexpr bool ContainsCompressedPointers() {                         \
+    return UntaggedObjectType::kContainsCompressedPointers;                    \
+  }                                                                            \
   object##Ptr ptr() const { return static_cast<object##Ptr>(ptr_); }           \
   bool Is##object() const { return true; }                                     \
   DART_NOINLINE static object& Handle() {                                      \
@@ -287,6 +309,9 @@ class Object {
 
   virtual ~Object() {}
 
+  static constexpr bool ContainsCompressedPointers() {
+    return UntaggedObject::kContainsCompressedPointers;
+  }
   ObjectPtr ptr() const { return ptr_; }
   void operator=(ObjectPtr value) { initializeHandle(this, value); }
 
@@ -937,6 +962,7 @@ class Class : public Object {
     kInvocationDispatcherEntrySize,
   };
 
+  bool HasCompressedPointers() const;
   intptr_t host_instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
     return (untag()->host_instance_size_in_words_ * kWordSize);
@@ -9367,6 +9393,8 @@ class StringHasher : ValueObject {
 
 class OneByteString : public AllStatic {
  public:
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(OneByteString, String);
+
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsOneByteString());
     NoSafepointScope no_safepoint;
@@ -9512,6 +9540,8 @@ class OneByteString : public AllStatic {
 
 class TwoByteString : public AllStatic {
  public:
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(TwoByteString, String);
+
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsTwoByteString());
     NoSafepointScope no_safepoint;
@@ -9639,6 +9669,8 @@ class TwoByteString : public AllStatic {
 
 class ExternalOneByteString : public AllStatic {
  public:
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalOneByteString, String);
+
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalOneByteString());
     NoSafepointScope no_safepoint;
@@ -9737,6 +9769,8 @@ class ExternalOneByteString : public AllStatic {
 
 class ExternalTwoByteString : public AllStatic {
  public:
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalTwoByteString, String);
+
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalTwoByteString());
     NoSafepointScope no_safepoint;
@@ -10056,6 +10090,10 @@ class Array : public Instance {
 
 class ImmutableArray : public AllStatic {
  public:
+  static constexpr bool ContainsCompressedPointers() {
+    return Array::ContainsCompressedPointers();
+  }
+
   static ImmutableArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew);
 
   static ImmutableArrayPtr ReadFrom(SnapshotReader* reader,
@@ -10671,6 +10709,10 @@ class TypedDataView : public TypedDataBase {
 
 class ByteBuffer : public AllStatic {
  public:
+  static constexpr bool ContainsCompressedPointers() {
+    return Instance::ContainsCompressedPointers();
+  }
+
   static InstancePtr Data(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
     return *reinterpret_cast<InstancePtr const*>(view_obj.untag() +

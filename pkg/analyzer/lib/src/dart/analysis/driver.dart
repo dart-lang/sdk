@@ -2009,9 +2009,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var fileContentMap = <String, String>{};
     var libraryFile = _fsState.getFileForPath(path);
-    for (var file in libraryFile.libraryFiles) {
-      var path = file.path;
-      fileContentMap[path] = file.content;
+    try {
+      for (var file in libraryFile.libraryFiles) {
+        var path = file.path;
+        fileContentMap[path] = file.content;
+      }
+    } catch (_) {
+      // We might get an exception while parsing to access parts.
+      // Ignore, continue with the exception that we are reporting now.
     }
 
     _exceptionController.add(

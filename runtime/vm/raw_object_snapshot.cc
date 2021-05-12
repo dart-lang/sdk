@@ -745,7 +745,7 @@ InstancePtr Instance::ReadFrom(SnapshotReader* reader,
   // constant.
   Instance& obj = Instance::ZoneHandle(reader->zone(), Instance::null());
   obj ^= Object::Allocate(kInstanceCid, Instance::InstanceSize(), Heap::kNew,
-                          /*compressed*/ false);
+                          Instance::ContainsCompressedPointers());
   if (UntaggedObject::IsCanonical(tags)) {
     obj = obj.Canonicalize(reader->thread());
   }
