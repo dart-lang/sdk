@@ -1271,8 +1271,7 @@ class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
       unionAlignment = math.max(unionAlignment, alignment);
     }
     final int size = _alignOffset(unionSize, unionAlignment);
-    return CompoundLayout(
-        size, unionAlignment, List.filled(Abi.values.length, 0));
+    return CompoundLayout(size, unionAlignment, List.filled(types.length, 0));
   }
 }
 
