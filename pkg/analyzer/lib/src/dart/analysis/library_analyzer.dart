@@ -325,9 +325,10 @@ class LibraryAnalyzer {
   void _computeLints(FileState file, LinterContextUnit currentUnit,
       List<LinterContextUnit> allUnits) {
     var unit = currentUnit.unit;
-    ErrorReporter errorReporter = _getErrorReporter(file);
+    var errorReporter = _getErrorReporter(file);
 
-    var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
+    var enableTiming = _analysisOptions.enableTiming;
+    var nodeRegistry = NodeLintRegistry(enableTiming);
     var visitors = <AstVisitor>[];
 
     var context = LinterContextImpl(
@@ -340,9 +341,12 @@ class LibraryAnalyzer {
       _analysisOptions,
       file.workspacePackage,
     );
-    for (Linter linter in _analysisOptions.lintRules) {
+    for (var linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
+      var timer = enableTiming ? lintRegistry.getTimer(linter) : null;
+      timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
+      timer?.stop();
     }
 
     // Run lints that handle specific node types.
