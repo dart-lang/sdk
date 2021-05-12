@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/noop_service.dart';
 import 'package:analyzer/instrumentation/plugin_data.dart';
@@ -17,7 +19,7 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
   @override
   void logException(dynamic exception,
       [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+      List<InstrumentationServiceAttachment> attachments = const []]) {
     var crashReportAttachments = (attachments ?? []).map((e) {
       return CrashReportAttachment.string(
         field: 'attachment_${e.id}',

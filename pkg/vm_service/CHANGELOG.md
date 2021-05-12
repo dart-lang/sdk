@@ -1,11 +1,42 @@
 # Changelog
 
+## 6.2.0
+- Added support for `getHttpProfile` and `clearHttpProfile` `dart:io` service extensions.
+
+## 6.1.1
+- Callsite `StackTrace`s are now attached to `RPCError`s and `SentinelException`s.
+- Added `identityHashCode` property to `InstanceRef` and `Instance`.
+
+## 6.1.0+1
+- Documentation update.
+
+## 6.1.0
+- *breaking bug fix*: Fixed issue where the root object was omitted from
+  `HeapSnapshot.classes` and the sentinel `HeapSnapshotObject` was omitted from
+  `HeapSnapshot.objects`
+- Added `identityHashCode` property to `HeapSnapshotObject`, which can be used to compare
+  objects across heap snapshots.
+- Added `successors` iterable to `HeapSnapshotObject`, which provides a convenient way to
+  access children of a given object.
+- Added `klass` getter to `HeapSnapshotObject`.
+- Fixed issue where `null` could be returned instead of `InstanceRef` of type `Null`.
+- Added `getAllocationTraces` and `setTraceClassAllocation` RPCs.
+- Updated `CpuSample` to include `identityHashCode` and `classId` properties.
+- Updated `Class` to include `traceAllocations` property.
+
+## 6.0.1
+- Stable null-safe release.
+
+## 6.0.1-nullsafety.1
+- Fix issue where some `Instance` properties were not being populated correctly.
+
 ## 6.0.1-nullsafety.0
 - Fix versioning for pub.
 
 ## 6.0.0-nullsafety.4
 - Fixed issue where response parsing could fail for `SourceReportRange.coverage`
   if no coverage information was provided.
+
 ## 6.0.0-nullsafety.3
 - Fixed issue where `Response.type` and classes which override `Response.type` were
   returning the name of the `package:vm_service` reference object (e.g., InstanceRef) instead of

@@ -426,7 +426,7 @@ compiler.''',
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
-      return null;
+      return const [];
     }
 
     // Parse the command line arguments to a map.
@@ -563,12 +563,12 @@ compiler.''',
 
     if (options.containsKey('find-configurations')) {
       findConfigurations(options);
-      return null;
+      return const [];
     }
 
     if (options.containsKey('list-configurations')) {
       listConfigurations(options);
-      return null;
+      return const [];
     }
 
     // If a named configuration was specified ensure no other options, which are
@@ -833,7 +833,7 @@ compiler.''',
       // Expand architectures.
       var architectures = data["arch"] as String;
       if (architectures == "all") {
-        architectures = "ia32,x64,simarm,simarm64";
+        architectures = "ia32,x64,x64c,simarm,simarm64,simarm64c";
       }
 
       for (var architectureName in architectures.split(",")) {
@@ -854,7 +854,7 @@ compiler.''',
             for (var sanitizerName in sanitizers.split(",")) {
               var sanitizer = Sanitizer.find(sanitizerName);
               var configuration = Configuration(
-                  "custom configuration_${configurationNumber++}",
+                  "custom-configuration-${configurationNumber++}",
                   architecture,
                   compiler,
                   mode,

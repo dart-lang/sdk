@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart'
     show newLocation_fromElement, newLocation_fromMatch;
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -54,11 +56,11 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is FunctionElement) {
       return 'Rename Top-Level Function';
     }
-    if (element is FunctionTypeAliasElement) {
-      return 'Rename Function Type Alias';
-    }
     if (element is TopLevelVariableElement) {
       return 'Rename Top-Level Variable';
+    }
+    if (element is TypeAliasElement) {
+      return 'Rename Type Alias';
     }
     return 'Rename Class';
   }
@@ -94,8 +96,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is FunctionElement) {
       result.addStatus(validateFunctionName(newName));
     }
-    if (element is FunctionTypeAliasElement) {
-      result.addStatus(validateFunctionTypeAliasName(newName));
+    if (element is TypeAliasElement) {
+      result.addStatus(validateTypeAliasName(newName));
     }
     if (element is ClassElement) {
       result.addStatus(validateClassName(newName));

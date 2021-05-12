@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
@@ -54,7 +56,7 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
           // TODO(danrubel): If assists is empty, then determine why
           // assist could not be performed and report that in the description.
           listener.addRecommendation(
-              'Could not convert ${elem.displayName} to a mixin'
+              "Couldn't convert ${elem.displayName} to a mixin"
               ' because the class contains a constructor',
               location);
         }

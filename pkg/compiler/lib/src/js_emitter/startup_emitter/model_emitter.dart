@@ -52,6 +52,7 @@ import '../../io/location_provider.dart' show LocationCollector;
 import '../../io/source_information.dart';
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
+import '../../js/size_estimator.dart';
 import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
@@ -84,6 +85,13 @@ import 'fragment_merger.dart';
 
 part 'fragment_emitter.dart';
 
+class EmittedCodeFragment {
+  final CodeFragment codeFragment;
+  final js.Expression code;
+
+  EmittedCodeFragment(this.codeFragment, this.code);
+}
+
 class ModelEmitter {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
@@ -98,6 +106,7 @@ class ModelEmitter {
   final JClosedWorld _closedWorld;
   final ConstantOrdering _constantOrdering;
   final SourceInformationStrategy _sourceInformationStrategy;
+  final FragmentMerger fragmentMerger;
 
   // The full code that is written to each hunk part-file.
   final Map<OutputUnit, CodeOutput> emittedOutputBuffers = {};
@@ -105,6 +114,19 @@ class ModelEmitter {
   final Set<OutputUnit> omittedOutputUnits = {};
 
   List<PreFragment> preDeferredFragmentsForTesting;
+
+  /// A mapping from the name of a defer import to all the fragments it
+  /// depends on in a list of lists to be loaded in the order they appear.
+  ///
+  /// For example {"lib1": [[lib1_lib2_lib3], [lib1_lib2, lib1_lib3],
+  /// [lib1]]} would mean that in order to load "lib1" first the hunk
+  /// lib1_lib2_lib2 should be loaded, then the hunks lib1_lib2 and lib1_lib3
+  /// can be loaded in parallel. And fially lib1 can be loaded.
+  final Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad = {};
+
+  /// Similar to the above map, but more granular as each [FinalizedFragment]
+  /// may have multiple CodeFragments.
+  final Map<String, List<CodeFragment>> codeFragmentsToLoad = {};
 
   /// For deferred loading we communicate the initializers via this global var.
   static const String deferredInitializersGlobal =
@@ -128,7 +150,9 @@ class ModelEmitter {
       this._sourceInformationStrategy,
       RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
-      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
+      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter),
+        fragmentMerger = FragmentMerger(_options,
+            _closedWorld.elementEnvironment, _closedWorld.outputUnitData) {
     this.constantEmitter = new ConstantEmitter(
         _options,
         _namer,
@@ -211,28 +235,29 @@ class ModelEmitter {
         _closedWorld,
         codegenWorld);
 
-    var deferredLoadingState = new DeferredLoadingState();
-    js.Statement mainCode =
-        fragmentEmitter.emitMainFragment(program, deferredLoadingState);
-
     // In order to get size estimates, we partially emit deferred fragments.
+    List<OutputUnit> outputUnits = [];
     List<PreFragment> preDeferredFragments = [];
-    Map<DeferredFragment, PreFragment> preFragmentMap = {};
     _task.measureSubtask('emit prefragments', () {
       for (var fragment in deferredFragments) {
         var preFragment =
             fragmentEmitter.emitPreFragment(fragment, shouldMergeFragments);
-        preFragmentMap[fragment] = preFragment;
+        outputUnits.add(fragment.outputUnit);
         preDeferredFragments.add(preFragment);
       }
     });
 
-    // Attach dependencies to each PreFragment.
-    FragmentMerger.attachDependencies(program.loadMap, preFragmentMap);
+    // Sort output units so they are in a canonical order and generate a map of
+    // loadId to list of OutputUnits to load.
+    outputUnits.sort();
+    var outputUnitsToLoad =
+        fragmentMerger.computeOutputUnitsToLoad(outputUnits);
 
+    // If we are going to merge, then we attach dependencies to each PreFragment
+    // and merge.
     if (shouldMergeFragments) {
       preDeferredFragments = _task.measureSubtask('merge fragments', () {
-        FragmentMerger fragmentMerger = FragmentMerger(_options);
+        fragmentMerger.attachDependencies(outputUnits, preDeferredFragments);
         return fragmentMerger.mergeFragments(preDeferredFragments);
       });
     }
@@ -242,22 +267,48 @@ class ModelEmitter {
       preDeferredFragmentsForTesting = preDeferredFragments;
     }
 
-    Map<DeferredFragment, FinalizedFragment> fragmentMap = {};
-    Map<FinalizedFragment, js.Expression> deferredFragmentsCode = {};
+    // Finalize and emit fragments.
+    Map<OutputUnit, CodeFragment> outputUnitMap = {};
+    Map<CodeFragment, FinalizedFragment> codeFragmentMap = {};
+    Map<FinalizedFragment, EmittedCodeFragment> deferredFragmentsCode = {};
     for (var preDeferredFragment in preDeferredFragments) {
       var finalizedFragment =
-          preDeferredFragment.finalize(program, fragmentMap);
-      js.Expression fragmentCode = fragmentEmitter.emitDeferredFragment(
-          finalizedFragment, program.holders);
+          preDeferredFragment.finalize(program, outputUnitMap, codeFragmentMap);
+      // TODO(joshualitt): Support bundling.
+      assert(finalizedFragment.codeFragments.length == 1);
+      var codeFragment = finalizedFragment.codeFragments.single;
+      js.Expression fragmentCode =
+          fragmentEmitter.emitCodeFragment(codeFragment, program.holders);
       if (fragmentCode != null) {
-        deferredFragmentsCode[finalizedFragment] = fragmentCode;
+        deferredFragmentsCode[finalizedFragment] =
+            EmittedCodeFragment(codeFragment, fragmentCode);
       } else {
-        omittedOutputUnits.add(finalizedFragment.outputUnit);
+        finalizedFragment.codeFragments.forEach((codeFragment) {
+          omittedOutputUnits.addAll(codeFragment.outputUnits);
+        });
       }
     }
 
+    // With all deferred fragments finalized, we can now compute a map of
+    // loadId to the files(FinalizedFragments) which need to be loaded.
+    fragmentMerger.computeFragmentsToLoad(
+        outputUnitsToLoad,
+        outputUnitMap,
+        codeFragmentMap,
+        omittedOutputUnits,
+        codeFragmentsToLoad,
+        finalizedFragmentsToLoad);
+
+    // Emit main Fragment.
+    var deferredLoadingState = new DeferredLoadingState();
+    js.Statement mainCode = fragmentEmitter.emitMainFragment(
+        program, finalizedFragmentsToLoad, deferredLoadingState);
+
+    // Count tokens and run finalizers.
     js.TokenCounter counter = new js.TokenCounter();
-    deferredFragmentsCode.values.forEach(counter.countTokens);
+    deferredFragmentsCode.values.forEach((emittedCodeFragment) {
+      counter.countTokens(emittedCodeFragment.code);
+    });
     counter.countTokens(mainCode);
 
     program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
@@ -273,10 +324,8 @@ class ModelEmitter {
 
     // Now that we have written the deferred hunks, we can create the deferred
     // loading data.
-    Map<String, List<FinalizedFragment>> loadMap =
-        FragmentMerger.processLoadMap(program.loadMap, fragmentMap);
     fragmentEmitter.finalizeDeferredLoadingData(
-        loadMap, hunkHashes, deferredLoadingState);
+        codeFragmentsToLoad, codeFragmentMap, hunkHashes, deferredLoadingState);
 
     _task.measureSubtask('write fragments', () {
       writeMainFragment(mainFragment, mainCode,
@@ -320,11 +369,13 @@ class ModelEmitter {
   ///
   /// Updates the shared [outputBuffers] field with the output.
   Map<FinalizedFragment, String> writeDeferredFragments(
-      Map<FinalizedFragment, js.Expression> fragmentsCode) {
+      Map<FinalizedFragment, EmittedCodeFragment> fragmentsCode) {
     Map<FinalizedFragment, String> hunkHashes = {};
 
-    fragmentsCode.forEach((FinalizedFragment fragment, js.Expression code) {
-      hunkHashes[fragment] = writeDeferredFragment(fragment, code);
+    fragmentsCode.forEach(
+        (FinalizedFragment fragment, EmittedCodeFragment emittedCodeFragment) {
+      hunkHashes[fragment] =
+          writeDeferredFragment(fragment, emittedCodeFragment.code);
     });
 
     return hunkHashes;
@@ -419,7 +470,9 @@ class ModelEmitter {
             hunkPrefix, deferredExtension, OutputType.jsPart),
         outputListeners);
 
-    emittedOutputBuffers[fragment.outputUnit] = output;
+    // TODO(joshualitt): This breaks dump_info when we merge, but fixing it will
+    // require updating the schema.
+    emittedOutputBuffers[fragment.canonicalOutputUnit] = output;
 
     // The [code] contains the function that must be invoked when the deferred
     // hunk is loaded.
@@ -495,9 +548,7 @@ class ModelEmitter {
     // data.
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
-    mapping.addAll(_closedWorld.outputUnitData.computeDeferredMap(
-        _options, _closedWorld.elementEnvironment,
-        omittedUnits: omittedOutputUnits));
+    mapping.addAll(fragmentMerger.computeDeferredMap(finalizedFragmentsToLoad));
     _outputProvider.createOutputSink(
         _options.deferredMapUri.path, '', OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))

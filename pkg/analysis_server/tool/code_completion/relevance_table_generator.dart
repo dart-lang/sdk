@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -19,9 +22,10 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:args/args.dart';
@@ -34,31 +38,54 @@ Future<void> main(List<String> args) async {
   var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
+    var provider = PhysicalResourceProvider.INSTANCE;
+    var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
+
+    void writeRelevanceTable(RelevanceData data, {String suffix = ''}) {
+      var generatedFilePath = provider.pathContext.join(
+          packageRoot,
+          'analysis_server',
+          'lib',
+          'src',
+          'services',
+          'completion',
+          'dart',
+          'relevance_tables$suffix.g.dart');
+      var generatedFile = provider.getFile(generatedFilePath);
+
+      var buffer = StringBuffer();
+      var writer = RelevanceTableWriter(buffer);
+      writer.write(data);
+      generatedFile.writeAsStringSync(buffer.toString());
+      DartFormat.formatFile(io.File(generatedFile.path));
+    }
+
+    if (result.wasParsed('reduceDir')) {
+      var data = RelevanceData();
+      var dir = provider.getFolder(result['reduceDir']);
+      var suffix = result.rest.isNotEmpty ? result.rest[0] : '';
+      for (var child in dir.getChildren()) {
+        if (child is File) {
+          var newData = RelevanceData.fromJson(child.readAsStringSync());
+          data.addData(newData);
+        }
+      }
+      writeRelevanceTable(data, suffix: suffix);
+      return;
+    }
+
     var rootPath = result.rest[0];
     print('Analyzing root: "$rootPath"');
 
-    var provider = PhysicalResourceProvider.INSTANCE;
-    var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
-    var generatedFilePath = provider.pathContext.join(
-        packageRoot,
-        'analysis_server',
-        'lib',
-        'src',
-        'services',
-        'completion',
-        'dart',
-        'relevance_tables.g.dart');
-    var generatedFile = provider.getFile(generatedFilePath);
-
     var computer = RelevanceMetricsComputer();
-    var stopwatch = Stopwatch();
-    stopwatch.start();
+    var stopwatch = Stopwatch()..start();
     await computer.compute(rootPath, verbose: result['verbose']);
-    var buffer = StringBuffer();
-    var writer = RelevanceTableWriter(buffer);
-    writer.write(computer.data);
-    generatedFile.writeAsStringSync(buffer.toString());
-    DartFormat.formatFile(io.File(generatedFile.path));
+    if (result.wasParsed('mapFile')) {
+      var mapFile = provider.getFile(result['mapFile'] as String);
+      mapFile.writeAsStringSync(computer.data.toJson());
+    } else {
+      writeRelevanceTable(computer.data);
+    }
     stopwatch.stop();
 
     var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -73,6 +100,18 @@ ArgParser createArgParser() {
     'help',
     abbr: 'h',
     help: 'Print this help message.',
+    negatable: false,
+  );
+  parser.addOption(
+    'mapFile',
+    help: 'The absolute path of the file to which the relevance data will be '
+        'written. Using this option will prevent the relevance table from '
+        'being written.',
+  );
+  parser.addOption(
+    'reduceDir',
+    help: 'The absolute path of the directory from which the relevance data '
+        'will be read.',
   );
   parser.addFlag(
     'verbose',
@@ -102,17 +141,34 @@ bool validArguments(ArgParser parser, ArgResults result) {
   if (result.wasParsed('help')) {
     printUsage(parser);
     return false;
+  } else if (result.wasParsed('reduceDir')) {
+    return validateDir(parser, result['reduceDir']);
   } else if (result.rest.length != 1) {
     printUsage(parser, error: 'No package path specified.');
     return false;
   }
-  var rootPath = result.rest[0];
-  if (!PhysicalResourceProvider.INSTANCE.pathContext.isAbsolute(rootPath)) {
-    printUsage(parser, error: 'The package path must be an absolute path.');
+  if (result.wasParsed('mapFile')) {
+    var mapFilePath = result['mapFile'];
+    if (mapFilePath is! String ||
+        !PhysicalResourceProvider.INSTANCE.pathContext
+            .isAbsolute(mapFilePath)) {
+      printUsage(parser,
+          error: 'The path "$mapFilePath" must be an absolute path.');
+      return false;
+    }
+  }
+  return validateDir(parser, result.rest[0]);
+}
+
+/// Return `true` if the [dirPath] is an absolute path to a directory that
+/// exists.
+bool validateDir(ArgParser parser, String dirPath) {
+  if (!PhysicalResourceProvider.INSTANCE.pathContext.isAbsolute(dirPath)) {
+    printUsage(parser, error: 'The path "$dirPath" must be an absolute path.');
     return false;
   }
-  if (!io.Directory(rootPath).existsSync()) {
-    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
+  if (!io.Directory(dirPath).existsSync()) {
+    printUsage(parser, error: 'The directory "$dirPath" does not exist.');
     return false;
   }
   return true;
@@ -126,9 +182,38 @@ class RelevanceData {
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
 
-  /// Add the data from the given relevance [data] to this set of data.
-  void addDataFrom(RelevanceData data) {
-    _addToMap(byKind, data.byKind);
+  /// Initialize a newly created set of relevance data based on the content of
+  /// the JSON encoded string.
+  RelevanceData.fromJson(String encoded) {
+    var map = json.decode(encoded) as Map<String, dynamic>;
+    for (var contextEntry in map.entries) {
+      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+      for (var kindEntry
+          in (contextEntry.value as Map<String, dynamic>).entries) {
+        _Kind kind;
+        var key = kindEntry.key;
+        if (key.startsWith('e')) {
+          kind = _ElementKind(ElementKind(key.substring(1)));
+        } else if (key.startsWith('k')) {
+          kind = _Keyword(Keyword.keywords[key.substring(1)]);
+        } else {
+          throw StateError('Invalid initial character in unique key "$key"');
+        }
+        contextMap[kind] = int.parse(kindEntry.value as String);
+      }
+    }
+  }
+
+  /// Add the data from the given relevance [data] to this set of relevance
+  /// data.
+  void addData(RelevanceData data) {
+    for (var contextEntry in data.byKind.entries) {
+      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+      for (var kindEntry in contextEntry.value.entries) {
+        var kind = kindEntry.key;
+        contextMap[kind] = (contextMap[kind] ?? 0) + kindEntry.value;
+      }
+    }
   }
 
   /// Record that an element of the given [kind] was found in the given
@@ -146,15 +231,17 @@ class RelevanceData {
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
-  /// Add the data in the [source] map to the [target] map.
-  void _addToMap<K>(Map<K, Map<K, int>> target, Map<K, Map<K, int>> source) {
-    for (var outerEntry in source.entries) {
-      var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
-      for (var innerEntry in outerEntry.value.entries) {
-        var innerKey = innerEntry.key;
-        innerTarget[innerKey] = (innerTarget[innerKey] ?? 0) + innerEntry.value;
+  /// Convert this data to a JSON encoded format.
+  String toJson() {
+    var map = <String, Map<String, String>>{};
+    for (var contextEntry in byKind.entries) {
+      var kindMap = <String, String>{};
+      for (var kindEntry in contextEntry.value.entries) {
+        kindMap[kindEntry.key.uniqueKey] = kindEntry.value.toString();
       }
+      map[contextEntry.key] = kindMap;
     }
+    return json.encode(map);
   }
 }
 
@@ -707,7 +794,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    _recordDataForNode('GenericTypeAlias_functionType', node.functionType,
+    _recordDataForNode('GenericTypeAlias_type', node.functionType,
         allowedKeywords: [Keyword.FUNCTION]);
     super.visitGenericTypeAlias(node);
   }
@@ -1374,8 +1461,9 @@ class RelevanceMetricsComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
               await context.currentSession.getResolvedUnit(filePath);
@@ -1441,14 +1529,13 @@ class RelevanceTableWriter {
     writeFileHeader();
     writeElementKindTable(data);
     writeKeywordTable(data);
+    writeFileFooter();
   }
 
   void writeElementKindTable(RelevanceData data) {
     sink.writeln();
     sink.write('''
-/// A table keyed by completion location and element kind whose values are the
-/// ranges of the relevance of those element kinds in those locations.
-const elementKindRelevance = {
+const defaultElementKindRelevance = {
 ''');
 
     var byKind = data.byKind;
@@ -1488,12 +1575,26 @@ const elementKindRelevance = {
     sink.writeln('};');
   }
 
+  void writeFileFooter() {
+    sink.write('''
+/// A table keyed by completion location and element kind whose values are the
+/// ranges of the relevance of those element kinds in those locations.
+Map<String, Map<ElementKind, ProbabilityRange>> elementKindRelevance =
+    defaultElementKindRelevance;
+
+/// A table keyed by completion location and keyword whose values are the
+/// ranges of the relevance of those keywords in those locations.
+Map<String, Map<String, ProbabilityRange>> keywordRelevance =
+    defaultKeywordRelevance;
+''');
+  }
+
   void writeFileHeader() {
     sink.write('''
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
+
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/completion_metrics/relevance_table_generator.dart",
@@ -1508,9 +1609,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
   void writeKeywordTable(RelevanceData data) {
     sink.writeln();
     sink.write('''
-/// A table keyed by completion location and keyword whose values are the
-/// ranges of the relevance of those keywords in those locations.
-const keywordRelevance = {
+const defaultKeywordRelevance = {
 ''');
 
     var byKind = data.byKind;
@@ -1590,6 +1689,9 @@ class _ElementKind extends _Kind {
       instances.putIfAbsent(elementKind, () => _ElementKind._(elementKind));
 
   _ElementKind._(this.elementKind);
+
+  @override
+  String get uniqueKey => 'e${elementKind.name}';
 }
 
 /// A wrapper for a keyword to allow keywords and element kinds to be used as
@@ -1603,8 +1705,15 @@ class _Keyword extends _Kind {
       instances.putIfAbsent(keyword, () => _Keyword._(keyword));
 
   _Keyword._(this.keyword);
+
+  @override
+  String get uniqueKey => 'k${keyword.lexeme}';
 }
 
 /// A superclass for [_ElementKind] and [_Keyword] to allow keywords and element
 /// kinds to be used as keys in a single table.
-class _Kind {}
+abstract class _Kind {
+  /// Return the unique key used when representing an instance of a subclass in
+  /// a JSON format.
+  String get uniqueKey;
+}

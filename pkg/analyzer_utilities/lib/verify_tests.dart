@@ -110,7 +110,11 @@ class VerifyTests {
       var importedFiles = <String>[];
       for (var directive in result.unit.directives) {
         if (directive is ImportDirective) {
-          importedFiles.add(directive.uri.stringValue);
+          var uri = directive.uri.stringValue;
+          if (uri == null) {
+            fail('Invalid URI: $directive');
+          }
+          importedFiles.add(uri);
         }
       }
       var missingFiles = <String>[];

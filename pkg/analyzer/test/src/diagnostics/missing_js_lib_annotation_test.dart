@@ -11,6 +11,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingJSLibAnnotationTest);
+    defineReflectiveTests(MissingJSLibAnnotationWithoutNullSafetyTest);
   });
 }
 
@@ -33,19 +34,6 @@ import 'package:js/js.dart';
 class A { }
 ''', [
       error(HintCode.MISSING_JS_LIB_ANNOTATION, 44, 5),
-    ]);
-  }
-
-  test_externalField() async {
-    // https://github.com/dart-lang/sdk/issues/26987
-    await assertErrorsInCode('''
-import 'package:js/js.dart';
-
-@JS()
-external dynamic exports;
-''', [
-      error(HintCode.MISSING_JS_LIB_ANNOTATION, 30, 5),
-      error(ParserErrorCode.EXTERNAL_FIELD, 36, 8),
     ]);
   }
 
@@ -98,6 +86,30 @@ import 'package:js/js.dart';
 dynamic variable;
 ''', [
       error(HintCode.MISSING_JS_LIB_ANNOTATION, 30, 5),
+    ]);
+  }
+}
+
+@reflectiveTest
+class MissingJSLibAnnotationWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+  @override
+  void setUp() {
+    super.setUp();
+
+    writeTestPackageConfig(PackageConfigFileBuilder(), js: true);
+  }
+
+  test_externalField() async {
+    // https://github.com/dart-lang/sdk/issues/26987
+    await assertErrorsInCode('''
+import 'package:js/js.dart';
+
+@JS()
+external dynamic exports;
+''', [
+      error(HintCode.MISSING_JS_LIB_ANNOTATION, 30, 5),
+      error(ParserErrorCode.EXTERNAL_FIELD, 36, 8),
     ]);
   }
 }

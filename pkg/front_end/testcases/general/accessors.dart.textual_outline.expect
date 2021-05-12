@@ -1,3 +1,4 @@
+// @dart = 2.9
 void set onlySetter(value) {}
 
 class C {

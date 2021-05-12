@@ -19,7 +19,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../helpers/args_helper.dart';
 import '../helpers/memory_compiler.dart';
 
-const String pathPrefix = 'sdk/tests/dart2js_2/native/';
+const String pathPrefix = 'sdk/tests/web_2/native/';
 
 const Map<String, String> source = {
   '$pathPrefix/main.dart': '''
@@ -449,6 +449,11 @@ main(List<String> args) {
 
       testAll(compiler.frontendClosedWorldForTesting.nativeData);
       if (useIr) {
+        // We need to open the environment because creating annotation data
+        // from IR will create K-model classes and members for all annotations
+        // in the IR component, and not just the ones queried specifically for
+        // JS-interop and pragma-like annotations.
+        elementMap.envIsClosed = false;
         testAll(new NativeDataImpl.fromIr(elementMap, annotationData));
       }
     }

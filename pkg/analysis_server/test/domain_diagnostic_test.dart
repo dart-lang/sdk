@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:test/test.dart';
@@ -25,7 +27,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_getDiagnostics() async {
-    newFile('/project/pubspec.yaml', content: 'name: project');
+    newPubspecYamlFile('/project', 'name: project');
     newFile('/project/bin/test.dart', content: 'main() {}');
 
     server.setAnalysisRoots('0', [convertPath('/project')], []);

@@ -1,0 +1,62 @@
+# Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Please add new fixes to the top of the file, separated by one blank line
+# from other fixes.  Add corresponding golden tests to 
+# `tests/lib/fix_data_tests` for each new fix.
+
+# For documentation about this file format, see
+# https://dart.dev/go/data-driven-fixes.
+
+version: 1
+transforms:
+  - title: "Rename to 'read'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'READ'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'read'
+
+  - title: "Rename to 'write'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'WRITE'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'write'
+
+  - title: "Rename to 'append'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'APPEND'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'append'
+
+  - title: "Rename to 'writeOnly'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'WRITE_ONLY'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'writeOnly'
+
+  - title: "Rename to 'writeOnlyAppend'"
+    date: 2021-01-25
+    element:
+      uris: [ 'dart:io' ]
+      field: 'WRITE_ONLY_APPEND'
+      inClass: 'FileMode'
+    changes:
+      - kind: 'rename'
+        newName: 'writeOnlyAppend'

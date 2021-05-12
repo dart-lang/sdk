@@ -11,7 +11,7 @@ final _typeScriptBlockPattern =
 List<String> extractMethodNames(String spec) {
   return _methodNamesPattern
       .allMatches(spec)
-      .map((m) => m.group(1).trim())
+      .map((m) => m.group(1)!.trim())
       .toList();
 }
 
@@ -20,6 +20,6 @@ List<String> extractMethodNames(String spec) {
 List<String> extractTypeScriptBlocks(String text) {
   return _typeScriptBlockPattern
       .allMatches(text)
-      .map((m) => m.group(1).trim())
+      .map((m) => m.group(1)!.trim())
       .toList();
 }

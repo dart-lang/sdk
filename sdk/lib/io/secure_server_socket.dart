@@ -51,7 +51,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
   /// was received, the result will be null.
   ///
   /// [supportedProtocols] is an optional list of protocols (in decreasing
-  /// order of preference) to use during the ALPN protocol negogiation with
+  /// order of preference) to use during the ALPN protocol negotiation with
   /// clients.  Example values are "http/1.1" or "h2".  The selected protocol
   /// can be obtained via [SecureSocket.selectedProtocol].
   ///

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -99,8 +101,10 @@ mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
     int timeout = 500,
   }) {
     final driver = server.getAnalysisDriver(path);
-    final pluginFutures = server.pluginManager
-        .broadcastRequest(params, contextRoot: driver.contextRoot);
+    final pluginFutures = server.pluginManager.broadcastRequest(
+      params,
+      contextRoot: driver.analysisContext.contextRoot,
+    );
 
     return waitForResponses(pluginFutures,
         requestParameters: params, timeout: timeout);

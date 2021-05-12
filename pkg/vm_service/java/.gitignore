@@ -5,6 +5,7 @@ src/org/dartlang/vm/service/consumer/AddBreakpointAtEntryConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointWithScriptUriConsumer.java
 src/org/dartlang/vm/service/consumer/ClearCpuSamplesConsumer.java
+src/org/dartlang/vm/service/consumer/CpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateInFrameConsumer.java
 src/org/dartlang/vm/service/consumer/FlagListConsumer.java
@@ -36,6 +37,7 @@ src/org/dartlang/vm/service/consumer/SetExceptionPauseModeConsumer.java
 src/org/dartlang/vm/service/consumer/SetFlagConsumer.java
 src/org/dartlang/vm/service/consumer/SetLibraryDebuggableConsumer.java
 src/org/dartlang/vm/service/consumer/SetNameConsumer.java
+src/org/dartlang/vm/service/consumer/SetTraceClassAllocationConsumer.java
 src/org/dartlang/vm/service/consumer/SuccessConsumer.java
 src/org/dartlang/vm/service/consumer/TimelineConsumer.java
 src/org/dartlang/vm/service/consumer/TimelineFlagsConsumer.java

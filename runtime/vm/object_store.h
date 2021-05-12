@@ -158,6 +158,9 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
+  RW(Function, _object_equals_function)                                        \
+  RW(Function, _object_hash_code_function)                                     \
+  RW(Function, _object_to_string_function)                                     \
   RW(Function, lookup_port_handler)                                            \
   RW(Function, lookup_open_ports)                                              \
   RW(Function, handle_message_function)                                        \
@@ -169,9 +172,6 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
-  RW(GrowableObjectArray, llvm_constant_pool)                                  \
-  RW(GrowableObjectArray, llvm_function_pool)                                  \
-  RW(Array, llvm_constant_hash_table)                                          \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \
@@ -312,8 +312,8 @@ class ObjectPointerVisitor;
 
 class IsolateObjectStore {
  public:
-  explicit IsolateObjectStore(ObjectStore* object_store);
-  ~IsolateObjectStore();
+  IsolateObjectStore() {}
+  ~IsolateObjectStore() {}
 
 #define DECLARE_GETTER(Type, name)                                             \
   Type##Ptr name() const { return name##_; }                                   \
@@ -334,20 +334,10 @@ class IsolateObjectStore {
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs the error object is returned otherwise
   // a null object is returned.
-  ErrorPtr PreallocateObjects();
+  ErrorPtr PreallocateObjects(const Object& out_of_memory);
 
   void Init();
   void PostLoad();
-
-  ObjectStore* object_store() const { return object_store_; }
-  void set_object_store(ObjectStore* object_store) {
-    ASSERT(object_store_ == nullptr);
-    object_store_ = object_store;
-  }
-
-  static intptr_t object_store_offset() {
-    return OFFSET_OF(IsolateObjectStore, object_store_);
-  }
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* jsobj);
@@ -365,8 +355,6 @@ class IsolateObjectStore {
                                   DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&error_listeners_); }
-
-  ObjectStore* object_store_;
 
   friend class Serializer;
   friend class Deserializer;

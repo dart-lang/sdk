@@ -30,7 +30,7 @@ class DynamicAssertionHelper {
       : file_(file), line_(line) {}
 
  protected:
-  void Print(const char* format, va_list arguments);
+  void Print(const char* format, va_list arguments, bool will_abort = false);
 
   const char* const file_;
   const int line_;

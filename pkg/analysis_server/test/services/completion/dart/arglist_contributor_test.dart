@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -715,8 +717,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -725,8 +727,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", r^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -735,7 +737,7 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", radix: 7, ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
+        namedArgumentsWithTypes: {'onError': 'int Function(String)?'});
   }
 
   Future<void> test_ArgumentList_imported_function_named_param2a() async {
@@ -750,8 +752,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", r^: 16);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     }, includeColon: false);
   }
 
@@ -767,8 +769,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", ^: 16);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -1065,6 +1067,18 @@ f(v,{int radix, int onError(String s)}){}
 main() { f("16", radix: ^);}''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  Future<void> test_ArgumentList_local_functionExpression_params() async {
+    // https://github.com/dart-lang/sdk/issues/42064
+    addTestSource('''
+    void main2() {
+      final add1 = ({int a}) => a + 1;
+      add1(^);
+    }
+    ''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'a': 'int'});
   }
 
   Future<void> test_ArgumentList_local_method_0() async {

@@ -1,0 +1,10 @@
+A<Function<Y>(Y)> foo(A<Function<Y>(Y)> x) => throw 42;
+bar<V extends Function<Y>(Y)>() => throw 42;
+
+class A<X> {}
+
+class B extends A<Function<Y>(Y)> {}
+
+class C<Z extends Function<Y>(Y)> {}
+
+main() {}

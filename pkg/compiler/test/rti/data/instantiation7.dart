@@ -20,7 +20,7 @@ typedef int F1<R>(R a, R b, R c);
 typedef int F2<R, P>(R a, P b, P c);
 typedef int F3<R, P, Q>(R a, P b, Q c);
 
-/*spec.member: method:indirect,needsArgs*/
+/*spec.member: method:implicit=[method.X,method.Y,method.Z],indirect,needsArgs*/
 method<X, Y, Z>() {
   F1<X> c1;
   F2<X, Y> c2;

@@ -56,7 +56,6 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
         "/testcases/expression/"
       ]
     },
@@ -74,92 +73,18 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/expression/",
-        "/testcases/general_nnbd_opt_out/",
-        "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
+        "/testcases/expression/"
       ]
     },
     {
       "name": "strong",
       "kind": "Chain",
-      "source": "test/fasta/strong_tester.dart",
+      "source": "test/fasta/strong_suite.dart",
       "path": "testcases/",
       "status": "testcases/strong.status",
       "pattern": [
         "\\.dart$",
         "\\.crash_dart$"
-      ],
-      "exclude": [
-        "/testcases/.*_part[0-9]*\\.dart$",
-        "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/expression/",
-        "/testcases/general_nnbd_opt_out/",
-        "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
-      ]
-    },
-    {
-      "name": "fast_strong",
-      "kind": "Chain",
-      "source": "test/fasta/fast_strong_suite.dart",
-      "path": "testcases/",
-      "status": "testcases/strong.status",
-      "pattern": [
-        "\\.dart$",
-        "\\.crash_dart$"
-      ],
-      "exclude": [
-        "/testcases/.*_part[0-9]*\\.dart$",
-        "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/expression/",
-        "/testcases/general_nnbd_opt_out/",
-        "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
-      ]
-    },
-    {
-      "name": "text_serialization",
-      "kind": "Chain",
-      "source": "test/fasta/text_serialization_tester.dart",
-      "path": "testcases/",
-      "status": "testcases/text_serialization.status",
-      "pattern": [
-        "\\.dart$",
-        "\\.crash_dart$"
-      ],
-      "exclude": [
-        "/testcases/.*_part[0-9]*\\.dart$",
-        "/testcases/.*_lib[0-9]*\\.dart$",
-        "/testcases/dartino/",
-        "/testcases/shaker/",
-        "/testcases/expression/",
-        "/testcases/general_nnbd_opt_out/",
-        "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/",
-        "/testcases/static_field_lowering/",
-        "/testcases/unified_collections"
-      ]
-    },
-    {
-      "name": "weak",
-      "kind": "Chain",
-      "source": "test/fasta/weak_suite.dart",
-      "path": "testcases/",
-      "status": "testcases/weak.status",
-      "pattern": [
-        "\\.dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
@@ -173,21 +98,58 @@
         "/testcases/inference_new",
         "/testcases/instantiate_to_bound/",
         "/testcases/new_const_insertion",
+        "/testcases/nnbd_mixed/",
         "/testcases/no_such_method_forwarders",
+        "/testcases/nonfunction_type_aliases_no_nnbd/",
         "/testcases/rasta/",
         "/testcases/regress/",
         "/testcases/runtime_checks",
         "/testcases/runtime_checks_new",
         "/testcases/set_literals",
-        "/testcases/variance"
+        "/testcases/variance",
+        "/testcases/unified_collections"
       ]
     },
     {
-      "name": "incremental",
+      "name": "text_serialization",
       "kind": "Chain",
-      "source": "test/fasta/incremental_suite.dart",
+      "source": "test/fasta/text_serialization_suite.dart",
       "path": "testcases/",
-      "status": "testcases/incremental.status",
+      "status": "testcases/text_serialization.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.crash_dart$"
+      ],
+      "exclude": [
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
+        "/testcases/expression/"
+      ]
+    },
+    {
+      "name": "weak",
+      "kind": "Chain",
+      "source": "test/fasta/weak_suite.dart",
+      "path": "testcases/",
+      "status": "testcases/weak.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.crash_dart$"
+      ],
+      "exclude": [
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
+        "/testcases/expression/"
+      ]
+    },
+    {
+      "name": "incremental_dartino",
+      "kind": "Chain",
+      "source": "test/fasta/incremental_dartino_suite.dart",
+      "path": "testcases/dartino",
+      "status": "testcases/incremental_dartino.status",
       "pattern": [
         "\\.incremental\\.yaml$"
       ],
@@ -205,11 +167,11 @@
       "exclude": []
     },
     {
-      "name": "incremental_load_from_dill",
+      "name": "incremental",
       "kind": "Chain",
-      "source": "test/incremental_load_from_dill_suite.dart",
-      "path": "testcases/incremental_initialize_from_dill/",
-      "status": "testcases/incremental_initialize_from_dill/status.status",
+      "source": "test/incremental_suite.dart",
+      "path": "testcases/incremental/",
+      "status": "testcases/incremental.status",
       "pattern": [
         "\\.yaml$"
       ],
@@ -336,6 +298,7 @@
         "test/tool/reload\\.dart$",
         "test/type_labeler_test\\.dart$",
         "test/unit_test_suites\\.dart$",
+        "test/unit_test_suites_impl\\.dart$",
         "testcases/expression/main\\.dart$",
         "testcases/general/DeltaBlue\\.dart$",
         "testcases/general/annotation_variable_declaration\\.dart$",
@@ -348,17 +311,6 @@
         "testcases/general/micro\\.dart$",
         "testcases/general/redirecting_factory\\.dart$",
         "testcases/general/spread_collection_inference\\.dart$",
-        "testcases/general_nnbd_opt_out/DeltaBlue\\.dart$",
-        "testcases/general_nnbd_opt_out/annotation_variable_declaration\\.dart$",
-        "testcases/general_nnbd_opt_out/arithmetic\\.dart$",
-        "testcases/general_nnbd_opt_out/bad_type_variable_uses_in_supertypes\\.dart$",
-        "testcases/general_nnbd_opt_out/clone_function_type\\.dart$",
-        "testcases/general_nnbd_opt_out/co19_language_metadata_syntax_t04\\.dart$",
-        "testcases/general_nnbd_opt_out/complex_class_hierarchy\\.dart$",
-        "testcases/general_nnbd_opt_out/issue34899\\.dart$",
-        "testcases/general_nnbd_opt_out/micro\\.dart$",
-        "testcases/general_nnbd_opt_out/redirecting_factory\\.dart$",
-        "testcases/general_nnbd_opt_out/spread_collection_inference\\.dart$",
         "testcases/inference/downwards_inference_initializing_formal_default_formal\\.dart$",
         "testcases/inference/downwards_inference_on_generic_function_expressions\\.dart$",
         "testcases/inference/for_in_loop_promotion\\.dart$",
@@ -420,7 +372,7 @@
       "command-lines": [
         "--checked dart2js",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_2"
+        "-cdart2js -rd8 web_2"
       ]
     },
     {
@@ -432,7 +384,7 @@
       "common": "--time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
         "-t240 pkg/(kernel|front_end|fasta) --checked",
-        "-t240 dart2js/analyze_test",
+        "-t240 web/analyze_test",
         "-cdartk -rvm"
       ]
     },
@@ -447,7 +399,7 @@
         "-t240 --checked pkg/(kernel|front_end|fasta) dart2js",
         "-cdartk -rvm",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_2"
+        "-cdart2js -rd8 web_2"
       ]
     },
     {
@@ -458,7 +410,7 @@
       "mode": "release",
       "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
-        "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_2 corelib corelib_2"
+        "-cdart2js -rd8 --use-sdk --minified language language_2 web_2 corelib corelib_2"
       ]
     }
   ],

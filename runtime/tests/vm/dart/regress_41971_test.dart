@@ -11,8 +11,6 @@ import 'dart:ffi';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
-import '../../../../tests/ffi/calloc.dart';
-
 class X {
   int field;
   X(this.field);

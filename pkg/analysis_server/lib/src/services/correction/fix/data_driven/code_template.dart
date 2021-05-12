@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart'
     as data_driven;
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
@@ -102,6 +104,10 @@ class TemplateContext {
         return parent.parent.parent.parent;
       } else if (parent is MethodInvocation && parent.methodName == node) {
         return parent;
+      } else if (parent is TypeName &&
+          parent.parent is ConstructorName &&
+          parent.parent.parent is InstanceCreationExpression) {
+        return parent.parent.parent;
       }
     } else if (node is TypeArgumentList) {
       var parent = node.parent;

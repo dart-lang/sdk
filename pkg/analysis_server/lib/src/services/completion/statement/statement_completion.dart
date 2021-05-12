@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:math';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -427,14 +429,8 @@ class StatementCompletionProcessor {
     }
     DoStatement statement = node;
     var sb = _sourceBuilderAfterKeyword(statement.doKeyword);
-    // I modified the code and ran the tests with both the old and new parser.
-    // Apparently the old parser sometimes sticks something other than 'while'
-    // into the whileKeyword field, which causes statement completion to throw
-    // an exception further downstream.
-    // TODO(danrubel): change `statement.whileKeyword?.lexeme == "while"`
-    // to `statement.whileKeyword != null` once the fasta parser is the default.
-    var hasWhileKeyword = statement.whileKeyword?.lexeme == 'while' &&
-        !statement.whileKeyword.isSynthetic;
+    var hasWhileKeyword =
+        statement.whileKeyword != null && !statement.whileKeyword.isSynthetic;
     var exitDelta = 0;
     if (!_statementHasValidBody(statement.doKeyword, statement.body)) {
       var text = utils.getNodeText(statement.body);
@@ -1231,10 +1227,10 @@ class StatementCompletionProcessor {
     }
     if (body is Block) {
       var block = body;
-      return (!(block.leftBracket.isSynthetic));
+      return !block.leftBracket.isSynthetic;
     }
-    return (lineInfo.getLocation(keyword.offset) ==
-        lineInfo.getLocation(body.offset));
+    return lineInfo.getLocation(keyword.offset) ==
+        lineInfo.getLocation(body.offset);
   }
 }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -863,26 +865,44 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'int b');
   }
 
-  Future<void> test_typeReference_functionType() async {
-    addTestFile('''
-typedef F();
-main(F f) {
-}
-''');
-    await findElementReferences('F()', false);
-    expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(results, hasLength(1));
-    assertHasResult(SearchResultKind.REFERENCE, 'F f');
-  }
-
-  Future<void> test_typeReference_genericTypeAlias_function() async {
+  Future<void> test_typeReference_typeAlias_functionType() async {
     addTestFile('''
 typedef F = Function();
 main(F f) {
 }
 ''');
     await findElementReferences('F =', false);
-    expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(searchElement.kind, ElementKind.TYPE_ALIAS);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.REFERENCE, 'F f');
+  }
+
+  Future<void> test_typeReference_typeAlias_interfaceType() async {
+    addTestFile('''
+typedef A<T> = Map<int, T>;
+
+void(A<String> a) {}
+''');
+    // Can find `A`.
+    await findElementReferences('A<T> =', false);
+    expect(searchElement.kind, ElementKind.TYPE_ALIAS);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.REFERENCE, 'A<String>');
+
+    // Can find in `A`.
+    await findElementReferences('int,', false);
+    expect(searchElement.kind, ElementKind.CLASS);
+    assertHasResult(SearchResultKind.REFERENCE, 'int,');
+  }
+
+  Future<void> test_typeReference_typeAlias_legacy() async {
+    addTestFile('''
+typedef F();
+main(F f) {
+}
+''');
+    await findElementReferences('F()', false);
+    expect(searchElement.kind, ElementKind.TYPE_ALIAS);
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, 'F f');
   }

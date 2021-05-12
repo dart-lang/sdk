@@ -11,14 +11,12 @@ class C {
 void main() {
   final C? c = new C();
   /**/ -c?.e();
-  //    ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //   ^
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] Operator 'unary-' cannot be called on 'C?' because it is potentially null.
 
   /**/ ~c?.e();
-  //    ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //   ^
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] Operator '~' cannot be called on 'C?' because it is potentially null.
 }

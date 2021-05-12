@@ -1,3 +1,4 @@
+// @dart = 2.9
 class A<T> {
   A(this.f);
   foo(T x) => this.f(x);

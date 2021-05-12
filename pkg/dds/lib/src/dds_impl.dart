@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -231,9 +233,18 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       });
 
   Handler _sseHandler() {
+    // Give connections time to reestablish before considering them closed.
+    // Required to reestablish connections killed by UberProxy.
+    const keepAlive = Duration(seconds: 30);
     final handler = authCodesEnabled
-        ? SseHandler(Uri.parse('/$_authCode/$_kSseHandlerPath'))
-        : SseHandler(Uri.parse('/$_kSseHandlerPath'));
+        ? SseHandler(
+            Uri.parse('/$_authCode/$_kSseHandlerPath'),
+            keepAlive: keepAlive,
+          )
+        : SseHandler(
+            Uri.parse('/$_kSseHandlerPath'),
+            keepAlive: keepAlive,
+          );
 
     handler.connections.rest.listen((sseConnection) {
       final client = DartDevelopmentServiceClient.fromSSEConnection(

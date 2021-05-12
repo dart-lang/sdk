@@ -3322,7 +3322,7 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
     js->PrintError(kIsolateIsReloading, "This isolate is being reloaded.");
     return true;
   }
-  if (!isolate->CanReload()) {
+  if (!isolate_group->CanReload()) {
     js->PrintError(kFeatureDisabled,
                    "This isolate cannot reload sources right now.");
     return true;
@@ -3584,6 +3584,8 @@ static bool HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
 static bool HandleDartMetricsList(Thread* thread, JSONStream* js) {
   Zone* zone = thread->zone();
   const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
+  const auto& error = metrics_cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   const String& print_metrics_name =
       String::Handle(String::New("_printMetrics"));
   ASSERT(!print_metrics_name.IsNull());
@@ -3755,7 +3757,7 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 
   // Notify clients that the set of subscribed streams has been updated.
   if (Service::timeline_stream.enabled()) {
-    ServiceEvent event(NULL, ServiceEvent::kTimelineStreamSubscriptionsUpdate);
+    ServiceEvent event(ServiceEvent::kTimelineStreamSubscriptionsUpdate);
     Service::HandleEvent(&event);
   }
 
@@ -4013,7 +4015,7 @@ static bool GetCpuSamples(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_allocation_samples_params[] = {
+static const MethodParameter* get_allocation_traces_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new IdParameter("classId", false),
     new Int64Parameter("timeOriginMicros", false),
@@ -4021,24 +4023,35 @@ static const MethodParameter* get_allocation_samples_params[] = {
     NULL,
 };
 
-static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
+static bool GetAllocationTraces(Thread* thread, JSONStream* js) {
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
       Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  const char* class_id = js->LookupParam("classId");
-  intptr_t cid = -1;
-  GetPrefixedIntegerId(class_id, "classes/", &cid);
   Isolate* isolate = thread->isolate();
-  if (IsValidClassId(isolate, cid)) {
+
+  // Return only allocations for objects with classId.
+  if (js->HasParam("classId")) {
+    const char* class_id = js->LookupParam("classId");
+    intptr_t cid = -1;
+    GetPrefixedIntegerId(class_id, "classes/", &cid);
+    if (IsValidClassId(isolate, cid)) {
+      if (CheckProfilerDisabled(thread, js)) {
+        return true;
+      }
+      const Class& cls = Class::Handle(GetClassForId(isolate, cid));
+      ProfilerService::PrintAllocationJSON(js, cls, time_origin_micros,
+                                           time_extent_micros);
+    } else {
+      PrintInvalidParamError(js, "classId");
+    }
+  } else {
+    // Otherwise, return allocations for all traced class IDs.
     if (CheckProfilerDisabled(thread, js)) {
       return true;
     }
-    const Class& cls = Class::Handle(GetClassForId(isolate, cid));
-    ProfilerService::PrintAllocationJSON(js, cls, time_origin_micros,
+    ProfilerService::PrintAllocationJSON(js, time_origin_micros,
                                          time_extent_micros);
-  } else {
-    PrintInvalidParamError(js, "classId");
   }
   return true;
 }
@@ -4301,9 +4314,6 @@ void Service::SendEmbedderEvent(Isolate* isolate,
                                 const char* event_kind,
                                 const uint8_t* bytes,
                                 intptr_t bytes_len) {
-  if (!Service::debug_stream.enabled()) {
-    return;
-  }
   ServiceEvent event(isolate, ServiceEvent::kEmbedder);
   event.set_embedder_kind(event_kind);
   event.set_embedder_stream_id(stream_id);
@@ -4872,7 +4882,7 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
       Profiler::UpdateRunningState();
     }
     if (Service::vm_stream.enabled()) {
-      ServiceEvent event(NULL, ServiceEvent::kVMFlagUpdate);
+      ServiceEvent event(ServiceEvent::kVMFlagUpdate);
       event.set_flag_name(flag_name);
       event.set_flag_new_value(flag_value);
       Service::HandleEvent(&event);
@@ -4938,7 +4948,7 @@ static bool SetVMName(Thread* thread, JSONStream* js) {
   free(vm_name);
   vm_name = Utils::StrDup(name_param);
   if (Service::vm_stream.enabled()) {
-    ServiceEvent event(NULL, ServiceEvent::kVMUpdate);
+    ServiceEvent event(ServiceEvent::kVMUpdate);
     Service::HandleEvent(&event);
   }
   PrintSuccess(js);
@@ -5090,8 +5100,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "getAllocationProfile", GetAllocationProfilePublic,
     get_allocation_profile_params },
-  { "_getAllocationSamples", GetAllocationSamples,
-      get_allocation_samples_params },
+  { "getAllocationTraces", GetAllocationTraces,
+      get_allocation_traces_params },
   { "_getNativeAllocationSamples", GetNativeAllocationSamples,
       get_native_allocation_samples_params },
   { "getClassList", GetClassList,
@@ -5186,7 +5196,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
-  { "_setTraceClassAllocation", SetTraceClassAllocation,
+  { "setTraceClassAllocation", SetTraceClassAllocation,
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },

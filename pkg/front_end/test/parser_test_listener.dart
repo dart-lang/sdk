@@ -1765,6 +1765,11 @@ class ParserTestListener implements Listener {
     doPrint('endConstExpression(' '$token)');
   }
 
+  void handleConstFactory(Token constKeyword) {
+    seen(constKeyword);
+    doPrint('handleConstFactory(' '$constKeyword)');
+  }
+
   void beginForControlFlow(Token? awaitToken, Token forToken) {
     seen(awaitToken);
     seen(forToken);

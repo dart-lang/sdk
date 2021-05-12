@@ -8,7 +8,7 @@ library fasta.implicit_type;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -58,6 +58,12 @@ abstract class ImplicitFieldType extends DartType {
   ImplicitFieldType withDeclaredNullability(Nullability nullability) {
     return unsupported(
         "withNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  }
+
+  @override
+  ImplicitFieldType toNonNull() {
+    return unsupported(
+        "toNonNullable", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
 
   @override

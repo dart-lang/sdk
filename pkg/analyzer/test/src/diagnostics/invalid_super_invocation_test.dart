@@ -18,10 +18,10 @@ class InvalidSuperInvocationTest extends PubPackageResolutionTest {
   test_superBeforeAssert() async {
     await assertErrorsInCode(r'''
 class A {
-  A(int x) : super(), assert(x != null);
+  A(int? x) : super(), assert(x != null);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 23, 5),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 24, 5),
     ]);
   }
 

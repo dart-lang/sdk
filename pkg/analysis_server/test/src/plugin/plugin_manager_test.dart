@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -31,12 +34,8 @@ void main() {
   });
 }
 
-ContextRoot _newContextRoot(String root, {List<String> exclude = const []}) {
-  return ContextRoot(root, exclude, pathContext: path.context);
-}
-
 @reflectiveTest
-class BuiltInPluginInfoTest {
+class BuiltInPluginInfoTest with ResourceProviderMixin, _ContextRoot {
   TestNotificationManager notificationManager;
   BuiltInPluginInfo plugin;
 
@@ -105,7 +104,7 @@ class BuiltInPluginInfoTest {
 }
 
 @reflectiveTest
-class DiscoveredPluginInfoTest {
+class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
   TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
@@ -119,9 +118,9 @@ class DiscoveredPluginInfoTest {
   }
 
   void test_addContextRoot() {
-    var optionsFilePath = '/pkg1/analysis_options.yaml';
     var contextRoot1 = _newContextRoot('/pkg1');
-    contextRoot1.optionsFilePath = optionsFilePath;
+    var optionsFile = getFile('/pkg1/analysis_options.yaml');
+    contextRoot1.optionsFile = optionsFile;
     var session = PluginSession(plugin);
     var channel = TestServerCommunicationChannel(session);
     plugin.currentSession = session;
@@ -132,7 +131,7 @@ class DiscoveredPluginInfoTest {
     var sentRequests = channel.sentRequests;
     expect(sentRequests, hasLength(1));
     List<Map> roots = sentRequests[0].params['roots'];
-    expect(roots[0]['optionsFile'], optionsFilePath);
+    expect(roots[0]['optionsFile'], optionsFile.path);
   }
 
   void test_creation() {
@@ -440,10 +439,14 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
         });
     pkg1Dir.deleteSync(recursive: true);
   }
+
+  ContextRootImpl _newContextRoot(String root) {
+    throw UnimplementedError();
+  }
 }
 
 @reflectiveTest
-class PluginManagerTest with ResourceProviderMixin {
+class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
   String byteStorePath;
   String sdkPath;
   TestNotificationManager notificationManager;
@@ -508,7 +511,7 @@ class PluginManagerTest with ResourceProviderMixin {
           buffer.writeln('  $dependency: any');
         }
       }
-      newFile('$packageRoot/pubspec.yaml', content: buffer.toString());
+      newPubspecYamlFile(packageRoot, buffer.toString());
       return packageRoot;
     }
 
@@ -935,5 +938,16 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
     if (request.method == 'plugin.shutdown') {
       session.handleOnDone();
     }
+  }
+}
+
+mixin _ContextRoot on ResourceProviderMixin {
+  ContextRootImpl _newContextRoot(String root) {
+    root = convertPath(root);
+    return ContextRootImpl(
+      resourceProvider,
+      resourceProvider.getFolder(root),
+      BasicWorkspace.find(resourceProvider, {}, root),
+    );
   }
 }

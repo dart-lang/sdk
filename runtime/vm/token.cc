@@ -55,6 +55,7 @@ bool Token::IsBinaryArithmeticOperator(Token::Kind token) {
     case Token::kBIT_AND:
     case Token::kSHL:
     case Token::kSHR:
+    case Token::kUSHR:
       return true;
     default:
       return false;
@@ -72,6 +73,7 @@ bool Token::IsBinaryBitwiseOperator(Token::Kind token) {
     case Token::kBIT_AND:
     case Token::kSHL:
     case Token::kSHR:
+    case Token::kUSHR:
       return true;
     default:
       return false;

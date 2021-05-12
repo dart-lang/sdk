@@ -98,8 +98,8 @@ topLevelFunction3(a, {b, c}) {}
   topLevelFunction3(1,b,c),
   topLevelFunction3(1,c)],
  type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -276,9 +276,9 @@ double topLevelFunction3Typed(bool a, {List<int> b, Map<String, bool> c}) {
   topLevelFunction3Typed(1,c)],
  type=[
   inst:JSBool,
-  inst:JSDouble,
   inst:JSInt,
   inst:JSNull,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSString,
@@ -845,8 +845,8 @@ testStaticFunctionGet() => StaticFunctionGetClass.foo;
   f8(1,b,c),
   f9(1,b,c)],
  type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -870,8 +870,8 @@ testDynamicGet(o) => o.foo;
 /*member: testDynamicSet:
  dynamic=[foo=],
  type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -886,29 +886,25 @@ testLocalWithoutInitializer() {
   var l;
 }
 
-/*member: testLocalWithInitializer:
- type=[
-  inst:JSDouble,
+/*member: testLocalWithInitializer:type=[
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
-  inst:JSUInt32]
-*/
+  inst:JSUInt32]*/
 testLocalWithInitializer() {
   // ignore: UNUSED_LOCAL_VARIABLE
   var l = 42;
 }
 
-/*member: testLocalWithInitializerTyped:
- type=[
-  inst:JSDouble,
+/*member: testLocalWithInitializerTyped:type=[
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
-  inst:JSUInt32]
-*/
+  inst:JSUInt32]*/
 testLocalWithInitializerTyped() {
   // ignore: UNUSED_LOCAL_VARIABLE
   int l = 42;
@@ -1058,8 +1054,9 @@ testClosureInvoke() {
 
 /*member: testInvokeIndex:
  dynamic=[[]],
- type=[inst:JSDouble,
+ type=[
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -1069,9 +1066,10 @@ testInvokeIndex(o) => o[42];
 
 /*member: testInvokeIndexSet:
  dynamic=[[]=],
- type=[inst:JSDouble,
+ type=[
   inst:JSInt,
   inst:JSNull,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,

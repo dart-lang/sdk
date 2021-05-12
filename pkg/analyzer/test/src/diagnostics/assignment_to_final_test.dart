@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToFinalTest extends PubPackageResolutionTest {
+class AssignmentToFinalTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_prefixedIdentifier_instanceField() async {
     await assertNoErrorsInCode('''
 class A {

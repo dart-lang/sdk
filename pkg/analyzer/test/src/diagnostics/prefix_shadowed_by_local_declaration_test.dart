@@ -18,7 +18,7 @@ class PrefixShadowedByLocalDeclarationTest extends PubPackageResolutionTest {
   test_function_return_type_not_shadowed_by_parameter() async {
     await assertNoErrorsInCode('''
 import 'dart:async' as a;
-a.Future f(int a) {
+a.Future? f(int a) {
   return null;
 }
 ''');
@@ -28,7 +28,7 @@ a.Future f(int a) {
     await assertErrorsInCode('''
 import 'dart:async' as a;
 f(int a) {
-  a.Future x = null;
+  a.Future? x = null;
   return x;
 }
 ''', [
@@ -41,14 +41,14 @@ f(int a) {
     await assertErrorsInCode('''
 import 'dart:async' as a;
 f() {
-  a.Future x = null;
+  a.Future? x = null;
   int a = 0;
   return [x, a];
 }
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 12),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 59, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 60, 1)]),
       error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 34, 1),
     ]);
   }
@@ -58,7 +58,7 @@ f() {
 import 'dart:async' as a;
 f() {
   int a = 0;
-  a.Future x = null;
+  a.Future? x = null;
   return [x, a];
 }
 ''', [

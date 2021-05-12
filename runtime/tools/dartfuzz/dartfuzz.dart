@@ -16,7 +16,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.88';
+const String version = '1.89';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -792,6 +792,7 @@ class DartFuzz {
     emitLn('// Program generated as:');
     emitLn('//   dart dartfuzz.dart --seed $seed --${fp ? "" : "no-"}fp '
         '--${ffi ? "" : "no-"}ffi --${flatTp ? "" : "no-"}flat');
+    emitLn('// @dart=2.7');
     emitNewline();
     emitImport('dart:async');
     emitImport('dart:cli');

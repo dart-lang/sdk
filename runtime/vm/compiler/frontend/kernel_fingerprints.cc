@@ -232,7 +232,6 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
-    case kBottomType:
       // those contain nothing.
       break;
     case kNeverType:
@@ -323,7 +322,7 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
 
 void KernelFingerprintHelper::CalculateGetterNameFingerprint() {
   const NameIndex name = ReadCanonicalNameReference();
-  if (!H.IsRoot(name) && (H.IsGetter(name) || H.IsField(name))) {
+  if (!H.IsRoot(name) && H.IsGetter(name)) {
     BuildHash(H.DartGetterName(name).Hash());
   }
   ReadCanonicalNameReference();  // read interface_target_origin_reference
@@ -340,7 +339,7 @@ void KernelFingerprintHelper::CalculateSetterNameFingerprint() {
 void KernelFingerprintHelper::CalculateMethodNameFingerprint() {
   const NameIndex name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (!H.IsRoot(name) && !H.IsField(name)) {
+  if (!H.IsRoot(name)) {
     BuildHash(H.DartProcedureName(name).Hash());
   }
   ReadCanonicalNameReference();  // read interface_target_origin_reference
@@ -507,6 +506,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateFunctionNodeFingerprint();  // read function node.
       return;
     case kLet:
+      ReadPosition();                             // read position.
       CalculateVariableDeclarationFingerprint();  // read variable declaration.
       CalculateExpressionFingerprint();           // read expression.
       return;
@@ -754,6 +754,7 @@ void KernelFingerprintHelper::CalculateFunctionNodeFingerprint() {
   CalculateListOfVariableDeclarationsFingerprint();  // read positionals
   CalculateListOfVariableDeclarationsFingerprint();  // read named
   CalculateDartTypeFingerprint();                    // read return type.
+  CalculateOptionalDartTypeFingerprint();            // read future value type.
 
   if (ReadTag() == kSomething) {
     CalculateStatementFingerprint();  // Read body.

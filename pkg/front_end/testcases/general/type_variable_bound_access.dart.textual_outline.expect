@@ -1,3 +1,4 @@
+// @dart = 2.9
 class DynamicClass<T extends dynamic, S extends T> {
   T field1;
   T field2;

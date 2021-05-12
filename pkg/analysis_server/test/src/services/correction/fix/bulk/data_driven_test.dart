@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -505,9 +508,14 @@ class NoProducerOverlapsTest {
     // action accidentally executing data-driven fixes.
 
     final dataDrivenCodes = <String>{};
+    final bulkFixCodes = FixProcessor.lintProducerMap.entries
+        .where((e) => e.value.where((fix) => fix.canBeBulkApplied).isNotEmpty)
+        .map((e) => e.key);
     final nonDataDrivenCodes = <String>{
-      ...BulkFixProcessor.lintProducerMap.keys,
-      ...BulkFixProcessor.nonLintProducerMap.keys.map((c) => c.uniqueName),
+      ...bulkFixCodes,
+      ...FixProcessor.nonLintProducerMap2.entries
+          .where((e) => e.value.where((fix) => fix.canBeBulkApplied).isNotEmpty)
+          .map((e) => e.key.uniqueName),
     };
 
     for (final code in BulkFixProcessor.nonLintMultiProducerMap.keys) {

@@ -1,6 +1,0 @@
-// @dart = 2.6
-import 'dart:isolate';
-
-var subscription;
-void onData(x) {}
-main() {}

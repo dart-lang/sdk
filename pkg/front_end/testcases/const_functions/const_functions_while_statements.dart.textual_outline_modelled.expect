@@ -1,0 +1,18 @@
+import "package:expect/expect.dart";
+
+const var1 = fn(2);
+const var2 = fn(3);
+const var3 = fn1(2);
+const var4 = fn1(3);
+const var5 = fnContinue();
+const var6 = fnBreak(2);
+const var7 = fnBreak(3);
+const var8 = fnNestedWhile();
+const var9 = fnBreakLabel();
+int fn(int a) {}
+int fn1(int a) {}
+int fnBreak(int a) {}
+int fnBreakLabel() {}
+int fnContinue() {}
+int fnNestedWhile() {}
+void main() {}

@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest {
+class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_null_not_Null() async {
     await assertErrorsInCode(r'''
 var b = null is! Null;
@@ -71,7 +72,8 @@ void f<T>(T a) {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest {
+class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_null_is_Null() async {
     await assertErrorsInCode(r'''
 var b = null is Null;

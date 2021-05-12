@@ -113,7 +113,6 @@ enum DartTypeNodeKind {
   interfaceType,
   typedef,
   dynamicType,
-  bottomType,
   invalidType,
   thisInterfaceType,
   exactInterfaceType,
@@ -165,20 +164,14 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitBottomType(
-      ir.BottomType node, List<ir.TypeParameter> functionTypeVariables) {
+  void visitNeverType(
+      ir.NeverType node, List<ir.TypeParameter> functionTypeVariables) {
     if (node == const DoesNotCompleteType()) {
       _sink.writeEnum(DartTypeNodeKind.doesNotComplete);
     } else {
-      _sink.writeEnum(DartTypeNodeKind.bottomType);
+      _sink.writeEnum(DartTypeNodeKind.neverType);
+      _sink.writeEnum(node.nullability);
     }
-  }
-
-  @override
-  void visitNeverType(
-      ir.NeverType node, List<ir.TypeParameter> functionTypeVariables) {
-    _sink.writeEnum(DartTypeNodeKind.neverType);
-    _sink.writeEnum(node.nullability);
   }
 
   @override

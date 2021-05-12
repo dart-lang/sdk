@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
-import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
@@ -13,7 +14,6 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 Future<void> scheduleImplementedNotification(
@@ -33,11 +33,10 @@ Future<void> scheduleImplementedNotification(
             file, computer.classes, computer.members);
         server.sendNotification(params.toNotification());
       } catch (exception, stackTrace) {
-        AnalysisEngine.instance.instrumentationService.logException(
-            CaughtException.withMessage(
-                'Failed to send analysis.implemented notification.',
-                exception,
-                stackTrace));
+        server.instrumentationService.logException(CaughtException.withMessage(
+            'Failed to send analysis.implemented notification.',
+            exception,
+            stackTrace));
       }
     }
   }
@@ -92,15 +91,6 @@ void sendAnalysisNotificationFolding(AnalysisServer server, String file,
   _sendNotification(server, () {
     var regions = DartUnitFoldingComputer(lineInfo, dartUnit).compute();
     var params = protocol.AnalysisFoldingParams(file, regions);
-    server.sendNotification(params.toNotification());
-  });
-}
-
-void sendAnalysisNotificationHighlights(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
-  _sendNotification(server, () {
-    var regions = DartUnitHighlightsComputer(dartUnit).compute();
-    var params = protocol.AnalysisHighlightsParams(file, regions);
     server.sendNotification(params.toNotification());
   });
 }
@@ -160,8 +150,7 @@ void _sendNotification(AnalysisServer server, Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {
-    AnalysisEngine.instance.instrumentationService.logException(
-        CaughtException.withMessage(
-            'Failed to send notification', exception, stackTrace));
+    server.instrumentationService.logException(CaughtException.withMessage(
+        'Failed to send notification', exception, stackTrace));
   }
 }

@@ -18,11 +18,20 @@ library_for_all_configs("libdart_platform") {
 
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg/sys_cpp" ]
+      extra_deps += [
+        "$fuchsia_sdk_root/pkg/sys_cpp",
+        "$fuchsia_sdk_root/pkg/sys_inspect_cpp",
+      ]
     } else if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg:sys_cpp" ]
+      extra_deps += [
+        "$fuchsia_sdk_root/pkg:sys_cpp",
+        "$fuchsia_sdk_root/pkg:sys_inspect_cpp",
+      ]
     } else {
-      extra_deps += [ "//sdk/lib/sys/cpp" ]
+      extra_deps += [
+        "//sdk/lib/sys/cpp",
+        "//sdk/lib/sys/inspect/cpp",
+      ]
     }
   }
 }

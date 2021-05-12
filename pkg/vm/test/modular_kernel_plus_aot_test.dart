@@ -148,6 +148,15 @@ main() {
   a2.mixinProperty.foo();
   a2.mixinMethod('').foo();
   R().bar();
+  B1();
+  B1.named();
+  B2();
+  final b2 = B2.named();
+  // The mixin deduplication will remove the anonymous mixin application class
+  // from `B2 & Mixin` and instead use the one from `B1 & Mixin`.
+  b2.mixinProperty= '';
+  b2.mixinProperty.foo();
+  b2.mixinMethod('').foo();
 }
 ''';
 
@@ -162,4 +171,16 @@ class Mixin {
 }
 class A1 extends Object with Mixin { }
 class A2 extends Object with Mixin { }
+class B {
+   B();
+   B.named();
+}
+class B1 extends B with Mixin {
+  B1() : super();
+  B1.named() : super.named();
+}
+class B2 extends B with Mixin {
+  B2() : super();
+  B2.named() : super.named();
+}
 ''';

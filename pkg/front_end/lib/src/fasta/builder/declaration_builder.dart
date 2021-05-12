@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 
 import '../messages.dart';

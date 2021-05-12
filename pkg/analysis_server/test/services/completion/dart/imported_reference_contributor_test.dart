@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
@@ -32,6 +34,34 @@ mixin ImportedReferenceContributorMixin on DartCompletionContributorTest {
 @reflectiveTest
 class ImportedReferenceContributorTest extends DartCompletionContributorTest
     with ImportedReferenceContributorMixin {
+  Future<void> test_Annotation_typeArguments() async {
+    addSource('/home/test/lib/a.dart', '''
+class C {}
+typedef T1 = void Function();
+typedef T2 = List<int>;
+''');
+
+    addTestSource('''
+import 'a.dart';
+
+class A<T> {
+  const A();
+}
+
+@A<^>()
+void f() {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('C');
+    assertSuggestTypeAlias('T1',
+        aliasedType: 'void Function()', returnType: 'void');
+    assertSuggestTypeAlias('T2', aliasedType: 'List<int>');
+    assertNotSuggested('identical');
+  }
+
   /// Sanity check.  Permutations tested in local_ref_contributor.
   Future<void> test_ArgDefaults_function_with_required_named() async {
     writeTestPackageConfig(meta: true);
@@ -2400,7 +2430,8 @@ class B extends A {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -2430,7 +2461,8 @@ class B extends A {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -2461,7 +2493,8 @@ class B extends A {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -2498,7 +2531,8 @@ main() {
 }
 ''');
     await computeSuggestions();
-    assertSuggestFunctionTypeAlias('F', 'void');
+    assertSuggestTypeAlias('F',
+        aliasedType: 'void Function()', returnType: 'void');
   }
 
   Future<void> test_functionTypeAlias_old() async {
@@ -2513,7 +2547,8 @@ main() {
 }
 ''');
     await computeSuggestions();
-    assertSuggestFunctionTypeAlias('F', 'void');
+    assertSuggestTypeAlias('F',
+        aliasedType: 'void Function()', returnType: 'void');
   }
 
   Future<void> test_IfStatement() async {
@@ -2914,7 +2949,8 @@ main() {
     // in which case suggestions will have null (unresolved) returnType
     assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', null);
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3178,7 +3214,8 @@ main() {
     // to be resolved.
     assertSuggestTopLevelVar('T1', /* null */ 'int');
     assertSuggestFunction('F1', /* null */ 'dynamic');
-    assertSuggestFunctionTypeAlias('D1', /* null */ 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3477,7 +3514,8 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3506,7 +3544,8 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3535,7 +3574,8 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3566,7 +3606,8 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -4545,6 +4586,53 @@ class B extends A {
     assertNoSuggestions();
   }
 
+  Future<void> test_typeAlias_aliasedType() async {
+    addTestSource(r'''
+var a = 0;
+typedef F = ^;
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+    assertNotSuggested('a');
+  }
+
+  Future<void> test_typeAlias_functionType_parameterType() async {
+    addTestSource(r'''
+typedef F = void Function(^);
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_typeAlias_functionType_returnType() async {
+    addTestSource(r'''
+typedef F = ^ Function();
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_typeAlias_interfaceType_argumentType() async {
+    addTestSource(r'''
+typedef F = List<^>;
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_typeAlias_legacy_parameterType() async {
+    addTestSource(r'''
+typedef void F(^);
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
   Future<void> test_TypeArgumentList() async {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
     resolveSource('/home/test/lib/a.dart', '''
@@ -4564,7 +4652,8 @@ class B extends A {
     expect(replacementLength, 0);
     assertSuggestClass('Object');
     assertSuggestClass('C1');
-    assertSuggestFunctionTypeAlias('T1', 'String');
+    assertSuggestTypeAlias('T1',
+        aliasedType: 'String Function(int)', returnType: 'String');
     assertNotSuggested('C2');
     assertNotSuggested('T2');
     assertNotSuggested('F1');

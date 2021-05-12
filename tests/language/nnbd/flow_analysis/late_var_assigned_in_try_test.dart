@@ -6,7 +6,6 @@
 // read in a catch or finally block, that there is no compile-time error,
 // because the assignment might happen prior to the exception occurring.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 void tryCatch() {

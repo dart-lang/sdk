@@ -33,7 +33,8 @@ TreeNode computeTreeNodeWithOffset(TreeNode node) {
 
 /// Abstract visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
-abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
+abstract class DataExtractor<T> extends Visitor<void>
+    with VisitorVoidMixin, DataRegistry<T> {
   @override
   final Map<Id, ActualData<T>> actualMap;
 
@@ -199,9 +200,9 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   }
 
   _visitInvocation(Expression node, Name name) {
-    if (name.name == '[]') {
+    if (name.text == '[]') {
       computeForNode(node, computeDefaultNodeId(node));
-    } else if (name.name == '[]=') {
+    } else if (name.text == '[]=') {
       computeForNode(node, createUpdateId(node));
     } else {
       if (node.fileOffset != TreeNode.noOffset) {
@@ -220,7 +221,7 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
       node.arguments.accept(this);
-    } else if (node.name.name == '==' &&
+    } else if (node.name.text == '==' &&
         receiver is VariableGet &&
         receiver.variable.name == null) {
       // This is a desugared `?.`.
@@ -269,6 +270,12 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   visitInstanceInvocation(InstanceInvocation node) {
     _visitInvocation(node, node.name);
     super.visitInstanceInvocation(node);
+  }
+
+  @override
+  visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    _visitInvocation(node, node.name);
+    super.visitInstanceGetterInvocation(node);
   }
 
   @override
@@ -628,5 +635,11 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   visitLogicalExpression(LogicalExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitLogicalExpression(node);
+  }
+
+  @override
+  visitInvalidExpression(InvalidExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitInvalidExpression(node);
   }
 }

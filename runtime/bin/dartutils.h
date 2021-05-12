@@ -195,12 +195,15 @@ class DartUtils {
                                         const char* message,
                                         Dart_Handle os_error);
 
-  // Create a new Dart String object from a C String.
+  // Create a new Dart String object from a UTF8 encoded C String.
   static Dart_Handle NewString(const char* str) {
     ASSERT(str != NULL);
     return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
                                   strlen(str));
   }
+
+  // Create a new Dart String object from a formatted string.
+  static Dart_Handle NewStringFormatted(const char* format, ...);
 
   // Allocate length bytes for a C string with Dart_ScopeAllocate.
   static char* ScopedCString(intptr_t length) {
@@ -350,6 +353,7 @@ class CObject {
                                              Dart_HandleFinalizer callback);
 
   static Dart_CObject* NewIOBuffer(int64_t length);
+  static void ShrinkIOBuffer(Dart_CObject* cobject, int64_t new_length);
   static void FreeIOBufferData(Dart_CObject* object);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
@@ -564,9 +568,6 @@ class CObjectExternalUint8Array : public CObject {
 
   intptr_t Length() const {
     return cobject_->value.as_external_typed_data.length;
-  }
-  void SetLength(intptr_t length) {
-    cobject_->value.as_external_typed_data.length = length;
   }
   uint8_t* Data() const { return cobject_->value.as_external_typed_data.data; }
   void* Peer() const { return cobject_->value.as_external_typed_data.peer; }

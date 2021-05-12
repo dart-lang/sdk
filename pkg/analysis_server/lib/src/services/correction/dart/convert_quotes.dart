@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -93,6 +95,9 @@ class ConvertToSingleQuotes extends ConvertQuotes {
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING_MULTI;
 
   @override
   bool get _fromDouble => true;

@@ -1,0 +1,194 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue42435.dart:7:22: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// typedef F = Function<Y extends A>();
+//                      ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:10:14: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   B(Function<Z extends A>() a);
+//              ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:11:26: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   factory B.foo(Function<Z extends A>() a) => new B(a);
+//                          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:12:17: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   foo2(Function<Z extends A>() a) {}
+//                 ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:13:12: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   Function<Z extends A>() foo3() => throw 42;
+//            ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:14:12: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   Function<Z extends A>() get foo4 => throw 42;
+//            ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:16:12: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   Function<Z extends A>() foo6 = (() => throw 42)();
+//            ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:15:26: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   void set foo5(Function<Z extends A>() a) {}
+//                          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:19:15: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// bar2(Function<Z extends A>() a) {}
+//               ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:20:10: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// Function<Z extends A>() bar3() => throw 42;
+//          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:21:10: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// Function<Z extends A>() get bar4 => throw 42;
+//          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:23:10: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// Function<Z extends A>() bar6 = (() => throw 42)();
+//          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:26:17: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   baz2(Function<Z extends A>() a) {}
+//                 ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:27:12: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   Function<Z extends A>() baz3() => throw 42;
+//            ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:28:12: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   Function<Z extends A>() get baz4 => throw 42;
+//            ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:29:26: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+//   void set baz5(Function<Z extends A>() a) {}
+//                          ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue42435.dart:22:24: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// void set bar5(Function<Z extends A>() a) {}
+//                        ^
+// pkg/front_end/testcases/general/issue42435.dart:5:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class A<X extends A<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F = <Y extends self::A<self::A<dynamic>> = dynamic>() → dynamic;
+class A<X extends self::A<self::A::X> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    ;
+}
+class B extends core::Object {
+  field <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic foo6;
+  constructor •(<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → self::B
+    ;
+  static factory foo(<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → self::B
+    ;
+  method foo2(<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → dynamic
+    ;
+  method foo3() → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+    ;
+  get foo4() → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+    ;
+  set foo5(<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → void
+    ;
+}
+extension E on core::int {
+  method baz2 = self::E|baz2;
+  tearoff baz2 = self::E|get#baz2;
+  method baz3 = self::E|baz3;
+  tearoff baz3 = self::E|get#baz3;
+  get baz4 = self::E|get#baz4;
+  set baz5 = self::E|set#baz5;
+}
+static field <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic bar6;
+static method bar2(<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → dynamic
+  ;
+static method bar3() → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+  ;
+static get bar4() → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+  ;
+static set bar5(<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → void
+  ;
+static method E|baz2(lowered final core::int #this, <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → dynamic
+  ;
+static method E|get#baz2(lowered final core::int #this) → (<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic) → dynamic
+  return (<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → dynamic => self::E|baz2(#this, a);
+static method E|baz3(lowered final core::int #this) → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+  ;
+static method E|get#baz3(lowered final core::int #this) → () → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+  return () → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic => self::E|baz3(#this);
+static method E|get#baz4(lowered final core::int #this) → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+  ;
+static method E|set#baz5(lowered final core::int #this, <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → void
+  ;
+static method main() → dynamic
+  ;

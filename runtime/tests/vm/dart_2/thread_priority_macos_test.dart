@@ -10,8 +10,6 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
-import '../../../../tests/ffi/calloc.dart';
-
 // pthread_t pthread_self()
 typedef PthreadSelfFT = int Function();
 typedef PthreadSelfNFT = IntPtr Function();

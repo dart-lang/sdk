@@ -20,8 +20,8 @@ CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: blr ip0.
-  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
+  // Last instruction: blr lr.
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
 
   Register reg;
   InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize, &reg,
@@ -332,10 +332,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       // PP is untagged on ARM64.
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-      const ObjectPool& pool = ObjectPool::Handle(
-          FLAG_use_bare_instructions
-              ? IsolateGroup::Current()->object_store()->global_object_pool()
-              : code.object_pool());
+      const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
       if (!pool.IsNull() && (index < pool.Length()) &&
           (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
         *obj = pool.ObjectAt(index);
@@ -397,10 +394,9 @@ void ICCallPattern::SetTargetCode(const Code& target) const {
   // No need to flush the instruction cache, since the code is not modified.
 }
 
-SwitchableCallPatternBase::SwitchableCallPatternBase(const Code& code)
-    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
-      data_pool_index_(-1),
-      target_pool_index_(-1) {}
+SwitchableCallPatternBase::SwitchableCallPatternBase(
+    const ObjectPool& object_pool)
+    : object_pool_(object_pool), data_pool_index_(-1), target_pool_index_(-1) {}
 
 ObjectPtr SwitchableCallPatternBase::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
@@ -412,7 +408,7 @@ void SwitchableCallPatternBase::SetData(const Object& data) const {
 }
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
-    : SwitchableCallPatternBase(code) {
+    : SwitchableCallPatternBase(ObjectPool::Handle(code.GetObjectPool())) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blr lr.
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
@@ -428,8 +424,9 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   target_pool_index_ = pool_index + 1;
 }
 
-CodePtr SwitchableCallPattern::target() const {
-  return static_cast<CodePtr>(object_pool_.ObjectAt(target_pool_index_));
+uword SwitchableCallPattern::target_entry() const {
+  return Code::Handle(Code::RawCast(object_pool_.ObjectAt(target_pool_index_)))
+      .MonomorphicEntryPoint();
 }
 
 void SwitchableCallPattern::SetTarget(const Code& target) const {
@@ -437,9 +434,9 @@ void SwitchableCallPattern::SetTarget(const Code& target) const {
   object_pool_.SetObjectAt(target_pool_index_, target);
 }
 
-BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
-    : SwitchableCallPatternBase(code) {
-  ASSERT(code.ContainsInstructionAt(pc));
+BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc)
+    : SwitchableCallPatternBase(ObjectPool::Handle(
+          IsolateGroup::Current()->object_store()->global_object_pool())) {
   // Last instruction: blr lr.
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
 
@@ -454,17 +451,8 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
   target_pool_index_ = pool_index + 1;
 }
 
-CodePtr BareSwitchableCallPattern::target() const {
-  const uword pc = object_pool_.RawValueAt(target_pool_index_);
-  CodePtr result = ReversePc::Lookup(IsolateGroup::Current(), pc);
-  if (result != Code::null()) {
-    return result;
-  }
-  result = ReversePc::Lookup(Dart::vm_isolate_group(), pc);
-  if (result != Code::null()) {
-    return result;
-  }
-  UNREACHABLE();
+uword BareSwitchableCallPattern::target_entry() const {
+  return object_pool_.RawValueAt(target_pool_index_);
 }
 
 void BareSwitchableCallPattern::SetTarget(const Code& target) const {

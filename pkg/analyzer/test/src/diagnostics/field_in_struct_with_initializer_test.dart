@@ -19,10 +19,10 @@ class FieldInStructWithInitializerTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  Pointer p = null;
+  Pointer? p = null;
 }
 ''', [
-      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 54, 1),
+      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 55, 1),
     ]);
   }
 
@@ -30,7 +30,7 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  Pointer p;
+  Pointer? p;
 }
 ''');
   }
@@ -39,7 +39,7 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  Pointer p;
+  Pointer? p;
   static String str = '';
 }
 ''');

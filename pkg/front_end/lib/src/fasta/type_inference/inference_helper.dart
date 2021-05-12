@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -23,7 +21,8 @@ abstract class InferenceHelper {
       {List<LocatedMessage> context, bool suppressMessage});
 
   LocatedMessage checkArgumentsForType(
-      FunctionType function, Arguments arguments, int offset);
+      FunctionType function, Arguments arguments, int offset,
+      {bool isExtensionMemberInvocation = false});
 
   void addProblem(Message message, int charOffset, int length,
       {List<LocatedMessage> context, bool wasHandled});

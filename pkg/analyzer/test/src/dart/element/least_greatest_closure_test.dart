@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,10 +18,10 @@ main() {
 
 @reflectiveTest
 class GreatestClosureLegacyTest extends AbstractTypeSystemTest {
-  TypeParameterElement T;
-  TypeParameterType T_none;
-  TypeParameterType T_question;
-  TypeParameterType T_star;
+  late final TypeParameterElement T;
+  late final TypeParameterType T_none;
+  late final TypeParameterType T_question;
+  late final TypeParameterType T_star;
 
   @override
   void setUp() {
@@ -120,8 +119,8 @@ class GreatestClosureLegacyTest extends AbstractTypeSystemTest {
 
   void _check(
     DartType type, {
-    @required String greatest,
-    @required String least,
+    required String greatest,
+    required String least,
   }) {
     var greatestResult = typeSystem.greatestClosure(type, [T]);
     expect(
@@ -143,10 +142,10 @@ class GreatestClosureLegacyTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class GreatestClosureNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
-  TypeParameterElement T;
-  TypeParameterType T_none;
-  TypeParameterType T_question;
-  TypeParameterType T_star;
+  late final TypeParameterElement T;
+  late final TypeParameterType T_none;
+  late final TypeParameterType T_question;
+  late final TypeParameterType T_star;
 
   @override
   void setUp() {
@@ -253,8 +252,8 @@ class GreatestClosureNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
 
   void _check(
     DartType type, {
-    @required String greatest,
-    @required String least,
+    required String greatest,
+    required String least,
   }) {
     var greatestResult = typeSystem.greatestClosure(type, [T]);
     expect(

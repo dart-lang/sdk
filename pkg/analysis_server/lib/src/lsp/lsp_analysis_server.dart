@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -18,6 +19,7 @@ import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -26,6 +28,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -34,21 +37,21 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:path/path.dart';
+import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -56,7 +59,7 @@ import 'package:watcher/watcher.dart';
 /// them.
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  ClientCapabilities _clientCapabilities;
+  LspClientCapabilities _clientCapabilities;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
@@ -103,23 +106,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   StreamSubscription _pluginChangeSubscription;
 
-  /// Temporary analysis roots for open files.
-  ///
-  /// When a file is opened and there is no driver available (for example no
-  /// folder was opened in the editor, so the set of analysis roots is empty)
-  /// we add temporary roots for the project (or containing) folder. When the
-  /// file is closed, it is removed from this map and if no other open file
-  /// uses that root, it will be removed from the set of analysis roots.
-  ///
-  /// key: file path of the open file
-  /// value: folder to be used as a root.
-  final _temporaryAnalysisRoots = <String, String>{};
-
-  /// The set of analysis roots explicitly added to the workspace.
-  final _explicitAnalysisRoots = HashSet<String>();
+  /// The current workspace folders provided by the client. Used as analysis roots.
+  final _workspaceFolders = <String>{};
 
   /// A progress reporter for analysis status.
   ProgressReporter analyzingProgressReporter;
+
+  /// The number of times contexts have been created/recreated.
+  @visibleForTesting
+  int contextBuilds = 0;
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -130,7 +125,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     DartSdkManager sdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
+    http.Client httpClient,
     DiagnosticServer diagnosticServer,
+    // Disable to avoid using this in unit tests.
+    bool enableBazelWatcher = false,
   }) : super(
           options,
           sdkManager,
@@ -138,7 +136,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,
+          httpClient,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
+          enableBazelWatcher: enableBazelWatcher,
         ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
@@ -157,7 +157,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  ClientCapabilities get clientCapabilities => _clientCapabilities;
+  LspClientCapabilities get clientCapabilities => _clientCapabilities;
 
   Future<void> get exited => channel.closed;
 
@@ -181,18 +181,19 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
 
-  void addPriorityFile(String path) {
-    final didAdd = priorityFiles.add(path);
+  void addPriorityFile(String filePath) {
+    // When a pubspec is opened, trigger package name caching for completion.
+    if (!pubPackageService.isRunning &&
+        file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
+      pubPackageService.beginPackageNamePreload();
+    }
+
+    final didAdd = priorityFiles.add(filePath);
     assert(didAdd);
     if (didAdd) {
       _updateDriversAndPluginsPriorityFiles();
+      _refreshAnalysisRoots();
     }
-  }
-
-  /// Adds a temporary analysis root for an open file.
-  void addTemporaryAnalysisRoot(String filePath, String folderPath) {
-    _temporaryAnalysisRoots[filePath] = folderPath;
-    _refreshAnalysisRoots();
   }
 
   /// The socket from which messages are being read has been closed.
@@ -201,7 +202,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Fetches configuration from the client (if supported) and then sends
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (clientCapabilities.workspace?.configuration ?? false) {
+    if (clientCapabilities.configuration) {
       // Fetch all configuration we care about from the client. This is just
       // "dart" for now, but in future this may be extended to include
       // others (for example "flutter").
@@ -258,7 +259,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void handleClientConnection(
       ClientCapabilities capabilities, dynamic initializationOptions) {
-    _clientCapabilities = capabilities;
+    _clientCapabilities = LspClientCapabilities(capabilities);
     _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = ServerPerformance();
@@ -334,15 +335,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }, socketError);
   }
 
-  /// Returns `true` if the [file] with the given absolute path is included
-  /// in an analysis root and not excluded.
-  bool isAnalyzedFile(String file) {
-    return contextManager.isInAnalysisRoot(file) &&
-        // Dot folders are not analyzed (skipped over in _handleWatchEventImpl)
-        !contextManager.isContainedInDotFolder(file) &&
-        !contextManager.isIgnored(file);
-  }
-
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
     channel.sendNotification(NotificationMessage(
@@ -378,7 +370,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       false,
     ));
 
-    AnalysisEngine.instance.instrumentationService.logException(
+    instrumentationService.logException(
       FatalException(
         message,
         exception,
@@ -470,13 +462,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     assert(didRemove);
     if (didRemove) {
       _updateDriversAndPluginsPriorityFiles();
+      _refreshAnalysisRoots();
     }
-  }
-
-  /// Removes any temporary analysis root for a file that was closed.
-  void removeTemporaryAnalysisRoot(String filePath) {
-    _temporaryAnalysisRoots.remove(filePath);
-    _refreshAnalysisRoots();
   }
 
   void sendErrorResponse(Message message, ResponseError error) {
@@ -551,7 +538,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
-    if (clientCapabilities.window?.workDoneProgress != true) {
+    if (clientCapabilities.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
@@ -581,13 +568,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // workspace.
     return initializationOptions.closingLabels &&
         priorityFiles.contains(file) &&
-        contextManager.isInAnalysisRoot(file);
-  }
-
-  /// Returns `true` if errors should be reported for [file] with the given
-  /// absolute path.
-  bool shouldSendErrorsNotificationFor(String file) {
-    return isAnalyzedFile(file);
+        isAnalyzed(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
@@ -627,7 +608,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return MessageActionItem.fromJson(response.result);
   }
 
+  @override
   Future<void> shutdown() {
+    super.shutdown();
+
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.
     Future(() {
@@ -645,10 +629,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendServerErrorNotification('Socket error', error, stack);
   }
 
-  void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
+  void updateWorkspaceFolders(
+      List<String> addedPaths, List<String> removedPaths) {
     // TODO(dantup): This is currently case-sensitive!
 
-    _explicitAnalysisRoots
+    _workspaceFolders
       ..addAll(addedPaths ?? const [])
       ..removeAll(removedPaths ?? const []);
 
@@ -665,30 +650,56 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     notifyFlutterWidgetDescriptions(path);
   }
 
+  /// Computes analysis roots for a set of open files.
+  ///
+  /// This is used when there are no workspace folders open directly.
+  List<String> _getRootsForOpenFiles() {
+    final openFiles = priorityFiles.toList();
+    final contextLocator = ContextLocator(resourceProvider: resourceProvider);
+    final roots = contextLocator.locateRoots(includedPaths: openFiles);
+
+    // For files in folders that don't have pubspecs, a root would be
+    // produced for the root of the drive which we do not want, so filter those out.
+    roots.removeWhere((root) => root.root.isRoot);
+
+    // Find any files that are no longer covered by roots because of the above
+    // removal.
+    final additionalFiles =
+        openFiles.where((file) => !roots.any((root) => root.isAnalyzed(file)));
+
+    return [
+      ...roots.map((root) => root.root.path),
+      ...additionalFiles,
+    ];
+  }
+
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
   }
 
   void _refreshAnalysisRoots() {
-    // Always include any temporary analysis roots for open files.
-    final includedPaths = HashSet<String>.of(_explicitAnalysisRoots)
-      ..addAll(_temporaryAnalysisRoots.values)
-      ..toList();
+    // When there are open folders, they are always the roots. If there are no
+    // open workspace folders, then we use the open (priority) files to compute
+    // roots.
+    final includedPaths = _workspaceFolders.isNotEmpty
+        ? _workspaceFolders.toSet()
+        : _getRootsForOpenFiles();
 
     final excludedPaths = clientConfiguration.analysisExcludedFolders
-        .expand((excludePath) => isAbsolute(excludePath)
+        .expand((excludePath) => resourceProvider.pathContext
+                .isAbsolute(excludePath)
             ? [excludePath]
             // Apply the relative path to each open workspace folder.
             // TODO(dantup): Consider supporting per-workspace config by
             // calling workspace/configuration whenever workspace folders change
             // and caching the config for each one.
-            : _explicitAnalysisRoots.map((root) => join(root, excludePath)))
-        .toList();
+            : _workspaceFolders.map(
+                (root) => resourceProvider.pathContext.join(root, excludePath)))
+        .toSet();
 
-    declarationsTracker?.discardContexts();
-    notificationManager.setAnalysisRoots(includedPaths.toList(), excludedPaths);
-    contextManager.setRoots(includedPaths.toList(), excludedPaths);
-    addContextsToDeclarationsTracker();
+    notificationManager.setAnalysisRoots(
+        includedPaths.toList(), excludedPaths.toList());
+    contextManager.setRoots(includedPaths.toList(), excludedPaths.toList());
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
@@ -752,24 +763,54 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
+  /// The set of files for which notifications were sent.
+  final Set<String> filesToFlush = {};
+
   LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
-  LspNotificationManager get notificationManager =>
-      analysisServer.notificationManager;
+  void afterContextsCreated() {
+    analysisServer.contextBuilds++;
+    analysisServer.addContextsToDeclarationsTracker();
+  }
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
-    var builder = createContextBuilder(folder);
-    var analysisDriver = builder.buildDriver(contextRoot);
-    final textDocumentCapabilities =
-        analysisServer.clientCapabilities?.textDocument;
-    final supportedDiagnosticTags = HashSet<DiagnosticTag>.of(
-        textDocumentCapabilities?.publishDiagnostics?.tagSupport?.valueSet ??
-            []);
+  void afterContextsDestroyed() {
+    for (var file in filesToFlush) {
+      analysisServer.publishDiagnostics(file, []);
+    }
+    filesToFlush.clear();
+  }
+
+  @override
+  void afterWatchEvent(WatchEvent event) {
+    // TODO: implement afterWatchEvent
+  }
+
+  @override
+  void applyFileRemoved(String file) {
+    analysisServer.publishDiagnostics(file, []);
+    filesToFlush.remove(file);
+  }
+
+  @override
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.notifyDeclarationsTracker(event.path);
+    analysisServer.notifyFlutterWidgetDescriptions(event.path);
+    analysisServer.pluginManager.broadcastWatchEvent(event);
+  }
+
+  @override
+  void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
+    analysisServer.declarationsTracker
+        ?.addContext(analysisDriver.analysisContext);
+
+    final supportedDiagnosticTags =
+        analysisServer.clientCapabilities.diagnosticTags;
     analysisDriver.results.listen((result) {
       var path = result.path;
-      if (analysisServer.shouldSendErrorsNotificationFor(path)) {
+      filesToFlush.add(path);
+      if (analysisServer.isAnalyzed(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
             result.errors.where(_shouldSendDiagnostic).toList(),
@@ -809,74 +850,13 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
-    analysisServer.driverMap[folder] = analysisDriver;
-    return analysisDriver;
   }
 
   @override
-  void afterContextRefresh() {
-    analysisServer.addContextsToDeclarationsTracker();
-  }
-
-  @override
-  void afterWatchEvent(WatchEvent event) {
-    // TODO: implement afterWatchEvent
-  }
-
-  @override
-  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
-    // TODO: implement analysisOptionsUpdated
-  }
-
-  @override
-  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    var analysisDriver = analysisServer.driverMap[contextFolder];
-    if (analysisDriver != null) {
-      changeSet.addedFiles.forEach((path) {
-        analysisDriver.addFile(path);
-      });
-      changeSet.changedFiles.forEach((path) {
-        analysisDriver.changeFile(path);
-      });
-      changeSet.removedFiles.forEach((path) {
-        analysisDriver.removeFile(path);
-      });
-    }
-  }
-
-  @override
-  void applyFileRemoved(nd.AnalysisDriver driver, String file) {
-    driver.removeFile(file);
-    analysisServer.publishDiagnostics(file, []);
-  }
-
-  @override
-  void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
-    analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    analysisServer.pluginManager.broadcastWatchEvent(event);
-  }
-
-  @override
-  ContextBuilder createContextBuilder(Folder folder) {
-    var builderOptions = ContextBuilderOptions();
-    var builder = ContextBuilder(
-        resourceProvider, analysisServer.sdkManager, null,
-        options: builderOptions);
-    builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
-    builder.performanceLog = analysisServer.analysisPerformanceLogger;
-    builder.byteStore = analysisServer.byteStore;
-    builder.enableIndex = true;
-    return builder;
-  }
-
-  @override
-  void removeContext(Folder folder, List<String> flushedFiles) {
-    var driver = analysisServer.driverMap.remove(folder);
-    // Flush any errors for these files that the client may be displaying.
-    flushedFiles
-        ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
-    driver.dispose();
+  void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {
+    filesToFlush.add(path);
+    analysisServer.notificationManager
+        .recordAnalysisErrors(NotificationManager.serverId, path, errors);
   }
 
   bool _shouldSendDiagnostic(AnalysisError error) =>

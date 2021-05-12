@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,35 +13,35 @@ import '../../../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FeatureComputerTest);
+    defineReflectiveTests(ContextTypeTest);
   });
 }
 
 @reflectiveTest
-class FeatureComputerTest extends AbstractSingleUnitTest {
-  @override
-  bool verifyNoTestUnitErrors = false;
-
+class ContextTypeTest extends FeatureComputerTest {
   Future<void> assertContextType(String content, String expectedType) async {
-    var index = content.indexOf('^');
-    if (index < 0) {
-      fail('Missing node offset marker (^) in content');
-    }
-    content = content.substring(0, index) + content.substring(index + 1);
-    await resolveTestCode(content);
-    // TODO(jwren) Consider changing this from the NodeLocator to the optype
-    // node finding logic to be more consistent with what the user behavior
-    // here will be.
-    var node = NodeLocator(index).searchWithin(testUnit);
+    await completeIn(content);
     var computer = FeatureComputer(
         testAnalysisResult.typeSystem, testAnalysisResult.typeProvider);
-    var type = computer.computeContextType(node, index);
+    var type = computer.computeContextType(
+        completionTarget.containingNode, cursorIndex);
 
     if (expectedType == null) {
       expect(type, null);
     } else {
       expect(type?.getDisplayString(withNullability: false), expectedType);
     }
+  }
+
+  Future<void> test_argumentList_instanceCreation() async {
+    await assertContextType('''
+class C {
+  C({String s}) {}
+}
+void f() {
+  C(s:^);
+}
+''', 'String');
   }
 
   Future<void> test_argumentList_named_afterColon() async {
@@ -94,6 +96,17 @@ void g() {
 void f(int i, {String s = ''}) {}
 void g() {
   f(^ s:);
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_named_method() async {
+    await assertContextType('''
+class C {
+  void m(int i) {}
+}
+void f(C c) {
+  c.m(^);
 }
 ''', 'int');
   }
@@ -344,6 +357,31 @@ void g() {
   f(1, ^ );
 }
 ''', 'String');
+  }
+
+  Future<void> test_argumentList_typeParameter_resolved() async {
+    await assertContextType('''
+class A {}
+class B {}
+class C<T extends A> {
+  void m(T t) {}
+}
+void f(C<B> c) {
+  c.m(^);
+}
+''', 'B');
+  }
+
+  Future<void> test_argumentList_typeParameter_unresolved() async {
+    await assertContextType('''
+class A {}
+class C<T extends A> {
+  void m1(T t) {}
+  void m2() {
+    m1(^);
+  }
+}
+''', 'A');
   }
 
   Future<void> test_assertInitializer_with_identifier() async {
@@ -685,5 +723,25 @@ int x^;
     await assertContextType('''
 var x=  ^  ;
 ''', null);
+  }
+}
+
+abstract class FeatureComputerTest extends AbstractSingleUnitTest {
+  int cursorIndex = 0;
+
+  CompletionTarget completionTarget;
+
+  @override
+  bool verifyNoTestUnitErrors = false;
+
+  Future<void> completeIn(String content) async {
+    cursorIndex = content.indexOf('^');
+    if (cursorIndex < 0) {
+      fail('Missing node offset marker (^) in content');
+    }
+    content =
+        content.substring(0, cursorIndex) + content.substring(cursorIndex + 1);
+    await resolveTestCode(content);
+    completionTarget = CompletionTarget.forOffset(testUnit, cursorIndex);
   }
 }

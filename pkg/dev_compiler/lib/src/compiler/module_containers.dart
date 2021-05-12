@@ -8,6 +8,9 @@ import '../compiler/js_names.dart' as js_ast;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 
+/// Defines how to emit a value of a table
+typedef _emitValue<K> = js_ast.Expression Function(K, ModuleItemData);
+
 /// Represents a top-level property hoisted to a top-level object.
 class ModuleItemData {
   /// The container that holds this module item in the emitted JS.
@@ -39,34 +42,39 @@ abstract class ModuleItemContainer<K> {
   /// Name of the container in the emitted JS.
   String name;
 
-  /// Indicates if this table is being used in an incremental context (such as
-  /// during expression evaluation).
-  ///
-  /// Set by `emitFunctionIncremental` in kernel/compiler.dart.
-  bool incrementalMode = false;
-
   /// Refers to the latest container if this container is sharded.
   js_ast.Identifier containerId;
 
-  /// Refers to the aggregated entrypoint into this container.
-  ///
-  /// Should only be accessed during expression evaluation since lookups are
-  /// deoptimized in V8..
-  js_ast.Identifier aggregatedContainerId;
-
   final Map<K, ModuleItemData> moduleItems = {};
+
+  /// Incremental mode used for expression compilation
+  bool _incrementalMode = false;
+
+  /// Items accessed during incremental mode
+  final Set<K> incrementalModuleItems = {};
+
+  /// Indicates if this table is being used in an incremental context.
+  ///
+  /// Used during expression evaluation.
+  /// Set by `emitFunctionIncremental` in kernel/compiler.dart.
+  bool get incrementalMode => _incrementalMode;
+
+  /// Sets the container to incremental mode.
+  ///
+  /// Used during expression evaluating so only referenced items
+  /// will be emitted in a generated function.
+  ///
+  /// Note: the container cannot revert to non-incremental mode.
+  void setIncrementalMode() {
+    incrementalModuleItems.clear();
+    _incrementalMode = true;
+  }
 
   /// Holds keys that will not be emitted when calling [emit].
   final Set<K> _noEmit = {};
 
-  /// Creates a container with a name, ID, and incremental ID used for
-  /// expression evaluation.
-  ///
-  /// If [aggregatedId] is null, the container is not sharded, so the
-  /// containerId is safe to use during eval.
-  ModuleItemContainer._(
-      this.name, this.containerId, js_ast.Identifier aggregatedId)
-      : this.aggregatedContainerId = aggregatedId ?? containerId;
+  /// Creates a container with a name, ID
+  ModuleItemContainer._(this.name, this.containerId);
 
   /// Creates an automatically sharding container backed by JS Objects.
   factory ModuleItemContainer.asObject(String name,
@@ -107,15 +115,17 @@ abstract class ModuleItemContainer<K> {
     _noEmit.add(key);
   }
 
+  void setEmitIfIncremental(K key) {
+    if (incrementalMode) {
+      incrementalModuleItems.add(key);
+    }
+  }
+
   /// Emit the container declaration/initializer, using multiple statements if
   /// necessary.
-  List<js_ast.Statement> emit();
-
-  /// Emit the container declaration/initializer incrementally.
   ///
-  /// Used during expression evaluation. Appends all newly added types to the
-  /// aggregated container.
-  List<js_ast.Statement> emitIncremental();
+  /// Uses [emitValue] to emit the values in the table.
+  List<js_ast.Statement> emit({_emitValue<K> emitValue});
 }
 
 /// Associates a [K] with a container-unique JS key and arbitrary JS value.
@@ -142,12 +152,11 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
   String Function(K) keyToString;
 
   ModuleItemObjectContainer(String name, this.keyToString)
-      : super._(
-            name, js_ast.TemporaryId(name), js_ast.Identifier('${name}\$Eval'));
+      : super._(name, js_ast.TemporaryId(name));
 
   @override
   void operator []=(K key, js_ast.Expression value) {
-    if (this.contains(key)) {
+    if (contains(key)) {
       moduleItems[key].jsValue = value;
       return;
     }
@@ -170,53 +179,33 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
 
   @override
   js_ast.Expression access(K key) {
-    var id = incrementalMode ? aggregatedContainerId : moduleItems[key].id;
+    var id = moduleItems[key].id;
     return js.call('#.#', [id, moduleItems[key].jsKey]);
   }
 
   @override
-  List<js_ast.Statement> emit() {
+  List<js_ast.Statement> emit({_emitValue<K> emitValue}) {
     var containersToProperties = <js_ast.Identifier, List<js_ast.Property>>{};
     moduleItems.forEach((k, v) {
-      if (_noEmit.contains(k)) return;
+      if (!incrementalMode && _noEmit.contains(k)) return;
+      if (incrementalMode && !incrementalModuleItems.contains(k)) return;
+
       if (!containersToProperties.containsKey(v.id)) {
         containersToProperties[v.id] = <js_ast.Property>[];
       }
-      containersToProperties[v.id].add(js_ast.Property(v.jsKey, v.jsValue));
+      containersToProperties[v.id].add(js_ast.Property(
+          v.jsKey, emitValue == null ? v.jsValue : emitValue(k, v)));
     });
 
-    // Emit a self-reference for the next container so V8 does not optimize it
-    // away. Required for expression evaluation.
-    if (containersToProperties[containerId] == null) {
-      containersToProperties[containerId] = [
-        js_ast.Property(
-            js_ast.LiteralString('_'), js.call('() => #', [containerId]))
-      ];
-    }
+    if (containersToProperties.isEmpty) return [];
+
     var statements = <js_ast.Statement>[];
-    var aggregatedContainers = <js_ast.Expression>[];
     containersToProperties.forEach((containerId, properties) {
       var containerObject = js_ast.ObjectInitializer(properties,
           multiline: properties.length > 1);
       statements.add(js.statement('var # = #', [containerId, containerObject]));
-      aggregatedContainers.add(js.call('#', [containerId]));
     });
-    // Create an aggregated access point over all containers for eval.
-    statements.add(js.statement('var # = Object.assign({_ : () => #}, #)',
-        [aggregatedContainerId, aggregatedContainerId, aggregatedContainers]));
-    return statements;
-  }
 
-  /// Appends all newly added types to the most recent container.
-  @override
-  List<js_ast.Statement> emitIncremental() {
-    assert(incrementalMode);
-    var statements = <js_ast.Statement>[];
-    moduleItems.forEach((k, v) {
-      if (_noEmit.contains(k)) return;
-      statements.add(js
-          .statement('#[#] = #', [aggregatedContainerId, v.jsKey, v.jsValue]));
-    });
     return statements;
   }
 }
@@ -232,7 +221,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
 /// ```
 class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
   ModuleItemArrayContainer(String name)
-      : super._(name, js_ast.TemporaryId(name), null);
+      : super._(name, js_ast.TemporaryId(name));
 
   @override
   void operator []=(K key, js_ast.Expression value) {
@@ -246,22 +235,25 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
 
   @override
   js_ast.Expression access(K key) {
-    var id = incrementalMode ? aggregatedContainerId : containerId;
+    var id = containerId;
     return js.call('#[#]', [id, moduleItems[key].jsKey]);
   }
 
   @override
-  List<js_ast.Statement> emit() {
+  List<js_ast.Statement> emit({_emitValue<K> emitValue}) {
     var properties = List<js_ast.Expression>.filled(length, null);
 
     // If the entire array holds just one value, generate a short initializer.
     var valueSet = <js_ast.Expression>{};
     moduleItems.forEach((k, v) {
-      if (_noEmit.contains(k)) return;
+      if (!incrementalMode && _noEmit.contains(k)) return;
+      if (incrementalMode && !incrementalModuleItems.contains(k)) return;
       valueSet.add(v.jsValue);
       properties[int.parse((v.jsKey as js_ast.LiteralNumber).value)] =
-          v.jsValue;
+          emitValue == null ? v.jsValue : emitValue(k, v);
     });
+
+    if (valueSet.isEmpty) return [];
 
     if (valueSet.length == 1 && moduleItems.length > 1) {
       return [
@@ -280,17 +272,5 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
         js_ast.ArrayInitializer(properties, multiline: properties.length > 1)
       ])
     ];
-  }
-
-  @override
-  List<js_ast.Statement> emitIncremental() {
-    assert(incrementalMode);
-    var statements = <js_ast.Statement>[];
-    moduleItems.forEach((k, v) {
-      if (_noEmit.contains(k)) return;
-      statements.add(js
-          .statement('#[#] = #', [aggregatedContainerId, v.jsKey, v.jsValue]));
-    });
-    return statements;
   }
 }

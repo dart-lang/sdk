@@ -5,22 +5,26 @@
 // part of "core_patch.dart";
 
 abstract class _IntegerImplementation implements int {
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   num operator +(num other) => other._addFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   num operator -(num other) => other._subFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   num operator *(num other) => other._mulFromInteger(this);
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -32,7 +36,10 @@ abstract class _IntegerImplementation implements int {
     return this.toDouble() / other.toDouble();
   }
 
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   num operator %(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -40,26 +47,30 @@ abstract class _IntegerImplementation implements int {
     return other._moduloFromInteger(this);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   int operator -() {
     // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
     // result type as `num`.
     return unsafeCast<int>(0 - this);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   int operator &(int other) => other._bitAndFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   int operator |(int other) => other._bitOrFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   int operator ^(int other) => other._bitXorFromInteger(this);
 
   num remainder(num other) {
@@ -67,32 +78,25 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:non-nullable-result-type")
-  int _bitAndFromSmi(_Smi other) native "Integer_bitAndFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:non-nullable-result-type")
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
   @pragma("vm:non-nullable-result-type")
   int _shrFromInteger(int other) native "Integer_shrFromInteger";
   @pragma("vm:non-nullable-result-type")
+  int _ushrFromInteger(int other) native "Integer_ushrFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _shlFromInteger(int other) native "Integer_shlFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _addFromInteger(int other) native "Integer_addFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _subFromInteger(int other) native "Integer_subFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _mulFromInteger(int other) native "Integer_mulFromInteger";
   @pragma("vm:non-nullable-result-type")
   int _truncDivFromInteger(int other) native "Integer_truncDivFromInteger";
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
   int _remainderFromInteger(int other) {
@@ -101,13 +105,20 @@ abstract class _IntegerImplementation implements int {
     return unsafeCast<int>(other - (other ~/ this) * this);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   int operator >>(int other) => other._shrFromInteger(this);
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
+  int operator >>>(int other) => other._ushrFromInteger(this);
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
+  @pragma("vm:disable-unboxed-parameters")
   int operator <<(int other) => other._shlFromInteger(this);
 
   @pragma("vm:recognized", "asm-intrinsic")
@@ -138,7 +149,6 @@ abstract class _IntegerImplementation implements int {
     return (this == other) || (this < other);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
   bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
@@ -544,18 +554,13 @@ class _Smi extends _IntegerImplementation {
 
   int get hashCode => this;
   int get _identityHashCode => this;
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:disable-unboxed-parameters")
   int operator ~() native "Smi_bitNegate";
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Smi_bitLength";
-
-  int operator &(int other) => other._bitAndFromSmi(this);
-
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int _bitAndFromSmi(_Smi other) native "Smi_bitAndFromSmi";
 
   /**
    * The digits of '00', '01', ... '99' as a single array.
@@ -762,6 +767,4 @@ class _Mint extends _IntegerImplementation {
   int operator ~() native "Mint_bitNegate";
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Mint_bitLength";
-
-  int _bitAndFromSmi(_Smi other) => _bitAndFromInteger(other);
 }

@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Foo {
   final int x;
   const Foo(this.x)

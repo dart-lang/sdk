@@ -6,46 +6,7 @@
 
 import 'dart:convert' show json;
 
-import 'package:kernel/ast.dart'
-    show
-        BoolConstant,
-        BottomType,
-        Class,
-        Constant,
-        ConstantMapEntry,
-        DartType,
-        DoubleConstant,
-        DynamicType,
-        Field,
-        FunctionType,
-        FutureOrType,
-        InvalidType,
-        InstanceConstant,
-        IntConstant,
-        InterfaceType,
-        Library,
-        ListConstant,
-        MapConstant,
-        NeverType,
-        NullConstant,
-        NullType,
-        Nullability,
-        PartialInstantiationConstant,
-        Procedure,
-        SetConstant,
-        StringConstant,
-        SymbolConstant,
-        TearOffConstant,
-        TreeNode,
-        Typedef,
-        TypedefType,
-        TypeLiteralConstant,
-        TypeParameter,
-        TypeParameterType,
-        UnevaluatedConstant,
-        VoidType;
-
-import 'package:kernel/visitor.dart' show ConstantVisitor, DartTypeVisitor;
+import 'package:kernel/ast.dart';
 
 import '../denylisted_classes.dart' show denylistedCoreClasses;
 
@@ -151,8 +112,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(nameForEntity(
         typedefNode,
         typedefNode.name,
-        typedefNode.enclosingLibrary.importUri,
-        typedefNode.enclosingLibrary.fileUri));
+        typedefNode?.enclosingLibrary?.importUri ?? unknownUri,
+        typedefNode?.enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -169,11 +130,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void visitInvalidType(InvalidType node) {
     // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.
     result.add("invalid-type");
-  }
-
-  void visitBottomType(BottomType node) {
-    // TODO(askesc): Throw internal error if BottomType appears in diagnostics.
-    result.add("bottom-type");
   }
 
   void visitNeverType(NeverType node) {
@@ -270,8 +226,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(nameForEntity(
         classNode,
         classNode.name,
-        classNode.enclosingLibrary.importUri,
-        classNode.enclosingLibrary.fileUri));
+        // TODO(johnniwinther): Ensure enclosing libraries on classes earlier
+        // in the compiler to ensure types in error messages have context.
+        classNode?.enclosingLibrary?.importUri ?? unknownUri,
+        classNode?.enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -289,6 +247,25 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("FutureOr<");
     node.typeArgument.accept(this);
     result.add(">");
+    addNullability(node.declaredNullability);
+  }
+
+  void visitExtensionType(ExtensionType node) {
+    result.add(nameForEntity(
+        node.extension,
+        node.extension.name,
+        node.extension?.enclosingLibrary?.importUri ?? unknownUri,
+        node.extension?.enclosingLibrary?.fileUri ?? unknownUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
     addNullability(node.declaredNullability);
   }
 

@@ -204,8 +204,18 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
+  R accept1<R, A>(ir.TreeVisitor1<R, A> v, A arg) {
+    throw new UnsupportedError("ConstantReference.accept");
+  }
+
+  @override
   transformChildren(ir.Transformer v) {
     throw new UnsupportedError("ConstantReference.transformChildren");
+  }
+
+  @override
+  transformOrRemoveChildren(ir.RemovingTransformer v) {
+    throw new UnsupportedError("ConstantReference.transformOrRemoveChildren");
   }
 
   @override

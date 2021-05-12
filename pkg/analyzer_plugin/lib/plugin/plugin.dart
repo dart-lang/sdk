@@ -4,12 +4,12 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverGeneric, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -33,16 +33,19 @@ abstract class ServerPlugin {
 
   /// The communication channel being used to communicate with the analysis
   /// server.
-  PluginCommunicationChannel _channel;
+  late PluginCommunicationChannel _channel;
 
   /// The resource provider used to access the file system.
-  final ResourceProvider resourceProvider;
+  final OverlayResourceProvider resourceProvider;
+
+  /// The next modification stamp for a changed file in the [resourceProvider].
+  int _overlayModificationStamp = 0;
 
   /// The object used to manage analysis subscriptions.
   final SubscriptionManager subscriptionManager = SubscriptionManager();
 
   /// The scheduler used by any analysis drivers that are created.
-  AnalysisDriverScheduler analysisDriverScheduler;
+  late AnalysisDriverScheduler analysisDriverScheduler;
 
   /// A table mapping the current context roots to the analysis driver created
   /// for that root.
@@ -55,19 +58,17 @@ abstract class ServerPlugin {
   /// The byte store used by any analysis drivers that are created, or `null` if
   /// the cache location isn't known because the 'plugin.version' request has not
   /// yet been received.
-  ByteStore _byteStore;
+  late ByteStore _byteStore;
 
   /// The SDK manager used to manage SDKs.
-  DartSdkManager _sdkManager;
-
-  /// The file content overlay used by any analysis drivers that are created.
-  final FileContentOverlay fileContentOverlay = FileContentOverlay();
+  late DartSdkManager _sdkManager;
 
   /// Initialize a newly created analysis server plugin. If a resource [provider]
   /// is given, then it will be used to access the file system. Otherwise a
   /// resource provider that accesses the physical file system will be used.
-  ServerPlugin(ResourceProvider provider)
-      : resourceProvider = provider ?? PhysicalResourceProvider.INSTANCE {
+  ServerPlugin(ResourceProvider? provider)
+      : resourceProvider = OverlayResourceProvider(
+            provider ?? PhysicalResourceProvider.INSTANCE) {
     analysisDriverScheduler = AnalysisDriverScheduler(performanceLog);
     analysisDriverScheduler.start();
   }
@@ -83,7 +84,7 @@ abstract class ServerPlugin {
 
   /// Return the user visible information about how to contact the plugin authors
   /// with any problems that are found, or `null` if there is no contact info.
-  String get contactInfo => null;
+  String? get contactInfo => null;
 
   /// Return a list of glob patterns selecting the files that this plugin is
   /// interested in analyzing.
@@ -105,7 +106,7 @@ abstract class ServerPlugin {
   }
 
   /// Return the context root containing the file at the given [filePath].
-  ContextRoot contextRootContaining(String filePath) {
+  ContextRoot? contextRootContaining(String filePath) {
     var pathContext = resourceProvider.pathContext;
 
     /// Return `true` if the given [child] is either the same as or within the
@@ -141,7 +142,7 @@ abstract class ServerPlugin {
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot);
 
   /// Return the driver being used to analyze the file with the given [path].
-  AnalysisDriverGeneric driverForPath(String path) {
+  AnalysisDriverGeneric? driverForPath(String path) {
     var contextRoot = contextRootContaining(path);
     if (contextRoot == null) {
       return null;
@@ -160,7 +161,7 @@ abstract class ServerPlugin {
       throw RequestFailure(
           RequestErrorFactory.pluginError('Failed to analyze $path', null));
     }
-    var result = await (driver as AnalysisDriver).getResult(path);
+    var result = await driver.getResult(path);
     var state = result.state;
     if (state != ResultState.VALID) {
       // Return an error from the request.
@@ -227,7 +228,7 @@ abstract class ServerPlugin {
       var driver = driverMap.remove(contextRoot);
       // The `dispose` method has the side-effect of removing the driver from
       // the analysis driver scheduler.
-      driver.dispose();
+      driver?.dispose();
     }
     return AnalysisSetContextRootsResult();
   }
@@ -243,7 +244,7 @@ abstract class ServerPlugin {
       var contextRoot = contextRootContaining(file);
       if (contextRoot != null) {
         // TODO(brianwilkerson) Which driver should we use if there is no context root?
-        var driver = driverMap[contextRoot];
+        var driver = driverMap[contextRoot]!;
         filesByDriver.putIfAbsent(driver, () => <String>[]).add(file);
       }
     }
@@ -273,13 +274,22 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
       AnalysisUpdateContentParams parameters) async {
-    Map<String, Object> files = parameters.files;
-    files.forEach((String filePath, Object overlay) {
+    var files = parameters.files;
+    files.forEach((String filePath, Object? overlay) {
+      // Prepare the old overlay contents.
+      String? oldContents;
+      try {
+        if (resourceProvider.hasOverlay(filePath)) {
+          var file = resourceProvider.getFile(filePath);
+          oldContents = file.readAsStringSync();
+        }
+      } catch (_) {}
+
+      // Prepare the new contents.
+      String? newContents;
       if (overlay is AddContentOverlay) {
-        fileContentOverlay[filePath] = overlay.content;
+        newContents = overlay.content;
       } else if (overlay is ChangeContentOverlay) {
-        var oldContents = fileContentOverlay[filePath];
-        String newContents;
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
@@ -292,10 +302,20 @@ abstract class ServerPlugin {
           throw RequestFailure(
               RequestErrorFactory.invalidOverlayChangeInvalidEdit());
         }
-        fileContentOverlay[filePath] = newContents;
       } else if (overlay is RemoveContentOverlay) {
-        fileContentOverlay[filePath] = null;
+        newContents = null;
       }
+
+      if (newContents != null) {
+        resourceProvider.setOverlay(
+          filePath,
+          content: newContents,
+          modificationStamp: _overlayModificationStamp++,
+        );
+      } else {
+        resourceProvider.removeOverlay(filePath);
+      }
+
       contentChanged(filePath);
     });
     return AnalysisUpdateContentResult();
@@ -339,7 +359,7 @@ abstract class ServerPlugin {
   /// Handle an 'edit.getRefactoring' request.
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
-  Future<EditGetRefactoringResult> handleEditGetRefactoring(
+  Future<EditGetRefactoringResult?> handleEditGetRefactoring(
       EditGetRefactoringParams parameters) async {
     return null;
   }
@@ -347,7 +367,7 @@ abstract class ServerPlugin {
   /// Handle a 'kythe.getKytheEntries' request.
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
-  Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
+  Future<KytheGetKytheEntriesResult?> handleKytheGetKytheEntries(
       KytheGetKytheEntriesParams parameters) async {
     return null;
   }
@@ -483,8 +503,8 @@ abstract class ServerPlugin {
 
   /// Compute the response that should be returned for the given [request], or
   /// `null` if the response has already been sent.
-  Future<Response> _getResponse(Request request, int requestTime) async {
-    ResponseResult result;
+  Future<Response?> _getResponse(Request request, int requestTime) async {
+    ResponseResult? result;
     switch (request.method) {
       case ANALYSIS_REQUEST_GET_NAVIGATION:
         var params = AnalysisGetNavigationParams.fromRequest(request);
@@ -557,7 +577,7 @@ abstract class ServerPlugin {
   Future<void> _onRequest(Request request) async {
     var requestTime = DateTime.now().millisecondsSinceEpoch;
     var id = request.id;
-    Response response;
+    Response? response;
     try {
       response = await _getResponse(request, requestTime);
     } on RequestFailure catch (exception) {

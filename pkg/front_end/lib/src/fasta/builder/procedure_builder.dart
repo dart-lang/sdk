@@ -4,13 +4,9 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-
 import 'package:front_end/src/fasta/dill/dill_member_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
-
-import 'package:kernel/type_algebra.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/forest.dart';
@@ -29,6 +25,8 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
+
+import '../util/helpers.dart';
 
 import 'builder.dart';
 import 'constructor_reference_builder.dart';
@@ -198,6 +196,8 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
     origin.procedure.isExternal = _procedure.isExternal;
     origin.procedure.function = _procedure.function;
     origin.procedure.function.parent = origin.procedure;
+    origin.procedure.isRedirectingFactoryConstructor =
+        _procedure.isRedirectingFactoryConstructor;
     return 1;
   }
 }
@@ -592,9 +592,10 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       : <ClassMember>[new SourceProcedureMember(this)];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= isSetter
-      ? <ClassMember>[new SourceProcedureMember(this)]
-      : const <ClassMember>[];
+  List<ClassMember> get localSetters =>
+      _localSetters ??= isSetter && !isConflictingSetter
+          ? <ClassMember>[new SourceProcedureMember(this)]
+          : const <ClassMember>[];
 }
 
 class SourceProcedureMember extends BuilderClassMember {
@@ -711,6 +712,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     bodyInternal = new RedirectingFactoryBody(target, typeArguments);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
+    procedure.isRedirectingFactoryConstructor = true;
     if (isPatch) {
       if (function.typeParameters != null) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
@@ -763,8 +765,9 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
-    super.buildOutlineExpressions(library, coreTypes);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
     LibraryBuilder thisLibrary = this.library;
     if (thisLibrary is SourceLibraryBuilder) {
       RedirectingFactoryBody redirectingFactoryBody = procedure.function.body;

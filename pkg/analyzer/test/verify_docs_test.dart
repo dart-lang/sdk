@@ -92,6 +92,7 @@ class SnippetTester {
     //  API, write code to compute the list of imports so that new public API
     //  will automatically be allowed.
     String imports = '''
+// @dart = 2.9
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';

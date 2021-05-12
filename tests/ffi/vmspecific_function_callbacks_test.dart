@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-testing-pragmas --enable-isolate-groups
+// VMOptions=--enable-testing-pragmas --enable-isolate-groups --experimental-enable-isolate-groups-jit
 // VMOptions=--enable-testing-pragmas --no-enable-isolate-groups
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.

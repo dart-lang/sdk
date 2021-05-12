@@ -116,52 +116,52 @@ class WasmerLimits extends Struct {
 const int wasm_limits_max_default = 0xffffffff;
 
 // wasm_engine_t
-class WasmerEngine extends Struct {}
+class WasmerEngine extends Opaque {}
 
 // wasm_exporttype_t
-class WasmerExporttype extends Struct {}
+class WasmerExporttype extends Opaque {}
 
 // wasm_extern_t
-class WasmerExtern extends Struct {}
+class WasmerExtern extends Opaque {}
 
 // wasm_externtype_t
-class WasmerExterntype extends Struct {}
+class WasmerExterntype extends Opaque {}
 
 // wasm_func_t
-class WasmerFunc extends Struct {}
+class WasmerFunc extends Opaque {}
 
 // wasm_functype_t
-class WasmerFunctype extends Struct {}
+class WasmerFunctype extends Opaque {}
 
 // wasm_importtype_t
-class WasmerImporttype extends Struct {}
+class WasmerImporttype extends Opaque {}
 
 // wasm_instance_t
-class WasmerInstance extends Struct {}
+class WasmerInstance extends Opaque {}
 
 // wasm_memory_t
-class WasmerMemory extends Struct {}
+class WasmerMemory extends Opaque {}
 
 // wasm_memorytype_t
-class WasmerMemorytype extends Struct {}
+class WasmerMemorytype extends Opaque {}
 
 // wasm_module_t
-class WasmerModule extends Struct {}
+class WasmerModule extends Opaque {}
 
 // wasm_store_t
-class WasmerStore extends Struct {}
+class WasmerStore extends Opaque {}
 
 // wasm_trap_t
-class WasmerTrap extends Struct {}
+class WasmerTrap extends Opaque {}
 
 // wasm_valtype_t
-class WasmerValtype extends Struct {}
+class WasmerValtype extends Opaque {}
 
 // wasi_config_t
-class WasmerWasiConfig extends Struct {}
+class WasmerWasiConfig extends Opaque {}
 
 // wasi_env_t
-class WasmerWasiEnv extends Struct {}
+class WasmerWasiEnv extends Opaque {}
 
 // wasm_byte_vec_t
 class WasmerByteVec extends Struct {

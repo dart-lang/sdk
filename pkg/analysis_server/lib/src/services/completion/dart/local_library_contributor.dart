@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -94,13 +96,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   @override
-  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(element, prefix: prefix);
-    }
-  }
-
-  @override
   void visitLibraryElement(LibraryElement element) {
     if (visitedLibraries.add(element)) {
       element.visitChildren(this);
@@ -112,7 +107,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     if (opType.includeReturnValueSuggestions) {
       var parent = element.enclosingElement;
       if (parent is ClassElement || parent is ExtensionElement) {
-        builder.suggestAccessor(element, inheritanceDistance: -1.0);
+        builder.suggestAccessor(element, inheritanceDistance: 0.0);
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
       }
@@ -123,6 +118,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
       builder.suggestTopLevelVariable(element, prefix: prefix);
+    }
+  }
+
+  @override
+  void visitTypeAliasElement(TypeAliasElement element) {
+    if (opType.includeTypeNameSuggestions) {
+      builder.suggestTypeAlias(element, prefix: prefix);
     }
   }
 

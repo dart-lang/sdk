@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -79,9 +81,16 @@ class DartFixListener {
   /// Return the [Location] representing the specified offset and length
   /// in the given compilation unit.
   Location locationFor(ResolvedUnitResult result, int offset, int length) {
-    final locInfo = result.unit.lineInfo.getLocation(offset);
-    final location = Location(
-        result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
-    return location;
+    var lineInfo = result.unit.lineInfo;
+    var startLocation = lineInfo.getLocation(offset);
+    var endLocation = lineInfo.getLocation(offset + length);
+    return Location(
+        result.path,
+        offset,
+        length,
+        startLocation.lineNumber,
+        startLocation.columnNumber,
+        endLocation.lineNumber,
+        endLocation.columnNumber);
   }
 }

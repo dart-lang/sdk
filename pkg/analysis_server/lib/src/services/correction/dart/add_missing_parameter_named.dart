@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -40,7 +42,8 @@ class AddMissingParameterNamed extends CorrectionProducer {
     var argumentList = namedExpression.parent;
 
     // Prepare the invoked element.
-    var context = ExecutableParameters(sessionHelper, argumentList.parent);
+    var context =
+        ExecutableParameters.forInvocation(sessionHelper, argumentList.parent);
     if (context == null) {
       return;
     }

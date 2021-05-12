@@ -5,14 +5,22 @@
 // @dart = 2.9
 
 import "dart:convert";
-import "package:front_end/src/fasta/util/textual_outline.dart";
+
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
+import "package:front_end/src/fasta/util/textual_outline.dart"
+    show textualOutline;
+
+const ScannerConfiguration scannerConfiguration =
+    const ScannerConfiguration(enableExtensionMethods: true);
 
 main() {
   // Doesn't sort if not asked to perform modelling.
   String result = textualOutline(utf8.encode("""
 b() { print("hello"); }
 a() { print("hello"); }
-"""), throwOnUnexpected: true, performModelling: false);
+"""), scannerConfiguration, throwOnUnexpected: true, performModelling: false);
   if (result !=
       """
 b() {}
@@ -25,7 +33,7 @@ a() {}""") {
   result = textualOutline(utf8.encode("""
 b() { print("hello"); }
 a() { print("hello"); }
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -41,7 +49,7 @@ b() {}""") {
   // Procedure without content.
   result = textualOutline(utf8.encode("""
 a() {}
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -56,7 +64,7 @@ a() {}""") {
 a() {
   // Whatever
 }
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -70,7 +78,7 @@ a() {}""") {
   result = textualOutline(utf8.encode("""
 class B {}
 class A {}
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -87,7 +95,7 @@ class B {}""") {
 class A {
   // Whatever
 }
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -106,7 +114,7 @@ typedef void F1();
 @a
 @A(3)
 int f1, f2;
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -130,7 +138,7 @@ typedef void F1();
 @a
 @A(3)
 int f1, f2;
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -151,7 +159,7 @@ typedef void F1();""") {
 class C<T> = Object with A<Function(T)>;
 class B<T> = Object with A<Function(T)>;
 class A<T> {}
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -176,10 +184,11 @@ import "bar.dart";
 main() {}
 
 import "baz.dart";
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      returnNullOnError: false);
   if (result !=
       """
 import "bar.dart";
@@ -202,10 +211,11 @@ export "bar.dart";
 main() {}
 
 export "baz.dart";
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      returnNullOnError: false);
   if (result !=
       """
 export "bar.dart";
@@ -233,10 +243,11 @@ main() {}
 
 export "baz.dart";
 import "baz.dart";
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      returnNullOnError: false);
   if (result !=
       """
 export "bar.dart";
@@ -260,10 +271,11 @@ library foo;
 bar() {
   // whatever
 }
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      returnNullOnError: false);
   if (result !=
       """
 part "foo.dart";
@@ -284,10 +296,11 @@ foo() {
 }
 
 @Object1()
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      returnNullOnError: false);
   if (result !=
       """
 @Object2()
@@ -305,7 +318,7 @@ class Class1 {
   Class1 get nonNullable1 => property1;
   Class2 get property1 => new Class1();
 }
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -326,7 +339,7 @@ class C2<V> = Super<V> with Mixin<V>;
 class C<V> extends Super<V> with Mixin<V> {}
 class D extends Super with Mixin {}
 class D2 = Super with Mixin;
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -352,7 +365,7 @@ import "a2.dart";
 export "a1.dart";
 @Object4
 import "a0.dart";
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);
@@ -385,10 +398,11 @@ import "a1.dart" show foo;
 export "a2.dart" show
 // ok line
 export "a3.dart" show foo;
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
-      addMarkerForUnknownForTest: true);
+      addMarkerForUnknownForTest: true,
+      returnNullOnError: false);
   if (result !=
       """
 ---- unknown chunk starts ----
@@ -411,7 +425,7 @@ final x = E.v1;
 main() {
   x;
 }
-"""),
+"""), scannerConfiguration,
       throwOnUnexpected: true,
       performModelling: true,
       addMarkerForUnknownForTest: true);

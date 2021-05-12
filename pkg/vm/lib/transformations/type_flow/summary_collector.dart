@@ -308,7 +308,7 @@ class _FallthroughDetector extends ast.StatementVisitor<bool> {
 
 /// Collects sets of captured variables, as well as variables
 /// modified in loops and try blocks.
-class _VariablesInfoCollector extends RecursiveVisitor<Null> {
+class _VariablesInfoCollector extends RecursiveVisitor {
   /// Maps declared variables to their declaration index.
   final Map<VariableDeclaration, int> varIndex = <VariableDeclaration, int>{};
 
@@ -514,7 +514,7 @@ Iterable<Name> getSelectors(ClassHierarchy hierarchy, Class cls,
 enum FieldSummaryType { kFieldGuard, kInitializer }
 
 /// Create a type flow summary for a member from the kernel AST.
-class SummaryCollector extends RecursiveVisitor<TypeExpr> {
+class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   final Target target;
   final TypeEnvironment _environment;
   final ClosedWorldClassHierarchy _hierarchy;
@@ -2258,8 +2258,6 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   @override
   TypeExpr visitVoidType(VoidType type) => new RuntimeType(type, null);
   @override
-  TypeExpr visitBottomType(BottomType type) => new RuntimeType(type, null);
-  @override
   TypeExpr visitNeverType(NeverType type) => new RuntimeType(type, null);
 
   @override
@@ -2417,8 +2415,8 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     final resultClass = summaryCollector._entryPointsListener
         .addAllocatedClass(constant.classNode);
     constant.fieldValues.forEach((Reference fieldReference, Constant value) {
-      summaryCollector._entryPointsListener
-          .addDirectFieldAccess(fieldReference.asField, typeFor(value));
+      summaryCollector._entryPointsListener.addFieldUsedInConstant(
+          fieldReference.asField, resultClass, typeFor(value));
     });
     return new ConcreteType(resultClass.cls, null, constant);
   }

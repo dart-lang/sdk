@@ -129,7 +129,7 @@ T waitFor<T>(Future<T> future, {Duration? timeout}) {
   if (timeout != null) {
     s = new Stopwatch()..start();
   }
-  Timer.run(() {}); // Enusre there is at least one message.
+  Timer.run(() {}); // Ensure there is at least one message.
   while (!futureCompleted && (error == null)) {
     Duration? remaining;
     if (timeout != null) {

@@ -54,7 +54,7 @@ main(List<String> args) async {
         new IOPipeline([
           SourceToDillStep(),
           ComputeClosedWorldStep(),
-          GlobalAnalysisStep(),
+          LegacyGlobalAnalysisStep(),
           LegacyDart2jsCodegenStep(codeId0),
           LegacyDart2jsCodegenStep(codeId1),
           LegacyDart2jsEmissionStep(),
@@ -219,7 +219,6 @@ class SourceToDillStep implements IOModularStep {
           .expand((m) => ['--input-linked', '${toUri(m, dillId)}'])),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
-      '--enable-experiment=non-nullable',
     ];
 
     var result =
@@ -313,6 +312,8 @@ class GlobalAnalysisStep implements IOModularStep {
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.writeData}=${toUri(module, globalDataId)}',
+      // TODO(joshualitt): delete this flag after google3 roll
+      '${Flags.noClosedWorldInData}',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -423,6 +424,50 @@ class Dart2jsEmissionStep implements IOModularStep {
   @override
   void notifyCached(Module module) {
     if (_options.verbose) print("\ncached step: dart2js backend on $module");
+  }
+}
+
+// TODO(joshualitt): delete after google3 roll.
+class LegacyGlobalAnalysisStep implements IOModularStep {
+  @override
+  List<DataId> get resultData => const [globalDataId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [updatedDillId];
+
+  @override
+  List<DataId> get moduleDataNeeded => const [closedWorldId, updatedDillId];
+
+  @override
+  bool get onlyOnMain => true;
+
+  @override
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("\nstep: dart2js global analysis on $module");
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      _dart2jsScript,
+      // TODO(sigmund): remove this dependency on libraries.json
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      '${toUri(module, updatedDillId)}',
+      for (String flag in flags) '--enable-experiment=$flag',
+      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
+      '${Flags.writeData}=${toUri(module, globalDataId)}',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose)
+      print("\ncached step: dart2js global analysis on $module");
   }
 }
 

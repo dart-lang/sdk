@@ -49,7 +49,7 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
       var response;
       if (type == M.SampleProfileType.cpu) {
         response = cls != null
-            ? await cls!.getAllocationSamples()
+            ? await cls!.getAllocationTraces()
             : await owner.invokeRpc('getCpuSamples', {'_code': true});
       } else if (type == M.SampleProfileType.memory) {
         assert(owner is M.VM);

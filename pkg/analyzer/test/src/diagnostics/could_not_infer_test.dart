@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class CouldNotInferTest extends PubPackageResolutionTest {
+class CouldNotInferTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_constructors_inferenceFBounded() async {
     await assertErrorsInCode('''
 class C<T> {}
@@ -250,9 +251,10 @@ main() { new C().f(<S>(S s) => s); }
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44078): Add tests with
+/// non-function typedefs.
 @reflectiveTest
-class CouldNotInferWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class CouldNotInferWithNullSafetyTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class C<T extends Object> {
@@ -268,5 +270,52 @@ void f(dynamic a) {
   C(a);
 }
 ''');
+  }
+
+  test_functionType() async {
+    await assertNoErrorsInCode('''
+void f<X>() {}
+
+main() {
+  [f];
+}
+''');
+  }
+
+  test_functionType_optOutOfGenericMetadata() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+void f<X>() {}
+''');
+    await assertErrorsInCode('''
+// @dart=2.12
+import 'a.dart';
+main() {
+  [f];
+}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 42, 3),
+    ]);
+  }
+
+  test_instanceCreation_viaTypeAlias_notWellBounded() async {
+    await assertErrorsInCode('''
+class C<X> {
+  C();
+  factory C.foo() => C();
+  factory C.bar() = C;
+}
+typedef G<X> = X Function(X);
+typedef A<X extends G<C<X>>> = C<X>;
+
+void f() {
+  A(); // Error.
+  A.foo(); // Error.
+  A.bar(); // Error.
+}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 152, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 169, 5),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 5),
+    ]);
   }
 }

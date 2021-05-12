@@ -22,10 +22,10 @@ class RequestConverter {
       server.AnalysisSetSubscriptionsParams params) {
     var serverSubscriptions = params.subscriptions;
     var pluginSubscriptions = <plugin.AnalysisService, List<String>>{};
-    for (var service in serverSubscriptions.keys) {
+    for (var entry in serverSubscriptions.entries) {
+      var service = entry.key;
       try {
-        pluginSubscriptions[convertAnalysisService(service)] =
-            serverSubscriptions[service];
+        pluginSubscriptions[convertAnalysisService(service)] = entry.value;
       } catch (exception) {
         // Ignore the exception. It indicates that the service isn't one that
         // should be passed along to plugins.

@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue42181_lib.dart";
+
+static method f1(core::int x) → core::int?
+  ;
+static method test() → void
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+typedef F = (core::int*) →* core::int*;

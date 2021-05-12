@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class PrefixExpressionResolutionTest extends PubPackageResolutionTest {
+class PrefixExpressionResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_bang_bool_context() async {
     await assertNoErrorsInCode(r'''
 T f<T>() {
@@ -674,7 +675,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          51, 6),
+          50, 1),
     ]);
 
     assertPrefixExpression(
@@ -749,7 +750,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          51, 6),
+          50, 1),
     ]);
 
     assertPrefixExpression(

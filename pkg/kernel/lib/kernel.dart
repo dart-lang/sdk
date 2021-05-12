@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Conventions for paths:
 ///
 /// - Use the [Uri] class for paths that may have the `file`, `dart` or
@@ -23,18 +21,19 @@ import 'text/ast_to_text.dart';
 
 export 'ast.dart';
 
-Component loadComponentFromBinary(String path, [Component component]) {
+Component loadComponentFromBinary(String path, [Component? component]) {
   List<int> bytes = new File(path).readAsBytesSync();
   return loadComponentFromBytes(bytes, component);
 }
 
-Component loadComponentFromBytes(List<int> bytes, [Component component]) {
+Component loadComponentFromBytes(List<int> bytes, [Component? component]) {
   component ??= new Component();
   new BinaryBuilder(bytes).readComponent(component);
   return component;
 }
 
-Component loadComponentSourceFromBytes(List<int> bytes, [Component component]) {
+Component loadComponentSourceFromBytes(List<int> bytes,
+    [Component? component]) {
   component ??= new Component();
   new BinaryBuilder(bytes).readComponentSource(component);
   return component;
@@ -68,7 +67,7 @@ List<int> writeComponentToBytes(Component component) {
   return sink.builder.toBytes();
 }
 
-void writeLibraryToText(Library library, {String path}) {
+void writeLibraryToText(Library library, {String? path}) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer).writeLibraryFile(library);
   if (path == null) {
@@ -79,7 +78,7 @@ void writeLibraryToText(Library library, {String path}) {
 }
 
 void writeComponentToText(Component component,
-    {String path, bool showOffsets: false, bool showMetadata: false}) {
+    {String? path, bool showOffsets: false, bool showMetadata: false}) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer, showOffsets: showOffsets, showMetadata: showMetadata)
       .writeComponentFile(component);

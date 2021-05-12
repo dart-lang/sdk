@@ -831,7 +831,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadUint64:
     case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
@@ -843,7 +845,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStoreUint64:
     case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
@@ -1288,10 +1292,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiLoadUint64:
     case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer: {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const AlignmentType alignment =
+          compiler::ffi::RecognizedMethodAlignment(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
@@ -1314,13 +1322,26 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
-                          /*index_unboxed=*/true);
+                          /*index_unboxed=*/true, alignment);
       if (kind == MethodRecognizer::kFfiLoadFloat ||
-          kind == MethodRecognizer::kFfiLoadDouble) {
-        if (kind == MethodRecognizer::kFfiLoadFloat) {
+          kind == MethodRecognizer::kFfiLoadFloatUnaligned ||
+          kind == MethodRecognizer::kFfiLoadDouble ||
+          kind == MethodRecognizer::kFfiLoadDoubleUnaligned) {
+        if (kind == MethodRecognizer::kFfiLoadFloat ||
+            kind == MethodRecognizer::kFfiLoadFloatUnaligned) {
           body += FloatToDouble();
         }
         body += Box(kUnboxedDouble);
+      } else if (kind == MethodRecognizer::kFfiLoadInt8 ||
+                 kind == MethodRecognizer::kFfiLoadInt16 ||
+                 kind == MethodRecognizer::kFfiLoadUint8 ||
+                 kind == MethodRecognizer::kFfiLoadUint16) {
+        // LoadIndexed instruction with 8-bit and 16-bit elements
+        // results in value with kUnboxedIntPtr representation
+        // (see LoadIndexedInstr::representation).
+        // Avoid any unnecessary (and potentially deoptimizing) int
+        // conversions by using the correct representation at the first place.
+        body += Box(kUnboxedIntPtr);
       } else {
         body += Box(native_rep.AsRepresentationOverApprox(zone_));
         if (kind == MethodRecognizer::kFfiLoadPointer) {
@@ -1369,10 +1390,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiStoreUint64:
     case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
     case MethodRecognizer::kFfiStorePointer: {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const AlignmentType alignment =
+          compiler::ffi::RecognizedMethodAlignment(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
@@ -1439,16 +1464,29 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         body += LoadUntagged(compiler::target::Pointer::data_field_offset());
         body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
       } else if (kind == MethodRecognizer::kFfiStoreFloat ||
-                 kind == MethodRecognizer::kFfiStoreDouble) {
+                 kind == MethodRecognizer::kFfiStoreFloatUnaligned ||
+                 kind == MethodRecognizer::kFfiStoreDouble ||
+                 kind == MethodRecognizer::kFfiStoreDoubleUnaligned) {
         body += UnboxTruncate(kUnboxedDouble);
-        if (kind == MethodRecognizer::kFfiStoreFloat) {
+        if (kind == MethodRecognizer::kFfiStoreFloat ||
+            kind == MethodRecognizer::kFfiStoreFloatUnaligned) {
           body += DoubleToFloat();
         }
+      } else if (kind == MethodRecognizer::kFfiStoreInt8 ||
+                 kind == MethodRecognizer::kFfiStoreInt16 ||
+                 kind == MethodRecognizer::kFfiStoreUint8 ||
+                 kind == MethodRecognizer::kFfiStoreUint16) {
+        // StoreIndexed instruction with 8-bit and 16-bit elements
+        // takes value with kUnboxedIntPtr representation
+        // (see StoreIndexedInstr::RequiredInputRepresentation).
+        // Avoid any unnecessary (and potentially deoptimizing) int
+        // conversions by using the correct representation at the first place.
+        body += UnboxTruncate(kUnboxedIntPtr);
       } else {
         body += UnboxTruncate(native_rep.AsRepresentationOverApprox(zone_));
       }
       body += StoreIndexedTypedData(typed_data_cid, /*index_scale=*/1,
-                                    /*index_unboxed=*/true);
+                                    /*index_unboxed=*/true, alignment);
       body += Drop();  // Drop [arg_value].
       body += Drop();  // Drop [arg_offset].
       body += NullConstant();
@@ -1598,9 +1636,8 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
         StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
-  // The function signature cannot have uninstantiated function type parameters,
-  // because the function cannot be local and have parent generic functions.
-  ASSERT(target.HasInstantiatedSignature(kFunctions));
+  // The function cannot be local and have parent generic functions.
+  ASSERT(!target.HasGenericParent());
 
   // Allocate a context that closes over `this`.
   // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
@@ -2087,7 +2124,7 @@ struct FlowGraphBuilder::ClosureCallInfo {
   // Set up by BuildDynamicCallChecks() when needed. These values are
   // read-only, so they don't need real local variables and are created
   // using MakeTemporary().
-  LocalVariable* function = nullptr;
+  LocalVariable* signature = nullptr;
   LocalVariable* num_fixed_params = nullptr;
   LocalVariable* num_opt_params = nullptr;
   LocalVariable* num_max_params = nullptr;
@@ -2095,8 +2132,6 @@ struct FlowGraphBuilder::ClosureCallInfo {
   LocalVariable* parameter_names = nullptr;
   LocalVariable* parameter_types = nullptr;
   LocalVariable* type_parameters = nullptr;
-  LocalVariable* closure_data = nullptr;
-  LocalVariable* default_tav_info = nullptr;
   LocalVariable* instantiator_type_args = nullptr;
   LocalVariable* parent_function_type_args = nullptr;
 };
@@ -2216,38 +2251,40 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   // Load the defaults, instantiating or replacing them with the other type
   // arguments as appropriate.
   Fragment store_default;
-  store_default += LoadLocal(info.default_tav_info);
-  static_assert(
-      Function::DefaultTypeArgumentsKindField::shift() == 0,
-      "Need to generate shift for DefaultTypeArgumentsKindField bit field");
-  store_default += IntConstant(Function::DefaultTypeArgumentsKindField::mask());
-  store_default += SmiBinaryOp(Token::kBIT_AND);
+  store_default += LoadLocal(info.closure);
+  store_default += LoadNativeField(Slot::Closure_function());
+  store_default += LoadNativeField(Slot::Function_data());
+  LocalVariable* closure_data = MakeTemporary("closure_data");
+
+  store_default += LoadLocal(closure_data);
+  const auto& slot = Slot::ClosureData_default_type_arguments_kind();
+  store_default += LoadNativeField(slot);
+  store_default += Box(slot.representation());
   LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
 
-  // One read-only stack values (default_tav_kind) that must be dropped after
-  // rejoining at done.
+  // Two locals to drop after join, closure_data and default_tav_kind.
   JoinEntryInstr* done = BuildJoinEntry();
 
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr *is_instantiated, *is_not_instantiated;
   store_default += IntConstant(static_cast<intptr_t>(
-      Function::DefaultTypeArgumentsKind::kIsInstantiated));
+      ClosureData::DefaultTypeArgumentsKind::kIsInstantiated));
   store_default += BranchIfEqual(&is_instantiated, &is_not_instantiated);
   store_default.current = is_not_instantiated;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr *needs_instantiation, *can_share;
   store_default += IntConstant(static_cast<intptr_t>(
-      Function::DefaultTypeArgumentsKind::kNeedsInstantiation));
+      ClosureData::DefaultTypeArgumentsKind::kNeedsInstantiation));
   store_default += BranchIfEqual(&needs_instantiation, &can_share);
   store_default.current = can_share;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr *can_share_instantiator, *can_share_function;
   store_default += IntConstant(static_cast<intptr_t>(
-      Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
+      ClosureData::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
   store_default += BranchIfEqual(&can_share_instantiator, &can_share_function);
 
   Fragment instantiated(is_instantiated);
-  instantiated += LoadLocal(info.closure_data);
+  instantiated += LoadLocal(closure_data);
   instantiated += LoadNativeField(Slot::ClosureData_default_type_arguments());
   instantiated += StoreLocal(info.vars->function_type_args);
   instantiated += Drop();
@@ -2260,7 +2297,7 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   // can be used within the defaults).
   do_instantiation += LoadLocal(info.parent_function_type_args);
   // Load the default type arguments to instantiate.
-  do_instantiation += LoadLocal(info.closure_data);
+  do_instantiation += LoadLocal(closure_data);
   do_instantiation +=
       LoadNativeField(Slot::ClosureData_default_type_arguments());
   do_instantiation += InstantiateDynamicTypeArguments();
@@ -2284,6 +2321,7 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
 
   store_default.current = done;  // Return here after branching.
   store_default += DropTemporary(&default_tav_kind);
+  store_default += DropTemporary(&closure_data);
 
   Fragment store_delayed;
   store_delayed += LoadLocal(info.closure);
@@ -2657,16 +2695,19 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   Fragment body;
   body += LoadLocal(info.closure);
   body += LoadNativeField(Slot::Closure_function());
-  info.function = MakeTemporary("function");
+  body += LoadNativeField(Slot::Function_signature());
+  info.signature = MakeTemporary("signature");
 
-  body += LoadLocal(info.function);
+  body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      Function::PackedNumFixedParameters>(Slot::Function_packed_fields());
+      FunctionType::PackedNumFixedParameters>(
+      Slot::FunctionType_packed_fields());
   info.num_fixed_params = MakeTemporary("num_fixed_params");
 
-  body += LoadLocal(info.function);
+  body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      Function::PackedNumOptionalParameters>(Slot::Function_packed_fields());
+      FunctionType::PackedNumOptionalParameters>(
+      Slot::FunctionType_packed_fields());
   info.num_opt_params = MakeTemporary("num_opt_params");
 
   body += LoadLocal(info.num_fixed_params);
@@ -2674,26 +2715,24 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += SmiBinaryOp(Token::kADD);
   info.num_max_params = MakeTemporary("num_max_params");
 
-  body += LoadLocal(info.function);
+  body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      Function::PackedHasNamedOptionalParameters>(
-      Slot::Function_packed_fields());
+      FunctionType::PackedHasNamedOptionalParameters>(
+      Slot::FunctionType_packed_fields());
 
   body += IntConstant(0);
   body += StrictCompare(Token::kNE_STRICT);
   info.has_named_params = MakeTemporary("has_named_params");
 
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_parameter_names());
+  body += LoadLocal(info.signature);
+  body += LoadNativeField(Slot::FunctionType_parameter_names());
   info.parameter_names = MakeTemporary("parameter_names");
 
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_signature());
+  body += LoadLocal(info.signature);
   body += LoadNativeField(Slot::FunctionType_parameter_types());
   info.parameter_types = MakeTemporary("parameter_types");
 
-  body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_signature());
+  body += LoadLocal(info.signature);
   body += LoadNativeField(Slot::FunctionType_type_parameters());
   info.type_parameters = MakeTemporary("type_parameters");
 
@@ -2722,12 +2761,6 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // full set of function type arguments, then check the local function type
   // arguments against the closure function's type parameter bounds.
   Fragment generic;
-  generic += LoadLocal(info.function);
-  generic += LoadNativeField(Slot::Function_data());
-  info.closure_data = MakeTemporary("closure_data");
-  generic += LoadLocal(info.closure_data);
-  generic += LoadNativeField(Slot::ClosureData_default_type_arguments_info());
-  info.default_tav_info = MakeTemporary("default_tav_info");
   // Calculate the local function type arguments and store them in
   // info.vars->function_type_args.
   generic += BuildClosureCallDefaultTypeHandling(info);
@@ -2736,13 +2769,10 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // Load the parent function type args.
   generic += LoadLocal(info.parent_function_type_args);
   // Load the number of parent type parameters.
-  generic += LoadLocal(info.default_tav_info);
-  static_assert(Function::NumParentTypeParametersField::shift() > 0,
-                "No need to shift for NumParentTypeParametersField bit field");
-  generic += IntConstant(Function::NumParentTypeParametersField::shift());
-  generic += SmiBinaryOp(Token::kSHR);
-  generic += IntConstant(Function::NumParentTypeParametersField::mask());
-  generic += SmiBinaryOp(Token::kBIT_AND);
+  generic += LoadLocal(info.signature);
+  generic += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      UntaggedFunctionType::PackedNumParentTypeArguments>(
+      Slot::FunctionType_packed_fields());
   // Load the number of total type parameters.
   LocalVariable* num_parents = MakeTemporary();
   generic += LoadLocal(info.type_parameters);
@@ -2755,8 +2785,6 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
                         PrependTypeArgumentsFunction(), 4, ICData::kStatic);
   generic += StoreLocal(info.vars->function_type_args);
   generic += Drop();
-  generic += DropTemporary(&info.default_tav_info);
-  generic += DropTemporary(&info.closure_data);
 
   // Now that we have the full set of function type arguments, check them
   // against the type parameter bounds. However, if the local function type
@@ -2788,7 +2816,7 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += DropTemporary(&info.num_max_params);
   body += DropTemporary(&info.num_opt_params);
   body += DropTemporary(&info.num_fixed_params);
-  body += DropTemporary(&info.function);
+  body += DropTemporary(&info.signature);
 
   return body;
 }
@@ -3422,7 +3450,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     body += NullConstant();
   } else if (is_getter && is_method) {
     ASSERT(!field.needs_load_guard()
-                NOT_IN_PRODUCT(|| I->HasAttemptedReload()));
+                NOT_IN_PRODUCT(|| IG->HasAttemptedReload()));
     body += LoadLocal(parsed_function_->ParameterVariable(0));
     body += LoadField(
         field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
@@ -3455,7 +3483,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 #if defined(PRODUCT)
       UNREACHABLE();
 #else
-      ASSERT(Isolate::Current()->HasAttemptedReload());
+      ASSERT(IsolateGroup::Current()->HasAttemptedReload());
       body += CheckAssignable(AbstractType::Handle(Z, field.type()),
                               Symbols::FunctionResult());
 #endif

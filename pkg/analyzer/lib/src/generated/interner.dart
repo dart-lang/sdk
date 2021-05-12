@@ -17,7 +17,7 @@ class MappedInterner implements Interner {
 
   @override
   String intern(String string) {
-    String original = _table[string];
+    var original = _table[string];
     if (original == null) {
       _table[string] = string;
       return string;

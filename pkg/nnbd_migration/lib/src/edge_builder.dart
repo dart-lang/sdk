@@ -407,7 +407,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     var expressionType = _handleAssignment(node.rightHandSide,
-        destinationExpression: node.leftHandSide,
+        assignmentExpression: node,
         compoundOperatorInfo: isCompound ? node : null,
         questionAssignNode: isQuestionAssign ? node : null,
         sourceIsSetupCall: sourceIsSetupCall);
@@ -1387,7 +1387,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (operand is SimpleIdentifier) {
         var element = getWriteOrReadElement(operand);
         if (element is PromotableElement) {
-          _flowAnalysis.write(element, writeType, null);
+          _flowAnalysis.write(node, element, writeType, null);
         }
       }
       return targetType;
@@ -1438,7 +1438,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (operand is SimpleIdentifier) {
           var element = getWriteOrReadElement(operand);
           if (element is PromotableElement) {
-            _flowAnalysis.write(element, staticType, null);
+            _flowAnalysis.write(node, element, staticType, null);
           }
         }
       }
@@ -1639,7 +1639,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         NullabilityNodeTarget.text('spread element type').withCodeRef(node);
     if (_typeSystem.isSubtypeOf(spreadType, typeProvider.mapObjectObjectType)) {
       assert(_currentMapKeyType != null && _currentMapValueType != null);
-      final expectedType = typeProvider.mapType2(
+      final expectedType = typeProvider.mapType(
           _currentMapKeyType.type, _currentMapValueType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
           typeProvider, expectedType, _graph, target,
@@ -1651,7 +1651,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         spreadType, typeProvider.iterableDynamicType)) {
       assert(_currentLiteralElementType != null);
       final expectedType =
-          typeProvider.iterableType2(_currentLiteralElementType.type);
+          typeProvider.iterableType(_currentLiteralElementType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
           typeProvider, expectedType, _graph, target,
           typeArguments: [_currentLiteralElementType]);
@@ -1776,7 +1776,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.tryFinallyStatement_finallyBegin(
           catchClauses.isNotEmpty ? node : body);
       _dispatch(finallyBlock);
-      _flowAnalysis.tryFinallyStatement_end(finallyBlock);
+      _flowAnalysis.tryFinallyStatement_end();
     }
     return null;
   }
@@ -2245,7 +2245,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _futureOf(DecoratedType type, AstNode node) =>
       DecoratedType.forImplicitType(
           typeProvider,
-          typeProvider.futureType2(type.type),
+          typeProvider.futureType(type.type),
           _graph,
           NullabilityNodeTarget.text('implicit future').withCodeRef(node),
           typeArguments: [type]);
@@ -2285,26 +2285,28 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// Creates the necessary constraint(s) for an assignment of the given
   /// [expression] to a destination whose type is [destinationType].
   ///
-  /// Optionally, the caller may supply a [destinationExpression] instead of
+  /// Optionally, the caller may supply an [assignmentExpression] instead of
   /// [destinationType].  In this case, then the type comes from visiting the
-  /// destination expression.  If the destination expression refers to a local
-  /// variable, we mark it as assigned in flow analysis at the proper time.
+  /// LHS of the assignment expression.  If the LHS of the assignment expression
+  /// refers to a local variable, we mark it as assigned in flow analysis at the
+  /// proper time.
   ///
   /// Set [wrapFuture] to true to handle assigning Future<flatten(T)> to R.
   DecoratedType _handleAssignment(Expression expression,
       {DecoratedType destinationType,
-      Expression destinationExpression,
+      AssignmentExpression assignmentExpression,
       AssignmentExpression compoundOperatorInfo,
       AssignmentExpression questionAssignNode,
       bool fromDefaultValue = false,
       bool wrapFuture = false,
       bool sourceIsSetupCall = false}) {
     assert(
-        (destinationExpression == null) != (destinationType == null),
-        'Either destinationExpression or destinationType should be supplied, '
+        (assignmentExpression == null) != (destinationType == null),
+        'Either assignmentExpression or destinationType should be supplied, '
         'but not both');
     PromotableElement destinationLocalVariable;
     if (destinationType == null) {
+      var destinationExpression = assignmentExpression.leftHandSide;
       if (destinationExpression is SimpleIdentifier) {
         var element = getWriteOrReadElement(destinationExpression);
         if (element is PromotableElement) {
@@ -2345,7 +2347,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               source: destinationType,
               destination: _createNonNullableType(compoundOperatorInfo),
               hard: _postDominatedLocals
-                  .isReferenceInScope(destinationExpression));
+                  .isReferenceInScope(assignmentExpression.leftHandSide));
           DecoratedType compoundOperatorType = getOrComputeElementType(
               compoundOperatorMethod,
               targetType: destinationType);
@@ -2403,8 +2405,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       if (destinationLocalVariable != null) {
-        _flowAnalysis.write(destinationLocalVariable, sourceType,
-            compoundOperatorInfo == null ? expression : null);
+        _flowAnalysis.write(assignmentExpression, destinationLocalVariable,
+            sourceType, compoundOperatorInfo == null ? expression : null);
       }
       if (questionAssignNode != null) {
         _flowAnalysis.ifNullExpression_end();
@@ -2419,9 +2421,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _guards.removeLast();
       }
     }
-    if (destinationExpression != null) {
-      var element =
-          _postDominatedLocals.referencedElement(destinationExpression);
+    if (assignmentExpression != null) {
+      var element = _postDominatedLocals
+          .referencedElement(assignmentExpression.leftHandSide);
       if (element != null) {
         _postDominatedLocals.removeFromAllScopes(element);
         _elementsWrittenToInLocalFunction?.add(element);
@@ -2760,10 +2762,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               source: elementType, destination: lhsType, hard: false);
         }
       }
-      _flowAnalysis.forEach_bodyBegin(
-          node,
-          lhsElement is PromotableElement ? lhsElement : null,
-          elementType ?? _makeNullableDynamicType(node));
+      _flowAnalysis.forEach_bodyBegin(node);
+      if (lhsElement is PromotableElement) {
+        _flowAnalysis.write(node, lhsElement,
+            elementType ?? _makeNullableDynamicType(node), null);
+      }
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new
@@ -3432,7 +3435,7 @@ mixin _AssignmentChecker {
       // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
       // - either T0 <: Future<S1>
       if (_typeSystem.isSubtypeOf(
-          sourceType, typeProvider.futureType2(s1.type))) {
+          sourceType, typeProvider.futureType(s1.type))) {
         // E.g. FutureOr<int> = (... as Future<int>)
         // This is handled by the InterfaceType logic below, since we treat
         // FutureOr as a supertype of Future.

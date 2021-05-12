@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core';
 import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
@@ -15,6 +18,8 @@ import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -39,10 +44,11 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
-import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -94,6 +100,12 @@ abstract class AbstractAnalysisServer {
   /// or `null` if the initial analysis is not yet complete
   ServerPerformance performanceAfterStartup;
 
+  /// A client for making requests to the pub.dev API.
+  final PubApi pubApi;
+
+  /// A service for fetching pub.dev package details.
+  PubPackageService pubPackageService;
+
   /// The class into which performance information is currently being recorded.
   /// During startup, this will be the same as [performanceDuringStartup]
   /// and after startup is complete, this switches to [performanceAfterStartup].
@@ -109,24 +121,16 @@ abstract class AbstractAnalysisServer {
   /// The set of the files that are currently priority.
   final Set<String> priorityFiles = <String>{};
 
-  final List<String> analyzableFilePatterns = <String>[
-    '**/*.${AnalysisEngine.SUFFIX_DART}',
-    '**/*.${AnalysisEngine.SUFFIX_HTML}',
-    '**/*.${AnalysisEngine.SUFFIX_HTM}',
-    '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-    '**/${AnalysisEngine.PUBSPEC_YAML_FILE}',
-    '**/${AnalysisEngine.ANDROID_MANIFEST_FILE}'
-  ];
-
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final OverlayResourceProvider resourceProvider;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
-  int overlayModificationStamp = 0;
-
-  /// A list of the globs used to determine which files should be analyzed. The
-  /// list is lazily created and should be accessed using [analyzedFilesGlobs].
-  List<Glob> _analyzedFilesGlobs;
+  ///
+  /// This value is increased each time it is used and used instead of real
+  /// modification stamps. It's seeded with `millisecondsSinceEpoch` to reduce
+  /// the chance of colliding with values used in previous analysis sessions if
+  /// used as a cache key.
+  int overlayModificationStamp = DateTime.now().millisecondsSinceEpoch;
 
   AbstractAnalysisServer(
     this.options,
@@ -135,9 +139,15 @@ abstract class AbstractAnalysisServer {
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
+    http.Client httpClient,
     this.notificationManager, {
     this.requestStatistics,
-  }) : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
+    bool enableBazelWatcher,
+  })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+        pubApi = PubApi(instrumentationService, httpClient,
+            Platform.environment['PUB_HOSTED_URL']) {
+    pubPackageService =
+        PubPackageService(instrumentationService, baseResourceProvider, pubApi);
     performance = performanceDuringStartup;
 
     pluginManager = PluginManager(
@@ -178,28 +188,16 @@ abstract class AbstractAnalysisServer {
           CompletionLibrariesWorker(declarationsTracker);
     }
 
-    contextManager = ContextManagerImpl(resourceProvider, sdkManager,
-        analyzedFilesGlobs, instrumentationService);
+    contextManager = ContextManagerImpl(
+      resourceProvider,
+      sdkManager,
+      byteStore,
+      analysisPerformanceLogger,
+      analysisDriverScheduler,
+      instrumentationService,
+      enableBazelWatcher: enableBazelWatcher,
+    );
     searchEngine = SearchEngineImpl(driverMap.values);
-  }
-
-  /// Return a list of the globs used to determine which files should be
-  /// analyzed.
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      for (var pattern in analyzableFilePatterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(Glob(resourceProvider.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.instrumentationService.logException(
-              CaughtException.withMessage(
-                  'Invalid glob pattern: "$pattern"', exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
   }
 
   /// The list of current analysis sessions in all contexts.
@@ -218,6 +216,7 @@ abstract class AbstractAnalysisServer {
   }
 
   void addContextsToDeclarationsTracker() {
+    declarationsTracker?.discardContexts();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext);
       driver.resetUriResolution();
@@ -255,10 +254,13 @@ abstract class AbstractAnalysisServer {
     if (drivers.isNotEmpty) {
       // Sort the drivers so that more deeply nested contexts will be checked
       // before enclosing contexts.
-      drivers.sort((first, second) =>
-          second.contextRoot.root.length - first.contextRoot.root.length);
+      drivers.sort((first, second) {
+        var firstRoot = first.analysisContext.contextRoot.root.path;
+        var secondRoot = second.analysisContext.contextRoot.root.path;
+        return secondRoot.length - firstRoot.length;
+      });
       var driver = drivers.firstWhere(
-          (driver) => driver.contextRoot.containsFile(path),
+          (driver) => driver.analysisContext.contextRoot.isAnalyzed(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
           (driver) => driver.knownFiles.contains(path),
@@ -268,11 +270,6 @@ abstract class AbstractAnalysisServer {
     }
     return null;
   }
-
-  /// Return the appropriate analysis session for the file with the given
-  /// [path].
-  AnalysisSession getAnalysisSession(String path) =>
-      getAnalysisDriver(path).currentSession;
 
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
     return declarationsTracker
@@ -342,7 +339,7 @@ abstract class AbstractAnalysisServer {
 
   /// Return the unresolved unit for the file with the given [path].
   ParsedUnitResult getParsedUnit(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 
@@ -354,7 +351,7 @@ abstract class AbstractAnalysisServer {
   /// otherwise in the first driver, otherwise `null` is returned.
   Future<ResolvedUnitResult> getResolvedUnit(String path,
       {bool sendCachedToStream = false}) {
-    if (!AnalysisEngine.isDartFileName(path)) {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 
@@ -366,9 +363,15 @@ abstract class AbstractAnalysisServer {
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .catchError((e, st) {
-      AnalysisEngine.instance.instrumentationService.logException(e, st);
+      instrumentationService.logException(e, st);
       return null;
     });
+  }
+
+  /// Return `true` if the file or directory with the given [path] will be
+  /// analyzed in one of the analysis contexts.
+  bool isAnalyzed(String path) {
+    return contextManager.isAnalyzed(path);
   }
 
   void logExceptionResult(nd.ExceptionResult result) {
@@ -381,7 +384,7 @@ abstract class AbstractAnalysisServer {
         crashReportingAttachmentsBuilder.forExceptionResult(result);
 
     // TODO(39284): should this exception be silent?
-    AnalysisEngine.instance.instrumentationService.logException(
+    instrumentationService.logException(
       SilentException.wrapInMessage(message, result.exception),
       null,
       attachments,
@@ -415,9 +418,9 @@ abstract class AbstractAnalysisServer {
     bool fatal = false,
   });
 
-  void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
-    declarationsTracker?.discardContext(driver.analysisContext);
-    declarationsTracker?.addContext(driver.analysisContext);
+  @mustCallSuper
+  void shutdown() {
+    pubPackageService.shutdown();
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if

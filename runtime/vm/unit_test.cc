@@ -528,19 +528,15 @@ Dart_Handle TestCase::SetReloadTestScript(const char* script) {
   return Api::Success();
 }
 
-Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
-                                    intptr_t kernel_buffer_size) {
+Dart_Handle TestCase::TriggerReload(
+    std::function<bool(IsolateGroup*, JSONStream*)> do_reload) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  IsolateGroup* isolate_group = thread->isolate_group();
   JSONStream js;
   bool success = false;
   {
     TransitionNativeToVM transition(thread);
-    success =
-        isolate->group()->ReloadKernel(&js,
-                                       false,  // force_reload
-                                       kernel_buffer, kernel_buffer_size,
-                                       true);  // dont_delete_reload_context
+    success = do_reload(isolate_group, &js);
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
@@ -551,22 +547,40 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
 
   if (Dart_IsError(result)) {
     // Keep load error.
-  } else if (isolate->group()->reload_context()->reload_aborted()) {
+  } else if (isolate_group->reload_context()->reload_aborted()) {
     TransitionNativeToVM transition(thread);
-    result = Api::NewHandle(
-        thread,
-        isolate->program_reload_context()->group_reload_context()->error());
+    result = Api::NewHandle(thread, isolate_group->program_reload_context()
+                                        ->group_reload_context()
+                                        ->error());
   } else {
     result = Dart_RootLibrary();
   }
 
   TransitionNativeToVM transition(thread);
-  if (isolate->program_reload_context() != NULL) {
-    isolate->DeleteReloadContext();
-    isolate->group()->DeleteReloadContext();
+  if (isolate_group->program_reload_context() != NULL) {
+    isolate_group->DeleteReloadContext();
   }
 
   return result;
+}
+
+Dart_Handle TestCase::TriggerReload(const char* root_script_url) {
+  return TriggerReload([&](IsolateGroup* isolate_group, JSONStream* js) {
+    return isolate_group->ReloadSources(js,
+                                        /*force_reload=*/false, root_script_url,
+                                        /*packages_url=*/nullptr,
+                                        /*dont_delete_reload_context=*/true);
+  });
+}
+
+Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
+  return TriggerReload([&](IsolateGroup* isolate_group, JSONStream* js) {
+    return isolate_group->ReloadKernel(js,
+                                       /*force_reload=*/false, kernel_buffer,
+                                       kernel_buffer_size,
+                                       /*dont_delete_reload_context=*/true);
+  });
 }
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {

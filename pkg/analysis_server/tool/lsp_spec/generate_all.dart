@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:analysis_server/src/utilities/strings.dart';
@@ -155,16 +157,14 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
-// ignore_for_file: unnecessary_brace_in_string_interps
-// ignore_for_file: unused_import
-// ignore_for_file: unused_shown_name
+// ignore_for_file: unnecessary_parenthesis
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
@@ -172,8 +172,7 @@ import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart'
-    show listEqual, mapEqual;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
@@ -261,13 +260,36 @@ List<AstNode> getCustomClasses() {
     interface(
       'DartCompletionItemResolutionInfo',
       [
+        // These fields have short-ish names because they're on the payload
+        // for all suggestion-set backed completions.
         field('libId', type: 'number'),
         field('displayUri', type: 'string'),
-        field('rOffset', type: 'number'),
-        field('rLength', type: 'number'),
+        field('rOffset', type: 'number'), // replacementOffset
+        field('iLength', type: 'number'), // insertLength
+        field('rLength', type: 'number'), // replacementLength
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),
+    // Custom types for experimental SnippetTextEdits
+    // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
+    interface(
+      'SnippetTextEdit',
+      [
+        field('insertTextFormat', type: 'InsertTextFormat'),
+      ],
+      baseType: 'TextEdit',
+    ),
+    TypeAlias(
+      null,
+      Token.identifier('TextDocumentEditEdits'),
+      ArrayType(
+        UnionType([
+          Type.identifier('SnippetTextEdit'),
+          Type.identifier('AnnotatedTextEdit'),
+          Type.identifier('TextEdit'),
+        ]),
+      ),
+    )
   ];
   return customTypes;
 }

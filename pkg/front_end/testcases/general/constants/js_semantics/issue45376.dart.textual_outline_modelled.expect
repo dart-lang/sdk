@@ -1,0 +1,10 @@
+class MyClass {
+  const MyClass(i1, i2)
+      : a = (i1 >>> i2),
+        b = (i1 >>> i2);
+  final int a;
+  final int b;
+}
+
+main() {}
+test() {}

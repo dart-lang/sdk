@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -57,7 +59,6 @@ class C {
 ''', target: '/home/test/lib/a.dart');
   }
 
-  @FailingTest(reason: 'The lint does not fire for parts.')
   Future<void> test_changeInPart() async {
     addSource('/home/test/lib/a.dart', '''
 part 'test.dart';

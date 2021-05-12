@@ -177,7 +177,7 @@ class InstrumentationServiceTest {
 class MulticastInstrumentationServerTest {
   TestInstrumentationLogger loggerA = TestInstrumentationLogger();
   TestInstrumentationLogger loggerB = TestInstrumentationLogger();
-  MulticastInstrumentationService logger;
+  late final MulticastInstrumentationService logger;
 
   void setUp() {
     logger = MulticastInstrumentationService([

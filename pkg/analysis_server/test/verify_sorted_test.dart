@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -31,8 +30,8 @@ void main() {
 }
 
 void buildTests({
-  @required String packagePath,
-  @required List<String> excludedPaths,
+  required String packagePath,
+  required List<String> excludedPaths,
 }) {
   var provider = PhysicalResourceProvider.INSTANCE;
   var pkgRootPath = provider.pathContext.normalize(packageRoot);

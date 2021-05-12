@@ -75,5 +75,9 @@ expectError(func) async {
   expect(result.type == 'Error' || result.type == '@Error', isTrue);
 }
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'invoke_test.dart',
+      testeeConcurrent: testFunction,
+    );

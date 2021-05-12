@@ -420,7 +420,7 @@ class ClassTable {
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                                    const char* name,
                                                    char** error);
-  friend class Isolate;  // for table()
+  friend class IsolateGroup;  // for table()
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 

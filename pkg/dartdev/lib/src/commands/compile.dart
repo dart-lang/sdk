@@ -88,7 +88,11 @@ class CompileJSCommand extends CompileSubcommandCommand {
         help: 'Generate minified output.',
         abbr: 'm',
         negatable: false,
-      );
+      )
+      ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
+Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
+For example: dart compile $cmdName -Da=1,b=2 main.dart''');
+
     addExperimentalFlags(argParser, verbose);
   }
 
@@ -120,6 +124,24 @@ class CompileJSCommand extends CompileSubcommandCommand {
     if (!checkFile(sourcePath)) {
       return 1;
     }
+    final args = <String>[
+      '--libraries-spec=$librariesPath',
+      if (argResults.enabledExperiments.isNotEmpty)
+        "--enable-experiment=${argResults.enabledExperiments.join(',')}",
+      if (argResults.wasParsed(commonOptions['outputFile'].flag))
+        "-o${argResults[commonOptions['outputFile'].flag]}",
+      if (argResults.wasParsed('minified')) '-m',
+    ];
+
+    if (argResults.wasParsed('define')) {
+      for (final define in argResults['define']) {
+        args.add('-D$define');
+      }
+    }
+
+    // Add any args that weren't parsed to the end. This will likely only ever
+    // be the script name.
+    args.addAll(argResults.rest);
 
     VmInteropHandler.run(
         sdk.dart2jsSnapshot,
@@ -171,14 +193,23 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
   }
 
   @override
-  String get invocation => '${super.invocation} <dart entry point>';
+  String get invocation {
+    String msg = '${super.invocation} <dart entry point>';
+    if (isJitSnapshot) {
+      msg += ' [<training arguments>]';
+    }
+    return msg;
+  }
+
+  bool get isJitSnapshot => commandName == jitSnapshotCmdName;
 
   @override
   FutureOr<int> run() async {
-    // We expect a single rest argument; the dart entry point.
-    if (argResults.rest.length != 1) {
+    if (argResults.rest.isEmpty) {
       // This throws.
       usageException('Missing Dart entry point.');
+    } else if (!isJitSnapshot && argResults.rest.length > 1) {
+      usageException('Unexpected arguments after Dart entry point.');
     }
 
     final String sourcePath = argResults.rest[0];
@@ -209,6 +240,11 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       args.add('-v');
     }
     args.add(path.canonicalize(sourcePath));
+
+    // Add the training arguments.
+    if (argResults.rest.length > 1) {
+      args.addAll(argResults.rest.sublist(1));
+    }
 
     log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
@@ -258,6 +294,9 @@ For example: dart compile $commandName -Da=1,b=2 main.dart''')
               '''Get package locations from the specified file instead of .packages.
 <path> can be relative or absolute.
 For example: dart compile $commandName --packages=/tmp/pkgs main.dart''')
+      ..addFlag('sound-null-safety',
+          help: 'Respect the nullability of types at runtime.',
+          defaultsTo: null)
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
 <path> can be relative or absolute.''');
@@ -294,6 +333,7 @@ Remove debugging information from the output and save it separately to the speci
         packages: argResults['packages'],
         enableAsserts: argResults['enable-asserts'],
         enableExperiment: argResults.enabledExperiments.join(','),
+        soundNullSafety: argResults['sound-null-safety'],
         debugFile: argResults['save-debugging-info'],
         verbose: verbose,
         verbosity: argResults['verbosity'],

@@ -16,8 +16,6 @@ void main() {
 
 @reflectiveTest
 class FindMemberReferencesTest extends AbstractAnalysisServerIntegrationTest {
-  String pathname;
-
   Future<void> test_findMemberReferences() async {
     var text = r'''
 String qux() => 'qux';
@@ -28,7 +26,7 @@ class Foo {
 }
 ''';
 
-    pathname = sourcePath('foo.dart');
+    var pathname = sourcePath('foo.dart');
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;

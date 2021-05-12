@@ -225,13 +225,13 @@ DEFINE_NATIVE_ENTRY(FunctionType_equality, 0, 2) {
 DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(prefix.is_loaded()).ptr();
+  return Bool::Get(isolate->IsPrefixLoaded(prefix)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_setLoaded, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  prefix.set_is_loaded(true);
+  isolate->SetPrefixIsLoaded(prefix);
   return Instance::null();
 }
 
@@ -266,8 +266,8 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_issueLoad, 0, 1) {
   return unit.IssueLoad();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
-#if defined(ARCH_IS_64_BIT)
+DEFINE_NATIVE_ENTRY(Internal_has63BitSmis, 0, 0) {
+#if defined(ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
   return Bool::True().ptr();
 #else
   return Bool::False().ptr();

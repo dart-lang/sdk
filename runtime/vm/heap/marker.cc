@@ -121,10 +121,24 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   // is safe.
   NO_SANITIZE_THREAD
   ObjectPtr LoadPointerIgnoreRace(ObjectPtr* ptr) { return *ptr; }
+  NO_SANITIZE_THREAD
+  CompressedObjectPtr LoadCompressedPointerIgnoreRace(
+      CompressedObjectPtr* ptr) {
+    return *ptr;
+  }
 
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current = first; current <= last; current++) {
       MarkObject(LoadPointerIgnoreRace(current));
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    for (CompressedObjectPtr* current = first; current <= last; current++) {
+      MarkObject(
+          LoadCompressedPointerIgnoreRace(current).Decompress(heap_base));
     }
   }
 
@@ -478,6 +492,12 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
         *current = Object::null();
       }
     }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    UNREACHABLE();  // ObjectIdRing is not compressed.
   }
 };
 

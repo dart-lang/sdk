@@ -49,6 +49,11 @@ class ImplicitTypeArgument extends DartType {
   }
 
   @override
+  ImplicitTypeArgument toNonNull() {
+    return unsupported("toNonNullable", -1, null);
+  }
+
+  @override
   bool equals(Object other, Assumptions assumptions) => this == other;
 
   @override

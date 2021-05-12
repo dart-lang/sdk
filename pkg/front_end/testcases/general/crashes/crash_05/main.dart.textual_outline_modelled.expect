@@ -1,0 +1,12 @@
+import 'main_lib.dart';
+
+abstract class RenderSliver {
+  void handleEvent(PointerEvent event, SliverHitTestEntry entry) {}
+}
+
+abstract class RenderSliverSingleBoxAdapter extends RenderSliver
+    with RenderObjectWithChildMixin<RenderBox>, RenderSliverHelpers {}
+
+class SliverHitTestEntry {}
+
+main() {}

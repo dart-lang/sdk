@@ -20,7 +20,11 @@
 namespace dart {
 // Smi value range is from -(2^N) to (2^N)-1.
 // N=30 (32-bit build) or N=62 (64-bit build).
+#if !defined(DART_COMPRESSED_POINTERS)
 const intptr_t kSmiBits = kBitsPerWord - 2;
+#else
+const intptr_t kSmiBits = 30;
+#endif
 const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
 const intptr_t kSmiMin = -(static_cast<intptr_t>(1) << kSmiBits);
 

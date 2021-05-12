@@ -23,7 +23,7 @@ class LogFileInputConverter extends CommonInputConverter {
       : super(tmpSrcDirPath, srcPathMap);
 
   @override
-  Operation convert(String line) {
+  Operation? convert(String line) {
     try {
       var timeStampString = _parseTimeStamp(line);
       var data = line.substring(timeStampString.length);

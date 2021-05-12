@@ -50,7 +50,7 @@ void main() {
             ..remove('proposed')
             ..add('applied');
         }).catchError((e, st) {
-          handleError('Could not apply migration', e, st);
+          handleError("Couldn't apply migration", e, st);
         });
       }
     });
@@ -83,7 +83,7 @@ void main() {
     migrateUnitStatusIcon.onClick.listen((MouseEvent event) {
       var unitPath = unitName.innerText;
       var unitNavItem = document
-          .querySelector('.nav-panel [data-name*="$unitPath"]')
+          .querySelector('.nav-panel [data-name*="${Css.escape(unitPath)}"]')
           .parentNode as Element;
       var statusIcon = unitNavItem.querySelector('.status-icon');
       var entity = navigationTree.find(unitPath);
@@ -129,19 +129,19 @@ final Element footerPanel = document.querySelector('footer');
 
 final Element headerPanel = document.querySelector('header');
 
-final Element unitName = document.querySelector('#unit-name');
+final Element migrateUnitStatusIcon =
+    document.querySelector('#migrate-unit-status-icon');
 
 final Element migrateUnitStatusIconLabel =
     document.querySelector('#migrate-unit-status-icon-label');
 
-final Element migrateUnitStatusIcon =
-    document.querySelector('#migrate-unit-status-icon');
+List<NavigationTreeNode> /*?*/ navigationTree;
+
+final Element unitName = document.querySelector('#unit-name');
 
 String get rootPath => querySelector('.root').text.trim();
 
 String get sdkVersion => document.getElementById('sdk-version').text;
-
-/*late final*/ List<NavigationTreeNode> navigationTree;
 
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -233,10 +233,45 @@ Future<T> doRequest<T>(HttpRequest xhr, [Object body]) async {
   try {
     await completer.future;
   } catch (e, st) {
-    // Handle refused connection and make it user-presentable.
-    throw AsyncError('Error reaching migration preview server.', st);
+    if (xhr.readyState == HttpRequest.DONE && xhr.status == 0) {
+      // Request completed with error, and no status information.  Most likely
+      // the server has terminated.
+      throw UserError('Error reaching migration preview server', '''
+This usually happens because the migration preview server has exited.  For
+example it may have been aborted with Ctrl-C, or you may have completed this
+migration, or an exception may have occurred.  Please check the console where
+you invoked `dart migrate` to verify that the preview server is still running.
+''');
+    } else {
+      // The attempt to connect to the server failed in an unexpected way.
+      // Report as many details as possible so that the user's bug report will
+      // be easier to address.
+      var details = [
+        'readyState=${xhr.readyState}',
+        'responseText=${jsonEncode(xhr.responseText)}',
+        'responseType=${jsonEncode(xhr.responseType)}',
+        'responseUrl=${jsonEncode(xhr.responseUrl)}',
+        'status=${xhr.status}',
+        'statusText=${jsonEncode(xhr.statusText)}',
+      ]
+          .map((detail) =>
+              detail.length > 40 ? detail.substring(0, 40) + '...' : detail)
+          .join(', ');
+      throw AsyncError('Error reaching migration preview server: $details', st);
+    }
   }
 
+  if (xhr.status == 401) {
+    // Server returned "unauthorized".  It's not useful to try to decode the
+    // response text (since it's in HTML, not JSON).  Just tell the user what
+    // happened.
+    throw UserError('Unauthorized response from migration preview server', '''
+The migration preview server has detected a mismatch between the authToken in
+your URL and the token that was generated at the time that `dart migrate` was
+run.  Have you restarted the migration server recently?  If so, you'll need to
+check its output for a fresh URL, and use that URL to perform your migration.
+''');
+  }
   final json = jsonDecode(xhr.responseText);
   if (xhr.status == 200) {
     // Request OK.
@@ -321,27 +356,36 @@ void handleAddHintLinkClick(MouseEvent event) async {
     // the response.
     await doPost(path);
     await loadFile(window.location.pathname, null, null, false);
+    document.body.classes.add('needs-rerun');
     _scrollContentTo(previousScrollPosition);
   } catch (e, st) {
-    handleError('Could not add/remove hint', e, st);
+    handleError("couldn't add/remove hint", e, st);
   }
 }
 
 void handleError(String header, Object exception, Object stackTrace) {
   String subheader;
+  Object details;
   if (exception is Map<String, Object> &&
       exception['success'] == false &&
       exception.containsKey('exception') &&
       exception.containsKey('stackTrace')) {
     subheader = exception['exception'] as String;
     stackTrace = exception['stackTrace'];
+  } else if (exception is UserError) {
+    subheader = exception.message;
+    // Don't show the user a stacktrace; show them the detailed error message
+    // text instead.
+    details = exception.details;
   } else {
     subheader = exception.toString();
   }
+  // If there was no detailed error message, use the stacktrace instead.
+  details ??= stackTrace;
   final popupPane = document.querySelector('.popup-pane');
   popupPane.querySelector('h2').innerText = header;
   popupPane.querySelector('p').innerText = subheader;
-  popupPane.querySelector('pre').innerText = stackTrace.toString();
+  popupPane.querySelector('pre').innerText = details.toString();
   var bottom = popupPane.querySelector('a.bottom') as AnchorElement;
   bottom
     ..href = getGitHubErrorUri(header, subheader, stackTrace).toString()
@@ -403,7 +447,7 @@ void loadAndPopulateEditDetails(String path, int offset, int line) async {
     pushState(path, offset, line);
     addClickHandlers('.edit-panel .panel-content', false);
   } catch (e, st) {
-    handleError('Could not load edit details', e, st);
+    handleError("couldn't load edit details", e, st);
   }
 }
 
@@ -439,7 +483,7 @@ Future<void> loadFile(
       callback();
     }
   } catch (e, st) {
-    handleError('Could not load dart file $path', e, st);
+    handleError("couldn't load dart file $path", e, st);
   }
 }
 
@@ -456,7 +500,7 @@ void loadNavigationTree() async {
     writeNavigationSubtree(navTree, navigationTree,
         enablePartialMigration: true);
   } catch (e, st) {
-    handleError('Could not load navigation tree', e, st);
+    handleError("couldn't load navigation tree", e, st);
   }
 }
 
@@ -730,25 +774,6 @@ void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
   }
 }
 
-/// Updates the navigation [icon] and current file icon according to the current
-/// migration status of [entity].
-void updateIconsForNode(Element icon, NavigationTreeNode entity) {
-  var status = entity.migrationStatus;
-  updateIconForStatus(icon, status);
-  // Update the status at the top of the file view if [entity] represents the
-  // current file.
-  var unitPath = unitName.innerText;
-  if (entity.path == unitPath) {
-    if (entity is NavigationTreeFileNode &&
-        !entity.migrationStatusCanBeChanged) {
-      icon.classes.add('disabled');
-    } else {
-      icon.classes.remove('disabled');
-    }
-    updateIconForStatus(migrateUnitStatusIcon, status);
-  }
-}
-
 /// Updates [icon] according to [status].
 void updateIconForStatus(Element icon, UnitMigrationStatus status) {
   switch (status) {
@@ -781,6 +806,25 @@ void updateIconForStatus(Element icon, UnitMigrationStatus status) {
   }
 }
 
+/// Updates the navigation [icon] and current file icon according to the current
+/// migration status of [entity].
+void updateIconsForNode(Element icon, NavigationTreeNode entity) {
+  var status = entity.migrationStatus;
+  updateIconForStatus(icon, status);
+  // Update the status at the top of the file view if [entity] represents the
+  // current file.
+  var unitPath = unitName.innerText;
+  if (entity.path == unitPath) {
+    if (entity is NavigationTreeFileNode &&
+        !entity.migrationStatusCanBeChanged) {
+      icon.classes.add('disabled');
+    } else {
+      icon.classes.remove('disabled');
+    }
+    updateIconForStatus(migrateUnitStatusIcon, status);
+  }
+}
+
 /// Update the heading and navigation links.
 ///
 /// Call this after updating page content on a navigation.
@@ -797,7 +841,10 @@ void updatePage(String path, [int offset]) {
       link.classes.remove('selected-file');
     }
   });
-  var entity = navigationTree.find(path);
+  // Note: navigationTree might not be loaded yet if the user is clicking around
+  // fast, so we need to allow for the possibility that `navigationTree` might
+  // be `null`.
+  var entity = navigationTree?.find(path);
   // Update migration status for files in current migration.
   if (entity == null) {
     migrateUnitStatusIconLabel.classes.remove('visible');
@@ -822,7 +869,8 @@ void updateParentIcons(Element element, NavigationTreeNode entity) {
 /// Updates subtree icons for the children [entity] with list item [element].
 void updateSubtreeIcons(Element element, NavigationTreeDirectoryNode entity) {
   for (var child in entity.subtree) {
-    var childNode = element.querySelector('[data-name*="${child.path}"]');
+    var childNode =
+        element.querySelector('[data-name*="${Css.escape(child.path)}"]');
     if (child is NavigationTreeDirectoryNode) {
       updateSubtreeIcons(childNode, child);
       var childIcon = childNode.querySelector(':scope > .status-icon');
@@ -936,7 +984,7 @@ void _addHintAction(HintAction hintAction, Node drawer, TargetLink link) {
         document.body.classes.add('needs-rerun');
         _scrollContentTo(previousScrollPosition);
       } catch (e, st) {
-        handleError('Could not apply hint', e, st);
+        handleError("couldn't apply hint", e, st);
       }
     })
     ..appendText(hintAction.kind.description));
@@ -1018,6 +1066,16 @@ void _scrollContentTo(int top) =>
 String _stripQuery(String path) =>
     path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
 
+class UserError extends Error implements Exception {
+  final String message;
+
+  final String details;
+
+  UserError(this.message, this.details);
+
+  String toString() => '$message:\n$details';
+}
+
 class _PermissiveNodeValidator implements NodeValidator {
   static _PermissiveNodeValidator instance = _PermissiveNodeValidator();
 
@@ -1036,20 +1094,6 @@ class _PermissiveNodeValidator implements NodeValidator {
   }
 }
 
-/// An extension on Element that fits into cascades.
-extension on Element {
-  /// Append [text] to this, inserting a word break before each '.' character.
-  void appendTextWithBreaks(String text) {
-    var textParts = text.split('.');
-    append(Text(textParts.first));
-    for (var substring in textParts.skip(1)) {
-      // Replace the '.' with a zero-width space and a '.'.
-      appendHtml('&#8203;.');
-      append(Text(substring));
-    }
-  }
-}
-
 extension on List<NavigationTreeNode> {
   /// Finds the node with path equal to [path], recursively, or `null`.
   NavigationTreeNode find(String path) {
@@ -1063,5 +1107,19 @@ extension on List<NavigationTreeNode> {
       }
     }
     return null;
+  }
+}
+
+/// An extension on Element that fits into cascades.
+extension on Element {
+  /// Append [text] to this, inserting a word break before each '.' character.
+  void appendTextWithBreaks(String text) {
+    var textParts = text.split('.');
+    append(Text(textParts.first));
+    for (var substring in textParts.skip(1)) {
+      // Replace the '.' with a zero-width space and a '.'.
+      appendHtml('&#8203;.');
+      append(Text(substring));
+    }
   }
 }

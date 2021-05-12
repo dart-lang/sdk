@@ -261,11 +261,11 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
   UNREACHABLE();
 }
 
-CodePtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                               const Code& caller_code) {
+uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
+                                                  const Code& caller_code) {
   // Switchable instance calls only generated for precompilation.
   UNREACHABLE();
-  return Code::null();
+  return 0;
 }
 
 ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,

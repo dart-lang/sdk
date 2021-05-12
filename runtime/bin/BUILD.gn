@@ -496,7 +496,6 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_instructions,
   ]
   args = [
-    "--enable-experiment=non-nullable",
     "--sound-null-safety",
     "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
@@ -898,9 +897,6 @@ executable("run_vm_tests") {
     "..:libdart_precompiler",
     "//third_party/zlib",
   ]
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps += [ "//runtime/llvm_codegen/bit:test" ]
-  }
   include_dirs = [
     "..",
     "$target_gen_dir",

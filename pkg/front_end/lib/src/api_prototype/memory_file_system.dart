@@ -86,6 +86,9 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  Future<bool> existsAsyncIfPossible() => exists();
+
+  @override
   Future<List<int>> readAsBytes() async {
     Uint8List? contents = _fileSystem._files[uri];
     if (contents == null) {
@@ -93,6 +96,9 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     }
     return contents;
   }
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() async {

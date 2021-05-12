@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -22,8 +24,31 @@ class AddNullCheck extends CorrectionProducer {
       return;
     }
     Expression target;
-    if (coveredNode is Expression) {
+    var coveredNodeParent = coveredNode.parent;
+    if (coveredNode is SimpleIdentifier) {
+      if (coveredNodeParent is MethodInvocation) {
+        target = coveredNodeParent.realTarget;
+      } else if (coveredNodeParent is PrefixedIdentifier) {
+        target = coveredNodeParent.prefix;
+      } else if (coveredNodeParent is PropertyAccess) {
+        target = coveredNodeParent.realTarget;
+      } else if (coveredNodeParent is BinaryExpression) {
+        target = coveredNodeParent.rightOperand;
+      } else {
+        target = coveredNode;
+      }
+    } else if (coveredNode is IndexExpression) {
+      target = (coveredNode as IndexExpression).realTarget;
+    } else if (coveredNodeParent is FunctionExpressionInvocation) {
       target = coveredNode;
+    } else if (coveredNodeParent is AssignmentExpression) {
+      target = coveredNodeParent.rightHandSide;
+    } else if (coveredNode is PostfixExpression) {
+      target = (coveredNode as PostfixExpression).operand;
+    } else if (coveredNode is PrefixExpression) {
+      target = (coveredNode as PrefixExpression).operand;
+    } else if (coveredNode is BinaryExpression) {
+      target = (coveredNode as BinaryExpression).leftOperand;
     } else {
       return;
     }
@@ -45,9 +70,9 @@ class AddNullCheck extends CorrectionProducer {
       toType = parent.realTarget.staticType;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType =
-          typeProvider.iterableType2(parent.loopVariable.declaredElement.type);
+          typeProvider.iterableType(parent.loopVariable.declaredElement.type);
     } else if (parent is ForEachPartsWithIdentifier) {
-      toType = typeProvider.iterableType2(parent.identifier.staticType);
+      toType = typeProvider.iterableType(parent.identifier.staticType);
     } else if (parent is SpreadElement) {
       var literal = parent.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
@@ -68,7 +93,11 @@ class AddNullCheck extends CorrectionProducer {
         toType = enclosingExecutable.declaredElement.returnType;
       }
     } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
+        parent is PostfixExpression ||
+        parent is PrefixExpression ||
+        parent is BinaryExpression ||
         (parent is PropertyAccess && target == parent.target) ||
+        (parent is CascadeExpression && target == parent.target) ||
         (parent is MethodInvocation && target == parent.target) ||
         (parent is FunctionExpressionInvocation && target == parent.function)) {
       // No need to set the `toType` because there isn't any need for a type

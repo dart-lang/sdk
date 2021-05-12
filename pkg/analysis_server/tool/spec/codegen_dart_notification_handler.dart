@@ -138,6 +138,6 @@ class _NotificationVisitor extends HierarchicalApiVisitor {
         _generateNotificationMethodName(
             notification.domainName, notification.event),
         _generateParamTypeName(notification.domainName, notification.event),
-        _generateDartDoc(notification.html)));
+        _generateDartDoc(notification.html!)));
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -51,10 +53,8 @@ class ChangeArgumentName extends MultiCorrectionProducer {
         namedExpression is NamedExpression &&
         namedExpression.name == node.parent &&
         namedExpression.parent is ArgumentList) {
-      var parameters = ExecutableParameters(
-        sessionHelper,
-        namedExpression.parent.parent,
-      );
+      var parameters = ExecutableParameters.forInvocation(
+          sessionHelper, namedExpression.parent.parent);
       return parameters?.namedNames;
     }
     return null;

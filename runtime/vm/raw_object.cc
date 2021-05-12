@@ -131,14 +131,14 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kOneByteStringCid: {
       const OneByteStringPtr raw_string =
           static_cast<const OneByteStringPtr>(this);
-      intptr_t string_length = Smi::Value(raw_string->untag()->length_);
+      intptr_t string_length = Smi::Value(raw_string->untag()->length());
       instance_size = OneByteString::InstanceSize(string_length);
       break;
     }
     case kTwoByteStringCid: {
       const TwoByteStringPtr raw_string =
           static_cast<const TwoByteStringPtr>(this);
-      intptr_t string_length = Smi::Value(raw_string->untag()->length_);
+      intptr_t string_length = Smi::Value(raw_string->untag()->length());
       instance_size = TwoByteString::InstanceSize(string_length);
       break;
     }
@@ -160,7 +160,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
 #define SIZE_FROM_CLASS(clazz) case kTypedData##clazz##Cid:
       CLASS_LIST_TYPED_DATA(SIZE_FROM_CLASS) {
         const TypedDataPtr raw_obj = static_cast<const TypedDataPtr>(this);
-        intptr_t array_len = Smi::Value(raw_obj->untag()->length_);
+        intptr_t array_len = Smi::Value(raw_obj->untag()->length());
         intptr_t lengthInBytes =
             array_len * TypedData::ElementSizeInBytes(class_id);
         instance_size = TypedData::InstanceSize(lengthInBytes);
@@ -377,7 +377,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void UntaggedObject::VisitPointersPrecise(Isolate* isolate,
+void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
                                           ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if (class_id < kNumPredefinedCids) {
@@ -386,7 +386,7 @@ void UntaggedObject::VisitPointersPrecise(Isolate* isolate,
   }
 
   // N.B.: Not using the heap size!
-  uword next_field_offset = isolate->GetClassForHeapWalkAt(class_id)
+  uword next_field_offset = isolate_group->GetClassForHeapWalkAt(class_id)
                                 ->untag()
                                 ->host_next_field_offset_in_words_
                             << kWordSizeLog2;
@@ -434,6 +434,22 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
     return Type::InstanceSize();                                               \
   }
 
+#if !defined(DART_COMPRESSED_POINTERS)
+#define COMPRESSED_VISITOR(Type) REGULAR_VISITOR(Type)
+#else
+#define COMPRESSED_VISITOR(Type)                                               \
+  intptr_t Untagged##Type::Visit##Type##Pointers(                              \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
+    /* Make sure that we got here with the tagged pointer as this. */          \
+    ASSERT(raw_obj->IsHeapObject());                                           \
+    ASSERT_COMPRESSED(Type);                                                   \
+    visitor->VisitCompressedPointers(raw_obj->heap_base(),                     \
+                                     raw_obj->untag()->from(),                 \
+                                     raw_obj->untag()->to());                  \
+    return Type::InstanceSize();                                               \
+  }
+#endif
+
 // It calls the from() and to() methods on the raw object to get the first and
 // last cells that need visiting.
 //
@@ -444,7 +460,7 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
       Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     /* Make sure that we got here with the tagged pointer as this. */          \
     ASSERT(raw_obj->IsHeapObject());                                           \
-    ASSERT_UNCOMPRESSED(Type);                                                 \
+    ASSERT_COMPRESSED(Type);                                                   \
     visitor->VisitTypedDataViewPointers(raw_obj, raw_obj->untag()->from(),     \
                                         raw_obj->untag()->to());               \
     return Type::InstanceSize();                                               \
@@ -463,10 +479,22 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
     return Type::InstanceSize(length);                                         \
   }
 
-// For now there are no compressed pointers:
-#define COMPRESSED_VISITOR(Type) REGULAR_VISITOR(Type)
+#if !defined(DART_COMPRESSED_POINTERS)
 #define VARIABLE_COMPRESSED_VISITOR(Type, get_length)                          \
   VARIABLE_VISITOR(Type, get_length)
+#else
+#define VARIABLE_COMPRESSED_VISITOR(Type, get_length)                          \
+  intptr_t Untagged##Type::Visit##Type##Pointers(                              \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
+    /* Make sure that we got here with the tagged pointer as this. */          \
+    ASSERT(raw_obj->IsHeapObject());                                           \
+    intptr_t length = get_length;                                              \
+    visitor->VisitCompressedPointers(raw_obj->heap_base(),                     \
+                                     raw_obj->untag()->from(),                 \
+                                     raw_obj->untag()->to(length));            \
+    return Type::InstanceSize(length);                                         \
+  }
+#endif
 
 // For fixed-length objects that don't have any pointers that need visiting.
 #define NULL_VISITOR(Type)                                                     \
@@ -498,54 +526,55 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
     return 0;                                                                  \
   }
 
-REGULAR_VISITOR(Class)
-REGULAR_VISITOR(Type)
-REGULAR_VISITOR(FunctionType)
-REGULAR_VISITOR(TypeRef)
-REGULAR_VISITOR(TypeParameter)
-REGULAR_VISITOR(PatchClass)
-REGULAR_VISITOR(Function)
-COMPRESSED_VISITOR(Closure)
-REGULAR_VISITOR(ClosureData)
-REGULAR_VISITOR(FfiTrampolineData)
-REGULAR_VISITOR(Script)
-REGULAR_VISITOR(Library)
-REGULAR_VISITOR(LibraryPrefix)
-REGULAR_VISITOR(Namespace)
+COMPRESSED_VISITOR(Class)
+COMPRESSED_VISITOR(PatchClass)
+COMPRESSED_VISITOR(ClosureData)
+COMPRESSED_VISITOR(FfiTrampolineData)
+COMPRESSED_VISITOR(Script)
+COMPRESSED_VISITOR(Library)
+COMPRESSED_VISITOR(Namespace)
+COMPRESSED_VISITOR(KernelProgramInfo)
+COMPRESSED_VISITOR(WeakSerializationReference)
+COMPRESSED_VISITOR(Type)
+COMPRESSED_VISITOR(FunctionType)
+COMPRESSED_VISITOR(TypeRef)
+COMPRESSED_VISITOR(TypeParameter)
+COMPRESSED_VISITOR(Function)
+REGULAR_VISITOR(Closure)
+COMPRESSED_VISITOR(LibraryPrefix)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
 REGULAR_VISITOR(MonomorphicSmiableCall)
 REGULAR_VISITOR(ICData)
 REGULAR_VISITOR(MegamorphicCache)
-REGULAR_VISITOR(ApiError)
-REGULAR_VISITOR(LanguageError)
-REGULAR_VISITOR(UnhandledException)
-REGULAR_VISITOR(UnwindError)
-REGULAR_VISITOR(ExternalOneByteString)
-REGULAR_VISITOR(ExternalTwoByteString)
-COMPRESSED_VISITOR(GrowableObjectArray)
-COMPRESSED_VISITOR(LinkedHashMap)
+COMPRESSED_VISITOR(ApiError)
+COMPRESSED_VISITOR(LanguageError)
+COMPRESSED_VISITOR(UnhandledException)
+COMPRESSED_VISITOR(UnwindError)
+COMPRESSED_VISITOR(ExternalOneByteString)
+COMPRESSED_VISITOR(ExternalTwoByteString)
+REGULAR_VISITOR(GrowableObjectArray)
+REGULAR_VISITOR(LinkedHashMap)
 COMPRESSED_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
-REGULAR_VISITOR(ReceivePort)
-REGULAR_VISITOR(StackTrace)
-REGULAR_VISITOR(RegExp)
+COMPRESSED_VISITOR(ReceivePort)
+COMPRESSED_VISITOR(StackTrace)
+COMPRESSED_VISITOR(RegExp)
 REGULAR_VISITOR(WeakProperty)
-REGULAR_VISITOR(MirrorReference)
-REGULAR_VISITOR(UserTag)
+COMPRESSED_VISITOR(MirrorReference)
+COMPRESSED_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
-REGULAR_VISITOR(LoadingUnit)
-REGULAR_VISITOR(KernelProgramInfo)
+COMPRESSED_VISITOR(LoadingUnit)
 VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->untag()->length_))
-VARIABLE_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
-VARIABLE_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
+VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
+VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)
-VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
+VARIABLE_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
-        Smi::Value(raw_obj->untag()->length_))
-VARIABLE_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
+        Smi::Value(raw_obj->untag()->length()))
+VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
 NULL_VISITOR(Mint)
 NULL_VISITOR(Double)
 NULL_VISITOR(Float32x4)
@@ -555,7 +584,7 @@ NULL_VISITOR(Bool)
 NULL_VISITOR(Capability)
 NULL_VISITOR(SendPort)
 NULL_VISITOR(TransferableTypedData)
-REGULAR_VISITOR(Pointer)
+COMPRESSED_VISITOR(Pointer)
 NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
 VARIABLE_NULL_VISITOR(InstructionsSection, InstructionsSection::Size(raw_obj))
@@ -563,8 +592,8 @@ VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->untag()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->untag()->length_)
 VARIABLE_NULL_VISITOR(CompressedStackMaps,
                       CompressedStackMaps::PayloadSizeOf(raw_obj))
-VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->untag()->length_))
-VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->untag()->length_))
+VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->untag()->length()))
+VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->untag()->length()))
 // Abstract types don't have their visitor called.
 UNREACHABLE_VISITOR(AbstractType)
 UNREACHABLE_VISITOR(CallSiteData)
@@ -576,24 +605,20 @@ UNREACHABLE_VISITOR(String)
 UNREACHABLE_VISITOR(FutureOr)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
-#if defined(DART_PRECOMPILED_RUNTIME)
-NULL_VISITOR(WeakSerializationReference)
-#else
-REGULAR_VISITOR(WeakSerializationReference)
-#endif
 
 intptr_t UntaggedField::VisitFieldPointers(FieldPtr raw_obj,
                                            ObjectPointerVisitor* visitor) {
   ASSERT(raw_obj->IsHeapObject());
-  ASSERT_UNCOMPRESSED(Field);
-  visitor->VisitPointers(raw_obj->untag()->from(), raw_obj->untag()->to());
+  ASSERT_COMPRESSED(Field);
+  visitor->VisitCompressedPointers(
+      raw_obj->heap_base(), raw_obj->untag()->from(), raw_obj->untag()->to());
 
   if (visitor->trace_values_through_fields()) {
     if (Field::StaticBit::decode(raw_obj->untag()->kind_bits_)) {
       visitor->isolate_group()->ForEachIsolate(
           [&](Isolate* isolate) {
             intptr_t index =
-                Smi::Value(raw_obj->untag()->host_offset_or_field_id_);
+                Smi::Value(raw_obj->untag()->host_offset_or_field_id());
             visitor->VisitPointer(&isolate->field_table()->table()[index]);
           },
           /*at_safepoint=*/true);
@@ -692,6 +717,12 @@ intptr_t UntaggedImmutableArray::VisitImmutableArrayPointers(
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {
   OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
+
+#if defined(DART_COMPRESSED_POINTERS)
+void UntaggedObject::RememberCard(CompressedObjectPtr const* slot) {
+  OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
+}
+#endif
 
 DEFINE_LEAF_RUNTIME_ENTRY(void,
                           RememberCard,

@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class C implements A, B {}
 
 abstract class D implements C {}

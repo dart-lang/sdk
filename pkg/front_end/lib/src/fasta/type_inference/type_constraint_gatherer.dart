@@ -4,15 +4,13 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart';
 
 import 'package:kernel/type_environment.dart';
-
-import 'type_schema.dart' show UnknownType;
 
 import '../names.dart' show callName;
 
@@ -799,7 +797,7 @@ abstract class TypeConstraintGatherer {
               new NullabilityAwareTypeVariableEliminator(
                   eliminationTargets:
                       freshTypeParameters.freshTypeParameters.toSet(),
-                  bottomType: const NeverType(Nullability.nonNullable),
+                  bottomType: const NeverType.nonNullable(),
                   topType: coreTypes.objectNullableRawType,
                   topFunctionType: coreTypes.functionNonNullableRawType,
                   unhandledTypeHandler: (DartType type, ignored) =>

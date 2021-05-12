@@ -583,42 +583,49 @@ void ServiceIsolate::BootVmServiceLibrary() {
   ServiceIsolate::SetServicePort(port);
 }
 
-void ServiceIsolate::RegisterRunningIsolate(Isolate* isolate) {
-  ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
+void ServiceIsolate::RegisterRunningIsolates(
+    const GrowableArray<Dart_Port>& isolate_ports,
+    const GrowableArray<const String*>& isolate_names) {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
 
-  // Get library.
+  ASSERT(ServiceIsolate::IsServiceIsolate(thread->isolate()));
+
+  // Obtain "_registerIsolate" function to call.
   const String& library_url = Symbols::DartVMService();
   ASSERT(!library_url.IsNull());
-  // TODO(bkonyi): hoist Thread::Current()
   const Library& library =
-      Library::Handle(Library::LookupLibrary(Thread::Current(), library_url));
+      Library::Handle(zone, Library::LookupLibrary(thread, library_url));
   ASSERT(!library.IsNull());
-  // Get function.
-  const String& function_name = String::Handle(String::New("_registerIsolate"));
+  const String& function_name =
+      String::Handle(zone, String::New("_registerIsolate"));
   ASSERT(!function_name.IsNull());
   const Function& register_function_ =
-      Function::Handle(library.LookupFunctionAllowPrivate(function_name));
+      Function::Handle(zone, library.LookupFunctionAllowPrivate(function_name));
   ASSERT(!register_function_.IsNull());
 
-  // Setup arguments for call.
-  Dart_Port port_id = isolate->main_port();
-  const Integer& port_int = Integer::Handle(Integer::New(port_id));
-  ASSERT(!port_int.IsNull());
-  const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
-  const String& name = String::Handle(String::New(isolate->name()));
-  ASSERT(!name.IsNull());
-  const Array& args = Array::Handle(Array::New(3));
-  ASSERT(!args.IsNull());
-  args.SetAt(0, port_int);
-  args.SetAt(1, send_port);
-  args.SetAt(2, name);
-  const Object& r =
-      Object::Handle(DartEntry::InvokeFunction(register_function_, args));
-  if (FLAG_trace_service) {
-    OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
-                 name.ToCString(), port_id);
+  Integer& port_int = Integer::Handle(zone);
+  SendPort& send_port = SendPort::Handle(zone);
+  Array& args = Array::Handle(zone, Array::New(3));
+  Object& result = Object::Handle(zone);
+
+  ASSERT(isolate_ports.length() == isolate_names.length());
+  for (intptr_t i = 0; i < isolate_ports.length(); ++i) {
+    const Dart_Port port_id = isolate_ports[i];
+    const String& name = *isolate_names[i];
+
+    port_int = Integer::New(port_id);
+    send_port = SendPort::New(port_id);
+    args.SetAt(0, port_int);
+    args.SetAt(1, send_port);
+    args.SetAt(2, name);
+    result = DartEntry::InvokeFunction(register_function_, args);
+    if (FLAG_trace_service) {
+      OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
+                   name.ToCString(), port_id);
+    }
+    ASSERT(!result.IsError());
   }
-  ASSERT(!r.IsError());
 }
 
 void ServiceIsolate::VisitObjectPointers(ObjectPointerVisitor* visitor) {}

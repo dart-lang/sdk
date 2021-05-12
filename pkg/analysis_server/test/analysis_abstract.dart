@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -128,10 +130,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Creates a project [projectPath].
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
-    var request = AnalysisSetAnalysisRootsParams([projectPath], [],
-            packageRoots: packageRoots)
-        .toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+    setRoots(included: [projectPath], excluded: []);
   }
 
   void doAllDeclarationsTrackerWork() {
@@ -190,6 +189,18 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
+  void setRoots({
+    @required List<String> included,
+    @required List<String> excluded,
+  }) {
+    var includedConverted = included.map(convertPath).toList();
+    var excludedConverted = excluded.map(convertPath).toList();
+    var request = AnalysisSetAnalysisRootsParams(
+        includedConverted, excludedConverted,
+        packageRoots: {}).toRequest('0');
+    handleSuccessfulRequest(request, handler: analysisHandler);
+  }
+
   @mustCallSuper
   void setUp() {
     serverChannel = MockServerChannel();
@@ -225,29 +236,5 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   Future<Response> waitResponse(Request request,
       {bool throwOnError = true}) async {
     return serverChannel.sendRequest(request, throwOnError: throwOnError);
-  }
-}
-
-mixin WithNonFunctionTypeAliasesMixin on AbstractAnalysisTest {
-  @override
-  void createProject({Map<String, String> packageRoots}) {
-    addAnalysisOptionsFile('''
-analyzer:
-  enable-experiment:
-    - nonfunction-type-aliases
-''');
-    super.createProject(packageRoots: packageRoots);
-  }
-}
-
-mixin WithNullSafetyMixin on AbstractAnalysisTest {
-  @override
-  void createProject({Map<String, String> packageRoots}) {
-    addAnalysisOptionsFile('''
-analyzer:
-  enable-experiment:
-    - non-nullable
-''');
-    super.createProject(packageRoots: packageRoots);
   }
 }

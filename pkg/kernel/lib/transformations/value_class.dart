@@ -52,7 +52,7 @@ class ValueClassCopyWithScanner extends MethodInvocationScanner<Null> {
   // V v;
   // (v as dynamic).copyWith() as V
   bool predicate(MethodInvocation node) {
-    return node.name.name == "copyWith" &&
+    return node.name.text == "copyWith" &&
         _isValueClassAsConstruct(node.receiver);
   }
 

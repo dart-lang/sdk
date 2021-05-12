@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -33,12 +35,12 @@ String b = "Test";
     final pluginError = plugin.AnalysisError(
       plugin.AnalysisErrorSeverity.ERROR,
       plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
-      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0),
+      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0, 0, 6),
       'Test error from plugin',
       'ERR1',
       contextMessages: [
         plugin.DiagnosticMessage('Related error',
-            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12))
+            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12, 1, 16))
       ],
     );
     final pluginResult =
@@ -281,6 +283,28 @@ version: latest
     expect(diagnostic.range.start.character, equals(11));
     expect(diagnostic.range.end.line, equals(0));
     expect(diagnostic.range.end.character, equals(12));
+  }
+
+  Future<void> test_looseFile_withoutPubpsec() async {
+    await initialize(allowEmptyRootUri: true);
+
+    // Opening the file should trigger diagnostics.
+    {
+      final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+      await openFile(mainFileUri, 'final a = Bad();');
+      final diagnostics = await diagnosticsUpdate;
+      expect(diagnostics, hasLength(1));
+      final diagnostic = diagnostics.first;
+      expect(diagnostic.message, contains("The function 'Bad' isn't defined"));
+    }
+
+    // Closing the file should remove the diagnostics.
+    {
+      final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+      await closeFile(mainFileUri);
+      final diagnostics = await diagnosticsUpdate;
+      expect(diagnostics, hasLength(0));
+    }
   }
 
   Future<void> test_todos() async {

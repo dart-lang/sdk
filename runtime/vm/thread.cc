@@ -62,6 +62,7 @@ Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
       write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
+      heap_base_(0),
       isolate_(NULL),
       dispatch_table_array_(NULL),
       saved_stack_limit_(0),
@@ -176,6 +177,8 @@ static const struct ALIGN16 {
 } float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 
 void Thread::InitVMConstants() {
+  heap_base_ = Object::null()->heap_base();
+
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());
   CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)
@@ -272,9 +275,16 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
   }
 }
 
-bool Thread::EnterIsolate(Isolate* isolate) {
+bool Thread::EnterIsolate(Isolate* isolate, bool is_nested_reenter) {
   const bool kIsMutatorThread = true;
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread);
+  const bool kBypassSafepoint = false;
+
+  is_nested_reenter = is_nested_reenter ||
+                      (isolate->mutator_thread() != nullptr &&
+                       isolate->mutator_thread()->top_exit_frame_info() != 0);
+
+  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, is_nested_reenter,
+                                           kBypassSafepoint);
   if (thread != NULL) {
     ASSERT(thread->store_buffer_block_ == NULL);
     ASSERT(thread->isolate() == isolate);
@@ -285,7 +295,7 @@ bool Thread::EnterIsolate(Isolate* isolate) {
   return false;
 }
 
-void Thread::ExitIsolate() {
+void Thread::ExitIsolate(bool is_nested_exit) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   ASSERT(thread->IsMutatorThread());
@@ -299,7 +309,12 @@ void Thread::ExitIsolate() {
   thread->set_vm_tag(isolate->is_runnable() ? VMTag::kIdleTagId
                                             : VMTag::kLoadWaitTagId);
   const bool kIsMutatorThread = true;
-  isolate->UnscheduleThread(thread, kIsMutatorThread);
+  const bool kBypassSafepoint = false;
+  is_nested_exit =
+      is_nested_exit || (isolate->mutator_thread() != nullptr &&
+                         isolate->mutator_thread()->top_exit_frame_info() != 0);
+  isolate->UnscheduleThread(thread, kIsMutatorThread, is_nested_exit,
+                            kBypassSafepoint);
 }
 
 bool Thread::EnterIsolateAsHelper(Isolate* isolate,
@@ -307,7 +322,9 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
                                   bool bypass_safepoint) {
   ASSERT(kind != kMutatorTask);
   const bool kIsMutatorThread = false;
-  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, bypass_safepoint);
+  const bool kIsNestedReenter = false;
+  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, kIsNestedReenter,
+                                           bypass_safepoint);
   if (thread != NULL) {
     ASSERT(!thread->IsMutatorThread());
     ASSERT(thread->isolate() == isolate);
@@ -330,7 +347,9 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsMutatorThread = false;
-  isolate->UnscheduleThread(thread, kIsMutatorThread, bypass_safepoint);
+  const bool kIsNestedExit = false;
+  isolate->UnscheduleThread(thread, kIsMutatorThread, kIsNestedExit,
+                            bypass_safepoint);
 }
 
 bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
@@ -732,6 +751,12 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
           break;
       }
     }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    UNREACHABLE();  // Stack slots are not compressed.
   }
 
  private:

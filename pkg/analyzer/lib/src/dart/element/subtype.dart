@@ -190,12 +190,15 @@ class SubtypeHelper {
 
     // Right Promoted Variable: if `T1` is a promoted type variable `X1 & S1`:
     //   * `T0 <: T1` iff `T0 <: X1` and `T0 <: S1`
-    if (T1 is TypeParameterTypeImpl && T1.promotedBound != null) {
-      var X1 = TypeParameterTypeImpl(
-        element: T1.element,
-        nullabilitySuffix: T1.nullabilitySuffix,
-      );
-      return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1.promotedBound);
+    if (T1 is TypeParameterTypeImpl) {
+      var T1_promotedBound = T1.promotedBound;
+      if (T1_promotedBound != null) {
+        var X1 = TypeParameterTypeImpl(
+          element: T1.element,
+          nullabilitySuffix: T1.nullabilitySuffix,
+        );
+        return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1_promotedBound);
+      }
     }
 
     // Right FutureOr: if `T1` is `FutureOr<S1>` then:
@@ -468,7 +471,8 @@ class SubtypeHelper {
     for (var interface in subElement.allSupertypes) {
       if (interface.element == superElement) {
         var substitution = Substitution.fromInterfaceType(subType);
-        var substitutedInterface = substitution.substituteType(interface);
+        var substitutedInterface =
+            substitution.substituteType(interface) as InterfaceType;
         return _interfaceArguments(
           superElement,
           substitutedInterface,

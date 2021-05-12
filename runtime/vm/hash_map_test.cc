@@ -114,6 +114,22 @@ TEST_CASE(MallocDirectChainedHashMap) {
   EXPECT(map2.LookupValue(&v3) == &v1);
 }
 
+TEST_CASE(ZoneDirectChainedHashMap) {
+  auto zone = thread->zone();
+  auto const map = new (zone)
+      ZoneDirectChainedHashMap<PointerKeyValueTrait<TestValue>>(zone);
+  EXPECT(map->IsEmpty());
+  TestValue v1(0);
+  TestValue v2(1);
+  TestValue v3(0);
+  map->Insert(&v1);
+  EXPECT(map->LookupValue(&v1) == &v1);
+  map->Insert(&v2);
+  EXPECT(map->LookupValue(&v1) == &v1);
+  EXPECT(map->LookupValue(&v2) == &v2);
+  EXPECT(map->LookupValue(&v3) == &v1);
+}
+
 class IntptrPair {
  public:
   IntptrPair() : first_(-1), second_(-1) {}
@@ -206,6 +222,43 @@ TEST_CASE(DirectChainedHashMapIteratorWithCollisionInLastBucket) {
   }
 }
 
+TEST_CASE(ZoneCStringSet) {
+  auto zone = thread->zone();
+
+  const char* const kConst1 = "test";
+  const char* const kConst2 = "test 2";
+
+  char* const str1 = OS::SCreate(zone, "%s", kConst1);
+  char* const str2 = OS::SCreate(zone, "%s", kConst2);
+  char* const str3 = OS::SCreate(zone, "%s", kConst1);
+
+  // Make sure these strings are pointer-distinct, but C-string-equal.
+  EXPECT_NE(str1, str3);
+  EXPECT_STREQ(str1, str3);
+
+  auto const set = new (zone) ZoneCStringSet(zone);
+  EXPECT(set->IsEmpty());
+
+  set->Insert(str1);
+  EXPECT_NOTNULL(set->Lookup(str1));
+  EXPECT_NULLPTR(set->Lookup(str2));
+  EXPECT_NOTNULL(set->Lookup(str3));
+
+  set->Insert(str2);
+  EXPECT_NOTNULL(set->Lookup(str1));
+  EXPECT_NOTNULL(set->Lookup(str2));
+  EXPECT_NOTNULL(set->Lookup(str3));
+
+  EXPECT(set->Remove(str3));
+  EXPECT_NULLPTR(set->Lookup(str1));
+  EXPECT_NOTNULL(set->Lookup(str2));
+  EXPECT_NULLPTR(set->Lookup(str3));
+
+  EXPECT(!set->Remove(str3));
+  EXPECT(set->Remove(str2));
+  EXPECT(set->IsEmpty());
+}
+
 TEST_CASE(CStringMap) {
   const char* const kConst1 = "test";
   const char* const kConst2 = "test 2";
@@ -270,9 +323,9 @@ TEST_CASE(CStringMapUpdate) {
   EXPECT_STREQ(str1, str3);
   EXPECT_STREQ(str1, str4);
 
-  CStringKeyValueTrait<intptr_t>::Pair p1 = {str1, 1};
-  CStringKeyValueTrait<intptr_t>::Pair p2 = {str2, 2};
-  CStringKeyValueTrait<intptr_t>::Pair p3 = {str3, 3};
+  CStringMapKeyValueTrait<intptr_t>::Pair p1 = {str1, 1};
+  CStringMapKeyValueTrait<intptr_t>::Pair p2 = {str2, 2};
+  CStringMapKeyValueTrait<intptr_t>::Pair p3 = {str3, 3};
 
   CStringMap<intptr_t> map;
   EXPECT(map.IsEmpty());

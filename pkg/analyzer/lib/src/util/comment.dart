@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// Return the raw text of the given comment node.
-String getCommentNodeRawText(Comment node) {
+String? getCommentNodeRawText(Comment? node) {
   if (node == null) return null;
 
   return node.tokens
@@ -15,7 +15,7 @@ String getCommentNodeRawText(Comment node) {
 }
 
 /// Return the plain text from the given DartDoc [rawText], without delimiters.
-String getDartDocPlainText(String rawText) {
+String? getDartDocPlainText(String? rawText) {
   if (rawText == null) return null;
 
   // Remove /** */.
@@ -53,7 +53,7 @@ String getDartDocPlainText(String rawText) {
 }
 
 /// Return the DartDoc summary, i.e. the portion before the first empty line.
-String getDartDocSummary(String completeText) {
+String? getDartDocSummary(String? completeText) {
   if (completeText == null) return null;
 
   var result = StringBuffer();

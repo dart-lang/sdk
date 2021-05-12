@@ -24,4 +24,5 @@ linter:
     - prefer_typing_uninitialized_variables
     - unnecessary_brace_in_string_interps
     - unnecessary_overrides
+    - unnecessary_parenthesis
     - void_checks

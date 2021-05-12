@@ -13,15 +13,12 @@ main() {
     defineReflectiveTests(
       TypeArgumentNotMatchingBoundsWithNullSafetyTest,
     );
-    defineReflectiveTests(
-      TypeArgumentNotMatchingBoundsWithNonFunctionTypeAliasesTest,
-    );
   });
 }
 
 @reflectiveTest
 class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest
-    with TypeArgumentNotMatchingBoundsTestCases {
+    with WithoutNullSafetyMixin, TypeArgumentNotMatchingBoundsTestCases {
   test_regression_42196_Null() async {
     await assertNoErrorsInCode(r'''
 typedef G<X> = Function(X);
@@ -303,7 +300,7 @@ void main() {}
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    assertType(result.unit.declaredElement.getType('Baz').supertype,
+    assertType(result.unit!.declaredElement!.getType('Baz')!.supertype,
         'Bar<Foo<dynamic>>');
   }
 
@@ -419,43 +416,9 @@ class C extends Object with G<B>{}
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest
-    with
-        WithNonFunctionTypeAliasesMixin,
-        TypeArgumentNotMatchingBoundsTestCases {
-  test_nonFunctionTypeAlias_interfaceType_parameter() async {
-    await assertErrorsInCode(r'''
-class A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<String> a) {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6),
-    ]);
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<B> a) {}
-''');
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_parameter_superBounded() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<Never> a) {}
-''');
-  }
-}
-
-@reflectiveTest
 class TypeArgumentNotMatchingBoundsWithNullSafetyTest
     extends PubPackageResolutionTest
-    with TypeArgumentNotMatchingBoundsTestCases, WithNullSafetyMixin {
+    with TypeArgumentNotMatchingBoundsTestCases {
   test_extends_optIn_fromOptOut_Null() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A<X extends int> {}
@@ -488,7 +451,163 @@ main() {
 ''');
   }
 
-  test_notRegularBounded_notSuperBounded_invariant() async {
+  test_genericFunctionTypeArgument_invariant() async {
+    await assertErrorsInCode(r'''
+typedef F = T Function<T>(T);
+typedef FB<T extends F> = S Function<S extends T>(S);
+class CB<T extends F> {}
+void f(CB<FB<F>> a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 119, 5),
+    ]);
+  }
+
+  test_genericFunctionTypeArgument_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+typedef F1 = T Function<T>(T);
+typedef F2 = S Function<S>(S);
+class CB<T extends F1> {}
+void f(CB<F2> a) {}
+''');
+  }
+
+  test_metadata_matching() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends num> {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''');
+  }
+
+  test_metadata_notMatching() async {
+    await assertErrorsInCode(r'''
+class A<T extends num> {
+  const A();
+}
+
+@A<String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 44, 6),
+    ]);
+  }
+
+  test_metadata_notMatching_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  const A();
+}
+
+typedef B<T extends num> = A<T>;
+
+@B<String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 66, 6),
+    ]);
+  }
+
+  test_methodInvocation_genericFunctionTypeArgument_match() async {
+    await assertNoErrorsInCode(r'''
+typedef F = void Function<T extends num>();
+void f<T extends void Function<X extends num>()>() {}
+void g() {
+  f<F>();
+}
+''');
+  }
+
+  test_methodInvocation_genericFunctionTypeArgument_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+typedef F = void Function<T extends A>();
+void f<T extends void Function<U extends B>()>() {}
+void g() {
+  f<F>();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 131, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_body_typeArgument_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<T extends A> {}
+typedef X = G<B>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_body_typeArgument_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class G<T extends A> {}
+typedef X = G<B>;
+''');
+  }
+
+  test_nonFunctionTypeAlias_body_typeArgument_superBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends A<T>> {}
+typedef X = List<A>;
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<T extends A> {}
+typedef X = G<B>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+typedef X<T> = A;
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_superBounded() async {
+    await assertErrorsInCode(r'''
+class A<T extends A<T>> {}
+typedef X<T> = A;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<String> a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<B> a) {}
+''');
+  }
+
+  test_notRegularBounded_notSuperBounded_parameter_invariant() async {
     await assertErrorsInCode(r'''
 typedef A<X> = X Function(X);
 typedef G<X extends A<X>> = void Function<Y extends X>();

@@ -394,9 +394,16 @@ void DeferredObject::Fill() {
                   static_cast<uint64_t>(Integer::Cast(value).AsInt64Value()));
               break;
             case kTypedDataFloat32ArrayCid:
-              typed_data.SetFloat32(
-                  element_offset,
-                  static_cast<float>(Double::Cast(value).value()));
+              // Although element of Float32 array is represented with Double,
+              // it is already converted to 32-bit float via DoubleToFloat
+              // instruction before it was stored.
+              // Reinterpret double value as float to get the value back.
+              union {
+                double d;
+                float f;
+              } v;
+              v.d = Double::Cast(value).value();
+              typed_data.SetFloat32(element_offset, v.f);
               break;
             case kTypedDataFloat64ArrayCid:
               typed_data.SetFloat64(element_offset,

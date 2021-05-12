@@ -14,6 +14,7 @@ import '../js_backend/annotations.dart' show AnnotationsData;
 import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
+import '../universe/class_hierarchy.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
@@ -677,6 +678,9 @@ class CodegenWorldImpl implements CodegenWorld {
   AnnotationsData get annotationsData => _closedWorld.annotationsData;
 
   @override
+  ClassHierarchy get classHierarchy => _closedWorld.classHierarchy;
+
+  @override
   void forEachStaticField(void Function(FieldEntity) f) {
     bool failure = false;
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
@@ -805,6 +809,15 @@ class CodegenWorldImpl implements CodegenWorld {
           if (type == null) return;
           if (_closedWorld.dartTypes.canAssignGenericFunctionTo(type)) {
             _genericCallablePropertiesCache[member] = type;
+          } else {
+            type = type.withoutNullability;
+            if (type is InterfaceType) {
+              FunctionType callType = _closedWorld.dartTypes.getCallType(type);
+              if (callType != null &&
+                  _closedWorld.dartTypes.canAssignGenericFunctionTo(callType)) {
+                _genericCallablePropertiesCache[member] = callType;
+              }
+            }
           }
         }
       });

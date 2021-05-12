@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
@@ -13,13 +12,104 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BinaryExpressionResolutionTest);
-    defineReflectiveTests(BinaryExpressionResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
-    with BinaryExpressionResolutionTestCases {}
+    with BinaryExpressionResolutionTestCases {
+  test_ifNull_left_nullableContext() async {
+    await assertNoErrorsInCode(r'''
+T f<T>(T t) => t;
+
+int g() => f(null) ?? 0;
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['int?'],
+      invokeType: 'int? Function(int?)',
+      type: 'int?',
+    );
+
+    assertBinaryExpression(
+      findNode.binary('?? 0'),
+      element: null,
+      type: 'int',
+    );
+  }
+
+  test_ifNull_nullableInt_int() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x, int y) {
+  x ?? y;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('x ?? y'),
+      element: null,
+      type: 'int',
+    );
+  }
+
+  test_ifNull_nullableInt_nullableDouble() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x, double? y) {
+  x ?? y;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('x ?? y'),
+      element: null,
+      type: 'num?',
+    );
+  }
+
+  test_ifNull_nullableInt_nullableInt() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x) {
+  x ?? x;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('x ?? x'),
+      element: null,
+      type: 'int?',
+    );
+  }
+
+  test_plus_int_never() async {
+    await assertNoErrorsInCode('''
+f(int a, Never b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(findNode.binary('a + b'),
+        element: numElement.getMethod('+'), type: 'num');
+  }
+
+  test_plus_never_int() async {
+    await assertErrorsInCode(r'''
+f(Never a, int b) {
+  a + b;
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
+      error(HintCode.DEAD_CODE, 26, 2),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: isNull,
+      type: 'Never',
+    );
+  }
+}
 
 mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {
   test_bangEq() async {
@@ -699,103 +789,6 @@ f(int a, int b) {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
-    );
-  }
-}
-
-@reflectiveTest
-class BinaryExpressionResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithNullSafetyMixin, BinaryExpressionResolutionTestCases {
-  test_ifNull_left_nullableContext() async {
-    await assertNoErrorsInCode(r'''
-T f<T>(T t) => t;
-
-int g() => f(null) ?? 0;
-''');
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['int?'],
-      invokeType: 'int? Function(int?)',
-      type: 'int?',
-    );
-
-    assertBinaryExpression(
-      findNode.binary('?? 0'),
-      element: null,
-      type: 'int',
-    );
-  }
-
-  test_ifNull_nullableInt_int() async {
-    await assertNoErrorsInCode(r'''
-void f(int? x, int y) {
-  x ?? y;
-}
-''');
-
-    assertBinaryExpression(
-      findNode.binary('x ?? y'),
-      element: null,
-      type: 'int',
-    );
-  }
-
-  test_ifNull_nullableInt_nullableDouble() async {
-    await assertNoErrorsInCode(r'''
-void f(int? x, double? y) {
-  x ?? y;
-}
-''');
-
-    assertBinaryExpression(
-      findNode.binary('x ?? y'),
-      element: null,
-      type: 'num?',
-    );
-  }
-
-  test_ifNull_nullableInt_nullableInt() async {
-    await assertNoErrorsInCode(r'''
-void f(int? x) {
-  x ?? x;
-}
-''');
-
-    assertBinaryExpression(
-      findNode.binary('x ?? x'),
-      element: null,
-      type: 'int?',
-    );
-  }
-
-  test_plus_int_never() async {
-    await assertNoErrorsInCode('''
-f(int a, Never b) {
-  a + b;
-}
-''');
-
-    assertBinaryExpression(findNode.binary('a + b'),
-        element: numElement.getMethod('+'), type: 'num');
-  }
-
-  test_plus_never_int() async {
-    await assertErrorsInCode(r'''
-f(Never a, int b) {
-  a + b;
-}
-''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
-      error(HintCode.DEAD_CODE, 26, 2),
-    ]);
-
-    assertBinaryExpression(
-      findNode.binary('a + b'),
-      element: isNull,
-      type: 'Never',
     );
   }
 }

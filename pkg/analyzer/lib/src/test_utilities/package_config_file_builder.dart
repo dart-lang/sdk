@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 /// Helper for building `.dart_tool/package_config.json` files.
 ///
 /// See accepted/future-releases/language-versioning/package-config-file-v2.md
@@ -17,10 +15,10 @@ class PackageConfigFileBuilder {
   /// The [packageUri] is optional, a URI reference, resolved against the
   /// file URI of the [rootPath]. The result must be inside the [rootPath].
   void add({
-    @required String name,
-    @required String rootPath,
+    required String name,
+    required String rootPath,
     String packageUri = 'lib/',
-    String languageVersion,
+    String? languageVersion,
   }) {
     if (_packages.any((e) => e.name == name)) {
       throw StateError('Already added: $name');
@@ -42,7 +40,7 @@ class PackageConfigFileBuilder {
   }
 
   String toContent({
-    @required String Function(String) toUriStr,
+    required String Function(String) toUriStr,
   }) {
     var buffer = StringBuffer();
 
@@ -64,10 +62,8 @@ class PackageConfigFileBuilder {
       var rootUri = toUriStr(package.rootPath);
       buffer.write('$prefix"rootUri": "$rootUri"');
 
-      if (package.packageUri != null) {
-        buffer.writeln(',');
-        buffer.write('$prefix"packageUri": "${package.packageUri}"');
-      }
+      buffer.writeln(',');
+      buffer.write('$prefix"packageUri": "${package.packageUri}"');
 
       if (package.languageVersion != null) {
         buffer.writeln(',');
@@ -92,12 +88,12 @@ class _PackageDescription {
   final String name;
   final String rootPath;
   final String packageUri;
-  final String languageVersion;
+  final String? languageVersion;
 
   _PackageDescription({
-    @required this.name,
-    @required this.rootPath,
-    @required this.packageUri,
-    @required this.languageVersion,
+    required this.name,
+    required this.rootPath,
+    required this.packageUri,
+    required this.languageVersion,
   });
 }

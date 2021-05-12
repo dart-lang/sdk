@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -122,14 +124,6 @@ var c = 'a' + b;
 var b = 'b';
 var c = 'a$b';
 ''');
-  }
-
-  Future<void> test_stringLiteral_variable_raw_single_notMulti() async {
-    await resolveTestCode('''
-var b = 'b';
-var c = r'a' + b;
-''');
-    await assertNoFix();
   }
 
   Future<void> test_stringLiteral_variable_withEscapes() async {

@@ -780,7 +780,7 @@ class SampleProfile extends M.SampleProfile {
   static const String _kSamples = 'samples';
   static const String _kStack = 'stack';
   static const String _kMaxStackDepth = 'maxStackDepth';
-  static const String _kTimeSpan = 'timespan';
+  static const String _kTimeSpan = 'timeExtentMicros';
   static const String _kUserTag = 'userTag';
   static const String _kVmTag = 'vmTag';
 
@@ -891,7 +891,7 @@ class SampleProfile extends M.SampleProfile {
       samplePeriod = profile[_kSamplePeriod];
       sampleRate = (Duration.microsecondsPerSecond / samplePeriod);
       maxStackDepth = profile[_kMaxStackDepth];
-      timeSpan = profile[_kTimeSpan];
+      timeSpan = profile[_kTimeSpan] / Duration.microsecondsPerSecond;
 
       num length = 0;
 

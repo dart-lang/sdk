@@ -160,7 +160,6 @@ class DartTypeParser {
       case Token.Name:
         scanToken();
         String name = this.tokenText;
-        if (name == '_') return const BottomType();
         if (name == 'void') return const VoidType();
         if (name == 'dynamic') return const DynamicType();
         var target = lookupType(name);

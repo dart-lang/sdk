@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -306,21 +308,6 @@ test() {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  Future<void> test_checkNewName_FunctionTypeAliasElement() async {
-    await indexTestUnit('''
-typedef Test();
-''');
-    createRenameRefactoringAtString('Test();');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function type alias name must not be null.');
-    // OK
-    refactoring.newName = 'NewName';
-    assertRefactoringStatusOK(refactoring.checkNewName());
-  }
-
   Future<void> test_checkNewName_TopLevelVariableElement() async {
     await indexTestUnit('''
 var test;
@@ -338,6 +325,51 @@ var test;
         expectedMessage: 'Variable name must not be empty.');
     // OK
     refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_functionType() async {
+    await indexTestUnit('''
+typedef Test = void Function();
+''');
+    createRenameRefactoringAtString('Test =');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be null.');
+    // OK
+    refactoring.newName = 'NewName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_interfaceType() async {
+    await indexTestUnit('''
+typedef Test = List<int>;
+''');
+    createRenameRefactoringAtString('Test =');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be null.');
+    // OK
+    refactoring.newName = 'NewName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_legacy() async {
+    await indexTestUnit('''
+typedef Test();
+''');
+    createRenameRefactoringAtString('Test();');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be null.');
+    // OK
+    refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
@@ -628,30 +660,6 @@ foo() {}
 ''');
   }
 
-  Future<void> test_createChange_FunctionTypeAliasElement() async {
-    await indexTestUnit('''
-typedef void F();
-void foo<T>() {}
-void main() {
-  foo<F>();
-}
-''');
-    // configure refactoring
-    createRenameRefactoringAtString('F()');
-    expect(refactoring.refactoringName, 'Rename Function Type Alias');
-    expect(refactoring.elementKindName, 'type alias');
-    expect(refactoring.oldName, 'F');
-    refactoring.newName = 'G';
-    // validate change
-    return assertSuccessfulRefactoring('''
-typedef void G();
-void foo<T>() {}
-void main() {
-  foo<G>();
-}
-''');
-  }
-
   Future<void> test_createChange_outsideOfProject_referenceInPart() async {
     newFile('/home/part.dart', content: r'''
 part of test;
@@ -724,6 +732,60 @@ void f(NewName a) {}
 
   Future<void> test_createChange_TopLevelVariableElement_setter() async {
     await _test_createChange_TopLevelVariableElement('test = 1');
+  }
+
+  Future<void> test_createChange_typeAlias_functionType() async {
+    await indexTestUnit('''
+typedef F = void Function();
+void f(F a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('F =');
+    expect(refactoring.refactoringName, 'Rename Type Alias');
+    expect(refactoring.elementKindName, 'type alias');
+    expect(refactoring.oldName, 'F');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef NewName = void Function();
+void f(NewName a) {}
+''');
+  }
+
+  Future<void> test_createChange_typeAlias_interfaceType() async {
+    await indexTestUnit('''
+typedef A<T> = Map<int, T>;
+void f(A<String> a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('A<T>');
+    expect(refactoring.refactoringName, 'Rename Type Alias');
+    expect(refactoring.elementKindName, 'type alias');
+    expect(refactoring.oldName, 'A');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef NewName<T> = Map<int, T>;
+void f(NewName<String> a) {}
+''');
+  }
+
+  Future<void> test_createChange_typeAlias_legacy() async {
+    await indexTestUnit('''
+typedef void F();
+void f(F a) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('F()');
+    expect(refactoring.refactoringName, 'Rename Type Alias');
+    expect(refactoring.elementKindName, 'type alias');
+    expect(refactoring.oldName, 'F');
+    refactoring.newName = 'G';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef void G();
+void f(G a) {}
+''');
   }
 
   Future<void> _test_createChange_PropertyAccessorElement(String search) async {

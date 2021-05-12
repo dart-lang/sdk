@@ -80,8 +80,13 @@ class LoadingUnitSerializationData : public ZoneAllocated {
 
 class SerializationCluster : public ZoneAllocated {
  public:
-  explicit SerializationCluster(const char* name)
-      : name_(name), size_(0), num_objects_(0) {}
+  explicit SerializationCluster(const char* name,
+                                intptr_t target_instance_size = 0)
+      : name_(name),
+        size_(0),
+        num_objects_(0),
+        target_instance_size_(target_instance_size),
+        target_memory_size_(0) {}
   virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
@@ -102,10 +107,21 @@ class SerializationCluster : public ZoneAllocated {
   intptr_t size() const { return size_; }
   intptr_t num_objects() const { return num_objects_; }
 
+  // Returns number of bytes needed for deserialized objects in
+  // this cluster. Printed in --print_snapshot_sizes_verbose statistics.
+  //
+  // In order to calculate this size, clusters of fixed-size objects
+  // can pass instance size as [target_instance_size] constructor parameter.
+  // Otherwise clusters should count [target_memory_size] in
+  // their [WriteAlloc] methods.
+  intptr_t target_memory_size() const { return target_memory_size_; }
+
  protected:
   const char* name_;
   intptr_t size_;
   intptr_t num_objects_;
+  const intptr_t target_instance_size_;
+  intptr_t target_memory_size_;
 };
 
 class DeserializationCluster : public ZoneAllocated {
@@ -116,16 +132,20 @@ class DeserializationCluster : public ZoneAllocated {
 
   // Allocate memory for all objects in the cluster and write their addresses
   // into the ref array. Do not touch this memory.
-  virtual void ReadAlloc(Deserializer* deserializer, bool is_canonical) = 0;
+  virtual void ReadAlloc(Deserializer* deserializer, bool stamp_canonical) = 0;
 
   // Initialize the cluster's objects. Do not touch the memory of other objects.
-  virtual void ReadFill(Deserializer* deserializer, bool is_canonical) = 0;
+  virtual void ReadFill(Deserializer* deserializer, bool stamp_canonical) = 0;
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
   virtual void PostLoad(Deserializer* deserializer,
                         const Array& refs,
-                        bool is_canonical) {}
+                        bool canonicalize) {
+    if (canonicalize) {
+      FATAL1("%s needs canonicalization but doesn't define PostLoad", name());
+    }
+  }
 
   const char* name() const { return name_; }
 
@@ -147,7 +167,11 @@ class SerializationRoots {
 class DeserializationRoots {
  public:
   virtual ~DeserializationRoots() {}
-  virtual void AddBaseObjects(Deserializer* deserializer) = 0;
+  // Returns true if these roots are the first snapshot loaded into a heap, and
+  // so can assume any canonical objects don't already exist. Returns false if
+  // some other snapshot may be loaded before these roots, and so written
+  // canonical objects need to run canoncalization during load.
+  virtual bool AddBaseObjects(Deserializer* deserializer) = 0;
   virtual void ReadRoots(Deserializer* deserializer) = 0;
   virtual void PostLoad(Deserializer* deserializer, const Array& refs) = 0;
 };
@@ -202,7 +226,7 @@ class Serializer : public ThreadStackResource {
   ObjectPtr ParentOf(const Object& object);
 #endif
 
-  SerializationCluster* NewClusterForClass(intptr_t cid);
+  SerializationCluster* NewClusterForClass(intptr_t cid, bool is_canonical);
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
@@ -225,6 +249,7 @@ class Serializer : public ThreadStackResource {
 
   NonStreamingWriteStream* stream() { return stream_; }
   intptr_t bytes_written() { return stream_->bytes_written(); }
+  intptr_t bytes_heap_allocated() { return bytes_heap_allocated_; }
 
   void FlushBytesWrittenToRoot();
   void TraceStartWritingObject(const char* type, ObjectPtr obj, StringPtr name);
@@ -323,20 +348,21 @@ class Serializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void WriteFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      WriteOffsetRef(*p, (p - reinterpret_cast<ObjectPtr*>(obj->untag())) *
-                             sizeof(ObjectPtr));
+    auto* from = obj->untag()->from();
+    auto* to = obj->untag()->to_snapshot(kind(), args...);
+    for (auto* p = from; p <= to; p++) {
+      WriteOffsetRef(
+          p->Decompress(obj->heap_base()),
+          reinterpret_cast<uword>(p) - reinterpret_cast<uword>(obj->untag()));
     }
   }
 
   template <typename T, typename... P>
   void PushFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      Push(*p);
+    auto* from = obj->untag()->from();
+    auto* to = obj->untag()->to_snapshot(kind(), args...);
+    for (auto* p = from; p <= to; p++) {
+      Push(p->Decompress(obj->heap_base()));
     }
   }
 
@@ -347,7 +373,7 @@ class Serializer : public ThreadStackResource {
     Write<int32_t>(cid);
   }
 
-  void PrepareInstructions(GrowableArray<CodePtr>* codes);
+  void PrepareInstructions();
   void WriteInstructions(InstructionsPtr instr,
                          uint32_t unchecked_offset,
                          CodePtr code,
@@ -374,12 +400,13 @@ class Serializer : public ThreadStackResource {
   bool CreateArtificalNodeIfNeeded(ObjectPtr obj);
 
   bool InCurrentLoadingUnit(ObjectPtr obj, bool record = false);
-  GrowableArray<LoadingUnitSerializationData*>* loading_units() {
+  GrowableArray<LoadingUnitSerializationData*>* loading_units() const {
     return loading_units_;
   }
   void set_loading_units(GrowableArray<LoadingUnitSerializationData*>* units) {
     loading_units_ = units;
   }
+  intptr_t current_loading_unit_id() const { return current_loading_unit_id_; }
   void set_current_loading_unit_id(intptr_t id) {
     current_loading_unit_id_ = id;
   }
@@ -396,22 +423,20 @@ class Serializer : public ThreadStackResource {
       return -id;
     }
     ASSERT(!IsArtificialReference(id));
-    if (IsAllocatedReference(id)) return id;
-    if (object->IsWeakSerializationReference()) {
-      // If a reachable WSR has an object ID of 0, then its target was marked
-      // for serialization due to reachable strong references and the WSR will
-      // be dropped instead. Thus, we change the reference to the WSR to a
-      // direct reference to the serialized target.
-      auto const ref = WeakSerializationReference::RawCast(object);
-      auto const target = WeakSerializationReference::TargetOf(ref);
-      auto const target_id = heap_->GetObjectId(target);
-      ASSERT(IsAllocatedReference(target_id));
-      return target_id;
+    if (IsAllocatedReference(id)) {
+      return id;
     }
     if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
       return RefId(Object::null());
     }
     FATAL("Missing ref");
+  }
+
+  bool HasRef(ObjectPtr object) const {
+    return heap_->GetObjectId(object) != kUnreachableReference;
+  }
+  bool IsWritten(ObjectPtr object) const {
+    return heap_->GetObjectId(object) > num_base_objects_;
   }
 
  private:
@@ -434,6 +459,7 @@ class Serializer : public ThreadStackResource {
   FieldTable* initial_field_table_;
 
   intptr_t dispatch_table_size_ = 0;
+  intptr_t bytes_heap_allocated_ = 0;
 
   // True if writing VM snapshot, false for Isolate snapshot.
   bool vm_;
@@ -476,6 +502,8 @@ class Serializer : public ThreadStackResource {
 #define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
 
 #define WriteField(obj, field) s->WritePropertyRef(obj->untag()->field, #field)
+#define WriteCompressedField(obj, name)                                        \
+  s->WritePropertyRef(obj->untag()->name(), #name "_")
 
 class SerializerWritingObjectScope {
  public:
@@ -526,12 +554,12 @@ class SnapshotHeaderReader {
   // Returns null on success and a malloc()ed error on failure.
   // The [offset] will be the next position in the snapshot stream after the
   // features.
-  char* VerifyVersionAndFeatures(Isolate* isolate, intptr_t* offset);
+  char* VerifyVersionAndFeatures(IsolateGroup* isolate_group, intptr_t* offset);
 
  private:
   char* VerifyVersion();
   char* ReadFeatures(const char** features, intptr_t* features_length);
-  char* VerifyFeatures(Isolate* isolate);
+  char* VerifyFeatures(IsolateGroup* isolate_group);
   char* BuildError(const char* message);
 
   Snapshot::Kind kind_;
@@ -573,6 +601,8 @@ class Deserializer : public ThreadStackResource {
 
   uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
 
+  intptr_t position() const { return stream_.Position(); }
+  void set_position(intptr_t p) { stream_.SetPosition(p); }
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();
   }
@@ -598,17 +628,17 @@ class Deserializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void ReadFromTo(T obj, P&&... params) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
-    ObjectPtr* to = obj->untag()->to(params...);
-    for (ObjectPtr* p = from; p <= to_snapshot; p++) {
+    auto* from = obj->untag()->from();
+    auto* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
+    auto* to = obj->untag()->to(params...);
+    for (auto* p = from; p <= to_snapshot; p++) {
       *p = ReadRef();
     }
     // This is necessary because, unlike Object::Allocate, the clustered
     // deserializer allocates object without null-initializing them. Instead,
     // each deserialization cluster is responsible for initializing every field,
     // ensuring that every field is written to exactly once.
-    for (ObjectPtr* p = to_snapshot + 1; p <= to; p++) {
+    for (auto* p = to_snapshot + 1; p <= to; p++) {
       *p = Object::null();
     }
   }
@@ -640,6 +670,7 @@ class Deserializer : public ThreadStackResource {
   Zone* zone() const { return zone_; }
   Snapshot::Kind kind() const { return kind_; }
   FieldTable* initial_field_table() const { return initial_field_table_; }
+  bool is_non_root_unit() const { return is_non_root_unit_; }
 
  private:
   Heap* heap_;
@@ -674,7 +705,6 @@ class FullSnapshotWriter {
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
-  Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Heap* heap() const { return isolate_group()->heap(); }
 
@@ -706,10 +736,12 @@ class FullSnapshotWriter {
   ImageWriter* isolate_image_writer_;
 
   // Stats for benchmarking.
-  intptr_t clustered_vm_size_;
-  intptr_t clustered_isolate_size_;
-  intptr_t mapped_data_size_;
-  intptr_t mapped_text_size_;
+  intptr_t clustered_vm_size_ = 0;
+  intptr_t clustered_isolate_size_ = 0;
+  intptr_t mapped_data_size_ = 0;
+  intptr_t mapped_text_size_ = 0;
+  intptr_t heap_vm_size_ = 0;
+  intptr_t heap_isolate_size_ = 0;
 
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
 

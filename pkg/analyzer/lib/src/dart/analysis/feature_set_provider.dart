@@ -9,7 +9,6 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/uri.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSetProvider {
@@ -26,14 +25,14 @@ class FeatureSetProvider {
   final FeatureSet _nonPackageDefaultFeatureSet;
 
   FeatureSetProvider._({
-    @required Version sdkLanguageVersion,
-    @required AllowedExperiments allowedExperiments,
-    @required ResourceProvider resourceProvider,
-    @required Packages packages,
-    @required FeatureSet packageDefaultFeatureSet,
-    @required Version nonPackageDefaultLanguageVersion,
-    @required FeatureSet nonPackageDefaultFeatureSet,
-  })  : _sdkLanguageVersion = sdkLanguageVersion,
+    required Version sdkLanguageVersion,
+    required AllowedExperiments allowedExperiments,
+    required ResourceProvider resourceProvider,
+    required Packages packages,
+    required FeatureSet packageDefaultFeatureSet,
+    required Version nonPackageDefaultLanguageVersion,
+    required FeatureSet nonPackageDefaultFeatureSet,
+  })   : _sdkLanguageVersion = sdkLanguageVersion,
         _allowedExperiments = allowedExperiments,
         _resourceProvider = resourceProvider,
         _packages = packages,
@@ -42,10 +41,6 @@ class FeatureSetProvider {
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
 
   FeatureSet featureSetForExperiments(List<String> experiments) {
-    if (experiments == null) {
-      return null;
-    }
-
     return FeatureSet.fromEnableFlags2(
       sdkLanguageVersion: _sdkLanguageVersion,
       flags: experiments,
@@ -113,7 +108,7 @@ class FeatureSetProvider {
   ///
   /// If unable to find a package through other mechanisms mechanisms, or it is
   /// an unrecognized uri scheme, then the package is looked up by [path].
-  Package _findPackage(Uri uri, String path) {
+  Package? _findPackage(Uri uri, String path) {
     if (uri.isScheme('package') || uri.isScheme('asset')) {
       var pathSegments = uri.pathSegments;
       if (pathSegments.isNotEmpty) {
@@ -135,14 +130,14 @@ class FeatureSetProvider {
   }
 
   static FeatureSetProvider build({
-    @required SourceFactory sourceFactory,
-    @required ResourceProvider resourceProvider,
-    @required Packages packages,
-    @required FeatureSet packageDefaultFeatureSet,
-    @required Version nonPackageDefaultLanguageVersion,
-    @required FeatureSet nonPackageDefaultFeatureSet,
+    required SourceFactory sourceFactory,
+    required ResourceProvider resourceProvider,
+    required Packages packages,
+    required FeatureSet packageDefaultFeatureSet,
+    required Version nonPackageDefaultLanguageVersion,
+    required FeatureSet nonPackageDefaultFeatureSet,
   }) {
-    var sdk = sourceFactory.dartSdk;
+    var sdk = sourceFactory.dartSdk!;
     var allowedExperiments = _experimentsForSdk(sdk);
     return FeatureSetProvider._(
       sdkLanguageVersion: sdk.languageVersion,

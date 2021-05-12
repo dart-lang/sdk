@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class Element extends core::Object {
+  synthetic constructor •() → self::Element
+    : super core::Object::•()
+    ;
+}
+class Class<E extends self::Element? = self::Element?> extends core::Object {
+  generic-covariant-impl field self::Class::E? element;
+  constructor •(self::Class::E? element) → self::Class<self::Class::E%>
+    : self::Class::element = element, super core::Object::•()
+    ;
+  method setElement(generic-covariant-impl self::Class::E? element) → void {
+    if(!this.{self::Class::element}.{core::Object::==}(element)) {
+      this.{self::Class::element} = element;
+      core::Set<self::Element> elements = new col::_CompactLinkedHashSet::•<self::Element>();
+      if(!element.{core::Object::==}(null)) {
+        elements.{core::Set::add}(element{self::Class::E% & self::Element /* '%' & '!' = '!' */});
+      }
+      if(!this.{self::Class::element}.{core::Object::==}(null)) {
+        elements.{core::Set::add}(this.{self::Class::element}!);
+      }
+    }
+  }
+}
+static method main() → dynamic {}

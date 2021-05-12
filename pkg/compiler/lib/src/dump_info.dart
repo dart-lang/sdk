@@ -271,7 +271,7 @@ class ElementInfoCollector {
     List<String> inferredParameterTypes = <String>[];
 
     closedWorld.elementEnvironment.forEachParameterAsLocal(
-        closedWorld.globalLocalsMap, function, (parameter) {
+        _globalInferenceResults.globalLocalsMap, function, (parameter) {
       inferredParameterTypes.add('${_resultOfParameter(parameter)}');
     });
     int parameterIndex = 0;
@@ -651,8 +651,11 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       }
     }
 
-    result.deferredFiles = closedWorld.outputUnitData
-        .computeDeferredMap(compiler.options, closedWorld.elementEnvironment);
+    var fragmentsToLoad =
+        compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
+    var fragmentMerger =
+        compiler.backendStrategy.emitterTask.emitter.fragmentMerger;
+    result.deferredFiles = fragmentMerger.computeDeferredMap(fragmentsToLoad);
     stopwatch.stop();
 
     result.program = new ProgramInfo(

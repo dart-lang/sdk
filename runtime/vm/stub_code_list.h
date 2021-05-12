@@ -86,6 +86,7 @@ namespace dart {
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(AssertSubtype)                                                             \
+  V(AssertAssignable)                                                          \
   V(TypeIsTopTypeForSubtyping)                                                 \
   V(TypeIsTopTypeForSubtypingNullSafe)                                         \
   V(NullIsAssignableToType)                                                    \
@@ -125,10 +126,12 @@ namespace dart {
   V(ReThrow)                                                                   \
   V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
+  V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
-  V(NoSuchMethodDispatcher)
+  V(NoSuchMethodDispatcher)                                                    \
+  V(UnknownDartCode)
 
 }  // namespace dart
 

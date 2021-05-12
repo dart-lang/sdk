@@ -122,14 +122,30 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         delayed_weak_properties_(WeakProperty::null()) {}
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                          ObjectPtr* first,
-                                          ObjectPtr* last) {
-    // First we forward all fields of the typed data view.
-    VisitPointers(first, last);
+                                          CompressedObjectPtr* first,
+                                          CompressedObjectPtr* last) {
+    // TypedDataViews require extra processing to update their
+    // PointerBase::data_ pointer. If the underlying typed data is external, no
+    // update is needed. If the underlying typed data is internal, the pointer
+    // must be updated if the typed data was copied or promoted. We cannot
+    // safely dereference the underlying typed data to make this distinction.
+    // It may have been forwarded by a different scavanger worker, so the access
+    // could have a data race. Rather than checking the CID of the underlying
+    // typed data, which requires dereferencing the copied/promoted header, we
+    // compare the view's internal pointer to what it should be if the
+    // underlying typed data was internal, and assume that external typed data
+    // never points into the Dart heap. We must do this before VisitPointers
+    // because we want to compare the old pointer and old typed data.
+    const bool is_external =
+        view->untag()->data_ != view->untag()->DataFieldForInternalTypedData();
+
+    // Forward all fields of the typed data view.
+    VisitCompressedPointers(view->heap_base(), first, last);
 
     if (view->untag()->data_ == nullptr) {
-      ASSERT(RawSmiValue(view->untag()->offset_in_bytes_) == 0 &&
-             RawSmiValue(view->untag()->length_) == 0);
+      ASSERT(RawSmiValue(view->untag()->offset_in_bytes()) == 0 &&
+             RawSmiValue(view->untag()->length()) == 0);
+      ASSERT(is_external);
       return;
     }
 
@@ -140,31 +156,45 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word.
-    TypedDataBasePtr td = view->untag()->typed_data_;
+    TypedDataBasePtr td = view->untag()->typed_data();
     ASSERT(td->IsHeapObject());
     const uword td_header =
         *reinterpret_cast<uword*>(UntaggedObject::ToAddr(td));
     ASSERT(!IsForwarding(td_header) || td->IsOldObject());
 
-    // We can always obtain the class id from the forwarded backing store.
-    const classid_t cid = td->GetClassId();
+    if (!parallel) {
+      // When there is only one worker, there is no data race.
+      ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+    }
 
     // If we have external typed data we can simply return since the backing
     // store lives in C-heap and will not move.
-    if (IsExternalTypedDataClassId(cid)) {
+    if (is_external) {
       return;
     }
 
     // Now we update the inner pointer.
-    ASSERT(IsTypedDataClassId(cid));
+    if (!parallel) {
+      ASSERT(IsTypedDataClassId(td->GetClassId()));
+    }
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
     for (ObjectPtr* current = first; current <= last; current++) {
       ScavengePointer(current);
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    ASSERT(Utils::IsAligned(first, sizeof(*first)));
+    ASSERT(Utils::IsAligned(last, sizeof(*last)));
+    for (CompressedObjectPtr* current = first; current <= last; current++) {
+      ScavengeCompressedPointer(heap_base, current);
     }
   }
 
@@ -253,7 +283,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   NewPage* tail() const { return tail_; }
 
  private:
-  void UpdateStoreBuffer(ObjectPtr* p, ObjectPtr obj) {
+  void UpdateStoreBuffer(ObjectPtr obj) {
     ASSERT(obj->IsHeapObject());
     // If the newly written object is not a new object, drop it immediately.
     if (!obj->IsNewObject() || visiting_old_object_->untag()->IsRemembered()) {
@@ -272,6 +302,57 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       return;
     }
 
+    ObjectPtr new_obj = ScavengeObject(raw_obj);
+
+    // Update the reference.
+    if (!new_obj->IsNewObject()) {
+      // Setting the mark bit above must not be ordered after a publishing store
+      // of this object. Note this could be a publishing store even if the
+      // object was promoted by an early invocation of ScavengePointer. Compare
+      // Object::Allocate.
+      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
+          new_obj, std::memory_order_release);
+    } else {
+      *p = new_obj;
+    }
+
+    // Update the store buffer as needed.
+    if (visiting_old_object_ != nullptr) {
+      UpdateStoreBuffer(new_obj);
+    }
+  }
+
+  DART_FORCE_INLINE
+  void ScavengeCompressedPointer(uword heap_base, CompressedObjectPtr* p) {
+    // ScavengePointer cannot be called recursively.
+    ObjectPtr raw_obj = p->Decompress(heap_base);
+
+    if (raw_obj->IsSmiOrOldObject()) {  // Could be tested without decompression
+      return;
+    }
+
+    ObjectPtr new_obj = ScavengeObject(raw_obj);
+
+    // Update the reference.
+    if (!new_obj->IsNewObject()) {
+      // Setting the mark bit above must not be ordered after a publishing store
+      // of this object. Note this could be a publishing store even if the
+      // object was promoted by an early invocation of ScavengePointer. Compare
+      // Object::Allocate.
+      reinterpret_cast<std::atomic<CompressedObjectPtr>*>(p)->store(
+          static_cast<CompressedObjectPtr>(new_obj), std::memory_order_release);
+    } else {
+      *p = new_obj;
+    }
+
+    // Update the store buffer as needed.
+    if (visiting_old_object_ != nullptr) {
+      UpdateStoreBuffer(new_obj);
+    }
+  }
+
+  DART_FORCE_INLINE
+  ObjectPtr ScavengeObject(ObjectPtr raw_obj) {
     uword raw_addr = UntaggedObject::ToAddr(raw_obj);
     // The scavenger is only expects objects located in the from space.
     ASSERT(from_->Contains(raw_addr));
@@ -356,21 +437,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
     }
 
-    // Update the reference.
-    if (!new_obj->IsNewObject()) {
-      // Setting the mark bit above must not be ordered after a publishing store
-      // of this object. Note this could be a publishing store even if the
-      // object was promoted by an early invocation of ScavengePointer. Compare
-      // Object::Allocate.
-      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
-          new_obj, std::memory_order_release);
-    } else {
-      *p = new_obj;
-    }
-    // Update the store buffer as needed.
-    if (visiting_old_object_ != nullptr) {
-      UpdateStoreBuffer(p, new_obj);
-    }
+    return new_obj;
   }
 
   DART_FORCE_INLINE
@@ -603,6 +670,7 @@ void SemiSpace::Cleanup() {
 }
 
 intptr_t SemiSpace::CachedSize() {
+  MutexLocker ml(page_cache_mutex);
   return page_cache_size * kNewPageSize;
 }
 
@@ -783,6 +851,12 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
     }
   }
 
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    UNREACHABLE();  // Store buffer blocks are not compressed.
+  }
+
  private:
   ObjectSet* const in_store_buffer_;
 };
@@ -817,6 +891,25 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
+      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
+        if (!is_remembered_) {
+          FATAL3(
+              "Old object %#" Px " references new object %#" Px
+              ", but it is not"
+              " in any store buffer. Consider using rr to watch the slot %p and"
+              " reverse-continue to find the store with a missing barrier.\n",
+              static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
+        }
+        RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
+      }
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr raw_obj = ptr->Decompress(heap_base);
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (!is_remembered_) {
           FATAL3(
@@ -1651,6 +1744,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
   // Reverse the partial forwarding from the aborted scavenge. This also
   // rebuilds the remembered set.
+  heap_->WaitForSweeperTasksAtSafepoint(thread);
   Become::FollowForwardingPointers(thread);
 
   // Don't scavenge again until the next old-space GC has occurred. Prevents

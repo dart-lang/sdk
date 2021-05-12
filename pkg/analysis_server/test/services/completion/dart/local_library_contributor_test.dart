@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:test/test.dart';
@@ -212,6 +214,8 @@ void f() {^}
         class A { var a1; a2(){}}
         var m;
         typedef t1(int blue);
+        typedef t2 = void Function(int blue);
+        typedef t3 = List<int>;
         int af() {return 0;}''');
     addTestSource('''
         part of libA;
@@ -227,7 +231,11 @@ void f() {^}
     }
     assertSuggestFunction('af', 'int');
     assertSuggestTopLevelVar('m', null);
-    assertSuggestFunctionTypeAlias('t1', null);
+    assertSuggestTypeAlias('t1',
+        aliasedType: 'dynamic Function(int)', returnType: 'dynamic');
+    assertSuggestTypeAlias('t2',
+        aliasedType: 'void Function(int)', returnType: 'void');
+    assertSuggestTypeAlias('t3', aliasedType: 'List<int>');
     assertNotSuggested('a1');
     assertNotSuggested('a2');
     // Suggested by LocalConstructorContributor
@@ -270,7 +278,8 @@ void f() {^}
     }
     assertSuggestFunction('bf', 'int');
     assertSuggestTopLevelVar('n', null);
-    assertSuggestFunctionTypeAlias('t1', null);
+    assertSuggestTypeAlias('t1',
+        aliasedType: 'dynamic Function(int)', returnType: 'dynamic');
     assertNotSuggested('b1');
     assertNotSuggested('b2');
     // Suggested by ConstructorContributor

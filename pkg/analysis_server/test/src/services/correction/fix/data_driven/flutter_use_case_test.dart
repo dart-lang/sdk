@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -498,6 +500,113 @@ import '$importUri';
 void f(PointerHoverEvent event) {
   PointerExitEvent.fromMouseEvent(event);
 }
+''');
+  }
+
+  Future<void>
+      test_gestures_VelocityTracker_unnamedConstructor_withArg_deprecated() async {
+    setPackageContent('''
+class VelocityTracker {
+  @deprecated
+  VelocityTracker([PointerDeviceKind kind = PointerDeviceKind.touch]);
+  VelocityTracker.withKind(PointerDeviceKind kind);
+}
+class PointerDeviceKind {
+  static PointerDeviceKind mouse = PointerDeviceKind();
+  static PointerDeviceKind touch = PointerDeviceKind();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Use withKind"
+    date: 2020-09-17
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'VelocityTracker'
+    oneOf:
+      - if: "pointerDeviceKind == ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+          - kind: 'addParameter'
+            index: 0
+            name: 'kind'
+            style: required_positional
+            argumentValue:
+              expression: 'PointerDeviceKind.touch'
+      - if: "pointerDeviceKind != ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+    variables:
+      pointerDeviceKind:
+        kind: 'fragment'
+        value: 'arguments[0]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker(PointerDeviceKind.mouse);
+''');
+    await assertHasFix('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.mouse);
+''');
+  }
+
+  Future<void>
+      test_gestures_VelocityTracker_unnamedConstructor_withoutArg_deprecated() async {
+    setPackageContent('''
+class VelocityTracker {
+  @deprecated
+  VelocityTracker([PointerDeviceKind kind = PointerDeviceKind.touch]);
+  VelocityTracker.withKind(PointerDeviceKind kind);
+}
+class PointerDeviceKind {
+  static PointerDeviceKind touch = PointerDeviceKind();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Use withKind"
+    date: 2020-09-17
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'VelocityTracker'
+    oneOf:
+      - if: "pointerDeviceKind == ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+          - kind: 'addParameter'
+            index: 0
+            name: 'kind'
+            style: required_positional
+            argumentValue:
+              expression: 'PointerDeviceKind.touch'
+      - if: "pointerDeviceKind != ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+    variables:
+      pointerDeviceKind:
+        kind: 'fragment'
+        value: 'arguments[0]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker();
+''');
+    await assertHasFix('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.touch);
 ''');
   }
 

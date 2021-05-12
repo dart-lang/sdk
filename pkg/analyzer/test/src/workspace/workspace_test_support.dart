@@ -8,10 +8,10 @@ import 'package:analyzer/src/workspace/workspace.dart';
 /// Utilities for tests of subclasses of [WorkspacePackage].
 abstract class WorkspacePackageTest with ResourceProviderMixin {
   /// The workspace containing the packages.
-  Workspace workspace;
+  late final Workspace workspace;
 
   /// Return the package containing the given [path], or `null` if there is no
   /// such package in the [workspace].
-  WorkspacePackage findPackage(String path) =>
+  WorkspacePackage? findPackage(String path) =>
       workspace.findPackageFor(convertPath(path));
 }

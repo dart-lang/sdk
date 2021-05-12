@@ -18,15 +18,21 @@
 #include "vm/timeline.h"
 
 #if defined(TARGET_ARCH_ARM)
-#define ARCH_DEF "defined(TARGET_ARCH_ARM)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_ARM)"
 #elif defined(TARGET_ARCH_X64)
-#define ARCH_DEF "defined(TARGET_ARCH_X64)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_X64)"
 #elif defined(TARGET_ARCH_IA32)
-#define ARCH_DEF "defined(TARGET_ARCH_IA32)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_IA32)"
 #elif defined(TARGET_ARCH_ARM64)
-#define ARCH_DEF "defined(TARGET_ARCH_ARM64)"
+#define ARCH_DEF_CPU "defined(TARGET_ARCH_ARM64)"
 #else
 #error Unknown architecture
+#endif
+
+#if defined(DART_COMPRESSED_POINTERS)
+#define ARCH_DEF ARCH_DEF_CPU " && defined(DART_COMPRESSED_POINTERS)"
+#else
+#define ARCH_DEF ARCH_DEF_CPU " && !defined(DART_COMPRESSED_POINTERS)"
 #endif
 
 namespace dart {

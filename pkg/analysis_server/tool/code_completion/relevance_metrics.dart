@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' as io;
 import 'dart:math' as math;
 
@@ -32,7 +34,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 
@@ -1939,8 +1941,9 @@ class RelevanceMetricsComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      if (file_paths.isDart(pathContext, filePath)) {
         try {
           var resolvedUnitResult =
               await context.currentSession.getResolvedUnit(filePath);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -49,17 +51,17 @@ class DartUnitSignatureComputer {
     final args = argsNode;
     String name;
     ExecutableElement execElement;
-    if (args.parent is MethodInvocation) {
-      MethodInvocation method = args.parent;
-      name = method.methodName.name;
-      execElement = ElementLocator.locate(method) as ExecutableElement;
-    } else if (args.parent is InstanceCreationExpression) {
-      InstanceCreationExpression constructor = args.parent;
-      name = constructor.constructorName.type.name.name;
-      if (constructor.constructorName.name != null) {
-        name += '.${constructor.constructorName.name.name}';
+    final parent = args.parent;
+    if (parent is MethodInvocation) {
+      name = parent.methodName.name;
+      var element = ElementLocator.locate(parent);
+      execElement = element is ExecutableElement ? element : null;
+    } else if (parent is InstanceCreationExpression) {
+      name = parent.constructorName.type.name.name;
+      if (parent.constructorName.name != null) {
+        name += '.${parent.constructorName.name.name}';
       }
-      execElement = ElementLocator.locate(constructor) as ExecutableElement;
+      execElement = ElementLocator.locate(parent) as ExecutableElement;
     }
 
     if (execElement == null) {

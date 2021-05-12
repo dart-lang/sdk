@@ -1336,20 +1336,21 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
-  if (current->IsCheckClass()) {
-    current->AsCheckClass()->set_licm_hoisted(true);
-  } else if (current->IsCheckSmi()) {
-    current->AsCheckSmi()->set_licm_hoisted(true);
-  } else if (current->IsCheckEitherNonSmi()) {
-    current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
-  } else if (current->IsCheckArrayBound()) {
+  if (auto check = current->AsCheckClass()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsCheckSmi()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsCheckEitherNonSmi()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsCheckArrayBound()) {
     ASSERT(!CompilerState::Current().is_aot());  // speculative in JIT only
-    current->AsCheckArrayBound()->set_licm_hoisted(true);
-  } else if (current->IsGenericCheckBound()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsGenericCheckBound()) {
     ASSERT(CompilerState::Current().is_aot());  // non-speculative in AOT only
     // Does not deopt, so no need for licm_hoisted flag.
-  } else if (current->IsTestCids()) {
-    current->AsTestCids()->set_licm_hoisted(true);
+    USE(check);
+  } else if (auto check = current->AsTestCids()) {
+    check->set_licm_hoisted(true);
   }
   if (FLAG_trace_optimization) {
     THR_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
@@ -4225,7 +4226,18 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
   }
 }
 
+// Returns true if function is marked with vm:unsafe:no-interrupts pragma.
+static bool IsMarkedWithNoInterrupts(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_unsafe_no_interrupts(),
+                             /*multiple=*/false, &options);
+}
+
 void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
+  const bool should_remove_all = IsMarkedWithNoInterrupts(graph->function());
+
   CheckStackOverflowInstr* first_stack_overflow_instr = NULL;
   for (BlockIterator block_it = graph->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
@@ -4235,6 +4247,11 @@ void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
       Instruction* current = it.Current();
 
       if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
+        if (should_remove_all) {
+          it.RemoveCurrentFromGraph();
+          continue;
+        }
+
         if (first_stack_overflow_instr == NULL) {
           first_stack_overflow_instr = instr;
           ASSERT(!first_stack_overflow_instr->in_loop());

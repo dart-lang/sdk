@@ -262,7 +262,7 @@ static void TestAliasingViaRedefinition(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(InstructionSource(), cls));
+        new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
@@ -435,9 +435,9 @@ static void TestAliasingViaStore(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(InstructionSource(), cls));
+        new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     v5 = builder.AddDefinition(
-        new AllocateObjectInstr(InstructionSource(), cls));
+        new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     if (!make_host_escape) {
       builder.AddInstruction(
           new StoreInstanceFieldInstr(slot, new Value(v5), new Value(v0),
@@ -1348,6 +1348,27 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DontDelayIntoLoop) {
 
   EXPECT(strcmp(call->function().UserVisibleNameCString(), "use") == 0);
   EXPECT(call->Receiver()->definition() == allocate);
+}
+
+ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
+  const char* kScript = R"(
+    @pragma('vm:unsafe:no-interrupts')
+    void test() {
+      for (int i = 0; i < 10; i++) {
+      }
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "test"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  auto flow_graph = pipeline.RunPasses({});
+  for (auto block : flow_graph->postorder()) {
+    for (auto instr : block->instructions()) {
+      EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow());
+    }
+  }
 }
 
 #endif  // !defined(TARGET_ARCH_IA32)

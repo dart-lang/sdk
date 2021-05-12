@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -2334,7 +2336,7 @@ main() async {
   print(v);
 }
 
-Future res() async {
+Future<dynamic> res() async {
   var v = await getValue();
   return v;
 }
@@ -2431,7 +2433,7 @@ main() async {
 // end
 }
 
-Future res() async {
+Future<void> res() async {
   int v = await getValue();
   print(v);
 }
@@ -2812,7 +2814,7 @@ f(bool b) {
 // end
 }
 
-List res(bool b) {
+List<dynamic> res(bool b) {
   if (b) {
     print(true);
     return <int>[];

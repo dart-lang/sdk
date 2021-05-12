@@ -343,10 +343,13 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
           fields.endToken.offset + fields.endToken.length)
     ];
   } else if (item.isEnum()) {
-    DirectParserASTContentEnumEnd enm = item.asEnum();
+    DirectParserASTContentEnumEnd declaration = item.asEnum();
     return [
-      getCutContent(data, enm.enumKeyword.offset,
-          enm.leftBrace.endGroup.offset + enm.leftBrace.endGroup.length)
+      getCutContent(
+          data,
+          declaration.enumKeyword.offset,
+          declaration.leftBrace.endGroup.offset +
+              declaration.leftBrace.endGroup.length)
     ];
   } else if (item.isMixinDeclaration()) {
     DirectParserASTContentMixinDeclarationEnd mixinDecl =

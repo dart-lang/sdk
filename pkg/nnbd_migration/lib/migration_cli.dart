@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io' hide File;
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -143,7 +142,7 @@ class MigrateCommand extends Command<int> {
   static const String cmdName = 'migrate';
 
   static const String cmdDescription =
-      'Perform a null safety migration on a project or package.';
+      'Perform null safety migration on a project.';
 
   static const String migrationGuideLink =
       'See https://dart.dev/go/null-safety-migration for a migration guide.';
@@ -226,7 +225,7 @@ class MigrationCli {
               defaultsTo: false,
               negatable: false,
               help:
-                  'Attempt to perform null safety analysis even if the package has '
+                  'Attempt to perform null safety analysis even if the project has '
                   'analysis errors.',
             )),
     MigrationCliOption(
@@ -429,7 +428,7 @@ class MigrationCli {
   }
 
   void _showUsage(bool isVerbose) {
-    logger.stderr('Usage: $binaryName [options...] [<package directory>]');
+    logger.stderr('Usage: $binaryName [options...] [<project directory>]');
 
     logger.stderr('');
     logger.stderr(createParser(hide: !isVerbose).usage);
@@ -511,7 +510,7 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   _FixCodeProcessor _fixCodeProcessor;
 
-  AnalysisContextCollection _contextCollection;
+  AnalysisContextCollectionImpl _contextCollection;
 
   bool _hasExceptions = false;
 
@@ -531,16 +530,15 @@ class MigrationCliRunner implements DartFixListenerClient {
     // Handle the case of more than one analysis context being found (typically,
     // the current directory and one or more sub-directories).
     if (hasMultipleAnalysisContext) {
-      return contextCollection.contextFor(options.directory)
-          as DriverBasedAnalysisContext;
+      return contextCollection.contextFor(options.directory);
     } else {
-      return contextCollection.contexts.single as DriverBasedAnalysisContext;
+      return contextCollection.contexts.single;
     }
   }
 
   Ansi get ansi => logger.ansi;
 
-  AnalysisContextCollection get contextCollection {
+  AnalysisContextCollectionImpl get contextCollection {
     _contextCollection ??= AnalysisContextCollectionImpl(
         includedPaths: [options.directory],
         resourceProvider: resourceProvider,

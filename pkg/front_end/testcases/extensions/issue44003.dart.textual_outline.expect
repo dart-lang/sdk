@@ -1,0 +1,9 @@
+// @dart = 2.9
+void test(List<String> args) {}
+
+extension on List<String> {
+  void foo(String bar) {}
+  void foo(String baz, int a) {}
+}
+
+main() {}

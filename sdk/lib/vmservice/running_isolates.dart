@@ -22,7 +22,7 @@ class RunningIsolates implements MessageRouter {
     if (_rootPortId == portId) {
       _rootPortId = null;
     }
-    isolates.remove(portId);
+    (isolates.remove(portId))?.onIsolateExit();
   }
 
   @override

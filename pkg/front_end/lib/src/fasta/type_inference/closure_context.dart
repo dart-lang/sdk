@@ -33,6 +33,8 @@ abstract class ClosureContext {
   /// the unknown type.
   DartType get yieldContext;
 
+  DartType get futureValueType;
+
   factory ClosureContext(TypeInferrerImpl inferrer, AsyncMarker asyncMarker,
       DartType returnContext, bool needToInferReturnType) {
     assert(returnContext != null);
@@ -55,15 +57,20 @@ abstract class ClosureContext {
             yieldContext, declaredReturnType, needToInferReturnType);
       }
     } else if (isAsync) {
+      DartType futureValueType;
       if (inferrer.isNonNullableByDefault) {
         returnContext = inferrer.wrapFutureOrType(
             inferrer.computeFutureValueTypeSchema(returnContext));
+        if (!needToInferReturnType) {
+          futureValueType =
+              computeFutureValueType(inferrer.coreTypes, declaredReturnType);
+        }
       } else {
         returnContext = inferrer.wrapFutureOrType(
             inferrer.typeSchemaEnvironment.flatten(returnContext));
       }
-      return new _AsyncClosureContext(
-          returnContext, declaredReturnType, needToInferReturnType);
+      return new _AsyncClosureContext(returnContext, declaredReturnType,
+          needToInferReturnType, futureValueType);
     } else {
       return new _SyncClosureContext(
           returnContext, declaredReturnType, needToInferReturnType);
@@ -136,6 +143,9 @@ class _SyncClosureContext implements ClosureContext {
   /// A list of return expression types in functions whose return type is
   /// being inferred.
   List<DartType> _returnExpressionTypes;
+
+  @override
+  DartType get futureValueType => null;
 
   _SyncClosureContext(this._returnContext, this._declaredReturnType,
       this._needToInferReturnType) {
@@ -312,7 +322,8 @@ class _SyncClosureContext implements ClosureContext {
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        actualReturnedType = new NeverType(inferrer.library.nonNullable);
+        actualReturnedType =
+            NeverType.fromNullability(inferrer.library.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
@@ -480,8 +491,10 @@ class _AsyncClosureContext implements ClosureContext {
   /// being inferred.
   List<DartType> _returnExpressionTypes;
 
+  DartType futureValueType;
+
   _AsyncClosureContext(this._returnContext, this._declaredReturnType,
-      this._needToInferReturnType) {
+      this._needToInferReturnType, this.futureValueType) {
     if (_needToInferReturnType) {
       _returnStatements = [];
       _returnExpressionTypes = [];
@@ -491,8 +504,8 @@ class _AsyncClosureContext implements ClosureContext {
   void _checkValidReturn(TypeInferrerImpl inferrer, DartType returnType,
       ReturnStatement statement, DartType expressionType) {
     if (inferrer.isNonNullableByDefault) {
-      DartType futureValueType =
-          computeFutureValueType(inferrer.coreTypes, returnType);
+      assert(
+          futureValueType != null, "Future value type has not been computed.");
 
       if (statement.expression == null) {
         // It is a compile-time error if s is `return;`, unless T_v is void,
@@ -709,7 +722,7 @@ class _AsyncClosureContext implements ClosureContext {
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        inferredType = new NeverType(inferrer.library.nonNullable);
+        inferredType = NeverType.fromNullability(inferrer.library.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
@@ -788,6 +801,10 @@ class _AsyncClosureContext implements ClosureContext {
       }
     }
 
+    if (inferrer.isNonNullableByDefault) {
+      futureValueType =
+          computeFutureValueType(inferrer.coreTypes, inferredType);
+    }
     for (int i = 0; i < _returnStatements.length; ++i) {
       _checkValidReturn(inferrer, inferredType, _returnStatements[i],
           _returnExpressionTypes[i]);
@@ -871,6 +888,9 @@ class _SyncStarClosureContext implements ClosureContext {
   /// being inferred.
   List<DartType> _yieldElementTypes;
 
+  @override
+  DartType get futureValueType => null;
+
   _SyncStarClosureContext(this._yieldElementContext, this._declaredReturnType,
       this._needToInferReturnType) {
     if (_needToInferReturnType) {
@@ -935,7 +955,8 @@ class _SyncStarClosureContext implements ClosureContext {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
       if (inferrer.isNonNullableByDefault) {
-        inferredElementType = new NeverType(inferrer.library.nonNullable);
+        inferredElementType =
+            NeverType.fromNullability(inferrer.library.nonNullable);
       } else {
         inferredElementType = const NullType();
       }
@@ -995,6 +1016,9 @@ class _AsyncStarClosureContext implements ClosureContext {
   /// A list of return expression types in functions whose return type is
   /// being inferred.
   List<DartType> _yieldElementTypes;
+
+  @override
+  DartType get futureValueType => null;
 
   _AsyncStarClosureContext(this._yieldElementContext, this._declaredReturnType,
       this._needToInferReturnType) {
@@ -1060,7 +1084,8 @@ class _AsyncStarClosureContext implements ClosureContext {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
       if (inferrer.isNonNullableByDefault) {
-        inferredElementType = new NeverType(inferrer.library.nonNullable);
+        inferredElementType =
+            NeverType.fromNullability(inferrer.library.nonNullable);
       } else {
         inferredElementType = const NullType();
       }

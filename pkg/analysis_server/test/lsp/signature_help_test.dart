@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -82,6 +84,31 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
       ],
       expectedFormat: null,
     );
+  }
+
+  Future<void> test_error_methodInvocation_importPrefix() async {
+    final content = '''
+import 'dart:async' as prefix;
+
+void f() {
+  prefix(^);
+}
+''';
+
+    await initialize(
+      textDocumentCapabilities: withSignatureHelpContentFormat(
+        emptyTextDocumentClientCapabilities,
+        [MarkupKind.Markdown],
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    // Expect no result.
+    final res = await getSignatureHelp(
+      mainFileUri,
+      positionFromMarker(content),
+    );
+    expect(res, isNull);
   }
 
   Future<void> test_formats_markdown() async {

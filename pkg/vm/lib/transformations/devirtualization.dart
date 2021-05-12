@@ -27,7 +27,7 @@ Component transformComponent(CoreTypes coreTypes, Component component) {
 /// Subclasses should implement particular devirtualization strategy in
 /// [getDirectCall] method. Once direct target is determined, the invocation
 /// node is annotated with direct call metadata.
-abstract class Devirtualization extends RecursiveVisitor<Null> {
+abstract class Devirtualization extends RecursiveVisitor {
   /// Toggles tracing (useful for debugging).
   static const _trace = const bool.fromEnvironment('trace.devirtualization');
 

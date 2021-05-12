@@ -79,3 +79,98 @@ String wrapText(String text, {int width}) {
   }
   return buffer.toString();
 }
+
+// A valid Dart identifier that can be used for a package, i.e. no
+// capital letters.
+// https://dart.dev/guides/language/language-tour#important-concepts
+final RegExp _identifierRegExp = RegExp('[a-z_][a-z0-9_]*');
+
+// non-contextual dart keywords.
+// https://dart.dev/guides/language/language-tour#keywords
+const Set<String> _keywords = <String>{
+  'abstract',
+  'as',
+  'assert',
+  'async',
+  'await',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'continue',
+  'covariant',
+  'default',
+  'deferred',
+  'do',
+  'dynamic',
+  'else',
+  'enum',
+  'export',
+  'extends',
+  'extension',
+  'external',
+  'factory',
+  'false',
+  'final',
+  'finally',
+  'for',
+  'function',
+  'get',
+  'hide',
+  'if',
+  'implements',
+  'import',
+  'in',
+  'inout',
+  'interface',
+  'is',
+  'late',
+  'library',
+  'mixin',
+  'native',
+  'new',
+  'null',
+  'of',
+  'on',
+  'operator',
+  'out',
+  'part',
+  'patch',
+  'required',
+  'rethrow',
+  'return',
+  'set',
+  'show',
+  'source',
+  'static',
+  'super',
+  'switch',
+  'sync',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'typedef',
+  'var',
+  'void',
+  'while',
+  'with',
+  'yield',
+};
+
+/// Whether [name] is a valid Pub package.
+bool isValidPackageName(String name) {
+  final Match match = _identifierRegExp.matchAsPrefix(name);
+  return match != null && match.end == name.length && !_keywords.contains(name);
+}
+
+/// Convert a directory name into a reasonably legal pub package name.
+String normalizeProjectName(String name) {
+  name = name.replaceAll('-', '_').replaceAll(' ', '_');
+  // Strip any extension (like .dart).
+  if (name.contains('.')) {
+    name = name.substring(0, name.indexOf('.'));
+  }
+  return name;
+}

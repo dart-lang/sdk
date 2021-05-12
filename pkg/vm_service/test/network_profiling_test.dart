@@ -8,10 +8,8 @@ import 'dart:developer';
 import 'dart:io' as io;
 
 import 'package:test/test.dart';
-import 'package:vm_service/src/dart_io_extensions.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 const String content = 'some random content';
@@ -130,5 +128,9 @@ var tests = <IsolateTest>[
   // TODO(bkonyi): fully port observatory test for socket profiling.
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: setup);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'network_profiling_test.dart',
+      testeeBefore: setup,
+    );

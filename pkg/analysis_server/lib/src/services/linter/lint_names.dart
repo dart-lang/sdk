@@ -91,10 +91,13 @@ class LintNames {
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
   static const String unnecessary_const = 'unnecessary_const';
+  static const String unnecessary_final = 'unnecessary_final';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_in_if_null_operators =
       'unnecessary_null_in_if_null_operators';
+  static const String unnecessary_nullable_for_final_variable_declarations =
+      'unnecessary_nullable_for_final_variable_declarations';
   static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
   static const String unnecessary_string_interpolations =

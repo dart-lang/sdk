@@ -37,7 +37,8 @@ import 'type_system.dart';
 /// Calling [run] will start the work of visiting the body of the code to
 /// construct a set of inference-nodes that abstractly represent what the code
 /// is doing.
-class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
+class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
+    with ir.VisitorNullMixin<TypeInformation> {
   final CompilerOptions _options;
   final JsClosedWorld _closedWorld;
   final InferrerEngine _inferrer;
@@ -218,7 +219,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
     ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
-    scopeInfo.forEachBoxedVariable((variable, field) {
+    scopeInfo.forEachBoxedVariable(_localsMap, (variable, field) {
       _capturedAndBoxed[variable] = field;
     });
 
@@ -491,8 +492,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return null;
   }
 
-  @override
-  visitAssertStatement(ir.AssertStatement node) {
+  TypeInformation _handleAssertStatement(ir.AssertStatement node) {
     // Avoid pollution from assert statement unless enabled.
     if (!_options.enableUserAssertions) {
       return null;
@@ -510,6 +510,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _state = stateBefore.mergeDiamondFlow(
         _inferrer, afterConditionWhenTrue, stateAfterMessage);
     return null;
+  }
+
+  @override
+  visitAssertInitializer(ir.AssertInitializer node) {
+    return _handleAssertStatement(node.statement);
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    return _handleAssertStatement(node);
   }
 
   @override
@@ -877,54 +887,71 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return null;
   }
 
+  TypeInformation _handleLocalFunctionInvocation(
+      ir.Expression node,
+      ir.FunctionDeclaration function,
+      ir.Arguments arguments,
+      Selector selector) {
+    ArgumentsTypes argumentsTypes = analyzeArguments(arguments);
+    ClosureRepresentationInfo info =
+        _closureDataLookup.getClosureInfo(function);
+    if (isIncompatibleInvoke(info.callMethod, argumentsTypes)) {
+      return _types.dynamicType;
+    }
+
+    TypeInformation type =
+        handleStaticInvoke(node, selector, info.callMethod, argumentsTypes);
+    FunctionType functionType =
+        _elementMap.elementEnvironment.getFunctionType(info.callMethod);
+    if (functionType.returnType.containsFreeTypeVariables) {
+      // The return type varies with the call site so we narrow the static
+      // return type.
+      type = _types.narrowType(type, _getStaticType(node));
+    }
+    return type;
+  }
+
   @override
-  TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
+  TypeInformation visitLocalFunctionInvocation(
+      ir.LocalFunctionInvocation node) {
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _typeOfReceiver(node, node.receiver);
+    return _handleLocalFunctionInvocation(
+        node, node.variable.parent, node.arguments, selector);
+  }
 
-    ir.TreeNode receiver = node.receiver;
-    if (receiver is ir.VariableGet &&
-        receiver.variable.parent is ir.FunctionDeclaration) {
-      // This is an invocation of a named local function.
-      ArgumentsTypes arguments = analyzeArguments(node.arguments);
-      ClosureRepresentationInfo info =
-          _closureDataLookup.getClosureInfo(receiver.variable.parent);
-      if (isIncompatibleInvoke(info.callMethod, arguments)) {
-        return _types.dynamicType;
-      }
-
-      TypeInformation type =
-          handleStaticInvoke(node, selector, info.callMethod, arguments);
-      FunctionType functionType =
-          _elementMap.elementEnvironment.getFunctionType(info.callMethod);
-      if (functionType.returnType.containsFreeTypeVariables) {
-        // The return type varies with the call site so we narrow the static
-        // return type.
-        type = _types.narrowType(type, _getStaticType(node));
-      }
-      return type;
+  @override
+  TypeInformation visitEqualsNull(ir.EqualsNull node) {
+    visit(node.expression);
+    if (node.fileOffset < node.expression.fileOffset) {
+      // Hack to detect `null == o`.
+      // TODO(johnniwinther): Remove this after the new method invocation has
+      //  landed stably. This is only included to make the transition a no-op.
+      KernelGlobalTypeInferenceElementData data = _memberData;
+      data.setReceiverTypeMask(node, _closedWorld.abstractValueDomain.nullType);
+    } else {
+      // TODO(johnniwinther). This triggers the computation of the mask for the
+      // receiver of the call to `==`, which doesn't happen in this case. Remove
+      // this when the ssa builder recognized `== null` directly.
+      _typeOfReceiver(node, node.expression);
     }
+    _potentiallyAddNullCheck(node, node.expression);
+    return _types.boolType;
+  }
 
-    TypeInformation receiverType = visit(receiver);
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    if (selector.name == '==') {
-      if (_types.isNull(receiverType)) {
-        // null == o
-        _potentiallyAddNullCheck(node, node.arguments.positional.first);
-        return _types.boolType;
-      } else if (_types.isNull(arguments.positional[0])) {
-        // o == null
-        _potentiallyAddNullCheck(node, node.receiver);
-        return _types.boolType;
-      }
-    }
-    if (node.receiver is ir.ThisExpression) {
+  TypeInformation _handleMethodInvocation(
+      ir.Expression node,
+      ir.Expression receiver,
+      TypeInformation receiverType,
+      Selector selector,
+      ArgumentsTypes arguments,
+      ir.Member interfaceTarget) {
+    AbstractValue mask = _typeOfReceiver(node, receiver);
+    if (receiver is ir.ThisExpression) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
-    TypeInformation type = handleDynamicInvoke(
-        CallType.access, node, selector, mask, receiverType, arguments);
-    ir.Member interfaceTarget = node.interfaceTarget;
+    TypeInformation type = handleDynamicInvoke(CallType.access, node, selector,
+        mask, receiverType, arguments, _getVariableDeclaration(receiver));
     if (interfaceTarget != null) {
       if (interfaceTarget is ir.Procedure &&
           (interfaceTarget.kind == ir.ProcedureKind.Method ||
@@ -951,13 +978,123 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return type;
   }
 
+  TypeInformation _handleEqualsCall(
+      ir.Expression node,
+      ir.Expression left,
+      TypeInformation leftType,
+      ir.Expression right,
+      TypeInformation rightType) {
+    // TODO(johnniwinther). This triggers the computation of the mask for the
+    // receiver of the call to `==`, which might not happen in this case. Remove
+    // this when the ssa builder recognized `== null` directly.
+    _typeOfReceiver(node, left);
+    bool leftIsNull = _types.isNull(leftType);
+    bool rightIsNull = _types.isNull(rightType);
+    if (leftIsNull) {
+      // [right] is `null` if [node] evaluates to `true`.
+      _potentiallyAddNullCheck(node, right);
+    }
+    if (rightIsNull) {
+      // [left] is `null` if [node] evaluates to `true`.
+      _potentiallyAddNullCheck(node, left);
+    }
+    if (leftIsNull || rightIsNull) {
+      // `left == right` where `left` and/or `right` is known to have type
+      // `Null` so we have no invocation to register.
+      return _types.boolType;
+    }
+    Selector selector = Selector.binaryOperator('==');
+    ArgumentsTypes arguments = ArgumentsTypes([rightType], null);
+    return _handleMethodInvocation(
+        node, left, leftType, selector, arguments, null);
+  }
+
+  @override
+  TypeInformation visitEqualsCall(ir.EqualsCall node) {
+    TypeInformation leftType = visit(node.left);
+    TypeInformation rightType = visit(node.right);
+    return _handleEqualsCall(node, node.left, leftType, node.right, rightType);
+  }
+
+  @override
+  TypeInformation visitInstanceInvocation(ir.InstanceInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(node, node.receiver, receiverType, selector,
+        arguments, node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitInstanceGetterInvocation(
+      ir.InstanceGetterInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(node, node.receiver, receiverType, selector,
+        arguments, node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitDynamicInvocation(ir.DynamicInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(
+        node, node.receiver, receiverType, selector, arguments, null);
+  }
+
+  @override
+  TypeInformation visitFunctionInvocation(ir.FunctionInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(
+        node, node.receiver, receiverType, selector, arguments, null);
+  }
+
+  @override
+  TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // TODO(johnniwinther). This triggers the computation of the mask for the
+      // receiver of the call to `call`. Remove this when the ssa builder
+      // recognized local function invocation directly.
+      _typeOfReceiver(node, node.receiver);
+      // This is an invocation of a named local function.
+      return _handleLocalFunctionInvocation(
+          node, receiver.variable.parent, node.arguments, selector);
+    }
+
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    if (selector.name == '==') {
+      return _handleEqualsCall(node, node.receiver, receiverType,
+          node.arguments.positional.first, arguments.positional[0]);
+    }
+
+    return _handleMethodInvocation(node, node.receiver, receiverType, selector,
+        arguments, node.interfaceTarget);
+  }
+
+  ir.VariableDeclaration _getVariableDeclaration(ir.Expression node) {
+    return node is ir.VariableGet ? node.variable : null;
+  }
+
   TypeInformation _handleDynamic(
       CallType callType,
       ir.Node node,
       Selector selector,
       AbstractValue mask,
       TypeInformation receiverType,
-      ArgumentsTypes arguments) {
+      ArgumentsTypes arguments,
+      ir.VariableDeclaration variable) {
     assert(receiverType != null);
     if (_types.selectorNeedsUpdate(receiverType, mask)) {
       mask = receiverType == _types.dynamicType
@@ -965,18 +1102,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           : _types.newTypedSelector(receiverType, mask);
       _inferrer.updateSelectorInMember(
           _analyzedMember, callType, node, selector, mask);
-    }
-
-    ir.VariableDeclaration variable;
-    if (node is ir.MethodInvocation && node.receiver is ir.VariableGet) {
-      ir.VariableGet get = node.receiver;
-      variable = get.variable;
-    } else if (node is ir.PropertyGet && node.receiver is ir.VariableGet) {
-      ir.VariableGet get = node.receiver;
-      variable = get.variable;
-    } else if (node is ir.PropertySet && node.receiver is ir.VariableGet) {
-      ir.VariableGet get = node.receiver;
-      variable = get.variable;
     }
 
     if (variable != null) {
@@ -995,10 +1120,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         inLoop: inLoop, isConditional: false);
   }
 
-  TypeInformation handleDynamicGet(ir.Node node, Selector selector,
-      AbstractValue mask, TypeInformation receiverType) {
+  TypeInformation handleDynamicGet(
+      ir.Node node,
+      Selector selector,
+      AbstractValue mask,
+      TypeInformation receiverType,
+      ir.VariableDeclaration variable) {
     return _handleDynamic(
-        CallType.access, node, selector, mask, receiverType, null);
+        CallType.access, node, selector, mask, receiverType, null, variable);
   }
 
   TypeInformation handleDynamicSet(
@@ -1006,10 +1135,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Selector selector,
       AbstractValue mask,
       TypeInformation receiverType,
-      TypeInformation rhsType) {
+      TypeInformation rhsType,
+      ir.VariableDeclaration variable) {
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
-    return _handleDynamic(
-        CallType.access, node, selector, mask, receiverType, arguments);
+    return _handleDynamic(CallType.access, node, selector, mask, receiverType,
+        arguments, variable);
   }
 
   TypeInformation handleDynamicInvoke(
@@ -1018,9 +1148,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Selector selector,
       AbstractValue mask,
       TypeInformation receiverType,
-      ArgumentsTypes arguments) {
+      ArgumentsTypes arguments,
+      ir.VariableDeclaration variable) {
     return _handleDynamic(
-        callType, node, selector, mask, receiverType, arguments);
+        callType, node, selector, mask, receiverType, arguments, variable);
   }
 
   @override
@@ -1066,18 +1197,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       moveNextMask = _memberData.typeOfIteratorMoveNext(node);
 
       iteratorType = handleDynamicInvoke(CallType.forIn, node, iteratorSelector,
-          iteratorMask, expressionType, new ArgumentsTypes.empty());
+          iteratorMask, expressionType, new ArgumentsTypes.empty(), null);
     }
 
     handleDynamicInvoke(CallType.forIn, node, Selectors.moveNext, moveNextMask,
-        iteratorType, new ArgumentsTypes.empty());
+        iteratorType, new ArgumentsTypes.empty(), null);
     TypeInformation currentType = handleDynamicInvoke(
         CallType.forIn,
         node,
         Selectors.current,
         currentMask,
         iteratorType,
-        new ArgumentsTypes.empty());
+        new ArgumentsTypes.empty(),
+        null);
 
     Local variable = _localsMap.getLocalVariable(node.variable);
     DartType variableType = _localsMap.getLocalType(_elementMap, variable);
@@ -1453,6 +1585,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return createStaticGetTypeInformation(node, node.target);
   }
 
+  @override
+  TypeInformation visitStaticTearOff(ir.StaticTearOff node) {
+    return createStaticGetTypeInformation(node, node.target);
+  }
+
   TypeInformation createStaticGetTypeInformation(
       ir.Node node, ir.Member target) {
     MemberEntity member = _elementMap.getMember(target);
@@ -1472,16 +1609,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return rhsType;
   }
 
-  TypeInformation handlePropertyGet(ir.TreeNode node, ir.TreeNode receiver,
-      TypeInformation receiverType, ir.Member interfaceTarget,
-      {bool isThis}) {
+  TypeInformation _handlePropertyGet(ir.Expression node, ir.Expression receiver,
+      {ir.Member interfaceTarget}) {
+    TypeInformation receiverType = visit(receiver);
     Selector selector = _elementMap.getSelector(node);
     AbstractValue mask = _typeOfReceiver(node, receiver);
-    if (isThis) {
+    if (receiver is ir.ThisExpression) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
-    TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
+    TypeInformation type = handleDynamicGet(
+        node, selector, mask, receiverType, _getVariableDeclaration(receiver));
     if (interfaceTarget != null) {
       // Pull the type from kernel (instead of from the J-model) because the
       // interface target might be abstract and therefore not part of the
@@ -1497,25 +1635,46 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitPropertyGet(ir.PropertyGet node) {
-    TypeInformation receiverType = visit(node.receiver);
-    return handlePropertyGet(
-        node, node.receiver, receiverType, node.interfaceTarget,
-        isThis: node.receiver is ir.ThisExpression);
+  TypeInformation visitInstanceGet(ir.InstanceGet node) {
+    return _handlePropertyGet(node, node.receiver,
+        interfaceTarget: node.interfaceTarget);
   }
 
   @override
-  TypeInformation visitPropertySet(ir.PropertySet node) {
-    TypeInformation receiverType = visit(node.receiver);
-    Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _typeOfReceiver(node, node.receiver);
+  TypeInformation visitInstanceTearOff(ir.InstanceTearOff node) {
+    return _handlePropertyGet(node, node.receiver,
+        interfaceTarget: node.interfaceTarget);
+  }
 
-    TypeInformation rhsType = visit(node.value);
-    if (node.value is ir.ThisExpression) {
+  @override
+  TypeInformation visitDynamicGet(ir.DynamicGet node) {
+    return _handlePropertyGet(node, node.receiver);
+  }
+
+  @override
+  TypeInformation visitFunctionTearOff(ir.FunctionTearOff node) {
+    return _handlePropertyGet(node, node.receiver);
+  }
+
+  @override
+  TypeInformation visitPropertyGet(ir.PropertyGet node) {
+    return _handlePropertyGet(node, node.receiver,
+        interfaceTarget: node.interfaceTarget);
+  }
+
+  TypeInformation _handlePropertySet(
+      ir.Expression node, ir.Expression receiver, ir.Expression value,
+      {ir.Member interfaceTarget}) {
+    TypeInformation receiverType = visit(receiver);
+    Selector selector = _elementMap.getSelector(node);
+    AbstractValue mask = _typeOfReceiver(node, receiver);
+
+    TypeInformation rhsType = visit(value);
+    if (value is ir.ThisExpression) {
       _state.markThisAsExposed();
     }
 
-    if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
+    if (_inGenerativeConstructor && receiver is ir.ThisExpression) {
       AbstractValue typedMask = _types.newTypedSelector(receiverType, mask);
       if (!_closedWorld.includesClosureCall(selector, typedMask)) {
         Iterable<MemberEntity> targets =
@@ -1532,12 +1691,30 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         }
       }
     }
-    if (node.receiver is ir.ThisExpression) {
+    if (receiver is ir.ThisExpression) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
-    handleDynamicSet(node, selector, mask, receiverType, rhsType);
+    handleDynamicSet(node, selector, mask, receiverType, rhsType,
+        _getVariableDeclaration(receiver));
     return rhsType;
+  }
+
+  @override
+  TypeInformation visitPropertySet(ir.PropertySet node) {
+    return _handlePropertySet(node, node.receiver, node.value,
+        interfaceTarget: node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitInstanceSet(ir.InstanceSet node) {
+    return _handlePropertySet(node, node.receiver, node.value,
+        interfaceTarget: node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitDynamicSet(ir.DynamicSet node) {
+    return _handlePropertySet(node, node.receiver, node.value);
   }
 
   @override
@@ -1572,27 +1749,31 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
   }
 
-  void _potentiallyAddNullCheck(
-      ir.MethodInvocation node, ir.Expression receiver) {
+  void _potentiallyAddNullCheck(ir.Expression node, ir.Expression receiver) {
     if (!_accumulateIsChecks) return;
     if (receiver is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(receiver.variable);
       DartType localType = _localsMap.getLocalType(_elementMap, local);
-      LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
-      LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
+      LocalState stateAfterCheckWhenNull = new LocalState.childPath(_state);
+      LocalState stateAfterCheckWhenNotNull = new LocalState.childPath(_state);
 
       // Narrow tested variable to 'Null' on true branch.
-      stateAfterCheckWhenTrue.updateLocal(_inferrer, _capturedAndBoxed, local,
+      stateAfterCheckWhenNull.updateLocal(_inferrer, _capturedAndBoxed, local,
           _types.nullType, node, localType);
 
       // Narrow tested variable to 'not null' on false branch.
-      TypeInformation currentTypeInformation = stateAfterCheckWhenFalse
+      TypeInformation currentTypeInformation = stateAfterCheckWhenNotNull
           .readLocal(_inferrer, _capturedAndBoxed, local);
-      stateAfterCheckWhenFalse.updateLocal(_inferrer, _capturedAndBoxed, local,
-          currentTypeInformation, node, _closedWorld.commonElements.objectType,
+      stateAfterCheckWhenNotNull.updateLocal(
+          _inferrer,
+          _capturedAndBoxed,
+          local,
+          currentTypeInformation,
+          node,
+          _closedWorld.commonElements.objectType,
           excludeNull: true);
-
-      _setStateAfter(_state, stateAfterCheckWhenTrue, stateAfterCheckWhenFalse);
+      _setStateAfter(
+          _state, stateAfterCheckWhenNull, stateAfterCheckWhenNotNull);
     }
   }
 
@@ -1722,8 +1903,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    info.forEachFreeVariable((Local variable, FieldEntity field) {
-      if (!info.isBoxedVariable(variable)) {
+    info.forEachFreeVariable(_localsMap, (Local variable, FieldEntity field) {
+      if (!info.isBoxedVariable(_localsMap, variable)) {
         if (variable == info.thisLocal) {
           _inferrer.recordTypeOfField(field, thisType);
         }

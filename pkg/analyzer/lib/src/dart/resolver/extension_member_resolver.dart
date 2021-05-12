@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -29,6 +31,9 @@ class ExtensionMemberResolver {
   DartType get _dynamicType => _typeProvider.dynamicType;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
+
+  bool get _genericMetadataIsEnabled =>
+      _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
   Scope get _nameScope => _resolver.nameScope;
 
@@ -81,10 +86,10 @@ class ExtensionMemberResolver {
   ///
   /// The [node] is fully resolved, and its type arguments are set.
   ResolutionResult getOverrideMember(ExtensionOverride node, String name) {
-    ExtensionElement element = node.extensionName.staticElement;
+    var element = node.extensionName.staticElement as ExtensionElement;
 
-    ExecutableElement getter;
-    ExecutableElement setter;
+    ExecutableElement? getter;
+    ExecutableElement? setter;
     if (name == '[]') {
       getter = element.getMethod('[]');
       setter = element.getMethod('[]=');
@@ -99,11 +104,13 @@ class ExtensionMemberResolver {
 
     var substitution = Substitution.fromPairs(
       element.typeParameters,
-      node.typeArgumentTypes,
+      node.typeArgumentTypes!,
     );
 
-    var getterMember = ExecutableMember.from2(getter, substitution);
-    var setterMember = ExecutableMember.from2(setter, substitution);
+    var getterMember =
+        getter != null ? ExecutableMember.from2(getter, substitution) : null;
+    var setterMember =
+        setter != null ? ExecutableMember.from2(setter, substitution) : null;
 
     getterMember = _resolver.toLegacyElement(getterMember);
     setterMember = _resolver.toLegacyElement(setterMember);
@@ -114,14 +121,16 @@ class ExtensionMemberResolver {
   /// Perform upward inference for the override.
   void resolveOverride(ExtensionOverride node) {
     var nodeImpl = node as ExtensionOverrideImpl;
-    var element = node.staticElement;
+    var element = node.staticElement!;
     var typeParameters = element.typeParameters;
 
     if (!_isValidContext(node)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
-        node,
-      );
+      if (!_isCascadeTarget(node)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
+          node,
+        );
+      }
       nodeImpl.staticType = _dynamicType;
     }
 
@@ -137,13 +146,13 @@ class ExtensionMemberResolver {
     }
 
     var receiverExpression = arguments[0];
-    var receiverType = receiverExpression.staticType;
+    var receiverType = receiverExpression.typeOrThrow;
 
     if (node.isNullAware) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    var typeArgumentTypes = _inferTypeArguments(node, receiverType);
+    var typeArgumentTypes = _inferTypeArguments(node, receiverType)!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
     var substitution = Substitution.fromPairs(
@@ -163,7 +172,7 @@ class ExtensionMemberResolver {
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
-    } else if (!_typeSystem.isAssignableTo2(receiverType, node.extendedType)) {
+    } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType!)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
@@ -177,7 +186,7 @@ class ExtensionMemberResolver {
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
   void setOverrideReceiverContextType(ExtensionOverride node) {
-    var element = node.staticElement;
+    var element = node.staticElement!;
     var typeParameters = element.typeParameters;
 
     var arguments = node.argumentList.arguments;
@@ -190,7 +199,7 @@ class ExtensionMemberResolver {
     if (typeArguments != null) {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
-        typeArgumentTypes = arguments.map((a) => a.type).toList();
+        typeArgumentTypes = arguments.map((a) => a.typeOrThrow).toList();
       } else {
         typeArgumentTypes = _listOfDynamic(typeParameters);
       }
@@ -212,21 +221,22 @@ class ExtensionMemberResolver {
 
   void _checkTypeArgumentsMatchingBounds(
     List<TypeParameterElement> typeParameters,
-    TypeArgumentList typeArgumentList,
+    TypeArgumentList? typeArgumentList,
     List<DartType> typeArgumentTypes,
     Substitution substitution,
   ) {
     if (typeArgumentList != null) {
       for (var i = 0; i < typeArgumentTypes.length; i++) {
-        var argType = typeArgumentTypes[i];
-        var boundType = typeParameters[i].bound;
-        if (boundType != null) {
-          boundType = substitution.substituteType(boundType);
-          if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
+        var argument = typeArgumentTypes[i];
+        var parameter = typeParameters[i];
+        var parameterBound = parameter.bound;
+        if (parameterBound != null) {
+          parameterBound = substitution.substituteType(parameterBound);
+          if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList.arguments[i],
-              [argType, boundType],
+              [argument, parameter.name, parameterBound],
             );
           }
         }
@@ -236,7 +246,7 @@ class ExtensionMemberResolver {
 
   /// Return the most specific extension or `null` if no single one can be
   /// identified.
-  _InstantiatedExtension _chooseMostSpecific(
+  _InstantiatedExtension? _chooseMostSpecific(
       List<_InstantiatedExtension> extensions) {
     for (var i = 0; i < extensions.length; i++) {
       var e1 = extensions[i];
@@ -283,6 +293,7 @@ class ExtensionMemberResolver {
       var typeArguments = inferrer.infer(
         freshTypeParameters,
         failAtError: true,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       );
       if (typeArguments == null) {
         continue;
@@ -328,8 +339,8 @@ class ExtensionMemberResolver {
         }
       }
       if (name == '[]') {
-        ExecutableElement getter;
-        ExecutableElement setter;
+        ExecutableElement? getter;
+        ExecutableElement? setter;
         for (var method in extension.methods) {
           if (method.name == '[]') {
             getter = method;
@@ -367,11 +378,11 @@ class ExtensionMemberResolver {
   /// If the number of explicit type arguments is different than the number
   /// of extension's type parameters, or inference fails, return `dynamic`
   /// for all type parameters.
-  List<DartType> _inferTypeArguments(
+  List<DartType>? _inferTypeArguments(
     ExtensionOverride node,
     DartType receiverType,
   ) {
-    var element = node.staticElement;
+    var element = node.staticElement!;
     var typeParameters = element.typeParameters;
     var typeArguments = node.typeArguments;
 
@@ -381,7 +392,7 @@ class ExtensionMemberResolver {
         if (typeParameters.isEmpty) {
           return const <DartType>[];
         }
-        return arguments.map((a) => a.type).toList();
+        return arguments.map((a) => a.typeOrThrow).toList();
       } else {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
@@ -401,6 +412,7 @@ class ExtensionMemberResolver {
         typeParameters,
         errorReporter: _errorReporter,
         errorNode: node.extensionName,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       );
     }
   }
@@ -455,18 +467,22 @@ class ExtensionMemberResolver {
 
   /// Ask the type system for a subtype check.
   bool _isSubtypeOf(DartType type1, DartType type2) =>
-      _typeSystem.isSubtypeOf2(type1, type2);
+      _typeSystem.isSubtypeOf(type1, type2);
 
   List<DartType> _listOfDynamic(List<TypeParameterElement> parameters) {
     return List<DartType>.filled(parameters.length, _dynamicType);
   }
 
+  static bool _isCascadeTarget(ExtensionOverride node) {
+    var parent = node.parent;
+    return parent is CascadeExpression && parent.target == node;
+  }
+
   /// Return `true` if the extension override [node] is being used as a target
   /// of an operation that might be accessing an instance member.
   static bool _isValidContext(ExtensionOverride node) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     return parent is BinaryExpression && parent.leftOperand == node ||
-        parent is CascadeExpression && parent.target == node ||
         parent is FunctionExpressionInvocation && parent.function == node ||
         parent is IndexExpression && parent.target == node ||
         parent is MethodInvocation && parent.target == node ||
@@ -477,8 +493,8 @@ class ExtensionMemberResolver {
 
 class _CandidateExtension {
   final ExtensionElement extension;
-  final ExecutableElement getter;
-  final ExecutableElement setter;
+  final ExecutableElement? getter;
+  final ExecutableElement? setter;
 
   _CandidateExtension(this.extension, {this.getter, this.setter})
       : assert(getter != null || setter != null);
@@ -497,17 +513,19 @@ class _InstantiatedExtension {
 
   ExtensionElement get extension => candidate.extension;
 
-  ExecutableElement get getter {
-    if (candidate.getter == null) {
+  ExecutableElement? get getter {
+    var getter = candidate.getter;
+    if (getter == null) {
       return null;
     }
-    return ExecutableMember.from2(candidate.getter, substitution);
+    return ExecutableMember.from2(getter, substitution);
   }
 
-  ExecutableElement get setter {
-    if (candidate.setter == null) {
+  ExecutableElement? get setter {
+    var setter = candidate.setter;
+    if (setter == null) {
       return null;
     }
-    return ExecutableMember.from2(candidate.setter, substitution);
+    return ExecutableMember.from2(setter, substitution);
   }
 }

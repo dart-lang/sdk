@@ -125,7 +125,7 @@ abstract class AbstractValueDomain {
 
   /// The [AbstractValue] that represents a non-null subtype of `double` at
   /// runtime.
-  AbstractValue get doubleType;
+  AbstractValue get numNotIntType;
 
   /// The [AbstractValue] that represents a non-null subtype of `num` at
   /// runtime.
@@ -390,14 +390,6 @@ abstract class AbstractValueDomain {
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// number or `null` at runtime.
   AbstractBool isNumberOrNull(covariant AbstractValue value);
-
-  /// Returns an [AbstractBool] that describes whether [value] is a non-integer
-  /// number at runtime.
-  AbstractBool isDouble(covariant AbstractValue value);
-
-  /// Returns an [AbstractBool] that describes whether [value] is a non-integer
-  /// number or `null` at runtime.
-  AbstractBool isDoubleOrNull(covariant AbstractValue value);
 
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// bool at runtime.

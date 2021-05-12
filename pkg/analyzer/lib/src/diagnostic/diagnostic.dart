@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:meta/meta.dart';
 
 /// A concrete implementation of a diagnostic message.
 class DiagnosticMessageImpl implements DiagnosticMessage {
@@ -23,8 +22,8 @@ class DiagnosticMessageImpl implements DiagnosticMessage {
   /// the file at the given [filePath] at the given [offset] and with the given
   /// [length].
   DiagnosticMessageImpl(
-      {@required this.filePath,
-      @required this.length,
-      @required this.message,
-      @required this.offset});
+      {required this.filePath,
+      required this.length,
+      required this.message,
+      required this.offset});
 }

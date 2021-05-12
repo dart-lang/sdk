@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'typescript_parser.dart';
 
 /// Removes types that are in the spec that we don't want in other signatures.
@@ -90,7 +92,6 @@ String getImprovedType(String interfaceName, String fieldName) {
     'CompletionItem': {
       'kind': 'CompletionItemKind',
       'data': 'CompletionItemResolutionInfo',
-      'textEdit': 'TextEdit',
     },
     'CallHierarchyItem': {
       'data': 'object',
@@ -125,6 +126,9 @@ String getImprovedType(String interfaceName, String fieldName) {
     },
     'ServerCapabilities': {
       'changeNotifications': 'bool',
+    },
+    'TextDocumentEdit': {
+      'edits': 'TextDocumentEditEdits',
     }
   };
 

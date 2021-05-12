@@ -40,8 +40,8 @@ static ClassPtr CreateDummyClass(const String& class_name,
                                  const Script& script) {
   const Class& cls = Class::Handle(Class::New(
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
-  cls.set_is_synthesized_class();  // Dummy class for testing.
-  cls.set_is_declaration_loaded();
+  cls.set_is_synthesized_class_unsafe();  // Dummy class for testing.
+  cls.set_is_declaration_loaded_unsafe();
   return cls.ptr();
 }
 
@@ -65,11 +65,11 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   interface_name = Symbols::New(thread, "Harley");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface.set_is_implemented();
+  interface.set_is_implemented_unsafe();
   interface_name = Symbols::New(thread, "Norton");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface.set_is_implemented();
+  interface.set_is_implemented_unsafe();
   cls.set_interfaces(interfaces);
 
   // Finalization of types happens before the fields and functions have been
@@ -132,10 +132,10 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     cls.SetFunctions(functions);
+    // The class can now be finalized.
+    cls.Finalize();
   }
 
-  // The class can now be finalized.
-  cls.Finalize();
 
   function_name = String::New("Foo");
   function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
@@ -187,10 +187,13 @@ ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
   // Create many top-level classes - they should not consume 16-bit range.
-  for (intptr_t i = 0; i < (1 << 16); ++i) {
-    cls = CreateDummyClass(Symbols::TopLevel(), script);
-    cls.Finalize();
-    EXPECT(cls.id() > std::numeric_limits<uint16_t>::max());
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    for (intptr_t i = 0; i < (1 << 16); ++i) {
+      cls = CreateDummyClass(Symbols::TopLevel(), script);
+      cls.Finalize();
+      EXPECT(cls.id() > std::numeric_limits<uint16_t>::max());
+    }
   }
 
   // Create many concrete classes - they should occupy the entire 16-bit space.
@@ -216,8 +219,8 @@ ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
                                 thread->isolate_group()->program_lock());
       cls.SetFunctions(Array::empty_array());
       cls.SetFields(fields);
+      cls.Finalize();
     }
-    cls.Finalize();
 
     instance = Instance::New(cls);
     for (intptr_t f = 0; f < num_fields; ++f) {
@@ -317,7 +320,10 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   EXPECT_EQ(Array::Handle(empty_class.current_functions()).Length(), 0);
 
   ClassFinalizer::FinalizeTypesInClass(empty_class);
-  empty_class.Finalize();
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    empty_class.Finalize();
+  }
 
   EXPECT_EQ(kObjectAlignment, empty_class.host_instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
@@ -343,14 +349,14 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     one_field_class.SetFields(one_fields);
+    one_field_class.Finalize();
   }
-  one_field_class.Finalize();
   intptr_t header_size = sizeof(UntaggedObject);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
             one_field_class.host_instance_size());
   EXPECT_EQ(header_size, field.HostOffset());
   EXPECT(!one_field_class.is_implemented());
-  one_field_class.set_is_implemented();
+  one_field_class.set_is_implemented_unsafe();
   EXPECT(one_field_class.is_implemented());
 }
 
@@ -374,7 +380,7 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   EXPECT(Smi::IsValid(-15));
   EXPECT(Smi::IsValid(0xFFu));
 // Upper two bits must be either 00 or 11.
-#if defined(ARCH_IS_64_BIT)
+#if defined(ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
   EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
   EXPECT(Smi::IsValid(-1));
@@ -502,7 +508,7 @@ ISOLATE_UNIT_TEST_CASE(StringIRITwoByte) {
 ISOLATE_UNIT_TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
 // be allocated if it does fit into a Smi.
-#if !defined(ARCH_IS_64_BIT)
+#if !defined(ARCH_IS_64_BIT) || defined(DART_COMPRESSED_POINTERS)
   {
     Mint& med = Mint::Handle();
     EXPECT(med.IsNull());
@@ -2872,7 +2878,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
 
-#if defined(ARCH_IS_64_BIT)
+#if defined(ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
 // Test for Embedded Smi object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(compiler::Assembler * assembler,
@@ -2892,7 +2898,7 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
-#endif  // ARCH_IS_64_BIT
+#endif  // ARCH_IS_64_BIT && !DART_COMPRESSED_POINTERS
 
 ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   const int kNumEntries = 4;
@@ -4030,8 +4036,8 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     cls.SetFunctions(functions);
+    cls.Finalize();
   }
-  cls.Finalize();
 
   // Add invocation dispatcher.
   const String& invocation_dispatcher_name =
@@ -4446,6 +4452,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Bool\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Bool\","
         "\"fixedId\":true,"
         "\"id\":\"objects\\/bool-true\",\"valueAsString\":\"true\"}",
@@ -4464,6 +4471,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Smi\","
         "\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Int\","
         "\"fixedId\":true,"
         "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
@@ -4482,6 +4490,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Mint\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Mint\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Int\","
         "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
         buffer);
@@ -4499,6 +4508,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Double\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Double\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Double\","
         "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
         buffer);
@@ -4516,6 +4526,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"String\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"String\","
         "\"id\":\"\",\"length\":2,\"valueAsString\":\"dw\"}",
         buffer);
@@ -4533,6 +4544,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Array\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_List\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"List\","
         "\"id\":\"\",\"length\":0}",
         buffer);
@@ -4552,6 +4564,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_GrowableList\","
         "\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"List\","
         "\"id\":\"\",\"length\":0}",
         buffer);
@@ -4570,6 +4583,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"LinkedHashMap\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Map\","
         "\"id\":\"\","
         "\"length\":0}",
@@ -4583,11 +4597,15 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("classes", js.ToCString(), buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("_UserTag@", buffer, buffer);
-    EXPECT_STREQ(
+    EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"UserTag\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_UserTag\",\"_vmName\":\"\"},"
+        // Handle non-zero identity hash.
+        "\"identityHashCode\":",
+        buffer);
+    EXPECT_SUBSTRING(
         "\"kind\":\"PlainInstance\","
         "\"id\":\"\"}",
         buffer);
@@ -4602,11 +4620,15 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("classes", js.ToCString(), buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("_Type@", buffer, buffer);
-    EXPECT_STREQ(
+    EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Type\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Type\",\"_vmName\":\"\"},"
+        // Handle non-zero identity hash.
+        "\"identityHashCode\":",
+        buffer);
+    EXPECT_SUBSTRING(
         "\"kind\":\"Type\","
         "\"fixedId\":true,\"id\":\"\","
         "\"typeClass\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","

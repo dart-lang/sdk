@@ -19,7 +19,7 @@ class NullabilityEliminator extends ReplacementVisitor {
   }
 
   @override
-  NullabilitySuffix visitNullability(DartType type) {
+  NullabilitySuffix? visitNullability(DartType type) {
     if (type.nullabilitySuffix != NullabilitySuffix.star) {
       return NullabilitySuffix.star;
     }
@@ -27,7 +27,7 @@ class NullabilityEliminator extends ReplacementVisitor {
   }
 
   @override
-  ParameterKind visitParameterKind(ParameterKind kind) {
+  ParameterKind? visitParameterKind(ParameterKind kind) {
     if (kind == ParameterKind.NAMED_REQUIRED) {
       return ParameterKind.NAMED;
     }
@@ -38,11 +38,7 @@ class NullabilityEliminator extends ReplacementVisitor {
   /// return a new type with legacy nullability suffixes. Otherwise return the
   /// original instance.
   static DartType perform(TypeProviderImpl typeProvider, DartType type) {
-    if (type == null) {
-      return type;
-    }
-
     var visitor = NullabilityEliminator(typeProvider);
-    return type.accept<DartType>(visitor) ?? type;
+    return type.accept(visitor) ?? type;
   }
 }

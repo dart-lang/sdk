@@ -10,7 +10,9 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -58,8 +60,8 @@ analyzer:
     unused_local_variable: true # skipped
     use_of_void_result: unsupported_action # skipped
 ''');
-      expect(getProcessor(invalid_assignment).severity, ErrorSeverity.ERROR);
-      expect(getProcessor(missing_return).severity, isNull);
+      expect(getProcessor(invalid_assignment)!.severity, ErrorSeverity.ERROR);
+      expect(getProcessor(missing_return)!.severity, isNull);
       expect(getProcessor(unused_local_variable), isNull);
       expect(getProcessor(use_of_void_result), isNull);
     });
@@ -100,9 +102,8 @@ analyzer:
         expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
 
         // skip
-        var invalidAssignmentProcessor = errorConfig.processors.firstWhere(
-            (p) => p.appliesTo(invalid_assignment),
-            orElse: () => null);
+        var invalidAssignmentProcessor = errorConfig.processors
+            .firstWhereOrNull((p) => p.appliesTo(invalid_assignment));
         expect(invalidAssignmentProcessor, isNull);
       });
 
@@ -126,9 +127,8 @@ analyzer:
         expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
 
         // skip
-        var invalidAssignmentProcessor = errorConfig.processors.firstWhere(
-            (p) => p.appliesTo(invalid_assignment),
-            orElse: () => null);
+        var invalidAssignmentProcessor = errorConfig.processors
+            .firstWhereOrNull((p) => p.appliesTo(invalid_assignment));
         expect(invalidAssignmentProcessor, isNull);
       });
     });
@@ -146,17 +146,16 @@ analyzer:
   });
 }
 
-TestContext context;
+late TestContext context;
 
 AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
-ErrorProcessor processor;
 
 void configureOptions(String options) {
   YamlMap optionMap = optionsProvider.getOptionsFromString(options);
   applyToAnalysisOptions(context.analysisOptions, optionMap);
 }
 
-ErrorProcessor getProcessor(AnalysisError error) =>
+ErrorProcessor? getProcessor(AnalysisError error) =>
     ErrorProcessor.getProcessor(context.analysisOptions, error);
 
 class TestContext extends AnalysisContextImpl {
@@ -166,6 +165,11 @@ class TestContext extends AnalysisContextImpl {
             AnalysisOptionsImpl(),
             DeclaredVariables(),
           ),
-          null,
+          _SourceFactoryMock(),
         );
+}
+
+class _SourceFactoryMock implements SourceFactory {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

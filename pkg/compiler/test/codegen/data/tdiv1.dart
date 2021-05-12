@@ -85,7 +85,7 @@ int foo5(bool param1, bool param2) {
 @pragma('dart2js:noInline')
 /*member: foo_regress_37502:function(param1, param2) {
   var a = param1 ? 1.2 : 12.3;
-  return C.JSInt_methods.gcd$1(C.JSDouble_methods.$tdiv(a, param2 ? 3.14 : 2.81), 2);
+  return C.JSInt_methods.gcd$1(C.JSNumber_methods.$tdiv(a, param2 ? 3.14 : 2.81), 2);
 }*/
 foo_regress_37502(param1, param2) {
   var a = param1 ? 1.2 : 12.3;

@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class A {
   String get property3;
   covariant String property6;

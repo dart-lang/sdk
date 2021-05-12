@@ -1580,7 +1580,7 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
   // because we need the high bits.
   if (def->IsShiftInt64Op() || def->IsSpeculativeShiftInt64Op()) {
     ShiftIntegerOpInstr* op = def->AsShiftIntegerOp();
-    if (op->op_kind() == Token::kSHR) {
+    if ((op->op_kind() == Token::kSHR) || (op->op_kind() == Token::kUSHR)) {
       Definition* shift_input = op->left()->definition();
       ASSERT(shift_input != NULL);
       Range* range = shift_input->range();
@@ -2186,6 +2186,75 @@ void Range::Shr(const Range* left,
       left_max, left_max.ConstantValue() > 0 ? right_min : right_max);
 }
 
+static void ConvertRangeToUnsigned(int64_t a,
+                                   int64_t b,
+                                   uint64_t* ua,
+                                   uint64_t* ub) {
+  ASSERT(a <= b);
+  if ((a < 0) && (b >= 0)) {
+    // Range contains -1 and 0 and wraps-around as unsigned.
+    *ua = 0;
+    *ub = kMaxUint64;
+  } else {
+    // Range is fully in the negative or non-negative part
+    // and doesn't wrap-around if interpreted as unsigned.
+    *ua = static_cast<uint64_t>(a);
+    *ub = static_cast<uint64_t>(b);
+  }
+}
+
+static void ConvertRangeToSigned(uint64_t a,
+                                 uint64_t b,
+                                 int64_t* sa,
+                                 int64_t* sb) {
+  ASSERT(a <= b);
+  if ((a <= static_cast<uint64_t>(kMaxInt64)) &&
+      (b >= static_cast<uint64_t>(kMinInt64))) {
+    // Range contains kMinInt64 and kMaxInt64 and wraps-around as signed.
+    *sa = kMinInt64;
+    *sb = kMaxInt64;
+  } else {
+    // Range is fully in the negative or non-negative part
+    // and doesn't wrap-around if interpreted as signed.
+    *sa = static_cast<int64_t>(a);
+    *sb = static_cast<int64_t>(b);
+  }
+}
+
+void Range::Ushr(const Range* left,
+                 const Range* right,
+                 RangeBoundary* result_min,
+                 RangeBoundary* result_max) {
+  const int64_t left_max = Range::ConstantMax(left).ConstantValue();
+  const int64_t left_min = Range::ConstantMin(left).ConstantValue();
+  // A negative shift count always deoptimizes (and throws), so the minimum
+  // shift count is zero.
+  const int64_t right_max = Utils::Maximum(
+      Range::ConstantMax(right).ConstantValue(), static_cast<int64_t>(0));
+  const int64_t right_min = Utils::Maximum(
+      Range::ConstantMin(right).ConstantValue(), static_cast<int64_t>(0));
+
+  uint64_t unsigned_left_min, unsigned_left_max;
+  ConvertRangeToUnsigned(left_min, left_max, &unsigned_left_min,
+                         &unsigned_left_max);
+
+  const uint64_t unsigned_result_min =
+      (right_max >= kBitsPerInt64)
+          ? 0
+          : unsigned_left_min >> static_cast<uint64_t>(right_max);
+  const uint64_t unsigned_result_max =
+      (right_min >= kBitsPerInt64)
+          ? 0
+          : unsigned_left_max >> static_cast<uint64_t>(right_min);
+
+  int64_t signed_result_min, signed_result_max;
+  ConvertRangeToSigned(unsigned_result_min, unsigned_result_max,
+                       &signed_result_min, &signed_result_max);
+
+  *result_min = RangeBoundary(signed_result_min);
+  *result_max = RangeBoundary(signed_result_max);
+}
+
 void Range::And(const Range* left_range,
                 const Range* right_range,
                 RangeBoundary* result_min,
@@ -2464,6 +2533,10 @@ void Range::BinaryOp(const Token::Kind op,
       Range::Shr(left_range, right_range, &min, &max);
       break;
 
+    case Token::kUSHR:
+      Range::Ushr(left_range, right_range, &min, &max);
+      break;
+
     case Token::kBIT_AND:
       Range::And(left_range, right_range, &min, &max);
       break;
@@ -2669,8 +2742,9 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
   switch (r) {
     case kTagged:
       return RangeBoundary::kRangeBoundarySmi;
+    case kUnboxedUint8:  // Overapproximate Uint8 as Int16.
+      return RangeBoundary::kRangeBoundaryInt16;
     case kUnboxedInt32:
-    case kUnboxedUint8:  // Overapproximate Uint8 as Int32.
       return RangeBoundary::kRangeBoundaryInt32;
     case kUnboxedInt64:
     case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
@@ -2726,7 +2800,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosureData_default_type_arguments:
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_signature:
-    case Slot::Kind::kFunction_parameter_names:
+    case Slot::Kind::kFunctionType_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
@@ -2748,6 +2822,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       UNREACHABLE();
       break;
 
+    case Slot::Kind::kClosureData_default_type_arguments_kind:
     case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
     case Slot::Kind::kTypeParameter_flags:
@@ -2768,9 +2843,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kArgumentsDescriptor_size:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
-
-    case Slot::Kind::kClosureData_default_type_arguments_info:
-      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
   }
 }
 
@@ -2842,6 +2914,12 @@ void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
+void Utf8ScanInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  // The input bytes given to the Utf8Scan instruction are in non-negative Smi
+  // range and so is the resulting computed length.
+  *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+}
+
 void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const intptr_t min = Utils::Minimum(if_true_, if_false_);
   const intptr_t max = Utils::Maximum(if_true_, if_false_);
@@ -2902,8 +2980,9 @@ void BinaryIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* right_smi_range = analysis->GetSmiRange(right());
   // TODO(vegorov) completely remove this once GetSmiRange is eliminated.
-  if (op_kind() == Token::kSHR || op_kind() == Token::kSHL ||
-      op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV) {
+  if (op_kind() == Token::kSHL || op_kind() == Token::kSHR ||
+      op_kind() == Token::kUSHR || op_kind() == Token::kMOD ||
+      op_kind() == Token::kTRUNCDIV) {
     CacheRange(&right_range_, right_smi_range,
                RangeBoundary::kRangeBoundarySmi);
   }

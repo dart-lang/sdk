@@ -29,6 +29,7 @@ class String;
 class Precompiler;
 class FlowGraph;
 class PrecompilerTracer;
+class RetainedReasonsWriter;
 
 class TableSelectorKeyValueTrait {
  public:
@@ -250,8 +251,6 @@ class Precompiler : public ValueObject {
     return dispatch_table_generator_->selector_map();
   }
 
-  void* il_serialization_stream() const { return il_serialization_stream_; }
-
   static Precompiler* Instance() { return singleton_; }
 
   void AddField(const Field& field);
@@ -295,6 +294,7 @@ class Precompiler : public ValueObject {
   void AddAnnotatedRoots();
   void Iterate();
 
+  void AddRetainReason(const Object& obj, const char* reason);
   void AddType(const AbstractType& type);
   void AddTypesOf(const Class& cls);
   void AddTypesOf(const Function& function);
@@ -306,12 +306,13 @@ class Precompiler : public ValueObject {
   void AddConstObject(const class Instance& instance);
   void AddClosureCall(const String& selector,
                       const Array& arguments_descriptor);
-  void AddFunction(const Function& function, bool retain = true);
+  void AddFunction(const Function& function, const char* retain_reason);
   void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
   bool IsHitByTableSelector(const Function& function);
-  bool MustRetainFunction(const Function& function);
+  // Returns the reason if the function must be retained, otherwise nullptr.
+  const char* MustRetainFunction(const Function& function);
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
@@ -333,6 +334,7 @@ class Precompiler : public ValueObject {
   void DropLibraryEntries();
   void DropClasses();
   void DropLibraries();
+  void DiscardCodeObjects();
 
   DEBUG_ONLY(FunctionPtr FindUnvisitedRetainedFunction());
 
@@ -344,10 +346,6 @@ class Precompiler : public ValueObject {
   void PrecompileConstructors();
 
   void FinalizeAllClasses();
-
-  void set_il_serialization_stream(void* file) {
-    il_serialization_stream_ = file;
-  }
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
@@ -376,6 +374,8 @@ class Precompiler : public ValueObject {
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;
+  FunctionSet entry_point_functions_;
+  FunctionSet functions_called_dynamically_;
   FunctionSet seen_functions_;
   FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;
@@ -392,10 +392,10 @@ class Precompiler : public ValueObject {
   compiler::DispatchTableGenerator* dispatch_table_generator_;
 
   bool get_runtime_type_is_unique_;
-  void* il_serialization_stream_;
 
   Phase phase_ = Phase::kPreparation;
   PrecompilerTracer* tracer_ = nullptr;
+  RetainedReasonsWriter* retained_reasons_writer_ = nullptr;
   bool is_tracing_ = false;
 };
 

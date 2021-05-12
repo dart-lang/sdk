@@ -16,11 +16,6 @@
 
 namespace dart {
 
-IsolateObjectStore::IsolateObjectStore(ObjectStore* object_store)
-    : object_store_(object_store) {}
-
-IsolateObjectStore::~IsolateObjectStore() {}
-
 void IsolateObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->set_gc_root_type("isolate_object store");
@@ -58,8 +53,9 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   const Array& code_array = Array::Handle(
       zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
-  const Array& pc_offset_array = Array::Handle(
-      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
+  const TypedData& pc_offset_array = TypedData::Handle(
+      zone, TypedData::New(kUintPtrCid, StackTrace::kPreallocatedStackdepth,
+                           Heap::kOld));
   const StackTrace& stack_trace =
       StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
   // Expansion of inlined functions requires additional memory at run time,
@@ -68,7 +64,7 @@ static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   return stack_trace.ptr();
 }
 
-ErrorPtr IsolateObjectStore::PreallocateObjects() {
+ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -80,8 +76,6 @@ ErrorPtr IsolateObjectStore::PreallocateObjects() {
 
   // Allocate pre-allocated unhandled exception object initialized with the
   // pre-allocated OutOfMemoryError.
-  const Object& out_of_memory =
-      Object::Handle(zone, object_store_->out_of_memory());
   const StackTrace& preallocated_stack_trace =
       StackTrace::Handle(zone, CreatePreallocatedStackTrace(zone));
   set_preallocated_stack_trace(preallocated_stack_trace);
@@ -286,6 +280,10 @@ void ObjectStore::InitKnownObjects() {
   growable_list_factory_ =
       cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
   ASSERT(growable_list_factory_ != Function::null());
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::Error());
+  ASSERT(!cls.IsNull());
+  set_error_class(cls);
 
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =

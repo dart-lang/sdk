@@ -29,7 +29,7 @@ part of dart.core;
 /// is very likely to cause an error to be thrown.
 ///
 /// Example (from [String.contains]):
-/// ```
+/// ```plaintext
 /// `startIndex` must not be negative or greater than `length`.
 /// ```
 /// In this case, an error will be thrown if `startIndex` is negative
@@ -42,7 +42,7 @@ part of dart.core;
 /// effectively making it an alternative result rather than an error.
 /// The thrown object can choose to implement [Exception]
 /// to document that it represents an exceptional, but not erroneous,
-/// occurrence, but being an [Excpetion] has no other effect
+/// occurrence, but being an [Exception] has no other effect
 /// than documentation.
 ///
 /// All non-`null` values can be thrown in Dart.
@@ -156,8 +156,8 @@ class ArgumentError extends Error {
   ///
   /// A message is built by suffixing the [message] argument with
   /// the [name] argument (if provided) and the value. Example:
-  /// ```
-  /// "Invalid argument (foo): null"
+  /// ```plaintext
+  /// Invalid argument (foo): null
   /// ```
   /// The `name` should match the argument name of the function, but if
   /// the function is a method implementing an interface, and its argument
@@ -448,13 +448,14 @@ class AbstractClassInstantiationError extends Error {
 
 /// Error thrown by the default implementation of `noSuchMethod` on [Object].
 class NoSuchMethodError extends Error {
-  /// Create a [NoSuchMethodError] corresponding to a failed method call.
+  /// Creates a [NoSuchMethodError] corresponding to a failed method call.
   ///
   /// The [receiver] is the receiver of the method call.
   /// That is, the object on which the method was attempted called.
   ///
-  /// The [invocation] represents the method call that failed.
-  external NoSuchMethodError.withInvocation(
+  /// The [invocation] represents the method call that failed. It
+  /// should not be `null`.
+  external factory NoSuchMethodError.withInvocation(
       Object? receiver, Invocation invocation);
 
   // Deprecated constructor to be removed after dart2js updates to the above.
@@ -519,7 +520,7 @@ class UnimplementedError extends Error implements UnsupportedError {
 
 /// The operation was not allowed by the current state of the object.
 ///
-/// Should be used when this particular object is currenty in a state
+/// Should be used when this particular object is currently in a state
 /// which doesn't support the requested operation, but other similar
 /// objects might, or the object might change its state to one which
 /// supports the operation.
@@ -575,8 +576,8 @@ class StackOverflowError implements Error {
 
 /// Error thrown when a lazily initialized variable cannot be initialized.
 ///
-/// No longer used in null safe Dart code,
-/// replaced by late variables and [LateInitializationError].
+/// This is no longer used in null safe Dart code and is replaced by late
+/// variables and `LateInitializationError`.
 // TODO: Deprecate?
 class CyclicInitializationError extends Error {
   final String? variableName;

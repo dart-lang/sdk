@@ -6,8 +6,6 @@
 
 library fasta.transform_collections;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -16,8 +14,6 @@ import 'package:kernel/type_algebra.dart';
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
-
-import 'package:kernel/visitor.dart' show Transformer;
 
 import 'collections.dart'
     show
@@ -281,8 +277,8 @@ class CollectionTransformer extends Transformer {
         element.condition?.accept<TreeNode>(this),
         element.updates,
         loopBody);
-    transformList(loop.variables, this, loop);
-    transformList(loop.updates, this, loop);
+    transformList(loop.variables, loop);
+    transformList(loop.updates, loop);
     _dataForTesting?.registerAlias(element, loop);
     body.add(loop);
   }
@@ -533,8 +529,8 @@ class CollectionTransformer extends Transformer {
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition?.accept<TreeNode>(this), entry.updates, loopBody);
     _dataForTesting?.registerAlias(entry, loop);
-    transformList(loop.variables, this, loop);
-    transformList(loop.updates, this, loop);
+    transformList(loop.variables, loop);
+    transformList(loop.updates, loop);
     body.add(loop);
   }
 
@@ -948,22 +944,22 @@ class CollectionTransformer extends Transformer {
   Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
+    Expression check;
     if (useNewMethodInvocationEncoding) {
-      return new EqualsNull(expression, isNot: notEquals)
-        ..fileOffset = expression.fileOffset;
+      check = new EqualsNull(expression)..fileOffset = expression.fileOffset;
     } else {
-      Expression check = new MethodInvocation(
+      check = new MethodInvocation(
           expression,
           new Name('=='),
           new Arguments(
               [new NullLiteral()..fileOffset = expression.fileOffset]),
           _objectEquals)
         ..fileOffset = expression.fileOffset;
-      if (notEquals) {
-        check = new Not(check)..fileOffset = expression.fileOffset;
-      }
-      return check;
     }
+    if (notEquals) {
+      check = new Not(check)..fileOffset = expression.fileOffset;
+    }
+    return check;
   }
 
   Expression _createIndexSet(int fileOffset, Expression receiver,

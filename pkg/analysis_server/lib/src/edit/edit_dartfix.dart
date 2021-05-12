@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -78,16 +80,20 @@ class EditDartFix
     // used to generate errors that can then be fixed.
     // TODO(danrubel): Rework to use a different approach if this command
     // will be used from within the IDE.
-    contextManager.refresh(null);
+    contextManager.refresh();
 
     for (var filePath in params.included) {
       if (!server.isValidFilePath(filePath)) {
         return Response.invalidFilePathFormat(request, filePath);
       }
+
+      var analysisContext = contextManager.getContextFor(filePath);
+      if (analysisContext == null) {
+        return Response.fileNotAnalyzed(request, filePath);
+      }
+
       var res = resourceProvider.getResource(filePath);
-      if (!res.exists ||
-          !(contextManager.includedPaths.contains(filePath) ||
-              contextManager.isInAnalysisRoot(filePath))) {
+      if (!res.exists) {
         return Response.fileNotAnalyzed(request, filePath);
       }
 
@@ -95,16 +101,16 @@ class EditDartFix
       // within an IDE, then this will cause the lint results to change.
       // TODO(danrubel): Rework to use a different approach if this command
       // will be used from within the IDE.
-      var driver = contextManager.getDriverFor(filePath);
+      var driver = analysisContext.driver;
       var analysisOptions = driver.analysisOptions as AnalysisOptionsImpl;
       analysisOptions.lint = true;
       analysisOptions.lintRules = linters;
 
-      var contextFolder = contextManager.getContextFolderFor(filePath);
-      var pkgFolder = findPkgFolder(contextFolder);
-      if (pkgFolder != null && !pkgFolders.contains(pkgFolder)) {
+      var pkgFolder = analysisContext.contextRoot.root;
+      if (!pkgFolders.contains(pkgFolder)) {
         pkgFolders.add(pkgFolder);
       }
+
       if (res is Folder) {
         fixFolders.add(res);
       } else {
@@ -147,13 +153,12 @@ class EditDartFix
     ).toResponse(request.id);
   }
 
-  Folder findPkgFolder(Folder folder) {
-    while (folder != null) {
+  Folder findPkgFolder(Folder start) {
+    for (var folder in start.withAncestors) {
       if (folder.getChild('analysis_options.yaml').exists ||
           folder.getChild('pubspec.yaml').exists) {
         return folder;
       }
-      folder = folder.parent;
     }
     return null;
   }
@@ -172,8 +177,7 @@ class EditDartFix
       if (res is Folder) {
         for (var child in res.getChildren()) {
           if (!child.shortName.startsWith('.') &&
-              contextManager.isInAnalysisRoot(child.path) &&
-              !contextManager.isIgnored(child.path)) {
+              server.isAnalyzed(child.path)) {
             resources.add(child);
           }
         }

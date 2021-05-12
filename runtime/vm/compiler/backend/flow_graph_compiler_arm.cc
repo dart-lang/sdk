@@ -25,7 +25,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
@@ -68,10 +67,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return TargetCPUFeatures::vfp_supported() && FLAG_unbox_doubles;
-}
-
-bool FlowGraphCompiler::SupportsUnboxedInt64() {
-  return FLAG_unbox_mints;
 }
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
@@ -148,7 +143,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              DeoptId::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->GetDeoptId()),
                               slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -701,9 +696,9 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
-    Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
+  const auto cid_reg = DispatchTableNullErrorABI::kClassIdReg;
   ASSERT(CanCallDart());
   ASSERT(cid_reg != ARGS_DESC_REG);
   if (!arguments_descriptor.IsNull()) {
@@ -712,6 +707,9 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
                     compiler::target::kWordSize;
   CLOBBERS_LR({
+    // Would like cid_reg to be available on entry to the target function
+    // for checking purposes.
+    ASSERT(cid_reg != LR);
     if (offset == 0) {
       __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, LSL,
                                    compiler::target::kWordSizeLog2));

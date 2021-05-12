@@ -62,7 +62,7 @@ Pointer<WasmerTrap> _wasmFnImportTrampoline(Pointer<_WasmFnImport> imp,
 
 void _wasmFnImportFinalizer(Pointer<_WasmFnImport> imp) {
   _wasmFnImportToFn.remove(imp.address);
-  free(imp);
+  calloc.free(imp);
 }
 
 final _wasmFnImportTrampolineNative = Pointer.fromFunction<
@@ -115,15 +115,14 @@ class WasmInstanceBuilder {
   WasmModule _module;
   late List<WasmImportDescriptor> _importDescs;
   Map<String, int> _importIndex;
-  Pointer<WasmerExternVec> _imports = allocate<WasmerExternVec>();
+  Pointer<WasmerExternVec> _imports = calloc<WasmerExternVec>();
   Pointer<WasmerWasiEnv> _wasiEnv = nullptr;
   Object _importOwner = Object();
 
   WasmInstanceBuilder(this._module) : _importIndex = {} {
     _importDescs = WasmRuntime().importDescriptors(_module._module);
     _imports.ref.length = _importDescs.length;
-    _imports.ref.data =
-        allocate<Pointer<WasmerExtern>>(count: _importDescs.length);
+    _imports.ref.data = calloc<Pointer<WasmerExtern>>(_importDescs.length);
     for (var i = 0; i < _importDescs.length; ++i) {
       var imp = _importDescs[i];
       _importIndex["${imp.moduleName}::${imp.name}"] = i;
@@ -166,7 +165,7 @@ class WasmInstanceBuilder {
 
     var argTypes = runtime.getArgTypes(imp.funcType);
     var returnType = runtime.getReturnType(imp.funcType);
-    var wasmFnImport = allocate<_WasmFnImport>();
+    var wasmFnImport = calloc<_WasmFnImport>();
     wasmFnImport.ref.returnType = returnType;
     wasmFnImport.ref.store = _module._store;
     _wasmFnImportToFn[wasmFnImport.address] = fn;

@@ -29,3 +29,15 @@ class Map<K, V> {
   @patch
   factory Map() => new LinkedHashMap<K, V>();
 }
+
+// Used by Dart_MapContainsKey.
+@pragma("vm:entry-point", "call")
+bool _mapContainsKey(Map map, Object? key) => map.containsKey(key);
+
+// Used by Dart_MapGetAt.
+@pragma("vm:entry-point", "call")
+Object? _mapGet(Map map, Object? key) => map[key];
+
+// Used by Dart_MapKeys.
+@pragma("vm:entry-point", "call")
+List _mapKeys(Map map) => map.keys.toList();

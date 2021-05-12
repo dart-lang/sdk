@@ -1,3 +1,4 @@
+// @dart = 2.9
 enum Foo {
   ec1,
   ec2,

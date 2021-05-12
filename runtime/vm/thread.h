@@ -20,6 +20,7 @@
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
+#include "vm/pending_deopts.h"
 #include "vm/random.h"
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
@@ -267,9 +268,9 @@ class Thread : public ThreadState {
   }
 
   // Makes the current thread enter 'isolate'.
-  static bool EnterIsolate(Isolate* isolate);
+  static bool EnterIsolate(Isolate* isolate, bool is_nested_reenter = false);
   // Makes the current thread exit its isolate.
-  static void ExitIsolate();
+  static void ExitIsolate(bool is_nested_exit = false);
 
   // A VM thread other than the main mutator thread can enter an isolate as a
   // "helper" to gain limited concurrent access to the isolate. One example is
@@ -325,10 +326,12 @@ class Thread : public ThreadState {
   };
 
   uword write_barrier_mask() const { return write_barrier_mask_; }
+  uword heap_base() const { return heap_base_; }
 
   static intptr_t write_barrier_mask_offset() {
     return OFFSET_OF(Thread, write_barrier_mask_);
   }
+  static intptr_t heap_base_offset() { return OFFSET_OF(Thread, heap_base_); }
   static intptr_t stack_overflow_flags_offset() {
     return OFFSET_OF(Thread, stack_overflow_flags_);
   }
@@ -336,6 +339,8 @@ class Thread : public ThreadState {
   int32_t IncrementAndGetStackOverflowCount() {
     return ++stack_overflow_count_;
   }
+
+  uint32_t IncrementAndGetRuntimeCallCount() { return ++runtime_call_count_; }
 
   static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
     return fpu_regs
@@ -418,6 +423,9 @@ class Thread : public ThreadState {
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
+  static intptr_t isolate_group_offset() {
+    return OFFSET_OF(Thread, isolate_group_);
+  }
 
   // The isolate group that this thread is operating on, or nullptr if none.
   IsolateGroup* isolate_group() const { return isolate_group_; }
@@ -451,26 +459,26 @@ class Thread : public ThreadState {
   }
 
   HierarchyInfo* hierarchy_info() const {
-    ASSERT(isolate_ != NULL);
+    ASSERT(isolate_group_ != nullptr);
     return hierarchy_info_;
   }
 
   void set_hierarchy_info(HierarchyInfo* value) {
-    ASSERT(isolate_ != NULL);
-    ASSERT((hierarchy_info_ == NULL && value != NULL) ||
-           (hierarchy_info_ != NULL && value == NULL));
+    ASSERT(isolate_group_ != nullptr);
+    ASSERT((hierarchy_info_ == nullptr && value != nullptr) ||
+           (hierarchy_info_ != nullptr && value == nullptr));
     hierarchy_info_ = value;
   }
 
   TypeUsageInfo* type_usage_info() const {
-    ASSERT(isolate_ != NULL);
+    ASSERT(isolate_group_ != nullptr);
     return type_usage_info_;
   }
 
   void set_type_usage_info(TypeUsageInfo* value) {
-    ASSERT(isolate_ != NULL);
-    ASSERT((type_usage_info_ == NULL && value != NULL) ||
-           (type_usage_info_ != NULL && value == NULL));
+    ASSERT(isolate_group_ != nullptr);
+    ASSERT((type_usage_info_ == nullptr && value != nullptr) ||
+           (type_usage_info_ != nullptr && value == nullptr));
     type_usage_info_ = value;
   }
 
@@ -558,6 +566,12 @@ class Thread : public ThreadState {
     ASSERT(no_safepoint_scope_depth_ > 0);
     no_safepoint_scope_depth_ -= 1;
 #endif
+  }
+
+  bool IsInNoReloadScope() const { return no_reload_scope_depth_ > 0; }
+
+  bool IsInStoppedMutatorsScope() const {
+    return stopped_mutators_scope_depth_ > 0;
   }
 
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
@@ -884,7 +898,7 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
-  uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
+  Random* random() { return &thread_random_; }
 
   uint64_t* GetFfiMarshalledArguments(intptr_t size) {
     if (ffi_marshalled_arguments_size_ < size) {
@@ -900,6 +914,8 @@ class Thread : public ThreadState {
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
+
+  PendingDeopts& pending_deopts() { return pending_deopts_; }
 
  private:
   template <class T>
@@ -927,6 +943,7 @@ class Thread : public ThreadState {
   // different architectures. See also CheckOffsets in dart.cc.
   RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
+  uword heap_base_;
   Isolate* isolate_;
   const uword* dispatch_table_array_;
   uword top_ = 0;
@@ -994,6 +1011,8 @@ class Thread : public ThreadState {
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
+  intptr_t no_reload_scope_depth_ = 0;
+  intptr_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)
   int32_t no_safepoint_scope_depth_;
 #endif
@@ -1002,6 +1021,10 @@ class Thread : public ThreadState {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
+  uint32_t runtime_call_count_ = 0;
+
+  // Deoptimization of stack frames.
+  PendingDeopts pending_deopts_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;
@@ -1077,15 +1100,18 @@ class Thread : public ThreadState {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class DisabledNoActiveIsolateScope;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;
   friend class IsolateTestHelper;
+  friend class NoActiveIsolateScope;
   friend class NoOOBMessageScope;
+  friend class NoReloadScope;
   friend class Simulator;
   friend class StackZone;
+  friend class StoppedMutatorsScope;
   friend class ThreadRegistry;
-  friend class NoActiveIsolateScope;
   friend class CompilerState;
   friend class compiler::target::Thread;
   friend class FieldTable;
@@ -1130,6 +1156,50 @@ class NoSafepointScope : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
 };
 #endif  // defined(DEBUG)
+
+class NoReloadScope : public ThreadStackResource {
+ public:
+  explicit NoReloadScope(Thread* thread)
+      : ThreadStackResource(thread), thread_(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread->no_reload_scope_depth_++;
+    ASSERT(thread->no_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ~NoReloadScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread_->no_reload_scope_depth_ -= 1;
+    ASSERT(thread_->no_reload_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+ private:
+  Thread* thread_;
+  DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
+};
+
+class StoppedMutatorsScope : public ThreadStackResource {
+ public:
+  explicit StoppedMutatorsScope(Thread* thread)
+      : ThreadStackResource(thread), thread_(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread->stopped_mutators_scope_depth_++;
+    ASSERT(thread->stopped_mutators_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ~StoppedMutatorsScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread_->stopped_mutators_scope_depth_ -= 1;
+    ASSERT(thread_->stopped_mutators_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+ private:
+  Thread* thread_;
+  DISALLOW_COPY_AND_ASSIGN(StoppedMutatorsScope);
+};
 
 // Within a EnterCompilerScope, the thread must operate on cloned fields.
 #if defined(DEBUG)

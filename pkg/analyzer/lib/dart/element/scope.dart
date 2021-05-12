@@ -23,8 +23,8 @@ abstract class Scope {
 }
 
 class ScopeLookupResult {
-  final Element getter;
-  final Element setter;
+  final Element? getter;
+  final Element? setter;
 
   ScopeLookupResult(this.getter, this.setter);
 }

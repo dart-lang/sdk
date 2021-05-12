@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -35,6 +37,11 @@ class ConvertAddAllToSpread extends CorrectionProducer {
   FixKind get fixKind => _isInlineInvocation
       ? DartFixKind.INLINE_INVOCATION
       : DartFixKind.CONVERT_TO_SPREAD;
+
+  @override
+  FixKind get multiFixKind => _isInlineInvocation
+      ? DartFixKind.INLINE_INVOCATION_MULTI
+      : DartFixKind.CONVERT_TO_SPREAD_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -38,7 +40,7 @@ class ByteStreamClientChannelTest {
     inputSink = IOSink(inputStream);
     var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter());
     outputSink = IOSink(outputStream);
     channel = ByteStreamClientChannel(inputStream.stream, outputSink);
@@ -124,7 +126,7 @@ class ByteStreamServerChannelTest {
     inputSink = IOSink(inputStream);
     var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter());
     var outputSink = IOSink(outputStream);
     channel = ByteStreamServerChannel(

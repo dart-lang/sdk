@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateFieldFormalParameterTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class DuplicateFieldFormalParameterTest extends PubPackageResolutionTest {
   test_optional_named() async {
     await assertErrorsInCode(r'''
 class A {

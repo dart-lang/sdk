@@ -1,3 +1,4 @@
+// @dart = 2.9
 const int foo = const int.fromEnvironment("fisk");
 
 class A {

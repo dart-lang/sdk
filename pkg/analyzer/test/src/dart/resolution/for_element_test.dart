@@ -9,13 +9,32 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForEachElementTest);
-    defineReflectiveTests(ForEachElementWithNullSafetyTest);
     defineReflectiveTests(ForLoopElementTest);
   });
 }
 
 @reflectiveTest
-class ForEachElementTest extends PubPackageResolutionTest {
+class ForEachElementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  test_optIn_fromOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A implements Iterable<int> {
+  Iterator<int> iterator => throw 0;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+f(A a) {
+  for (var v in a) {
+    v;
+  }
+}
+''');
+  }
+
   test_withDeclaration_scope() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -49,33 +68,10 @@ main() {
 }
 
 @reflectiveTest
-class ForEachElementWithNullSafetyTest extends ForEachElementTest
-    with WithNullSafetyMixin {
-  test_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A implements Iterable<int> {
-  Iterator<int> iterator => throw 0;
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.7
-import 'a.dart';
-
-main(A a) {
-  for (var v in a) {
-    v;
-  }
-}
-''');
-  }
-}
-
-@reflectiveTest
 class ForLoopElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-main(bool Function() b) {
+f(bool Function() b) {
   <int>[for (; b(); ) 0];
 }
 ''');

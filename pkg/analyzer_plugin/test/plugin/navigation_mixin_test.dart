@@ -23,12 +23,12 @@ void main() {
 
 @reflectiveTest
 class NavigationMixinTest with ResourceProviderMixin {
-  String packagePath1;
-  String filePath1;
-  ContextRoot contextRoot1;
+  late String packagePath1;
+  late String filePath1;
+  late ContextRoot contextRoot1;
 
-  MockChannel channel;
-  _TestServerPlugin plugin;
+  late MockChannel channel;
+  late _TestServerPlugin plugin;
 
   void setUp() {
     packagePath1 = convertPath('/package1');
@@ -80,7 +80,8 @@ class _TestNavigationContributor implements NavigationContributor {
   void computeNavigation(
       NavigationRequest request, NavigationCollector collector) {
     for (var i = 0; i < regionCount; i++) {
-      collector.addRegion(i, 5, ElementKind.METHOD, Location('a', 5, 5, 1, 5));
+      collector.addRegion(
+          i, 5, ElementKind.METHOD, Location('a', 5, 5, 1, 5, 1, 10));
     }
   }
 }

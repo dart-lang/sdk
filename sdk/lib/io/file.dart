@@ -262,7 +262,7 @@ abstract class File implements FileSystemEntity {
   /// the file when it has been created.
   ///
   /// If [recursive] is `false`, the default, the file is created only if
-  /// all directories in its path alredy exist. If [recursive] is `true`, any
+  /// all directories in its path already exist. If [recursive] is `true`, any
   /// non-existing parent paths are created first.
   ///
   /// Existing files are left untouched by [create]. Calling [create] on an
@@ -291,7 +291,7 @@ abstract class File implements FileSystemEntity {
   /// with a [File] for the renamed file.
   ///
   /// If [newPath] is a relative path, it is resolved against
-  /// the current working directory ([Directory.cwd]).
+  /// the current working directory ([Directory.current]).
   /// This means that simply changing the name of a file,
   /// but keeping it the original directory,
   /// requires creating a new complete path with the new name
@@ -306,7 +306,7 @@ abstract class File implements FileSystemEntity {
   /// ```
   /// On some platforms, a rename operation cannot move a file between
   /// different file systems. If that is the case, instead [copy] the
-  /// file to the new location and then [remove] the original.
+  /// file to the new location and then remove the original.
   ///
   /// If [newPath] identifies an existing file, that file is
   /// removed first. If [newPath] identifies an existing directory, the
@@ -318,7 +318,7 @@ abstract class File implements FileSystemEntity {
   /// Returns a [File] for the renamed file.
   ///
   /// If [newPath] is a relative path, it is resolved against
-  /// the current working directory ([Directory.cwd]).
+  /// the current working directory ([Directory.current]).
   /// This means that simply changing the name of a file,
   /// but keeping it the original directory,
   /// requires creating a new complete path with the new name
@@ -333,7 +333,7 @@ abstract class File implements FileSystemEntity {
   /// ```
   /// On some platforms, a rename operation cannot move a file between
   /// different file systems. If that is the case, instead [copySync] the
-  /// file to the new location and then [removeSync] the original.
+  /// file to the new location and then [deleteSync] the original.
   ///
   /// If [newPath] identifies an existing file, that file is
   /// removed first. If [newPath] identifies an existing directory the
@@ -343,7 +343,7 @@ abstract class File implements FileSystemEntity {
   /// Copies this file.
   ///
   /// If [newPath] is a relative path, it is resolved against
-  /// the current working directory ([Directory.cwd]).
+  /// the current working directory ([Directory.current]).
   ///
   /// Returns a `Future<File>` that completes
   /// with a [File] for the copied file.
@@ -356,7 +356,7 @@ abstract class File implements FileSystemEntity {
   /// Synchronously copies this file.
   ///
   /// If [newPath] is a relative path, it is resolved against
-  /// the current working directory ([Directory.cwd]).
+  /// the current working directory ([Directory.current]).
   ///
   /// Returns a [File] for the copied file.
   ///

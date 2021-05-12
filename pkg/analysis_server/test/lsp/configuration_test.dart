@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -56,7 +58,7 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
       {}, // Empty config
     );
 
-    // Ensure the roots are as expected before we udpate the config.
+    // Ensure the roots are as expected before we update the config.
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
     expect(server.contextManager.excludedPaths, isEmpty);
 

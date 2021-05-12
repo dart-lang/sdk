@@ -88,18 +88,16 @@ ISOLATE_UNIT_TEST_CASE(OptimizeCompileFunctionOnHelperThread) {
   // Constant in product mode.
   FLAG_background_compilation = true;
 #endif
-  Isolate* isolate = thread->isolate();
-  BackgroundCompiler::Start(isolate);
-  isolate->optimizing_background_compiler()->Compile(func);
+  auto isolate_group = thread->isolate_group();
+  isolate_group->background_compiler()->EnqueueCompilation(func);
   Monitor* m = new Monitor();
   {
-    MonitorLocker ml(m);
+    SafepointMonitorLocker ml(m);
     while (!func.HasOptimizedCode()) {
-      ml.WaitWithSafepointCheck(thread, 1);
+      ml.Wait(1);
     }
   }
   delete m;
-  BackgroundCompiler::Stop(isolate);
 }
 
 ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {

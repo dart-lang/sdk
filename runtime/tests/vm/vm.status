@@ -35,13 +35,8 @@ dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate to
 dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
 [ $builder_tag == obfuscated ]
-dart/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/async_throws_stack_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/async_throws_stack_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 
 [ $builder_tag == optimization_counter_threshold ]
@@ -90,18 +85,15 @@ dart/b162922506_test: SkipByDesign # Only run in JIT
 dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 dart_2/b162922506_test: SkipByDesign # Only run in JIT
 dart_2/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
+dart_2/isolates/reload_*: SkipByDesign # These tests only run on normal JIT.
 
 [ $compiler == dartkp ]
 dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/scavenger_abort_test: SkipSlow
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 dart_2/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart_2/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart_2/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/scavenger_abort_test: SkipSlow
 dart_2/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
@@ -185,7 +177,7 @@ dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https:/
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 
-[ $arch != simarm && $arch != simarm64 && $compiler == dartk && $hot_reload ]
+[ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $compiler == dartk && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
 dart/data_uri_import_test/nocharset: Crash
 dart/data_uri_import_test/nomime: Crash
@@ -216,7 +208,7 @@ dart_2/regress_37382_test: SkipByDesign # Matches the type arguments names
 # Enabling of dartk for sim{arm,arm64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 cc/StackTraceMallocHookLengthTest: Fail # Please triage.
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
@@ -254,7 +246,7 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 dart_2/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/appjit*: SkipSlow # DFE too slow
 dart/b162922506_test: SkipSlow # Generates large input file
 dart/data_uri_spawn_test: Skip # Please triage.
@@ -288,6 +280,10 @@ dart_2/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
 dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
+[ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
+dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
@@ -316,14 +312,14 @@ dart_2/catch_entry_state: SkipByDesign
 [ $system != fuchsia && ($arch != x64 || $system != linux) ]
 cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/Fuchsia
 
-[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64) ]
+[ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
-[ $arch == simarm || $arch == simarm64 ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
 cc/LargeMap: SkipByDesign
 cc/Profiler_AllocationSampleTest: SkipByDesign
 cc/Profiler_ArrayAllocation: SkipByDesign
@@ -365,15 +361,15 @@ dart_2/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not support
 dart_2/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
 dart_2/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
 
-[ $arch == simarm || $arch == simarm64 || $system != macos ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $system != macos ]
 dart/thread_priority_macos_test: SkipByDesign
 dart_2/thread_priority_macos_test: SkipByDesign
 
-[ $arch == simarm || $arch == simarm64 || $system != windows ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $system != windows ]
 dart/thread_priority_windows_test: SkipByDesign
 dart_2/thread_priority_windows_test: SkipByDesign
 
-[ $arch == simarm || $arch == simarm64 || $system != android && $system != linux ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $system != android && $system != linux ]
 dart/thread_priority_linux_test: SkipByDesign
 dart_2/thread_priority_linux_test: SkipByDesign
 
@@ -415,7 +411,7 @@ dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart_2/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri

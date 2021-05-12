@@ -4,7 +4,7 @@
 
 /// Return the summary of the given DartDoc [string], which is the content of
 /// the lines before the first blank line.
-String getDartDocSummary(String string) {
+String? getDartDocSummary(String? string) {
   if (string == null) {
     return null;
   }
@@ -26,7 +26,7 @@ String getDartDocSummary(String string) {
 
 /// Converts [string] from a DartDoc comment with slashes and stars to a plain
 /// text representation of the comment.
-String removeDartDocDelimiters(String string) {
+String? removeDartDocDelimiters(String? string) {
   if (string == null) {
     return null;
   }

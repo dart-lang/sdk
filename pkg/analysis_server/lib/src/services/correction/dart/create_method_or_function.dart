@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -36,8 +38,8 @@ class CreateMethodOrFunction extends CorrectionProducer {
         var target = getQualifiedPropertyTarget(node);
         if (target != null) {
           var targetType = target.staticType;
-          if (targetType != null && targetType.element is ClassElement) {
-            targetElement = targetType.element as ClassElement;
+          if (targetType is InterfaceType) {
+            targetElement = targetType.element;
             argument = target.parent as Expression;
           } else {
             return;

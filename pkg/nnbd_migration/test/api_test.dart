@@ -1570,6 +1570,28 @@ void test() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_do_not_surround_named_expression() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(named: <int>[x, y]);
+}
+g({List<int/*!*/>/*!*/ named}) {}
+''';
+    // Note: this test is to ensure that we don't produce
+    // `g((named: <int?>[x, y]) as List<int>)` (which would be a parse error).
+    // The migration we produce (`g(named: <int?>[x, y])`) still isn't great,
+    // because it's a type mismatch, but it's better.
+    //
+    // TODO(paulberry): a better migration would be `g(named: <int>[x!, y!])`.
+    var expected = '''
+void f(int? x, int? y) {
+  g(named: <int?>[x, y]);
+}
+g({required List<int> named}) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_downcast_dynamic_function_to_functionType() async {
     var content = '''
 void f(Function a) {
@@ -3357,6 +3379,32 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_future_nullability_mismatch() async {
+    var content = '''
+String foo;
+
+Future<String> getNullableFoo() async {
+  return foo;
+}
+
+Future<String/*!*/> getFoo() {
+  return getNullableFoo();
+}
+''';
+    var expected = '''
+String? foo;
+
+Future<String?> getNullableFoo() async {
+  return foo;
+}
+
+Future<String> getFoo() {
+  return getNullableFoo().then((value) => value!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_future_or_t_downcast_to_t() async {
     var content = '''
 import 'dart:async';
@@ -3384,6 +3432,30 @@ void f(
   int? i2 = foi2 as int?;
   int? i3 = foi3 as int?;
   int? i4 = foi4 as int?;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_future_type_mismatch() async {
+    var content = '''
+Future<List<int>> getNullableInts() async {
+  return [null];
+}
+
+Future<List<int/*!*/>> getInts() {
+  return getNullableInts();
+}
+''';
+    // TODO(paulberry): this is not a good migration.  Really we should produce
+    // getNullableInts.then((value) => value.cast());
+    var expected = '''
+Future<List<int?>> getNullableInts() async {
+  return [null];
+}
+
+Future<List<int>> getInts() {
+  return getNullableInts().then((value) => value as List<int>);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4693,6 +4765,46 @@ void f() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_loadLibrary_call() async {
+    var testPath = convertPath('$testsPath/lib/test.dart');
+    var otherPath = convertPath('$testsPath/lib/other.dart');
+    var content = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object> f() => other.loadLibrary();
+''',
+      otherPath: ''
+    };
+    var expected = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object?> f() => other.loadLibrary();
+''',
+      otherPath: ''
+    };
+    await _checkMultipleFileChanges(content, expected);
+  }
+
+  Future<void> test_loadLibrary_tearOff() async {
+    var testPath = convertPath('$testsPath/lib/test.dart');
+    var otherPath = convertPath('$testsPath/lib/other.dart');
+    var content = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object> Function() f() => other.loadLibrary;
+''',
+      otherPath: ''
+    };
+    var expected = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object?> Function() f() => other.loadLibrary;
+''',
+      otherPath: ''
+    };
+    await _checkMultipleFileChanges(content, expected);
   }
 
   Future<void> test_local_function() async {

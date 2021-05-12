@@ -4,7 +4,6 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/analyzer_error_code.dart';
-import 'package:meta/meta.dart';
 
 // It is hard to visually separate each code's _doc comment_ from its published
 // _documentation comment_ when each is written as an end-of-line comment.
@@ -32,23 +31,20 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try adding a field to '{0}' or use a different Struct.");
 
   /**
-   * Parameters:
-   * 0: the name of the struct class
-   */
-  static const FfiCode EMPTY_STRUCT_WARNING = FfiCode(
-      name: 'EMPTY_STRUCT_WARNING',
-      message:
-          "Struct '{0}' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead.",
-      correction: "Try adding a field to '{0}' or use a different Struct.",
-      type: ErrorType.HINT);
-
-  /**
    * No parameters.
    */
   static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
       name: 'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
       message: "Fields in a struct class must have exactly one annotation "
           "indicating the native type.",
+      correction: "Try removing the extra annotation.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode EXTRA_SIZE_ANNOTATION_CARRAY = FfiCode(
+      name: 'EXTRA_SIZE_ANNOTATION_CARRAY',
+      message: "'Array's must have exactly one 'Array' annotation.",
       correction: "Try removing the extra annotation.");
 
   /**
@@ -98,9 +94,11 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'INVALID_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
-          "be declared as 'int', 'double', 'Pointer', or subtype of 'Struct'.",
+          "be declared as 'int', 'double', 'Array', 'Pointer', or subtype of "
+          "'Struct'.",
       correction:
-          "Try using 'int', 'double', 'Pointer', or subtype of 'Struct'.");
+          "Try using 'int', 'double', 'Array', 'Pointer', or subtype of "
+          "'Struct'.");
 
   /**
    * No parameters.
@@ -144,6 +142,14 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try using 'int', 'double' or 'Pointer'.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode MISSING_SIZE_ANNOTATION_CARRAY = FfiCode(
+      name: 'MISSING_SIZE_ANNOTATION_CARRAY',
+      message: "'Array's must have exactly one 'Array' annotation.",
+      correction: "Try adding a 'Array' annotation.");
+
+  /**
    * Parameters:
    * 0: the type that should be a valid dart:ffi native type.
    * 1: the name of the function whose invocation depends on this relationship
@@ -179,20 +185,6 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the function, method, or constructor having type arguments
-   */
-  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT_WARNING = FfiCode(
-      name: 'NON_CONSTANT_TYPE_ARGUMENT_WARNING',
-      message:
-          "Support for using non-constant type arguments '{0}' in this FFI API"
-          " is deprecated and will be removed in the next stable version of "
-          "Dart. Rewrite the code to ensure that type arguments are compile "
-          "time constants referring to a valid native type.",
-      correction: "Try changing the type argument to be a constant type.",
-      type: ErrorType.HINT);
-
-  /**
-   * Parameters:
    * 0: the type that should be a valid dart:ffi native type.
    */
   static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER = FfiCode(
@@ -200,6 +192,57 @@ class FfiCode extends AnalyzerErrorCode {
       message: "The type argument for the pointer '{0}' must be a "
           "'NativeFunction' in order to use 'asFunction'.",
       correction: "Try changing the type argument to be a 'NativeFunction'.");
+
+  /**
+   * Parameters:
+   * 0: the type of the field
+   */
+  static const FfiCode NON_SIZED_TYPE_ARGUMENT = FfiCode(
+      name: 'NON_SIZED_TYPE_ARGUMENT',
+      message:
+          "Type arguments to '{0}' can't have the type '{1}'. They can only "
+          "be declared as native integer, 'Float', 'Double', 'Pointer', or "
+          "subtype of Struct'.",
+      correction: "Try using a native integer, 'Float', 'Double', 'Pointer', "
+          "or subtype of 'Struct'.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode PACKED_ANNOTATION = FfiCode(
+      name: 'PACKED_ANNOTATION',
+      message: "Structs must have at most one 'Packed' annotation.",
+      correction: "Try removing extra 'Packed' annotations.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode PACKED_ANNOTATION_ALIGNMENT = FfiCode(
+      name: 'PACKED_ANNOTATION_ALIGNMENT',
+      message: "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
+      correction:
+          "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.");
+
+  /**
+   * Parameters:
+   * 0: the name of the outer struct
+   * 1: the name of the struct being nested
+   */
+  static const FfiCode PACKED_NESTING_NON_PACKED = FfiCode(
+      name: 'PACKED_NESTING_NON_PACKED',
+      message:
+          "Nesting the non-packed or less tightly packed struct '{0}' in a packed struct '{1}' is not supported.",
+      correction:
+          "Try packing the nested struct or packing the nested struct more tightly.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode SIZE_ANNOTATION_DIMENSIONS = FfiCode(
+      name: 'SIZE_ANNOTATION_DIMENSIONS',
+      message:
+          "'Array's must have an 'Array' annotation that matches the dimensions.",
+      correction: "Try adjusting the arguments in the 'Array' annotation.");
 
   /**
    * Parameters:
@@ -291,12 +334,12 @@ class FfiCode extends AnalyzerErrorCode {
   ///
   /// If [hasPublishedDocs] is `true` then a URL for the docs will be generated.
   const FfiCode({
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
-    @required String message,
-    @required String name,
-    String uniqueName,
+    required String message,
+    required String name,
     ErrorType type = ErrorType.COMPILE_TIME_ERROR,
+    String? uniqueName,
   })  : type = type,
         super(
           correction: correction,

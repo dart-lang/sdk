@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
@@ -22,21 +23,23 @@ class AnalyzerConverter {
   /// error's location will have a start line and start column. If a [severity]
   /// is provided, then it will override the severity defined by the error.
   plugin.AnalysisError convertAnalysisError(analyzer.AnalysisError error,
-      {analyzer.LineInfo lineInfo, analyzer.ErrorSeverity severity}) {
+      {analyzer.LineInfo? lineInfo, analyzer.ErrorSeverity? severity}) {
     var errorCode = error.errorCode;
     severity ??= errorCode.errorSeverity;
     var offset = error.offset;
     var startLine = -1;
     var startColumn = -1;
+    var endLine = -1;
+    var endColumn = -1;
     if (lineInfo != null) {
-      var lineLocation =
-          lineInfo.getLocation(offset) as analyzer.CharacterLocation;
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
-      }
+      var startLocation = lineInfo.getLocation(offset);
+      startLine = startLocation.lineNumber;
+      startColumn = startLocation.columnNumber;
+      var endLocation = lineInfo.getLocation(offset + error.length);
+      endLine = endLocation.lineNumber;
+      endColumn = endLocation.columnNumber;
     }
-    List<plugin.DiagnosticMessage> contextMessages;
+    List<plugin.DiagnosticMessage>? contextMessages;
     if (error.contextMessages.isNotEmpty) {
       contextMessages = error.contextMessages
           .map((message) =>
@@ -47,7 +50,7 @@ class AnalyzerConverter {
         convertErrorSeverity(severity),
         convertErrorType(errorCode.type),
         plugin.Location(error.source.fullName, offset, error.length, startLine,
-            startColumn),
+            startColumn, endLine, endColumn),
         error.message,
         errorCode.name.toLowerCase(),
         contextMessages: contextMessages,
@@ -62,8 +65,8 @@ class AnalyzerConverter {
   /// the errors will be altered based on those options.
   List<plugin.AnalysisError> convertAnalysisErrors(
       List<analyzer.AnalysisError> errors,
-      {analyzer.LineInfo lineInfo,
-      analyzer.AnalysisOptions options}) {
+      {analyzer.LineInfo? lineInfo,
+      analyzer.AnalysisOptions? options}) {
     var serverErrors = <plugin.AnalysisError>[];
     for (var error in errors) {
       var processor = analyzer.ErrorProcessor.getProcessor(options, error);
@@ -87,22 +90,26 @@ class AnalyzerConverter {
   /// the error's location will have a start line and start column.
   plugin.DiagnosticMessage convertDiagnosticMessage(
       analyzer.DiagnosticMessage message,
-      {analyzer.LineInfo lineInfo}) {
+      {analyzer.LineInfo? lineInfo}) {
     var file = message.filePath;
     var offset = message.offset;
     var length = message.length;
     var startLine = -1;
     var startColumn = -1;
+    var endLine = -1;
+    var endColumn = -1;
     if (lineInfo != null) {
-      var lineLocation =
-          lineInfo.getLocation(offset) as analyzer.CharacterLocation;
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
-      }
+      var lineLocation = lineInfo.getLocation(offset);
+      startLine = lineLocation.lineNumber;
+      startColumn = lineLocation.columnNumber;
+      var endLocation = lineInfo.getLocation(offset + length);
+      endLine = endLocation.lineNumber;
+      endColumn = endLocation.columnNumber;
     }
-    return plugin.DiagnosticMessage(message.message,
-        plugin.Location(file, offset, length, startLine, startColumn));
+    return plugin.DiagnosticMessage(
+        message.message,
+        plugin.Location(
+            file, offset, length, startLine, startColumn, endLine, endColumn));
   }
 
   /// Convert the given [element] from the 'analyzer' package to an element
@@ -110,19 +117,22 @@ class AnalyzerConverter {
   plugin.Element convertElement(analyzer.Element element) {
     var kind = _convertElementToElementKind(element);
     return plugin.Element(
-        kind,
-        element.displayName,
-        plugin.Element.makeFlags(
-            isPrivate: element.isPrivate,
-            isDeprecated: element.hasDeprecated,
-            isAbstract: _isAbstract(element),
-            isConst: _isConst(element),
-            isFinal: _isFinal(element),
-            isStatic: _isStatic(element)),
-        location: locationFromElement(element),
-        typeParameters: _getTypeParametersString(element),
-        parameters: _getParametersString(element),
-        returnType: _getReturnTypeString(element));
+      kind,
+      element.displayName,
+      plugin.Element.makeFlags(
+        isPrivate: element.isPrivate,
+        isDeprecated: element.hasDeprecated,
+        isAbstract: _isAbstract(element),
+        isConst: _isConst(element),
+        isFinal: _isFinal(element),
+        isStatic: _isStatic(element),
+      ),
+      location: locationFromElement(element),
+      typeParameters: _getTypeParametersString(element),
+      aliasedType: _getAliasedTypeString(element),
+      parameters: _getParametersString(element),
+      returnType: _getReturnTypeString(element),
+    );
   }
 
   /// Convert the element [kind] from the 'analyzer' package to an element kind
@@ -164,6 +174,8 @@ class AnalyzerConverter {
       return plugin.ElementKind.SETTER;
     } else if (kind == analyzer.ElementKind.TOP_LEVEL_VARIABLE) {
       return plugin.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == analyzer.ElementKind.TYPE_ALIAS) {
+      return plugin.ElementKind.TYPE_ALIAS;
     } else if (kind == analyzer.ElementKind.TYPE_PARAMETER) {
       return plugin.ElementKind.TYPE_PARAMETER;
     }
@@ -182,8 +194,8 @@ class AnalyzerConverter {
       plugin.AnalysisErrorType(type.name);
 
   /// Create a location based on an the given [element].
-  plugin.Location locationFromElement(analyzer.Element element,
-      {int offset, int length}) {
+  plugin.Location? locationFromElement(analyzer.Element? element,
+      {int? offset, int? length}) {
     if (element == null || element.source == null) {
       return null;
     }
@@ -214,16 +226,23 @@ class AnalyzerConverter {
         // so should it return isEnumConstant = true?
         // Or should we return ElementKind.ENUM_CONSTANT here
         // in either or both of these cases?
-        element.type != null &&
         element.type.element == element.enclosingElement) {
       return plugin.ElementKind.ENUM_CONSTANT;
     }
     return convertElementKind(element.kind);
   }
 
+  String? _getAliasedTypeString(analyzer.Element element) {
+    if (element is analyzer.TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      return aliasedType.getDisplayString(withNullability: false);
+    }
+    return null;
+  }
+
   /// Return a textual representation of the parameters of the given [element],
   /// or `null` if the element does not have any parameters.
-  String _getParametersString(analyzer.Element element) {
+  String? _getParametersString(analyzer.Element element) {
     // TODO(scheglov) expose the corresponding feature from ExecutableElement
     List<analyzer.ParameterElement> parameters;
     if (element is analyzer.ExecutableElement) {
@@ -269,24 +288,19 @@ class AnalyzerConverter {
 
   /// Return a textual representation of the return type of the given [element],
   /// or `null` if the element does not have a return type.
-  String _getReturnTypeString(analyzer.Element element) {
+  String? _getReturnTypeString(analyzer.Element element) {
     if (element is analyzer.ExecutableElement) {
       if (element.kind == analyzer.ElementKind.SETTER) {
         return null;
       }
-      return element.returnType?.getDisplayString(withNullability: false);
+      return element.returnType.getDisplayString(withNullability: false);
     } else if (element is analyzer.VariableElement) {
-      var type = element.type;
-      return type != null
-          ? type.getDisplayString(withNullability: false)
-          : 'dynamic';
+      return element.type.getDisplayString(withNullability: false);
     } else if (element is analyzer.TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
-        var returnType = aliasedElement.returnType;
+      var aliasedType = element.aliasedType;
+      if (aliasedType is FunctionType) {
+        var returnType = aliasedType.returnType;
         return returnType.getDisplayString(withNullability: false);
-      } else {
-        return null;
       }
     }
     return null;
@@ -294,10 +308,10 @@ class AnalyzerConverter {
 
   /// Return a textual representation of the type parameters of the given
   /// [element], or `null` if the element does not have type parameters.
-  String _getTypeParametersString(analyzer.Element element) {
+  String? _getTypeParametersString(analyzer.Element element) {
     if (element is analyzer.TypeParameterizedElement) {
       var typeParameters = element.typeParameters;
-      if (typeParameters == null || typeParameters.isEmpty) {
+      if (typeParameters.isEmpty) {
         return null;
       }
       return '<${typeParameters.join(', ')}>';
@@ -306,19 +320,22 @@ class AnalyzerConverter {
   }
 
   /// Return the compilation unit containing the given [element].
-  analyzer.CompilationUnitElement _getUnitElement(analyzer.Element element) {
-    if (element is analyzer.CompilationUnitElement) {
-      return element;
+  analyzer.CompilationUnitElement? _getUnitElement(analyzer.Element element) {
+    analyzer.Element? currentElement = element;
+    if (currentElement is analyzer.CompilationUnitElement) {
+      return currentElement;
     }
-    if (element?.enclosingElement is analyzer.LibraryElement) {
-      element = element.enclosingElement;
+    if (currentElement.enclosingElement is analyzer.LibraryElement) {
+      currentElement = currentElement.enclosingElement;
     }
-    if (element is analyzer.LibraryElement) {
-      return element.definingCompilationUnit;
+    if (currentElement is analyzer.LibraryElement) {
+      return currentElement.definingCompilationUnit;
     }
-    for (; element != null; element = element.enclosingElement) {
-      if (element is analyzer.CompilationUnitElement) {
-        return element;
+    for (;
+        currentElement != null;
+        currentElement = currentElement.enclosingElement) {
+      if (currentElement is analyzer.CompilationUnitElement) {
+        return currentElement;
       }
     }
     return null;
@@ -366,22 +383,31 @@ class AnalyzerConverter {
 
   /// Create and return a location within the given [unitElement] at the given
   /// [range].
-  plugin.Location _locationForArgs(
-      analyzer.CompilationUnitElement unitElement, analyzer.SourceRange range) {
+  plugin.Location? _locationForArgs(
+      analyzer.CompilationUnitElement? unitElement,
+      analyzer.SourceRange range) {
     var startLine = 0;
     var startColumn = 0;
+    var endLine = 0;
+    var endColumn = 0;
+
+    if (unitElement == null) {
+      return null;
+    }
     try {
       var lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
-        var offsetLocation =
-            lineInfo.getLocation(range.offset) as analyzer.CharacterLocation;
+        var offsetLocation = lineInfo.getLocation(range.offset);
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;
+        var endLocation = lineInfo.getLocation(range.offset + range.length);
+        endLine = endLocation.lineNumber;
+        endColumn = endLocation.columnNumber;
       }
     } on analyzer.AnalysisException {
       // Ignore exceptions
     }
     return plugin.Location(unitElement.source.fullName, range.offset,
-        range.length, startLine, startColumn);
+        range.length, startLine, startColumn, endLine, endColumn);
   }
 }

@@ -86,11 +86,13 @@ abstract class AnalysisSession {
   /// the given absolute, normalized [path]. If the path does not represent a
   /// file or if the kind of the file cannot be determined, then the future will
   /// complete with [SourceKind.UNKNOWN].
-  Future<SourceKind> getSourceKind(String path);
+  ///
+  /// TODO(migration): should not be nullable
+  Future<SourceKind?> getSourceKind(String path);
 
   /// Return a future that will complete with information about the results of
   /// building the element model for the file with the given absolute,
-  /// normalized[path].
+  /// normalized [path].
   Future<UnitElementResult> getUnitElement(String path);
 
   /// Return a future that will complete with the signature for the file with

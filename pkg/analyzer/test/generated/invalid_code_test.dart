@@ -19,7 +19,10 @@ main() {
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeTest extends PubPackageResolutionTest {
+class InvalidCodeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_const_AwaitExpression() async {
     await _assertCanBeAnalyzed(r'''
 const a = await b();
@@ -309,6 +312,7 @@ class C {
 ''');
   }
 
+  @FailingTest(reason: 'We should set the type of v')
   test_fuzz_38953() async {
     // When we enter a directive, we should stop using the element walker
     // of the unit, just like when we enter a method body. Even though using
@@ -400,8 +404,7 @@ class B {
 }
 
 @reflectiveTest
-class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest {
   test_functionExpression_emptyBody() async {
     await _assertCanBeAnalyzed(r'''
 var v = <T>();

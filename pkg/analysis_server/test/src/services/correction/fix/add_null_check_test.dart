@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -96,6 +98,24 @@ void f(A x) {
 class A {
   A? operator +(A a) => null;
 }
+''');
+  }
+
+  Future<void> test_binaryOperator_leftSide() async {
+    await resolveTestCode('''
+f(int? i) => i + 1;
+''');
+    await assertHasFix('''
+f(int? i) => i! + 1;
+''');
+  }
+
+  Future<void> test_binaryOperator_rightSide() async {
+    await resolveTestCode('''
+f(int? i) => 1 + i;
+''');
+    await assertHasFix('''
+f(int? i) => 1 + i!;
 ''');
   }
 
@@ -225,6 +245,15 @@ String f(String? s) => s!.substring(0);
 ''');
   }
 
+  Future<void> test_postfixOperator() async {
+    await resolveTestCode('''
+f(int? i) => i++;
+''');
+    await assertHasFix('''
+f(int? i) => i!++;
+''');
+  }
+
   Future<void> test_prefixedIdentifier() async {
     await resolveTestCode('''
 int f(String? s) => s.length;
@@ -234,12 +263,39 @@ int f(String? s) => s!.length;
 ''');
   }
 
+  Future<void> test_prefixOperator() async {
+    await resolveTestCode('''
+f(int? i) => -i;
+''');
+    await assertHasFix('''
+f(int? i) => -i!;
+''');
+  }
+
   Future<void> test_propertyAccess() async {
     await resolveTestCode('''
 int f(String? s) => (s).length;
 ''');
     await assertHasFix('''
 int f(String? s) => (s)!.length;
+''');
+  }
+
+  Future<void> test_propertyAccess_cascade() async {
+    await resolveTestCode('''
+String? f(String? s) => s..length;
+''');
+    await assertHasFix('''
+String? f(String? s) => s!..length;
+''');
+  }
+
+  Future<void> test_propertyAccess_cascadeAfterNullProperty() async {
+    await resolveTestCode('''
+String? f(String? s) => s..hashCode..length;
+''');
+    await assertHasFix('''
+String? f(String? s) => s!..hashCode..length;
 ''');
   }
 

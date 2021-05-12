@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import '../ast.dart';
 import 'text_util.dart';
 
@@ -45,20 +43,20 @@ class AstTextStrategy {
 
   /// If non-null, a maximum of [maxStatementDepth] nested statements are
   /// printed. If exceeded, '...' is printed instead.
-  final int maxStatementDepth;
+  final int? maxStatementDepth;
 
   /// If non-null, a maximum of [maxStatementsLength] statements are printed
   /// within the same block.
-  final int maxStatementsLength;
+  final int? maxStatementsLength;
 
   /// If non-null, a maximum of [maxExpressionDepth] nested expression are
   /// printed. If exceeded, '...' is printed instead.
-  final int maxExpressionDepth;
+  final int? maxExpressionDepth;
 
   /// If non-null, a maximum of [maxExpressionsLength] expression are printed
   /// within the same list of expressions, for instance in list/set literals.
   /// If exceeded, '...' is printed instead.
-  final int maxExpressionsLength;
+  final int? maxExpressionsLength;
 
   const AstTextStrategy(
       {this.includeLibraryNamesInTypes: false,
@@ -78,8 +76,8 @@ class AstPrinter {
   int _statementLevel = 0;
   int _expressionLevel = 0;
   int _indentationLevel = 0;
-  Map<LabeledStatement, String> _labelNames;
-  Map<VariableDeclaration, String> _variableNames;
+  late final Map<LabeledStatement, String> _labelNames = {};
+  late final Map<VariableDeclaration, String> _variableNames = {};
 
   AstPrinter(this._strategy);
 
@@ -97,29 +95,29 @@ class AstPrinter {
     _sb.write(value);
   }
 
-  void writeClassName(Reference reference, {bool forType: false}) {
+  void writeClassName(Reference? reference, {bool forType: false}) {
     _sb.write(qualifiedClassNameToStringByReference(reference,
         includeLibraryName: forType
             ? _strategy.includeLibraryNamesInTypes
             : _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeTypedefName(Reference reference) {
+  void writeTypedefName(Reference? reference) {
     _sb.write(qualifiedTypedefNameToStringByReference(reference,
         includeLibraryName: _strategy.includeLibraryNamesInTypes));
   }
 
-  void writeExtensionName(Reference reference) {
+  void writeExtensionName(Reference? reference) {
     _sb.write(qualifiedExtensionNameToStringByReference(reference,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeMemberName(Reference reference) {
+  void writeMemberName(Reference? reference) {
     _sb.write(qualifiedMemberNameToStringByReference(reference,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeInterfaceMemberName(Reference reference, Name name) {
+  void writeInterfaceMemberName(Reference? reference, Name? name) {
     if (name != null && (reference == null || reference.node == null)) {
       writeName(name);
     } else {
@@ -130,7 +128,7 @@ class AstPrinter {
     }
   }
 
-  void writeName(Name name) {
+  void writeName(Name? name) {
     _sb.write(nameToString(name,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
@@ -154,15 +152,14 @@ class AstPrinter {
   }
 
   String getLabelName(LabeledStatement node) {
-    _labelNames ??= {};
     return _labelNames[node] ??= 'label${_labelNames.length}';
   }
 
   String getVariableName(VariableDeclaration node) {
-    if (node.name != null) {
-      return node.name;
+    String? name = node.name;
+    if (name != null) {
+      return name;
     }
-    _variableNames ??= {};
     return _variableNames[node] ??= '#${_variableNames.length}';
   }
 
@@ -178,7 +175,7 @@ class AstPrinter {
     int oldStatementLevel = _statementLevel;
     _statementLevel++;
     if (_strategy.maxStatementDepth != null &&
-        _statementLevel > _strategy.maxStatementDepth) {
+        _statementLevel > _strategy.maxStatementDepth!) {
       _sb.write('...');
     } else {
       node.toTextInternal(this);
@@ -186,11 +183,11 @@ class AstPrinter {
     _statementLevel = oldStatementLevel;
   }
 
-  void writeExpression(Expression node, {int minimumPrecedence}) {
+  void writeExpression(Expression node, {int? minimumPrecedence}) {
     int oldExpressionLevel = _expressionLevel;
     _expressionLevel++;
     if (_strategy.maxExpressionDepth != null &&
-        _expressionLevel > _strategy.maxExpressionDepth) {
+        _expressionLevel > _strategy.maxExpressionDepth!) {
       _sb.write('...');
     } else {
       bool needsParentheses =
@@ -262,22 +259,22 @@ class AstPrinter {
       for (TypeParameter typeParameter in typeParameters) {
         _sb.write(comma);
         _sb.write(typeParameter.name);
-        DartType bound = typeParameter.bound;
+        DartType bound = typeParameter.bound!;
 
         bool isTopObject(DartType type) {
           if (type is InterfaceType &&
               type.className.node != null &&
               type.classNode.name == 'Object') {
-            Uri uri = type.classNode.enclosingLibrary?.importUri;
-            return uri?.scheme == 'dart' &&
-                uri?.path == 'core' &&
+            Uri uri = type.classNode.enclosingLibrary.importUri;
+            return uri.scheme == 'dart' &&
+                uri.path == 'core' &&
                 (type.nullability == Nullability.legacy ||
                     type.nullability == Nullability.nullable);
           }
           return false;
         }
 
-        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType)) {
+        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType!)) {
           // Include explicit bounds only.
           _sb.write(' extends ');
           writeType(bound);
@@ -292,12 +289,12 @@ class AstPrinter {
   void writeExpressions(List<Expression> expressions) {
     if (expressions.isNotEmpty &&
         _strategy.maxExpressionDepth != null &&
-        _expressionLevel + 1 > _strategy.maxExpressionDepth) {
+        _expressionLevel + 1 > _strategy.maxExpressionDepth!) {
       // The maximum expression depth will be exceeded for all [expressions].
       // Print the list as one occurrence '...' instead one per expression.
       _sb.write('...');
     } else if (_strategy.maxExpressionsLength != null &&
-        expressions.length > _strategy.maxExpressionsLength) {
+        expressions.length > _strategy.maxExpressionsLength!) {
       _sb.write('...');
     } else {
       for (int index = 0; index < expressions.length; index++) {
@@ -333,12 +330,12 @@ class AstPrinter {
   void writeStatements(List<Statement> statements) {
     if (statements.isNotEmpty &&
         _strategy.maxStatementDepth != null &&
-        _statementLevel + 1 > _strategy.maxStatementDepth) {
+        _statementLevel + 1 > _strategy.maxStatementDepth!) {
       // The maximum statement depth will be exceeded for all [statements].
       // Print the list as one occurrence '...' instead one per statement.
       _sb.write(' ...');
     } else if (_strategy.maxStatementsLength != null &&
-        statements.length > _strategy.maxStatementsLength) {
+        statements.length > _strategy.maxStatementsLength!) {
       _sb.write(' ...');
     } else {
       for (Statement statement in statements) {
@@ -366,8 +363,8 @@ class AstPrinter {
   /// the corresponding properties on [node].
   void writeVariableDeclaration(VariableDeclaration node,
       {bool includeModifiersAndType: true,
-      bool isLate,
-      DartType type,
+      bool? isLate,
+      DartType? type,
       bool includeInitializer: true}) {
     if (includeModifiersAndType) {
       if (node.isRequired) {
@@ -388,7 +385,7 @@ class AstPrinter {
     _sb.write(getVariableName(node));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
-      writeExpression(node.initializer);
+      writeExpression(node.initializer!);
     }
   }
 
@@ -404,7 +401,7 @@ class AstPrinter {
         }
         _sb.write(node.typeParameters[index].name);
         _sb.write(' extends ');
-        writeType(node.typeParameters[index].bound);
+        writeType(node.typeParameters[index].bound!);
       }
       _sb.write('>');
     }
@@ -435,11 +432,12 @@ class AstPrinter {
       _sb.write('}');
     }
     _sb.write(')');
-    Statement body = node.body;
+    Statement? body = node.body;
+    // ignore: unnecessary_null_comparison
     if (body != null) {
       if (body is ReturnStatement) {
         _sb.write(' => ');
-        writeExpression(body.expression);
+        writeExpression(body.expression!);
       } else {
         _sb.write(' ');
         writeStatement(body);

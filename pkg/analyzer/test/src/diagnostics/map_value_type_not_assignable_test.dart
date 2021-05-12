@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapValueTypeNotAssignableTest);
+    defineReflectiveTests(MapValueTypeNotAssignableWithoutNullSafetyTest);
   });
 }
 
@@ -181,12 +182,6 @@ var v = <bool, int>{...{true: 1}};
 ''');
   }
 
-  test_nonConst_spread_intNum() async {
-    await assertNoErrorsInCode('''
-var v = <int, int>{...<num, num>{1: 1}};
-''');
-  }
-
   test_nonConst_spread_intString() async {
     await assertErrorsInCode('''
 var v = <bool, int>{...{true: 'a'}};
@@ -199,6 +194,17 @@ var v = <bool, int>{...{true: 'a'}};
     await assertNoErrorsInCode('''
 const dynamic a = 'a';
 var v = <bool, int>{...{true: a}};
+''');
+  }
+}
+
+@reflectiveTest
+class MapValueTypeNotAssignableWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, MapValueTypeNotAssignableTestCases {
+  test_nonConst_spread_intNum() async {
+    await assertNoErrorsInCode('''
+var v = <int, int>{...<num, num>{1: 1}};
 ''');
   }
 }

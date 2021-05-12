@@ -1,3 +1,6 @@
+# 2.0.0-dev
+* Stable null safety release.
+
 # 1.1.3
  * Supports changes made to the Analysis Server protocol through Dart 2.8.0
  * Updates to use pedantic 1.9.0 and some internal refactoring. 

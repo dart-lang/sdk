@@ -8,7 +8,7 @@ library fasta.field_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 
@@ -34,6 +34,8 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
+
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'class_builder.dart';
 import 'extension_builder.dart';
@@ -123,8 +125,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       Reference fieldSetterReference,
       Reference lateIsSetGetterReference,
       Reference lateIsSetSetterReference,
-      Reference getterReference,
-      Reference setterReference})
+      Reference lateGetterReference,
+      Reference lateSetterReference})
       : super(libraryBuilder, charOffset) {
     Uri fileUri = libraryBuilder?.fileUri;
     // If in mixed mode, late lowerings cannot use `null` as a sentinel on
@@ -132,8 +134,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     late_lowering.IsSetStrategy isSetStrategy =
         late_lowering.computeIsSetStrategy(libraryBuilder);
     if (isAbstract || isExternal) {
-      _fieldEncoding = new AbstractOrExternalFieldEncoding(
-          fileUri, charOffset, charEndOffset, getterReference, setterReference,
+      assert(lateIsSetGetterReference == null);
+      assert(lateIsSetSetterReference == null);
+      assert(lateGetterReference == null);
+      assert(lateSetterReference == null);
+      _fieldEncoding = new AbstractOrExternalFieldEncoding(fileUri, charOffset,
+          charEndOffset, fieldGetterReference, fieldSetterReference,
           isAbstract: isAbstract,
           isExternal: isExternal,
           isFinal: isFinal,
@@ -155,8 +161,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fieldSetterReference,
               lateIsSetGetterReference,
               lateIsSetSetterReference,
-              getterReference,
-              setterReference,
+              lateGetterReference,
+              lateSetterReference,
               isCovariant,
               isSetStrategy);
         } else {
@@ -169,8 +175,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fieldSetterReference,
               lateIsSetGetterReference,
               lateIsSetSetterReference,
-              getterReference,
-              setterReference,
+              lateGetterReference,
+              lateSetterReference,
               isCovariant,
               isSetStrategy);
         }
@@ -185,8 +191,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fieldSetterReference,
               lateIsSetGetterReference,
               lateIsSetSetterReference,
-              getterReference,
-              setterReference,
+              lateGetterReference,
+              lateSetterReference,
               isCovariant,
               isSetStrategy);
         } else {
@@ -199,8 +205,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fieldSetterReference,
               lateIsSetGetterReference,
               lateIsSetSetterReference,
-              getterReference,
-              setterReference,
+              lateGetterReference,
+              lateSetterReference,
               isCovariant,
               isSetStrategy);
         }
@@ -220,8 +226,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             fieldSetterReference,
             lateIsSetGetterReference,
             lateIsSetSetterReference,
-            getterReference,
-            setterReference,
+            lateGetterReference,
+            lateSetterReference,
             isCovariant,
             isSetStrategy);
       } else {
@@ -234,16 +240,16 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             fieldSetterReference,
             lateIsSetGetterReference,
             lateIsSetSetterReference,
-            getterReference,
-            setterReference,
+            lateGetterReference,
+            lateSetterReference,
             isCovariant,
             isSetStrategy);
       }
     } else {
       assert(lateIsSetGetterReference == null);
       assert(lateIsSetSetterReference == null);
-      assert(getterReference == null);
-      assert(setterReference == null);
+      assert(lateGetterReference == null);
+      assert(lateSetterReference == null);
       _fieldEncoding = new RegularFieldEncoding(
           fileUri, charOffset, charEndOffset,
           isFinal: isFinal,
@@ -376,13 +382,14 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     _fieldEncoding.completeSignature(coreTypes);
 
     ClassBuilder classBuilder = isClassMember ? parent : null;
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable, metadata, library, classBuilder, this);
+          annotatable, metadata, library, classBuilder, this, fileUri);
     }
 
     // For modular compilation we need to include initializers of all const
@@ -417,6 +424,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       }
       buildBody(coreTypes, initializer);
       bodyBuilder.resolveRedirectingFactoryTargets();
+      if (bodyBuilder.hasDelayedActions) {
+        delayedActionPerformers.add(bodyBuilder);
+      }
     }
     constInitializerToken = null;
   }
@@ -832,8 +842,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       Reference fieldSetterReference,
       Reference lateIsSetGetterReference,
       Reference lateIsSetSetterReference,
-      Reference getterReference,
-      Reference setterReference,
+      Reference lateGetterReference,
+      Reference lateSetterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : fileOffset = charOffset,
@@ -873,11 +883,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         fileUri: fileUri,
-        reference: getterReference)
+        reference: lateGetterReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = true;
-    _lateSetter = _createSetter(name, fileUri, charOffset, setterReference,
+    _lateSetter = _createSetter(name, fileUri, charOffset, lateSetterReference,
         isCovariant: isCovariant);
   }
 
@@ -1245,8 +1255,8 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Reference fieldSetterReference,
       Reference lateIsSetGetterReference,
       Reference lateIsSetSetterReference,
-      Reference getterReference,
-      Reference setterReference,
+      Reference lateGetterReference,
+      Reference lateSetterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1258,8 +1268,8 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             fieldSetterReference,
             lateIsSetGetterReference,
             lateIsSetSetterReference,
-            getterReference,
-            setterReference,
+            lateGetterReference,
+            lateSetterReference,
             isCovariant,
             isSetStrategy);
 }
@@ -1275,8 +1285,8 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       Reference fieldSetterReference,
       Reference lateIsSetGetterReference,
       Reference lateIsSetSetterReference,
-      Reference getterReference,
-      Reference setterReference,
+      Reference lateGetterReference,
+      Reference lateSetterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1288,8 +1298,8 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
             fieldSetterReference,
             lateIsSetGetterReference,
             lateIsSetSetterReference,
-            getterReference,
-            setterReference,
+            lateGetterReference,
+            lateSetterReference,
             isCovariant,
             isSetStrategy);
 
@@ -1320,8 +1330,8 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Reference fieldSetterReference,
       Reference lateIsSetGetterReference,
       Reference lateIsSetSetterReference,
-      Reference getterReference,
-      Reference setterReference,
+      Reference lateGetterReference,
+      Reference lateSetterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1333,8 +1343,8 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             fieldSetterReference,
             lateIsSetGetterReference,
             lateIsSetSetterReference,
-            getterReference,
-            setterReference,
+            lateGetterReference,
+            lateSetterReference,
             isCovariant,
             isSetStrategy);
 
@@ -1366,8 +1376,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       Reference fieldSetterReference,
       Reference lateIsSetGetterReference,
       Reference lateIsSetSetterReference,
-      Reference getterReference,
-      Reference setterReference,
+      Reference lateGetterReference,
+      Reference lateSetterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1379,8 +1389,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
             fieldSetterReference,
             lateIsSetGetterReference,
             lateIsSetSetterReference,
-            getterReference,
-            setterReference,
+            lateGetterReference,
+            lateSetterReference,
             isCovariant,
             isSetStrategy);
   @override

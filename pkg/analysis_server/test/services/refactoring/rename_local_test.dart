@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -640,5 +642,31 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // old name
     expect(refactoring.oldName, 'test');
+  }
+
+  Future<void> test_reuseNameOfCalledConstructor() async {
+    // https://github.com/dart-lang/sdk/issues/45105
+    await indexTestUnit('''
+class Foo {
+  Foo.now();
+}
+
+test() {
+  final foo = Foo.now();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('foo =');
+    refactoring.newName = 'now';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class Foo {
+  Foo.now();
+}
+
+test() {
+  final now = Foo.now();
+}
+''');
   }
 }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,15 +18,15 @@ class TestAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
-  AnalysisOptionsImpl _analysisOptions;
+  late AnalysisOptionsImpl _analysisOptions;
 
-  TypeProvider _typeProviderLegacy;
-  TypeProvider _typeProviderNonNullableByDefault;
+  late TypeProviderImpl _typeProviderLegacy;
+  late TypeProviderImpl _typeProviderNonNullableByDefault;
 
-  TypeSystemImpl _typeSystemLegacy;
-  TypeSystemImpl _typeSystemNonNullableByDefault;
+  late TypeSystemImpl _typeSystemLegacy;
+  late TypeSystemImpl _typeSystemNonNullableByDefault;
 
-  TestAnalysisContext({FeatureSet featureSet}) {
+  TestAnalysisContext({FeatureSet? featureSet}) {
     _analysisOptions = AnalysisOptionsImpl()
       ..contextFeatures = featureSet ?? FeatureSet.forTesting();
 
@@ -68,11 +67,11 @@ class TestAnalysisContext implements AnalysisContext {
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
 
-  TypeProvider get typeProviderLegacy {
+  TypeProviderImpl get typeProviderLegacy {
     return _typeProviderLegacy;
   }
 
-  TypeProvider get typeProviderNonNullableByDefault {
+  TypeProviderImpl get typeProviderNonNullableByDefault {
     return _typeProviderNonNullableByDefault;
   }
 

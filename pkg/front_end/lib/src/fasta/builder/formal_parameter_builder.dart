@@ -37,6 +37,8 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 
+import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_builder.dart';
@@ -177,7 +179,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (initializerToken != null) {
       // For modular compilation we need to include initializers for optional
       // and named parameters of const constructors into the outline - to enable
@@ -213,6 +216,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         }
         initializerWasInferred = true;
         bodyBuilder.resolveRedirectingFactoryTargets();
+        if (bodyBuilder.hasDelayedActions) {
+          delayedActionPerformers.add(bodyBuilder);
+        }
       }
     }
     initializerToken = null;

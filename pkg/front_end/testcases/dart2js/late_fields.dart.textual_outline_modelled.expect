@@ -1,0 +1,24 @@
+class C {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int a;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int b;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int c = -1;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int d = -1;
+}
+var c = C();
+void main() {}
+void testInitializedFinalInstanceField() {}
+void testInitializedNonFinalInstanceField() {}
+void testUninitializedFinalInstanceField() {}
+void testUninitializedNonFinalInstanceField() {}

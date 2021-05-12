@@ -45,6 +45,7 @@ import '../fasta/fasta_codes.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
+        PlainAndColorizedString,
         messageCantInferPackagesFromManyInputs,
         messageCantInferPackagesFromPackageUri,
         messageCompilingWithSoundNullSafety,
@@ -216,7 +217,7 @@ class ProcessedOptions {
     int offset = message.charOffset;
     Uri uri = message.uri;
     Location location = offset == -1 ? null : getLocation(uri, offset);
-    String formatted =
+    PlainAndColorizedString formatted =
         command_line_reporting.format(message, severity, location: location);
     List<FormattedMessage> formattedContext;
     if (context != null && context.isNotEmpty) {
@@ -398,6 +399,11 @@ class ProcessedOptions {
   Version getExperimentEnabledVersionInLibrary(
       flags.ExperimentalFlag flag, Uri importUri) {
     return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
+  }
+
+  bool isExperimentEnabledInLibraryByVersion(
+      flags.ExperimentalFlag flag, Uri importUri, Version version) {
+    return _raw.isExperimentEnabledInLibraryByVersion(flag, importUri, version);
   }
 
   Component _validateNullSafetyMode(Component component) {

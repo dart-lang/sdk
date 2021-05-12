@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--no_background_compilation --optimization_counter_threshold=10
+// VMOptions=--no_background_compilation --optimization_counter_threshold=10 --use_slow_path
 
 import "package:expect/expect.dart";
 

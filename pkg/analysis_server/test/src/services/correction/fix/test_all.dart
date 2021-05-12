@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_async_test.dart' as add_async;
@@ -81,6 +83,7 @@ import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
+import 'fix_in_file_test.dart' as fix_in_file;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
 import 'import_library_prefix_test.dart' as import_library_prefix;
@@ -146,6 +149,7 @@ import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
@@ -245,6 +249,7 @@ void main() {
     data_driven.main();
     extend_class_for_mixin.main();
     fix.main();
+    fix_in_file.main();
     import_async.main();
     import_library_prefix.main();
     import_library_project.main();
@@ -304,6 +309,7 @@ void main() {
     replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_final_with_var.main();
     replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_return_type_future.main();

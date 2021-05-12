@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.target.targets;
 
 import '../ast.dart';
@@ -66,8 +64,8 @@ final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
 };
 
-Target getTarget(String name, TargetFlags flags) {
-  _TargetBuilder builder = targets[name];
+Target? getTarget(String name, TargetFlags flags) {
+  _TargetBuilder? builder = targets[name];
   if (builder == null) return null;
   return builder(flags);
 }
@@ -241,8 +239,8 @@ abstract class Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {}
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {}
 
   /// Perform target-specific modular transformations on the given libraries.
   void performModularTransformationsOnLibraries(
@@ -265,7 +263,7 @@ abstract class Target {
   /// procedure.
   void performTransformationsOnProcedure(
       CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
-      {void logger(String msg)}) {}
+      {void Function(String msg)? logger}) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
   /// `int`, `double`, `num`, and `String`.
@@ -327,9 +325,14 @@ abstract class Target {
   ///
   /// This is determined by the [enabledLateLowerings] mask.
   bool isLateFieldLoweringEnabled(
-      {bool hasInitializer, bool isFinal, bool isStatic}) {
+      {required bool hasInitializer,
+      required bool isFinal,
+      required bool isStatic}) {
+    // ignore: unnecessary_null_comparison
     assert(hasInitializer != null);
+    // ignore: unnecessary_null_comparison
     assert(isFinal != null);
+    // ignore: unnecessary_null_comparison
     assert(isStatic != null);
     int mask = LateLowering.getFieldLowering(
         hasInitializer: hasInitializer, isFinal: isFinal, isStatic: isStatic);
@@ -341,9 +344,14 @@ abstract class Target {
   ///
   /// This is determined by the [enabledLateLowerings] mask.
   bool isLateLocalLoweringEnabled(
-      {bool hasInitializer, bool isFinal, bool isPotentiallyNullable}) {
+      {required bool hasInitializer,
+      required bool isFinal,
+      required bool isPotentiallyNullable}) {
+    // ignore: unnecessary_null_comparison
     assert(hasInitializer != null);
+    // ignore: unnecessary_null_comparison
     assert(isFinal != null);
+    // ignore: unnecessary_null_comparison
     assert(isPotentiallyNullable != null);
     int mask = LateLowering.getLocalLowering(
         hasInitializer: hasInitializer,
@@ -399,15 +407,15 @@ abstract class Target {
 
   String toString() => 'Target($name)';
 
-  Class concreteListLiteralClass(CoreTypes coreTypes) => null;
-  Class concreteConstListLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteListLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteConstListLiteralClass(CoreTypes coreTypes) => null;
 
-  Class concreteMapLiteralClass(CoreTypes coreTypes) => null;
-  Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteMapLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
 
-  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
-  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
-  Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
+  Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
+  Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
+  Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
   ConstantsBackend constantsBackend(CoreTypes coreTypes);
 }
@@ -416,7 +424,7 @@ class NoneConstantsBackend extends ConstantsBackend {
   @override
   final bool supportsUnevaluatedConstants;
 
-  const NoneConstantsBackend({this.supportsUnevaluatedConstants});
+  const NoneConstantsBackend({required this.supportsUnevaluatedConstants});
 }
 
 class NoneTarget extends Target {
@@ -456,8 +464,8 @@ class NoneTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {}
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {}
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -509,9 +517,14 @@ class LateLowering {
   static const int all = (1 << 16) - 1;
 
   static int getLocalLowering(
-      {bool hasInitializer, bool isFinal, bool isPotentiallyNullable}) {
+      {required bool hasInitializer,
+      required bool isFinal,
+      required bool isPotentiallyNullable}) {
+    // ignore: unnecessary_null_comparison
     assert(hasInitializer != null);
+    // ignore: unnecessary_null_comparison
     assert(isFinal != null);
+    // ignore: unnecessary_null_comparison
     assert(isPotentiallyNullable != null);
     if (hasInitializer) {
       if (isFinal) {
@@ -545,9 +558,14 @@ class LateLowering {
   }
 
   static int getFieldLowering(
-      {bool hasInitializer, bool isFinal, bool isStatic}) {
+      {required bool hasInitializer,
+      required bool isFinal,
+      required bool isStatic}) {
+    // ignore: unnecessary_null_comparison
     assert(hasInitializer != null);
+    // ignore: unnecessary_null_comparison
     assert(isFinal != null);
+    // ignore: unnecessary_null_comparison
     assert(isStatic != null);
     if (hasInitializer) {
       if (isFinal) {

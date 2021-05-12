@@ -18,7 +18,7 @@ abstract class MigrationResolutionHooks
   ///
   /// If the condition is known to evaluate to `true` or `false`, then the value
   /// it is known to evaluate to is returned.  Otherwise `null` is returned.
-  bool getConditionalKnownValue(AstNode node);
+  bool? getConditionalKnownValue(AstNode node);
 
   /// Called after the resolver has determined the type of an expression node.
   /// Should return the type that the expression has after migrations have been
@@ -38,6 +38,6 @@ abstract class MigrationResolutionHooks
   /// Called when the resolver starts or stops making use of a [FlowAnalysis]
   /// instance.
   void setFlowAnalysis(
-      FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
+      FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
           flowAnalysis);
 }

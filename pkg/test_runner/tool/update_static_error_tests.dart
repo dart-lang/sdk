@@ -13,6 +13,7 @@ import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:test_runner/src/command_output.dart';
+import 'package:test_runner/src/feature.dart' show Feature;
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
@@ -36,6 +37,8 @@ Future<void> main(List<String> args) async {
       abbr: "n",
       help: "Print result but do not overwrite any files.",
       negatable: false);
+  parser.addFlag("context",
+      abbr: "c", help: "Include context messages in output.");
 
   parser.addSeparator("What operations to perform:");
   parser.addFlag("remove-all",
@@ -60,10 +63,6 @@ Future<void> main(List<String> args) async {
       help: "Update error expectations for given front ends.",
       allowed: sources);
 
-  parser.addSeparator("Other flags:");
-  parser.addFlag("null-safety",
-      help: "Enable the 'non-nullable' experiment.", negatable: false);
-
   var results = parser.parse(args);
 
   if (results["help"] as bool) {
@@ -76,7 +75,8 @@ Future<void> main(List<String> args) async {
   }
 
   var dryRun = results["dry-run"] as bool;
-  var nullSafety = results["null-safety"] as bool;
+
+  var includeContext = results["context"] as bool;
 
   var removeSources = <ErrorSource>{};
   var insertSources = <ErrorSource>{};
@@ -135,9 +135,9 @@ Future<void> main(List<String> args) async {
     if (entry is pkg_file.File) {
       await _processFile(entry,
           dryRun: dryRun,
+          includeContext: includeContext,
           remove: removeSources,
-          insert: insertSources,
-          nullSafety: nullSafety);
+          insert: insertSources);
     }
   }
 }
@@ -152,15 +152,14 @@ void _usageError(ArgParser parser, String message) {
 
 Future<void> _processFile(File file,
     {bool dryRun,
+    bool includeContext,
     Set<ErrorSource> remove,
-    Set<ErrorSource> insert,
-    bool nullSafety}) async {
+    Set<ErrorSource> insert}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.absolute.path, source);
 
   var experiments = [
-    if (nullSafety) "non-nullable",
     if (testFile.experiments.isNotEmpty) ...testFile.experiments
   ];
 
@@ -184,10 +183,15 @@ Future<void> _processFile(File file,
   // tell which web errors are web-specific.
   List<StaticError> cfeErrors;
   if (insert.contains(ErrorSource.cfe) || insert.contains(ErrorSource.web)) {
+    var cfeOptions = [
+      if (testFile.requirements.contains(Feature.nnbdWeak)) "--nnbd-weak",
+      if (testFile.requirements.contains(Feature.nnbdStrong)) "--nnbd-strong",
+      ...options
+    ];
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    cfeErrors = await runCfe(file.absolute.path, options);
+    cfeErrors = await runCfe(file.absolute.path, cfeOptions);
     if (cfeErrors == null) {
       print("Error: failed to update ${file.path}");
     } else if (insert.contains(ErrorSource.cfe)) {
@@ -207,9 +211,8 @@ Future<void> _processFile(File file,
     }
   }
 
-  errors = StaticError.simplify(errors);
-
-  var result = updateErrorExpectations(source, errors, remove: remove);
+  var result = updateErrorExpectations(source, errors,
+      remove: remove, includeContext: includeContext);
 
   stdout.writeln("\r${file.path} (Updated with ${errors.length} errors)");
 
@@ -227,7 +230,7 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   // mode.
   var result = await Process.run(_analyzerPath, [
     ...options,
-    "--format=machine",
+    "--format=json",
     path,
   ]);
 
@@ -295,8 +298,7 @@ Future<List<StaticError>> runDart2js(
       return dart2jsError.line == cfeError.line &&
           dart2jsError.column == cfeError.column &&
           dart2jsError.length == cfeError.length &&
-          dart2jsError.errorFor(ErrorSource.web) ==
-              cfeError.errorFor(ErrorSource.cfe);
+          dart2jsError.message == cfeError.message;
     });
   });
 

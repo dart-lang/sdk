@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -56,6 +58,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_general_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -98,6 +101,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_list_all() async {
     await resolveTestCode('''
 f(List<A> a) {
@@ -140,6 +144,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_map_all() async {
     await resolveTestCode('''
 f(Map<A, B> a) {
@@ -186,6 +191,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_needsParens_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -232,6 +238,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_set_all() async {
     await resolveTestCode('''
 f(Set<A> a) {
@@ -284,6 +291,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_general_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -322,6 +330,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_list_all() async {
     await resolveTestCode('''
 f(List<A> a) {
@@ -360,6 +369,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_map_all() async {
     await resolveTestCode('''
 f(Map<A, B> a) {
@@ -402,6 +412,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_needsParens_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -444,6 +455,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_set_all() async {
     await resolveTestCode('''
 f(Set<A> a) {

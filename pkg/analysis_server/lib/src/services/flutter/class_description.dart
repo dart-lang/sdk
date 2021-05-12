@@ -21,17 +21,9 @@ class ClassDescription {
   final ClassElement element;
   final ConstructorElement constructor;
 
-  /// Mapping from a parameter to the default code for the corresponding
-  /// argument in a new instance creation that calls the [constructor].
-  ///
-  /// TODO(scheglov) Should be a generator, not just [String].
-  /// In general case we might need to import some libraries.
-  final Map<ParameterElement, String> parameterToDefaultCode;
-
   ClassDescription(
     this.element,
     this.constructor,
-    this.parameterToDefaultCode,
   );
 }
 
@@ -46,7 +38,7 @@ class ClassDescriptionRegistry {
 
   /// If we know how to materialize the [element], return [ClassDescription].
   /// Otherwise return `null`.
-  ClassDescription get(ClassElement element) {
+  ClassDescription? get(ClassElement element) {
     var description = _map[element];
     if (description == null) {
       description = _classDescription(element);
@@ -65,22 +57,19 @@ class ClassDescriptionRegistry {
     return false;
   }
 
-  ClassDescription _classDescription(ClassElement element) {
+  ClassDescription? _classDescription(ClassElement element) {
     if (!_isOptedInClass(element)) return null;
 
     var constructor = element.unnamedConstructor;
     if (constructor == null) return null;
 
-    var parameters = constructor.parameters;
-    var defaultValueMap = <ParameterElement, String>{};
-
-    for (var parameter in parameters) {
+    for (var parameter in constructor.parameters) {
       if (parameter.isNotOptional || parameter.hasRequired) {
         return null;
       }
     }
 
-    return ClassDescription(element, constructor, defaultValueMap);
+    return ClassDescription(element, constructor);
   }
 
   bool _isOptedInClass(ClassElement element) {

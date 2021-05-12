@@ -156,7 +156,7 @@ abstract class Substitution {
 
   const Substitution();
 
-  DartType getSubstitute(TypeParameterElement parameter, bool upperBound);
+  DartType? getSubstitute(TypeParameterElement parameter, bool upperBound);
 
   DartType substituteType(DartType type, {bool contravariant = false}) {
     var visitor = _TopSubstitutor(this, contravariant);
@@ -240,7 +240,7 @@ class _CombinedSubstitution extends Substitution {
   _CombinedSubstitution(this.first, this.second);
 
   @override
-  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+  DartType? getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return first.getSubstitute(parameter, upperBound) ??
         second.getSubstitute(parameter, upperBound);
   }
@@ -258,14 +258,13 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       return const <TypeParameterElement>[];
     }
 
-    var freshElements =
-        List<TypeParameterElement>.filled(elements.length, null);
+    var freshElements = <TypeParameterElement>[];
     for (var i = 0; i < elements.length; i++) {
       // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       var element = elements[i] as TypeParameterElementImpl;
       var freshElement = TypeParameterElementImpl(element.name, -1);
-      freshElements[i] = freshElement;
+      freshElements.add(freshElement);
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -278,9 +277,10 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
 
     for (var i = 0; i < freshElements.length; i++) {
       var element = elements[i];
-      if (element.bound != null) {
-        TypeParameterElementImpl freshElement = freshElements[i];
-        freshElement.bound = element.bound.accept(this);
+      var bound = element.bound;
+      if (bound != null) {
+        var freshElement = freshElements[i] as TypeParameterElementImpl;
+        freshElement.bound = bound.accept(this);
       }
     }
 
@@ -288,7 +288,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   }
 
   @override
-  DartType lookup(TypeParameterElement parameter, bool upperBound) {
+  DartType? lookup(TypeParameterElement parameter, bool upperBound) {
     return substitution[parameter];
   }
 }
@@ -300,7 +300,7 @@ class _MapSubstitution extends MapSubstitution {
   _MapSubstitution(this.map);
 
   @override
-  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+  DartType? getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return map[parameter];
   }
 
@@ -347,7 +347,7 @@ class _TopSubstitutor extends _TypeSubstitutor {
   }
 
   @override
-  DartType lookup(TypeParameterElement parameter, bool upperBound) {
+  DartType? lookup(TypeParameterElement parameter, bool upperBound) {
     return substitution.getSubstitute(parameter, upperBound);
   }
 }
@@ -357,7 +357,7 @@ abstract class _TypeSubstitutor
         TypeVisitor<DartType>,
         InferenceTypeVisitor<DartType>,
         LinkingTypeVisitor<DartType> {
-  final _TypeSubstitutor outer;
+  final _TypeSubstitutor? outer;
   bool covariantContext = true;
 
   /// The number of times a variable from this environment has been used in
@@ -369,14 +369,14 @@ abstract class _TypeSubstitutor
   int useCounter = 0;
 
   _TypeSubstitutor(this.outer) {
-    covariantContext = outer == null ? true : outer.covariantContext;
+    covariantContext = outer == null ? true : outer!.covariantContext;
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
     var substitutor = this;
     while (substitutor != target) {
       substitutor.useCounter++;
-      substitutor = substitutor.outer;
+      substitutor = substitutor.outer!;
     }
     target.useCounter++;
   }
@@ -384,8 +384,8 @@ abstract class _TypeSubstitutor
   List<TypeParameterElement> freshTypeParameters(
       List<TypeParameterElement> elements);
 
-  DartType getSubstitute(TypeParameterElement parameter) {
-    var environment = this;
+  DartType? getSubstitute(TypeParameterElement parameter) {
+    _TypeSubstitutor? environment = this;
     while (environment != null) {
       var replacement = environment.lookup(parameter, covariantContext);
       if (replacement != null) {
@@ -401,7 +401,7 @@ abstract class _TypeSubstitutor
     covariantContext = !covariantContext;
   }
 
-  DartType lookup(TypeParameterElement parameter, bool upperBound);
+  DartType? lookup(TypeParameterElement parameter, bool upperBound);
 
   _FreshTypeParametersSubstitutor newInnerEnvironment() {
     return _FreshTypeParametersSubstitutor(this);
@@ -443,7 +443,10 @@ abstract class _TypeSubstitutor
     inner.invertVariance();
 
     var returnType = type.returnType.accept(inner);
-    var aliasArguments = _mapList(type.aliasArguments);
+
+    var aliasArguments = type.aliasArguments;
+    var newAliasArguments =
+        aliasArguments != null ? _mapList(aliasArguments) : null;
 
     if (useCounter == before) return type;
 
@@ -453,7 +456,7 @@ abstract class _TypeSubstitutor
       returnType: returnType,
       nullabilitySuffix: type.nullabilitySuffix,
       aliasElement: type.aliasElement,
-      aliasArguments: aliasArguments,
+      aliasArguments: newAliasArguments,
     );
   }
 
@@ -563,7 +566,6 @@ abstract class _TypeSubstitutor
   DartType visitVoidType(VoidType type) => type;
 
   List<DartType> _mapList(List<DartType> types) {
-    if (types == null) return null;
     return types.map((e) => e.accept(this)).toList();
   }
 }
@@ -575,7 +577,7 @@ class _UpperLowerBoundsSubstitution extends Substitution {
   _UpperLowerBoundsSubstitution(this.upper, this.lower);
 
   @override
-  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+  DartType? getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return upperBound ? upper[parameter] : lower[parameter];
   }
 

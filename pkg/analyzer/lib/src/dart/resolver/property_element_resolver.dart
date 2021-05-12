@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -18,7 +18,6 @@ import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:meta/meta.dart';
 
 class PropertyElementResolver {
   final ResolverVisitor _resolver;
@@ -34,13 +33,11 @@ class PropertyElementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   PropertyElementResolverResult resolveIndexExpression({
-    @required IndexExpression node,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required IndexExpression node,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
     var target = node.realTarget;
-    var targetType = target.staticType;
-    targetType = _resolveTypeParameter(targetType);
 
     if (target is ExtensionOverride) {
       var result = _extensionResolver.getOverrideMember(target, '[]');
@@ -50,7 +47,7 @@ class PropertyElementResolver {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]', target.staticElement.name],
+          ['[]', target.staticElement!.name],
         );
       }
 
@@ -58,12 +55,15 @@ class PropertyElementResolver {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]=', target.staticElement.name],
+          ['[]=', target.staticElement!.name],
         );
       }
 
       return _toIndexResult(result);
     }
+
+    var targetType = target.typeOrThrow;
+    targetType = _resolveTypeParameter(targetType);
 
     if (targetType.isVoid) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
@@ -95,7 +95,7 @@ class PropertyElementResolver {
       receiver: target,
       receiverType: targetType,
       name: '[]',
-      receiverErrorNode: target,
+      propertyErrorEntity: node.leftBracket,
       nameErrorEntity: target,
     );
 
@@ -123,9 +123,9 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult resolvePrefixedIdentifier({
-    @required PrefixedIdentifier node,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required PrefixedIdentifier node,
+    required bool hasRead,
+    required bool hasWrite,
     bool forAnnotation = false,
   }) {
     var prefix = node.prefix;
@@ -143,6 +143,7 @@ class PropertyElementResolver {
     }
 
     return _resolve(
+      node: node,
       target: prefix,
       isCascaded: false,
       isNullAware: false,
@@ -153,9 +154,9 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult resolvePropertyAccess({
-    @required PropertyAccess node,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required PropertyAccess node,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
     var target = node.realTarget;
     var propertyName = node.propertyName;
@@ -171,6 +172,7 @@ class PropertyElementResolver {
 
     if (target is SuperExpression) {
       return _resolveTargetSuperExpression(
+        node: node,
         target: target,
         propertyName: propertyName,
         hasRead: hasRead,
@@ -179,6 +181,7 @@ class PropertyElementResolver {
     }
 
     return _resolve(
+      node: node,
       target: target,
       isCascaded: node.target == null,
       isNullAware: node.isNullAware,
@@ -189,20 +192,25 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult resolveSimpleIdentifier({
-    @required SimpleIdentifier node,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required SimpleIdentifier node,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
-    Element readElementRequested;
-    Element readElementRecovery;
+    Element? readElementRequested;
+    Element? readElementRecovery;
     if (hasRead) {
       var readLookup = _resolver.lexicalLookup(node: node, setter: false);
       readElementRequested = readLookup.requested;
+      if (readElementRequested is PropertyAccessorElement &&
+          !readElementRequested.isStatic) {
+        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(
+            node, node.name, readElementRequested.returnType);
+      }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
     }
 
-    Element writeElementRequested;
-    Element writeElementRecovery;
+    Element? writeElementRequested;
+    Element? writeElementRecovery;
     if (hasWrite) {
       var writeLookup = _resolver.lexicalLookup(node: node, setter: true);
       writeElementRequested = writeLookup.requested;
@@ -226,7 +234,7 @@ class PropertyElementResolver {
 
   void _checkExtensionOverrideStaticMember(
     SimpleIdentifier propertyName,
-    ExecutableElement element,
+    ExecutableElement? element,
   ) {
     if (element != null && element.isStatic) {
       _errorReporter.reportErrorForNode(
@@ -250,9 +258,9 @@ class PropertyElementResolver {
     );
   }
 
-  DartType _computeIndexContextType({
-    @required ExecutableElement readElement,
-    @required ExecutableElement writeElement,
+  DartType? _computeIndexContextType({
+    required ExecutableElement? readElement,
+    required ExecutableElement? writeElement,
   }) {
     var method = writeElement ?? readElement;
     var parameters = method is MethodElement ? method.parameters : null;
@@ -271,7 +279,7 @@ class PropertyElementResolver {
   void _reportUnresolvedIndex(
     IndexExpression node,
     ErrorCode errorCode, [
-    List<Object> arguments = const [],
+    List<Object?> arguments = const [],
   ]) {
     var leftBracket = node.leftBracket;
     var rightBracket = node.rightBracket;
@@ -282,12 +290,13 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolve({
-    @required Expression target,
-    @required bool isCascaded,
-    @required bool isNullAware,
-    @required SimpleIdentifier propertyName,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required Expression node,
+    required Expression target,
+    required bool isCascaded,
+    required bool isNullAware,
+    required SimpleIdentifier propertyName,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
     //
     // If this property access is of the form 'C.m' where 'C' is a class,
@@ -336,7 +345,7 @@ class PropertyElementResolver {
       }
     }
 
-    var targetType = target.staticType;
+    var targetType = target.typeOrThrow;
 
     if (targetType is FunctionType && propertyName.name == 'call') {
       return PropertyElementResolverResult(
@@ -360,9 +369,12 @@ class PropertyElementResolver {
       receiver: target,
       receiverType: targetType,
       name: propertyName.name,
-      receiverErrorNode: target,
+      propertyErrorEntity: propertyName,
       nameErrorEntity: propertyName,
     );
+
+    _resolver.flowAnalysis?.flow?.propertyGet(node, target, propertyName.name,
+        result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType);
 
     if (hasRead && result.needsGetterError) {
       _errorReporter.reportErrorForNode(
@@ -390,17 +402,17 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolveTargetClassElement({
-    @required ClassElement typeReference,
-    @required bool isCascaded,
-    @required SimpleIdentifier propertyName,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required ClassElement typeReference,
+    required bool isCascaded,
+    required SimpleIdentifier propertyName,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
     if (isCascaded) {
       typeReference = _resolver.typeProvider.typeType.element;
     }
 
-    ExecutableElement readElement;
+    ExecutableElement? readElement;
     if (hasRead) {
       readElement = typeReference.getGetter(propertyName.name);
       if (readElement != null && !_isAccessible(readElement)) {
@@ -429,8 +441,8 @@ class PropertyElementResolver {
       }
     }
 
-    ExecutableElement writeElement;
-    ExecutableElement writeElementRecovery;
+    ExecutableElement? writeElement;
+    ExecutableElement? writeElementRecovery;
     if (hasWrite) {
       writeElement = typeReference.getSetter(propertyName.name);
       if (writeElement != null) {
@@ -463,14 +475,14 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolveTargetExtensionElement({
-    @required ExtensionElement extension,
-    @required SimpleIdentifier propertyName,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required ExtensionElement extension,
+    required SimpleIdentifier propertyName,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
     var memberName = propertyName.name;
 
-    ExecutableElement readElement;
+    ExecutableElement? readElement;
     if (hasRead) {
       readElement ??= extension.getGetter(memberName);
       readElement ??= extension.getMethod(memberName);
@@ -487,7 +499,7 @@ class PropertyElementResolver {
       }
     }
 
-    ExecutableElement writeElement;
+    ExecutableElement? writeElement;
     if (hasWrite) {
       writeElement = extension.getSetter(memberName);
 
@@ -510,10 +522,10 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolveTargetExtensionOverride({
-    @required ExtensionOverride target,
-    @required SimpleIdentifier propertyName,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required ExtensionOverride target,
+    required SimpleIdentifier propertyName,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
@@ -523,12 +535,12 @@ class PropertyElementResolver {
       );
     }
 
-    ExtensionElement element = target.extensionName.staticElement;
-    String memberName = propertyName.name;
+    var element = target.extensionName.staticElement!;
+    var memberName = propertyName.name;
 
     var result = _extensionResolver.getOverrideMember(target, memberName);
 
-    ExecutableElement readElement;
+    ExecutableElement? readElement;
     if (hasRead) {
       readElement = result.getter;
       if (readElement == null) {
@@ -541,7 +553,7 @@ class PropertyElementResolver {
       _checkExtensionOverrideStaticMember(propertyName, readElement);
     }
 
-    ExecutableElement writeElement;
+    ExecutableElement? writeElement;
     if (hasWrite) {
       writeElement = result.setter;
       if (writeElement == null) {
@@ -561,11 +573,11 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolveTargetPrefixElement({
-    @required PrefixElement target,
-    @required SimpleIdentifier identifier,
-    @required bool hasRead,
-    @required bool hasWrite,
-    @required bool forAnnotation,
+    required PrefixElement target,
+    required SimpleIdentifier identifier,
+    required bool hasRead,
+    required bool hasWrite,
+    required bool forAnnotation,
   }) {
     var lookupResult = target.scope.lookup(identifier.name);
 
@@ -595,18 +607,19 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolveTargetSuperExpression({
-    @required SuperExpression target,
-    @required SimpleIdentifier propertyName,
-    @required bool hasRead,
-    @required bool hasWrite,
+    required Expression node,
+    required SuperExpression target,
+    required SimpleIdentifier propertyName,
+    required bool hasRead,
+    required bool hasWrite,
   }) {
     if (SuperContext.of(target) != SuperContext.valid) {
       return PropertyElementResolverResult();
     }
     var targetType = target.staticType;
 
-    ExecutableElement readElement;
-    ExecutableElement writeElement;
+    ExecutableElement? readElement;
+    ExecutableElement? writeElement;
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
@@ -636,6 +649,11 @@ class PropertyElementResolver {
             );
           }
         }
+        _resolver.flowAnalysis?.flow?.propertyGet(
+            node,
+            target,
+            propertyName.name,
+            readElement?.returnType ?? _typeSystem.typeProvider.dynamicType);
       }
 
       if (hasWrite) {
@@ -658,15 +676,11 @@ class PropertyElementResolver {
             inherited: true,
           );
           if (writeElement != null) {
-            ClassElementImpl receiverSuperClass =
-                targetType.element.supertype.element;
-            if (!receiverSuperClass.hasNoSuchMethod) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                propertyName,
-                [writeElement.kind.displayName, propertyName.name],
-              );
-            }
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+              propertyName,
+              [writeElement.kind.displayName, propertyName.name],
+            );
           } else {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,
@@ -709,15 +723,15 @@ class PropertyElementResolver {
 }
 
 class PropertyElementResolverResult {
-  final Element readElementRequested;
-  final Element readElementRecovery;
-  final Element writeElementRequested;
-  final Element writeElementRecovery;
-  final FunctionType functionTypeCallType;
+  final Element? readElementRequested;
+  final Element? readElementRecovery;
+  final Element? writeElementRequested;
+  final Element? writeElementRecovery;
+  final FunctionType? functionTypeCallType;
 
   /// If [IndexExpression] is resolved, the context type of the index.
   /// Might be `null` if `[]` or `[]=` are not resolved or invalid.
-  final DartType indexContextType;
+  final DartType? indexContextType;
 
   PropertyElementResolverResult({
     this.readElementRequested,
@@ -728,11 +742,11 @@ class PropertyElementResolverResult {
     this.functionTypeCallType,
   });
 
-  Element get readElement {
+  Element? get readElement {
     return readElementRequested ?? readElementRecovery;
   }
 
-  Element get writeElement {
+  Element? get writeElement {
     return writeElementRequested ?? writeElementRecovery;
   }
 }

@@ -53,10 +53,6 @@ DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 DECLARE_FLAG(bool, strong);
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-DEFINE_FLAG(bool, print_llvm_constant_pool, false, "Print LLVM constant pool");
-#endif
-
 Isolate* Dart::vm_isolate_ = NULL;
 int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -295,10 +291,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     StackZone zone(T);
     HandleScope handle_scope(T);
     Object::InitNullAndBool(vm_isolate_->group());
-    vm_isolate_->set_object_store(new ObjectStore());
+    vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
-    vm_isolate_->isolate_group_->object_store_ =
-        vm_isolate_->object_store_shared_ptr_;
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
     ArgumentsDescriptor::Init();
@@ -675,6 +669,7 @@ char* Dart::Cleanup() {
   IsolateGroupReloadContext::SetFileModifiedCallback(NULL);
   Service::SetEmbedderStreamCallbacks(NULL, NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  VirtualMemory::Cleanup();
   return NULL;
 }
 
@@ -812,52 +807,6 @@ bool Dart::DetectNullSafety(const char* script_uri,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-static void PrintLLVMConstantPool(Thread* T, Isolate* I) {
-  StackZone printing_zone(T);
-  HandleScope printing_scope(T);
-  TextBuffer b(1000);
-  const auto& constants = GrowableObjectArray::Handle(
-      I->group()->object_store()->llvm_constant_pool());
-  if (constants.IsNull()) {
-    b.AddString("No constant pool information in snapshot.\n\n");
-  } else {
-    auto const len = constants.Length();
-    b.Printf("Constant pool contents (length %" Pd "):\n", len);
-    auto& obj = Object::Handle();
-    for (intptr_t i = 0; i < len; i++) {
-      obj = constants.At(i);
-      b.Printf("  %5" Pd ": ", i);
-      if (obj.IsString()) {
-        b.AddChar('"');
-        b.AddEscapedString(obj.ToCString());
-        b.AddChar('"');
-      } else {
-        b.AddString(obj.ToCString());
-      }
-      b.AddChar('\n');
-    }
-    b.AddString("End of constant pool.\n\n");
-  }
-  const auto& functions = GrowableObjectArray::Handle(
-      I->group()->object_store()->llvm_function_pool());
-  if (functions.IsNull()) {
-    b.AddString("No function pool information in snapshot.\n\n");
-  } else {
-    auto const len = functions.Length();
-    b.Printf("Function pool contents (length %" Pd "):\n", len);
-    auto& obj = Function::Handle();
-    for (intptr_t i = 0; i < len; i++) {
-      obj ^= functions.At(i);
-      ASSERT(!obj.IsNull());
-      b.Printf("  %5" Pd ": %s\n", i, obj.ToFullyQualifiedCString());
-    }
-    b.AddString("End of function pool.\n\n");
-  }
-  THR_Print("%s", b.buffer());
-}
-#endif
-
 ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                  const uint8_t* snapshot_instructions,
                                  const uint8_t* kernel_buffer,
@@ -879,9 +828,6 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   HandleScope handle_scope(T);
   bool was_child_cloned_into_existing_isolate = false;
   if (source_isolate_group != nullptr) {
-    I->isolate_object_store()->Init();
-    I->isolate_object_store()->PreallocateObjects();
-
     // If a static field gets registered in [IsolateGroup::RegisterStaticField]:
     //
     //   * before this block it will ignore this isolate. The [Clone] of the
@@ -917,11 +863,6 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 #if !defined(TARGET_ARCH_IA32)
     ASSERT(IG->object_store()->build_method_extractor_code() != Code::null());
 #endif
-#if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_print_llvm_constant_pool) {
-      PrintLLVMConstantPool(T, I);
-    }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
   } else {
 #if !defined(TARGET_ARCH_IA32)
     if (I != Dart::vm_isolate()) {
@@ -938,16 +879,18 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   I->set_ic_miss_code(StubCode::SwitchableCallMiss());
 
-  if ((snapshot_data == NULL) || (kernel_buffer != NULL)) {
-    Error& error = Error::Handle();
+  Error& error = Error::Handle();
+  if (snapshot_data == nullptr || kernel_buffer != nullptr) {
     error ^= IG->object_store()->PreallocateObjects();
     if (!error.IsNull()) {
       return error.ptr();
     }
-    error ^= I->isolate_object_store()->PreallocateObjects();
-    if (!error.IsNull()) {
-      return error.ptr();
-    }
+  }
+  const auto& out_of_memory =
+      Object::Handle(IG->object_store()->out_of_memory());
+  error ^= I->isolate_object_store()->PreallocateObjects(out_of_memory);
+  if (!error.IsNull()) {
+    return error.ptr();
   }
 
   if (!was_child_cloned_into_existing_isolate) {
@@ -978,18 +921,14 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   I->set_current_tag(default_tag);
 
-  if (FLAG_keep_code) {
-    I->set_deoptimized_code_array(
-        GrowableObjectArray::Handle(GrowableObjectArray::New()));
-  }
+  I->init_loaded_prefixes_set_storage();
+
   return Error::null();
 }
 
-const char* Dart::FeaturesString(Isolate* isolate,
+const char* Dart::FeaturesString(IsolateGroup* isolate_group,
                                  bool is_vm_isolate,
                                  Snapshot::Kind kind) {
-  auto isolate_group = isolate != nullptr ? isolate->group() : nullptr;
-
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -1059,6 +998,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 
 #else
 #error What architecture?
+#endif
+#if defined(DART_COMPRESSED_POINTERS)
+    buffer.AddString(" compressed");
 #endif
   }
 

@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:meta/meta.dart';
 
 /// Return the result of parsing the file at the given [path].
 ///
@@ -38,13 +37,10 @@ import 'package:meta/meta.dart';
 /// will be thrown. If the parameter is `false`, then the caller can check the
 /// result to see whether there are any errors.
 ParseStringResult parseFile(
-    {@required String path,
-    ResourceProvider resourceProvider,
-    @required FeatureSet featureSet,
+    {required String path,
+    ResourceProvider? resourceProvider,
+    required FeatureSet featureSet,
     bool throwIfDiagnostics = true}) {
-  if (featureSet == null) {
-    throw ArgumentError('A non-null feature set must be provided.');
-  }
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   var content = (resourceProvider.getResource(path) as File).readAsStringSync();
   return parseString(
@@ -72,12 +68,12 @@ ParseStringResult parseFile(
 /// errors should pass `false` and check `result.errors` to determine what parse
 /// errors, if any, have occurred.
 ParseStringResult parseString(
-    {@required String content,
-    FeatureSet featureSet,
-    String path,
+    {required String content,
+    FeatureSet? featureSet,
+    String? path,
     bool throwIfDiagnostics = true}) {
   featureSet ??= FeatureSet.latestLanguageVersion();
-  var source = StringSource(content, path);
+  var source = StringSource(content, path ?? '');
   var reader = CharSequenceReader(content);
   var errorCollector = RecordingErrorListener();
   var scanner = Scanner(source, reader, errorCollector)
@@ -108,8 +104,10 @@ ParseStringResult parseString(
 /// Note that if more than one file is going to be resolved then this function
 /// is inefficient. Clients should instead use [AnalysisContextCollection] to
 /// create one or more contexts and use those contexts to resolve the files.
-Future<ResolvedUnitResult> resolveFile(
-    {@required String path, ResourceProvider resourceProvider}) async {
+///
+/// TODO(migration): should not be nullable
+Future<ResolvedUnitResult?> resolveFile(
+    {required String path, ResourceProvider? resourceProvider}) async {
   AnalysisContext context =
       _createAnalysisContext(path: path, resourceProvider: resourceProvider);
   return await context.currentSession.getResolvedUnit(path);
@@ -120,7 +118,7 @@ Future<ResolvedUnitResult> resolveFile(
 ///
 /// If a [resourceProvider] is given, it will be used to access the file system.
 AnalysisContext _createAnalysisContext(
-    {@required String path, ResourceProvider resourceProvider}) {
+    {required String path, ResourceProvider? resourceProvider}) {
   AnalysisContextCollection collection = AnalysisContextCollection(
     includedPaths: <String>[path],
     resourceProvider: resourceProvider ?? PhysicalResourceProvider.INSTANCE,

@@ -987,6 +987,35 @@ constexpr uint32_t kU32MinusOne = 0xffffffffu;
 constexpr uint32_t kU32MinInt32 = 0x80000000u;
 constexpr uint32_t kU32MaxInt32 = 0x7fffffffu;
 
+#define FOR_EACH_ASR_32_TEST_CONFIG(M)                                         \
+  M(0u, 0, 0u)                                                                 \
+  M(1u, 0, 1u)                                                                 \
+  M(kU32MaxInt32, 0, kU32MaxInt32)                                             \
+  M(kU32MinInt32, 0, kU32MinInt32)                                             \
+  M(0u, 1, 0u)                                                                 \
+  M(1u, 1, 0u)                                                                 \
+  M(4u, 1, 2u)                                                                 \
+  M(0xffffu, 1, 0x7fffu)                                                       \
+  M(0xffffffffu, 1, 0xffffffffu)                                               \
+  M(kU32MaxInt32, 1, 0x3fffffffu)                                              \
+  M(kU32MinInt32, 1, 0xc0000000u)                                              \
+  M(kU32MinusOne, 1, 0xffffffffu)                                              \
+  M(1u, 2, 0u)                                                                 \
+  M(4u, 2, 1u)                                                                 \
+  M(0xffffu, 2, 0x3fffu)                                                       \
+  M(0xffffffffu, 2, 0xffffffffu)                                               \
+  M(kU32MaxInt32, 2, 0x1fffffffu)                                              \
+  M(kU32MinInt32, 2, 0xe0000000u)                                              \
+  M(kU32MinusOne, 2, kU32MinusOne)                                             \
+  M(0u, 31, 0u)                                                                \
+  M(1u, 31, 0u)                                                                \
+  M(4u, 31, 0u)                                                                \
+  M(0xffffu, 31, 0u)                                                           \
+  M(0xffffffffu, 31, 0xffffffffu)                                              \
+  M(kU32MaxInt32, 31, 0u)                                                      \
+  M(kU32MinInt32, 31, kU32MinusOne)                                            \
+  M(kU32MinusOne, 31, kU32MinusOne)
+
 #define FOR_EACH_LSR_32_TEST_CONFIG(M)                                         \
   M(0u, 0, 0u)                                                                 \
   M(1u, 0, 1u)                                                                 \
@@ -1058,20 +1087,26 @@ constexpr uint32_t kU32MaxInt32 = 0x7fffffffu;
                               Int32Return, test->entry())));                   \
   }
 
+#define ASR_32_IMMEDIATE_TEST(val, shift, expected)                            \
+  SHIFT_32_IMMEDIATE_TEST(AsrImmediate, val, shift, expected)
+
 #define LSR_32_IMMEDIATE_TEST(val, shift, expected)                            \
   SHIFT_32_IMMEDIATE_TEST(LsrImmediate, val, shift, expected)
 
 #define LSL_32_IMMEDIATE_TEST(val, shift, expected)                            \
   SHIFT_32_IMMEDIATE_TEST(LslImmediate, val, shift, expected)
 
+FOR_EACH_ASR_32_TEST_CONFIG(ASR_32_IMMEDIATE_TEST)
 FOR_EACH_LSR_32_TEST_CONFIG(LSR_32_IMMEDIATE_TEST)
 FOR_EACH_LSL_32_TEST_CONFIG(LSL_32_IMMEDIATE_TEST)
 
 #undef LSL_32_IMMEDIATE_TEST
 #undef LSR_32_IMMEDIATE_TEST
+#undef ASR_32_IMMEDIATE_TEST
 #undef SHIFT_32_IMMEDIATE_TEST
 #undef FOR_EACH_LSL_32_TESTS_LIST
 #undef FOR_EACH_LSR_32_TESTS_LIST
+#undef FOR_EACH_ASR_32_TESTS_LIST
 
 ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
   __ movz(R1, Immediate(42), 0);
@@ -1240,6 +1275,44 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Clz, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Clzw, assembler) {
+  Label error;
+
+  __ clzw(R1, ZR);
+  __ cmp(R1, Operand(32));
+  __ b(&error, NE);
+  __ LoadImmediate(R2, 42);
+  __ clzw(R2, R2);
+  __ cmp(R2, Operand(26));
+  __ b(&error, NE);
+  __ LoadImmediate(R0, -1);
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(0));
+  __ b(&error, NE);
+  __ add(R0, ZR, Operand(R0, LSR, 35));
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(3));
+  __ b(&error, NE);
+  __ LoadImmediate(R0, 0xFFFFFFFF0FFFFFFF);
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(4));
+  __ b(&error, NE);
+  __ LoadImmediate(R0, 0xFFFFFFFF);
+  __ clzw(R1, R0);
+  __ cmp(R1, Operand(0));
+  __ b(&error, NE);
+  __ mov(R0, ZR);
+  __ ret();
+  __ Bind(&error);
+  __ LoadImmediate(R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Clzw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
@@ -2526,16 +2599,19 @@ static void EnterTestFrame(Assembler* assembler) {
   __ Push(THR);
   __ Push(BARRIER_MASK);
   __ Push(NULL_REG);
+  __ Push(HEAP_BASE);
   __ TagAndPushPP();
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
   __ mov(THR, R1);
   __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ ldr(NULL_REG, Address(THR, Thread::object_null_offset()));
+  __ ldr(HEAP_BASE, Address(THR, Thread::heap_base_offset()));
   __ LoadPoolPointer(PP);
 }
 
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
+  __ Pop(HEAP_BASE);
   __ Pop(NULL_REG);
   __ Pop(BARRIER_MASK);
   __ Pop(THR);
@@ -3089,15 +3165,71 @@ ASSEMBLER_TEST_RUN(FldrqFstrqPrePostIndex, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
 
-ASSEMBLER_TEST_GENERATE(Fcvtzds, assembler) {
+ASSEMBLER_TEST_GENERATE(Fcvtzdsx, assembler) {
   __ LoadDImmediate(V0, 42.0);
-  __ fcvtzds(R0, V0);
+  __ fcvtzdsx(R0, V0);
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(Fcvtzds, test) {
+ASSEMBLER_TEST_RUN(Fcvtzdsx, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzdsw, assembler) {
+  __ LoadDImmediate(V0, 42.0);
+  __ fcvtzdsw(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzdsw, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzdsx_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e20);
+  __ fcvtzdsx(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzdsx_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzdsx_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e20);
+  __ fcvtzdsx(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzdsx_overflow_negative, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzdsw_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e10);
+  __ fcvtzdsw(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzdsw_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzdsw_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e10);
+  __ fcvtzdsw(R0, V0);
+  __ sxtw(R0, R0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzdsw_overflow_negative, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(Scvtfdx, assembler) {
@@ -4639,6 +4771,91 @@ ASSEMBLER_TEST_RUN(Drop, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMaxPushedNumber,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(AndImmediate32Negative, assembler) {
+  __ AndImmediate(R0, R0, -512, kFourBytes);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(AndImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(0xfffffe00,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(OrImmediate32Negative, assembler) {
+  __ OrImmediate(R0, R0, -512, kFourBytes);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(OrImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(0xffffffd6,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0xfffffe00,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0xfffffe2a,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(XorImmediate32Negative, assembler) {
+  __ XorImmediate(R0, R0, -512, kFourBytes);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(XorImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(0x1d6,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0xfffffe00,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0xfffffe2a,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(TestImmediate32Negative, assembler) {
+  Label on_zero;
+  __ TestImmediate(R0, -512, kFourBytes);
+  __ b(&on_zero, EQ);
+  __ LoadImmediate(R0, 1);
+  __ ret();
+  __ Bind(&on_zero);
+  __ LoadImmediate(R0, 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(1,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -42));
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+}
+
+ASSEMBLER_TEST_GENERATE(CompareImmediate32Negative, assembler) {
+  Label on_zero;
+  __ CompareImmediate(R0, -512, kFourBytes);
+  __ b(&on_zero, LT);
+  __ LoadImmediate(R0, 0);
+  __ ret();
+  __ Bind(&on_zero);
+  __ LoadImmediate(R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(CompareImmediate32Negative, test) {
+  typedef intptr_t (*IntPtrReturn)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(1,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -513));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -512));
+  EXPECT_EQ(0,
+            EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -511));
 }
 
 }  // namespace compiler

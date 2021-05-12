@@ -1,8 +1,3 @@
-//
-// Problems outside component:
-//
-// third_party/pkg/ffi/lib/src/allocation.dart: Info: Support for using non-constant type arguments 'T' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.
-//
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
@@ -11,33 +6,31 @@ import "dart:ffi" as ffi;
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
-@#C3
-@#C8
+@#C7
 class Coordinate extends ffi::Struct {
-  @#C3
-  static final field core::int* #sizeOf = (#C11).{core::List::[]}(ffi::_abi())/*isLegacy*/;
-  @#C3
+  static final field core::int* #sizeOf = (#C10).{core::List::[]}(ffi::_abi())/*isLegacy*/;
+  @#C12
   constructor #fromTypedDataBase(dynamic #pointer) → dynamic
     : super ffi::Struct::_fromPointer(#pointer)
     ;
-  @#C12
+  @#C13
   get x() → core::double
-    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()));
-  @#C12
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C15).{core::List::[]}(ffi::_abi()));
+  @#C13
   set x(core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()), #externalFieldValue);
-  @#C12
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C15).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+  @#C13
   get y() → core::double
-    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()));
-  @#C12
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C17).{core::List::[]}(ffi::_abi()));
+  @#C13
   set y(core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C17).{core::List::[]}(ffi::_abi()), #externalFieldValue);
   get next() → ffi::Pointer<self::Coordinate>
-    return ffi::_fromAddress<self::Coordinate>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C19).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate> #externalFieldValue) → void
-    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C19).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Pointer::address});
   static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate {
-    return let final self::Coordinate #t1 = ffi::StructPointer|get#ref<self::Coordinate>(ffi::AllocatorAlloc|call<self::Coordinate>(allocator)) in block {
+    return let final self::Coordinate #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate>(self::Coordinate::#sizeOf)!) in block {
       #t1.{self::Coordinate::x} = x;
       #t1.{self::Coordinate::y} = y;
       #t1.{self::Coordinate::next} = next;
@@ -47,24 +40,25 @@ class Coordinate extends ffi::Struct {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = "vm:entry-point"
-  #C2 = null
-  #C3 = core::pragma {name:#C1, options:#C2}
-  #C4 = "vm:ffi:struct-fields"
-  #C5 = TypeLiteralConstant(ffi::Double)
-  #C6 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
-  #C7 = <core::Type>[#C5, #C5, #C6]
-  #C8 = core::pragma {name:#C4, options:#C7}
-  #C9 = 24
-  #C10 = 20
-  #C11 = <core::int*>[#C9, #C10, #C9]
-  #C12 = ffi::Double {}
-  #C13 = 0
-  #C14 = <core::int*>[#C13, #C13, #C13]
-  #C15 = 8
-  #C16 = <core::int*>[#C15, #C15, #C15]
-  #C17 = 16
-  #C18 = <core::int*>[#C17, #C17, #C17]
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Double)
+  #C3 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C4 = <core::Type>[#C2, #C2, #C3]
+  #C5 = null
+  #C6 = ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
+  #C7 = core::pragma {name:#C1, options:#C6}
+  #C8 = 24
+  #C9 = 20
+  #C10 = <core::int*>[#C8, #C9, #C8]
+  #C11 = "vm:entry-point"
+  #C12 = core::pragma {name:#C11, options:#C5}
+  #C13 = ffi::Double {}
+  #C14 = 0
+  #C15 = <core::int*>[#C14, #C14, #C14]
+  #C16 = 8
+  #C17 = <core::int*>[#C16, #C16, #C16]
+  #C18 = 16
+  #C19 = <core::int*>[#C18, #C18, #C18]
 }
 
 

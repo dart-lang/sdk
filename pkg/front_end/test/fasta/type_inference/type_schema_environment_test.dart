@@ -26,7 +26,6 @@ class TypeSchemaEnvironmentTest {
 
   final Map<String, DartType Function()> additionalTypes = {
     "UNKNOWN": () => new UnknownType(),
-    "BOTTOM": () => new BottomType(),
   };
 
   Library _coreLibrary;
@@ -75,7 +74,7 @@ class TypeSchemaEnvironmentTest {
     checkConstraintUpperBound(constraint: "", bound: "UNKNOWN");
     checkConstraintUpperBound(constraint: "<: A*", bound: "A*");
     checkConstraintUpperBound(constraint: "<: A* <: B*", bound: "B*");
-    checkConstraintUpperBound(constraint: "<: A* <: B* <: C*", bound: "BOTTOM");
+    checkConstraintUpperBound(constraint: "<: A* <: B* <: C*", bound: "Never*");
   }
 
   void test_glb_bottom() {
@@ -149,13 +148,13 @@ class TypeSchemaEnvironmentTest {
     checkLowerBound(
         type1: "({A* a}) ->* void",
         type2: "(B*) ->* void",
-        lowerBound: "BOTTOM");
+        lowerBound: "Never*");
 
     // GLB(({a: A}) -> void, ([B]) -> void) = bottom
     checkLowerBound(
         type1: "({A* a}) ->* void",
         type2: "([B*]) ->* void",
-        lowerBound: "BOTTOM");
+        lowerBound: "Never*");
   }
 
   void test_glb_identical() {
@@ -188,7 +187,7 @@ class TypeSchemaEnvironmentTest {
 
   void test_glb_unrelated() {
     parseTestLibrary("class A; class B;");
-    checkLowerBound(type1: "A*", type2: "B*", lowerBound: "BOTTOM");
+    checkLowerBound(type1: "A*", type2: "B*", lowerBound: "Never*");
   }
 
   void test_inferGenericFunctionOrType() {

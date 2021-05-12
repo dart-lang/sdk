@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -528,9 +530,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   Future<void> test_anonymous_function_async7() async {
     addTestSource('main() {foo("bar", () as^ => null');
     await computeSuggestions();
-    assertSuggestKeywords([],
-        pseudoKeywords:
-            usingFastaParser ? ['async'] : ['async', 'async*', 'sync*']);
+    assertSuggestKeywords([], pseudoKeywords: ['async']);
   }
 
   Future<void> test_anonymous_function_async8() async {
@@ -916,17 +916,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   Future<void> test_class_implements2() async {
     addTestSource('class A e^ implements foo');
     await computeSuggestions();
-    assertSuggestKeywords(usingFastaParser
-        ? [Keyword.EXTENDS]
-        : [Keyword.EXTENDS, Keyword.IMPLEMENTS]);
+    assertSuggestKeywords([Keyword.EXTENDS]);
   }
 
   Future<void> test_class_implements3() async {
     addTestSource('class A e^ implements foo { }');
     await computeSuggestions();
-    assertSuggestKeywords(usingFastaParser
-        ? [Keyword.EXTENDS]
-        : [Keyword.EXTENDS, Keyword.IMPLEMENTS]);
+    assertSuggestKeywords([Keyword.EXTENDS]);
   }
 
   Future<void> test_class_implements_name() async {
@@ -1468,6 +1464,77 @@ class A {
     addTestSource('foo() {if (true) ^ go();}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass);
+  }
+
+  @failingTest
+  Future<void> test_ifElement_noElse_last() async {
+    addTestSource('''
+void f() {
+  [if (true) 1 ^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  Future<void> test_ifElement_noElse_notInElement() async {
+    addTestSource('''
+void f() {
+  [if (true) 1, ^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(
+        [...COLLECTION_ELEMENT_START, ...EXPRESSION_START_NO_INSTANCE]);
+  }
+
+  @failingTest
+  Future<void> test_ifElement_noElse_notLast() async {
+    addTestSource('''
+void f(int i) {
+  [if (true) 1 ^, i];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  @failingTest
+  Future<void> test_ifElement_partialElse_last() async {
+    addTestSource('''
+void f() {
+  [if (true) 1 e^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  @failingTest
+  Future<void> test_ifElement_partialElse_notLast() async {
+    addTestSource('''
+void f(int i) {
+  [if (true) 1 e^, i];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
   }
 
   Future<void> test_ifOrForElement_forElement() async {

@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AbortCompletion, CompletionRequest;
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -37,10 +38,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -94,9 +94,11 @@ class DartCompletionManager {
     CompletionRequest request, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
+    CompletionPreference completionPreference,
   }) async {
     request.checkAborted();
-    if (!AnalysisEngine.isDartFileName(request.result.path)) {
+    var pathContext = request.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, request.result.path)) {
       return const <CompletionSuggestion>[];
     }
 
@@ -104,6 +106,7 @@ class DartCompletionManager {
       performance,
       request,
       dartdocDirectiveInfo,
+      completionPreference: completionPreference,
     );
 
     // Don't suggest in comments.
@@ -113,7 +116,7 @@ class DartCompletionManager {
 
     request.checkAborted();
 
-    var range = dartRequest.target.computeReplacementRange(dartRequest.offset);
+    var range = dartRequest.replacementRange;
     (request as CompletionRequestImpl)
       ..replacementOffset = range.offset
       ..replacementLength = range.length;
@@ -289,6 +292,11 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   final CompletionPerformance performance;
 
+  SourceRange _replacementRange;
+
+  @override
+  final CompletionPreference completionPreference;
+
   DartCompletionRequestImpl._(
       this.result,
       this.resourceProvider,
@@ -299,9 +307,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       CompilationUnit unit,
       this.dartdocDirectiveInfo,
       this._originalRequest,
-      this.performance)
+      this.performance,
+      {CompletionPreference completionPreference})
       : featureComputer =
-            FeatureComputer(result.typeSystem, result.typeProvider) {
+            FeatureComputer(result.typeSystem, result.typeProvider),
+        completionPreference =
+            completionPreference ?? CompletionPreference.insert {
     _updateTargets(unit);
   }
 
@@ -326,7 +337,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   bool get inConstantContext {
     var entity = target.entity;
-    return entity is ExpressionImpl && entity.inConstantContext;
+    return entity is Expression && entity.inConstantContext;
   }
 
   @override
@@ -336,6 +347,14 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   OpType get opType {
     _opType ??= OpType.forCompletion(target, offset);
     return _opType;
+  }
+
+  /// The source range that represents the region of text that should be
+  /// replaced when a suggestion is selected.
+  @override
+  SourceRange get replacementRange {
+    _replacementRange ??= target.computeReplacementRange(offset);
+    return _replacementRange;
   }
 
   @override
@@ -412,7 +431,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   static Future<DartCompletionRequest> from(
       OperationPerformanceImpl performance,
       CompletionRequest request,
-      DartdocDirectiveInfo dartdocDirectiveInfo) async {
+      DartdocDirectiveInfo dartdocDirectiveInfo,
+      {CompletionPreference completionPreference}) async {
     request.checkAborted();
 
     return performance.run(
@@ -433,6 +453,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
           dartdocDirectiveInfo,
           request,
           (request as CompletionRequestImpl).performance,
+          completionPreference: completionPreference,
         );
       },
     );

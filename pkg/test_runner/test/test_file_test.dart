@@ -28,6 +28,7 @@ void main() {
   testParseMultitest();
   testParseErrorFlags();
   testParseErrorExpectations();
+  testParseContextMessages();
   testIsRuntimeTest();
   testName();
   testMultitest();
@@ -299,6 +300,7 @@ int i = "s";
 /\/      ^^^
 /\/ [analyzer] CompileTimeErrorCode.WRONG_TYPE
 /\/ [cfe] Error: Can't assign a string to an int.
+/\/ [cfe] Another CFE error.
 /\/ [web] Web-specific error.
 
 num j = "str";
@@ -311,16 +313,25 @@ num j = "str";
         line: 1,
         column: 9,
         length: 3,
-        analyzerError: "CompileTimeErrorCode.WRONG_TYPE",
-        cfeError: "Error: Can't assign a string to an int.",
-        webError: "Web-specific error."),
+        analyzerError: "CompileTimeErrorCode.WRONG_TYPE"),
     makeError(
-        line: 7,
+        line: 1,
+        column: 9,
+        length: 3,
+        cfeError: "Error: Can't assign a string to an int."),
+    makeError(line: 1, column: 9, length: 3, cfeError: "Another CFE error."),
+    makeError(line: 1, column: 9, length: 3, webError: "Web-specific error."),
+    makeError(
+        line: 8,
         column: 9,
         length: 5,
-        analyzerError: "CompileTimeErrorCode.ALSO_WRONG_TYPE",
-        cfeError: "Error: Can't assign a string to a num.",
-        webError: "Another web error.")
+        analyzerError: "CompileTimeErrorCode.ALSO_WRONG_TYPE"),
+    makeError(
+        line: 8,
+        column: 9,
+        length: 5,
+        cfeError: "Error: Can't assign a string to a num."),
+    makeError(line: 8, column: 9, length: 5, webError: "Another web error.")
   ]);
 
   // Explicit error location.
@@ -341,15 +352,15 @@ num j = "str";
         line: 123,
         column: 45,
         length: 678,
-        analyzerError: "CompileTimeErrorCode.FIRST",
-        cfeError: "First error."),
+        analyzerError: "CompileTimeErrorCode.FIRST"),
+    makeError(line: 123, column: 45, length: 678, cfeError: "First error."),
     makeError(
         line: 23,
         column: 5,
         length: 78,
-        analyzerError: "CompileTimeErrorCode.SECOND",
-        cfeError: "Second error.",
-        webError: "Second web error."),
+        analyzerError: "CompileTimeErrorCode.SECOND"),
+    makeError(line: 23, column: 5, length: 78, cfeError: "Second error."),
+    makeError(line: 23, column: 5, length: 78, webError: "Second web error."),
     makeError(line: 9, column: 8, length: 7, cfeError: "Third."),
     makeError(line: 10, column: 9, cfeError: "No length.")
   ]);
@@ -372,8 +383,16 @@ int i = "s";
         line: 1,
         column: 9,
         length: 3,
-        analyzerError: "CompileTimeErrorCode.WRONG_TYPE",
-        cfeError: "First line.\nSecond line.\nThird line.",
+        analyzerError: "CompileTimeErrorCode.WRONG_TYPE"),
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        cfeError: "First line.\nSecond line.\nThird line."),
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
         webError: "Web first line.\nWeb second line.\nWeb third line.")
   ]);
 
@@ -418,25 +437,13 @@ int n = "s";
 /\/     ^^^
 // [web] unspecified
 """, [
-    makeError(
-        line: 1,
-        column: 8,
-        length: 3,
-        analyzerError: "unspecified",
-        cfeError: "unspecified",
-        webError: "unspecified"),
-    makeError(
-        line: 6,
-        column: 8,
-        length: 3,
-        analyzerError: "unspecified",
-        cfeError: "Message."),
-    makeError(
-        line: 10,
-        column: 8,
-        length: 3,
-        analyzerError: "Error.CODE",
-        cfeError: "unspecified"),
+    makeError(line: 1, column: 8, length: 3, analyzerError: "unspecified"),
+    makeError(line: 1, column: 8, length: 3, cfeError: "unspecified"),
+    makeError(line: 1, column: 8, length: 3, webError: "unspecified"),
+    makeError(line: 6, column: 8, length: 3, analyzerError: "unspecified"),
+    makeError(line: 6, column: 8, length: 3, cfeError: "Message."),
+    makeError(line: 10, column: 8, length: 3, analyzerError: "Error.CODE"),
+    makeError(line: 10, column: 8, length: 3, cfeError: "unspecified"),
     makeError(line: 14, column: 8, length: 3, analyzerError: "unspecified"),
     makeError(line: 17, column: 8, length: 3, cfeError: "unspecified"),
     makeError(line: 20, column: 8, length: 3, webError: "unspecified"),
@@ -453,11 +460,9 @@ int i = "s";
 /\/ [cfe] Message.
 """, [
     makeError(
-        line: 1,
-        column: 9,
-        length: 3,
-        analyzerError: "ErrorCode.BAD_THING",
-        cfeError: "Message.\nMore message."),
+        line: 1, column: 9, length: 3, analyzerError: "ErrorCode.BAD_THING"),
+    makeError(
+        line: 1, column: 9, length: 3, cfeError: "Message.\nMore message."),
     makeError(line: 12, column: 34, length: 56, cfeError: "Message."),
   ]);
 
@@ -468,12 +473,9 @@ int i = "s";
 /\/ [cfe] Error message.
 /\/ [analyzer] ErrorCode.BAD_THING
 """, [
+    makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
     makeError(
-        line: 1,
-        column: 9,
-        length: 3,
-        analyzerError: "ErrorCode.BAD_THING",
-        cfeError: "Error message."),
+        line: 1, column: 9, length: 3, analyzerError: "ErrorCode.BAD_THING"),
   ]);
   expectParseErrorExpectations("""
 int i = "s";
@@ -481,12 +483,9 @@ int i = "s";
 /\/ [web] Web message.
 /\/ [analyzer] ErrorCode.BAD_THING
 """, [
+    makeError(line: 1, column: 9, length: 3, webError: "Web message."),
     makeError(
-        line: 1,
-        column: 9,
-        length: 3,
-        analyzerError: "ErrorCode.BAD_THING",
-        webError: "Web message."),
+        line: 1, column: 9, length: 3, analyzerError: "ErrorCode.BAD_THING"),
   ]);
   expectParseErrorExpectations("""
 int i = "s";
@@ -494,12 +493,8 @@ int i = "s";
 /\/ [web] Web message.
 /\/ [cfe] Error message.
 """, [
-    makeError(
-        line: 1,
-        column: 9,
-        length: 3,
-        cfeError: "Error message.",
-        webError: "Web message."),
+    makeError(line: 1, column: 9, length: 3, webError: "Web message."),
+    makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
   ]);
 
   // Must have at least one error message.
@@ -538,7 +533,7 @@ int i = "s";
 /\/ [analyzer] Not error code.
 """);
 
-  // A CFE-only error with length one is treated as having no length.
+  // A CFE error with length one is treated as having no length.
   expectParseErrorExpectations("""
 int i = "s";
 /\/      ^
@@ -555,39 +550,149 @@ int j = "s";
 /\/ [web] Web message.
 """, [
     makeError(line: 1, column: 9, length: null, cfeError: "Message."),
+    makeError(line: 5, column: 9, length: 1, analyzerError: "Error.BAD"),
+    makeError(line: 5, column: 9, length: null, cfeError: "Message."),
+    makeError(line: 10, column: 9, length: null, cfeError: "Message."),
+    makeError(line: 10, column: 9, length: 1, webError: "Web message."),
+  ]);
+}
+
+void testParseContextMessages() {
+  // Multiple messages.
+  expectParseErrorExpectations("""
+var string = "str";
+/\/  ^^^^^^
+/\/ [context 1] Analyzer context before.
+/\/ [context 2] CFE context before.
+
+int j = string;
+/\/      ^^^^^^
+/\/ [analyzer 1] Error.BAD
+/\/ [cfe 2] Error message.
+
+var string = "str";
+/\/            ^^^
+/\/ [context 2] CFE context after.
+
+var string = "str";
+/\/            ^^^
+/\/ [context 1] Analyzer context after.
+""", [
+    makeError(
+        line: 6,
+        column: 9,
+        length: 6,
+        analyzerError: "Error.BAD",
+        context: [
+          makeError(
+              line: 1,
+              column: 5,
+              length: 6,
+              analyzerError: "Analyzer context before."),
+          makeError(
+              line: 15,
+              column: 15,
+              length: 3,
+              analyzerError: "Analyzer context after.")
+        ]),
+    makeError(
+        line: 6,
+        column: 9,
+        length: 6,
+        cfeError: "Error message.",
+        context: [
+          makeError(
+              line: 1,
+              column: 5,
+              length: 6,
+              analyzerError: "CFE context before."),
+          makeError(
+              line: 11,
+              column: 15,
+              length: 3,
+              analyzerError: "CFE context after.")
+        ]),
+  ]);
+
+  // Context before error.
+  expectParseErrorExpectations("""
+var string = "str";
+/\/  ^^^^^^
+/\/ [context 1] Context.
+
+int j = string;
+/\/      ^^^^^^
+/\/ [analyzer 1] Error.BAD
+""", [
     makeError(
         line: 5,
         column: 9,
-        length: 1,
+        length: 6,
         analyzerError: "Error.BAD",
-        cfeError: "Message."),
-    makeError(
-      line: 10,
-      column: 9,
-      length: 1,
-      cfeError: "Message.",
-      webError: "Web message.",
-    ),
+        context: [
+          makeError(line: 1, column: 5, length: 6, analyzerError: "Context.")
+        ]),
   ]);
 
-  // Cannot have the same front end more than once.
+  // Context after error.
+  expectParseErrorExpectations("""
+int j = string;
+/\/      ^^^^^^
+/\/ [analyzer 1] Error.BAD
+
+var string = "str";
+/\/  ^^^^^^
+/\/ [context 1] Context.
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 6,
+        analyzerError: "Error.BAD",
+        context: [
+          makeError(line: 5, column: 5, length: 6, analyzerError: "Context.")
+        ]),
+  ]);
+
+  // Context must have a number.
   expectFormatError("""
 int i = "s";
 /\/      ^^^
-/\/ [analyzer] ErrorCode.BAD_THING
-/\/ [analyzer] ErrorCode.ANOTHER_THING
+/\/ [context] No number.
+
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
 """);
+
+  // Context number must match an error.
   expectFormatError("""
 int i = "s";
 /\/      ^^^
-/\/ [cfe] Message 1.
-/\/ [cfe] Message 2.
+/\/ [context 2] Wrong number.
+
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
 """);
+
+  // Two errors with same number.
   expectFormatError("""
 int i = "s";
 /\/      ^^^
-/\/ [web] Web 1.
-/\/ [web] Web 2.
+/\/ [context 1] Context.
+
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
+/\/ [analyzer 1] Error.CODE
+""");
+
+  // Numbered error with no context.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
 """);
 }
 

@@ -24,7 +24,7 @@ bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
 String innerText(dom.Element parent) {
   var buffer = StringBuffer();
   void recurse(dom.Element parent) {
-    for (dom.Node child in parent.nodes) {
+    for (var child in parent.nodes) {
       if (child is dom.Text) {
         buffer.write(child.text);
       } else if (child is dom.Element) {
@@ -51,7 +51,7 @@ bool isWhitespaceNode(dom.Node node) {
 
 /// Create an HTML element with the given name, attributes, and child nodes.
 dom.Element makeElement(
-    String name, Map<dynamic, String> attributes, List<dom.Node> children) {
+    String name, Map<Object, String> attributes, List<dom.Node> children) {
   var result = dom.Element.tag(name);
   result.attributes.addAll(attributes);
   for (var child in children) {
@@ -94,7 +94,7 @@ mixin HtmlGenerator {
 
   /// Execute [callback], wrapping its output in an element with the given
   /// [name] and [attributes].
-  void element(String name, Map<dynamic, String> attributes,
+  void element(String name, Map<Object, String> attributes,
       [void Function()? callback]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }

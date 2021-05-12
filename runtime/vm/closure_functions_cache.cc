@@ -172,7 +172,7 @@ void ClosureFunctionsCache::ForAllClosureFunctions(
   const auto& closures =
       GrowableObjectArray::Handle(zone, object_store->closure_functions());
 
-  {
+  if (!thread->IsInStoppedMutatorsScope()) {
     // The empty read locker scope will implicitly issue an acquire memory
     // fence, which means any closure functions added so far will be visible and
     // iterated further down.

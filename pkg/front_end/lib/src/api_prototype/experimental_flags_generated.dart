@@ -13,9 +13,12 @@ part of 'experimental_flags.dart';
 
 enum ExperimentalFlag {
   alternativeInvalidationStrategy,
+  constFunctions,
   constantUpdate2018,
   controlFlowCollections,
   extensionMethods,
+  extensionTypes,
+  genericMetadata,
   nonNullable,
   nonfunctionTypeAliases,
   setLiterals,
@@ -26,28 +29,37 @@ enum ExperimentalFlag {
 }
 
 const Version enableAlternativeInvalidationStrategyVersion =
-    const Version(2, 12);
+    const Version(2, 13);
+const Version enableConstFunctionsVersion = const Version(2, 13);
 const Version enableConstantUpdate2018Version = const Version(2, 0);
 const Version enableControlFlowCollectionsVersion = const Version(2, 0);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
+const Version enableExtensionTypesVersion = const Version(2, 13);
+const Version enableGenericMetadataVersion = const Version(2, 13);
 const Version enableNonNullableVersion = const Version(2, 12);
-const Version enableNonfunctionTypeAliasesVersion = const Version(2, 12);
+const Version enableNonfunctionTypeAliasesVersion = const Version(2, 13);
 const Version enableSetLiteralsVersion = const Version(2, 0);
 const Version enableSpreadCollectionsVersion = const Version(2, 0);
-const Version enableTripleShiftVersion = const Version(2, 12);
-const Version enableValueClassVersion = const Version(2, 12);
-const Version enableVarianceVersion = const Version(2, 12);
+const Version enableTripleShiftVersion = const Version(2, 13);
+const Version enableValueClassVersion = const Version(2, 13);
+const Version enableVarianceVersion = const Version(2, 13);
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "const-functions":
+      return ExperimentalFlag.constFunctions;
     case "constant-update-2018":
       return ExperimentalFlag.constantUpdate2018;
     case "control-flow-collections":
       return ExperimentalFlag.controlFlowCollections;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
+    case "extension-types":
+      return ExperimentalFlag.extensionTypes;
+    case "generic-metadata":
+      return ExperimentalFlag.genericMetadata;
     case "non-nullable":
       return ExperimentalFlag.nonNullable;
     case "nonfunction-type-aliases":
@@ -68,11 +80,14 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: true,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
   ExperimentalFlag.nonNullable: true,
-  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.nonfunctionTypeAliases: true,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
   ExperimentalFlag.tripleShift: false,
@@ -82,9 +97,12 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 
 const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
   ExperimentalFlag.nonNullable: false,
   ExperimentalFlag.nonfunctionTypeAliases: false,
   ExperimentalFlag.setLiterals: true,
@@ -95,36 +113,43 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
 };
 
 const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
-  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 12),
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 13),
+  ExperimentalFlag.constFunctions: const Version(2, 13),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.extensionTypes: const Version(2, 13),
+  ExperimentalFlag.genericMetadata: const Version(2, 13),
   ExperimentalFlag.nonNullable: const Version(2, 12),
-  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 12),
+  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
   ExperimentalFlag.spreadCollections: const Version(2, 0),
-  ExperimentalFlag.tripleShift: const Version(2, 12),
-  ExperimentalFlag.valueClass: const Version(2, 12),
-  ExperimentalFlag.variance: const Version(2, 12),
+  ExperimentalFlag.tripleShift: const Version(2, 13),
+  ExperimentalFlag.valueClass: const Version(2, 13),
+  ExperimentalFlag.variance: const Version(2, 13),
 };
 
 const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
-  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 12),
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 13),
+  ExperimentalFlag.constFunctions: const Version(2, 13),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.extensionTypes: const Version(2, 13),
+  ExperimentalFlag.genericMetadata: const Version(2, 13),
   ExperimentalFlag.nonNullable: const Version(2, 10),
-  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 12),
+  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
   ExperimentalFlag.spreadCollections: const Version(2, 0),
-  ExperimentalFlag.tripleShift: const Version(2, 12),
-  ExperimentalFlag.valueClass: const Version(2, 12),
-  ExperimentalFlag.variance: const Version(2, 12),
+  ExperimentalFlag.tripleShift: const Version(2, 13),
+  ExperimentalFlag.valueClass: const Version(2, 13),
+  ExperimentalFlag.variance: const Version(2, 13),
 };
 
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
   ExperimentalFlag.nonNullable,
+  ExperimentalFlag.tripleShift,
 }, sdkLibraryExperiments: {}, packageExperiments: {
   "async": {
     ExperimentalFlag.nonNullable,

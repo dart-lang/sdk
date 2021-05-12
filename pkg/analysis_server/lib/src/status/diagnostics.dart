@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:developer' as developer;
 import 'dart:io';
 
@@ -21,7 +23,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
-import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -480,10 +482,12 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln(writeOption('Context location', escape(contextPath)));
-    buf.writeln(writeOption('Analysis options path',
-        escape(driver.contextRoot.optionsFilePath ?? 'none')));
+    buf.writeln(writeOption(
+        'Analysis options path',
+        escape(
+            driver.analysisContext?.contextRoot?.optionsFile?.path ?? 'none')));
     buf.writeln(
-        writeOption('SDK root', escape(driver.analysisContext.sdkRoot.path)));
+        writeOption('SDK root', escape(driver.analysisContext.sdkRoot?.path)));
 
     buf.writeln('<div class="columns">');
 
@@ -775,8 +779,8 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
       pages.add(MemoryAndCpuPage(this, profiler));
     }
 
-    pages.sort(((Page a, Page b) =>
-        a.title.toLowerCase().compareTo(b.title.toLowerCase())));
+    pages.sort((Page a, Page b) =>
+        a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
     // Add the status page at the beginning.
     pages.insert(0, StatusPage(this));
@@ -962,7 +966,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     if (server.clientCapabilities == null) {
       p('Client capabilities have not yet been received.');
     } else {
-      prettyJson(server.clientCapabilities.toJson());
+      prettyJson(server.clientCapabilities.raw.toJson());
     }
     buf.writeln('</div>');
 

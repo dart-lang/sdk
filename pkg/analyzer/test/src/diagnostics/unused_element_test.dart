@@ -11,12 +11,12 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedElementTest);
     defineReflectiveTests(UnusedElementWithNullSafetyTest);
-    defineReflectiveTests(UnusedElementWithNonFunctionTypeAliasesTest);
   });
 }
 
 @reflectiveTest
-class UnusedElementTest extends PubPackageResolutionTest {
+class UnusedElementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   bool get enableUnusedElement => true;
 
@@ -1578,8 +1578,19 @@ main() {
 }
 
 @reflectiveTest
-class UnusedElementWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest {
+  test_optionalParameter_isUsed_overrideRequiredNamed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m({required int a}) {}
+}
+class B implements A {
+  void _m({int a = 0}) {}
+}
+f() => A()._m(a: 0);
+''');
+  }
+
   test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
     await assertNoErrorsInCode(r'''
 typedef _A = List<int>;
@@ -1614,21 +1625,5 @@ typedef _A = List<int>;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 8, 2),
     ]);
-  }
-}
-
-@reflectiveTest
-class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
-  test_optionalParameter_isUsed_overrideRequiredNamed() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  void _m({required int a}) {}
-}
-class B implements A {
-  void _m({int a = 0}) {}
-}
-f() => A()._m(a: 0);
-''');
   }
 }

@@ -48,6 +48,7 @@ forInIntToNum(List<int> list) {
   }
 }
 
+/*cfe:nnbd.member: asyncForInDynamicStream:futureValueType=dynamic*/
 asyncForInDynamicStream(dynamic stream) async {
   /*current: dynamic*/
   await for (var e in
@@ -58,6 +59,7 @@ asyncForInDynamicStream(dynamic stream) async {
   }
 }
 
+/*cfe:nnbd.member: asyncForInDynamic:futureValueType=dynamic*/
 asyncForInDynamic(Stream<dynamic> stream) async {
   /*current: dynamic*/
   await for (var e in
@@ -68,6 +70,7 @@ asyncForInDynamic(Stream<dynamic> stream) async {
   }
 }
 
+/*cfe:nnbd.member: asyncForInInt:futureValueType=dynamic*/
 asyncForInInt(Stream<int> stream) async {
   /*cfe.current: int*/
   /*cfe:nnbd.current: int!*/
@@ -81,6 +84,7 @@ asyncForInInt(Stream<int> stream) async {
   }
 }
 
+/*cfe:nnbd.member: asyncForInIntToNum:futureValueType=dynamic*/
 asyncForInIntToNum(Stream<int> stream) async {
   /*cfe.current: int*/
   /*cfe:nnbd.current: int!*/
@@ -115,6 +119,7 @@ abstract class CustomStream implements Stream<num> {
   Iterator<int> get iterator;
 }
 
+/*cfe:nnbd.member: customStream:futureValueType=dynamic*/
 customStream(CustomStream stream) async {
   /*cfe.current: num*/
   /*cfe:nnbd.current: num!*/
@@ -153,6 +158,7 @@ abstract class StreamWithCustomIterator implements Stream<num> {
   CustomIterator get iterator;
 }
 
+/*cfe:nnbd.member: customStreamIterator:futureValueType=dynamic*/
 customStreamIterator(StreamWithCustomIterator stream) async {
   /*cfe.current: num*/
   /*cfe:nnbd.current: num!*/
@@ -177,6 +183,7 @@ void genericIterable<T extends Iterable<T>>(T x) {
   }
 }
 
+/*cfe:nnbd.member: genericStream:futureValueType=void*/
 void genericStream<T extends Stream<T>>(T x) async {
   /*cfe.current: T*/
   /*cfe:nnbd.current: T!*/

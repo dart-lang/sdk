@@ -18,6 +18,7 @@ class Flags {
   static const String disableTypeInference = '--disable-type-inference';
   static const String disableRtiOptimization = '--disable-rti-optimization';
   static const String dumpInfo = '--dump-info';
+  static const String dumpDeferredGraph = '--dump-deferred-graph';
   static const String dumpSsa = '--dump-ssa';
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
@@ -105,6 +106,7 @@ class Flags {
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String noClosedWorldInData = '--no-closed-world-in-data';
   static const String writeClosedWorld = '--write-closed-world';
   static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';

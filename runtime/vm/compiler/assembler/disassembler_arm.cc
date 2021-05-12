@@ -104,24 +104,11 @@ void ARMDecoder::PrintCondition(Instr* instr) {
   Print(cond_names[instr->ConditionField()]);
 }
 
-// These register names are defined in a way to match the native disassembler
-// formatting, except for register alias pp (r5).
-// See for example the command "objdump -d <binary file>".
-static const char* reg_names[kNumberOfCpuRegisters] = {
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    "r0", "r1", "r2",  "r3",  "r4", "pp", "r6", "fp",
-    "r8", "r9", "thr", "r11", "ip", "sp", "lr", "pc",
-#else
-    "r0", "r1", "r2",  "r3", "r4", "pp", "r6", "r7",
-    "r8", "r9", "thr", "fp", "ip", "sp", "lr", "pc",
-#endif
-};
-
 // Print the register name according to the active name converter.
 void ARMDecoder::PrintRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfCpuRegisters);
-  Print(reg_names[reg]);
+  Print(cpu_reg_names[reg]);
 }
 
 void ARMDecoder::PrintSRegister(int reg) {

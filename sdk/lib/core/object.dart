@@ -107,7 +107,7 @@ class Object {
   /// dynamic object = 1;
   /// object.add(42); // Statically allowed, run-time error
   /// ```
-  /// This invalid code will invoke the `noSuchMethod` memthod
+  /// This invalid code will invoke the `noSuchMethod` method
   /// of the integer `1` with an [Invocation] representing the
   /// `.add(42)` call and arguments (which then throws).
   ///

@@ -16,6 +16,7 @@ void testReadByte() {
             Platform.executable,
             []
               ..addAll(Platform.executableArguments)
+              ..add('--verbosity=warning')
               ..add(script)
               ..addAll(expected.map(json.encode)))
         .then((process) {

@@ -451,6 +451,17 @@ class Expect {
     }
   }
 
+  /// Checks that [haystack] contains one of the given substrings [needles].
+  ///
+  /// For example, this succeeds:
+  ///
+  ///     Expect.containsOneOf(["a", "h"], "abcdefg");
+  static void containsOneOf(Iterable<String> needles, String haystack) {
+    if (!needles.any((s) => haystack.contains(s))) {
+      _fail("None of the strings '$needles' found within '$haystack'");
+    }
+  }
+
   /// Checks that [actual] contains a given list of [substrings] in order.
   ///
   /// For example, this succeeds:

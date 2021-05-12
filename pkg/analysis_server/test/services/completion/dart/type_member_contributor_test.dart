@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -3065,6 +3067,21 @@ void main() {new C().^}''');
     assertNotSuggested('X');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  Future<void> test_methodInvocation_typeParameter() async {
+    addTestSource('''
+class A {
+  void a() {}
+}
+class C<T extends A> {
+  void c(T t) {
+    t.^;
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', 'A', 'void');
   }
 
   Future<void> test_mixin() async {

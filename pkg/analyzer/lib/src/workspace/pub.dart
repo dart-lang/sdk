@@ -17,7 +17,7 @@ class PubWorkspace extends SimpleWorkspace {
   /// The singular package in this workspace.
   ///
   /// Each Pub workspace is itself one package.
-  PubWorkspacePackage _theOnlyPackage;
+  late final PubWorkspacePackage _theOnlyPackage;
 
   /// The associated pubspec file.
   final File _pubspecFile;
@@ -27,45 +27,33 @@ class PubWorkspace extends SimpleWorkspace {
     Map<String, List<Folder>> packageMap,
     String root,
     this._pubspecFile,
-  ) : super(provider, packageMap, root);
+  ) : super(provider, packageMap, root) {
+    _theOnlyPackage = PubWorkspacePackage(root, this);
+  }
 
   @override
-  WorkspacePackage findPackageFor(String filePath) {
+  WorkspacePackage? findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= PubWorkspacePackage(root, this);
       return _theOnlyPackage;
     } else {
       return null;
     }
   }
 
-  /// Find the pub workspace that contains the given [path].
-  static PubWorkspace find(
+  /// Find the pub workspace that contains the given [filePath].
+  static PubWorkspace? find(
     ResourceProvider provider,
     Map<String, List<Folder>> packageMap,
     String filePath,
   ) {
-    Resource resource = provider.getResource(filePath);
-    if (resource is File) {
-      filePath = resource.parent.path;
-    }
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      Folder parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-
-      var pubspec = folder.getChildAssumingFile(_pubspecName);
+    var start = provider.getFolder(filePath);
+    for (var current in start.withAncestors) {
+      var pubspec = current.getChildAssumingFile(_pubspecName);
       if (pubspec.exists) {
-        // Found the pubspec.yaml file; this is our root.
-        String root = folder.path;
+        var root = current.path;
         return PubWorkspace._(provider, packageMap, root, pubspec);
       }
-
-      // Go up a folder.
-      folder = parent;
     }
   }
 }
@@ -79,7 +67,7 @@ class PubWorkspacePackage extends WorkspacePackage {
   @override
   final String root;
 
-  Pubspec _pubspec;
+  Pubspec? _pubspec;
 
   /// A flag to indicate if we've tried to parse the pubspec.
   bool _parsedPubspec = false;
@@ -91,7 +79,7 @@ class PubWorkspacePackage extends WorkspacePackage {
 
   /// Get the associated parsed [Pubspec], or `null` if there was an error in
   /// reading or parsing.
-  Pubspec get pubspec {
+  Pubspec? get pubspec {
     if (!_parsedPubspec) {
       _parsedPubspec = true;
       try {
@@ -106,7 +94,7 @@ class PubWorkspacePackage extends WorkspacePackage {
 
   @override
   bool contains(Source source) {
-    String filePath = filePathFromSource(source);
+    var filePath = filePathFromSource(source);
     if (filePath == null) return false;
     // There is a 1-1 relationship between [PubWorkspace]s and
     // [PubWorkspacePackage]s. If a file is in a package's workspace, then it

@@ -62,7 +62,15 @@ class SingleRootFileSystemEntity implements FileSystemEntity {
   Future<bool> exists() async => delegate.exists();
 
   @override
+  Future<bool> existsAsyncIfPossible() async =>
+      delegate.existsAsyncIfPossible();
+
+  @override
   Future<List<int>> readAsBytes() async => delegate.readAsBytes();
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() async =>
+      delegate.readAsBytesAsyncIfPossible();
 
   @override
   Future<String> readAsString() async => delegate.readAsString();

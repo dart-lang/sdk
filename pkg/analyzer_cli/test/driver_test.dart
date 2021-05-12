@@ -10,7 +10,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary2/package_bundle_format.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
@@ -24,59 +24,11 @@ import 'utils.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BuildModeTest);
-    defineReflectiveTests(BuildModeSummaryDependenciesTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
   }, name: 'Driver');
-}
-
-class AbstractBuildModeTest extends BaseTest {
-  List<String> get _sdkSummaryArguments {
-    var sdkPath = path.dirname(
-      path.dirname(
-        Platform.resolvedExecutable,
-      ),
-    );
-
-    var dartSdkSummaryPath = path.join(
-      sdkPath,
-      'lib',
-      '_internal',
-      'strong.sum',
-    );
-
-    return ['--dart-sdk-summary', dartSdkSummaryPath];
-  }
-
-  Future<void> _doDrive(
-    String filePath, {
-    String sourceArgument,
-    String fileUri,
-    List<String> additionalArgs = const [],
-  }) async {
-    filePath = _posixToPlatformPath(filePath);
-
-    var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-    var options =
-        _posixToPlatformPath('data/options_tests_project/' + optionsFileName);
-
-    var args = <String>[];
-    args.add('--build-mode');
-    args.add('--format=machine');
-
-    args.addAll(_sdkSummaryArguments);
-    args.addAll(additionalArgs);
-
-    if (sourceArgument == null) {
-      fileUri ??= 'file:///test_file.dart';
-      sourceArgument = '$fileUri|$filePath';
-    }
-
-    await drive(sourceArgument, args: args, options: options);
-  }
 }
 
 class BaseTest {
@@ -169,544 +121,6 @@ class BaseTest {
       );
     }
     return filePath;
-  }
-}
-
-@reflectiveTest
-class BuildModeSummaryDependenciesTest extends AbstractBuildModeTest {
-  String tempDir;
-
-  /// Any direct export is a dependency.
-  Future<void> test_export_direct() async {
-    await _withTempDir(() async {
-      var a = await _buildPackage('a', [], 'class A {}');
-      await _assertDependencies('c', [a], '''
-export 'package:a/a.dart';
-''', [a]);
-    });
-  }
-
-  /// Imports of dependencies are not necessary dependencies.
-  /// Here our dependency does not use its dependency.
-  Future<void> test_import2_notUsed() async {
-    await _withTempDir(() async {
-      var a = await _buildPackage('a', [], '');
-      var b = await _buildPackage('b', [a], '''
-import 'package:a/a.dart';
-''');
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-''', [b]);
-    });
-  }
-
-  Future<void> test_import2_usedAsFieldType() async {
-    await _withTempDir(() async {
-      var a = await _buildPackage('a', [], 'class A {}');
-      var b = await _buildPackage('b', [a], '''
-import 'package:a/a.dart';
-class B {
-  A f;
-}
-''');
-
-      // We don't use `f`, so don't depend on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-var x = B();
-''', [b]);
-
-      // We use `f` for type inference.
-      // So, dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-var x = B().f;
-''', [a, b]);
-
-      // We reference `f` in initializer, but not for type inference.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-Object x = B().f;
-''', [b]);
-
-      // We perform full analysis, so request the type of `f`;
-      // So, dependency on "a".
-      await _assertDependencies(
-        'c',
-        [a, b],
-        '''
-import 'package:b/b.dart';
-Object x = B().f;
-''',
-        [a, b],
-        summaryOnly: false,
-      );
-    });
-  }
-
-  Future<void> test_import2_usedAsSupertype() async {
-    await _withTempDir(() async {
-      var a = await _buildPackage('a', [], 'class A {}');
-      var b = await _buildPackage('b', [], 'class B {}');
-      var c = await _buildPackage('c', [a], '''
-import 'package:a/a.dart';
-import 'package:b/b.dart';
-class C1 extends A {}
-class C2 extends B {}
-''');
-
-      // When we instantiate `C1`, we ask `C1` for its type parameters.
-      // So, we apply resolution to the whole `C1` header (not members).
-      // So, we request `A` that is the superclass of `C1`.
-      // So, dependency on "a".
-      //
-      // But we don't access `C2`, so don't use its supertype `B`.
-      // So, no dependency on "b".
-      await _assertDependencies('d', [a, b, c], '''
-import 'package:c/c.dart';
-C1 x;
-''', [a, c]);
-    });
-  }
-
-  Future<void> test_import2_usedAsTopLevelVariableType() async {
-    await _withTempDir(() async {
-      var a = await _buildPackage('a', [], 'class A {}');
-      var b = await _buildPackage('b', [a], '''
-import 'package:a/a.dart';
-A v;
-''');
-
-      // We don't use `v`.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-''', [b]);
-
-      // We use `v` for type inference.
-      // So, dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-var x = v;
-''', [a, b]);
-
-      // We don't use `v` for type inference.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-Object x = v;
-''', [b]);
-
-      // We perform full analysis, and request the type of `v`.
-      // So, dependency on "a".
-      await _assertDependencies(
-        'c',
-        [a, b],
-        '''
-import 'package:b/b.dart';
-Object x = v;
-''',
-        [a, b],
-        summaryOnly: false,
-      );
-
-      // We use `v` in a method body.
-      // So, no dependency on "a".
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-main() {
-  v;
-}
-''', [b]);
-
-      // We perform full analysis, so ask for the type of `v`.
-      // So, dependency on "a".
-      await _assertDependencies(
-        'c',
-        [a, b],
-        '''
-import 'package:b/b.dart';
-main() {
-  v;
-}
-''',
-        [a, b],
-        summaryOnly: false,
-      );
-    });
-  }
-
-  /// Any direct import is a dependency.
-  Future<void> test_import_direct() async {
-    await _withTempDir(() async {
-      var a = await _buildPackage('a', [], '');
-      var b = await _buildPackage('b', [], '');
-      await _assertDependencies('c', [a, b], '''
-import 'package:a/a.dart';
-import 'package:b/b.dart';
-''', [a, b]);
-    });
-  }
-
-  /// Exports of dependencies are dependencies.
-  Future<void> test_import_export() async {
-    await _withTempDir(() async {
-      var a = await _buildPackage('a', [], 'class A {}');
-      var b = await _buildPackage('b', [a], '''
-export 'package:a/a.dart';
-''');
-      await _assertDependencies('c', [a, b], '''
-import 'package:b/b.dart';
-''', [a, b]);
-    });
-  }
-
-  Future<void> _assertDependencies(
-    String name,
-    List<_DependencyPackage> inputPackages,
-    String content,
-    List<_DependencyPackage> expectedPackages, {
-    bool summaryOnly = true,
-  }) async {
-    var pkg = await _buildPackage(name, inputPackages, content,
-        summaryOnly: summaryOnly);
-
-    var depString = File(pkg.dep).readAsStringSync();
-    var expectedList = expectedPackages.map((p) => p.sum).toList();
-    expect(depString.split('\n'), unorderedEquals(expectedList));
-  }
-
-  Future<_DependencyPackage> _buildPackage(
-    String name,
-    List<_DependencyPackage> inputPackages,
-    String content, {
-    bool summaryOnly = true,
-  }) async {
-    var filePath = path.join(tempDir, '$name.dart');
-    File(filePath).writeAsStringSync(content);
-    var pkg = _DependencyPackage(
-      name: name,
-      path: filePath,
-      uri: 'package:$name/$name.dart',
-      sum: path.join(tempDir, '$name.sum'),
-      dep: path.join(tempDir, '$name.dep'),
-    );
-
-    var args = <String>[];
-    if (summaryOnly) {
-      args.add('--build-summary-only');
-    }
-    for (var input in inputPackages) {
-      args.add('--build-summary-input=${input.sum}');
-    }
-    args.add('--build-summary-output=${pkg.sum}');
-    args.add('--summary-deps-output=${pkg.dep}');
-
-    await _doDrive(pkg.path, fileUri: pkg.uri, additionalArgs: args);
-    expect(exitCode, 0);
-
-    return pkg;
-  }
-
-  Future<void> _withTempDir(Future<void> Function() f) async {
-    await withTempDirAsync((tempDir) async {
-      this.tempDir = tempDir;
-      await f();
-    });
-  }
-}
-
-@reflectiveTest
-class BuildModeTest extends AbstractBuildModeTest {
-  Future<void> test_buildLinked() async {
-    await withTempDirAsync((tempDir) async {
-      var outputPath = path.join(tempDir, 'test_file.dart.sum');
-      await _doDrive(path.join('data', 'test_file.dart'), additionalArgs: [
-        '--build-summary-only',
-        '--build-summary-output=$outputPath'
-      ]);
-      var output = File(outputPath);
-      expect(output.existsSync(), isTrue);
-      var bundle = PackageBundleReader(await output.readAsBytes());
-      var testFileUri = 'file:///test_file.dart';
-
-      expect(_linkedLibraryUriList(bundle), [testFileUri]);
-      expect(
-        _linkedLibraryUnitUriList(bundle, testFileUri),
-        [testFileUri],
-      );
-
-      expect(exitCode, 0);
-    });
-  }
-
-  Future<void> test_buildLinked_invalidPartUri() async {
-    await withTempDirAsync((tempDir) async {
-      var aDart = path.join(tempDir, 'a.dart');
-
-      var aUri = 'package:aaa/a.dart';
-
-      var aSum = path.join(tempDir, 'a.sum');
-
-      File(aDart).writeAsStringSync('''
-part '[invalid]';
-''');
-
-      await _doDrive(aDart,
-          fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
-      expect(exitCode, ErrorSeverity.ERROR.ordinal);
-      var bytes = File(aSum).readAsBytesSync();
-      var bundle = PackageBundleReader(bytes);
-      expect(_linkedLibraryUriList(bundle), [aUri]);
-      expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri]);
-    });
-  }
-
-  Future<void> test_buildSuppressExitCode_fail_whenFileNotFound() async {
-    await _doDrive(path.join('data', 'non_existent_file.dart'),
-        additionalArgs: ['--build-suppress-exit-code']);
-    expect(exitCode, isNot(0));
-  }
-
-  Future<void> test_buildSuppressExitCode_success_evenIfHasError() async {
-    await _doDrive(path.join('data', 'file_with_error.dart'),
-        additionalArgs: ['--build-suppress-exit-code']);
-    expect(exitCode, 0);
-  }
-
-  Future<void> test_consumeLinked() async {
-    await withTempDirAsync((tempDir) async {
-      var aDart = path.join(tempDir, 'a.dart');
-      var bDart = path.join(tempDir, 'b.dart');
-      var cDart = path.join(tempDir, 'c.dart');
-
-      var aUri = 'package:aaa/a.dart';
-      var bUri = 'package:bbb/b.dart';
-      var cUri = 'package:ccc/c.dart';
-
-      var aSum = path.join(tempDir, 'a.sum');
-      var bSum = path.join(tempDir, 'b.sum');
-      var cSum = path.join(tempDir, 'c.sum');
-
-      File(aDart).writeAsStringSync('class A {}');
-      File(bDart).writeAsStringSync('''
-export 'package:aaa/a.dart';
-class B {}
-''');
-      File(cDart).writeAsStringSync('''
-import 'package:bbb/b.dart';
-var a = new A();
-var b = new B();
-''');
-
-      // Analyze package:aaa/a.dart and compute summary.
-      {
-        await _doDrive(aDart,
-            fileUri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
-        expect(exitCode, 0);
-        var bytes = File(aSum).readAsBytesSync();
-        var bundle = PackageBundleReader(bytes);
-        expect(_linkedLibraryUriList(bundle), [aUri]);
-        expect(_linkedLibraryUnitUriList(bundle, aUri), [aUri]);
-      }
-
-      // Analyze package:bbb/b.dart and compute summary.
-      {
-        await _doDrive(bDart, fileUri: bUri, additionalArgs: [
-          '--build-summary-input=$aSum',
-          '--build-summary-output=$bSum'
-        ]);
-        expect(exitCode, 0);
-        var bytes = File(bSum).readAsBytesSync();
-        var bundle = PackageBundleReader(bytes);
-        expect(_linkedLibraryUriList(bundle), [bUri]);
-        expect(_linkedLibraryUnitUriList(bundle, bUri), [bUri]);
-      }
-
-      // Analyze package:ccc/c.dart and compute summary.
-      {
-        await _doDrive(cDart, fileUri: cUri, additionalArgs: [
-          '--build-summary-input=$aSum,$bSum',
-          '--build-summary-output=$cSum'
-        ]);
-        expect(exitCode, 0);
-        var bytes = File(cSum).readAsBytesSync();
-        var bundle = PackageBundleReader(bytes);
-        expect(_linkedLibraryUriList(bundle), [cUri]);
-        expect(_linkedLibraryUnitUriList(bundle, cUri), [cUri]);
-      }
-    });
-  }
-
-  Future<void> test_error_notUriPipePath() async {
-    await withTempDirAsync((tempDir) async {
-      var testDart = path.join(tempDir, 'test.dart');
-      File(testDart).writeAsStringSync('var v = 42;');
-
-      // We pass just path, not "uri|path", this is a fatal error.
-      await _doDrive(
-        testDart,
-        additionalArgs: ['--build-mode', '--format=machine'],
-        sourceArgument: testDart,
-      );
-      expect(exitCode, ErrorSeverity.ERROR.ordinal);
-    });
-  }
-
-  Future<void> test_fail_whenHasError() async {
-    await _doDrive(path.join('data', 'file_with_error.dart'));
-    expect(exitCode, isNot(0));
-  }
-
-  Future<void> test_noInputs() async {
-    await withTempDirAsync((tempDir) async {
-      var outputPath = path.join(tempDir, 'test.sum');
-
-      await driveMany([], args: [
-        '--build-mode',
-        '--format=machine',
-        ..._sdkSummaryArguments,
-        '--build-summary-only',
-        '--build-summary-output=$outputPath',
-      ]);
-
-      var output = File(outputPath);
-      expect(output.existsSync(), isTrue);
-
-      expect(exitCode, 0);
-    });
-  }
-
-  Future<void> test_noStatistics() async {
-    await _doDrive(path.join('data', 'test_file.dart'));
-    // Should not print statistics summary.
-    expect(outSink.toString(), isEmpty);
-    expect(errorSink.toString(), isEmpty);
-    expect(exitCode, 0);
-  }
-
-  Future<void> test_onlyErrors_partFirst() async {
-    await withTempDirAsync((tempDir) async {
-      var aDart = path.join(tempDir, 'a.dart');
-      var bDart = path.join(tempDir, 'b.dart');
-
-      var aUri = 'package:aaa/a.dart';
-      var bUri = 'package:aaa/b.dart';
-
-      File(aDart).writeAsStringSync(r'''
-library lib;
-part 'b.dart';
-class A {}
-''');
-      File(bDart).writeAsStringSync('''
-part of lib;
-class B {}
-var a = new A();
-var b = new B();
-''');
-
-      // Analyze b.dart (part) and then a.dart (its library).
-      // No errors should be reported - the part should know its library.
-      await _doDrive(bDart, fileUri: bUri, additionalArgs: ['$aUri|$aDart']);
-      expect(errorSink, isEmpty);
-    });
-  }
-
-  Future<void> test_packageConfig_packagesOptions() async {
-    await withTempDirAsync((tempDir) async {
-      var packagesPath = path.join(tempDir, 'aaa.packages');
-
-      var aaaRoot = path.join(tempDir, 'packages', 'aaa');
-      var aPath = path.join(aaaRoot, 'lib', 'a.dart');
-
-      var aUri = 'package:aaa/a.dart';
-
-      File(packagesPath).createSync(recursive: true);
-      File(packagesPath).writeAsStringSync('''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "aaa",
-      "rootUri": "${path.toUri(aaaRoot)}",
-      "packageUri": "lib/",
-      "languageVersion": "2.4"
-    }
-  ]
-}
-''');
-
-      File(aPath).createSync(recursive: true);
-      File(aPath).writeAsStringSync(r'''
-extension E on int {}
-''');
-
-      // Analyze package:aaa/a.dart and compute errors.
-      await _doDrive(
-        aPath,
-        fileUri: aUri,
-        additionalArgs: [
-          '--packages=$packagesPath',
-        ],
-      );
-      expect(exitCode, ErrorSeverity.ERROR.ordinal);
-      expect(errorSink.toString(), contains('extension-methods'));
-    });
-  }
-
-  Future<void> test_packageConfig_relativeToFile() async {
-    await withTempDirAsync((tempDir) async {
-      var packagesPath = path.join(tempDir, '.dart_tool/package_config.json');
-
-      var aaaRoot = path.join(tempDir, 'packages', 'aaa');
-      var aPath = path.join(aaaRoot, 'lib', 'a.dart');
-
-      var aUri = 'package:aaa/a.dart';
-
-      File(packagesPath).createSync(recursive: true);
-      File(packagesPath).writeAsStringSync('''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "aaa",
-      "rootUri": "${path.toUri(aaaRoot)}",
-      "packageUri": "lib/",
-      "languageVersion": "2.4"
-    }
-  ]
-}
-''');
-
-      File(aPath).createSync(recursive: true);
-      File(aPath).writeAsStringSync(r'''
-extension E on int {}
-''');
-
-      // Analyze package:aaa/a.dart and compute errors.
-      await _doDrive(
-        aPath,
-        fileUri: aUri,
-        additionalArgs: [],
-      );
-      expect(exitCode, ErrorSeverity.ERROR.ordinal);
-      expect(errorSink.toString(), contains('extension-methods'));
-    });
-  }
-
-  Iterable<String> _linkedLibraryUnitUriList(
-    PackageBundleReader bundle,
-    String libraryUriStr,
-  ) {
-    var libraries = bundle.libraries;
-    var library = libraries.singleWhere((l) => l.uriStr == libraryUriStr);
-    return library.units.map((u) => u.uriStr).toList();
-  }
-
-  Iterable<String> _linkedLibraryUriList(PackageBundleReader bundle) {
-    var libraries = bundle.libraries;
-    return libraries.map((l) => l.uriStr).toList();
   }
 }
 
@@ -804,7 +218,7 @@ class ExitCodesTest extends BaseTest {
 
 @reflectiveTest
 class LinterTest extends BaseTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+  String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
   Future<void> test_containsLintRuleEntry() async {
     var options = _parseOptions('''
@@ -882,7 +296,7 @@ linter:
 
   Future<void> test_pubspec_lintsInOptions_generatedLints() async {
     await drive('data/linter_project/pubspec.yaml',
-        options: 'data/linter_project/$optionsFileName');
+        options: 'data/linter_project/$analysisOptionsYaml');
     expect(bulletToDash(outSink), contains('lint - Sort pub dependencies'));
   }
 
@@ -891,17 +305,17 @@ linter:
 
   Future<void> _runLinter_defaultLints() async {
     await drive('data/linter_project/test_file.dart',
-        options: 'data/linter_project/$optionsFileName', args: ['--lints']);
+        options: 'data/linter_project/$analysisOptionsYaml', args: ['--lints']);
   }
 
   Future<void> _runLinter_lintsInOptions() async {
     await drive('data/linter_project/test_file.dart',
-        options: 'data/linter_project/$optionsFileName', args: ['--lints']);
+        options: 'data/linter_project/$analysisOptionsYaml', args: ['--lints']);
   }
 
   Future<void> _runLinter_noLintsFlag() async {
     await drive('data/no_lints_project/test_file.dart',
-        options: 'data/no_lints_project/$optionsFileName');
+        options: 'data/no_lints_project/$analysisOptionsYaml');
   }
 }
 
@@ -909,8 +323,7 @@ linter:
 class NonDartFilesTest extends BaseTest {
   Future<void> test_analysisOptionsYaml() async {
     await withTempDirAsync((tempDir) async {
-      var filePath =
-          path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      var filePath = path.join(tempDir, file_paths.analysisOptionsYaml);
       File(filePath).writeAsStringSync('''
 analyzer:
   string-mode: true
@@ -926,15 +339,13 @@ analyzer:
 
   Future<void> test_manifestFileChecks() async {
     await withTempDirAsync((tempDir) async {
-      var filePath =
-          path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      var filePath = path.join(tempDir, file_paths.analysisOptionsYaml);
       File(filePath).writeAsStringSync('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
-      var manifestPath =
-          path.join(tempDir, AnalysisEngine.ANDROID_MANIFEST_FILE);
+      var manifestPath = path.join(tempDir, file_paths.androidManifestXml);
       File(manifestPath).writeAsStringSync('''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -953,7 +364,7 @@ analyzer:
 
   Future<void> test_pubspecYaml() async {
     await withTempDirAsync((tempDir) async {
-      var filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
+      var filePath = path.join(tempDir, file_paths.pubspecYaml);
       File(filePath).writeAsStringSync('''
 name: foo
 flutter:
@@ -972,7 +383,7 @@ flutter:
 
 @reflectiveTest
 class OptionsTest extends BaseTest {
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+  String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
   List<ErrorProcessor> get processors => analysisOptions.errorProcessors;
 
@@ -981,8 +392,18 @@ class OptionsTest extends BaseTest {
 
   Future<void> test_analysisOptions_excludes() async {
     await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$optionsFileName');
+        options: 'data/exclude_test_project/$analysisOptionsYaml');
     _expectUndefinedClassErrorsWithoutExclusions();
+  }
+
+  Future<void> test_analysisOptions_excludes_inner() async {
+    await drive('data/exclude_portion_of_inner_context/inner',
+        options: 'data/exclude_portion_of_inner_context/$analysisOptionsYaml');
+    expect(
+      bulletToDash(outSink),
+      contains("error - Undefined class 'IncludedUndefinedClassInInner'"),
+    );
+    expect(outSink.toString(), contains('1 error found.'));
   }
 
   Future<void>
@@ -990,16 +411,7 @@ class OptionsTest extends BaseTest {
     // The exclude is relative to the project, not/ the analyzed path, and it
     // has to then understand that.
     await drive('data/exclude_test_project',
-        options: 'data/exclude_test_project/$optionsFileName');
-    _expectUndefinedClassErrorsWithoutExclusions();
-  }
-
-  Future<void>
-      test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() async {
-    // By passing no options, and the path `lib`, it should discover the
-    // analysis_options above lib. The exclude is relative to the project, not
-    // the analyzed path, and it has to then understand that.
-    await drive('data/exclude_test_project/lib', options: null);
+        options: 'data/exclude_test_project/$analysisOptionsYaml');
     _expectUndefinedClassErrorsWithoutExclusions();
   }
 
@@ -1066,7 +478,7 @@ class OptionsTest extends BaseTest {
   Future<void> test_withFlags_overrideFatalWarning() async {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--fatal-warnings'],
-        options: 'data/options_tests_project/$optionsFileName');
+        options: 'data/options_tests_project/$analysisOptionsYaml');
 
     // missing_return: error
     var undefined_function = AnalysisError(
@@ -1082,7 +494,7 @@ class OptionsTest extends BaseTest {
 
   Future<void> _driveBasic() async {
     await drive('data/options_tests_project/test_file.dart',
-        options: 'data/options_tests_project/$optionsFileName');
+        options: 'data/options_tests_project/$analysisOptionsYaml');
   }
 
   void _expectUndefinedClassErrorsWithoutExclusions() {
@@ -1102,14 +514,4 @@ class TestSource implements Source {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _DependencyPackage {
-  final String name;
-  final String path;
-  final String uri;
-  final String sum;
-  final String dep;
-
-  _DependencyPackage({this.name, this.path, this.uri, this.sum, this.dep});
 }

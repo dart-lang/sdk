@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<invariant U extends core::Object? = dynamic> = <V extends U% = dynamic>(V%) → dynamic;
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+static method foo() → self::A<<Y extends <Z extends core::Object? = dynamic>(Z%) → dynamic = dynamic>(Y) → dynamic>
+  return throw 42;
+static method bar() → self::A<<V extends <W extends core::Object? = dynamic>(W%) → dynamic = dynamic>(V) → dynamic>
+  return throw 42;
+static method main() → dynamic {}

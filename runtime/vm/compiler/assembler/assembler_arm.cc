@@ -1593,6 +1593,10 @@ void Assembler::LoadIsolate(Register rd) {
   ldr(rd, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadIsolateGroup(Register rd) {
+  ldr(rd, Address(THR, target::Thread::isolate_group_offset()));
+}
+
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
   if (!constant_pool_allowed()) {
@@ -2020,9 +2024,9 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 
   const intptr_t table_offset =
-      target::Isolate::cached_class_table_table_offset();
+      target::IsolateGroup::cached_class_table_table_offset();
 
-  LoadIsolate(result);
+  LoadIsolateGroup(result);
   LoadFromOffset(result, result, table_offset);
   ldr(result, Address(result, class_id, LSL, target::kWordSizeLog2));
 }
@@ -3388,12 +3392,12 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(cid > 0);
 
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::IsolateGroup::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
-  LoadIsolate(dest);
+  LoadIsolateGroup(dest);
   ldr(dest, Address(dest, shared_table_offset));
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);

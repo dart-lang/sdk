@@ -11,8 +11,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -20,8 +19,8 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 /// Finds an [Element] with the given [name].
-Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result;
+Element? findChildElement(Element root, String name, [ElementKind? kind]) {
+  Element? result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
@@ -42,7 +41,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   final Map<String, String> _declaredVariables = {};
 
-  AnalysisContextCollection _analysisContextCollection;
+  AnalysisContextCollection? _analysisContextCollection;
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -52,7 +51,7 @@ class AbstractContextTest with ResourceProviderMixin {
   String get testPackageAnalysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
 
-  String get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => '2.9';
 
   /// The file system-specific `pubspec.yaml` path.
   String get testPackagePubspecPath =>
@@ -70,11 +69,11 @@ class AbstractContextTest with ResourceProviderMixin {
     _createAnalysisContexts();
 
     path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _analysisContextCollection!.contextFor(path);
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String> experiments}) {
+  void createAnalysisOptionsFile({List<String>? experiments}) {
     var buffer = StringBuffer();
     buffer.writeln('analyzer:');
 
@@ -86,11 +85,6 @@ class AbstractContextTest with ResourceProviderMixin {
     }
 
     newFile(testPackageAnalysisOptionsPath, content: buffer.toString());
-  }
-
-  AnalysisDriver driverFor(String path) {
-    var context = contextFor(path) as DriverBasedAnalysisContext;
-    return context.driver;
   }
 
   @override
@@ -122,8 +116,8 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void writeTestPackageConfig({
-    PackageConfigFileBuilder config,
-    String languageVersion,
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
     bool meta = false,
   }) {
     if (config == null) {
@@ -167,9 +161,25 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 }
 
+mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
+  @override
+  String? get testPackageLanguageVersion => null;
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    createAnalysisOptionsFile(
+      experiments: [
+        EnableString.nonfunction_type_aliases,
+      ],
+    );
+  }
+}
+
 mixin WithNullSafetyMixin on AbstractContextTest {
   @override
-  String get testPackageLanguageVersion => '2.12';
+  String? get testPackageLanguageVersion => null;
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

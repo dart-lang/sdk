@@ -198,7 +198,7 @@ class _ParameterInfo {
   }
 }
 
-class _Collect extends RecursiveVisitor<void> {
+class _Collect extends RecursiveVisitor {
   final SignatureShaker shaker;
 
   /// Parameters of the current function.
@@ -332,7 +332,7 @@ class _Collect extends RecursiveVisitor<void> {
   }
 }
 
-class _Transform extends RecursiveVisitor<void> {
+class _Transform extends RecursiveVisitor {
   final SignatureShaker shaker;
 
   StaticTypeContext typeContext;
@@ -496,6 +496,12 @@ class _Transform extends RecursiveVisitor<void> {
   void visitProcedure(Procedure node) {
     transformMemberSignature(node);
     super.visitProcedure(node);
+  }
+
+  @override
+  void visitField(Field node) {
+    typeContext = StaticTypeContext(node, shaker.typeFlowAnalysis.environment);
+    super.visitField(node);
   }
 
   static void forEachArgumentRev(Arguments args, _ProcedureInfo info,

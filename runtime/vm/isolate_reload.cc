@@ -59,7 +59,6 @@ DEFINE_FLAG(bool, gc_during_reload, false, "Cause explicit GC during reload.");
 
 DECLARE_FLAG(bool, trace_deoptimization);
 
-#define I (isolate())
 #define IG (isolate_group())
 #define Z zone_
 
@@ -457,10 +456,10 @@ IsolateGroupReloadContext::~IsolateGroupReloadContext() {}
 
 ProgramReloadContext::ProgramReloadContext(
     std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
-    Isolate* isolate)
+    IsolateGroup* isolate_group)
     : zone_(Thread::Current()->zone()),
       group_reload_context_(group_reload_context),
-      isolate_(isolate),
+      isolate_group_(isolate_group),
       saved_class_table_(nullptr),
       saved_tlc_class_table_(nullptr),
       old_classes_set_storage_(Array::null()),
@@ -485,26 +484,22 @@ ProgramReloadContext::~ProgramReloadContext() {
 }
 
 void IsolateGroupReloadContext::ReportError(const Error& error) {
-  // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
-  // call to accept an isolate group instead of an isolate.
-  Isolate* isolate = Isolate::Current();
-  if (Isolate::IsSystemIsolate(isolate)) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  if (IsolateGroup::IsSystemIsolateGroup(isolate_group)) {
     return;
   }
   TIR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
-  ServiceEvent service_event(isolate, ServiceEvent::kIsolateReload);
+  ServiceEvent service_event(isolate_group, ServiceEvent::kIsolateReload);
   service_event.set_reload_error(&error);
   Service::HandleEvent(&service_event);
 }
 
 void IsolateGroupReloadContext::ReportSuccess() {
-  // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
-  // call to accept an isolate group instead of an isolate.
-  Isolate* isolate = Isolate::Current();
-  if (Isolate::IsSystemIsolate(isolate)) {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  if (IsolateGroup::IsSystemIsolateGroup(isolate_group)) {
     return;
   }
-  ServiceEvent service_event(isolate, ServiceEvent::kIsolateReload);
+  ServiceEvent service_event(isolate_group, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }
 
@@ -562,12 +557,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
   Thread* thread = Thread::Current();
 
-  // All isolates within an isolate group need to share one heap.
-  // TODO(dartbug.com/36097): Remove this assert once the shared heap CL has
-  // landed.
-  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
   Heap* heap = IG->heap();
-
   num_old_libs_ =
       GrowableObjectArray::Handle(Z, IG->object_store()->libraries()).Length();
 
@@ -621,15 +611,17 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
+    NoActiveIsolateScope no_active_isolate_scope;
+
     ExternalTypedData& external_typed_data =
         ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->ptr());
-    IsolateGroupSource* source = Isolate::Current()->source();
+    IsolateGroupSource* source = IsolateGroup::Current()->source();
     source->add_loaded_blob(Z, external_typed_data);
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
-        kernel_program.get(), isolate_group_, modified_libs_, force_reload,
-        &skip_reload, p_num_received_classes, p_num_received_procedures);
+        kernel_program.get(), IG, modified_libs_, force_reload, &skip_reload,
+        p_num_received_classes, p_num_received_procedures);
     modified_libs_transitive_ = new (Z) BitVector(Z, num_old_libs_);
     BuildModifiedLibrariesClosure(modified_libs_);
 
@@ -641,6 +633,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       }
     }
   }
+
+  NoActiveIsolateScope no_active_isolate_scope;
 
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
@@ -664,8 +658,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       [&](Isolate* isolate) { number_of_isolates++; });
 
   // Disable the background compiler while we are performing the reload.
-  ForEachIsolate(
-      [&](Isolate* isolate) { BackgroundCompiler::Disable(isolate); });
+  NoBackgroundCompilerScope stop_bg_compiler(thread);
 
   // Wait for any concurrent marking tasks to finish and turn off the
   // concurrent marker during reload as we might be allocating new instances
@@ -683,12 +676,10 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   // assumptions from field guards or CHA or deferred library prefixes.
   // TODO(johnmccutchan): Deoptimizing dependent code here (before the reload)
   // is paranoid. This likely can be moved to the commit phase.
-  ForEachIsolate([&](Isolate* isolate) {
-    isolate->program_reload_context()->EnsuredUnoptimizedCodeForStack();
-    isolate->program_reload_context()->DeoptimizeDependentCode();
-    isolate->program_reload_context()
-        ->ReloadPhase1AllocateStorageMapsAndCheckpoint();
-  });
+  IG->program_reload_context()->EnsuredUnoptimizedCodeForStack();
+  IG->program_reload_context()->DeoptimizeDependentCode();
+  IG->program_reload_context()->ReloadPhase1AllocateStorageMapsAndCheckpoint();
+
   // Renumbering the libraries has invalidated this.
   modified_libs_ = nullptr;
   modified_libs_transitive_ = nullptr;
@@ -704,9 +695,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   {
     TIMELINE_SCOPE(CheckpointClasses);
     CheckpointSharedClassTable();
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->program_reload_context()->CheckpointClasses();
-    });
+    IG->program_reload_context()->CheckpointClasses();
   }
 
   if (FLAG_gc_during_reload) {
@@ -721,41 +710,33 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   //
   // If loading the hot-reload diff succeeded we'll finalize the loading, which
   // will either commit or reject the reload request.
-  const auto& results = Array::Handle(Z, Array::New(number_of_isolates));
-  intptr_t isolateIndex = 0;
-  intptr_t load_errors = 0;
+  auto& result = Object::Handle(Z);
+  {
+    // We need to set an active isolate while loading kernel. The kernel loader
+    // itself is independent of the current isolate, but if the application
+    // needs native extensions, the kernel loader calls out to the embedder to
+    // load those, which requires currently an active isolate (since embedder
+    // will callback into VM using Dart API).
+    DisabledNoActiveIsolateScope active_isolate_scope(&no_active_isolate_scope);
 
-  auto& tmp = Object::Handle(Z);
-  ForEachIsolate([&](Isolate* isolate) {
-    tmp = isolate->program_reload_context()->ReloadPhase2LoadKernel(
+    result = IG->program_reload_context()->ReloadPhase2LoadKernel(
         kernel_program.get(), root_lib_url_);
-    if (tmp.IsError()) {
-      results.SetAt(isolateIndex, tmp);
-      load_errors++;
-    }
-    isolateIndex++;
-  });
+  }
 
-  const auto& result = Object::Handle(results.At(0));
-
-  if (load_errors > 0) {
+  if (result.IsError()) {
     TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
 
     const auto& error = Error::Cast(result);
     AddReasonForCancelling(new Aborted(Z, error));
 
     DiscardSavedClassTable(/*is_rollback=*/true);
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->program_reload_context()->ReloadPhase4Rollback();
-    });
+    IG->program_reload_context()->ReloadPhase4Rollback();
     CommonFinalizeTail(num_old_libs_);
   } else {
     ASSERT(!reload_skipped_ && !reload_finalized_);
     TIR_Print("---- LOAD SUCCEEDED\n");
 
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->program_reload_context()->ReloadPhase3FinalizeLoading();
-    });
+    IG->program_reload_context()->ReloadPhase3FinalizeLoading();
 
     if (FLAG_gc_during_reload) {
       // We use kLowMemory to force the GC to compact, which is more likely to
@@ -766,9 +747,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
     if (!FLAG_reload_force_rollback && !HasReasonsForCancelling()) {
       TIR_Print("---- COMMITTING RELOAD\n");
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->ReloadPhase4CommitPrepare();
-      });
+      isolate_group_->program_reload_context()->ReloadPhase4CommitPrepare();
       bool discard_class_tables = true;
       if (HasInstanceMorphers()) {
         // Find all objects that need to be morphed (reallocated to a new size).
@@ -815,10 +794,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
             // We accepted the hot-reload and morphed instances. So now we can
             // commit to the changed class table and deleted the saved one.
             DiscardSavedClassTable(/*is_rollback=*/false);
-            ForEachIsolate([&](Isolate* isolate) {
-              isolate->program_reload_context()->DiscardSavedClassTable(
-                  /*is_rollback=*/false);
-            });
+            IG->program_reload_context()->DiscardSavedClassTable(
+                /*is_rollback=*/false);
           }
           MorphInstancesPhase2Become(before, after);
 
@@ -834,22 +811,16 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       }
       if (discard_class_tables) {
         DiscardSavedClassTable(/*is_rollback=*/false);
-        ForEachIsolate([&](Isolate* isolate) {
-          isolate->program_reload_context()->DiscardSavedClassTable(
-              /*is_rollback=*/false);
-        });
+        IG->program_reload_context()->DiscardSavedClassTable(
+            /*is_rollback=*/false);
       }
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->ReloadPhase4CommitFinish();
-      });
+      isolate_group_->program_reload_context()->ReloadPhase4CommitFinish();
       TIR_Print("---- DONE COMMIT\n");
       isolate_group_->set_last_reload_timestamp(reload_timestamp_);
     } else {
       TIR_Print("---- ROLLING BACK");
       DiscardSavedClassTable(/*is_rollback=*/true);
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->ReloadPhase4Rollback();
-      });
+      isolate_group_->program_reload_context()->ReloadPhase4Rollback();
     }
 
     // ValidateReload mutates the direct subclass information and does
@@ -857,9 +828,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // information from scratch.
     {
       SafepointWriteRwLocker ml(thread, IG->program_lock());
-      ForEachIsolate([&](Isolate* isolate) {
-        isolate->program_reload_context()->RebuildDirectSubclasses();
-      });
+      IG->program_reload_context()->RebuildDirectSubclasses();
     }
     const intptr_t final_library_count =
         GrowableObjectArray::Handle(Z, IG->object_store()->libraries())
@@ -874,17 +843,13 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     }
   }
 
-  // Re-enable the background compiler. Do this before propagating any errors.
-  ForEachIsolate(
-      [&](Isolate* isolate) { BackgroundCompiler::Enable(isolate); });
-
   // Reenable concurrent marking if it was initially on.
   if (old_concurrent_mark_flag) {
     heap->old_space()->set_enable_concurrent_mark(true);
   }
 
   bool success;
-  if (load_errors == 0 || HasReasonsForCancelling()) {
+  if (!result.IsError() || HasReasonsForCancelling()) {
     ReportSuccess();
     success = true;
   } else {
@@ -894,16 +859,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
   // Re-queue any shutdown requests so they can inform each isolate's own thread
   // to shut down.
-  isolateIndex = 0;
-  ForEachIsolate([&](Isolate* isolate) {
-    tmp = results.At(isolateIndex);
-    if (tmp.IsUnwindError()) {
-      Isolate::KillIfExists(isolate, UnwindError::Cast(tmp).is_user_initiated()
+  if (result.IsUnwindError()) {
+    const auto& error = UnwindError::Cast(result);
+    ForEachIsolate([&](Isolate* isolate) {
+      Isolate::KillIfExists(isolate, error.is_user_initiated()
                                          ? Isolate::kKillMsg
                                          : Isolate::kInternalKillMsg);
-    }
-    isolateIndex++;
-  });
+    });
+  }
 
   return success;
 }
@@ -1109,7 +1072,7 @@ ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
     if (lib.IsNull()) {
       lib = Library::LookupLibrary(thread, root_lib_url);
     }
-    isolate_->group()->object_store()->set_root_library(lib);
+    IG->object_store()->set_root_library(lib);
     return Object::null();
   } else {
     return thread->StealStickyError();
@@ -1215,23 +1178,26 @@ void IsolateGroupReloadContext::ReportOnJSON(JSONStream* stream,
 
 void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
-  StackFrameIterator it(ValidationPolicy::kDontValidateFrames,
-                        Thread::Current(),
-                        StackFrameIterator::kNoCrossThreadIteration);
 
-  Function& func = Function::Handle();
-  while (it.HasNextFrame()) {
-    StackFrame* frame = it.NextFrame();
-    if (frame->IsDartFrame()) {
-      func = frame->LookupDartFunction();
-      ASSERT(!func.IsNull());
-      // Force-optimized functions don't need unoptimized code because their
-      // optimized code cannot deopt.
-      if (!func.ForceOptimize()) {
-        func.EnsureHasCompiledUnoptimizedCode();
+  IG->ForEachIsolate([](Isolate* isolate) {
+    auto thread = isolate->mutator_thread();
+    StackFrameIterator it(ValidationPolicy::kDontValidateFrames, thread,
+                          StackFrameIterator::kAllowCrossThreadIteration);
+
+    Function& func = Function::Handle();
+    while (it.HasNextFrame()) {
+      StackFrame* frame = it.NextFrame();
+      if (frame->IsDartFrame()) {
+        func = frame->LookupDartFunction();
+        ASSERT(!func.IsNull());
+        // Force-optimized functions don't need unoptimized code because their
+        // optimized code cannot deopt.
+        if (!func.ForceOptimize()) {
+          func.EnsureHasCompiledUnoptimizedCode();
+        }
       }
     }
-  }
+  });
 }
 
 void ProgramReloadContext::DeoptimizeDependentCode() {
@@ -1706,11 +1672,11 @@ void ProgramReloadContext::CommitAfterInstanceMorphing() {
   // content may have changed from fields being added or removed.
   {
     TIMELINE_SCOPE(RehashConstants);
-    I->RehashConstants();
+    IG->RehashConstants();
   }
 
 #ifdef DEBUG
-  I->ValidateConstants();
+  IG->ValidateConstants();
 #endif
 
   if (FLAG_identity_reload) {
@@ -1939,37 +1905,39 @@ void ProgramReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 ObjectStore* ProgramReloadContext::object_store() {
-  return isolate_->group()->object_store();
+  return IG->object_store();
 }
 
 void ProgramReloadContext::ResetUnoptimizedICsOnStack() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
-
   Code& code = Code::Handle(zone);
   Function& function = Function::Handle(zone);
   CallSiteResetter resetter(zone);
-  DartFrameIterator iterator(thread,
-                             StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  while (frame != NULL) {
-    code = frame->LookupDartCode();
-    if (code.is_optimized() && !code.is_force_optimized()) {
-      // If this code is optimized, we need to reset the ICs in the
-      // corresponding unoptimized code, which will be executed when the stack
-      // unwinds to the optimized code.
-      function = code.function();
-      code = function.unoptimized_code();
-      ASSERT(!code.IsNull());
-      resetter.ResetSwitchableCalls(code);
-      resetter.ResetCaches(code);
-    } else {
-      resetter.ResetSwitchableCalls(code);
-      resetter.ResetCaches(code);
+
+  IG->ForEachIsolate([&](Isolate* isolate) {
+    DartFrameIterator iterator(isolate->mutator_thread(),
+                               StackFrameIterator::kAllowCrossThreadIteration);
+    StackFrame* frame = iterator.NextFrame();
+    while (frame != nullptr) {
+      code = frame->LookupDartCode();
+      if (code.is_optimized() && !code.is_force_optimized()) {
+        // If this code is optimized, we need to reset the ICs in the
+        // corresponding unoptimized code, which will be executed when the stack
+        // unwinds to the optimized code.
+        function = code.function();
+        code = function.unoptimized_code();
+        ASSERT(!code.IsNull());
+        resetter.ResetSwitchableCalls(code);
+        resetter.ResetCaches(code);
+      } else {
+        resetter.ResetSwitchableCalls(code);
+        resetter.ResetCaches(code);
+      }
+      frame = iterator.NextFrame();
     }
-    frame = iterator.NextFrame();
-  }
+  });
 }
 
 void ProgramReloadContext::ResetMegamorphicCaches() {
@@ -2166,10 +2134,19 @@ class FieldInvalidator {
       if (field.needs_load_guard()) {
         continue;  // Already guarding.
       }
-      value_ = field.StaticValue();
-      if (value_.ptr() != Object::sentinel().ptr()) {
-        CheckValueType(null_safety, value_, field);
-      }
+      const intptr_t field_id = field.field_id();
+      thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
+        auto field_table = isolate->field_table();
+        // The isolate might've just been created and is now participating in
+        // the reload request inside `IsolateGroup::RegisterIsolate()`.
+        // At that point it doesn't have the field table setup yet.
+        if (field_table->IsReadyToUse()) {
+          value_ = field_table->At(field_id);
+          if (value_.ptr() != Object::sentinel().ptr()) {
+            CheckValueType(null_safety, value_, field);
+          }
+        }
+      });
     }
   }
 
@@ -2636,6 +2613,114 @@ void ProgramReloadContext::RebuildDirectSubclasses() {
         }
       }
     }
+  }
+}
+
+void ReloadHandler::RegisterIsolate() {
+  SafepointMonitorLocker ml(&monitor_);
+  ParticipateIfReloadRequested(&ml, /*is_registered=*/false,
+                               /*allow_later_retry=*/false);
+  ASSERT(reloading_thread_ == nullptr);
+  ++registered_isolate_count_;
+}
+
+void ReloadHandler::UnregisterIsolate() {
+  SafepointMonitorLocker ml(&monitor_);
+  ParticipateIfReloadRequested(&ml, /*is_registered=*/true,
+                               /*allow_later_retry=*/false);
+  ASSERT(reloading_thread_ == nullptr);
+  --registered_isolate_count_;
+}
+
+void ReloadHandler::CheckForReload() {
+  SafepointMonitorLocker ml(&monitor_);
+  ParticipateIfReloadRequested(&ml, /*is_registered=*/true,
+                               /*allow_later_retry=*/true);
+}
+
+void ReloadHandler::ParticipateIfReloadRequested(SafepointMonitorLocker* ml,
+                                                 bool is_registered,
+                                                 bool allow_later_retry) {
+  if (reloading_thread_ != nullptr) {
+    auto thread = Thread::Current();
+    auto isolate = thread->isolate();
+
+    // If the current thread is in a no reload scope, we'll not participate here
+    // and instead delay to a point (further up the stack, namely in the main
+    // message handling loop) where this isolate can participate.
+    if (thread->IsInNoReloadScope()) {
+      RELEASE_ASSERT(allow_later_retry);
+      isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
+      return;
+    }
+
+    if (is_registered) {
+      SafepointMonitorLocker ml(&checkin_monitor_);
+      ++isolates_checked_in_;
+      ml.NotifyAll();
+    }
+    // While we're waiting for the reload to be performed, we'll exit the
+    // isolate. That will transition into a safepoint - which a blocking `Wait`
+    // would also do - but it does something in addition: It will release it's
+    // current TLAB and decrease the mutator count. We want this in order to let
+    // all isolates in the group participate in the reload, despite our parallel
+    // mutator limit.
+    while (reloading_thread_ != nullptr) {
+      SafepointMonitorUnlockScope ml_unlocker(ml);
+      Thread::ExitIsolate(/*nested=*/true);
+      {
+        MonitorLocker ml(&monitor_);
+        while (reloading_thread_ != nullptr) {
+          ml.Wait();
+        }
+      }
+      Thread::EnterIsolate(isolate, /*nested=*/true);
+    }
+    if (is_registered) {
+      SafepointMonitorLocker ml(&checkin_monitor_);
+      --isolates_checked_in_;
+    }
+  }
+}
+
+void ReloadHandler::PauseIsolatesForReloadLocked() {
+  intptr_t registered = -1;
+  {
+    SafepointMonitorLocker ml(&monitor_);
+
+    // Maybe participate in existing reload requested by another isolate.
+    ParticipateIfReloadRequested(&ml, /*registered=*/true,
+                                 /*allow_later_retry=*/false);
+
+    // Now it's our turn to request reload.
+    ASSERT(reloading_thread_ == nullptr);
+    reloading_thread_ = Thread::Current();
+
+    // At this point no isolate register/unregister, so we save the current
+    // number of registered isolates.
+    registered = registered_isolate_count_;
+  }
+
+  // Send OOB to a superset of all registered isolates and make them participate
+  // in this reload.
+  reloading_thread_->isolate_group()->ForEachIsolate([](Isolate* isolate) {
+    isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
+  });
+
+  {
+    SafepointMonitorLocker ml(&checkin_monitor_);
+    while (isolates_checked_in_ < (registered - /*reload_requester=*/1)) {
+      ml.Wait();
+    }
+  }
+}
+
+void ReloadHandler::ResumeIsolatesLocked() {
+  {
+    SafepointMonitorLocker ml(&monitor_);
+    ASSERT(reloading_thread_ == Thread::Current());
+    reloading_thread_ = nullptr;
+    ml.NotifyAll();
   }
 }
 

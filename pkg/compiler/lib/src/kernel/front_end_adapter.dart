@@ -69,6 +69,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   }
 
   @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+
+  @override
   Future<bool> exists() async {
     try {
       api.Input input = await fs.inputProvider
@@ -78,6 +81,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
       return false;
     }
   }
+
+  @override
+  Future<bool> existsAsyncIfPossible() => exists();
 }
 
 /// Report a [message] received from the front-end, using dart2js's

@@ -10,9 +10,6 @@
 */*/*/packages/*/*: Skip
 */*/packages/*/*: Skip
 */packages/*/*: Skip
-pub/test/dart2js/compiles_generated_file_from_dependency_test: Pass, Slow
-pub/test/serve/web_socket/url_to_asset_id_test: Pass, Slow
-pub/test/transformer/loads_a_diamond_transformer_dependency_graph_test: Pass, Slow
 
 [ $runtime == vm ]
 http_io/test/http_cross_process_test: Skip # Fails with --no-preview-dart-2
@@ -27,7 +24,7 @@ pub/*: SkipByDesign
 pub/test/run/app_can_read_from_stdin_test: Fail # Issue 19448
 pub/test/run/forwards_signal_posix_test: SkipByDesign
 
-[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarmv6 || $builder_tag == asan || $mode == debug) ]
+[ $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $builder_tag == asan || $mode == debug) ]
 dart_style/test/command_line_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators.
 dart_style/test/formatter_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators.
 

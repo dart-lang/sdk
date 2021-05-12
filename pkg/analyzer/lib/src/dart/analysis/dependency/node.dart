@@ -83,12 +83,12 @@ class Dependencies {
 
   /// All referenced nodes, computed from [unprefixedReferencedNames],
   /// [importPrefixedReferencedNames], and [classMemberReferences].
-  List<Node> referencedNodes;
+  List<Node>? referencedNodes;
 
   /// The transitive signature of this portion of the node, computed using
   /// the [tokenSignature] of this node, and API signatures of the
   /// [referencedNodes].
-  List<int> transitiveSignature;
+  List<int>? transitiveSignature;
 
   Dependencies(
       this.tokenSignature,
@@ -177,26 +177,26 @@ class Node {
 
   /// If the node is a class member, the node of the enclosing class.
   /// Otherwise `null`.
-  final Node enclosingClass;
+  final Node? enclosingClass;
 
   /// If the node is a class, the nodes of its type parameters.
   /// Otherwise `null`.
-  List<Node> classTypeParameters;
+  List<Node>? classTypeParameters;
 
   /// If the node is a class, the sorted list of members in this class.
   /// Otherwise `null`.
-  List<Node> classMembers;
+  List<Node>? classMembers;
 
   Node(this.name, this.kind, this.api, this.impl,
       {this.enclosingClass, this.classTypeParameters});
 
   /// Return the node that can be referenced by the given [name] from the
   /// library with the given [libraryUri].
-  Node getClassMember(Uri libraryUri, String name) {
+  Node? getClassMember(Uri libraryUri, String name) {
     // TODO(scheglov) The list is sorted, use this fact to search faster.
     // TODO(scheglov) Collect superclass members here or outside.
-    for (var i = 0; i < classMembers.length; ++i) {
-      var member = classMembers[i];
+    for (var i = 0; i < classMembers!.length; ++i) {
+      var member = classMembers![i];
       var memberName = member.name;
       if (memberName.name == name && memberName.isAccessibleFor(libraryUri)) {
         return member;

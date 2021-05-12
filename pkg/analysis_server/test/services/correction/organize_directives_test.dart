@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
-  List<AnalysisError> testErrors;
+  late List<AnalysisError> testErrors;
 
   Future<void> test_docComment_beforeDirective_hasUnresolvedIdentifier() async {
     await _computeUnitAndErrors(r'''
@@ -582,7 +582,7 @@ import 'package:b/a.dart';''');
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
     var result = await session.getResolvedUnit(testFile);
-    testUnit = result.unit;
+    testUnit = result.unit!;
     testErrors = result.errors;
   }
 }

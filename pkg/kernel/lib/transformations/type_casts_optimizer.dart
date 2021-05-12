@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, SubtypeCheckMode, TypeEnvironment;
 
@@ -53,7 +52,7 @@ TreeNode transformAsExpression(
 // operand).
 bool isRedundantTypeCast(AsExpression node, DartType operandStaticType,
     TypeEnvironment env, bool nullSafety) {
-  if (!_canBeTransformed(node)) {
+  if (!_canBeTransformed(node, env.coreTypes)) {
     return false;
   }
 
@@ -70,7 +69,7 @@ bool isRedundantTypeCast(AsExpression node, DartType operandStaticType,
 // 'Let tmp = [node.operand] in (tmp == null) ? tmp as T : tmp'.
 bool canBeReducedToNullCheckAndCast(AsExpression node,
     DartType operandStaticType, TypeEnvironment env, bool nullSafety) {
-  if (!_canBeTransformed(node)) {
+  if (!_canBeTransformed(node, env.coreTypes)) {
     return false;
   }
 
@@ -85,7 +84,7 @@ bool canBeReducedToNullCheckAndCast(AsExpression node,
   return false;
 }
 
-bool _canBeTransformed(AsExpression node) {
+bool _canBeTransformed(AsExpression node, CoreTypes coreTypes) {
   if (node.isCovarianceCheck) {
     // Keep casts inserted by the front-end to ensure soundness of
     // covariant types.
@@ -93,8 +92,10 @@ bool _canBeTransformed(AsExpression node) {
   }
 
   final DartType dst = node.type;
-  if (dst is DynamicType || dst is InvalidType) {
-    // Keep casts to dynamic as they have zero overhead but change
+  if (dst is DynamicType ||
+      dst is InvalidType ||
+      (dst is InterfaceType && dst.classNode == coreTypes.functionClass)) {
+    // Keep casts to dynamic and Function as they change
     // the semantics of calls. Also keep invalid types.
     return false;
   }

@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-String getSdkPath([List<String> args]) {
+String getSdkPath([List<String>? args]) {
   // Look for --dart-sdk on the command line.
   if (args != null) {
     int index = args.indexOf('--dart-sdk');
@@ -24,7 +24,7 @@ String getSdkPath([List<String> args]) {
 
   // Look in env['DART_SDK']
   if (Platform.environment['DART_SDK'] != null) {
-    return Platform.environment['DART_SDK'];
+    return Platform.environment['DART_SDK']!;
   }
 
   // Use Platform.resolvedExecutable.

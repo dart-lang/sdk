@@ -109,5 +109,9 @@ expectError(func) async {
   }
 }
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'eval_test.dart',
+      testeeConcurrent: testFunction,
+    );

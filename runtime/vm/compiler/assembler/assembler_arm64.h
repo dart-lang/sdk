@@ -547,6 +547,9 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadCompressedField(Register dst, FieldAddress address) {
+    LoadCompressed(dst, address);
+  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset, kEightBytes);
   }
@@ -628,29 +631,25 @@ class Assembler : public AssemblerBase {
   // Addition and subtraction.
   // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
-  void add(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, false, false, rd, rn, o);
+  void add(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, false, false, rd, rn, o);
   }
-  void adds(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, true, false, rd, rn, o);
+  void adds(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, true, false, rd, rn, o);
   }
-  void addw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, false, false, rd, rn, o);
+  void sub(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, false, true, rd, rn, o);
   }
+  void subs(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    AddSubHelper(sz, true, true, rd, rn, o);
+  }
+  void addw(Register rd, Register rn, Operand o) { add(rd, rn, o, kFourBytes); }
   void addsw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, true, false, rd, rn, o);
+    adds(rd, rn, o, kFourBytes);
   }
-  void sub(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, false, true, rd, rn, o);
-  }
-  void subs(Register rd, Register rn, Operand o) {
-    AddSubHelper(kEightBytes, true, true, rd, rn, o);
-  }
-  void subw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, false, true, rd, rn, o);
-  }
+  void subw(Register rd, Register rn, Operand o) { sub(rd, rn, o, kFourBytes); }
   void subsw(Register rd, Register rn, Operand o) {
-    AddSubHelper(kFourBytes, true, true, rd, rn, o);
+    subs(rd, rn, o, kFourBytes);
   }
 
   // Addition and subtraction with carry.
@@ -810,76 +809,89 @@ class Assembler : public AssemblerBase {
   }
 
   // Logical immediate operations.
-  void andi(Register rd, Register rn, const Immediate& imm) {
+  void andi(Register rd,
+            Register rn,
+            const Immediate& imm,
+            OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(ANDI, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(ANDI, rd, rn, imm_op, sz);
   }
-  void orri(Register rd, Register rn, const Immediate& imm) {
+  void orri(Register rd,
+            Register rn,
+            const Immediate& imm,
+            OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(ORRI, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(ORRI, rd, rn, imm_op, sz);
   }
-  void eori(Register rd, Register rn, const Immediate& imm) {
+  void eori(Register rd,
+            Register rn,
+            const Immediate& imm,
+            OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(EORI, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(EORI, rd, rn, imm_op, sz);
   }
-  void andis(Register rd, Register rn, const Immediate& imm) {
+  void andis(Register rd,
+             Register rn,
+             const Immediate& imm,
+             OperandSize sz = kEightBytes) {
+    ASSERT(sz == kEightBytes || sz == kFourBytes);
+    int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
     Operand imm_op;
-    const bool immok =
-        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
+    const bool immok = Operand::IsImmLogical(imm.value(), width, &imm_op);
     ASSERT(immok);
-    EmitLogicalImmOp(ANDIS, rd, rn, imm_op, kEightBytes);
+    EmitLogicalImmOp(ANDIS, rd, rn, imm_op, sz);
   }
 
   // Logical (shifted) register operations.
-  void and_(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(AND, rd, rn, o, kEightBytes);
+  void and_(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(AND, rd, rn, o, sz);
+  }
+  void bic(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(BIC, rd, rn, o, sz);
+  }
+  void orr(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(ORR, rd, rn, o, sz);
+  }
+  void orn(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(ORN, rd, rn, o, sz);
+  }
+  void eor(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(EOR, rd, rn, o, sz);
+  }
+  void eon(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(EON, rd, rn, o, sz);
+  }
+  void ands(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(ANDS, rd, rn, o, sz);
+  }
+  void bics(Register rd, Register rn, Operand o, OperandSize sz = kEightBytes) {
+    EmitLogicalShiftOp(BICS, rd, rn, o, sz);
   }
   void andw_(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(AND, rd, rn, o, kFourBytes);
+    and_(rd, rn, o, kFourBytes);
   }
-  void bic(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(BIC, rd, rn, o, kEightBytes);
-  }
-  void orr(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORR, rd, rn, o, kEightBytes);
-  }
-  void orrw(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORR, rd, rn, o, kFourBytes);
-  }
-  void orn(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORN, rd, rn, o, kEightBytes);
-  }
-  void ornw(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ORN, rd, rn, o, kFourBytes);
-  }
-  void eor(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(EOR, rd, rn, o, kEightBytes);
-  }
-  void eorw(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(EOR, rd, rn, o, kFourBytes);
-  }
-  void eon(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(EON, rd, rn, o, kEightBytes);
-  }
-  void ands(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(ANDS, rd, rn, o, kEightBytes);
-  }
-  void bics(Register rd, Register rn, Operand o) {
-    EmitLogicalShiftOp(BICS, rd, rn, o, kEightBytes);
-  }
+  void orrw(Register rd, Register rn, Operand o) { orr(rd, rn, o, kFourBytes); }
+  void ornw(Register rd, Register rn, Operand o) { orn(rd, rn, o, kFourBytes); }
+  void eorw(Register rd, Register rn, Operand o) { eor(rd, rn, o, kFourBytes); }
 
   // Count leading zero bits.
   void clz(Register rd, Register rn) {
     EmitMiscDP1Source(CLZ, rd, rn, kEightBytes);
+  }
+  void clzw(Register rd, Register rn) {
+    EmitMiscDP1Source(CLZ, rd, rn, kFourBytes);
   }
 
   // Reverse bits.
@@ -888,29 +900,47 @@ class Assembler : public AssemblerBase {
   }
 
   // Misc. arithmetic.
-  void udiv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(UDIV, rd, rn, rm, kEightBytes);
+  void udiv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(UDIV, rd, rn, rm, sz);
   }
-  void sdiv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(SDIV, rd, rn, rm, kEightBytes);
+  void sdiv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(SDIV, rd, rn, rm, sz);
   }
-  void lslv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSLV, rd, rn, rm, kEightBytes);
+  void lslv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(LSLV, rd, rn, rm, sz);
   }
-  void lsrv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSRV, rd, rn, rm, kEightBytes);
+  void lsrv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(LSRV, rd, rn, rm, sz);
   }
-  void asrv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(ASRV, rd, rn, rm, kEightBytes);
+  void asrv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(ASRV, rd, rn, rm, sz);
+  }
+  void sdivw(Register rd, Register rn, Register rm) {
+    sdiv(rd, rn, rm, kFourBytes);
   }
   void lslvw(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSLV, rd, rn, rm, kFourBytes);
+    lslv(rd, rn, rm, kFourBytes);
   }
   void lsrvw(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSRV, rd, rn, rm, kFourBytes);
+    lsrv(rd, rn, rm, kFourBytes);
   }
   void asrvw(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(ASRV, rd, rn, rm, kFourBytes);
+    asrv(rd, rn, rm, kFourBytes);
   }
   void madd(Register rd,
             Register rn,
@@ -926,12 +956,16 @@ class Assembler : public AssemblerBase {
             OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(MSUB, rd, rn, rm, ra, sz);
   }
+  // Signed Multiply High
+  // rd <- (rn * rm)[127:64]
   void smulh(Register rd,
              Register rn,
              Register rm,
              OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(SMULH, rd, rn, rm, R31, sz);
   }
+  // Unsigned Multiply High
+  // rd <- (rn * rm)[127:64]
   void umulh(Register rd,
              Register rn,
              Register rm,
@@ -945,6 +979,8 @@ class Assembler : public AssemblerBase {
               OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, sz);
   }
+  // Unsigned Multiply Long
+  // rd:uint64 <- rn:uint32 * rm:uint32
   void umull(Register rd,
              Register rn,
              Register rm,
@@ -958,6 +994,8 @@ class Assembler : public AssemblerBase {
               OperandSize sz = kEightBytes) {
     EmitMiscDP3Source(SMADDL, rd, rn, rm, ra, sz);
   }
+  // Signed Multiply Long
+  // rd:int64 <- rn:int32 * rm:int32
   void smull(Register rd,
              Register rn,
              Register rm,
@@ -1079,10 +1117,14 @@ class Assembler : public AssemblerBase {
   // rn cmp o.
   // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
-  void cmp(Register rn, Operand o) { subs(ZR, rn, o); }
-  void cmpw(Register rn, Operand o) { subsw(ZR, rn, o); }
+  void cmp(Register rn, Operand o, OperandSize sz = kEightBytes) {
+    subs(ZR, rn, o, sz);
+  }
+  void cmpw(Register rn, Operand o) { cmp(rn, o, kFourBytes); }
   // rn cmp -o.
-  void cmn(Register rn, Operand o) { adds(ZR, rn, o); }
+  void cmn(Register rn, Operand o, OperandSize sz = kEightBytes) {
+    adds(ZR, rn, o, sz);
+  }
 
   void CompareRegisters(Register rn, Register rm) {
     if (rn == CSP) {
@@ -1092,6 +1134,11 @@ class Assembler : public AssemblerBase {
     } else {
       cmp(rn, Operand(rm));
     }
+  }
+
+  void CompareObjectRegisters(Register rn, Register rm) {
+    ASSERT(rn != CSP);
+    cmp(rn, Operand(rm), kObjectBytes);
   }
 
   // Conditional branch.
@@ -1128,10 +1175,13 @@ class Assembler : public AssemblerBase {
     EmitCompareAndBranch(CBNZ, rt, label, sz);
   }
 
-  // Generate 64-bit compare with zero and branch when condition allows to use
-  // a single instruction: cbz/cbnz/tbz/tbnz.
-  bool CanGenerateXCbzTbz(Register rn, Condition cond);
-  void GenerateXCbzTbz(Register rn, Condition cond, Label* label);
+  // Generate 64/32-bit compare with zero and branch when condition allows to
+  // use a single instruction: cbz/cbnz/tbz/tbnz.
+  bool CanGenerateCbzTbz(Register rn, Condition cond);
+  void GenerateCbzTbz(Register rn,
+                      Condition cond,
+                      Label* label,
+                      OperandSize sz = kEightBytes);
 
   // Test bit and branch if zero.
   void tbz(Label* label, Register rt, intptr_t bit_number) {
@@ -1213,11 +1263,17 @@ class Assembler : public AssemblerBase {
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn, kFourBytes);
   }
-  void fcvtzds(Register rd, VRegister vn) {
+  void fcvtzdsx(Register rd, VRegister vn) {
     ASSERT(rd != R31);
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
+  }
+  void fcvtzdsw(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn), kFourBytes);
   }
   void fmovdd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FMOVDD, vd, vn); }
   void fabsd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FABSD, vd, vn); }
@@ -1415,8 +1471,10 @@ class Assembler : public AssemblerBase {
   void mvn(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
   void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
   void neg(Register rd, Register rm) { sub(rd, ZR, Operand(rm)); }
-  void negs(Register rd, Register rm) { subs(rd, ZR, Operand(rm)); }
-  void negsw(Register rd, Register rm) { subsw(rd, ZR, Operand(rm)); }
+  void negs(Register rd, Register rm, OperandSize sz = kEightBytes) {
+    subs(rd, ZR, Operand(rm), sz);
+  }
+  void negsw(Register rd, Register rm) { negs(rd, rm, kFourBytes); }
   void mul(Register rd, Register rn, Register rm) {
     madd(rd, rn, rm, ZR, kEightBytes);
   }
@@ -1473,8 +1531,12 @@ class Assembler : public AssemblerBase {
     // The caller of PopAndUntagPP() must explicitly allow use of popped PP.
     set_constant_pool_allowed(false);
   }
-  void tst(Register rn, Operand o) { ands(ZR, rn, o); }
-  void tsti(Register rn, const Immediate& imm) { andis(ZR, rn, imm); }
+  void tst(Register rn, Operand o, OperandSize sz = kEightBytes) {
+    ands(ZR, rn, o, sz);
+  }
+  void tsti(Register rn, const Immediate& imm, OperandSize sz = kEightBytes) {
+    andis(ZR, rn, imm, sz);
+  }
 
   void LslImmediate(Register rd,
                     Register rn,
@@ -1482,6 +1544,7 @@ class Assembler : public AssemblerBase {
                     OperandSize sz = kEightBytes) {
     const int reg_size =
         (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    ASSERT((shift >= 0) && (shift < reg_size));
     ubfm(rd, rn, (reg_size - shift) % reg_size, reg_size - shift - 1, sz);
   }
   void LsrImmediate(Register rd,
@@ -1490,23 +1553,43 @@ class Assembler : public AssemblerBase {
                     OperandSize sz = kEightBytes) {
     const int reg_size =
         (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    ASSERT((shift >= 0) && (shift < reg_size));
     ubfm(rd, rn, shift, reg_size - 1, sz);
   }
-  void AsrImmediate(Register rd, Register rn, int shift) {
-    const int reg_size = kXRegSizeInBits;
-    sbfm(rd, rn, shift, reg_size - 1);
+  void AsrImmediate(Register rd,
+                    Register rn,
+                    int shift,
+                    OperandSize sz = kEightBytes) {
+    const int reg_size =
+        (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
+    ASSERT((shift >= 0) && (shift < reg_size));
+    sbfm(rd, rn, shift, reg_size - 1, sz);
   }
 
   void VRecps(VRegister vd, VRegister vn);
   void VRSqrts(VRegister vd, VRegister vn);
 
-  void SmiUntag(Register reg) { AsrImmediate(reg, reg, kSmiTagSize); }
+  void SmiUntag(Register reg) {
+    sbfm(reg, reg, kSmiTagSize, target::kSmiBits + 1);
+  }
   void SmiUntag(Register dst, Register src) {
-    AsrImmediate(dst, src, kSmiTagSize);
+    sbfm(dst, src, kSmiTagSize, target::kSmiBits + 1);
   }
   void SmiTag(Register reg) { LslImmediate(reg, reg, kSmiTagSize); }
   void SmiTag(Register dst, Register src) {
     LslImmediate(dst, src, kSmiTagSize);
+  }
+
+  void SmiTagAndBranchIfOverflow(Register reg, Label* label) {
+    COMPILE_ASSERT(kSmiTag == 0);
+    adds(reg, reg, compiler::Operand(reg));  // SmiTag
+    // If the value doesn't fit in a smi, the tagging changes the sign,
+    // which causes the overflow flag to be set.
+    b(label, OVERFLOW);
+#if defined(DART_COMPRESSED_POINTERS)
+    cmp(reg, compiler::Operand(reg, SXTW, 0));
+    b(label, NOT_EQUAL);
+#endif  // defined(DART_COMPRESSED_POINTERS)
   }
 
   // For ARM, the near argument is ignored.
@@ -1567,7 +1650,10 @@ class Assembler : public AssemblerBase {
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp. `dest` can be TMP2, `rn` cannot.
-  void AddImmediate(Register dest, Register rn, int64_t imm);
+  void AddImmediate(Register dest,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize sz = kEightBytes);
   void AddImmediateSetFlags(Register dest,
                             Register rn,
                             int64_t imm,
@@ -1576,11 +1662,20 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int64_t imm,
                             OperandSize sz = kEightBytes);
-  void AndImmediate(Register rd, Register rn, int64_t imm);
-  void OrImmediate(Register rd, Register rn, int64_t imm);
-  void XorImmediate(Register rd, Register rn, int64_t imm);
-  void TestImmediate(Register rn, int64_t imm);
-  void CompareImmediate(Register rn, int64_t imm);
+  void AndImmediate(Register rd,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize sz = kEightBytes);
+  void OrImmediate(Register rd,
+                   Register rn,
+                   int64_t imm,
+                   OperandSize sz = kEightBytes);
+  void XorImmediate(Register rd,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize sz = kEightBytes);
+  void TestImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
+  void CompareImmediate(Register rn, int64_t imm, OperandSize sz = kEightBytes);
 
   void LoadFromOffset(Register dest,
                       const Address& address,
@@ -1594,6 +1689,11 @@ class Assembler : public AssemblerBase {
                            int32_t offset,
                            OperandSize sz = kEightBytes) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
+  }
+  void LoadCompressedFieldFromOffset(Register dest,
+                                     Register base,
+                                     int32_t offset) {
+    LoadCompressed(dest, FieldAddress(base, offset));
   }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
@@ -1647,6 +1747,9 @@ class Assembler : public AssemblerBase {
     kValueCanBeSmi,
   };
 
+  void LoadCompressed(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot);
+
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
   // if the value can be proven either Smi or old-and-premarked, its NoBarrier
@@ -1656,6 +1759,11 @@ class Assembler : public AssemblerBase {
                        const Address& dest,
                        Register value,
                        CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObject(Register object,
+                                 const Address& dest,
+                                 Register value,
+                                 CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
@@ -1665,18 +1773,35 @@ class Assembler : public AssemblerBase {
                              int32_t offset,
                              Register value,
                              CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObjectOffset(
+      Register object,
+      int32_t offset,
+      Register value,
+      CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          Register value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       Register value);
+  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                int32_t offset,
+                                                Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          const Object& value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       const Object& value);
+  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                int32_t offset,
+                                                const Object& value);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -1698,6 +1823,7 @@ class Assembler : public AssemblerBase {
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
   void LoadIsolate(Register dst);
+  void LoadIsolateGroup(Register dst);
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObject(Register dst, const Object& obj);

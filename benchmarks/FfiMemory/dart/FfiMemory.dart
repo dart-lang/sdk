@@ -10,11 +10,10 @@
 // Dart with a specific marshalling and unmarshalling of data.
 
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
-
-import 'calloc.dart';
 
 //
 // Pointer store.
@@ -23,6 +22,12 @@ import 'calloc.dart';
 void doStoreInt8(Pointer<Int8> pointer, int length) {
   for (int i = 0; i < length; i++) {
     pointer[i] = 1;
+  }
+}
+
+void doStoreInt8TypedData(Int8List typedData, int length) {
+  for (int i = 0; i < length; i++) {
+    typedData[i] = 1;
   }
 }
 
@@ -101,6 +106,14 @@ int doLoadInt8(Pointer<Int8> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
     x += pointer[i];
+  }
+  return x;
+}
+
+int doLoadInt8TypedData(Int8List typedData, int length) {
+  int x = 0;
+  for (int i = 0; i < length; i++) {
+    x += typedData[i];
   }
   return x;
 }
@@ -226,6 +239,62 @@ class PointerInt8 extends BenchmarkBase {
   }
 }
 
+class PointerInt8TypedDataNew extends BenchmarkBase {
+  Pointer<Int8> pointer = nullptr;
+  PointerInt8TypedDataNew() : super('FfiMemory.PointerInt8TypedDataNew');
+
+  @override
+  void setup() {
+    pointer = calloc(N);
+  }
+
+  @override
+  void teardown() {
+    calloc.free(pointer);
+    pointer = nullptr;
+  }
+
+  @override
+  void run() {
+    final typedData = pointer.asTypedList(N);
+    doStoreInt8TypedData(typedData, N);
+    final int x = doLoadInt8TypedData(typedData, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x, expected $N');
+    }
+  }
+}
+
+final emptyTypedData = Int8List(0);
+
+class PointerInt8TypedDataReuse extends BenchmarkBase {
+  Pointer<Int8> pointer = nullptr;
+  Int8List typedData = emptyTypedData;
+  PointerInt8TypedDataReuse() : super('FfiMemory.PointerInt8TypedDataReuse');
+
+  @override
+  void setup() {
+    pointer = calloc(N);
+    typedData = pointer.asTypedList(N);
+  }
+
+  @override
+  void teardown() {
+    calloc.free(pointer);
+    pointer = nullptr;
+    typedData = emptyTypedData;
+  }
+
+  @override
+  void run() {
+    doStoreInt8TypedData(typedData, N);
+    final int x = doLoadInt8TypedData(typedData, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x, expected $N');
+    }
+  }
+}
+
 class PointerUint8 extends BenchmarkBase {
   Pointer<Uint8> pointer = nullptr;
   PointerUint8() : super('FfiMemory.PointerUint8');
@@ -315,6 +384,30 @@ class PointerUint32 extends BenchmarkBase {
   void run() {
     doStoreUint32(pointer, N);
     final int x = doLoadUint32(pointer, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x');
+    }
+  }
+}
+
+class PointerUint32Unaligned extends BenchmarkBase {
+  Pointer<Uint32> pointer = nullptr;
+  Pointer<Uint32> unalignedPointer = nullptr;
+  PointerUint32Unaligned() : super('FfiMemory.PointerUint32Unaligned');
+
+  @override
+  void setup() {
+    pointer = calloc(N + 1);
+    unalignedPointer = Pointer.fromAddress(pointer.address + 1);
+  }
+
+  @override
+  void teardown() => calloc.free(pointer);
+
+  @override
+  void run() {
+    doStoreUint32(unalignedPointer, N);
+    final int x = doLoadUint32(unalignedPointer, N);
     if (x != N) {
       throw Exception('$name: Unexpected result: $x');
     }
@@ -451,11 +544,14 @@ class PointerInt64Mint extends BenchmarkBase {
 void main() {
   final benchmarks = [
     () => PointerInt8(),
+    () => PointerInt8TypedDataNew(),
+    () => PointerInt8TypedDataReuse(),
     () => PointerUint8(),
     () => PointerInt16(),
     () => PointerUint16(),
     () => PointerInt32(),
     () => PointerUint32(),
+    () => PointerUint32Unaligned(),
     () => PointerInt64(),
     () => PointerInt64Mint(),
     () => PointerUint64(),

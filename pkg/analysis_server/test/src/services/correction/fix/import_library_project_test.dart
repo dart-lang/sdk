@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -72,7 +74,7 @@ void f() {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -106,7 +108,7 @@ extension E on int {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -134,7 +136,7 @@ f() {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -620,7 +622,7 @@ class ImportLibraryProject2Test extends FixProcessorTest {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -649,7 +651,7 @@ main() {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -682,7 +684,7 @@ extension E on int {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');

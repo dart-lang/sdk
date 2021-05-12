@@ -1,0 +1,11 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → main::Foo
+      : super dart.core::Object::•()
+      ;
+    external get x() → dart.core::int;
+    external set x(dart.core::int #externalFieldValue) → void;
+  }
+}

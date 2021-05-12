@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -22,8 +21,8 @@ void main() {
 class FromEnvironmentEvaluatorTest {
   static const String _defaultValue = 'defaultValue';
 
-  /*late final*/ TypeProvider typeProvider;
-  /*late final*/ TypeSystemImpl typeSystem;
+  late final TypeProvider typeProvider;
+  late final TypeSystemImpl typeSystem;
 
   DartObjectImpl get _boolValueFalse {
     return DartObjectImpl(
@@ -217,7 +216,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getBool2(
       name,
       namedValues,
-      typeProvider.boolElement.getNamedConstructor('fromEnvironment'),
+      typeProvider.boolElement.getNamedConstructor('fromEnvironment')!,
     );
   }
 
@@ -229,7 +228,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getInt2(
       name,
       namedValues,
-      typeProvider.intElement.getNamedConstructor('fromEnvironment'),
+      typeProvider.intElement.getNamedConstructor('fromEnvironment')!,
     );
   }
 
@@ -241,7 +240,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getString2(
       name,
       namedValues,
-      typeProvider.stringElement.getNamedConstructor('fromEnvironment'),
+      typeProvider.stringElement.getNamedConstructor('fromEnvironment')!,
     );
   }
 

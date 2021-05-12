@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -38,7 +40,7 @@ abstract class SimpleEditCommandHandler
     }
 
     final workspaceEdit = toWorkspaceEdit(
-      server.clientCapabilities?.workspace,
+      server.clientCapabilities,
       [FileEditInformation(docIdentifier, unit.lineInfo, edits)],
     );
 

@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'package:allowed_package/unversioned_lib.dart';
 import 'package:allowed_package/versioned_2_10_lib.dart';
 import 'package:allowed_package/versioned_2_8_lib.dart';

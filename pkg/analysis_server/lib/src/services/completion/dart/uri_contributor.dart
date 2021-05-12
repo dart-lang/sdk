@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -115,7 +117,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
     var source = request.source;
 
     String parentUri;
-    if ((partialUri.endsWith('/'))) {
+    if (partialUri.endsWith('/')) {
       parentUri = partialUri;
     } else {
       parentUri = posix.dirname(partialUri);

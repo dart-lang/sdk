@@ -41,12 +41,11 @@ class ConstantValueTypeMasks
     if (constant_system.isInt(constant)) {
       if (constant.isMinusZero) {
         return _abstractValueDomain.uint31Type;
-      } else {
-        assert(constant.isPositiveInfinity || constant.isNegativeInfinity);
-        return _abstractValueDomain.intType;
       }
+      assert(constant.isPositiveInfinity || constant.isNegativeInfinity);
+      return _abstractValueDomain.intType;
     }
-    return _abstractValueDomain.doubleType;
+    return _abstractValueDomain.numNotIntType;
   }
 
   @override

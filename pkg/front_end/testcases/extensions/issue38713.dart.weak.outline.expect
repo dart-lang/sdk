@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:7:19: Error: Conflicts with the implicit setter of the field 'property2'.
+//   static void set property2(int x) {}
+//                   ^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:6:14: Error: Conflicts with setter 'property2'.
+//   static int property2;
+//              ^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:9:19: Error: Conflicts with member 'property3'.
+//   static void set property3(int x) {}
+//                   ^
+//
+// pkg/front_end/testcases/extensions/issue38713.dart:10:11: Error: Conflicts with setter 'property3'.
+//   int get property3 => 1;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension C on core::int* {
+  static field property2 = self::C|property2;
+  get property3 = self::C|get#property3;
+  static set property3 = set self::C|property3;
+}
+static field core::int* C|property2;
+static set C|property3(core::int* x) → void
+  ;
+static method C|get#property3(lowered final core::int* #this) → core::int*
+  ;
+static method main() → void
+  ;

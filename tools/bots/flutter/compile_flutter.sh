@@ -9,6 +9,7 @@ set -e
 
 prepareOnly=false
 leakTest=false
+weeklyTest=false
 
 REMAINING_ARGS=()
 while [[ $# -gt 0 ]]; do
@@ -19,6 +20,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --leakTest|--leak-test|--leak_test)
       leakTest=true
+      shift
+      ;;
+    --weeklyTest|--weekly-test|--weekly_test)
+      weeklyTest=true
       shift
       ;;
     *)
@@ -83,7 +88,6 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     dart:core \
     -Ddart.vm.product=false \
     -Ddart.isVM=true \
-    --enable-experiment=non-nullable \
     --nnbd-agnostic \
     --single-root-scheme=org-dartlang-sdk \
     --single-root-base=$checkout/ \
@@ -95,7 +99,6 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
 $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.packages \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
-    --enable-experiment=non-nullable \
     --nnbd-agnostic \
     --target=flutter \
     dart:core \
@@ -117,6 +120,12 @@ elif $leakTest; then
       --enable-asserts \
       pkg/front_end/test/flutter_gallery_leak_tester.dart \
       --path=$tmpdir
+elif $weeklyTest; then
+  $dart \
+      --enable-asserts \
+      pkg/front_end/test/weekly_tester.dart \
+      --path=$tmpdir \
+      $@
 else
   $dart \
       --enable-asserts \

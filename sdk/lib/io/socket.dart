@@ -154,7 +154,7 @@ abstract class InternetAddress {
 
   /// Looks up the addresses of a host.
   ///
-  /// If [type] is [InternetAddressType.ANY], it will lookup both
+  /// If [type] is [InternetAddressType.any], it will lookup both
   /// IP version 4 (IPv4) and IP version 6 (IPv6) addresses.
   /// If [type] is either [InternetAddressType.IPv4] or
   /// [InternetAddressType.IPv6] it will only lookup addresses of the
@@ -310,11 +310,11 @@ abstract class ServerSocket implements Stream<Socket> {
   /// the system.
   ///
   /// The optional argument [shared] specifies whether additional ServerSocket
-  /// objects can bind to the same combination of [address], [port] [and] [v6Only].
-  /// If [shared] is `true` and more [ServerSockets] from this isolate or other
-  /// isolates are bound to the port, then the incoming connections will be
-  /// distributed among all the bound [ServerSockets]. Connections can be
-  /// distributed over multiple isolates this way.
+  /// objects can bind to the same combination of [address], [port] and
+  /// [v6Only]. If [shared] is `true` and more server sockets from this
+  /// isolate or other isolates are bound to the port, then the incoming
+  /// connections will be distributed among all the bound server sockets.
+  /// Connections can be distributed over multiple isolates this way.
   static Future<ServerSocket> bind(address, int port,
       {int backlog = 0, bool v6Only = false, bool shared = false}) {
     final IOOverrides? overrides = IOOverrides.current;
@@ -936,7 +936,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
 
   /// Leaves a multicast group.
   ///
-  /// If an error occur when trying to join the multicase group, an
+  /// If an error occur when trying to join the multicast group, an
   /// exception is thrown.
   void leaveMulticast(InternetAddress group, [NetworkInterface? interface]);
 

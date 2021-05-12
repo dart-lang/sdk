@@ -115,6 +115,10 @@ _scripts = [ "dartdoc" ]
 # Snapshots that go under bin/snapshots
 _platform_sdk_snapshots = [
   [
+    "analysis_server",
+    "../utils/analysis_server",
+  ],
+  [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
@@ -149,12 +153,6 @@ if (create_kernel_service_snapshot) {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
-      ] ]
-}
-if (dart_target_arch != "arm") {
-  _platform_sdk_snapshots += [ [
-        "analysis_server",
-        "../utils/analysis_server",
       ] ]
 }
 
@@ -509,29 +507,6 @@ copy("copy_analysis_summaries") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_wasmer") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [
-    ":copy_libraries",
-    "../third_party/wasmer:wasmer_wrap",
-  ]
-  if (is_win) {
-    prefix = ""
-    suffix = "dll"
-  } else if (is_mac) {
-    prefix = "lib"
-    suffix = "dylib"
-  } else {
-    # TODO(dartbug.com/37882): Support Fuchsia.
-    prefix = "lib"
-    suffix = "so"
-  }
-  sources = [ "$root_out_dir/${prefix}wasmer_wrap.$suffix" ]
-  outputs = [
-    "$root_out_dir/dart-sdk/bin/third_party/wasmer/${prefix}wasmer.$suffix",
-  ]
-}
-
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
@@ -851,14 +826,6 @@ group("create_common_sdk") {
 
   if (is_win) {
     public_deps += [ ":copy_7zip" ]
-  }
-
-  # CIPD only has versions of the Rust compiler for linux and mac x64 hosts.
-  # We also disallow cross-compialtion (it may be possible in future, but it
-  # isn't ready yet).
-  if (host_cpu == "x64" && (host_os == "linux" || host_os == "mac") &&
-      host_cpu == current_cpu && host_os == current_os && dart_enable_wasm) {
-    public_deps += [ ":copy_wasmer" ]
   }
 }
 

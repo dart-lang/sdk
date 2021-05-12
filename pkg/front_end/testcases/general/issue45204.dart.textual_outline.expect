@@ -1,0 +1,11 @@
+extension S on int {
+  void test(int x) {}
+}
+
+extension S2<X> on int {
+  void test2(int x) {}
+  void test3<Y>(Y y) {}
+}
+
+foo() {}
+main() {}

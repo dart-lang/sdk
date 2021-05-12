@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  set foo(core::int value) → void
+    ;
+}
+extension E on self::A {
+  set bar = self::E|set#bar;
+}
+static method E|set#bar(lowered final self::A #this, core::int value) → void
+  ;
+static method test(self::A a, self::E e) → dynamic
+  ;
+static method main() → dynamic
+  ;

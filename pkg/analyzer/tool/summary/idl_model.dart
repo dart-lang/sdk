@@ -5,7 +5,6 @@
 /// This file contains a set of concrete classes representing an in-memory
 /// semantic model of the IDL used to code generate summary serialization and
 /// deserialization code.
-import 'package:meta/meta.dart';
 
 /// Information about a single class defined in the IDL.
 class ClassDeclaration extends Declaration {
@@ -17,20 +16,17 @@ class ClassDeclaration extends Declaration {
 
   /// If [isTopLevel] is `true` and a file identifier was specified for this
   /// class, the file identifier string.  Otherwise `null`.
-  final String fileIdentifier;
+  final String? fileIdentifier;
 
   /// Indicates whether the class has the `deprecated` annotation.
   final bool isDeprecated;
 
-  final String variantField;
-
   ClassDeclaration({
-    @required String documentation,
-    @required this.fileIdentifier,
-    @required String name,
-    @required this.isDeprecated,
-    @required this.isTopLevel,
-    @required this.variantField,
+    required String? documentation,
+    required this.fileIdentifier,
+    required String name,
+    required this.isDeprecated,
+    required this.isTopLevel,
   }) : super(documentation, name);
 
   /// Get the non-deprecated fields defined in the class.
@@ -41,7 +37,7 @@ class ClassDeclaration extends Declaration {
 /// Information about a declaration in the IDL.
 class Declaration {
   /// The optional documentation, may be `null`.
-  final String documentation;
+  final String? documentation;
 
   /// The name of the declaration.
   final String name;
@@ -54,13 +50,13 @@ class EnumDeclaration extends Declaration {
   /// List of enumerated values.
   final List<EnumValueDeclaration> values = <EnumValueDeclaration>[];
 
-  EnumDeclaration(String documentation, String name)
+  EnumDeclaration(String? documentation, String name)
       : super(documentation, name);
 }
 
 /// Information about a single enum value defined in the IDL.
 class EnumValueDeclaration extends Declaration {
-  EnumValueDeclaration(String documentation, String name)
+  EnumValueDeclaration(String? documentation, String name)
       : super(documentation, name);
 }
 
@@ -78,17 +74,13 @@ class FieldDeclaration extends Declaration {
   /// Indicates whether the field is informative.
   final bool isInformative;
 
-  /// Maps logical property names to logical property.
-  final Map<String, LogicalProperty> logicalProperties;
-
   FieldDeclaration({
-    @required String documentation,
-    @required String name,
-    @required this.type,
-    @required this.id,
-    @required this.isDeprecated,
-    @required this.isInformative,
-    @required this.logicalProperties,
+    required String? documentation,
+    required String name,
+    required this.type,
+    required this.id,
+    required this.isDeprecated,
+    required this.isInformative,
   }) : super(documentation, name);
 }
 
@@ -129,22 +121,4 @@ class Idl {
 
   /// Enums defined in the IDL.
   final Map<String, EnumDeclaration> enums = <String, EnumDeclaration>{};
-}
-
-/// Information about a logical property mapped to a single data fields.
-class LogicalProperty {
-  /// Indicates whether the property is deprecated.
-  final bool isDeprecated;
-
-  /// Indicates whether the property is informative.
-  final bool isInformative;
-
-  /// Names of variants in which this property is available.
-  final List<String> variants;
-
-  LogicalProperty({
-    @required this.isDeprecated,
-    @required this.isInformative,
-    @required this.variants,
-  });
 }

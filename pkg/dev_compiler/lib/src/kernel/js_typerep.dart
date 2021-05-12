@@ -38,7 +38,6 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
     assert(isKnownDartTypeImplementor(type));
 
     // Note that this should be changed if Dart gets non-nullable types
-    if (type == const BottomType()) return JSType.jsNull;
     if (type == const NullType()) return JSType.jsNull;
 
     if (type is InterfaceType) {

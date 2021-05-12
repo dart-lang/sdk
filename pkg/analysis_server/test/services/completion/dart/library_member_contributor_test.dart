@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:test/test.dart';
@@ -224,7 +226,10 @@ main() {
         lib B;
         var T1;
         class X { }
-        class Y { }''');
+        class Y { }
+        typedef void TypeAliasLegacy();
+        typedef TypeAliasFunctionType = void Function();
+        typedef TypeAliasInterfaceType = List<int>;''');
     addTestSource('''
         import "b.dart" as b;
         var T2;
@@ -235,6 +240,11 @@ main() {
     expect(replacementLength, 0);
     assertSuggestClass('X');
     assertSuggestClass('Y');
+    assertSuggestTypeAlias('TypeAliasLegacy',
+        aliasedType: 'void Function()', returnType: 'void');
+    assertSuggestTypeAlias('TypeAliasFunctionType',
+        aliasedType: 'void Function()', returnType: 'void');
+    assertSuggestTypeAlias('TypeAliasInterfaceType', aliasedType: 'List<int>');
     assertNotSuggested('T1');
     assertNotSuggested('T2');
     assertNotSuggested('Object');

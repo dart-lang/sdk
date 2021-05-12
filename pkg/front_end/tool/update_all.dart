@@ -19,6 +19,7 @@ const List<String> idTests = <String>[
   'pkg/front_end/test/id_tests/nullability_test.dart',
   'pkg/front_end/test/id_tests/reachability_test.dart',
   'pkg/front_end/test/id_tests/type_promotion_test.dart',
+  'pkg/front_end/test/id_tests/why_not_promoted_test.dart',
   'pkg/front_end/test/language_versioning/language_versioning_test.dart',
   'pkg/front_end/test/patching/patching_test.dart',
   'pkg/front_end/test/static_types/static_type_test.dart',

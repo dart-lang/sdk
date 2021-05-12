@@ -1,0 +1,27 @@
+Function<Z extends A>() bar3() => throw 42;
+Function<Z extends A>() bar6 = (() => throw 42)();
+Function<Z extends A>() get bar4 => throw 42;
+bar2(Function<Z extends A>() a) {}
+
+class A<X extends A<X>> {}
+
+class B {
+  B(Function<Z extends A>() a);
+  Function<Z extends A>() foo3() => throw 42;
+  Function<Z extends A>() foo6 = (() => throw 42)();
+  Function<Z extends A>() get foo4 => throw 42;
+  factory B.foo(Function<Z extends A>() a) => new B(a);
+  foo2(Function<Z extends A>() a) {}
+  void set foo5(Function<Z extends A>() a) {}
+}
+
+extension E on int {
+  Function<Z extends A>() baz3() => throw 42;
+  Function<Z extends A>() get baz4 => throw 42;
+  baz2(Function<Z extends A>() a) {}
+  void set baz5(Function<Z extends A>() a) {}
+}
+
+main() {}
+typedef F = Function<Y extends A>();
+void set bar5(Function<Z extends A>() a) {}

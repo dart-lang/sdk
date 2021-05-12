@@ -1,3 +1,4 @@
+// @dart = 2.9
 class I<X, Y> {}
 
 class M0<T> implements I<T, int> {}

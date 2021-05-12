@@ -9,27 +9,7 @@ library fasta.type_builder_computer;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
 
-import 'package:kernel/ast.dart'
-    show
-        BottomType,
-        Class,
-        DartType,
-        DartTypeVisitor,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        Library,
-        NamedType,
-        NeverType,
-        NullType,
-        TreeNode,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        TypedefType,
-        VoidType;
+import 'package:kernel/ast.dart';
 
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
@@ -89,11 +69,6 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   @override
-  TypeBuilder visitBottomType(BottomType node) {
-    throw "Not implemented";
-  }
-
-  @override
   TypeBuilder visitNeverType(NeverType node) {
     return new NamedTypeBuilder(
         "Never",
@@ -134,6 +109,11 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         /* fileUri = */ null,
         /* charOffset = */ null)
       ..bind(cls);
+  }
+
+  @override
+  TypeBuilder visitExtensionType(ExtensionType node) {
+    throw "Not implemented";
   }
 
   @override

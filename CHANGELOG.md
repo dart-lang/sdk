@@ -1,3 +1,120 @@
+## 2.13.0 - 2021-05-18
+
+### Language
+
+*   **Type aliases** [Non-function type aliases][]: Type aliases (names for
+    types introduced via the `typedef` keyword) were previously restricted
+    to only introduce names for function types.  In this release, we
+    remove this restriction and allow type aliases to name any kind of type.
+
+    ```dart
+    import 'dart:convert';
+
+    typedef JsonMap = Map<String, dynamic>;
+
+    JsonMap parseJsonMap(String input) => json.decode(input) as JsonMap;
+    ```
+
+    In addition to being usable as type annotations, type aliases that name
+    class types can now also be used anywhere that the underlying class could be
+    used, allowing type aliases to be used to safely rename existing classes.
+
+    ```dart
+    class NewClassName<T> {
+       NewClassName.create(T x);
+       static NewClassName<T> mkOne<T>(T x) => NewClassName<T>.create(x);
+     }
+    @Deprecated("Use NewClassName instead")
+    typedef OldClassName<T> = NewClassName<T>;
+
+    class LegacyClass extends OldClassName<int> {
+      LegacyClass() : super.create(3);
+    }
+    OldClassName<int> legacyCode() {
+      var one = OldClassName.create(1);
+      var two = OldClassName.mkOne(2);
+      return LegacyClass();
+    }
+    ```
+
+    The new type alias feature is only available as part of the 2.13 [language
+    version](https://dart.dev/guides/language/evolution).  To use this feature,
+    you must set the lower bound on the sdk constraint for your package to 2.13
+    or greater.
+
+    [Non-function type aliases]: https://github.com/dart-lang/language/blob/master/accepted/2.13/nonfunction-type-aliases/feature-specification.md
+
+### Core libraries
+
+#### `dart:collection`
+
+- The `SplayTreeMap` was changed to allow `null` as key if the `compare`
+  function allows it. It now checks that a new key can be used as an
+  argument to the `compare` function when the member is added,
+  *even if the map is empty* (in which case it just compares the key
+  to itself).
+- The `SplayTreeSet` was changed to checks that a new element can be used as an
+  argument to the `compare` function when the member is added,
+  *even if the set is empty* (in which case it just compares the element
+  to itself).
+
+### Dart VM
+
+### Tools
+
+#### Analyzer
+
+- Static analyses with "error" severity can once again be ignored with
+  comments like `// ignore: code` and `// ignore_for_file: code`. To declare
+  that certain analysis codes, or codes with certain severities ("error",
+  "warning", and "info") cannot be ignored with such comments, list them in
+  `analysis_options.yaml`, under the `analyzer` heading, with a new YAML key,
+  `cannot-ignore`. For example, to declare that "error" codes and
+  `unused_import` cannot be ignored, write the following into
+  `analysis_options.yaml`:
+
+  ```yaml
+  analyzer:
+    cannot-ignore:
+      - error
+      - unused_import
+  ```
+
+#### dart format
+
+*   Correct constructor initializer indentation after `required` named
+    parameters.
+
+#### Linter
+
+Updated the Linter to `1.2.1`, which includes:
+
+- improvements to `iterable_contains_unrelated_type` to better support `List`
+  content checks.
+- fixes to `camel_case_types` and `prefer_mixin` to support non-function
+  type aliases.
+- fixed `prefer_mixin` to properly make exceptions for `dart.collection`
+  legacy mixins.
+- new lint: `use_build_context_synchronously` (experimental).
+- new lint: `avoid_multiple_declarations_per_line`.
+- full library migration to null-safety.
+- new lint: `use_if_null_to_convert_nulls_to_bools`.
+- new lint: `deprecated_consistency`.
+- new lint: `use_named_constants`.
+- deprecation of `avoid_as`.
+
+### Other libraries
+
+#### `package:js`
+
+*   **Breaking change:** It is no longer valid to use `String`s that match
+    an `@Native` annotation in an `@JS()` annotation for a non-anonymous JS
+    interop class. This led to erroneous behavior due to the way interceptors
+    work. If you need to work with a native class, prefer `dart:html`, an
+    `@anonymous` class, or `js_util`. See issue [#44211][] for more details.
+
+[#44211]: https://github.com/dart-lang/sdk/issues/44211
+
 ## 2.12.4 - 2021-04-15
 
 This is a patch release that fixes a Dart VM compiler crashes when compiling
@@ -139,7 +256,7 @@ This is a patch release that fixes:
 
 ### Tools
 
-#### Dartanalyzer
+#### Analyzer
 
 *   Remove the `--use-fasta-parser`, `--preview-dart-2`, and
     `--enable-assert-initializers` command line options. These options haven't
@@ -572,6 +689,11 @@ applications (issue [flutter/flutter#63038][]).
 * Don't add unneeded splits on if elements near comments.
 * Indent blocks in initializers of multiple-variable declarations.
 * Update the null-aware subscript syntax from `?.[]` to `?[]`.
+
+#### Analyzer
+
+* Static analyses with a severity of "error" can no longer be ignored with
+  comments (`// ignore: code` and `// ignore_for_file: code`).
 
 #### Linter
 

@@ -619,7 +619,7 @@ Future<TestResult<T>> checkCode<T>(
         print('--annotations diff [${uri.pathSegments.last}]-------------');
         AnnotatedCode? annotatedCode = code[uri];
         print(new AnnotatedCode(annotatedCode?.annotatedCode ?? "",
-                annotatedCode?.sourceCode ?? "", annotations[uri]!)
+                annotatedCode?.sourceCode ?? "", annotations[uri] ?? const [])
             .toText());
         print('----------------------------------------------------------');
       }
@@ -636,7 +636,7 @@ Future<TestResult<T>> checkCode<T>(
 }
 
 typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
-    {bool testAfterFailures,
+    {required bool testAfterFailures,
     bool verbose,
     bool succinct,
     bool printCode,

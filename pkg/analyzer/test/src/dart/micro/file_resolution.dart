@@ -26,10 +26,10 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */);
 
   final StringBuffer logBuffer = StringBuffer();
-  PerformanceLog logger;
-  MockSdk sdk;
+  late PerformanceLog logger;
+  late MockSdk sdk;
 
-  FileResolver fileResolver;
+  late FileResolver fileResolver;
 
   @override
   void addTestFile(String content) {
@@ -43,7 +43,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     var workspace = BazelWorkspace.find(
       resourceProvider,
       convertPath(_testFile),
-    );
+    )!;
 
     byteStore.testView = CiderByteStoreTestView();
     fileResolver = FileResolver.from(
@@ -65,15 +65,16 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    return fileResolver.resolve(path: path);
+    result = fileResolver.resolve(path: path);
+    return result;
   }
 
   @override
   Future<void> resolveTestFile() async {
     var path = convertPath(_testFile);
     result = await resolveFile(path);
-    findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
+    findNode = FindNode(result.content!, result.unit!);
+    findElement = FindElement(result.unit!);
   }
 
   void setUp() {

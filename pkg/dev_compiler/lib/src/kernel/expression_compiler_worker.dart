@@ -7,26 +7,24 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:dev_compiler/dev_compiler.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
+import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:meta/meta.dart';
 import 'package:vm/http_filesystem.dart';
 
 import '../compiler/js_names.dart';
-import '../compiler/shared_command.dart';
 import 'command.dart';
-import 'compiler.dart';
-import 'expression_compiler.dart';
-import 'target.dart';
 
 /// The service that handles expression compilation requests from
 /// the debugger.
@@ -52,7 +50,7 @@ import 'target.dart';
 ///
 ///    - debugger creates an isolate using dartdevc's main method with
 ///      '--experimental-expression-compiler' flag and passes a send port
-///      to dartdevc for sending responces from the service to the debugger.
+///      to dartdevc for sending responses from the service to the debugger.
 ///
 ///    - dartdevc creates a new send port to receive requests on, and sends
 ///      it back to the debugger, for sending requests to the service.
@@ -82,15 +80,59 @@ class ExpressionCompilerWorker {
 
   final ProcessedOptions _processedOptions;
   final CompilerOptions _compilerOptions;
+  final ModuleFormat _moduleFormat;
   final Component _sdkComponent;
 
   ExpressionCompilerWorker._(
     this._processedOptions,
     this._compilerOptions,
+    this._moduleFormat,
     this._sdkComponent,
     this.requestStream,
     this.sendResponse,
   );
+
+  /// Create expression compiler worker from [args] and start it.
+  ///
+  /// If [sendPort] is provided, creates a `receivePort` and sends it to
+  /// the consumer to establish communication. Otherwise, uses stdin/stdout
+  /// for communication with the consumer.
+  ///
+  /// Details:
+  ///
+  /// Consumer uses (`consumerSendPort`, `consumerReceivePort`) pair to
+  /// send requests and receive responses:
+  ///
+  /// `consumerReceivePort.sendport` = [sendPort]
+  /// `consumerSendPort = receivePort.sendport`
+  ///
+  /// Worker uses the opposite ports connected to the consumer ports -
+  /// (`receivePort`, [sendPort]) to receive requests and send responses.
+  ///
+  /// The worker stops on start failure or after the consumer closes its
+  /// receive port corresponding to [sendPort].
+  static Future<void> createAndStart(List<String> args,
+      {SendPort sendPort}) async {
+    if (sendPort != null) {
+      var receivePort = ReceivePort();
+      sendPort.send(receivePort.sendPort);
+      try {
+        var worker = await createFromArgs(args,
+            requestStream: receivePort.cast<Map<String, dynamic>>(),
+            sendResponse: sendPort.send);
+        await worker.start();
+      } catch (e, s) {
+        sendPort
+            .send({'exception': '$e', 'stackTrace': '$s', 'succeeded': false});
+        rethrow;
+      } finally {
+        receivePort.close();
+      }
+    } else {
+      var worker = await createFromArgs(args);
+      await worker.start();
+    }
+  }
 
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
@@ -120,6 +162,9 @@ class ExpressionCompilerWorker {
         parseExperimentalArguments(
             parsedArgs['enable-experiment'] as List<String>),
         onError: (e) => throw e);
+
+    var moduleFormat = parseModuleFormat(parsedArgs['module-format'] as String);
+
     return create(
       librariesSpecificationUri:
           _argToUri(parsedArgs['libraries-file'] as String),
@@ -131,6 +176,7 @@ class ExpressionCompilerWorker {
       sdkRoot: _argToUri(parsedArgs['sdk-root'] as String),
       trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
       soundNullSafety: parsedArgs['sound-null-safety'] as bool,
+      moduleFormat: moduleFormat,
       verbose: parsedArgs['verbose'] as bool,
       requestStream: requestStream,
       sendResponse: sendResponse,
@@ -152,6 +198,7 @@ class ExpressionCompilerWorker {
     Uri sdkRoot,
     bool trackWidgetCreation = false,
     bool soundNullSafety = false,
+    ModuleFormat moduleFormat = ModuleFormat.amd,
     bool verbose = false,
     Stream<Map<String, dynamic>> requestStream, // Defaults to read from stdin
     void Function(Map<String, dynamic>)
@@ -184,8 +231,11 @@ class ExpressionCompilerWorker {
       return processedOptions.loadSdkSummary(null);
     });
 
+    if (sdkComponent == null) {
+      throw Exception('Could not load SDK component: $sdkSummary');
+    }
     return ExpressionCompilerWorker._(processedOptions, compilerOptions,
-        sdkComponent, requestStream, sendResponse)
+        moduleFormat, sdkComponent, requestStream, sendResponse)
       .._updateCache(sdkComponent, dartSdkModule, true);
   }
 
@@ -309,6 +359,7 @@ class ExpressionCompilerWorker {
           sourceMap: true,
           summarizeApi: false,
           moduleName: moduleName,
+          soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
           // Disable asserts due to failures to load source and
           // locations on kernel loaded from dill files in DDC.
           // https://github.com/dart-lang/sdk/issues/43986
@@ -342,6 +393,7 @@ class ExpressionCompilerWorker {
 
     var expressionCompiler = ExpressionCompiler(
       _compilerOptions,
+      _moduleFormat,
       errors,
       incrementalCompiler,
       kernel2jsCompiler,
@@ -422,6 +474,7 @@ class ExpressionCompilerWorker {
     // instead on expression evaluation.
     // TODO(annagrin): throw on load failures when blaze build starts
     // producing all summaries.
+    var futures = <Future>[];
     for (var input in request.inputs) {
       // Support older debugger versions that do not provide summary
       // path by loading full dill kernel instead.
@@ -432,11 +485,11 @@ class ExpressionCompilerWorker {
                 ' Loading full dill instead.');
       }
       var summaryPath = input.summaryPath ?? input.path;
-      await _loadAndUpdateComponent(
-          Uri.parse(summaryPath), input.moduleName, hasSummary);
-
       _fullModules[input.moduleName] = Uri.parse(input.path);
+      futures.add(_loadAndUpdateComponent(
+          Uri.parse(summaryPath), input.moduleName, hasSummary));
     }
+    await Future.wait(futures);
 
     _processedOptions.ticker
         .logMs('Updated dependencies for expression evaluation');
@@ -462,8 +515,8 @@ class ExpressionCompilerWorker {
 
   Future<Component> _loadComponent(Uri uri) async {
     var file = _processedOptions.fileSystem.entityForUri(uri);
-    if (await file.exists()) {
-      var bytes = await file.readAsBytes();
+    if (await file.existsAsyncIfPossible()) {
+      var bytes = await file.readAsBytesAsyncIfPossible();
       var component = _processedOptions.loadComponent(bytes, _sdkComponent.root,
           alwaysCreateNewNamedNodes: true);
       return component;
@@ -672,6 +725,7 @@ final argParser = ArgParser()
   ..addOption('sdk-root')
   ..addOption('asset-server-address')
   ..addOption('asset-server-port')
+  ..addOption('module-format', defaultsTo: 'amd')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addFlag('sound-null-safety', defaultsTo: false)
   ..addFlag('verbose', defaultsTo: false);

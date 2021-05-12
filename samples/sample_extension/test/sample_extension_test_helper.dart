@@ -44,6 +44,30 @@ Future run(String program, List<String> arguments) async {
   }
 }
 
+Future runTests(
+    String program, String testDirectory, String? snapshotKind) async {
+  for (var test in [
+    'test_sample_synchronous_extension.dart',
+    'test_sample_asynchronous_extension.dart'
+  ]) {
+    String script = join(testDirectory, test);
+    String snapshot;
+    if (snapshotKind == null) {
+      snapshot = script;
+    } else {
+      snapshot = join(testDirectory, "$test.snapshot");
+      await run(Platform.executable, <String>[
+        ...Platform.executableArguments,
+        '--snapshot=$snapshot',
+        '--snapshot-kind=$snapshotKind',
+        script
+      ]);
+    }
+
+    await run(program, <String>[...Platform.executableArguments, snapshot]);
+  }
+}
+
 Future testNativeExtensions(String? snapshotKind) async {
   String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory =
@@ -63,27 +87,27 @@ Future testNativeExtensions(String? snapshotKind) async {
       await copyFileToDirectory(join(sourceDirectory, file), testDirectory);
     }
 
-    for (var test in [
-      'test_sample_synchronous_extension.dart',
-      'test_sample_asynchronous_extension.dart'
-    ]) {
-      String script = join(testDirectory, test);
-      String snapshot;
-      if (snapshotKind == null) {
-        snapshot = script;
-      } else {
-        snapshot = join(testDirectory, "$test.snapshot");
-        List<String> args = new List<String>.from(Platform.executableArguments);
-        args.add('--snapshot=$snapshot');
-        args.add('--snapshot-kind=$snapshotKind');
-        args.add(script);
-        await run(Platform.executable, args);
-      }
+    // Test native library resolution when it's next to the binary
+    await runTests(Platform.executable, testDirectory, snapshotKind);
 
-      List<String> args = new List<String>.from(Platform.executableArguments);
-      args.add(snapshot);
-      await run(Platform.executable, args);
-    }
+    // Test native library resolution when it's next to the source
+    await copyFileToDirectory(
+        join(
+            buildDirectory,
+            (Platform.isWindows ? '' : 'lib') +
+                'sample_extension' +
+                (Platform.isWindows
+                    ? '.dll'
+                    : Platform.isMacOS
+                        ? '.dylib'
+                        : '.so')),
+        testDirectory);
+    Directory tempBinDirectory = Directory(join(tempDirectory.path, 'dart-bin'))
+      ..createSync();
+    await copyFileToDirectory(Platform.executable, tempBinDirectory.path);
+    String copyPlatformExecutable =
+        join(tempBinDirectory.path, basename(Platform.executable));
+    await runTests(copyPlatformExecutable, testDirectory, snapshotKind);
   } finally {
     tempDirectory.deleteSync(recursive: true);
   }

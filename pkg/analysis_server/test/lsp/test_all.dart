@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/lsp/lsp_packet_transformer_test.dart' as lsp_packet_transformer;
@@ -31,6 +33,7 @@ import 'initialization_test.dart' as initialization;
 import 'mapping_test.dart' as mapping;
 import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
+import 'pub_package_service_test.dart' as pub_package_service;
 import 'reanalyze_test.dart' as reanalyze;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
@@ -71,6 +74,7 @@ void main() {
     mapping.main();
     outline.main();
     priority_files.main();
+    pub_package_service.main();
     reanalyze.main();
     references.main();
     rename.main();

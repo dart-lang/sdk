@@ -70,10 +70,8 @@ main() {
     final FunctionType f1 =
         new FunctionType([t1], const VoidType(), Nullability.legacy);
 
-    expect(tb.fromStaticType(const NeverType(Nullability.nonNullable), false),
+    expect(tb.fromStaticType(const NeverType.nonNullable(), false),
         equals(const EmptyType()));
-    expect(tb.fromStaticType(const BottomType(), true),
-        equals(new NullableType(const EmptyType())));
     expect(tb.fromStaticType(const DynamicType(), true),
         equals(new NullableType(const AnyType())));
     expect(tb.fromStaticType(const VoidType(), true),

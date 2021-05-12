@@ -11,7 +11,7 @@
 
 /*spec.class: global#double:checkedInstance,instance,typeArgument*/
 
-/*class: global#JSDouble:checks=[],instance*/
+/*class: global#JSNumNotInt:checks=[],instance*/
 
 main() {
   <int, double>{}[0] = 0.5;

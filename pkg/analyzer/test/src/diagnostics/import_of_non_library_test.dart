@@ -37,7 +37,7 @@ class A{}
     await assertErrorsInCode(r'''
 library lib;
 import 'part.dart';
-A a;
+A a = A();
 ''', [
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
     ]);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -17,8 +19,10 @@ import 'perf/flutter_analyze_benchmark.dart';
 
 Future main(List<String> args) async {
   var benchmarks = <Benchmark>[
-    ColdAnalysisBenchmark(),
-    AnalysisBenchmark(),
+    ColdAnalysisBenchmark(ServerBenchmark.das),
+    ColdAnalysisBenchmark(ServerBenchmark.lsp),
+    AnalysisBenchmark(ServerBenchmark.das),
+    AnalysisBenchmark(ServerBenchmark.lsp),
     FlutterAnalyzeBenchmark(),
   ];
 

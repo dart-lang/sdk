@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ReturnTypeInvalidForCatchErrorTest extends PubPackageResolutionTest {
+class ReturnTypeInvalidForCatchErrorTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dynamic_returnTypeIsUnrelatedFuture() async {
     await assertNoErrorsInCode('''
 void f(

@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import 'incremental_load_from_dill_suite.dart' as helper;
+import 'incremental_suite.dart' as helper;
 
 main(List<String> args) async {
   exitCode = 1;

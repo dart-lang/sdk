@@ -84,6 +84,8 @@ namespace dart {
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \
   F(KernelProgramInfo, retained_kernel_blob_)                                  \
+  F(WeakSerializationReference, target_)                                       \
+  F(WeakSerializationReference, replacement_)                                  \
   F(Code, object_pool_)                                                        \
   F(Code, instructions_)                                                       \
   F(Code, owner_)                                                              \
@@ -192,7 +194,7 @@ namespace dart {
   F(TypedDataView, offset_in_bytes_)                                           \
   F(FutureOr, type_arguments_)
 
-#define AOT_CLASSES_AND_FIELDS(F) F(WeakSerializationReference, cid_)
+#define AOT_CLASSES_AND_FIELDS(F)
 
 #define JIT_CLASSES_AND_FIELDS(F)                                              \
   F(Code, active_instructions_)                                                \
@@ -201,7 +203,6 @@ namespace dart {
   F(ICData, receivers_static_type_)                                            \
   F(Function, unoptimized_code_)                                               \
   F(Field, type_test_cache_)                                                   \
-  F(WeakSerializationReference, target_)
 
 #define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
   F(ReceivePort, debug_name_)                                                  \

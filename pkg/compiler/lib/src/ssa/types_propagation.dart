@@ -138,9 +138,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         right.isInteger(abstractValueDomain).isDefinitelyTrue) {
       return abstractValueDomain.intType;
     }
-    if (left.isDouble(abstractValueDomain).isDefinitelyTrue) {
-      return abstractValueDomain.doubleType;
-    }
     return abstractValueDomain.numType;
   }
 

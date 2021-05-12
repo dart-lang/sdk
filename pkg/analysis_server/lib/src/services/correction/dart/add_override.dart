@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -14,6 +16,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class AddOverride extends CorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_OVERRIDE;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.ADD_OVERRIDE_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

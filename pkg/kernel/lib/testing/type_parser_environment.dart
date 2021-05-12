@@ -6,7 +6,6 @@
 
 import "package:kernel/ast.dart"
     show
-        BottomType,
         Class,
         Component,
         DartType,
@@ -14,6 +13,7 @@ import "package:kernel/ast.dart"
         FunctionType,
         FutureOrType,
         InterfaceType,
+        InvalidType,
         Library,
         NamedType,
         NeverType,
@@ -269,18 +269,19 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new VoidType();
-    } else if (name == "bottom") {
-      // Don't return a const object to ensure we test implementations that use
-      // identical.
-      return new BottomType();
     } else if (name == "Never") {
       // Don't return a const object to ensure we test implementations that use
       // identical.
-      return new NeverType(interpretParsedNullability(node.parsedNullability));
+      return NeverType.fromNullability(
+          interpretParsedNullability(node.parsedNullability));
     } else if (name == "Null") {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new NullType();
+    } else if (name == "invalid") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new InvalidType();
     } else if (additionalTypes != null && additionalTypes.containsKey(name)) {
       return additionalTypes[name].call();
     }

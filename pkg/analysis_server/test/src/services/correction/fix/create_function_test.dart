@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -16,21 +19,20 @@ void main() {
 }
 
 @reflectiveTest
-class CreateFunctionTest extends FixProcessorTest {
+class CreateFunctionTest extends FixProcessorTest
+    with WithNonFunctionTypeAliasesMixin {
   @override
   FixKind get kind => DartFixKind.CREATE_FUNCTION;
 
   Future<void> assert_returnType_bool(String lineWithTest) async {
     await resolveTestCode('''
-main() {
-  bool b = true;
+void f(bool b) {
   $lineWithTest
   print(b);
 }
 ''');
     await assertHasFix('''
-main() {
-  bool b = true;
+void f(bool b) {
   $lineWithTest
   print(b);
 }
@@ -59,7 +61,7 @@ void test(param0) {
   Future<void> test_duplicateArgumentNames() async {
     await resolveTestCode('''
 class C {
-  int x;
+  int x = 0;
 }
 
 foo(C c1, C c2) {
@@ -68,7 +70,7 @@ foo(C c1, C c2) {
 ''');
     await assertHasFix('''
 class C {
-  int x;
+  int x = 0;
 }
 
 foo(C c1, C c2) {
@@ -159,7 +161,7 @@ int myUndefinedFunction(int i, double d, String s) {
   Future<void> test_functionType_cascadeSecond() async {
     await resolveTestCode('''
 class A {
-  B ma() => null;
+  B ma() => throw 0;
 }
 class B {
   useFunction(int g(double a, String b)) {}
@@ -172,7 +174,7 @@ main() {
 ''');
     await assertHasFix('''
 class A {
-  B ma() => null;
+  B ma() => throw 0;
 }
 class B {
   useFunction(int g(double a, String b)) {}
@@ -193,13 +195,13 @@ int test(double a, String b) {
 main() {
   useFunction(g: test);
 }
-useFunction({Function g}) {}
+useFunction({Function? g}) {}
 ''');
     await assertHasFix('''
 main() {
   useFunction(g: test);
 }
-useFunction({Function g}) {}
+useFunction({Function? g}) {}
 
 test() {
 }
@@ -247,13 +249,13 @@ int test(double a, String b) {
 main() {
   useFunction(g: test);
 }
-useFunction({int g(double a, String b)}) {}
+useFunction({int g(double a, String b)?}) {}
 ''');
     await assertHasFix('''
 main() {
   useFunction(g: test);
 }
-useFunction({int g(double a, String b)}) {}
+useFunction({int g(double a, String b)?}) {}
 
 int test(double a, String b) {
 }
@@ -291,7 +293,7 @@ int test(A a) {
 
   Future<void> test_functionType_notFunctionType() async {
     await resolveTestCode('''
-main(A a) {
+void f(A a) {
   useFunction(a.test);
 }
 typedef A();
@@ -303,7 +305,7 @@ useFunction(g) {}
   Future<void> test_generic_type() async {
     await resolveTestCode('''
 class A {
-  List<int> items;
+  List<int> items = [];
   main() {
     process(items);
   }
@@ -311,7 +313,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  List<int> items;
+  List<int> items = [];
   main() {
     process(items);
   }
@@ -330,7 +332,7 @@ void process(List<int> items) {
   Future<void> test_generic_typeParameter() async {
     await resolveTestCode('''
 class A<T> {
-  Map<int, T> items;
+  Map<int, T> items = {};
   main() {
     process(items);
   }
@@ -338,7 +340,7 @@ class A<T> {
 ''');
     await assertHasFix('''
 class A<T> {
-  Map<int, T> items;
+  Map<int, T> items = {};
   main() {
     process(items);
   }
@@ -471,14 +473,14 @@ int myUndefinedFunction() {
   Future<void> test_returnType_fromAssignment_plusEq() async {
     await resolveTestCode('''
 main() {
-  int v;
+  num v = 0;
   v += myUndefinedFunction();
   print(v);
 }
 ''');
     await assertHasFix('''
 main() {
-  int v;
+  num v = 0;
   v += myUndefinedFunction();
   print(v);
 }
@@ -552,6 +554,30 @@ int main() {
 }
 
 int myUndefinedFunction() {
+}
+''');
+  }
+
+  Future<void> test_returnType_typeAlias_function() async {
+    await resolveTestCode('''
+typedef A<T> = void Function(T a);
+
+void f(A<int> Function() a) {}
+
+void g() {
+  f(test);
+}
+''');
+    await assertHasFix('''
+typedef A<T> = void Function(T a);
+
+void f(A<int> Function() a) {}
+
+void g() {
+  f(test);
+}
+
+A<int> test() {
 }
 ''');
   }

@@ -436,7 +436,6 @@ class FlowGraphCompiler : public ValueObject {
   ~FlowGraphCompiler();
 
   static bool SupportsUnboxedDoubles();
-  static bool SupportsUnboxedInt64();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
   static bool CanConvertInt64ToDouble();
@@ -765,8 +764,7 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t total_ic_calls,
                        Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void EmitDispatchTableCall(Register cid_reg,
-                             int32_t selector_offset,
+  void EmitDispatchTableCall(int32_t selector_offset,
                              const Array& arguments_descriptor);
 
   Condition EmitEqualityRegConstCompare(Register reg,
@@ -862,7 +860,8 @@ class FlowGraphCompiler : public ValueObject {
                                 ICData::DeoptReasonId reason,
                                 uint32_t flags = 0);
 
-  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id);
+  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id,
+                                         Environment* env = nullptr);
   CompilerDeoptInfo* AddSlowPathDeoptInfo(intptr_t deopt_id, Environment* env);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
@@ -945,7 +944,6 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Zone* zone() const { return zone_; }
 
@@ -985,8 +983,6 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class CheckedSmiSlowPath;          // Same.
-  friend class CheckedSmiComparisonSlowPath;  // Same.
   friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.

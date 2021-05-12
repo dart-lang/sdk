@@ -4,37 +4,37 @@
 
 /*spec.library: 
  output_units=[
-  f1: {units: [3{libA, libB, libC}], usedBy: [2, 4], needs: []},
-  f2: {units: [4{libA, libC}], usedBy: [3, 6], needs: [1, 4]},
-  f3: {units: [6{libA}], usedBy: [], needs: [2]},
-  f4: {units: [5{libB, libC}], usedBy: [5, 2], needs: [1]},
-  f5: {units: [1{libB}], usedBy: [], needs: [4]},
-  f6: {units: [2{libC}], usedBy: [], needs: [2]}],
+  f1: {units: [3{libA, libB, libC}], usedBy: [], needs: []},
+  f2: {units: [6{libA}], usedBy: [], needs: []},
+  f3: {units: [1{libB}], usedBy: [], needs: []},
+  f4: {units: [2{libC}], usedBy: [], needs: []}],
  steps=[
-  libA=(f1, f2, f3),
-  libB=(f1, f4, f5),
-  libC=(f1, f4, f2, f6)]
+  libA=(f1, f2),
+  libB=(f1, f3),
+  libC=(f1, f4)]
 */
 
 /*two-frag.library: 
  output_units=[
-  f1: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}, 6{libA}, 1{libB}], usedBy: [2], needs: []},
-  f2: {units: [2{libC}], usedBy: [], needs: [1]}],
+  f1: {units: [3{libA, libB, libC}], usedBy: [], needs: [2]},
+  f2: {units: [5{libB, libC}, 4{libA, libC}, 2{libC}], usedBy: [1], needs: [3]},
+  f3: {units: [1{libB}, 6{libA}], usedBy: [2], needs: []}],
  steps=[
-  libA=(f1),
-  libB=(f1),
+  libA=(f1, f2, f3),
+  libB=(f1, f2, f3),
   libC=(f1, f2)]
 */
 
 /*three-frag.library: 
  output_units=[
-  f1: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}, 6{libA}], usedBy: [2, 3], needs: []},
-  f2: {units: [1{libB}], usedBy: [], needs: [1]},
-  f3: {units: [2{libC}], usedBy: [], needs: [1]}],
+  f1: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}], usedBy: [], needs: [4, 3, 2]},
+  f2: {units: [6{libA}], usedBy: [1], needs: []},
+  f3: {units: [1{libB}], usedBy: [1], needs: []},
+  f4: {units: [2{libC}], usedBy: [1], needs: []}],
  steps=[
-  libA=(f1),
-  libB=(f1, f2),
-  libC=(f1, f3)]
+  libA=(f1, f2),
+  libB=(f1, f3),
+  libC=(f1, f4)]
 */
 
 // @dart = 2.7

@@ -38,6 +38,7 @@ namespace dart {
   V(NullErrorWithSelector)                                                     \
   V(NullCastError)                                                             \
   V(ArgumentNullError)                                                         \
+  V(DispatchTableNullError)                                                    \
   V(ArgumentError)                                                             \
   V(ArgumentErrorUnboxedInt64)                                                 \
   V(IntegerDivisionByZeroException)                                            \
@@ -80,6 +81,8 @@ namespace dart {
   V(double, LibcAsin, double)                                                  \
   V(double, LibcAtan, double)                                                  \
   V(double, LibcAtan2, double, double)                                         \
+  V(double, LibcExp, double)                                                   \
+  V(double, LibcLog, double)                                                   \
   V(uword /*BoolPtr*/, CaseInsensitiveCompareUCS2, uword /*StringPtr*/,        \
     uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
   V(uword /*BoolPtr*/, CaseInsensitiveCompareUTF16, uword /*StringPtr*/,       \

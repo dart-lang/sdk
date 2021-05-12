@@ -8,9 +8,9 @@ class Contravariant<in T> {}
 class Invariant<inout T> {}
 
 class A<in T, out U, V> {
-  final void Function(T) field = null;
+  final void Function(T)? field = null;
   void method(T t, void Function(U) u, V v) {}
-  void method2(T x, [T y]) {}
+  void method2(T x, [T? y]) {}
   void set x(T t) {}
   Map<U, Contravariant<V>> get mapContra => new Map<U, Contravariant<V>>();
   Map<U, ContraFunction<V>> get mapContraFn => new Map<U, ContraFunction<V>>();
@@ -19,14 +19,14 @@ class A<in T, out U, V> {
 }
 
 class B<inout T> {
-  T x;
+  T? x;
   T method(T x) => x;
   void set y(T x) {}
 }
 
 class C<in T> {
-  final void Function(T) field = null;
-  void method(T x, [T y]) {}
+  final void Function(T)? field = null;
+  void method(T x, [T? y]) {}
   void set x(T t) {}
 }
 
@@ -39,6 +39,7 @@ class E<inout T> {
   E(this.f);
   int method(T x) {
     f(x);
+    return 0;
   }
 }
 

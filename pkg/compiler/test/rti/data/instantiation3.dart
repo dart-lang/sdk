@@ -10,7 +10,7 @@ int f<T>(T a) => null;
 
 typedef int F<R>(R a);
 
-/*spec.class: B:direct,explicit=[int* Function(B.S*)*],needsArgs*/
+/*spec.class: B:direct,explicit=[int* Function(B.S*)*],implicit=[B.S],needsArgs*/
 class B<S> {
   F<S> c;
 

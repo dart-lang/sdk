@@ -219,8 +219,22 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     });
   }
 
-  void ensureClassMembers(ir.Class node) {
-    classes.getEnv(getClassInternal(node)).ensureMembers(this);
+  /// Returns the [ClassEntity] for [node] while ensuring that the member
+  /// environment for [node] is computed.
+  ///
+  /// This is needed to ensure that live members are always included in the
+  /// environment of a class. Static members and mixed in members a member
+  /// can be become live through static access and mixin application,
+  /// respectively, which does not require lookup into the class members.
+  ///
+  /// Since the J-model class environment is computed from the K-model
+  /// environment, not ensuring the computation of the class members, can result
+  /// in a live member being present in the J-model but unavailable when queried
+  /// as a member of its enclosing class.
+  ClassEntity getClassForMemberInternal(ir.Class node) {
+    ClassEntity cls = getClassInternal(node);
+    classes.getEnv(cls).ensureMembers(this);
+    return cls;
   }
 
   MemberEntity lookupClassMember(IndexedClass cls, String name,
@@ -253,6 +267,20 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
     return data.supertype;
+  }
+
+  void _ensureCallType(ClassEntity cls, KClassData data) {
+    assert(checkFamily(cls));
+    if (data is KClassDataImpl && !data.isCallTypeComputed) {
+      MemberEntity callMember =
+          _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+      if (callMember is FunctionEntity &&
+          callMember.isFunction &&
+          !callMember.isAbstract) {
+        data.callType = _elementEnvironment.getFunctionType(callMember);
+      }
+      data.isCallTypeComputed = true;
+    }
   }
 
   void _ensureThisAndRawType(ClassEntity cls, KClassData data) {
@@ -561,14 +589,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Returns the type of the `call` method on 'type'.
   ///
-  /// If [type] doesn't have a `call` member `null` is returned. If [type] has
-  /// an invalid `call` member (non-method or a synthesized method with both
-  /// optional and named parameters) a [DynamicType] is returned.
+  /// If [type] doesn't have a `call` member or has a non-method `call` member,
+  /// `null` is returned.
   @override
-  DartType getCallType(InterfaceType type) {
+  FunctionType getCallType(InterfaceType type) {
     IndexedClass cls = type.element;
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
+    _ensureCallType(cls, data);
     if (data.callType != null) {
       return substByContext(data.callType, type);
     }
@@ -1234,7 +1262,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         "Environment of $this is closed. Trying to create "
         "constructor for $node.");
     ir.FunctionNode functionNode;
-    ClassEntity enclosingClass = getClassInternal(node.enclosingClass);
+    ClassEntity enclosingClass = getClassForMemberInternal(node.enclosingClass);
     Name name = getName(node.name);
     bool isExternal = node.isExternal;
 
@@ -1281,7 +1309,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     LibraryEntity library;
     ClassEntity enclosingClass;
     if (node.enclosingClass != null) {
-      enclosingClass = getClassInternal(node.enclosingClass);
+      enclosingClass = getClassForMemberInternal(node.enclosingClass);
       library = enclosingClass.library;
     } else {
       library = getLibraryInternal(node.enclosingLibrary);
@@ -1333,7 +1361,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     LibraryEntity library;
     ClassEntity enclosingClass;
     if (node.enclosingClass != null) {
-      enclosingClass = getClassInternal(node.enclosingClass);
+      enclosingClass = getClassForMemberInternal(node.enclosingClass);
       library = enclosingClass.library;
     } else {
       library = getLibraryInternal(node.enclosingLibrary);
@@ -2084,6 +2112,8 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
     assert(annotationData != null);
     if (!maybeEnableNative(node.enclosingLibrary.importUri)) return false;
     bool hasNativeBody = annotationData.hasNativeBody(node);
+    // TODO(rileyporter): Move this check on non-native external usage to
+    // js_interop_checks when `native` and `external` can be disambiguated.
     if (!hasNativeBody &&
         node.isExternal &&
         !_nativeBasicData.isJsInteropMember(_elementMap.getMember(node))) {

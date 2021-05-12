@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-
 import 'package:scrape/scrape.dart';
 
 void main(List<String> arguments) {
@@ -235,7 +234,7 @@ class NullVisitor extends ScrapeVisitor {
     }
 
     if (parent is BinaryExpression) {
-      recordType('Uncategorized ${parent}');
+      recordType('Uncategorized $parent');
       return;
     }
 

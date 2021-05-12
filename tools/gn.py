@@ -70,7 +70,9 @@ def ToCommandLine(gn_args):
 def HostCpuForArch(arch):
     if arch in ['ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64']:
         return 'x86'
-    if arch in ['x64', 'arm64', 'simarm64', 'arm_x64']:
+    if arch in [
+            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64c', 'arm64c', 'simarm64c'
+    ]:
         return 'x64'
 
 
@@ -78,10 +80,12 @@ def HostCpuForArch(arch):
 def TargetCpuForArch(arch, target_os):
     if arch in ['ia32', 'simarm', 'simarmv6']:
         return 'x86'
-    if arch in ['x64', 'simarm64', 'simarm_x64']:
+    if arch in ['x64', 'simarm64', 'simarm_x64', 'x64c', 'simarm64c']:
         return 'x64'
     if arch == 'arm_x64':
         return 'arm'
+    if arch == 'arm64c':
+        return 'arm64'
     return arch
 
 
@@ -89,15 +93,19 @@ def TargetCpuForArch(arch, target_os):
 def DartTargetCpuForArch(arch):
     if arch in ['ia32']:
         return 'ia32'
-    if arch in ['x64']:
+    if arch in ['x64', 'x64c']:
         return 'x64'
     if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
-    if arch in ['arm64', 'simarm64']:
+    if arch in ['arm64', 'simarm64', 'arm64c', 'simarm64c']:
         return 'arm64'
     return arch
+
+
+def IsCompressedPointerArch(arch):
+    return arch in ['x64c', 'arm64c', 'simarm64c']
 
 
 def HostOsForGn(host_os):
@@ -147,6 +155,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args['host_cpu'] = HostCpuForArch(arch)
     gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
     gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
+    gn_args['dart_use_compressed_pointers'] = IsCompressedPointerArch(arch)
 
     # Configure Crashpad library if it is used.
     gn_args['dart_use_crashpad'] = (args.use_crashpad or
@@ -285,7 +294,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64'
+        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
@@ -322,7 +331,10 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if not arch in ['ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64']:
+            if not arch in [
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64', 'x64c',
+                    'arm64c'
+            ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
@@ -333,7 +345,7 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if arch != 'x64' and arch != 'arm64':
+            if not arch in ['x64', 'arm64', 'x64c', 'arm64c']:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
@@ -566,13 +578,17 @@ def RunGnOnConfiguredConfigurations(args):
 
 def Main(argv):
     starttime = time.time()
+
     args = parse_args(argv)
+    if args is None:
+        return 1
 
     result = RunGnOnConfiguredConfigurations(args)
 
-    endtime = time.time()
     if args.verbose:
+        endtime = time.time()
         print("GN Time: %.3f seconds" % (endtime - starttime))
+
     return result
 
 

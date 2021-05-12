@@ -61,6 +61,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       _ANNOTATION_WITH_TYPE_ARGUMENTS;
 
+  static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED =
+      _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED;
+
   /**
    * 16.32 Identifier Reference: It is a compile-time error if any of the
    * identifiers async, await, or yield is used as an identifier in a function
@@ -552,6 +555,13 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST =
       _LIBRARY_DIRECTIVE_NOT_FIRST;
 
+  static const ParserErrorCode LITERAL_WITH_CLASS_AND_NEW =
+      _LITERAL_WITH_CLASS_AND_NEW;
+
+  static const ParserErrorCode LITERAL_WITH_CLASS = _LITERAL_WITH_CLASS;
+
+  static const ParserErrorCode LITERAL_WITH_NEW = _LITERAL_WITH_NEW;
+
   static const ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER =
       ParserErrorCode('LOCAL_FUNCTION_DECLARATION_MODIFIER',
           "Local function declarations can't specify any modifiers.",
@@ -927,9 +937,9 @@ class ParserErrorCode extends ErrorCode {
   const ParserErrorCode(
     String name,
     String message, {
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
-    String uniqueName,
+    String? uniqueName,
   }) : super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,

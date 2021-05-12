@@ -1103,14 +1103,23 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
       return identifier;
     }
 
-    // Recovery
+    // Recovery: If the next token  (the one currently in 'identifier') is any
+    // of these values we don't "eat" the it but instead insert an identifier
+    // between "token" and "token.next" and return that as the last consumed
+    // token. Otherwise such a token would be consumed: an identifier would be
+    // inserted after "token.next" and that would be returned as the last
+    // consumed token, effectively skipping the token.
     const List<String> followingValues = const [
       '<',
       '>',
       ';',
       '}',
       'extends',
-      'super'
+      'super',
+      // If currently adding type variables to a typedef this could easily
+      // occur and we don't want to 'eat' the equal sign.
+      '=',
+      '>=',
     ];
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         looksLikeStartOfNextClassMember(identifier) ||

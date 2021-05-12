@@ -74,8 +74,8 @@ main() {
 testNot() => !false;
 
 /*member: testUnaryMinus:type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -88,25 +88,49 @@ testConditional() => true ? null : '';
 
 /*member: testPostInc:
  dynamic=[+],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPostInc(o) => o++;
 
 /*member: testPostDec:
  dynamic=[-],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPostDec(o) => o--;
 
 /*member: testPreInc:
  dynamic=[+],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPreInc(o) => ++o;
 
 /*member: testPreDec:
  dynamic=[-],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testPreDec(o) => --o;
 

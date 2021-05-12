@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
+// @dart = 2.9
+
+import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -22,33 +25,10 @@ import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.d
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-
-/// If the client does not provide capabilities.completion.completionItemKind.valueSet
-/// then we must never send a kind that's not in this list.
-final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
-  CompletionItemKind.Text,
-  CompletionItemKind.Method,
-  CompletionItemKind.Function,
-  CompletionItemKind.Constructor,
-  CompletionItemKind.Field,
-  CompletionItemKind.Variable,
-  CompletionItemKind.Class,
-  CompletionItemKind.Interface,
-  CompletionItemKind.Module,
-  CompletionItemKind.Property,
-  CompletionItemKind.Unit,
-  CompletionItemKind.Value,
-  CompletionItemKind.Enum,
-  CompletionItemKind.Keyword,
-  CompletionItemKind.Snippet,
-  CompletionItemKind.Color,
-  CompletionItemKind.File,
-  CompletionItemKind.Reference,
-]);
 
 class CompletionHandler
     extends MessageHandler<CompletionParams, List<CompletionItem>>
@@ -68,17 +48,8 @@ class CompletionHandler
   @override
   Future<ErrorOr<List<CompletionItem>>> handle(
       CompletionParams params, CancellationToken token) async {
-    final completionCapabilities =
-        server?.clientCapabilities?.textDocument?.completion;
-
-    final clientSupportedCompletionKinds =
-        completionCapabilities?.completionItemKind?.valueSet != null
-            ? HashSet<CompletionItemKind>.of(
-                completionCapabilities.completionItemKind.valueSet)
-            : defaultSupportedCompletionKinds;
-
-    final includeSuggestionSets = suggestFromUnimportedLibraries &&
-        server?.clientCapabilities?.workspace?.applyEdit == true;
+    final includeSuggestionSets =
+        suggestFromUnimportedLibraries && server.clientCapabilities.applyEdit;
 
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
@@ -96,13 +67,11 @@ class CompletionHandler
     return offset.mapResult((offset) async {
       Future<ErrorOr<List<CompletionItem>>> serverResultsFuture;
       final pathContext = server.resourceProvider.pathContext;
-      final filename = pathContext.basename(path.result);
       final fileExtension = pathContext.extension(path.result);
 
       if (fileExtension == '.dart' && !unit.isError) {
         serverResultsFuture = _getServerDartItems(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
+          server.clientCapabilities,
           includeSuggestionSets,
           unit.result,
           offset,
@@ -110,22 +79,18 @@ class CompletionHandler
         );
       } else if (fileExtension == '.yaml') {
         YamlCompletionGenerator generator;
-        switch (filename) {
-          case AnalysisEngine.PUBSPEC_YAML_FILE:
-            generator = PubspecGenerator(server.resourceProvider);
-            break;
-          case AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE:
-            generator = AnalysisOptionsGenerator(server.resourceProvider);
-            break;
-          case AnalysisEngine.FIX_DATA_FILE:
-            generator = FixDataGenerator(server.resourceProvider);
-            break;
+        if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
+          generator = AnalysisOptionsGenerator(server.resourceProvider);
+        } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
+          generator = FixDataGenerator(server.resourceProvider);
+        } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
+          generator = PubspecGenerator(
+              server.resourceProvider, server.pubPackageService);
         }
         if (generator != null) {
           serverResultsFuture = _getServerYamlItems(
             generator,
-            completionCapabilities,
-            clientSupportedCompletionKinds,
+            server.clientCapabilities,
             path.result,
             lineInfo.result,
             offset,
@@ -136,8 +101,8 @@ class CompletionHandler
 
       serverResultsFuture ??= Future.value(success(const <CompletionItem>[]));
 
-      final pluginResultsFuture = _getPluginResults(completionCapabilities,
-          clientSupportedCompletionKinds, lineInfo.result, path.result, offset);
+      final pluginResultsFuture = _getPluginResults(
+          server.clientCapabilities, lineInfo.result, path.result, offset);
 
       // Await both server + plugin results together to allow async/IO to
       // overlap.
@@ -183,12 +148,22 @@ class CompletionHandler
     return alreadyImportedSymbols;
   }
 
+  /// The insert length is the shorter of the replacementLength or the
+  /// difference between the replacementOffset and the caret position.
+  int _computeInsertLength(
+      int offset, int replacementOffset, int replacementLength) {
+    final insertLength =
+        math.min(offset - replacementOffset, replacementLength);
+    assert(insertLength >= 0);
+    assert(insertLength <= replacementLength);
+    return insertLength;
+  }
+
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
   Future<ErrorOr<List<CompletionItem>>> _getPluginResults(
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     LineInfo lineInfo,
     String path,
     int offset,
@@ -202,16 +177,15 @@ class CompletionHandler
         .toList();
 
     return success(_pluginResultsToItems(
-      completionCapabilities,
-      clientSupportedCompletionKinds,
+      capabilities,
       lineInfo,
+      offset,
       pluginResults,
     ).toList());
   }
 
   Future<ErrorOr<List<CompletionItem>>> _getServerDartItems(
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     bool includeSuggestionSets,
     ResolvedUnitResult unit,
     int offset,
@@ -250,34 +224,54 @@ class CompletionHandler
         final serverSuggestions = await contributor.computeSuggestions(
           perf,
           completionRequest,
+          completionPreference: CompletionPreference.replace,
+        );
+
+        final insertLength = _computeInsertLength(
+          offset,
+          completionRequest.replacementOffset,
+          completionRequest.replacementLength,
         );
 
         if (token.isCancellationRequested) {
           return cancelled();
         }
 
-        final results = serverSuggestions
-            .map(
-              (item) => toCompletionItem(
-                completionCapabilities,
-                clientSupportedCompletionKinds,
-                unit.lineInfo,
-                item,
-                completionRequest.replacementOffset,
-                completionRequest.replacementLength,
-                // TODO(dantup): Including commit characters in every completion
-                // increases the payload size. The LSP spec is ambigious
-                // about how this should be handled (and VS Code requires it) but
-                // this should be removed (or made conditional based on a capability)
-                // depending on how the spec is updated.
-                // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                includeCommitCharacters:
-                    server.clientConfiguration.previewCommitCharacters,
-                completeFunctionCalls:
-                    server.clientConfiguration.completeFunctionCalls,
-              ),
-            )
-            .toList();
+        final results = serverSuggestions.map(
+          (item) {
+            var itemReplacementOffset =
+                item.replacementOffset ?? completionRequest.replacementOffset;
+            var itemReplacementLength =
+                item.replacementLength ?? completionRequest.replacementLength;
+            var itemInsertLength = insertLength;
+
+            // Recompute the insert length if it may be affected by the above.
+            if (item.replacementOffset != null ||
+                item.replacementLength != null) {
+              itemInsertLength = _computeInsertLength(
+                  offset, itemReplacementOffset, itemInsertLength);
+            }
+
+            return toCompletionItem(
+              capabilities,
+              unit.lineInfo,
+              item,
+              itemReplacementOffset,
+              itemInsertLength,
+              itemReplacementLength,
+              // TODO(dantup): Including commit characters in every completion
+              // increases the payload size. The LSP spec is ambigious
+              // about how this should be handled (and VS Code requires it) but
+              // this should be removed (or made conditional based on a capability)
+              // depending on how the spec is updated.
+              // https://github.com/microsoft/vscode-languageserver-node/issues/673
+              includeCommitCharacters:
+                  server.clientConfiguration.previewCommitCharacters,
+              completeFunctionCalls:
+                  server.clientConfiguration.completeFunctionCalls,
+            );
+          },
+        ).toList();
 
         // Now compute items in suggestion sets.
         var includedSuggestionSets = <IncludedSuggestionSet>[];
@@ -348,8 +342,7 @@ class CompletionHandler
             return importingUris == null ||
                 importingUris.contains('${library.uri}');
           }).map((item) => declarationToCompletionItem(
-                    completionCapabilities,
-                    clientSupportedCompletionKinds,
+                    capabilities,
                     unit.path,
                     offset,
                     includedSet,
@@ -358,6 +351,7 @@ class CompletionHandler
                     unit.lineInfo,
                     item,
                     completionRequest.replacementOffset,
+                    insertLength,
                     completionRequest.replacementLength,
                     // TODO(dantup): Including commit characters in every completion
                     // increases the payload size. The LSP spec is ambigious
@@ -393,22 +387,26 @@ class CompletionHandler
 
   Future<ErrorOr<List<CompletionItem>>> _getServerYamlItems(
     YamlCompletionGenerator generator,
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     String path,
     LineInfo lineInfo,
     int offset,
     CancellationToken token,
   ) async {
     final suggestions = generator.getSuggestions(path, offset);
+    final insertLength = _computeInsertLength(
+      offset,
+      suggestions.replacementOffset,
+      suggestions.replacementLength,
+    );
     final completionItems = suggestions.suggestions
         .map(
           (item) => toCompletionItem(
-            completionCapabilities,
-            clientSupportedCompletionKinds,
+            capabilities,
             lineInfo,
             item,
             suggestions.replacementOffset,
+            insertLength,
             suggestions.replacementLength,
             includeCommitCharacters: false,
             completeFunctionCalls: false,
@@ -419,19 +417,23 @@ class CompletionHandler
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(
-    CompletionClientCapabilities completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LspClientCapabilities capabilities,
     LineInfo lineInfo,
+    int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
   ) {
     return pluginResults.expand((result) {
       return result.results.map(
         (item) => toCompletionItem(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
+          capabilities,
           lineInfo,
           item,
           result.replacementOffset,
+          _computeInsertLength(
+            offset,
+            result.replacementOffset,
+            result.replacementLength,
+          ),
           result.replacementLength,
           // Plugins cannot currently contribute commit characters and we should
           // not assume that the Dart ones would be correct for all of their

@@ -8,7 +8,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 
 /// Verifier for initializing fields in constructors.
 class ConstructorFieldsVerifier {
@@ -22,7 +21,7 @@ class ConstructorFieldsVerifier {
   ///
   /// [_InitState.notInit] or [_InitState.initInDeclaration] is set for each
   /// field. Later [verify] is called to verify each constructor of the class.
-  Map<FieldElement, _InitState> _initialFieldMap;
+  Map<FieldElement, _InitState>? _initialFieldMap;
 
   /// The state of fields in the current constructor.
   Map<FieldElement, _InitState> _fieldMap = {};
@@ -31,14 +30,14 @@ class ConstructorFieldsVerifier {
   bool _hasRedirectingConstructorInvocation = false;
 
   ConstructorFieldsVerifier({
-    @required TypeSystemImpl typeSystem,
-    @required ErrorReporter errorReporter,
-  })  : _typeSystem = typeSystem,
+    required TypeSystemImpl typeSystem,
+    required ErrorReporter errorReporter,
+  })   : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
   void enterClass(ClassDeclaration node) {
     _isInNativeClass = node.nativeClause != null;
-    _initFieldsMap(node.declaredElement);
+    _initFieldsMap(node.declaredElement!);
   }
 
   void leaveClass() {
@@ -64,7 +63,7 @@ class ConstructorFieldsVerifier {
       return;
     }
 
-    _fieldMap = Map.of(_initialFieldMap);
+    _fieldMap = Map.of(_initialFieldMap!);
     _hasRedirectingConstructorInvocation = false;
 
     _updateWithParameters(node);
@@ -98,7 +97,7 @@ class ConstructorFieldsVerifier {
     _initialFieldMap = <FieldElement, _InitState>{};
     for (var field in element.fields) {
       if (!field.isSynthetic) {
-        _initialFieldMap[field] = field.hasInitializer
+        _initialFieldMap![field] = field.hasInitializer
             ? _InitState.initInDeclaration
             : _InitState.notInit;
       }
@@ -165,9 +164,9 @@ class ConstructorFieldsVerifier {
       }
       if (initializer is ConstructorFieldInitializer) {
         SimpleIdentifier fieldName = initializer.fieldName;
-        Element element = fieldName.staticElement;
+        var element = fieldName.staticElement;
         if (element is FieldElement) {
-          _InitState state = _fieldMap[element];
+          var state = _fieldMap[element];
           if (state == _InitState.notInit) {
             _fieldMap[element] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
@@ -201,10 +200,13 @@ class ConstructorFieldsVerifier {
     for (FormalParameter parameter in formalParameters) {
       parameter = _baseParameter(parameter);
       if (parameter is FieldFormalParameter) {
-        FieldElement fieldElement =
+        var fieldElement =
             (parameter.declaredElement as FieldFormalParameterElementImpl)
                 .field;
-        _InitState state = _fieldMap[fieldElement];
+        if (fieldElement == null) {
+          continue;
+        }
+        _InitState? state = _fieldMap[fieldElement];
         if (state == _InitState.notInit) {
           _fieldMap[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInDeclaration) {

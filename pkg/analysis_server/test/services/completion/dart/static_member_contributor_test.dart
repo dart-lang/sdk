@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:test/test.dart';
@@ -359,5 +361,73 @@ void main() {async.Future.^.w()}''');
     assertNotSuggested('w');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  Future<void> test_simpleIdentifier_typeAlias_interfaceType_class() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  static int _privateField = 0;
+  static int get _privateGetter => 0;
+  static void _privateMethod() {}
+  static set _privateSetter(int _) {}
+  A._privateConstructor();
+
+  static int publicField = 0;
+  static int get publicGetter => 0;
+  static void publicMethod() {}
+  static set publicSetter(int _) {}
+  A.publicConstructor();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+typedef B = A;
+
+void f() {
+  B.^;
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('_privateField');
+    assertNotSuggested('_privateGetter');
+    assertNotSuggested('_privateMethod');
+    assertNotSuggested('_privateSetter');
+    assertNotSuggested('A._privateConstructor');
+
+    assertSuggestField('publicField', 'int');
+    assertSuggestGetter('publicGetter', 'int');
+    assertSuggestMethod('publicMethod', 'A', 'void');
+    assertSuggestSetter('publicSetter');
+    assertSuggestConstructor(
+      'publicConstructor',
+      elementName: 'publicConstructor',
+    );
+  }
+
+  Future<void> test_simpleIdentifier_typeAlias_interfaceType_enum() async {
+    addSource('/home/test/lib/a.dart', '''
+enum E {
+  aaa,
+  _bbb,
+  ccc
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+typedef A = E;
+
+void f() {
+  A.^;
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertSuggestEnumConst('aaa');
+    assertNotSuggested('_bbb');
+    assertSuggestEnumConst('ccc');
+    assertNotSuggested('index');
+    assertSuggestField('values', 'List<E>');
   }
 }

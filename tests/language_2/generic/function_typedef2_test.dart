@@ -11,19 +11,19 @@ typedef int F();
 
 typedef G = F;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef H = int;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef I = A;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef J = List<int>;
 //        ^
-// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] Can't create typedef from non-function type.
 typedef K = Function(Function<A>(A<int>));
 //                               ^^^^^^

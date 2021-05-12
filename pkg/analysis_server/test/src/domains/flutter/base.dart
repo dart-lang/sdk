@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
@@ -43,7 +45,7 @@ class FlutterBase extends AbstractAnalysisTest {
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
 
-    newFile('/home/test/pubspec.yaml', content: '');
+    newPubspecYamlFile('/home/test', '');
     newFile('/home/test/.packages', content: '''
 test:${toUri('/home/test/lib')}
 ''');
@@ -57,12 +59,12 @@ test:${toUri('/home/test/lib')}
   void _addFlutterPackage() {
     _addMetaPackage();
     var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    _addPackageDependency('flutter', libFolder.parent.path);
+    _addPackageDependency('flutter', libFolder.parent2.path);
   }
 
   void _addMetaPackage() {
     var libFolder = MockPackages.instance.addMeta(resourceProvider);
-    _addPackageDependency('meta', libFolder.parent.path);
+    _addPackageDependency('meta', libFolder.parent2.path);
   }
 
   void _addPackageDependency(String name, String rootPath) {

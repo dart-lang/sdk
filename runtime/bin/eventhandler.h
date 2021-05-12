@@ -90,7 +90,6 @@ class TimeoutQueue {
 
  private:
   PriorityQueue<int64_t, Dart_Port> timeouts_;
-  int64_t next_timeout_;
 
   DISALLOW_COPY_AND_ASSIGN(TimeoutQueue);
 };

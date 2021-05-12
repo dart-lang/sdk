@@ -227,7 +227,7 @@ main() {
   negative1Test(
     'Dangling interface type',
     (TestHarness test) {
-      Class orphan = new Class();
+      Class orphan = new Class(name: 'Class');
       test.addNode(
           new TypeLiteral(new InterfaceType(orphan, Nullability.legacy)));
       return orphan;
@@ -262,27 +262,6 @@ main() {
           new Procedure(new Name('bar'), ProcedureKind.Method, null);
       procedure.function = new FunctionNode(new EmptyStatement());
       test.addNode(procedure);
-    },
-  );
-  simpleNegativeTest(
-    'StaticGet without target',
-    "StaticGet without target.",
-    (TestHarness test) {
-      test.addNode(StaticGet(null));
-    },
-  );
-  simpleNegativeTest(
-    'StaticSet without target',
-    "StaticSet without target.",
-    (TestHarness test) {
-      test.addNode(StaticSet(null, new NullLiteral()));
-    },
-  );
-  simpleNegativeTest(
-    'StaticInvocation without target',
-    "StaticInvocation without target.",
-    (TestHarness test) {
-      test.addNode(StaticInvocation(null, new Arguments.empty()));
     },
   );
   positiveTest(

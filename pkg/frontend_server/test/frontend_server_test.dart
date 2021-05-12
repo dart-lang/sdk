@@ -1761,7 +1761,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--packages=${package_config.path}',
         '--target=dartdevc',
-        '--enable-experiment=non-nullable',
         file.path,
       ];
 
@@ -1915,7 +1914,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${package_config.path}',
-        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -1996,7 +1994,6 @@ class BarState extends State<FizzWidget> {
         '--target=dartdevc',
         '--packages=${package_config.path}',
         '--experimental-emit-debug-metadata',
-        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2243,7 +2240,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${package_config.path}',
-        '--enable-experiment=non-nullable',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2362,7 +2358,6 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${package_config.path}',
-        '--enable-experiment=non-nullable'
       ];
 
       final StreamController<List<int>> streamController =

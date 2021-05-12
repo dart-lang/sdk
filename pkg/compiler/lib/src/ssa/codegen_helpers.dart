@@ -22,7 +22,18 @@ bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
 }
 
 /// Replaces some instructions with specialized versions to make codegen easier.
-/// Caches codegen information on nodes.
+///
+/// - Caches codegen information on nodes.
+///
+/// - Remove NullChecks where the next instruction would fail on the operand.
+///
+/// - Dummy receiver optimization.
+///
+/// - One-shot interceptor optimization.
+///
+/// - Combine read/modify/write sequences into HReadModifyWrite instructions to
+///   simplify codegen of expressions like `a.x += y`.
+
 class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
@@ -52,12 +63,9 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
 
         // If the replacement instruction does not know its source element, use
         // the source element of the instruction.
-        if (replacement.sourceElement == null) {
-          replacement.sourceElement = instruction.sourceElement;
-        }
-        if (replacement.sourceInformation == null) {
-          replacement.sourceInformation = instruction.sourceInformation;
-        }
+        replacement.sourceElement ??= instruction.sourceElement;
+        replacement.sourceInformation ??= instruction.sourceInformation;
+
         if (!replacement.isInBasicBlock()) {
           // The constant folding can return an instruction that is already
           // part of the graph (like an input), so we only add the replacement
@@ -222,8 +230,54 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
 
   @override
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
+    if (!node.isInterceptedCall) return node;
+
     tryReplaceExplicitReceiverWithDummy(
         node, node.selector, node.element, node.receiverType);
+
+    // Try to replace
+    //
+    //     getInterceptor(o).method(o, ...)
+    //
+    // with a 'one shot interceptor' which is a call to a synthesized static
+    // helper function that combines the two operations.
+    //
+    //     oneShotMethod(o, 1, 2)
+    //
+    // This saves code size and makes the receiver of an intercepted call a
+    // candidate for being generated at use site.
+    //
+    // Avoid combining a hoisted interceptor back into a loop, and the faster
+    // almost-constant kind of interceptor.
+
+    HInstruction interceptor = node.inputs[0];
+    if (interceptor is HInterceptor &&
+        interceptor.usedBy.length == 1 &&
+        !interceptor.isConditionalConstantInterceptor &&
+        interceptor.hasSameLoopHeaderAs(node)) {
+      // Copy inputs and replace interceptor with `null`.
+      List<HInstruction> inputs = List.of(node.inputs);
+      inputs[0] = graph.addConstantNull(_closedWorld);
+
+      HOneShotInterceptor oneShot = HOneShotInterceptor(
+          node.selector,
+          node.receiverType,
+          inputs,
+          node.instructionType,
+          node.typeArguments,
+          interceptor.interceptedClasses);
+      oneShot.sourceInformation = node.sourceInformation;
+      oneShot.sourceElement = node.sourceElement;
+      oneShot.sideEffects.setTo(node.sideEffects);
+
+      HBasicBlock block = node.block;
+      block.addAfter(node, oneShot);
+      block.rewrite(node, oneShot);
+      block.remove(node);
+      interceptor.block.remove(interceptor);
+      return null;
+    }
+
     return node;
   }
 
@@ -236,8 +290,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
 
   @override
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
-    // The receiver parameter should never be replaced with a dummy constant.
-    return node;
+    throw StateError('Should not see HOneShotInterceptor: $node');
   }
 
   void tryReplaceExplicitReceiverWithDummy(HInvoke node, Selector selector,

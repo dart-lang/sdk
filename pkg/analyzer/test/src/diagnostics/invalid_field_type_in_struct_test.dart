@@ -20,12 +20,12 @@ class InvalidFieldTypeInStructTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  String str;
+  String? str;
 
-  Pointer notEmpty;
+  Pointer? notEmpty;
 }
 ''', [
-      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 46, 6),
+      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 46, 7),
     ]);
   }
 
@@ -33,7 +33,7 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  Pointer p;
+  Pointer? p;
 }
 ''');
   }
@@ -43,9 +43,9 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  static String str;
+  static String? str;
 
-  Pointer notEmpty;
+  Pointer? notEmpty;
 }
 ''');
   }

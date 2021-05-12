@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_execution.dart';
@@ -220,9 +222,7 @@ void contextFunction() {
   }
 
   void test_mapUri_file_dartUriKind() {
-    var path = server.findSdk().mapDartUri('dart:async').fullName;
-    // hack - pretend that the SDK file exists in the project FS
-    newFile(path, content: '// hack');
+    var path = _mapUri(uri: 'dart:async').file;
     // map file
     var result = _mapUri(file: path);
     expect(result.file, isNull);

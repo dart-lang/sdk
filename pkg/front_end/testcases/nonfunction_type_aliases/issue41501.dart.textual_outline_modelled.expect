@@ -1,0 +1,7 @@
+import 'dart:async';
+import 'issue41501_lib.dart';
+
+main() {}
+test() {}
+typedef AAliasNonNullable = A;
+typedef AAliasNullable = A?;

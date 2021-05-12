@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,6 +14,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveEmptyConstructorBody extends CorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

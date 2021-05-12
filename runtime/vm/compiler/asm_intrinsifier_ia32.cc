@@ -93,220 +93,6 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ j(NOT_ZERO, not_smi, Assembler::kNearJump);
 }
 
-void AsmIntrinsifier::Integer_addFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ addl(EAX, Address(ESP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
-  Integer_addFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_subFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ subl(EAX, Address(ESP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, EAX);
-  __ movl(EAX, Address(ESP, +2 * target::kWordSize));
-  __ subl(EAX, EBX);
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_mulFromInteger(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
-  __ SmiUntag(EAX);
-  __ imull(EAX, Address(ESP, +2 * target::kWordSize));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
-  Integer_mulFromInteger(assembler, normal_ir_body);
-}
-
-// Optimizations:
-// - result is 0 if:
-//   - left is 0
-//   - left equals right
-// - result is left if
-//   - left > 0 && left < right
-// EAX: Tagged left (dividend).
-// EBX: Tagged right (divisor).
-// Returns:
-//   EDX: Untagged fallthrough result (remainder to be adjusted), or
-//   EAX: Tagged return result (remainder).
-static void EmitRemainderOperation(Assembler* assembler) {
-  Label return_zero, modulo;
-  // Check for quick zero results.
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &return_zero, Assembler::kNearJump);
-  __ cmpl(EAX, EBX);
-  __ j(EQUAL, &return_zero, Assembler::kNearJump);
-
-  // Check if result equals left.
-  __ cmpl(EAX, Immediate(0));
-  __ j(LESS, &modulo, Assembler::kNearJump);
-  // left is positive.
-  __ cmpl(EAX, EBX);
-  __ j(GREATER, &modulo, Assembler::kNearJump);
-  // left is less than right, result is left (EAX).
-  __ ret();
-
-  __ Bind(&return_zero);
-  __ xorl(EAX, EAX);
-  __ ret();
-
-  __ Bind(&modulo);
-  __ SmiUntag(EBX);
-  __ SmiUntag(EAX);
-  __ cdq();
-  __ idivl(EBX);
-}
-
-// Implementation:
-//  res = left % right;
-//  if (res < 0) {
-//    if (right < 0) {
-//      res = res - right;
-//    } else {
-//      res = res + right;
-//    }
-//  }
-void AsmIntrinsifier::Integer_moduloFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  Label subtract;
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  // EAX: Tagged left (dividend).
-  // EBX: Tagged right (divisor).
-  // Check if modulo by zero -> exception thrown in main function.
-  __ cmpl(EBX, Immediate(0));
-  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
-  EmitRemainderOperation(assembler);
-  // Untagged remainder result in EDX.
-  Label done;
-  __ movl(EAX, EDX);
-  __ cmpl(EAX, Immediate(0));
-  __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
-  // Result is negative, adjust it.
-  __ cmpl(EBX, Immediate(0));
-  __ j(LESS, &subtract, Assembler::kNearJump);
-  __ addl(EAX, EBX);
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&subtract);
-  __ subl(EAX, EBX);
-
-  __ Bind(&done);
-  // The remainder of two smis is always a smi, no overflow check needed.
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
-                                          Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  // EAX: right argument (divisor)
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movl(EBX, EAX);
-  __ SmiUntag(EBX);
-  __ movl(EAX,
-          Address(ESP, +2 * target::kWordSize));  // Left argument (dividend).
-  __ SmiUntag(EAX);
-  __ pushl(EDX);  // Preserve EDX in case of 'fall_through'.
-  __ cdq();
-  __ idivl(EBX);
-  __ popl(EDX);
-  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
-  // cannot tag the result.
-  __ cmpl(EAX, Immediate(0x40000000));
-  __ j(EQUAL, normal_ir_body);
-  __ SmiTag(EAX);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_negate(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);  // Non-smi value.
-  __ negl(EAX);
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitAndFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  __ andl(EAX, EBX);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOrFromInteger(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  __ orl(EAX, EBX);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  Integer_bitOrFromInteger(assembler, normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXorFromInteger(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
-  __ xorl(EAX, EBX);
-  // Result is in EAX.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  Integer_bitXorFromInteger(assembler, normal_ir_body);
-}
-
 void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
@@ -438,14 +224,9 @@ static void CompareIntegers(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_greaterThanFromInt(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  CompareIntegers(assembler, normal_ir_body, LESS);
-}
-
 void AsmIntrinsifier::Integer_lessThan(Assembler* assembler,
                                        Label* normal_ir_body) {
-  Integer_greaterThanFromInt(assembler, normal_ir_body);
+  CompareIntegers(assembler, normal_ir_body, LESS);
 }
 
 void AsmIntrinsifier::Integer_greaterThan(Assembler* assembler,
@@ -520,40 +301,7 @@ void AsmIntrinsifier::Integer_equal(Assembler* assembler,
   Integer_equalToInteger(assembler, normal_ir_body);
 }
 
-void AsmIntrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
-  Label shift_count_ok;
-  TestBothArgumentsSmis(assembler, normal_ir_body);
-  // Can destroy ECX since we are not falling through.
-  const Immediate& count_limit = Immediate(0x1F);
-  // Check that the count is not larger than what the hardware can handle.
-  // For shifting right a Smi the result is the same for all numbers
-  // >= count_limit.
-  __ SmiUntag(EAX);
-  // Negative counts throw exception.
-  __ cmpl(EAX, Immediate(0));
-  __ j(LESS, normal_ir_body, Assembler::kNearJump);
-  __ cmpl(EAX, count_limit);
-  __ j(LESS_EQUAL, &shift_count_ok, Assembler::kNearJump);
-  __ movl(EAX, count_limit);
-  __ Bind(&shift_count_ok);
-  __ movl(ECX, EAX);  // Shift amount must be in ECX.
-  __ movl(EAX, Address(ESP, +2 * target::kWordSize));  // Value.
-  __ SmiUntag(EAX);                                    // Value.
-  __ sarl(EAX, ECX);
-  __ SmiTag(EAX);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 // Argument is Smi (receiver).
-void AsmIntrinsifier::Smi_bitNegate(Assembler* assembler,
-                                    Label* normal_ir_body) {
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // Receiver.
-  __ notl(EAX);
-  __ andl(EAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
-  __ ret();
-}
-
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
                                     Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
@@ -568,11 +316,6 @@ void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
   __ bsrl(EAX, EAX);
   __ SmiTag(EAX);
   __ ret();
-}
-
-void AsmIntrinsifier::Smi_bitAndFromSmi(Assembler* assembler,
-                                        Label* normal_ir_body) {
-  Integer_bitAndFromInteger(assembler, normal_ir_body);
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
@@ -1559,8 +1302,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ cmpl(EDI, Immediate(kDoubleCid));
   __ j(NOT_EQUAL, &not_double);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::double_type_offset()));
   __ ret();
 
@@ -1569,8 +1312,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movl(EAX, EDI);
   JumpIfNotInteger(assembler, EAX, &not_integer);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::int_type_offset()));
   __ ret();
 
@@ -1580,8 +1323,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movl(EAX, EDI);
   JumpIfNotString(assembler, EAX, &not_string);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::string_type_offset()));
   __ ret();
 
@@ -1590,8 +1333,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movl(EAX, EDI);
   JumpIfNotType(assembler, EAX, &use_declaration_type);
 
-  __ LoadIsolate(EAX);
-  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ LoadIsolateGroup(EAX);
+  __ movl(EAX, Address(EAX, target::IsolateGroup::object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::type_type_offset()));
   __ ret();
 

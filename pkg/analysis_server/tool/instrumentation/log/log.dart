@@ -51,7 +51,7 @@ class EntryGroup {
 
   /// Return the entry group with the given [id], or `null` if there is no group
   /// with the given id.
-  static EntryGroup withId(String id) {
+  static EntryGroup? withId(String id) {
     for (var group in groups) {
       if (group.id == id) {
         return group;
@@ -135,7 +135,7 @@ class InstrumentationLog {
   List<String> logFilePaths;
 
   /// The entries in the instrumentation log.
-  List<LogEntry> logEntries;
+  late List<LogEntry> logEntries;
 
   /// A table mapping the entry groups that have been computed to the list of
   /// entries in that group.
@@ -169,7 +169,7 @@ class InstrumentationLog {
 
   /// The ranges of entries that are between analysis start and analysis end
   /// notifications.
-  List<EntryRange> analysisRanges;
+  late List<EntryRange> analysisRanges;
 
   /// Initialize a newly created instrumentation log by parsing each of the
   /// lines in the [logContent] into a separate entry. The log contents should
@@ -180,30 +180,30 @@ class InstrumentationLog {
   }
 
   /// Return a list of the completion events associated with the given [id].
-  List<NotificationEntry> completionEventsWithId(String id) =>
+  List<NotificationEntry>? completionEventsWithId(String id) =>
       _completionMap[id];
 
   /// Return the log entries that are contained in the given [group].
-  List<LogEntry> entriesInGroup(EntryGroup group) =>
+  List<LogEntry>? entriesInGroup(EntryGroup group) =>
       entryGroups.putIfAbsent(group, () => group.computeMembers(logEntries));
 
   /// Return the entry that is paired with the given [entry], or `null` if there
   /// is no entry paired with it.
-  LogEntry pairedEntry(LogEntry entry) => _pairedEntries[entry];
+  LogEntry? pairedEntry(LogEntry entry) => _pairedEntries[entry];
 
   /// Return the response that corresponds to the given plugin request.
-  PluginRequestEntry pluginRequestFor(PluginResponseEntry entry) =>
+  PluginRequestEntry? pluginRequestFor(PluginResponseEntry entry) =>
       _pluginRequestMap[entry.id];
 
   /// Return the response that corresponds to the given request.
-  PluginResponseEntry pluginResponseFor(PluginRequestEntry entry) =>
+  PluginResponseEntry? pluginResponseFor(PluginRequestEntry entry) =>
       _pluginResponseMap[entry.id];
 
   /// Return the response that corresponds to the given request.
-  RequestEntry requestFor(ResponseEntry entry) => _requestMap[entry.id];
+  RequestEntry? requestFor(ResponseEntry entry) => _requestMap[entry.id];
 
   /// Return the response that corresponds to the given request.
-  ResponseEntry responseFor(RequestEntry entry) => _responseMap[entry.id];
+  ResponseEntry? responseFor(RequestEntry entry) => _responseMap[entry.id];
 
   /// Return a list containing all of the task entries between the start of
   /// analysis notification at the given [startIndex] and the matching end of
@@ -211,7 +211,7 @@ class InstrumentationLog {
   /// corresponding end notification.
   List<TaskEntry> taskEntriesFor(int startIndex) {
     var taskEntries = <TaskEntry>[];
-    NotificationEntry startEntry = logEntries[startIndex];
+    var startEntry = logEntries[startIndex] as NotificationEntry;
     var endEntry = pairedEntry(startEntry);
     var lastIndex = endEntry == null ? logEntries.length : endEntry.index;
     for (var i = startEntry.index + 1; i < lastIndex; i++) {
@@ -289,9 +289,9 @@ class InstrumentationLog {
     }
     logEntries = <LogEntry>[];
     analysisRanges = <EntryRange>[];
-    NotificationEntry analysisStartEntry;
+    NotificationEntry? analysisStartEntry;
     var analysisStartIndex = -1;
-    NotificationEntry pubStartEntry;
+    NotificationEntry? pubStartEntry;
     for (var line in logContent) {
       var entry = LogEntry.from(logEntries.length, line);
       if (entry != null) {
@@ -300,7 +300,7 @@ class InstrumentationLog {
           _requestMap[entry.id] = entry;
         } else if (entry is ResponseEntry) {
           _responseMap[entry.id] = entry;
-          var request = _requestMap[entry.id];
+          var request = _requestMap[entry.id]!;
           _pairedEntries[entry] = request;
           _pairedEntries[request] = entry;
         } else if (entry is NotificationEntry) {
@@ -348,8 +348,8 @@ class InstrumentationLog {
               }
             }
           } else if (entry.event == 'completion.results') {
-            String id = entry.param('id');
-            if (id != null) {
+            var id = entry.param('id');
+            if (id is String) {
               _completionMap
                   .putIfAbsent(id, () => <NotificationEntry>[])
                   .add(entry);
@@ -359,7 +359,7 @@ class InstrumentationLog {
           _pluginRequestMap[entry.id] = entry;
         } else if (entry is PluginResponseEntry) {
           _pluginResponseMap[entry.id] = entry;
-          var request = _pluginRequestMap[entry.id];
+          var request = _pluginRequestMap[entry.id]!;
           _pairedEntries[entry] = request;
           _pairedEntries[request] = entry;
         }
@@ -438,7 +438,7 @@ abstract class JsonBasedEntry extends LogEntry {
       buffer.write(object);
     } else if (object is Map) {
       buffer.write('{<br>');
-      object.forEach((Object key, Object value) {
+      object.forEach((key, value) {
         var newIndent = indent + singleIndent;
         buffer.write(newIndent);
         _format(buffer, newIndent, key);
@@ -450,7 +450,7 @@ abstract class JsonBasedEntry extends LogEntry {
       buffer.write('}');
     } else if (object is List) {
       buffer.write('[<br>');
-      object.forEach((Object element) {
+      object.forEach((element) {
         var newIndent = indent + singleIndent;
         buffer.write(newIndent);
         _format(buffer, newIndent, element);
@@ -511,13 +511,53 @@ abstract class LogEntry {
 
   /// A list containing the descriptions of problems that were found while
   /// processing the log file, or `null` if no problems were found.
-  List<String> _problems;
+  List<String>? _problems;
 
   /// Initialize a newly created log entry with the given [timeStamp].
   LogEntry(this.index, this.timeStamp);
 
+  /// Return `true` if any problems were found while processing the log file.
+  bool get hasProblems => _problems != null;
+
+  /// Return the value of the component used to indicate the kind of the entry.
+  /// This is the abbreviation recorded in the entry.
+  String get kind;
+
+  /// Return a human-readable representation of the kind of this entry.
+  String get kindName => kindMap[kind] ?? kind;
+
+  /// Return a list containing the descriptions of problems that were found
+  /// while processing the log file, or `null` if no problems were found.
+  List<String>? get problems => _problems;
+
+  /// Return a date that is equivalent to the [timeStamp].
+  DateTime get toTime => DateTime.fromMillisecondsSinceEpoch(timeStamp);
+
+  /// Return an HTML representation of the details of the entry.
+  String details() {
+    var buffer = StringBuffer();
+    _appendDetails(buffer);
+    return buffer.toString();
+  }
+
+  /// Record that the given [problem] was found while processing the log file.
+  void recordProblem(String problem) {
+    var problems = _problems ??= <String>[];
+    problems.add(problem);
+  }
+
+  /// Append details related to this entry to the given [buffer].
+  void _appendDetails(StringBuffer buffer) {
+    var problems = _problems;
+    if (problems != null) {
+      for (var problem in problems) {
+        buffer.write('<p><span class="error">$problem</span></p>');
+      }
+    }
+  }
+
   /// Create a log entry from the given encoded form of the [entry].
-  factory LogEntry.from(int index, String entry) {
+  static LogEntry? from(int index, String entry) {
     if (entry.isEmpty) {
       return null;
     }
@@ -578,45 +618,6 @@ abstract class LogEntry {
       LogEntry logEntry = MalformedLogEntry(index, entry);
       logEntry.recordProblem(exception.toString());
       return logEntry;
-    }
-  }
-
-  /// Return `true` if any problems were found while processing the log file.
-  bool get hasProblems => _problems != null;
-
-  /// Return the value of the component used to indicate the kind of the entry.
-  /// This is the abbreviation recorded in the entry.
-  String get kind;
-
-  /// Return a human-readable representation of the kind of this entry.
-  String get kindName => kindMap[kind] ?? kind;
-
-  /// Return a list containing the descriptions of problems that were found
-  /// while processing the log file, or `null` if no problems were found.
-  List<String> get problems => _problems;
-
-  /// Return a date that is equivalent to the [timeStamp].
-  DateTime get toTime => DateTime.fromMillisecondsSinceEpoch(timeStamp);
-
-  /// Return an HTML representation of the details of the entry.
-  String details() {
-    var buffer = StringBuffer();
-    _appendDetails(buffer);
-    return buffer.toString();
-  }
-
-  /// Record that the given [problem] was found while processing the log file.
-  void recordProblem(String problem) {
-    _problems ??= <String>[];
-    _problems.add(problem);
-  }
-
-  /// Append details related to this entry to the given [buffer].
-  void _appendDetails(StringBuffer buffer) {
-    if (_problems != null) {
-      for (var problem in _problems) {
-        buffer.write('<p><span class="error">$problem</span></p>');
-      }
     }
   }
 
@@ -687,7 +688,7 @@ class NotificationEntry extends JsonBasedEntry {
 
   /// Return the value of the parameter with the given [parameterName], or
   /// `null` if there is no such parameter.
-  dynamic param(String parameterName) {
+  Object? param(String parameterName) {
     var parameters = data['params'];
     if (parameters is Map) {
       return parameters[parameterName];
@@ -882,10 +883,10 @@ class TaskEntry extends LogEntry {
   final String description;
 
   /// The name of the class implementing the task.
-  String _taskName;
+  String? _taskName;
 
   /// The description of the target of the task.
-  String _target;
+  String? _target;
 
   /// Initialize a newly created entry with the given [index] and [timeStamp] to
   /// represent the execution of an analysis task in the given [context] that is
@@ -901,7 +902,7 @@ class TaskEntry extends LogEntry {
     if (_target == null) {
       _splitDescription();
     }
-    return _target;
+    return _target!;
   }
 
   /// Return the name of the class implementing the task.
@@ -909,7 +910,7 @@ class TaskEntry extends LogEntry {
     if (_taskName == null) {
       _splitDescription();
     }
-    return _taskName;
+    return _taskName!;
   }
 
   @override
@@ -930,14 +931,15 @@ class TaskEntry extends LogEntry {
       _taskName = description.substring(0, index);
     }
     index = description.lastIndexOf(' ');
-    _target = description.substring(index + 1);
+    var target = description.substring(index + 1);
     var slash = context.lastIndexOf('/');
     if (slash < 0) {
       slash = context.lastIndexOf('\\');
     }
     if (slash >= 0) {
       var prefix = context.substring(0, slash);
-      _target = _target.replaceAll(prefix, '...');
+      target = target.replaceAll(prefix, '...');
     }
+    _target = target;
   }
 }

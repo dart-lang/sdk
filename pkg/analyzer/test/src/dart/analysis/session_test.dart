@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -13,23 +14,105 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../resolution/context_collection_resolution.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSessionImplTest);
+    defineReflectiveTests(AnalysisSessionImpl_BazelWorkspaceTest);
   });
 }
 
 @reflectiveTest
+class AnalysisSessionImpl_BazelWorkspaceTest
+    extends BazelWorkspaceResolutionTest {
+  void test_getErrors_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getErrors(path);
+    expect(result.state, ResultState.NOT_FILE_OF_URI);
+    expect(() => result.errors, throwsStateError);
+  }
+
+  void test_getErrors_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'var x = 0',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getErrors(file.path);
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.errors, hasLength(1));
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+
+  void test_getResolvedUnit_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getResolvedUnit(path);
+    expect(result.state, ResultState.NOT_FILE_OF_URI);
+    expect(() => result.errors, throwsStateError);
+  }
+
+  void test_getResolvedUnit_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'class A {}',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getResolvedUnit(file.path);
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.errors, isEmpty);
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+
+  void test_getUnitElement_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getUnitElement(path);
+    expect(result.state, ResultState.NOT_FILE_OF_URI);
+    expect(() => result.element, throwsStateError);
+  }
+
+  void test_getUnitElement_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'class A {}',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getUnitElement(file.path);
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.element.types, hasLength(1));
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+}
+
+@reflectiveTest
 class AnalysisSessionImplTest with ResourceProviderMixin {
-  /*late final*/ AnalysisContextCollection contextCollection;
-  /*late final*/ AnalysisContext context;
-  /*late final*/ AnalysisSessionImpl session;
+  late final AnalysisContextCollection contextCollection;
+  late final AnalysisContext context;
+  late final AnalysisSessionImpl session;
 
-  /*late final*/ String testContextPath;
-  /*late final*/ String aaaContextPath;
-  /*late final*/ String bbbContextPath;
+  late final String testContextPath;
+  late final String aaaContextPath;
+  late final String bbbContextPath;
 
-  /*late final*/ String testPath;
+  late final String testPath;
 
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
@@ -48,7 +131,7 @@ test:lib/
       sdkPath: convertPath(sdkRoot),
     );
     context = contextCollection.contextFor(testContextPath);
-    session = context.currentSession;
+    session = context.currentSession as AnalysisSessionImpl;
 
     testPath = convertPath('/home/test/lib/test.dart');
   }
@@ -92,7 +175,7 @@ class B {}
 
     expect(parsedLibrary.units, hasLength(1));
     {
-      var parsedUnit = parsedLibrary.units[0];
+      var parsedUnit = parsedLibrary.units![0];
       expect(parsedUnit.session, session);
       expect(parsedUnit.path, testPath);
       expect(parsedUnit.uri, Uri.parse('package:test/test.dart'));
@@ -109,9 +192,9 @@ class B {}
     var library = await session.getLibraryByUri('package:test/test.dart');
     var parsedLibrary = session.getParsedLibrary(testPath);
 
-    var element = library.getType('A');
-    var declaration = parsedLibrary.getElementDeclaration(element);
-    ClassDeclaration node = declaration.node;
+    var element = library.getType('A')!;
+    var declaration = parsedLibrary.getElementDeclaration(element)!;
+    var node = declaration.node as ClassDeclaration;
     expect(node.name.name, 'A');
     expect(node.offset, 0);
     expect(node.length, 10);
@@ -143,16 +226,16 @@ int foo = 0;
     expect(fooElement.name, 'foo');
 
     // We can get the variable element declaration.
-    var fooDeclaration = parsedLibrary.getElementDeclaration(fooElement);
-    VariableDeclaration fooNode = fooDeclaration.node;
+    var fooDeclaration = parsedLibrary.getElementDeclaration(fooElement)!;
+    var fooNode = fooDeclaration.node as VariableDeclaration;
     expect(fooNode.name.name, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
     expect(fooNode.name.staticElement, isNull);
 
     // Synthetic elements don't have nodes.
-    expect(parsedLibrary.getElementDeclaration(fooElement.getter), isNull);
-    expect(parsedLibrary.getElementDeclaration(fooElement.setter), isNull);
+    expect(parsedLibrary.getElementDeclaration(fooElement.getter!), isNull);
+    expect(parsedLibrary.getElementDeclaration(fooElement.setter!), isNull);
   }
 
   test_getParsedLibrary_invalidPartUri() async {
@@ -166,15 +249,15 @@ part 'c.dart';
 
     expect(parsedLibrary.units, hasLength(3));
     expect(
-      parsedLibrary.units[0].path,
+      parsedLibrary.units![0].path,
       convertPath('/home/test/lib/test.dart'),
     );
     expect(
-      parsedLibrary.units[1].path,
+      parsedLibrary.units![1].path,
       convertPath('/home/test/lib/a.dart'),
     );
     expect(
-      parsedLibrary.units[2].path,
+      parsedLibrary.units![2].path,
       convertPath('/home/test/lib/c.dart'),
     );
   }
@@ -224,21 +307,21 @@ class C3 {}
     expect(parsedLibrary.units, hasLength(3));
 
     {
-      var aUnit = parsedLibrary.units[0];
+      var aUnit = parsedLibrary.units![0];
       expect(aUnit.path, a);
       expect(aUnit.uri, Uri.parse('package:test/a.dart'));
       expect(aUnit.unit.declarations, hasLength(1));
     }
 
     {
-      var bUnit = parsedLibrary.units[1];
+      var bUnit = parsedLibrary.units![1];
       expect(bUnit.path, b);
       expect(bUnit.uri, Uri.parse('package:test/b.dart'));
       expect(bUnit.unit.declarations, hasLength(2));
     }
 
     {
-      var cUnit = parsedLibrary.units[2];
+      var cUnit = parsedLibrary.units![2];
       expect(cUnit.path, c);
       expect(cUnit.uri, Uri.parse('package:test/c.dart'));
       expect(cUnit.unit.declarations, hasLength(3));
@@ -310,46 +393,43 @@ class B2 extends X {}
     var typeProvider = resolvedLibrary.typeProvider;
     expect(typeProvider.intType.element.name, 'int');
 
-    var libraryElement = resolvedLibrary.element;
-    expect(libraryElement, isNotNull);
+    var libraryElement = resolvedLibrary.element!;
 
-    var aClass = libraryElement.getType('A');
-    expect(aClass, isNotNull);
+    var aClass = libraryElement.getType('A')!;
 
-    var bClass = libraryElement.getType('B');
-    expect(bClass, isNotNull);
+    var bClass = libraryElement.getType('B')!;
 
-    var aUnitResult = resolvedLibrary.units[0];
+    var aUnitResult = resolvedLibrary.units![0];
     expect(aUnitResult.path, a);
     expect(aUnitResult.uri, Uri.parse('package:test/a.dart'));
     expect(aUnitResult.content, aContent);
     expect(aUnitResult.unit, isNotNull);
-    expect(aUnitResult.unit.directives, hasLength(1));
-    expect(aUnitResult.unit.declarations, hasLength(1));
+    expect(aUnitResult.unit!.directives, hasLength(1));
+    expect(aUnitResult.unit!.declarations, hasLength(1));
     expect(aUnitResult.errors, isEmpty);
 
-    var bUnitResult = resolvedLibrary.units[1];
+    var bUnitResult = resolvedLibrary.units![1];
     expect(bUnitResult.path, b);
     expect(bUnitResult.uri, Uri.parse('package:test/b.dart'));
     expect(bUnitResult.content, bContent);
     expect(bUnitResult.unit, isNotNull);
-    expect(bUnitResult.unit.directives, hasLength(1));
-    expect(bUnitResult.unit.declarations, hasLength(2));
+    expect(bUnitResult.unit!.directives, hasLength(1));
+    expect(bUnitResult.unit!.declarations, hasLength(2));
     expect(bUnitResult.errors, isNotEmpty);
 
-    var aDeclaration = resolvedLibrary.getElementDeclaration(aClass);
-    ClassDeclaration aNode = aDeclaration.node;
+    var aDeclaration = resolvedLibrary.getElementDeclaration(aClass)!;
+    var aNode = aDeclaration.node as ClassDeclaration;
     expect(aNode.name.name, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
-    expect(aNode.name.staticElement.name, 'A');
+    expect(aNode.declaredElement!.name, 'A');
 
-    var bDeclaration = resolvedLibrary.getElementDeclaration(bClass);
-    ClassDeclaration bNode = bDeclaration.node;
+    var bDeclaration = resolvedLibrary.getElementDeclaration(bClass)!;
+    var bNode = bDeclaration.node as ClassDeclaration;
     expect(bNode.name.name, 'B');
     expect(bNode.offset, 19);
     expect(bNode.length, 16);
-    expect(bNode.name.staticElement.name, 'B');
+    expect(bNode.declaredElement!.name, 'B');
   }
 
   test_getResolvedLibrary_getElementDeclaration_notThisLibrary() async {
@@ -369,22 +449,22 @@ int foo = 0;
 ''');
 
     var resolvedLibrary = await session.getResolvedLibrary(testPath);
-    var unitElement = resolvedLibrary.element.definingCompilationUnit;
+    var unitElement = resolvedLibrary.element!.definingCompilationUnit;
 
     var fooElement = unitElement.topLevelVariables[0];
     expect(fooElement.name, 'foo');
 
     // We can get the variable element declaration.
-    var fooDeclaration = resolvedLibrary.getElementDeclaration(fooElement);
-    VariableDeclaration fooNode = fooDeclaration.node;
+    var fooDeclaration = resolvedLibrary.getElementDeclaration(fooElement)!;
+    var fooNode = fooDeclaration.node as VariableDeclaration;
     expect(fooNode.name.name, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
-    expect(fooNode.name.staticElement.name, 'foo');
+    expect(fooNode.declaredElement!.name, 'foo');
 
     // Synthetic elements don't have nodes.
-    expect(resolvedLibrary.getElementDeclaration(fooElement.getter), isNull);
-    expect(resolvedLibrary.getElementDeclaration(fooElement.setter), isNull);
+    expect(resolvedLibrary.getElementDeclaration(fooElement.getter!), isNull);
+    expect(resolvedLibrary.getElementDeclaration(fooElement.setter!), isNull);
   }
 
   test_getResolvedLibrary_invalidPartUri() async {
@@ -398,15 +478,15 @@ part 'c.dart';
 
     expect(resolvedLibrary.units, hasLength(3));
     expect(
-      resolvedLibrary.units[0].path,
+      resolvedLibrary.units![0].path,
       convertPath('/home/test/lib/test.dart'),
     );
     expect(
-      resolvedLibrary.units[1].path,
+      resolvedLibrary.units![1].path,
       convertPath('/home/test/lib/a.dart'),
     );
     expect(
-      resolvedLibrary.units[2].path,
+      resolvedLibrary.units![2].path,
       convertPath('/home/test/lib/c.dart'),
     );
   }
@@ -429,7 +509,7 @@ part 'c.dart';
     expect(resolvedLibrary.path, testPath);
     expect(resolvedLibrary.uri, Uri.parse('package:test/test.dart'));
     expect(resolvedLibrary.units, hasLength(1));
-    expect(resolvedLibrary.units[0].unit.declaredElement, isNotNull);
+    expect(resolvedLibrary.units![0].unit!.declaredElement, isNotNull);
   }
 
   test_getResolvedLibraryByElement_differentSession() async {
@@ -455,7 +535,7 @@ class B {}
     expect(unitResult.session, session);
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.unit.declarations, hasLength(2));
+    expect(unitResult.unit!.declarations, hasLength(2));
     expect(unitResult.typeProvider, isNotNull);
     expect(unitResult.libraryElement, isNotNull);
   }

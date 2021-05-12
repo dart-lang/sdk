@@ -80,6 +80,10 @@ DEFINE_FLAG(charp,
             deoptimize_filter,
             NULL,
             "Deoptimize in named function on stack overflow checks");
+DEFINE_FLAG(charp,
+            deoptimize_on_runtime_call_name_filter,
+            NULL,
+            "Runtime call name filter for --deoptimize-on-runtime-call-every.");
 
 DEFINE_FLAG(bool,
             unopt_monomorphic_calls,
@@ -172,7 +176,7 @@ static void NullErrorHelper(Zone* zone, const String& selector) {
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
-DEFINE_RUNTIME_ENTRY(NullError, 0) {
+static void DoThrowNullError(Isolate* isolate, Thread* thread, Zone* zone) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
@@ -200,6 +204,59 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   }
 
   NullErrorHelper(zone, member_name);
+}
+
+DEFINE_RUNTIME_ENTRY(NullError, 0) {
+  DoThrowNullError(isolate, thread, zone);
+}
+
+// Collects information about pointers within the top |kMaxSlotsCollected|
+// slots on the stack.
+// TODO(b/179632636) This code is added in attempt to better understand
+// b/179632636 and should be removed in the future.
+void ReportImpossibleNullError(intptr_t cid,
+                               StackFrame* caller_frame,
+                               Thread* thread) {
+  TextBuffer buffer(512);
+  buffer.Printf("hit null error with cid %" Pd ", caller context: ", cid);
+
+  const intptr_t kMaxSlotsCollected = 5;
+  const auto slots = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
+  const intptr_t num_slots_in_frame =
+      reinterpret_cast<ObjectPtr*>(caller_frame->fp()) - slots;
+  const auto num_slots_to_collect =
+      Utils::Maximum(kMaxSlotsCollected, num_slots_in_frame);
+  bool comma = false;
+  for (intptr_t i = 0; i < num_slots_to_collect; i++) {
+    const ObjectPtr ptr = slots[i];
+    buffer.Printf("%s[sp+%" Pd "] %" Pp "", comma ? ", " : "", i,
+                  static_cast<uword>(ptr));
+    if (ptr->IsHeapObject() &&
+        (Dart::vm_isolate_group()->heap()->Contains(
+             UntaggedObject::ToAddr(ptr)) ||
+         thread->heap()->Contains(UntaggedObject::ToAddr(ptr)))) {
+      buffer.Printf("(%" Pp ")", static_cast<uword>(ptr->untag()->tags_));
+    }
+    comma = true;
+  }
+
+  const char* message = buffer.buffer();
+  FATAL("%s", message);
+}
+
+DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
+  const Smi& cid = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  if (cid.Value() != kNullCid) {
+    // We hit null error, but receiver is not null itself. This most likely
+    // is a memory corruption. Crash the VM but provide some additonal
+    // information about the arguments on the stack.
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* caller_frame = iterator.NextFrame();
+    RELEASE_ASSERT(caller_frame->IsDartFrame());
+    ReportImpossibleNullError(cid.Value(), caller_frame, thread);
+  }
+  DoThrowNullError(isolate, thread, zone);
 }
 
 DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
@@ -559,8 +616,7 @@ static void PrintTypeCheck(const char* message,
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());
-  if (function.IsInvokeFieldDispatcher() ||
-      function.IsNoSuchMethodDispatcher()) {
+  if (function.HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(function.saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
     OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
@@ -685,7 +741,7 @@ static void UpdateTypeTestCache(
         new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
         OS::PrintErr("%s\n", buffer.buffer());
       }
-      if (!FLAG_enable_isolate_groups) {
+      if (!IsolateGroup::AreIsolateGroupsEnabled()) {
         FATAL("Duplicate subtype test cache entry");
       }
       if (old_result.ptr() != result.ptr()) {
@@ -920,6 +976,21 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
 #if defined(DEBUG)
     ASSERT(old_code.ptr() != dst_type.type_test_stub());
+    const auto& old_instructions =
+        Instructions::Handle(old_code.instructions());
+    const auto& new_code = Code::Handle(dst_type.type_test_stub());
+    const auto& new_instructions =
+        Instructions::Handle(new_code.instructions());
+    // Check if specialization produced exactly the same sequence of
+    // instructions. If it did then we have a bug in the TTS code
+    // generation code: we know that old code could not handle src_instance
+    // which means new code would not be able to handle it either
+    // (because the code is exactly the same) and will fall through into
+    // runtime again given a similar instance and again ask compiler to
+    // specialize the stub, which would produce the same code again and
+    // so on - leading to a serious performance problem if this type check
+    // is hot.
+    ASSERT(!old_instructions.Equals(new_instructions));
 #endif
     // Only create the cache when we come from a normal stub.
     should_update_cache = false;
@@ -1033,17 +1104,26 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(target_code.ptr() !=
-         CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
-  CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code, target_code);
-  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
-  if (FLAG_trace_patching) {
-    THR_Print("PatchStaticCall: patching caller pc %#" Px
-              ""
-              " to '%s' new entry point %#" Px " (%s)\n",
-              caller_frame->pc(), target_function.ToFullyQualifiedCString(),
-              target_code.EntryPoint(),
-              target_code.is_optimized() ? "optimized" : "unoptimized");
+  ASSERT(IsolateGroup::AreIsolateGroupsEnabled() ||
+         target_code.ptr() != CodePatcher::GetStaticCallTargetAt(
+                                  caller_frame->pc(), caller_code));
+  if (target_code.ptr() !=
+      CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
+    SafepointOperationScope safepoint(thread);
+    if (target_code.ptr() !=
+        CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
+      CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
+                                     target_code);
+      caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
+      if (FLAG_trace_patching) {
+        THR_Print("PatchStaticCall: patching caller pc %#" Px
+                  ""
+                  " to '%s' new entry point %#" Px " (%s)\n",
+                  caller_frame->pc(), target_function.ToFullyQualifiedCString(),
+                  target_code.EntryPoint(),
+                  target_code.is_optimized() ? "optimized" : "unoptimized");
+      }
+    }
   }
   arguments.SetReturn(target_code);
 #else
@@ -1065,7 +1145,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   Code& orig_stub = Code::Handle(zone);
-  orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
+  orig_stub =
+      isolate->group()->debugger()->GetPatchedStubAddress(caller_frame->pc());
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);
@@ -1193,7 +1274,10 @@ static void TrySwitchInstanceCall(Thread* thread,
 #if !defined(PRODUCT)
   // Skip functions that contain breakpoints or when debugger is in single
   // stepping mode.
-  if (Debugger::IsDebugging(thread, caller_function)) return;
+  if (thread->isolate_group()->debugger()->IsDebugging(thread,
+                                                       caller_function)) {
+    return;
+  }
 #endif
 
   const intptr_t num_checks = ic_data.NumberOfChecks();
@@ -1496,11 +1580,12 @@ class PatchableCallHandler {
 
  private:
   FunctionPtr ResolveTargetFunction(const Object& data);
-  void HandleMiss(const Object& old_data,
-                  const Code& old_target,
-                  const Function& target_function);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
+  void HandleMissAOT(const Object& old_data,
+                     uword old_entry,
+                     const Function& target_function);
+
   void DoUnlinkedCallAOT(const UnlinkedCall& unlinked,
                          const Function& target_function);
   void DoMonomorphicMissAOT(const Object& data,
@@ -1514,6 +1599,10 @@ class PatchableCallHandler {
                                   intptr_t* lower,
                                   intptr_t* upper);
 #else
+  void HandleMissJIT(const Object& old_data,
+                     const Code& old_target,
+                     const Function& target_function);
+
   void DoMonomorphicMissJIT(const Object& data,
                             const Function& target_function);
   void DoICDataMissJIT(const ICData& data,
@@ -2062,7 +2151,6 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
   const auto& target_function =
       Function::Handle(zone_, ResolveTargetFunction(old_data));
 
-  auto& code = Code::Handle(zone_);
   auto& data = Object::Handle(zone_);
 
   // We ensure any transition in a patchable calls are done in an atomic
@@ -2076,9 +2164,12 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   data =
       CodePatcher::GetSwitchableCallDataAt(caller_frame_->pc(), caller_code_);
-  DEBUG_ONLY(code = CodePatcher::GetSwitchableCallTargetAt(caller_frame_->pc(),
-                                                           caller_code_));
+  uword target_entry = 0;
+  DEBUG_ONLY(target_entry = CodePatcher::GetSwitchableCallTargetEntryAt(
+                 caller_frame_->pc(), caller_code_));
+  HandleMissAOT(data, target_entry, target_function);
 #else
+  auto& code = Code::Handle(zone_);
   if (should_consider_patching()) {
     code ^= CodePatcher::GetInstanceCallAt(caller_frame_->pc(), caller_code_,
                                            &data);
@@ -2086,34 +2177,52 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
     ASSERT(old_data.IsICData() || old_data.IsMegamorphicCache());
     data = old_data.ptr();
   }
+  HandleMissJIT(data, code, target_function);
 #endif
-  HandleMiss(data, code, target_function);
 }
 
-void PatchableCallHandler::HandleMiss(const Object& old_data,
-                                      const Code& old_code,
-                                      const Function& target_function) {
-  switch (old_data.GetClassId()) {
 #if defined(DART_PRECOMPILED_RUNTIME)
+
+void PatchableCallHandler::HandleMissAOT(const Object& old_data,
+                                         uword old_entry,
+                                         const Function& target_function) {
+  switch (old_data.GetClassId()) {
     case kUnlinkedCallCid:
-      ASSERT(old_code.ptr() == StubCode::SwitchableCallMiss().ptr());
+      ASSERT(old_entry ==
+             StubCode::SwitchableCallMiss().MonomorphicEntryPoint());
       DoUnlinkedCallAOT(UnlinkedCall::Cast(old_data), target_function);
       break;
     case kMonomorphicSmiableCallCid:
-      ASSERT(old_code.ptr() == StubCode::MonomorphicSmiableCheck().ptr());
+      ASSERT(old_entry ==
+             StubCode::MonomorphicSmiableCheck().MonomorphicEntryPoint());
       FALL_THROUGH;
     case kSmiCid:
       DoMonomorphicMissAOT(old_data, target_function);
       break;
     case kSingleTargetCacheCid:
-      ASSERT(old_code.ptr() == StubCode::SingleTargetCall().ptr());
+      ASSERT(old_entry == StubCode::SingleTargetCall().MonomorphicEntryPoint());
       DoSingleTargetMissAOT(SingleTargetCache::Cast(old_data), target_function);
       break;
     case kICDataCid:
-      ASSERT(old_code.ptr() == StubCode::ICCallThroughCode().ptr());
+      ASSERT(old_entry ==
+             StubCode::ICCallThroughCode().MonomorphicEntryPoint());
       DoICDataMissAOT(ICData::Cast(old_data), target_function);
       break;
+    case kMegamorphicCacheCid:
+      ASSERT(old_entry == StubCode::MegamorphicCall().MonomorphicEntryPoint());
+      DoMegamorphicMiss(MegamorphicCache::Cast(old_data), target_function);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
 #else
+
+void PatchableCallHandler::HandleMissJIT(const Object& old_data,
+                                         const Code& old_code,
+                                         const Function& target_function) {
+  switch (old_data.GetClassId()) {
     case kArrayCid:
       // ICData three-element array: Smi(receiver CID), Smi(count),
       // Function(target). It is the Array from ICData::entries_.
@@ -2122,7 +2231,6 @@ void PatchableCallHandler::HandleMiss(const Object& old_data,
     case kICDataCid:
       DoICDataMissJIT(ICData::Cast(old_data), old_code, target_function);
       break;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
     case kMegamorphicCacheCid:
       ASSERT(old_code.ptr() == StubCode::MegamorphicCall().ptr() ||
              (old_code.IsNull() && !should_consider_patching()));
@@ -2132,6 +2240,7 @@ void PatchableCallHandler::HandleMiss(const Object& old_data,
       UNREACHABLE();
   }
 }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 static void InlineCacheMissHandler(Thread* thread,
                                    Zone* zone,
@@ -2432,7 +2541,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
   bool do_reload = false;
   bool do_gc = false;
   const intptr_t isolate_reload_every =
-      isolate->reload_every_n_stack_overflow_checks();
+      isolate->group()->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
       (FLAG_gc_every > 0) || (isolate_reload_every > 0)) {
     if (!Isolate::IsSystemIsolate(isolate)) {
@@ -2450,7 +2559,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
         do_gc = true;
       }
       if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
-        do_reload = isolate->CanReload();
+        do_reload = isolate->group()->CanReload();
       }
     }
   }
@@ -2497,41 +2606,14 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     DeoptimizeFunctionsOnStack();
   }
   if (do_reload) {
-    JSONStream js;
     // Maybe adjust the rate of future reloads.
-    isolate->MaybeIncreaseReloadEveryNStackOverflowChecks();
-
-    const char* script_uri;
-    {
-      NoReloadScope no_reload(isolate, thread);
-      const Library& lib =
-          Library::Handle(isolate_group->object_store()->_internal_library());
-      const Class& cls = Class::Handle(
-          lib.LookupClass(String::Handle(String::New("VMLibraryHooks"))));
-      const Function& func = Function::Handle(Resolver::ResolveFunction(
-          thread->zone(), cls,
-          String::Handle(String::New("get:platformScript"))));
-      Object& result = Object::Handle(
-          DartEntry::InvokeFunction(func, Object::empty_array()));
-      if (result.IsError()) {
-        Exceptions::PropagateError(Error::Cast(result));
-      }
-      if (!result.IsInstance()) {
-        FATAL1("Bad script uri hook: %s", result.ToCString());
-      }
-      result = DartLibraryCalls::ToString(Instance::Cast(result));
-      if (result.IsError()) {
-        Exceptions::PropagateError(Error::Cast(result));
-      }
-      if (!result.IsString()) {
-        FATAL1("Bad script uri hook: %s", result.ToCString());
-      }
-      script_uri = result.ToCString();  // Zone allocated.
-    }
+    isolate_group->MaybeIncreaseReloadEveryNStackOverflowChecks();
 
     // Issue a reload.
-    bool success = isolate->group()->ReloadSources(&js, true /* force_reload */,
-                                                   script_uri);
+    const char* script_uri = isolate_group->source()->script_uri;
+    JSONStream js;
+    const bool success =
+        isolate_group->ReloadSources(&js, /*force_reload=*/true, script_uri);
     if (!success) {
       FATAL1("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
@@ -2558,7 +2640,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
     if (FLAG_stress_async_stacks) {
-      isolate->debugger()->CollectAwaiterReturnStackTrace();
+      DebuggerStackTrace::CollectAwaiterReturn();
     }
   }
   if (do_gc) {
@@ -2724,33 +2806,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(function.HasCode());
 
   if (Compiler::CanOptimizeFunction(thread, function)) {
+    auto isolate_group = thread->isolate_group();
     if (FLAG_background_compilation) {
-      {
-        SafepointWriteRwLocker ml(thread,
-                                  thread->isolate_group()->program_lock());
-        Field& field =
-            Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
-        while (!field.IsNull()) {
-          if (FLAG_trace_optimization || FLAG_trace_field_guards) {
-            THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
-          }
-          field.set_is_unboxing_candidate(false);
-          field.DeoptimizeDependentCode();
-          // Get next field.
-          field = isolate->GetDeoptimizingBoxedField();
-        }
-      }
-      if (!BackgroundCompiler::IsDisabled(isolate,
-                                          /* optimizing_compiler = */ true) &&
-          function.is_background_optimizable()) {
-        // Ensure background compiler is running, if not start it.
-        BackgroundCompiler::Start(isolate);
+      if (isolate_group->background_compiler()->EnqueueCompilation(function)) {
         // Reduce the chance of triggering a compilation while the function is
         // being compiled in the background. INT32_MIN should ensure that it
         // takes long time to trigger a compilation.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT32_MIN);
-        isolate->optimizing_background_compiler()->Compile(function);
         // Continue in the same code.
         arguments.SetReturn(function);
         return;
@@ -2812,7 +2875,11 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
         current_target_code.EntryPoint(),
         current_target_code.is_optimized() ? "optimized" : "unoptimized");
   }
-  ASSERT(!current_target_code.IsDisabled());
+  // With isolate groups enabled, it is possible that the target code
+  // has been deactivated just now(as a result of re-optimizatin for example),
+  // which will result in another run through FixCallersTarget.
+  ASSERT(!current_target_code.IsDisabled() ||
+         IsolateGroup::AreIsolateGroupsEnabled());
   arguments.SetReturn(current_target_code);
 #else
   UNREACHABLE();
@@ -2858,7 +2925,11 @@ DEFINE_RUNTIME_ENTRY(FixCallersTargetMonomorphic, 0) {
         current_target_code.EntryPoint(),
         current_target_code.is_optimized() ? "optimized" : "unoptimized");
   }
-  ASSERT(!current_target_code.IsDisabled());
+  // With isolate groups enabled, it is possible that the target code
+  // has been deactivated just now(as a result of re-optimizatin for example),
+  // which will result in another run through FixCallersTarget.
+  ASSERT(!current_target_code.IsDisabled() ||
+         IsolateGroup::AreIsolateGroupsEnabled());
   arguments.SetReturn(current_target_code);
 #else
   UNREACHABLE();
@@ -2920,7 +2991,9 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
   }
 }
 
-void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
+void DeoptimizeAt(Thread* mutator_thread,
+                  const Code& optimized_code,
+                  StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
 
   // Force-optimized code is optimized code which cannot deoptimize and doesn't
@@ -2940,10 +3013,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   ASSERT(!unoptimized_code.IsNull());
   // The switch to unoptimized code may have already occurred.
   if (function.HasOptimizedCode()) {
-    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    if (function.HasOptimizedCode()) {
-      function.SwitchToUnoptimizedCode();
-    }
+    function.SwitchToUnoptimizedCode();
   }
 
   if (frame->IsMarkedForLazyDeopt()) {
@@ -2961,7 +3031,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 
     // N.B.: Update the pending deopt table before updating the frame. The
     // profiler may attempt a stack walk in between.
-    thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
+    mutator_thread->pending_deopts().AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 
     if (FLAG_trace_deoptimization) {
@@ -2977,17 +3047,49 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
-  DartFrameIterator iterator(Thread::Current(),
-                             StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  Code& optimized_code = Code::Handle();
-  while (frame != NULL) {
-    optimized_code = frame->LookupDartCode();
+  auto thread = Thread::Current();
+  // Have to grab program_lock before stopping everybody else.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  auto isolate_group = thread->isolate_group();
+  isolate_group->RunWithStoppedMutators([&]() {
+    Code& optimized_code = Code::Handle();
+    isolate_group->ForEachIsolate(
+        [&](Isolate* isolate) {
+          auto mutator_thread = isolate->mutator_thread();
+          DartFrameIterator iterator(
+              mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
+          StackFrame* frame = iterator.NextFrame();
+          while (frame != nullptr) {
+            optimized_code = frame->LookupDartCode();
+            if (optimized_code.is_optimized() &&
+                !optimized_code.is_force_optimized()) {
+              DeoptimizeAt(mutator_thread, optimized_code, frame);
+            }
+            frame = iterator.NextFrame();
+          }
+        },
+        /*at_safepoint=*/true);
+  });
+}
+
+static void DeoptimizeLastDartFrameIfOptimized() {
+  auto thread = Thread::Current();
+  // Have to grab program_lock before stopping everybody else.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
+  isolate_group->RunWithStoppedMutators([&]() {
+    auto mutator_thread = isolate->mutator_thread();
+    DartFrameIterator iterator(mutator_thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* frame = iterator.NextFrame();
+    const auto& optimized_code = Code::Handle(frame->LookupDartCode());
     if (optimized_code.is_optimized() && !optimized_code.is_force_optimized()) {
-      DeoptimizeAt(optimized_code, frame);
+      DeoptimizeAt(mutator_thread, optimized_code, frame);
     }
-    frame = iterator.NextFrame();
-  }
+  });
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3070,18 +3172,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
   }
 
   if (is_lazy_deopt != 0u) {
-    uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
-    if (FLAG_trace_deoptimization) {
-      THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n", caller_frame->fp(),
-                deopt_pc);
-    }
+    const uword deopt_pc =
+        thread->pending_deopts().FindPendingDeopt(caller_frame->fp());
 
     // N.B.: Update frame before updating pending deopt table. The profiler
     // may attempt a stack walk in between.
     caller_frame->set_pc(deopt_pc);
     ASSERT(caller_frame->pc() == deopt_pc);
     ASSERT(optimized_code.ContainsInstructionAt(caller_frame->pc()));
-    isolate->ClearPendingDeoptsAtOrBelow(caller_frame->fp());
+    thread->pending_deopts().ClearPendingDeoptsAtOrBelow(
+        caller_frame->fp(), PendingDeopts::kClearDueToDeopt);
   } else {
     if (FLAG_trace_deoptimization) {
       THR_Print("Eager deopt fp=%" Pp " pc=%" Pp "\n", caller_frame->fp(),
@@ -3185,6 +3285,31 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
 #endif  // !PRODUCT
 #endif  // !DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
+}
+
+void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
+  ASSERT(FLAG_deoptimize_on_runtime_call_every > 0);
+  if (FLAG_precompiled_mode) {
+    return;
+  }
+  if (IsolateGroup::IsSystemIsolateGroup(thread->isolate_group())) {
+    return;
+  }
+  const bool is_deopt_related = strstr(runtime_call_name, "Deoptimize") != 0;
+  if (is_deopt_related) {
+    return;
+  }
+  if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
+      (strlen(runtime_call_name) !=
+           strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
+       strstr(runtime_call_name, FLAG_deoptimize_on_runtime_call_name_filter) ==
+           0)) {
+    return;
+  }
+  const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
+  if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
+    DeoptimizeLastDartFrameIfOptimized();
+  }
 }
 
 double DartModulo(double left, double right) {
@@ -3337,6 +3462,18 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     1,
     true /* is_float */,
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    LibcExp,
+    1,
+    true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&exp)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    LibcLog,
+    1,
+    true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&log)));
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;

@@ -19,8 +19,8 @@ class AbstractAnalysisOptionsTest {
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String text,
-          Pattern messageContains,
+          {String? text,
+          Pattern? messageContains,
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,

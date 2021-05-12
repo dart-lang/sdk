@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -24,6 +26,135 @@ import '../../../../abstract_single_unit.dart';
 import '../../../../utils/test_instrumentation_service.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+
+abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
+  /// The errors in the file for which fixes are being computed.
+  List<AnalysisError> _errors;
+
+  /// The source change associated with the fix that was found, or `null` if
+  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
+  SourceChange change;
+
+  /// The result of applying the [change] to the file content, or `null` if
+  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
+  String resultCode;
+
+  /// The workspace in which fixes contributor operates.
+  ChangeWorkspace get workspace {
+    return DartChangeWorkspace([session]);
+  }
+
+  Future<List<AnalysisError>> _computeErrors() async {
+    if (_errors == null) {
+      if (testAnalysisResult != null) {
+        _errors = testAnalysisResult.errors;
+      }
+      if (_errors == null) {
+        var result = await session.getResolvedUnit(testFile);
+        _errors = result.errors;
+      }
+    }
+    return _errors;
+  }
+
+  /// Find the error that is to be fixed by computing the errors in the file,
+  /// using the [errorFilter] to filter out errors that should be ignored, and
+  /// expecting that there is a single remaining error. The error filter should
+  /// return `true` if the error should not be ignored.
+  Future<AnalysisError> _findErrorToFix(
+      bool Function(AnalysisError) errorFilter,
+      {int length}) async {
+    var errors = await _computeErrors();
+    if (errorFilter != null) {
+      if (errors.length == 1) {
+        fail('Unnecessary error filter');
+      }
+      errors = errors.where(errorFilter).toList();
+    }
+    if (errors.isEmpty) {
+      fail('Expected one error, found: none');
+    } else if (errors.length > 1) {
+      var buffer = StringBuffer();
+      buffer.writeln('Expected one error, found:');
+      for (var error in errors) {
+        buffer.writeln('  $error [${error.errorCode}]');
+      }
+      fail(buffer.toString());
+    }
+    return errors[0];
+  }
+
+  Future<AnalysisError> _findErrorToFixOfType(ErrorCode errorCode) async {
+    var errors = await _computeErrors();
+    for (var error in errors) {
+      if (error.errorCode == errorCode) {
+        return error;
+      }
+    }
+    return null;
+  }
+}
+
+/// A base class defining support for writing fix-in-file processor tests.
+abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
+  void assertProduces(Fix fix, String expected) {
+    var fileEdits = fix.change.edits;
+    expect(fileEdits, hasLength(1));
+
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
+
+    var fileContent = testCode;
+    resultCode = SourceEdit.applySequence(fileContent, fileEdits[0].edits);
+    expect(resultCode, expected);
+  }
+
+  Future<List<Fix>> getFixesForFirstError() async {
+    var errors = await _computeErrors();
+    expect(errors, isNotEmpty);
+    String errorCode;
+    for (var error in errors) {
+      errorCode ??= error.errorCode.name;
+      if (errorCode != error.errorCode.name) {
+        fail('Expected only errors of one type but found: $errors');
+      }
+    }
+
+    var fixes = await _computeFixes(errors.first);
+    return fixes;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    verifyNoTestUnitErrors = false;
+    useLineEndingsForPlatform = true;
+  }
+
+  /// Computes fixes for the given [error] in [testUnit].
+  Future<List<Fix>> _computeFixes(AnalysisError error) async {
+    var analysisContext = contextFor(testFile);
+
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    tracker.addContext(analysisContext);
+
+    var context = DartFixContextImpl(
+      TestInstrumentationService(),
+      workspace,
+      testAnalysisResult,
+      error,
+      (name) {
+        var provider = TopLevelDeclarationsProvider(tracker);
+        provider.doTrackerWork();
+        return provider.get(analysisContext, testFile, name);
+      },
+    );
+
+    var fixes = await FixInFileProcessor(context).compute();
+    return fixes;
+  }
+}
 
 /// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
@@ -60,39 +191,25 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 }
 
 /// A base class defining support for writing fix processor tests.
-abstract class FixProcessorTest extends AbstractSingleUnitTest {
-  /// The errors in the file for which fixes are being computed.
-  List<AnalysisError> _errors;
-
-  /// The source change associated with the fix that was found, or `null` if
-  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
-  SourceChange change;
-
-  /// The result of applying the [change] to the file content, or `null` if
-  /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
-  String resultCode;
-
+abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
-
-  /// The workspace in which fixes contributor operates.
-  ChangeWorkspace get workspace {
-    return DartChangeWorkspace([session]);
-  }
 
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError) errorFilter,
       int length,
       String target,
       int expectedNumberOfFixesForKind,
-      String matchFixMessage}) async {
+      String matchFixMessage,
+      bool allowFixAllFixes = false}) async {
     if (useLineEndingsForPlatform) {
       expected = normalizeNewlinesForPlatform(expected);
     }
     var error = await _findErrorToFix(errorFilter, length: length);
     var fix = await _assertHasFix(error,
         expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
-        matchFixMessage: matchFixMessage);
+        matchFixMessage: matchFixMessage,
+        allowFixAllFixes: allowFixAllFixes);
     change = fix.change;
 
     // apply to "file"
@@ -164,6 +281,11 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     await _assertNoFix(error);
   }
 
+  Future<void> assertNoFixAllFix(ErrorCode errorCode) async {
+    var error = await _findErrorToFixOfType(errorCode);
+    await _assertNoFixAllFix(error);
+  }
+
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
@@ -182,7 +304,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// Optionally, if a [matchFixMessage] is passed, then the kind as well as the fix message must
   /// match to be returned.
   Future<Fix> _assertHasFix(AnalysisError error,
-      {int expectedNumberOfFixesForKind, String matchFixMessage}) async {
+      {int expectedNumberOfFixesForKind,
+      String matchFixMessage,
+      bool allowFixAllFixes = false}) async {
     // Compute the fixes for this AnalysisError
     var fixes = await _computeFixes(error);
 
@@ -218,7 +342,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     // Assert that none of the fixes are a fix-all fix.
     Fix foundFix;
     for (var fix in fixes) {
-      if (fix.isFixAllFix()) {
+      if (!allowFixAllFixes && fix.isFixAllFix()) {
         fail('A fix-all fix was found for the error: $error '
             'in the computed set of fixes:\n${fixes.join('\n')}');
       } else if (fix.kind == kind) {
@@ -266,17 +390,17 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     }
   }
 
-  Future<List<AnalysisError>> _computeErrors() async {
-    if (_errors == null) {
-      if (testAnalysisResult != null) {
-        _errors = testAnalysisResult.errors;
-      }
-      if (_errors == null) {
-        var result = await session.getResolvedUnit(testFile);
-        _errors = result.errors;
+  Future<void> _assertNoFixAllFix(AnalysisError error) async {
+    if (!kind.canBeAppliedTogether()) {
+      fail('Expected to find and return fix-all FixKind for $kind, '
+          'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}');
+    }
+    var fixes = await _computeFixes(error);
+    for (var fix in fixes) {
+      if (fix.kind == kind && fix.isFixAllFix()) {
+        fail('Unexpected fix $kind in\n${fixes.join('\n')}');
       }
     }
-    return _errors;
   }
 
   /// Computes fixes for the given [error] in [testUnit].
@@ -298,43 +422,6 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       },
     );
     return await DartFixContributor().computeFixes(context);
-  }
-
-  /// Find the error that is to be fixed by computing the errors in the file,
-  /// using the [errorFilter] to filter out errors that should be ignored, and
-  /// expecting that there is a single remaining error. The error filter should
-  /// return `true` if the error should not be ignored.
-  Future<AnalysisError> _findErrorToFix(
-      bool Function(AnalysisError) errorFilter,
-      {int length}) async {
-    var errors = await _computeErrors();
-    if (errorFilter != null) {
-      if (errors.length == 1) {
-        fail('Unnecessary error filter');
-      }
-      errors = errors.where(errorFilter).toList();
-    }
-    if (errors.isEmpty) {
-      fail('Expected one error, found: none');
-    } else if (errors.length > 1) {
-      var buffer = StringBuffer();
-      buffer.writeln('Expected one error, found:');
-      for (var error in errors) {
-        buffer.writeln('  $error [${error.errorCode}]');
-      }
-      fail(buffer.toString());
-    }
-    return errors[0];
-  }
-
-  Future<AnalysisError> _findErrorToFixOfType(ErrorCode errorCode) async {
-    var errors = await _computeErrors();
-    for (var error in errors) {
-      if (error.errorCode == errorCode) {
-        return error;
-      }
-    }
-    return null;
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {
@@ -362,4 +449,14 @@ mixin WithNullSafetyLintMixin on AbstractContextTest {
       lints: [lintCode],
     );
   }
+}
+
+/// todo (pq): temporary
+extension FixExtension on Fix {
+  bool isFixAllFix() => kind.canBeAppliedTogether();
+}
+
+extension FixKindExtension on FixKind {
+  /// todo (pq): temporary
+  bool canBeAppliedTogether() => priority == DartFixKindPriority.IN_FILE;
 }

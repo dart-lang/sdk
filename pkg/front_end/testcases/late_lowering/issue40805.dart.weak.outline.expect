@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int? _#C#x;
+  field core::bool _#C#x#isSet;
+  synthetic constructor •() → self::C
+    ;
+  get x() → core::int;
+  set x(covariant core::int #t1) → void;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    ;
+  set x(covariant core::num value) → void
+    ;
+}
+static method main() → dynamic
+  ;

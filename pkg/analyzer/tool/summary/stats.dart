@@ -48,7 +48,7 @@ class Stats {
     counts.forEach((Type type, Map<String, int> typeCounts) {
       print(type);
       List<String> keys = typeCounts.keys.toList();
-      keys.sort((String a, String b) => typeCounts[b].compareTo(typeCounts[a]));
+      keys.sort((a, b) => typeCounts[b]!.compareTo(typeCounts[a]!));
       for (String key in keys) {
         print('  $key: ${typeCounts[key]}');
       }
@@ -60,23 +60,23 @@ class Stats {
   void record(SummaryClass obj) {
     Map<String, int> typeCounts =
         counts.putIfAbsent(obj.runtimeType, () => <String, int>{});
-    obj.toMap().forEach((String key, Object value) {
+    obj.toMap().forEach((key, value) {
       if (value == null ||
           value == 0 ||
           value == false ||
           value == '' ||
           value is List && value.isEmpty ||
+          // TODO(srawlins): Remove this and enumerate each enum which may
+          // be encountered.
+          // ignore: avoid_dynamic_calls
           reflect(value).type.isEnum && (value as dynamic).index == 0) {
         return;
       }
-      if (!typeCounts.containsKey(key)) {
-        typeCounts[key] = 0;
-      }
-      typeCounts[key]++;
+      typeCounts.update(key, (value) => value + 1, ifAbsent: () => 0);
       if (value is SummaryClass) {
         record(value);
       } else if (value is List) {
-        value.forEach((Object element) {
+        value.forEach((element) {
           if (element is SummaryClass) {
             record(element);
           }

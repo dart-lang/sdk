@@ -23,7 +23,7 @@
 #if defined(__MAC_10_14) || defined (__IPHONE_12_0)
 #define HOST_OS_SUPPORTS_SIGNPOST 1
 #endif
-//signpost.h exists in macOS 10.14, iOS 12 or above
+// signpost.h exists in macOS 10.14, iOS 12 or above
 #if defined(HOST_OS_SUPPORTS_SIGNPOST)
 #include <os/signpost.h>
 #else
@@ -166,6 +166,7 @@ class Timeline : public AllStatic {
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE
 
+  template <class>
   friend class TimelineRecorderOverride;
   friend class ReclaimBlocksIsolateVisitor;
 };

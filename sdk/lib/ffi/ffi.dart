@@ -24,9 +24,7 @@ part "struct.dart";
 ///
 /// Includes padding and alignment of structs.
 ///
-/// Support for invoking this function with non-constant [T] will be removed in
-/// the next stable version of Dart and it will become mandatory to invoke it
-/// with a compile-time constant [T].
+/// This function must be invoked with a compile-time constant [T].
 external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
@@ -65,9 +63,10 @@ class Pointer<T extends NativeType> extends NativeType {
 
   /// Pointer arithmetic (takes element size into account).
   ///
-  /// Support for invoking this method with non-constant [T] will be removed in
-  /// the next stable version of Dart and it will become mandatory to invoke it
-  /// with a compile-time constant [T].
+  /// This method must be invoked with a compile-time constant [T].
+  ///
+  /// Does not accept dynamic invocations -- where the type of the receiver is
+  /// [dynamic].
   external Pointer<T> elementAt(int index);
 
   /// Cast Pointer<T> to a Pointer<V>.
@@ -84,6 +83,64 @@ class Pointer<T extends NativeType> extends NativeType {
   int get hashCode {
     return address.hashCode;
   }
+}
+
+/// A fixed-sized array of [T]s.
+class Array<T extends NativeType> extends NativeType {
+  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  ///
+  /// ```dart
+  /// class MyStruct extends Struct {
+  ///   @Array(8)
+  ///   external Array<Uint8> inlineArray;
+  ///
+  ///   @Array(2, 2, 2)
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
+  /// }
+  /// ```
+  ///
+  /// Do not invoke in normal code.
+  const factory Array(int dimension1,
+      [int dimension2,
+      int dimension3,
+      int dimension4,
+      int dimension5]) = _ArraySize<T>;
+
+  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  ///
+  /// ```dart
+  /// class MyStruct extends Struct {
+  ///   @Array.multi([2, 2, 2])
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
+  ///
+  ///   @Array.multi([2, 2, 2, 2, 2, 2, 2, 2])
+  ///   external Array<Array<Array<Array<Array<Array<Array<Array<Uint8>>>>>>>> eightDimensionalInlineArray;
+  /// }
+  /// ```
+  ///
+  /// Do not invoke in normal code.
+  const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+}
+
+class _ArraySize<T extends NativeType> implements Array<T> {
+  final int? dimension1;
+  final int? dimension2;
+  final int? dimension3;
+  final int? dimension4;
+  final int? dimension5;
+
+  final List<int>? dimensions;
+
+  const _ArraySize(this.dimension1,
+      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
+      : dimensions = null;
+
+  const _ArraySize.multi(this.dimensions)
+      : dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null;
 }
 
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
@@ -501,6 +558,83 @@ extension DoublePointer on Pointer<Double> {
   external Float64List asTypedList(int length);
 }
 
+/// Bounds checking indexing methods on [Array]s of [Int8].
+extension Int8Array on Array<Int8> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int16].
+extension Int16Array on Array<Int16> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int32].
+extension Int32Array on Array<Int32> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Int64].
+extension Int64Array on Array<Int64> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint8].
+extension Uint8Array on Array<Uint8> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint16].
+extension Uint16Array on Array<Uint16> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint32].
+extension Uint32Array on Array<Uint32> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Uint64].
+extension Uint64Array on Array<Uint64> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [IntPtr].
+extension IntPtrArray on Array<IntPtr> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Float].
+extension FloatArray on Array<Float> {
+  external double operator [](int index);
+
+  external void operator []=(int index, double value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Double].
+extension DoubleArray on Array<Double> {
+  external double operator [](int index);
+
+  external void operator []=(int index, double value);
+}
+
 //
 // End of generated code.
 //
@@ -545,9 +679,7 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
   ///
-  /// Support for invoking this extension method with non-constant [T] will be
-  /// removed in the next stable version of Dart and it will become mandatory
-  /// to invoke it with a compile-time constant [T].
+  /// This extension method must be invoked with a compile-time constant [T].
   external T get ref;
 
   /// Creates a reference to access the fields of this struct backed by native
@@ -556,10 +688,28 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
   ///
-  /// Support for invoking this extension method with non-constant [T] will be
-  /// removed in the next stable version of Dart and it will become mandatory
-  /// to invoke it with a compile-time constant [T].
+  /// This extension method must be invoked with a compile-time constant [T].
   external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Pointer].
+extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
+  external Pointer<T> operator [](int index);
+
+  external void operator []=(int index, Pointer<T> value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Struct].
+extension StructArray<T extends Struct> on Array<T> {
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Array].
+extension ArrayArray<T extends NativeType> on Array<Array<T>> {
+  external Array<T> operator [](int index);
+
+  external void operator []=(int index, Array<T> value);
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].
@@ -598,7 +748,7 @@ abstract class NativeApi {
       get postCObject;
 
   /// A function pointer to
-  /// ```
+  /// ```c
   /// Dart_Port Dart_NewNativePort(const char* name,
   ///                              Dart_NativeMessageHandler handler,
   ///                              bool handle_concurrently)

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-library tests.dart2js.interop_anonymous_unreachable_test;
+library tests.web.interop_anonymous_unreachable_test;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';

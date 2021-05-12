@@ -1,3 +1,4 @@
+// @dart = 2.9
 typedef F<X> = void Function<Y extends X>();
 F<X> toF<X>(X x) => null;
 typedef Fcov<X> = X Function();

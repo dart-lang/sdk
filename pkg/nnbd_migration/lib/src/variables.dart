@@ -187,18 +187,18 @@ class Variables {
         {})[uniqueIdentifierForSpan(node.offset, node.end)];
   }
 
-  /// If the given [node] is preceded by a `/*required*/` hint, returns the
-  /// HintComment for it; otherwise returns `null`.  See [recordRequiredHint].
-  HintComment getRequiredHint(Source source, FormalParameter node) {
-    return (_requiredHints[source] ?? {})[node.offset];
-  }
-
   /// If the given [expression] is followed by a null check hint (`/*!*/`),
   /// returns the HintComment for it; otherwise returns `null`.  See
   /// [recordNullCheckHint].
   HintComment getNullCheckHint(Source source, Expression expression) {
     return (_nullCheckHints[source] ??
         {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
+  }
+
+  /// If the given [node] is preceded by a `/*required*/` hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See [recordRequiredHint].
+  HintComment getRequiredHint(Source source, FormalParameter node) {
+    return (_requiredHints[source] ?? {})[node.offset];
   }
 
   /// Records conditional discard information for the given AST node (which is
@@ -268,12 +268,6 @@ class Variables {
         {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
   }
 
-  /// Records that the given [node] was preceded by a `/*required*/` hint.
-  void recordRequiredHint(
-      Source source, FormalParameter node, HintComment hint) {
-    (_requiredHints[source] ??= {})[node.offset] = hint;
-  }
-
   /// Records that the given [expression] is followed by a null check hint
   /// (`/*!*/`), for later recall by [hasNullCheckHint].
   void recordNullCheckHint(
@@ -281,6 +275,12 @@ class Variables {
     (_nullCheckHints[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         hintComment;
+  }
+
+  /// Records that the given [node] was preceded by a `/*required*/` hint.
+  void recordRequiredHint(
+      Source source, FormalParameter node, HintComment hint) {
+    (_requiredHints[source] ??= {})[node.offset] = hint;
   }
 
   /// Records the fact that prior to migration, an unnecessary cast existed at
@@ -371,7 +371,8 @@ class Variables {
   /// Creates a decorated type for the given [element], which should come from
   /// an already-migrated library (or the SDK).
   DecoratedType _createDecoratedElementType(Element element) {
-    if (_graph.isBeingMigrated(element.library.source)) {
+    if (_graph.isBeingMigrated(element.library.source) &&
+        !_isLoadLibraryElement(element)) {
       var description;
       if (ElementTypeProvider.current is MigrationResolutionHooksImpl) {
         // Don't attempt to call toString() on element, or we will overflow.
@@ -395,7 +396,7 @@ class Variables {
       // case) `Function(T)`. Without this we would get `Function<T>(T)` which
       // is incorrect. This is a known issue with `.type` on typedefs in the
       // analyzer.
-      element = (element as FunctionTypeAliasElement).aliasedElement;
+      element = (element as TypeAliasElement).aliasedElement;
     }
 
     var target = NullabilityNodeTarget.element(element, _getLineInfo);
@@ -428,6 +429,12 @@ class Variables {
     }
     return result;
   }
+
+  bool _isLoadLibraryElement(Element element) =>
+      element.isSynthetic &&
+      element is FunctionElement &&
+      element.enclosingElement is LibraryElement &&
+      element.name == 'loadLibrary';
 
   /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)
   /// pair.

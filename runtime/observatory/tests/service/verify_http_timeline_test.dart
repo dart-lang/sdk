@@ -249,24 +249,6 @@ void hasValidHttpRequests(List traceEvents, String method) {
   for (final event in events) {
     if (isStartEvent(event)) {
       validateHttpStartEvent(event, method);
-      // Check body of request has been sent and recorded correctly.
-      if (method == 'DELETE' || method == 'POST') {
-        final id = event['id'];
-        final bodyEvent =
-            filterEventsByIdAndName(traceEvents, id, 'Request body');
-        // Due to randomness, it doesn't guarantee to have the timeline events.
-        if (bodyEvent.length == 1) {
-          if (method == 'POST') {
-            // add() was used
-            Expect.listEquals(
-                <int>[0, 1, 2], bodyEvent[0]['args']['encodedData']);
-          } else {
-            // write() was used.
-            Expect.isTrue(
-                bodyEvent[0]['args']['data'].startsWith('$method http'));
-          }
-        }
-      }
     } else if (isFinishEvent(event)) {
       validateHttpFinishEvent(event);
     } else {

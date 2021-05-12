@@ -205,15 +205,10 @@ void Assembler::Bind(Label* label) {
 }
 
 static int CountLeadingZeros(uint64_t value, int width) {
-  ASSERT((width == 32) || (width == 64));
-  if (value == 0) {
-    return width;
-  }
-  int count = 0;
-  do {
-    count++;
-  } while (value >>= 1);
-  return width - count;
+  if (width == 64) return Utils::CountLeadingZeros64(value);
+  if (width == 32) return Utils::CountLeadingZeros32(value);
+  UNREACHABLE();
+  return 0;
 }
 
 static int CountOneBits(uint64_t value, int width) {
@@ -240,7 +235,9 @@ static int CountOneBits(uint64_t value, int width) {
 bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
   ASSERT(imm_op != NULL);
   ASSERT((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
-  ASSERT((width == kXRegSizeInBits) || (value <= 0xffffffffUL));
+  if (width == kWRegSizeInBits) {
+    value &= 0xffffffffUL;
+  }
   uint8_t n = 0;
   uint8_t imm_s = 0;
   uint8_t imm_r = 0;
@@ -466,6 +463,10 @@ void Assembler::LoadIsolate(Register dst) {
   ldr(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadIsolateGroup(Register rd) {
+  ldr(rd, Address(THR, target::Thread::isolate_group_offset()));
+}
+
 void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
@@ -528,16 +529,16 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
   if (IsSameObject(compiler::NullObject(), object)) {
-    CompareRegisters(reg, NULL_REG);
+    CompareObjectRegisters(reg, NULL_REG);
   } else if (target::CanLoadFromThread(object, &offset)) {
     ldr(TMP, Address(THR, offset));
-    CompareRegisters(reg, TMP);
+    CompareObjectRegisters(reg, TMP);
   } else if (CanLoadFromObjectPool(object)) {
     LoadObject(TMP, object);
-    CompareRegisters(reg, TMP);
+    CompareObjectRegisters(reg, TMP);
   } else {
     ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, target::ToRawSmi(object));
+    CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   }
 }
 
@@ -666,7 +667,12 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
+void Assembler::AddImmediate(Register dest,
+                             Register rn,
+                             int64_t imm,
+                             OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand op;
   if (imm == 0) {
     if (dest != rn) {
@@ -674,16 +680,15 @@ void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
     }
     return;
   }
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
-    add(dest, rn, op);
-  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
-             Operand::Immediate) {
-    sub(dest, rn, op);
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
+    add(dest, rn, op, sz);
+  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+    sub(dest, rn, op, sz);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    add(dest, rn, Operand(TMP2));
+    add(dest, rn, Operand(TMP2), sz);
   }
 }
 
@@ -692,31 +697,19 @@ void Assembler::AddImmediateSetFlags(Register dest,
                                      int64_t imm,
                                      OperandSize sz) {
   ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand op;
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kEightBytes) {
-      adds(dest, rn, op);
-    } else {
-      addsw(dest, rn, op);
-    }
-  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
-             Operand::Immediate) {
+    adds(dest, rn, op, sz);
+  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kEightBytes) {
-      subs(dest, rn, op);
-    } else {
-      subsw(dest, rn, op);
-    }
+    subs(dest, rn, op, sz);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kEightBytes) {
-      adds(dest, rn, Operand(TMP2));
-    } else {
-      addsw(dest, rn, Operand(TMP2));
-    }
+    adds(dest, rn, Operand(TMP2), sz);
   }
 }
 
@@ -724,86 +717,93 @@ void Assembler::SubImmediateSetFlags(Register dest,
                                      Register rn,
                                      int64_t imm,
                                      OperandSize sz) {
-  Operand op;
   ASSERT(sz == kEightBytes || sz == kFourBytes);
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
+  Operand op;
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
-    if (sz == kEightBytes) {
-      subs(dest, rn, op);
-    } else {
-      subsw(dest, rn, op);
-    }
-  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
-             Operand::Immediate) {
+    subs(dest, rn, op, sz);
+  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
-    if (sz == kEightBytes) {
-      adds(dest, rn, op);
-    } else {
-      addsw(dest, rn, op);
-    }
+    adds(dest, rn, op, sz);
   } else {
     // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    if (sz == kEightBytes) {
-      subs(dest, rn, Operand(TMP2));
-    } else {
-      subsw(dest, rn, Operand(TMP2));
-    }
+    subs(dest, rn, Operand(TMP2), sz);
   }
 }
 
-void Assembler::AndImmediate(Register rd, Register rn, int64_t imm) {
+void Assembler::AndImmediate(Register rd,
+                             Register rn,
+                             int64_t imm,
+                             OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    andi(rd, rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    andi(rd, rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    and_(rd, rn, Operand(TMP));
+    and_(rd, rn, Operand(TMP), sz);
   }
 }
 
-void Assembler::OrImmediate(Register rd, Register rn, int64_t imm) {
+void Assembler::OrImmediate(Register rd,
+                            Register rn,
+                            int64_t imm,
+                            OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    orri(rd, rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    orri(rd, rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    orr(rd, rn, Operand(TMP));
+    orr(rd, rn, Operand(TMP), sz);
   }
 }
 
-void Assembler::XorImmediate(Register rd, Register rn, int64_t imm) {
+void Assembler::XorImmediate(Register rd,
+                             Register rn,
+                             int64_t imm,
+                             OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    eori(rd, rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    eori(rd, rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    eor(rd, rn, Operand(TMP));
+    eor(rd, rn, Operand(TMP), sz);
   }
 }
 
-void Assembler::TestImmediate(Register rn, int64_t imm) {
+void Assembler::TestImmediate(Register rn, int64_t imm, OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    tsti(rn, Immediate(imm));
+  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+    tsti(rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
-    tst(rn, Operand(TMP));
+    tst(rn, Operand(TMP), sz);
   }
 }
 
-void Assembler::CompareImmediate(Register rn, int64_t imm) {
+void Assembler::CompareImmediate(Register rn, int64_t imm, OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand op;
-  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
-    cmp(rn, op);
-  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), kXRegSizeInBits,
-                              &op) == Operand::Immediate) {
-    cmn(rn, op);
+  if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
+    cmp(rn, op, sz);
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
+    cmn(rn, op, sz);
   } else {
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    cmp(rn, Operand(TMP2));
+    cmp(rn, Operand(TMP2), sz);
   }
 }
 
@@ -924,6 +924,29 @@ void Assembler::VRSqrts(VRegister vd, VRegister vn) {
   vmuls(vd, vd, VTMP);
 }
 
+void Assembler::LoadCompressed(Register dest, const Address& slot) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  ldr(dest, slot);
+#else
+  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+  add(dest, dest, Operand(HEAP_BASE));
+#endif
+}
+
+void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  ldr(dest, slot);
+#else
+  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+#endif
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done);
+  Stop("Expected Smi");
+  Bind(&done);
+#endif
+}
+
 // Preserves object and value registers.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
@@ -974,10 +997,38 @@ void Assembler::StoreIntoObjectOffset(Register object,
   }
 }
 
+void Assembler::StoreCompressedIntoObjectOffset(Register object,
+                                                int32_t offset,
+                                                Register value,
+                                                CanBeSmi value_can_be_smi) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreCompressedIntoObject(object, FieldAddress(object, offset), value,
+                              value_can_be_smi);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreCompressedIntoObject(object, Address(TMP), value, value_can_be_smi);
+  }
+}
+
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi) {
+  str(value, dest);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoObject(Register object,
+                                          const Address& dest,
+                                          Register value,
+                                          CanBeSmi can_be_smi) {
+  str(value, dest, kObjectBytes);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreBarrier(Register object,
+                             Register value,
+                             CanBeSmi can_be_smi) {
   const bool spill_lr = lr_state().LRContainsReturnAddress();
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
@@ -987,8 +1038,6 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != TMP2);
   ASSERT(value != TMP);
   ASSERT(value != TMP2);
-
-  str(value, dest);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1113,6 +1162,25 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   Register value) {
+  str(value, dest, kObjectBytes);
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
+  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  b(&done, ZERO);
+
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                Register value) {
@@ -1121,6 +1189,18 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
     StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                         int32_t offset,
+                                                         Register value) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
   }
 }
 
@@ -1138,6 +1218,20 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   }
 }
 
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   const Object& value) {
+  ASSERT(IsOriginalObject(value));
+  ASSERT(IsNotTemporaryScopedHandle(value));
+  // No store buffer update.
+  if (IsSameObject(compiler::NullObject(), value)) {
+    str(NULL_REG, dest, kObjectBytes);
+  } else {
+    LoadObject(TMP2, value);
+    str(TMP2, dest, kObjectBytes);
+  }
+}
+
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                const Object& value) {
@@ -1146,6 +1240,18 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
     StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                         int32_t offset,
+                                                         const Object& value) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
   }
 }
 
@@ -1184,9 +1290,9 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 
   const intptr_t table_offset =
-      target::Isolate::cached_class_table_table_offset();
+      target::IsolateGroup::cached_class_table_table_offset();
 
-  LoadIsolate(result);
+  LoadIsolateGroup(result);
   LoadFromOffset(result, result, table_offset);
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
@@ -1259,6 +1365,9 @@ void Assembler::RestorePinnedRegisters() {
   ldr(BARRIER_MASK,
       compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
   ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
+#if defined(DART_COMPRESSED_POINTERS)
+  ldr(HEAP_BASE, compiler::Address(THR, target::Thread::heap_base_offset()));
+#endif
 }
 
 void Assembler::SetupGlobalPoolAndDispatchTable() {
@@ -1717,12 +1826,12 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(cid > 0);
 
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::IsolateGroup::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
-  LoadIsolate(temp_reg);
+  LoadIsolateGroup(temp_reg);
   ldr(temp_reg, Address(temp_reg, shared_table_offset));
   ldr(temp_reg, Address(temp_reg, table_offset));
   AddImmediate(temp_reg, class_offset);
@@ -1880,15 +1989,33 @@ Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
   const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
+#if !defined(DART_COMPRESSED_POINTERS)
+  const bool index_is_32bit = false;
+#else
+  const bool index_is_32bit = !index_unboxed;
+#endif
   ASSERT(array != temp);
   ASSERT(index != temp);
   if ((offset == 0) && (shift == 0)) {
-    return Address(array, index, UXTX, Address::Unscaled);
+    if (index_is_32bit) {
+      return Address(array, index, SXTW, Address::Unscaled);
+    } else {
+      return Address(array, index, UXTX, Address::Unscaled);
+    }
   } else if (shift < 0) {
     ASSERT(shift == -1);
-    add(temp, array, Operand(index, ASR, 1));
+    if (index_is_32bit) {
+      AsrImmediate(temp, index, 1, kFourBytes);
+      add(temp, array, Operand(temp, SXTW, 0));
+    } else {
+      add(temp, array, Operand(index, ASR, 1));
+    }
   } else {
-    add(temp, array, Operand(index, LSL, shift));
+    if (index_is_32bit) {
+      add(temp, array, Operand(index, SXTW, shift));
+    } else {
+      add(temp, array, Operand(index, LSL, shift));
+    }
   }
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(temp, offset, Address::Offset, size);
@@ -1905,13 +2032,31 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
   const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
+#if !defined(DART_COMPRESSED_POINTERS)
+  const bool index_is_32bit = false;
+#else
+  const bool index_is_32bit = !index_unboxed;
+#endif
   if (shift == 0) {
-    add(address, array, Operand(index));
+    if (index_is_32bit) {
+      add(address, array, Operand(index, SXTW, 0));
+    } else {
+      add(address, array, Operand(index));
+    }
   } else if (shift < 0) {
     ASSERT(shift == -1);
-    add(address, array, Operand(index, ASR, 1));
+    if (index_is_32bit) {
+      sxtw(index, index);
+      add(address, array, Operand(index, ASR, 1));
+    } else {
+      add(address, array, Operand(index, ASR, 1));
+    }
   } else {
-    add(address, array, Operand(index, LSL, shift));
+    if (index_is_32bit) {
+      add(address, array, Operand(index, SXTW, shift));
+    } else {
+      add(address, array, Operand(index, LSL, shift));
+    }
   }
   if (offset != 0) {
     AddImmediate(address, offset);
@@ -2027,7 +2172,7 @@ void Assembler::PopNativeCalleeSavedRegisters() {
   }
 }
 
-bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
+bool Assembler::CanGenerateCbzTbz(Register rn, Condition cond) {
   if (rn == CSP) {
     return false;
   }
@@ -2044,9 +2189,12 @@ bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
   }
 }
 
-void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
-  constexpr int32_t bit_no = 63;
-  constexpr OperandSize sz = kEightBytes;
+void Assembler::GenerateCbzTbz(Register rn,
+                               Condition cond,
+                               Label* label,
+                               OperandSize sz) {
+  ASSERT((sz == kEightBytes) || (sz == kFourBytes));
+  const int32_t sign_bit = sz == kEightBytes ? 63 : 31;
   ASSERT(rn != CSP);
   switch (cond) {
     case EQ:  // equal
@@ -2057,11 +2205,11 @@ void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
       return;
     case MI:  // minus/negative
     case LT:  // signed less than
-      tbnz(label, rn, bit_no);
+      tbnz(label, rn, sign_bit);
       return;
     case PL:  // plus/positive or zero
     case GE:  // signed greater than or equal
-      tbz(label, rn, bit_no);
+      tbz(label, rn, sign_bit);
       return;
     default:
       // Only conditions above allow single instruction emission.

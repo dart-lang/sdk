@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -299,8 +301,10 @@ class AssistProcessor extends BaseProcessor {
     var map = <ProducerGenerator, Set<String>>{};
     for (var entry in FixProcessor.lintProducerMap.entries) {
       var lintName = entry.key;
-      for (var generator in entry.value) {
-        map.putIfAbsent(generator, () => <String>{}).add(lintName);
+      for (var fix in entry.value) {
+        for (var generator in fix.generators) {
+          map.putIfAbsent(generator, () => <String>{}).add(lintName);
+        }
       }
     }
     return map;

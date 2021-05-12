@@ -1,5 +1,0 @@
-// @dart = 2.6
-export 'dart:core' show print;
-import 'dart:developer' show UserTag;
-
-main() {}

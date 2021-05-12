@@ -9,25 +9,42 @@ import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 import 'test_helper.dart';
 
+@pragma("vm:entry-point") // Prevent obfuscation
 var int8List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var int16List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var int32List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var int64List;
 
+@pragma("vm:entry-point") // Prevent obfuscation
 var uint8List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var uint16List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var uint32List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var uint64List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var uint8ClampedList;
 
+@pragma("vm:entry-point") // Prevent obfuscation
 var float32List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var float64List;
 
+@pragma("vm:entry-point") // Prevent obfuscation
 var int32x4;
+@pragma("vm:entry-point") // Prevent obfuscation
 var float32x4;
+@pragma("vm:entry-point") // Prevent obfuscation
 var float64x2;
+@pragma("vm:entry-point") // Prevent obfuscation
 var int32x4List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var float32x4List;
+@pragma("vm:entry-point") // Prevent obfuscation
 var float64x2List;
 
 void script() {

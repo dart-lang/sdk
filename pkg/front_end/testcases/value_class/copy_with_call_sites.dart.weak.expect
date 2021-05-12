@@ -108,7 +108,7 @@ Try correcting the name to the name of an existing method, or defining a method 
   self::Cat cat5 = (let final dynamic #t3 = cat as{ForNonNullableByDefault} dynamic in #t3.copyWith(numberOfWhiskers: #t3.numberOfWhiskers, numberOfLegs: #t3.numberOfLegs)) as{ForNonNullableByDefault} self::Cat;
   self::Cat cat6 = (let final dynamic #t4 = cat as{ForNonNullableByDefault} dynamic in #t4.copyWith(numberOfWhiskers: 4, numberOfLegs: #t4.numberOfLegs)) as{ForNonNullableByDefault} self::Cat;
   self::A a;
-  self::A a2 = (let final dynamic #t5 = (let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:43:10: Error: Non-nullable variable 'a' must be assigned before it can be used.
+  self::A a2 = (let final dynamic #t5 = (let final Never #t6 = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:43:10: Error: Non-nullable variable 'a' must be assigned before it can be used.
  A a2 = (a as dynamic).copyWith(x: 42, y: 42) as A;
          ^" in a) as{ForNonNullableByDefault} dynamic in #t5.copyWith()) as{ForNonNullableByDefault} self::A;
   self::Foo foo = new self::Foo::•(bar: 4, bar2: 5);

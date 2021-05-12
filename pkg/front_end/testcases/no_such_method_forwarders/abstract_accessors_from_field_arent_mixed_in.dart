@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+// @dart=2.9
 // This test checks that noSuchMethod forwarders that were generated for
 // abstract accessors declared via field in an interface don't override concrete
 // getters and setters in the mixin application.

@@ -7,7 +7,6 @@
 library compiler_helper;
 
 import 'dart:async';
-import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -18,7 +17,6 @@ import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
 import 'memory_compiler.dart';
-import 'output_collector.dart';
 
 export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
@@ -27,12 +25,10 @@ export 'package:compiler/src/util/util.dart';
 export 'output_collector.dart';
 
 String _commonTestPath(bool soundNullSafety) {
-  // Pretend this is a dart2js_native test to allow use of 'native' keyword
+  // Pretend this is a web/native test to allow use of 'native' keyword
   // and import of private libraries. However, we have to choose the correct
   // folder to enable / disable  implicit cfe opt out of null safety.
-  return soundNullSafety
-      ? 'sdk/tests/dart2js/native'
-      : 'sdk/tests/dart2js_2/native';
+  return soundNullSafety ? 'sdk/tests/web/native' : 'sdk/tests/web_2/native';
 }
 
 /// Compile [code] and returns either the code for [methodName] or, if
@@ -48,6 +44,7 @@ Future<String> compile(String code,
     bool disableInlining: true,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
+    bool enableTripleShift: false, // TODO(30890): remove.
     bool enableVariance: false,
     void check(String generatedEntry),
     bool returnAll: false,
@@ -68,6 +65,9 @@ Future<String> compile(String code,
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
+  }
+  if (enableTripleShift) {
+    options.add('${Flags.enableLanguageExperiments}=triple-shift');
   }
   if (enableVariance) {
     options.add('${Flags.enableLanguageExperiments}=variance');

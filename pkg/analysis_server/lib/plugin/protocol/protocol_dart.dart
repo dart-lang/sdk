@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Utilities for converting Dart entities into analysis server's protocol
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
@@ -10,25 +12,29 @@ import 'package:path/path.dart' as pathos;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
 Element convertElement(engine.Element element) {
+  var kind = convertElementToElementKind(element);
   var name = getElementDisplayName(element);
   var elementTypeParameters = _getTypeParametersString(element);
+  var aliasedType = getAliasedTypeString(element);
   var elementParameters = _getParametersString(element);
   var elementReturnType = getReturnTypeString(element);
-  var kind = convertElementToElementKind(element);
   return Element(
-      kind,
-      name,
-      Element.makeFlags(
-          isPrivate: element.isPrivate,
-          isDeprecated: element.hasDeprecated,
-          isAbstract: _isAbstract(element),
-          isConst: _isConst(element),
-          isFinal: _isFinal(element),
-          isStatic: _isStatic(element)),
-      location: newLocation_fromElement(element),
-      typeParameters: elementTypeParameters,
-      parameters: elementParameters,
-      returnType: elementReturnType);
+    kind,
+    name,
+    Element.makeFlags(
+      isPrivate: element.isPrivate,
+      isDeprecated: element.hasDeprecated,
+      isAbstract: _isAbstract(element),
+      isConst: _isConst(element),
+      isFinal: _isFinal(element),
+      isStatic: _isStatic(element),
+    ),
+    location: newLocation_fromElement(element),
+    typeParameters: elementTypeParameters,
+    aliasedType: aliasedType,
+    parameters: elementParameters,
+    returnType: elementReturnType,
+  );
 }
 
 /// Return a protocol [ElementKind] corresponding to the given
@@ -91,6 +97,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   }
   if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
     return ElementKind.TOP_LEVEL_VARIABLE;
+  }
+  if (kind == engine.ElementKind.TYPE_ALIAS) {
+    return ElementKind.TYPE_ALIAS;
   }
   if (kind == engine.ElementKind.TYPE_PARAMETER) {
     return ElementKind.TYPE_PARAMETER;
@@ -159,7 +168,9 @@ String _getParametersString(engine.Element element) {
         closeOptionalString = ']';
       }
     }
-    if (parameter.hasRequired) {
+    if (parameter.isRequiredNamed) {
+      sb.write('required ');
+    } else if (parameter.hasRequired) {
       sb.write('@required ');
     }
     parameter.appendToWithoutDelimiters(sb, withNullability: false);
@@ -172,7 +183,7 @@ String _getTypeParametersString(engine.Element element) {
   List<engine.TypeParameterElement> typeParameters;
   if (element is engine.ClassElement) {
     typeParameters = element.typeParameters;
-  } else if (element is engine.FunctionTypeAliasElement) {
+  } else if (element is engine.TypeAliasElement) {
     typeParameters = element.typeParameters;
   }
   if (typeParameters == null || typeParameters.isEmpty) {
@@ -224,7 +235,15 @@ bool _isStatic(engine.Element element) {
 /// Sort required named parameters before optional ones.
 int _preferRequiredParams(
     engine.ParameterElement e1, engine.ParameterElement e2) {
-  var rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
-  var rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
+  var rank1 = (e1.isRequiredNamed || e1.hasRequired)
+      ? 0
+      : !e1.isNamed
+          ? -1
+          : 1;
+  var rank2 = (e2.isRequiredNamed || e2.hasRequired)
+      ? 0
+      : !e2.isNamed
+          ? -1
+          : 1;
   return rank1 - rank2;
 }

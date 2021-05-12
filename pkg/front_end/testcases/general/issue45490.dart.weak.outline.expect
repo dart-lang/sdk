@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue45490.dart:7:29: Error: Expected '>' after this.
+// class test<X extends A> = A<X extends A<X>>;
+//                             ^
+//
+// pkg/front_end/testcases/general/issue45490.dart:7:44: Error: Expected 'with' before this.
+// class test<X extends A> = A<X extends A<X>>;
+//                                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    ;
+}
+static method main() → dynamic
+  ;

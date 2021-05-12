@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.42
+# Dart VM Service Protocol 3.44
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.42_ of the Dart VM Service Protocol. This
+This document describes of _version 3.44_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -39,6 +39,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
+  - [getAllocationTraces](#getallocationtraces)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
@@ -70,6 +71,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
   - [setName](#setname)
+  - [setTraceClassAllocation](#settraceclassallocation)
   - [setVMName](#setvmname)
   - [setVMTimelineFlags](#setvmtimelineflags)
   - [streamCancel](#streamcancel)
@@ -728,6 +730,26 @@ collection will be actually be performed.
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
+### getAllocationTraces
+
+```
+CpuSamples getAllocationTraces(string isolateId, int timeOriginMicros [optional], int timeExtentMicros [optional], string classId [optional])
+```
+
+The _getAllocationTraces_ RPC allows for the retrieval of allocation traces for objects of a
+specific set of types (see [setTraceClassAllocation](#setTraceClassAllocation)). Only samples
+collected in the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
+reported.
+
+If `classId` is provided, only traces for allocations with the matching `classId` will be
+reported.
+
+If the profiler is disabled, an RPC error response will be returned.
+
+If isolateId refers to an isolate which has exited, then the Collected Sentinel is returned.
+
+See [CpuSamples](#cpusamples).
+
 ### getClassList
 
 ```
@@ -1361,6 +1383,20 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
 
+### setTraceClassAllocation
+
+```
+Success|Sentinel setTraceClassAllocation(string isolateId, string classId, bool enable)
+```
+
+The _setTraceClassAllocation_ RPC allows for enabling or disabling allocation tracing for a specific type of object. Allocation traces can be retrieved with the _getAllocationTraces_ RPC.
+
+If `enable` is true, allocations of objects of the class represented by `classId` will be traced.
+
+If `isolateId` refers to an isolate which has exited, then the _Collected_ [Sentinel](#sentinel) is returned.
+
+See [Success](#success).
+
 ### setVMName
 
 ```
@@ -1648,6 +1684,9 @@ class Class extends Object {
   // Is this a const class?
   bool const;
 
+  // Are allocations of this class being traced?
+  bool traceAllocations;
+
   // The library which contains this class.
   @Library library;
 
@@ -1802,7 +1841,10 @@ class CpuSamples extends Response {
   // The number of samples returned.
   int sampleCount;
 
-  // The timespan the set of returned samples covers, in microseconds.
+  // The timespan the set of returned samples covers, in microseconds (deprecated).
+  //
+  // Note: this property is deprecated and will always return -1. Use `timeExtentMicros`
+  // instead.
   int timeSpan;
 
   // The start of the period of time in which the returned samples were
@@ -1861,6 +1903,15 @@ class CpuSample {
   // `functions[stack[1]] = @Function(foo())`
   // `functions[stack[2]] = @Function(main())`
   int[] stack;
+
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot. Provided for
+  // CpuSample instances returned from a getAllocationTraces().
+  int identityHashCode [optional];
+
+  // Matches the index of a class in HeapSnapshot.classes. Provided for
+  // CpuSample instances returned from a getAllocationTraces().
+  int classId [optional];
 }
 ```
 
@@ -2361,6 +2412,11 @@ class @Instance extends @Object {
   // What kind of instance is this?
   InstanceKind kind;
 
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot and
+  // CpuSample's returned by getAllocationTraces().
+  int identityHashCode;
+
   // Instance references always include their class.
   @Class class;
 
@@ -2472,6 +2528,11 @@ _@Instance_ is a reference to an _Instance_.
 class Instance extends Object {
   // What kind of instance is this?
   InstanceKind kind;
+
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot and
+  // CpuSample's returned by getAllocationTraces().
+  int identityHashCode;
 
   // Instance references always include their class.
   @Class class;
@@ -3948,5 +4009,7 @@ version | comments
 3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
 3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
 3.42 | Added `limit` optional parameter to `getStack` RPC.
+3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces` and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and `classId` properties, updated `Class` to include `traceAllocations` property.
+3.44 | Added `identityHashCode` property to `@Instance` and `Instance`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

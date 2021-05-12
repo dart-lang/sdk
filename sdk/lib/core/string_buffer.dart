@@ -24,7 +24,7 @@ class StringBuffer implements StringSink {
   /// operation.
   bool get isNotEmpty => !isEmpty;
 
-  /// Adds the string representatoon of [object] to the buffer.
+  /// Adds the string representation of [object] to the buffer.
   external void write(Object? object);
 
   /// Adds the string representation of [charCode] to the buffer.
@@ -35,7 +35,7 @@ class StringBuffer implements StringSink {
   /// Writes all [objects] separated by [separator].
   ///
   /// Writes each individual object in [objects] in iteration order,
-  /// and writes [separtor] between any two objects.
+  /// and writes [separator] between any two objects.
   external void writeAll(Iterable<dynamic> objects, [String separator = ""]);
 
   external void writeln([Object? obj = ""]);

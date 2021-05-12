@@ -52,9 +52,9 @@ enum Register {
   R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia.
   R19 = 19,
   R20 = 20,
-  R21 = 21,
+  R21 = 21,  // DISPATCH_TABLE_REG
   R22 = 22,  // NULL_REG
-  R23 = 23,
+  R23 = 23,  // HEAP_BASE
   R24 = 24,
   R25 = 25,
   R26 = 26,  // THR
@@ -143,6 +143,7 @@ const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 const Register BARRIER_MASK = R28;
 const Register NULL_REG = R22;  // Caches NullObject() value.
+const Register HEAP_BASE = R23;
 
 // ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
@@ -303,6 +304,14 @@ struct AllocateTypedDataArrayABI {
   static const Register kResultReg = R0;
 };
 
+// ABI for DispatchTableNullErrorStub and consequently for all dispatch
+// table calls (though normal functions will not expect or use this
+// register). This ABI is added to distinguish memory corruption errors from
+// null errors.
+struct DispatchTableNullErrorABI {
+  static const Register kClassIdReg = R0;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 
@@ -325,7 +334,7 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 const RegList kAbiArgumentCpuRegs =
     R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
 #if defined(TARGET_OS_FUCHSIA)
-// We rely on R18 not bying touched by Dart generated assembly or stubs at all.
+// We rely on R18 not being touched by Dart generated assembly or stubs at all.
 // We rely on that any calls into C++ also preserve R18.
 const RegList kAbiPreservedCpuRegs = R(R18) | R(R19) | R(R20) | R(R21) |
                                      R(R22) | R(R23) | R(R24) | R(R25) |
@@ -345,12 +354,12 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
-const intptr_t kReservedCpuRegisters = R(SPREG) |  // Dart SP
-                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
-                                       R(THR) | R(LR) | R(BARRIER_MASK) |
-                                       R(NULL_REG) | R(R31) |  // C++ SP
-                                       R(R18) | R(DISPATCH_TABLE_REG);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 12;
+const intptr_t kReservedCpuRegisters =
+    R(SPREG) |  // Dart SP
+    R(FPREG) | R(TMP) | R(TMP2) | R(PP) | R(THR) | R(LR) | R(BARRIER_MASK) |
+    R(NULL_REG) | R(HEAP_BASE) | R(R31) |  // C++ SP
+    R(R18) | R(DISPATCH_TABLE_REG);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 13;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -365,7 +374,7 @@ const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
 // Two callee save scratch registers used by leaf runtime call sequence.
-const Register kCallLeafRuntimeCalleeSaveScratch1 = R23;
+const Register kCallLeafRuntimeCalleeSaveScratch1 = R20;
 const Register kCallLeafRuntimeCalleeSaveScratch2 = R25;
 static_assert((R(kCallLeafRuntimeCalleeSaveScratch1) & kAbiPreservedCpuRegs) !=
                   0,
@@ -940,14 +949,14 @@ enum Shift {
 
 enum Extend {
   kNoExtend = -1,
-  UXTB = 0,
-  UXTH = 1,
-  UXTW = 2,
-  UXTX = 3,
-  SXTB = 4,
-  SXTH = 5,
-  SXTW = 6,
-  SXTX = 7,
+  UXTB = 0,  // Zero extend byte.
+  UXTH = 1,  // Zero extend halfword (16 bits).
+  UXTW = 2,  // Zero extend word (32 bits).
+  UXTX = 3,  // Zero extend doubleword (64 bits).
+  SXTB = 4,  // Sign extend byte.
+  SXTH = 5,  // Sign extend halfword (16 bits).
+  SXTW = 6,  // Sign extend word (32 bits).
+  SXTX = 7,  // Sign extend doubleword (64 bits).
   kMaxExtend = 8,
 };
 

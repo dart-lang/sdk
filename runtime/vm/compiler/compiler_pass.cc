@@ -8,9 +8,7 @@
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph_checker.h"
-#include "vm/compiler/backend/il_deserializer.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
@@ -80,14 +78,6 @@ DEFINE_OPTION_HANDLER(CompilerPass::ParseFilters,
                       "List of comma separated compilation passes flags. "
                       "Use -Name to disable a pass, Name to print IL after it. "
                       "Do --compiler-passes=help for more information.");
-DEFINE_FLAG(bool,
-            early_round_trip_serialization,
-            false,
-            "Perform early round trip serialization compiler pass.");
-DEFINE_FLAG(bool,
-            late_round_trip_serialization,
-            false,
-            "Perform late round trip serialization compiler pass.");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
@@ -286,9 +276,6 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
     PipelineMode mode,
     CompilerPassState* pass_state) {
   INVOKE_PASS(ComputeSSA);
-  if (FLAG_early_round_trip_serialization) {
-    INVOKE_PASS(RoundTripSerialization);
-  }
   INVOKE_PASS(SetOuterInliningId);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(Canonicalize);
@@ -309,10 +296,6 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS_AOT(DelayAllocations);
   INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
-  INVOKE_PASS_AOT(SerializeGraph);
-  if (FLAG_late_round_trip_serialization) {
-    INVOKE_PASS(RoundTripSerialization);
-  }
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
   return pass_state->flow_graph();
@@ -321,9 +304,6 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
 FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
                                      CompilerPassState* pass_state) {
   INVOKE_PASS(ComputeSSA);
-  if (FLAG_early_round_trip_serialization) {
-    INVOKE_PASS(RoundTripSerialization);
-  }
   INVOKE_PASS_AOT(ApplyClassIds);
   INVOKE_PASS_AOT(TypePropagation);
   INVOKE_PASS(ApplyICData);
@@ -382,12 +362,6 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
   INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
-  // If we are serializing the flow graph, do it now before we start
-  // doing register allocation.
-  INVOKE_PASS_AOT(SerializeGraph);
-  if (FLAG_late_round_trip_serialization) {
-    INVOKE_PASS(RoundTripSerialization);
-  }
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
   return pass_state->flow_graph();
@@ -575,28 +549,5 @@ COMPILER_PASS(FinalizeGraph, {
   // Remove redefinitions for the rest of the pipeline.
   flow_graph->RemoveRedefinitions();
 });
-
-#if defined(DART_PRECOMPILER)
-COMPILER_PASS(SerializeGraph, {
-  if (state->precompiler == nullptr) return false;
-  if (auto stream = state->precompiler->il_serialization_stream()) {
-    auto file_write = Dart::file_write_callback();
-    ASSERT(file_write != nullptr);
-
-    const intptr_t kInitialBufferSize = 1 * MB;
-    TextBuffer buffer(kInitialBufferSize);
-    StackZone stack_zone(Thread::Current());
-    FlowGraphSerializer::SerializeToBuffer(stack_zone.GetZone(), flow_graph,
-                                           &buffer);
-
-    file_write(buffer.buffer(), buffer.length(), stream);
-  }
-});
-#endif
-
-COMPILER_PASS(RoundTripSerialization, {
-  FlowGraphDeserializer::RoundTripSerialization(state);
-  ASSERT(state->flow_graph() != nullptr);
-})
 
 }  // namespace dart

@@ -1450,7 +1450,7 @@ void Simulator::DecodeBitfield(Instr* instr) {
   result &= mask;
   if (sign_extend) {
     int highest_bit = (s_bit - r_bit) & (bitwidth - 1);
-    int shift = bitwidth - highest_bit - 1;
+    int shift = 64 - highest_bit - 1;
     result <<= shift;
     result = static_cast<word>(result) >> shift;
   } else if (!zero_extend) {
@@ -2573,19 +2573,11 @@ void Simulator::DecodeMiscDP1Source(Instr* instr) {
   switch (op) {
     case 4: {
       // Format(instr, "clz'sf 'rd, 'rn");
-      int64_t rd_val = 0;
-      int64_t rn_val = (instr->SFField() == 1) ? rn_val64 : rn_val32;
-      if (rn_val != 0) {
-        while (rn_val > 0) {
-          rd_val++;
-          rn_val <<= 1;
-        }
-      } else {
-        rd_val = (instr->SFField() == 1) ? 64 : 32;
-      }
       if (instr->SFField() == 1) {
+        const uint64_t rd_val = Utils::CountLeadingZeros64(rn_val64);
         set_register(instr, rd, rd_val, R31IsZR);
       } else {
+        const uint32_t rd_val = Utils::CountLeadingZeros32(rn_val32);
         set_wregister(rd, rd_val, R31IsZR);
       }
       break;
@@ -3360,13 +3352,21 @@ void Simulator::DecodeFPIntCvt(Instr* instr) {
       set_vregisterd(vd, 1, 0);
     } else if (instr->Bits(16, 5) == 24) {
       // Format(instr, "fcvtzds'sf 'rd, 'vn");
+      const intptr_t max = instr->Bit(31) == 1 ? INT64_MAX : INT32_MAX;
+      const intptr_t min = instr->Bit(31) == 1 ? INT64_MIN : INT32_MIN;
       const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
-      if (vn_val >= static_cast<double>(INT64_MAX)) {
-        set_register(instr, rd, INT64_MAX, instr->RdMode());
-      } else if (vn_val <= static_cast<double>(INT64_MIN)) {
-        set_register(instr, rd, INT64_MIN, instr->RdMode());
+      int64_t result;
+      if (vn_val >= static_cast<double>(max)) {
+        result = max;
+      } else if (vn_val <= static_cast<double>(min)) {
+        result = min;
       } else {
-        set_register(instr, rd, static_cast<int64_t>(vn_val), instr->RdMode());
+        result = static_cast<int64_t>(vn_val);
+      }
+      if (instr->Bit(31) == 1) {
+        set_register(instr, rd, result, instr->RdMode());
+      } else {
+        set_register(instr, rd, result & 0xffffffffll, instr->RdMode());
       }
     } else {
       UnimplementedInstruction(instr);
@@ -3737,6 +3737,9 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_register(NULL, PP, pp);
   set_register(NULL, BARRIER_MASK, thread->write_barrier_mask());
   set_register(NULL, NULL_REG, static_cast<int64_t>(Object::null()));
+#if defined(DART_COMPRESSED_POINTERS)
+  set_register(NULL, HEAP_BASE, thread->heap_base());
+#endif
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     set_register(NULL, DISPATCH_TABLE_REG,
                  reinterpret_cast<int64_t>(thread->dispatch_table_array()));

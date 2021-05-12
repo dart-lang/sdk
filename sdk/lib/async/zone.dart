@@ -88,7 +88,7 @@ typedef RunBinaryHandler = R Function<R, T1, T2>(Zone self, ZoneDelegate parent,
 typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
 
-/// The type of a custom [Zone.registerUnary] implementation function.
+/// The type of a custom [Zone.registerUnaryCallback] implementation function.
 ///
 /// Receives the [Zone] that the handler was registered on as [self],
 /// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
@@ -96,7 +96,7 @@ typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
 /// which will have [self] as a parent zone.
 ///
 /// The function [f] is the function which was passed to the
-/// which was passed to the [Zone.registerUnary] of [zone].
+/// which was passed to the [Zone.registerUnaryCallback] of [zone].
 ///
 /// The handler should return either the function [f]
 /// or another function replacing [f],
@@ -105,7 +105,7 @@ typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
 typedef RegisterUnaryCallbackHandler = ZoneUnaryCallback<R, T> Function<R, T>(
     Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f);
 
-/// The type of a custom [Zone.registerBinary] implementation function.
+/// The type of a custom [Zone.registerBinaryCallback] implementation function.
 ///
 /// Receives the [Zone] that the handler was registered on as [self],
 /// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
@@ -113,7 +113,7 @@ typedef RegisterUnaryCallbackHandler = ZoneUnaryCallback<R, T> Function<R, T>(
 /// which will have [self] as a parent zone.
 ///
 /// The function [f] is the function which was passed to the
-/// which was passed to the [Zone.registerBinary] of [zone].
+/// which was passed to the [Zone.registerBinaryCallback] of [zone].
 ///
 /// The handler should return either the function [f]
 /// or another function replacing [f],
@@ -135,7 +135,7 @@ typedef RegisterBinaryCallbackHandler
 ///
 /// The function should return either `null` if it doesn't want
 /// to replace the original error and stack trace,
-/// or an [AsyncError] containg a replacement error and stack trace
+/// or an [AsyncError] containing a replacement error and stack trace
 /// which will be used to replace the originals.
 typedef AsyncError? ErrorCallbackHandler(Zone self, ZoneDelegate parent,
     Zone zone, Object error, StackTrace? stackTrace);
@@ -187,7 +187,7 @@ typedef Timer CreateTimerHandler(
 /// and the current zone where the error was uncaught as [zone],
 /// which will have [self] as a parent zone.
 ///
-/// The callback function [f] and [duration] are the ones which were
+/// The callback function [f] and [period] are the ones which were
 /// passed to [Zone.createPeriodicTimer] of [zone]
 /// (possibly through the [Timer.periodic] constructor).
 ///
@@ -285,7 +285,7 @@ class _RegisterBinaryZoneFunction {
 /// A zone specification is a parameter object passed to [Zone.fork]
 /// and any underlying [ForkHandler] custom implementations.
 /// The individual handlers, if set to a non-null value,
-/// will be the implementation of the correpsonding [Zone] methods
+/// will be the implementation of the corresponding [Zone] methods
 /// for a forked zone created using this zone specification.
 ///
 /// Handlers have the same signature as the same-named methods on [Zone],
@@ -306,7 +306,7 @@ abstract class ZoneSpecification {
   ///
   /// If the [handleUncaughtError] is provided, the new zone will be a new
   /// "error zone" which will prevent errors from flowing into other
-  /// error zones (see [errorZone], [sameErrorZone]).
+  /// error zones (see [Zone.errorZone], [Zone.inSameErrorZone]).
   const factory ZoneSpecification(
       {HandleUncaughtErrorHandler? handleUncaughtError,
       RunHandler? run,
@@ -327,7 +327,7 @@ abstract class ZoneSpecification {
   /// The created zone specification has the handlers of [other]
   /// and any individually provided handlers.
   /// If a handler is provided both through [other] and individually,
-  /// the individually provided handler overries the one from [other].
+  /// the individually provided handler overrides the one from [other].
   factory ZoneSpecification.from(ZoneSpecification other,
       {HandleUncaughtErrorHandler? handleUncaughtError,
       RunHandler? run,
@@ -604,7 +604,7 @@ abstract class Zone {
   /// different error handlers.
   ///
   /// Example:
-  /// ```
+  /// ```dart
   /// import 'dart:async';
   ///
   /// main() {
@@ -623,7 +623,7 @@ abstract class Zone {
   ///
   /// Note that errors cannot enter a child zone with a different error handler
   /// either:
-  /// ```
+  /// ```dart
   /// import 'dart:async';
   ///
   /// main() {
@@ -657,7 +657,7 @@ abstract class Zone {
   /// of this zone and updates them with values from [zoneValues], which either
   /// adds new values or overrides existing ones.
   ///
-  /// Note that the fork operation is interceptible. A zone can thus change
+  /// Note that the fork operation is interceptable. A zone can thus change
   /// the zone specification (or zone values), giving the forking zone full
   /// control over the child zone.
   Zone fork(
@@ -693,7 +693,7 @@ abstract class Zone {
   /// errors.
   ///
   /// This function is equivalent to:
-  /// ```
+  /// ```dart
   /// try {
   ///   this.run(action);
   /// } catch (e, s) {
@@ -864,7 +864,7 @@ abstract class Zone {
   /// function which makes it possible to intercept printing.
   ///
   /// Example:
-  /// ```
+  /// ```dart
   /// import 'dart:async';
   ///
   /// main() {
@@ -1608,6 +1608,7 @@ class _RootZone extends _Zone {
     return _rootRun(null, null, this, f);
   }
 
+  @pragma("vm:recognized", "other")
   R runUnary<R, T>(R f(T arg), T arg) {
     if (identical(Zone._current, _rootZone)) return f(arg);
     return _rootRunUnary(null, null, this, f, arg);

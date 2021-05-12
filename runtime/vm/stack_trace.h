@@ -19,13 +19,39 @@ class CallerClosureFinder {
  public:
   explicit CallerClosureFinder(Zone* zone);
 
+  // Recursively follow any `_FutureListener.result`.
+  // If no `result`, then return (bottom) `_FutureListener.callback`
   ClosurePtr GetCallerInFutureImpl(const Object& future_);
 
-  ClosurePtr FindCallerInAsyncClosure(const Context& receiver_context);
+  // Get caller closure from _FutureListener.
+  // Returns closure found either via the `result` Future, or the `callback`.
+  ClosurePtr GetCallerInFutureListener(const Object& future_listener);
 
+  // Find caller closure from an async* function receiver context.
+  // Returns either the `onData` or the Future awaiter.
   ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
 
+  // Find caller closure from a function receiver closure.
+  // For async* functions, async functions, `Future.timeout` and `Future.wait`,
+  // we can do this by finding and following their awaited Futures.
   ClosurePtr FindCaller(const Closure& receiver_closure);
+
+  // Finds the awaited Future from an async function receiver closure.
+  ObjectPtr GetAsyncFuture(const Closure& receiver_closure);
+
+  // Get sdk/lib/async/future_impl.dart:_FutureListener.state.
+  intptr_t GetFutureListenerState(const Object& future_listener);
+
+  // Get sdk/lib/async/future_impl.dart:_FutureListener.callback.
+  ClosurePtr GetFutureListenerCallback(const Object& future_listener);
+
+  // Get sdk/lib/async/future_impl.dart:_FutureListener.result.
+  ObjectPtr GetFutureListenerResult(const Object& future_listener);
+
+  // Get sdk/lib/async/future_impl.dart:_Future._resultOrListeners.
+  ObjectPtr GetFutureFutureListener(const Object& future);
+
+  bool HasCatchError(const Object& future_listener);
 
   static bool IsRunningAsync(const Closure& receiver_closure);
 
@@ -61,6 +87,8 @@ class CallerClosureFinder {
   Field& state_field;
   Field& on_data_field;
   Field& state_data_field;
+
+  DISALLOW_COPY_AND_ASSIGN(CallerClosureFinder);
 };
 
 class StackTraceUtils : public AllStatic {
@@ -68,6 +96,20 @@ class StackTraceUtils : public AllStatic {
   // Find the async_op closure from the stack frame.
   static ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
                                        const Function& function);
+
+  static ClosurePtr ClosureFromFrameFunction(
+      Zone* zone,
+      CallerClosureFinder* caller_closure_finder,
+      const DartFrameIterator& frames,
+      StackFrame* frame,
+      bool* skip_frame,
+      bool* is_async);
+
+  static void UnwindAwaiterChain(Zone* zone,
+                                 const GrowableObjectArray& code_array,
+                                 GrowableArray<uword>* pc_offset_array,
+                                 CallerClosureFinder* caller_closure_finder,
+                                 const Closure& leaf_closure);
 
   /// Collects all frames on the current stack until an async/async* frame is
   /// hit which has yielded before (i.e. is not in sync-async case).
@@ -88,7 +130,7 @@ class StackTraceUtils : public AllStatic {
   static void CollectFramesLazy(
       Thread* thread,
       const GrowableObjectArray& code_array,
-      const GrowableObjectArray& pc_offset_array,
+      GrowableArray<uword>* pc_offset_array,
       int skip_frames,
       std::function<void(StackFrame*)>* on_sync_frames = nullptr,
       bool* has_async = nullptr);
@@ -109,7 +151,7 @@ class StackTraceUtils : public AllStatic {
   /// Returns the number of frames collected.
   static intptr_t CollectFrames(Thread* thread,
                                 const Array& code_array,
-                                const Array& pc_offset_array,
+                                const TypedData& pc_offset_array,
                                 intptr_t array_offset,
                                 intptr_t count,
                                 int skip_frames);

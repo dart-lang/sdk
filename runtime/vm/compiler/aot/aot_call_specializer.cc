@@ -224,33 +224,6 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
   return false;
 }
 
-static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
-  ASSERT(instr->type_args_len() == 0);
-
-  // If Smi is not assignable to the interface target of the call, the receiver
-  // is definitely not a Smi.
-  if (!instr->CanReceiverBeSmiBasedOnInterfaceTarget(
-          Thread::Current()->zone())) {
-    return false;
-  }
-
-  // Phis with at least one known smi are // guessed to be likely smi as well.
-  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
-    PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
-    if (phi != NULL) {
-      for (intptr_t j = 0; j < phi->InputCount(); ++j) {
-        if (phi->InputAt(j)->Type()->ToCid() == kSmiCid) return true;
-      }
-    }
-  }
-  // If all of the inputs are known smis or the result of CheckedSmiOp,
-  // we guess the operand to be likely smi.
-  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
-    if (!instr->ArgumentAt(i)->IsCheckedSmiOp()) return false;
-  }
-  return true;
-}
-
 bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   const Token::Kind op_kind = call->token_kind();
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(call)) {
@@ -286,8 +259,7 @@ bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
       return true;
     }
 
-    if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-        FlowGraphCompiler::CanConvertInt64ToDouble()) {
+    if (FlowGraphCompiler::CanConvertInt64ToDouble()) {
       return true;
     }
   }
@@ -315,8 +287,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
     if (input->Type()->ToNullableCid() == kSmiCid) {
       conversion = new (Z) SmiToDoubleInstr(input, call->source());
-    } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-               FlowGraphCompiler::CanConvertInt64ToDouble()) {
+    } else if (FlowGraphCompiler::CanConvertInt64ToDouble()) {
       conversion = new (Z) Int64ToDoubleInstr(input, DeoptId::kNone,
                                               Instruction::kNotSpeculative);
     } else {
@@ -477,7 +448,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
-    const bool is_equality_op = Token::IsEqualityOperator(op_kind);
     bool has_nullable_int_args =
         left_type->IsNullableInt() && right_type->IsNullableInt();
 
@@ -486,12 +456,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         has_nullable_int_args = false;
       }
     }
-
-    // NOTE: We cannot use strict comparisons if the receiver has an overridden
-    // == operator or if either side can be a double, since 1.0 == 1.
-    const bool can_use_strict_compare =
-        is_equality_op && has_nullable_int_args &&
-        (left_type->IsNullableSmi() || right_type->IsNullableSmi());
 
     // We only support binary operations if both operands are nullable integers
     // or when we can use a cheap strict comparison operation.
@@ -502,56 +466,32 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     switch (op_kind) {
       case Token::kEQ:
       case Token::kNE:
-      case Token::kLT:
-      case Token::kLTE:
-      case Token::kGT:
-      case Token::kGTE: {
-        const bool supports_unboxed_int =
-            FlowGraphCompiler::SupportsUnboxedInt64();
-        const bool can_use_equality_compare =
-            supports_unboxed_int && is_equality_op && left_type->IsInt() &&
-            right_type->IsInt();
-
-        // We prefer equality compare, since it doesn't require boxing.
-        if (!can_use_equality_compare && can_use_strict_compare) {
+        if (left_type->IsNull() || left_type->IsNullableSmi() ||
+            right_type->IsNull() || right_type->IsNullableSmi()) {
           replacement = new (Z) StrictCompareInstr(
               instr->source(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
               left_value->CopyWithType(Z), right_value->CopyWithType(Z),
               /*needs_number_check=*/false, DeoptId::kNone);
-          break;
-        }
-
-        if (supports_unboxed_int) {
-          if (can_use_equality_compare) {
-            replacement = new (Z) EqualityCompareInstr(
-                instr->source(), op_kind, left_value->CopyWithType(Z),
-                right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
-                Instruction::kNotSpeculative);
-            break;
-          } else if (Token::IsRelationalOperator(op_kind)) {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) RelationalOpInstr(
-                instr->source(), op_kind, left_value, right_value, kMintCid,
-                DeoptId::kNone, Instruction::kNotSpeculative);
-            break;
-          } else {
-            // TODO(dartbug.com/30480): Figure out how to handle null in
-            // equality comparisons.
-            replacement = new (Z)
-                CheckedSmiComparisonInstr(op_kind, left_value->CopyWithType(Z),
-                                          right_value->CopyWithType(Z), instr);
-            break;
-          }
         } else {
-          replacement = new (Z)
-              CheckedSmiComparisonInstr(op_kind, left_value->CopyWithType(Z),
-                                        right_value->CopyWithType(Z), instr);
-          break;
+          const bool null_aware =
+              left_type->is_nullable() || right_type->is_nullable();
+          replacement = new (Z) EqualityCompareInstr(
+              instr->source(), op_kind, left_value->CopyWithType(Z),
+              right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
+              null_aware, Instruction::kNotSpeculative);
         }
         break;
-      }
+      case Token::kLT:
+      case Token::kLTE:
+      case Token::kGT:
+      case Token::kGTE:
+        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+        right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+        replacement = new (Z) RelationalOpInstr(
+            instr->source(), op_kind, left_value, right_value, kMintCid,
+            DeoptId::kNone, Instruction::kNotSpeculative);
+        break;
       case Token::kMOD:
         replacement = TryOptimizeMod(instr, op_kind, left_value, right_value);
         if (replacement != nullptr) break;
@@ -567,6 +507,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         FALL_THROUGH;
       case Token::kSHR:
         FALL_THROUGH;
+      case Token::kUSHR:
+        FALL_THROUGH;
       case Token::kBIT_OR:
         FALL_THROUGH;
       case Token::kBIT_XOR:
@@ -578,27 +520,18 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       case Token::kSUB:
         FALL_THROUGH;
       case Token::kMUL: {
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          if (op_kind == Token::kSHR || op_kind == Token::kSHL) {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) ShiftInt64OpInstr(
-                op_kind, left_value, right_value, DeoptId::kNone);
-            break;
-          } else {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) BinaryInt64OpInstr(
-                op_kind, left_value, right_value, DeoptId::kNone,
-                Instruction::kNotSpeculative);
-            break;
-          }
-        }
-        if (op_kind != Token::kMOD && op_kind != Token::kTRUNCDIV) {
-          replacement =
-              new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
-                                        right_value->CopyWithType(Z), instr);
-          break;
+        if (op_kind == Token::kSHL || op_kind == Token::kSHR ||
+            op_kind == Token::kUSHR) {
+          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z) ShiftInt64OpInstr(op_kind, left_value,
+                                                  right_value, DeoptId::kNone);
+        } else {
+          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z)
+              BinaryInt64OpInstr(op_kind, left_value, right_value,
+                                 DeoptId::kNone, Instruction::kNotSpeculative);
         }
         break;
       }
@@ -615,12 +548,10 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       return false;
     }
 
-    if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-      if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
-        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-        replacement = new (Z) UnaryInt64OpInstr(
-            op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
-      }
+    if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
+      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+      replacement = new (Z) UnaryInt64OpInstr(
+          op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
     }
   }
 
@@ -676,7 +607,8 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) EqualityCompareInstr(
               instr->source(), op_kind, left_value, right_value, kDoubleCid,
-              DeoptId::kNone, Instruction::kNotSpeculative);
+              DeoptId::kNone, /*null_aware=*/false,
+              Instruction::kNotSpeculative);
           break;
         }
         break;
@@ -820,52 +752,6 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       instr->ReplaceWith(call, current_iterator());
       return;
     }
-  }
-
-  switch (instr->token_kind()) {
-    case Token::kEQ:
-    case Token::kNE:
-    case Token::kLT:
-    case Token::kLTE:
-    case Token::kGT:
-    case Token::kGTE: {
-      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
-          HasLikelySmiOperand(instr)) {
-        ASSERT(receiver_idx == 0);
-        Definition* left = instr->ArgumentAt(0);
-        Definition* right = instr->ArgumentAt(1);
-        CheckedSmiComparisonInstr* smi_op = new (Z)
-            CheckedSmiComparisonInstr(instr->token_kind(), new (Z) Value(left),
-                                      new (Z) Value(right), instr);
-        ReplaceCall(instr, smi_op);
-        return;
-      }
-      break;
-    }
-    case Token::kSHL:
-    case Token::kSHR:
-    case Token::kBIT_OR:
-    case Token::kBIT_XOR:
-    case Token::kBIT_AND:
-    case Token::kADD:
-    case Token::kSUB:
-    case Token::kMUL: {
-      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
-          HasLikelySmiOperand(instr)) {
-        ASSERT(receiver_idx == 0);
-        Definition* left = instr->ArgumentAt(0);
-        Definition* right = instr->ArgumentAt(1);
-        CheckedSmiOpInstr* smi_op =
-            new (Z) CheckedSmiOpInstr(instr->token_kind(), new (Z) Value(left),
-                                      new (Z) Value(right), instr);
-
-        ReplaceCall(instr, smi_op);
-        return;
-      }
-      break;
-    }
-    default:
-      break;
   }
 
   // No IC data checks. Try resolve target using the propagated cid.

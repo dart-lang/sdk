@@ -133,8 +133,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       }
     } else if (_abstractValueDomain.isIntegerOrNull(type).isDefinitelyTrue) {
       return _commonElements.jsIntClass;
-    } else if (_abstractValueDomain.isDoubleOrNull(type).isDefinitelyTrue) {
-      return _commonElements.jsDoubleClass;
     } else if (_abstractValueDomain.isBooleanOrNull(type).isDefinitelyTrue) {
       return _commonElements.jsBoolClass;
     } else if (_abstractValueDomain.isStringOrNull(type).isDefinitelyTrue) {
@@ -143,7 +141,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return _commonElements.jsArrayClass;
     } else if (_abstractValueDomain.isNumberOrNull(type).isDefinitelyTrue &&
         !interceptedClasses.contains(_commonElements.jsIntClass) &&
-        !interceptedClasses.contains(_commonElements.jsDoubleClass)) {
+        !interceptedClasses.contains(_commonElements.jsNumNotIntClass)) {
       // If the method being intercepted is not defined in [int] or [double] we
       // can safely use the number interceptor.  This is because none of the
       // [int] or [double] methods are called from a method defined on [num].
@@ -261,7 +259,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
       if (interceptedClasses.contains(_commonElements.jsNumberClass) &&
-          !(interceptedClasses.contains(_commonElements.jsDoubleClass) ||
+          !(interceptedClasses.contains(_commonElements.jsNumNotIntClass) ||
               interceptedClasses.contains(_commonElements.jsIntClass))) {
         Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
@@ -272,9 +270,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
               required ??= {};
               required.add(_commonElements.jsIntClass);
             }
-            if (intercepted.contains(_commonElements.jsDoubleClass)) {
+            if (intercepted.contains(_commonElements.jsNumNotIntClass)) {
               required ??= {};
-              required.add(_commonElements.jsDoubleClass);
+              required.add(_commonElements.jsNumNotIntClass);
             }
           }
         }
@@ -355,40 +353,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       }
     }
 
-    // Try creating a one-shot interceptor or optimized is-check
-    if (node.usedBy.length != 1) return false;
-    HInstruction user = node.usedBy.single;
-
-    // If the interceptor [node] was loop hoisted, we keep the interceptor.
-    if (!user.hasSameLoopHeaderAs(node)) return false;
-
-    bool replaceUserWith(HInstruction replacement) {
-      HBasicBlock block = user.block;
-      block.addAfter(user, replacement);
-      block.rewrite(user, replacement);
-      block.remove(user);
-      return false;
-    }
-
-    if (user is HInvokeDynamic) {
-      if (node == user.inputs[0]) {
-        // Replace the user with a [HOneShotInterceptor].
-        HConstant nullConstant = _graph.addConstantNull(_closedWorld);
-        List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
-        inputs[0] = nullConstant;
-        HOneShotInterceptor oneShotInterceptor = new HOneShotInterceptor(
-            _abstractValueDomain,
-            user.selector,
-            user.receiverType,
-            inputs,
-            user.instructionType,
-            user.typeArguments,
-            interceptedClasses);
-        oneShotInterceptor.sourceInformation = user.sourceInformation;
-        oneShotInterceptor.sourceElement = user.sourceElement;
-        return replaceUserWith(oneShotInterceptor);
-      }
-    }
+    // One-shot interceptor optimization is done in instruction selection.
 
     return false;
   }
@@ -441,45 +406,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   @override
   bool visitOneShotInterceptor(HOneShotInterceptor node) {
-    // 'Undo' the one-shot transformation if the receiver has a constant
-    // interceptor.
-    HInstruction constant =
-        tryComputeConstantInterceptor(node.inputs[1], node.interceptedClasses);
-
-    if (constant == null) return false;
-
-    Selector selector = node.selector;
-    AbstractValue receiverType = node.receiverType;
-    HInstruction instruction;
-    if (selector.isGetter) {
-      instruction = new HInvokeDynamicGetter(
-          selector,
-          receiverType,
-          node.element,
-          <HInstruction>[constant, node.inputs[1]],
-          true,
-          node.instructionType,
-          node.sourceInformation);
-    } else if (selector.isSetter) {
-      instruction = new HInvokeDynamicSetter(
-          selector,
-          receiverType,
-          node.element,
-          <HInstruction>[constant, node.inputs[1], node.inputs[2]],
-          true,
-          node.instructionType,
-          node.sourceInformation);
-    } else {
-      List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
-      inputs[0] = constant;
-      instruction = new HInvokeDynamicMethod(selector, receiverType, inputs,
-          node.instructionType, node.typeArguments, node.sourceInformation,
-          isIntercepted: true);
-    }
-
-    HBasicBlock block = node.block;
-    block.addAfter(node, instruction);
-    block.rewrite(node, instruction);
-    return true;
+    throw StateError('Should not see HOneShotInterceptor: $node');
   }
 }

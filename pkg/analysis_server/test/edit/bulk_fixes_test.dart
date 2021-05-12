@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
@@ -93,14 +94,13 @@ analyzer:
 
     // Sub-project.
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newFile('$subprojectRoot/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-        content: '''
+    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
 linter:
   rules:
     - annotate_overrides
 ''');
 
-    newFile('$subprojectRoot/${AnalysisEngine.PUBSPEC_YAML_FILE}', content: '''
+    newPubspecYamlFile(subprojectRoot, '''
 name: subproject
 ''');
 
@@ -118,14 +118,13 @@ class B extends A {
 
   Future<void> test_annotateOverrides_subProject() async {
     var subprojectRoot = '$projectPath/test/data/subproject';
-    newFile('$subprojectRoot/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-        content: '''
+    newAnalysisOptionsYamlFile(subprojectRoot, content: '''
 linter:
   rules:
     - annotate_overrides
 ''');
 
-    newFile('$subprojectRoot/${AnalysisEngine.PUBSPEC_YAML_FILE}', content: '''
+    newPubspecYamlFile(subprojectRoot, '''
 name: subproject
 ''');
 

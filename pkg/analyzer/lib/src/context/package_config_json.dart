@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Parse the content of a `package_config.json` file located at the [uri].
@@ -46,27 +45,27 @@ class PackageConfigJson {
   /// The timestamp for when the file was generated.
   ///
   /// Might be `null`.
-  final DateTime generated;
+  final DateTime? generated;
 
   /// The generator which created the file, typically "pub".
   ///
   /// Might be `null`.
-  final String generator;
+  final String? generator;
 
   /// The version of the generator, if the generator wants to remember that
   /// information. The version must be a Semantic Version. Pub can use the
   /// SDK version.
   ///
   /// Might be `null`.
-  final Version generatorVersion;
+  final Version? generatorVersion;
 
   PackageConfigJson({
-    @required this.uri,
-    @required this.configVersion,
-    @required this.packages,
-    @required this.generated,
-    @required this.generator,
-    @required this.generatorVersion,
+    required this.uri,
+    required this.configVersion,
+    required this.packages,
+    required this.generated,
+    required this.generator,
+    required this.generatorVersion,
   });
 }
 
@@ -85,13 +84,13 @@ class PackageConfigJsonPackage {
   final Uri packageUri;
 
   /// The language version for the package, or `null` if not specified.
-  final LanguageVersion languageVersion;
+  final LanguageVersion? languageVersion;
 
   PackageConfigJsonPackage({
-    this.name,
-    this.rootUri,
-    this.packageUri,
-    this.languageVersion,
+    required this.name,
+    required this.rootUri,
+    required this.packageUri,
+    required this.languageVersion,
   });
 }
 
@@ -101,11 +100,11 @@ class _PackageConfigJsonParser {
   final Uri uri;
   final String content;
 
-  int version;
+  late int version;
   List<PackageConfigJsonPackage> packages = [];
-  DateTime generated;
-  String generator;
-  Version generatorVersion;
+  DateTime? generated;
+  String? generator;
+  Version? generatorVersion;
 
   _PackageConfigJsonParser(this.uri, this.content);
 
@@ -128,9 +127,9 @@ class _PackageConfigJsonParser {
     }
   }
 
-  T _getOptionalField<T>(Map<String, Object> map, String name) {
+  T? _getOptionalField<T>(Map<String, dynamic> map, String name) {
     var object = map[name];
-    if (object is T || object == null) {
+    if (object is T?) {
       return object;
     } else {
       var actualType = object.runtimeType;
@@ -141,7 +140,7 @@ class _PackageConfigJsonParser {
     }
   }
 
-  T _getRequiredField<T>(Map<String, Object> map, String name) {
+  T _getRequiredField<T>(Map<String, dynamic> map, String name) {
     var object = map[name];
     if (object is T) {
       return object;
@@ -156,7 +155,7 @@ class _PackageConfigJsonParser {
     }
   }
 
-  void _parseGenerated(Map<String, Object> map) {
+  void _parseGenerated(Map<String, dynamic> map) {
     var generatedStr = _getOptionalField<String>(map, 'generated');
     if (generatedStr != null) {
       generated = DateTime.parse(generatedStr);
@@ -173,7 +172,7 @@ class _PackageConfigJsonParser {
     }
   }
 
-  void _parsePackage(Map<String, Object> map) {
+  void _parsePackage(Map<String, Object?> map) {
     var name = _getRequiredField<String>(map, 'name');
 
     var rootUriStr = _getRequiredField<String>(map, 'rootUri');
@@ -217,7 +216,7 @@ class _PackageConfigJsonParser {
     );
   }
 
-  LanguageVersion _parsePackageLanguageVersion(Map<String, Object> map) {
+  LanguageVersion? _parsePackageLanguageVersion(Map<String, Object?> map) {
     var versionStr = _getOptionalField<String>(map, 'languageVersion');
     if (versionStr == null) {
       return null;
@@ -225,8 +224,8 @@ class _PackageConfigJsonParser {
 
     var match = _languageVersionRegExp.matchAsPrefix(versionStr);
     if (match != null && match.end == versionStr.length) {
-      var major = int.parse(match.group(1));
-      var minor = int.parse(match.group(2));
+      var major = int.parse(match.group(1)!);
+      var minor = int.parse(match.group(2)!);
       return LanguageVersion(major, minor);
     } else {
       throw FormatException(
@@ -236,16 +235,16 @@ class _PackageConfigJsonParser {
     }
   }
 
-  void _parsePackages(Map<String, Object> map) {
-    var packagesObject = _getRequiredField<List<Object>>(map, 'packages');
+  void _parsePackages(Map<String, Object?> map) {
+    var packagesObject = _getRequiredField<List<Object?>>(map, 'packages');
     for (var packageObject in packagesObject) {
-      if (packageObject is Map<String, Object>) {
+      if (packageObject is Map<String, dynamic>) {
         _parsePackage(packageObject);
       }
     }
   }
 
-  void _parseVersion(Map<String, Object> map) {
+  void _parseVersion(Map<String, Object?> map) {
     version = _getRequiredField(map, 'configVersion');
     if (version != 2) {
       throw FormatException("Unsupported config version: $version");

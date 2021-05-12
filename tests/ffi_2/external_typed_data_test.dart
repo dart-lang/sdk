@@ -9,8 +9,6 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
-
 main() {
   testInt8Load();
   testInt8Store();

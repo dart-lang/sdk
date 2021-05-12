@@ -37,6 +37,7 @@ class AnalysisOptionsFileConfig {
   final List<String> lints;
   final bool strictInference;
   final bool strictRawTypes;
+  final List<String> unignorableNames;
 
   AnalysisOptionsFileConfig({
     this.experiments = const [],
@@ -45,50 +46,32 @@ class AnalysisOptionsFileConfig {
     this.lints = const [],
     this.strictInference = false,
     this.strictRawTypes = false,
+    this.unignorableNames = const [],
   });
 
   String toContent() {
     var buffer = StringBuffer();
 
-    if (experiments != null ||
-        implicitCasts != null ||
-        implicitDynamic != null ||
-        strictRawTypes != null ||
-        strictInference != null) {
-      buffer.writeln('analyzer:');
-
-      if (experiments != null) {
-        buffer.writeln('  enable-experiment:');
-        for (var experiment in experiments) {
-          buffer.writeln('    - $experiment');
-        }
-      }
-
-      buffer.writeln('  language:');
-      if (strictRawTypes != null) {
-        buffer.writeln('    strict-raw-types: $strictRawTypes');
-      }
-      if (strictInference != null) {
-        buffer.writeln('    strict-inference: $strictInference');
-      }
-
-      if (implicitCasts != null || implicitDynamic != null) {
-        buffer.writeln('  strong-mode:');
-        if (implicitCasts != null) {
-          buffer.writeln('    implicit-casts: $implicitCasts');
-        }
-        if (implicitDynamic != null) {
-          buffer.writeln('    implicit-dynamic: $implicitDynamic');
-        }
-      }
+    buffer.writeln('analyzer:');
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
+    }
+    buffer.writeln('  language:');
+    buffer.writeln('    strict-raw-types: $strictRawTypes');
+    buffer.writeln('    strict-inference: $strictInference');
+    buffer.writeln('  strong-mode:');
+    buffer.writeln('    implicit-casts: $implicitCasts');
+    buffer.writeln('    implicit-dynamic: $implicitDynamic');
+    buffer.writeln('  cannot-ignore:');
+    for (var name in unignorableNames) {
+      buffer.writeln('    - $name');
     }
 
-    if (lints != null) {
-      buffer.writeln('linter:');
-      buffer.writeln('  rules:');
-      for (var lint in lints) {
-        buffer.writeln('    - $lint');
-      }
+    buffer.writeln('linter:');
+    buffer.writeln('  rules:');
+    for (var lint in lints) {
+      buffer.writeln('    - $lint');
     }
 
     return buffer.toString();
@@ -134,11 +117,11 @@ abstract class ContextResolutionTest
   ByteStore _byteStore = getContextResolutionTestByteStore();
 
   Map<String, String> _declaredVariables = {};
-  AnalysisContextCollection _analysisContextCollection;
+  AnalysisContextCollectionImpl? _analysisContextCollection;
 
   /// If not `null`, [resolveFile] will use the context that corresponds
   /// to this path, instead of the given path.
-  String pathForContextSelection;
+  String? pathForContextSelection;
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
@@ -155,35 +138,32 @@ abstract class ContextResolutionTest
   bool get retainDataForTesting => false;
 
   void assertBasicWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
 
   void assertBazelWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BazelWorkspace>());
   }
 
   void assertGnWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<GnWorkspace>());
   }
 
   void assertPackageBuildWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
   }
 
   void assertPubWorkspaceFor(String path) {
-    var workspace = contextFor(path).workspace;
+    var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<PubWorkspace>());
   }
 
   AnalysisContext contextFor(String path) {
-    _createAnalysisContexts();
-
-    path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _contextFor(path);
   }
 
   void disposeAnalysisContextCollection() {
@@ -193,8 +173,7 @@ abstract class ContextResolutionTest
   }
 
   AnalysisDriver driverFor(String path) {
-    var context = contextFor(path) as DriverBasedAnalysisContext;
-    return context.driver;
+    return _contextFor(path).driver;
   }
 
   @override
@@ -207,10 +186,10 @@ abstract class ContextResolutionTest
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(String path) {
+  Future<ResolvedUnitResult> resolveFile(String path) async {
     var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
-    return session.getResolvedUnit(path);
+    return await session.getResolvedUnit(path);
   }
 
   @mustCallSuper
@@ -233,6 +212,13 @@ abstract class ContextResolutionTest
   }
 
   void verifyCreatedCollection() {}
+
+  DriverBasedAnalysisContext _contextFor(String path) {
+    _createAnalysisContexts();
+
+    path = convertPath(path);
+    return _analysisContextCollection!.contextFor(path);
+  }
 
   /// Create all analysis contexts in [collectionIncludedPaths].
   void _createAnalysisContexts() {
@@ -257,11 +243,17 @@ abstract class ContextResolutionTest
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
     var path = convertPath(testPackageRootPath);
-    return contextFor(path).analysisOptions;
+    return contextFor(path).analysisOptions as AnalysisOptionsImpl;
   }
 
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  List<String> get experiments => [
+        EnableString.generic_metadata,
+        EnableString.nonfunction_type_aliases,
+        EnableString.triple_shift,
+      ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
@@ -270,17 +262,25 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   String get testFilePath => '$testPackageLibPath/test.dart';
 
   /// The language version to use by default for `package:test`.
-  String get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackageRootPath => '$workspaceRootPath/test';
+
+  @override
+  bool get typeToStringWithNullability => true;
 
   String get workspaceRootPath => '/home';
 
   @override
   void setUp() {
     super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ),
+    );
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
     );
@@ -304,7 +304,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   void writeTestPackageConfig(
     PackageConfigFileBuilder config, {
-    String languageVersion,
+    String? languageVersion,
     bool js = false,
     bool meta = false,
   }) {
@@ -341,15 +341,12 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
-    newFile(
-      '$testPackageRootPath/pubspec.yaml',
-      content: config.toContent(),
-    );
+    newPubspecYamlFile(testPackageRootPath, config.toContent());
   }
 }
 
 class PubspecYamlFileConfig {
-  final String sdkVersion;
+  final String? sdkVersion;
 
   PubspecYamlFileConfig({this.sdkVersion});
 
@@ -365,30 +362,20 @@ class PubspecYamlFileConfig {
   }
 }
 
-mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
+mixin WithNullSafetyMixin on PubPackageResolutionTest {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): This mixin is a no-op
+  // on PubPackageResolutionTest; remove its usage and remove it.
   @override
-  String get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => '2.12';
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @nonVirtual
-  @override
-  void setUp() {
-    super.setUp();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: [EnableString.nonfunction_type_aliases],
-      ),
-    );
-  }
 }
 
-mixin WithNullSafetyMixin on PubPackageResolutionTest {
+mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
   @override
-  String get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => '2.9';
 
   @override
-  bool get typeToStringWithNullability => true;
+  bool get typeToStringWithNullability => false;
 }

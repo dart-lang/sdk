@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -17,7 +18,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   final AnalysisSession session;
 
   @override
-  final String path;
+  final String? path;
 
   @override
   final Uri uri;
@@ -33,10 +34,10 @@ class ElementDeclarationResultImpl implements ElementDeclarationResult {
   final AstNode node;
 
   @override
-  final ParsedUnitResult parsedUnit;
+  final ParsedUnitResult? parsedUnit;
 
   @override
-  final ResolvedUnitResult resolvedUnit;
+  final ResolvedUnitResult? resolvedUnit;
 
   ElementDeclarationResultImpl(
       this.element, this.node, this.parsedUnit, this.resolvedUnit);
@@ -66,13 +67,115 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   ResultState get state => ResultState.VALID;
 }
 
+/// The implementation of [AnalysisResult] when not [ResultState.VALID].
+class NotValidAnalysisResultImpl implements AnalysisResult {
+  @override
+  final ResultState state;
+
+  NotValidAnalysisResultImpl(this.state);
+
+  @override
+  String? get path {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  AnalysisSession get session {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  Uri get uri {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [ErrorsResult] when not [ResultState.VALID].
+class NotValidErrorsResultImpl extends NotValidFileResultImpl
+    implements ErrorsResult {
+  NotValidErrorsResultImpl(ResultState state) : super(state);
+
+  @override
+  List<AnalysisError> get errors {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [FileResult] when not [ResultState.VALID].
+class NotValidFileResultImpl extends NotValidAnalysisResultImpl
+    implements FileResult {
+  NotValidFileResultImpl(ResultState state) : super(state);
+
+  @override
+  bool get isPart {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  LineInfo get lineInfo {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [ResolvedUnitResult] when not [ResultState.VALID].
+class NotValidResolvedUnitResultImpl extends NotValidFileResultImpl
+    implements ResolvedUnitResult {
+  NotValidResolvedUnitResultImpl(ResultState state) : super(state);
+
+  @override
+  String? get content {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  List<AnalysisError> get errors {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  LibraryElement get libraryElement {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  TypeProvider get typeProvider {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  TypeSystem get typeSystem {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  CompilationUnit? get unit {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [UnitElementResult] when not [ResultState.VALID].
+class NotValidUnitElementResultImpl extends NotValidAnalysisResultImpl
+    implements UnitElementResult {
+  NotValidUnitElementResultImpl(ResultState state) : super(state);
+
+  @override
+  CompilationUnitElement get element {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  String get signature {
+    throw StateError('This result is not valid');
+  }
+}
+
 class ParsedLibraryResultImpl extends AnalysisResultImpl
     implements ParsedLibraryResult {
   @override
-  final List<ParsedUnitResult> units;
+  final List<ParsedUnitResult>? units;
 
   ParsedLibraryResultImpl(
-      AnalysisSession session, String path, Uri uri, this.units)
+      AnalysisSession session, String? path, Uri uri, this.units)
       : super(session, path, uri);
 
   ParsedLibraryResultImpl.external(AnalysisSession session, Uri uri)
@@ -87,13 +190,20 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   }
 
   @override
-  ElementDeclarationResult getElementDeclaration(Element element) {
+  ElementDeclarationResult? getElementDeclaration(Element element) {
     if (state != ResultState.VALID) {
       throw StateError('The result is not valid: $state');
     }
 
-    var elementPath = element.source.fullName;
-    var unitResult = units.firstWhere(
+    if (element is CompilationUnitElement ||
+        element is LibraryElement ||
+        element.isSynthetic ||
+        element.nameOffset == -1) {
+      return null;
+    }
+
+    var elementPath = element.source!.fullName;
+    var unitResult = units!.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
@@ -102,13 +212,13 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       },
     );
 
-    if (element.isSynthetic || element.nameOffset == -1) {
-      return null;
-    }
-
     var locator = _DeclarationByElementLocator(element);
     unitResult.unit.accept(locator);
     var declaration = locator.result;
+
+    if (declaration == null) {
+      return null;
+    }
 
     return ElementDeclarationResultImpl(element, declaration, unitResult, null);
   }
@@ -145,19 +255,19 @@ class ParseStringResultImpl implements ParseStringResult {
   ParseStringResultImpl(this.content, this.unit, this.errors);
 
   @override
-  LineInfo get lineInfo => unit.lineInfo;
+  LineInfo get lineInfo => unit.lineInfo!;
 }
 
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override
-  final LibraryElement element;
+  final LibraryElement? element;
 
   @override
-  final List<ResolvedUnitResult> units;
+  final List<ResolvedUnitResult>? units;
 
   ResolvedLibraryResultImpl(
-      AnalysisSession session, String path, Uri uri, this.element, this.units)
+      AnalysisSession session, String? path, Uri uri, this.element, this.units)
       : super(session, path, uri);
 
   ResolvedLibraryResultImpl.external(AnalysisSession session, Uri uri)
@@ -172,31 +282,48 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   }
 
   @override
-  TypeProvider get typeProvider => element.typeProvider;
+  TypeProvider get typeProvider => element!.typeProvider;
 
   @override
-  ElementDeclarationResult getElementDeclaration(Element element) {
+  ElementDeclarationResult? getElementDeclaration(Element element) {
     if (state != ResultState.VALID) {
       throw StateError('The result is not valid: $state');
     }
 
-    var elementPath = element.source.fullName;
-    var unitResult = units.firstWhere(
-      (r) => r.path == elementPath,
-      orElse: () {
-        var elementStr = element.getDisplayString(withNullability: true);
-        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
-            'not defined in this library.');
-      },
-    );
-
-    if (element.isSynthetic || element.nameOffset == -1) {
+    if (element is CompilationUnitElement ||
+        element is LibraryElement ||
+        element.isSynthetic ||
+        element.nameOffset == -1) {
       return null;
     }
 
+    var elementPath = element.source!.fullName;
+    var unitResult = units!.firstWhere(
+      (r) => r.path == elementPath,
+      orElse: () {
+        var elementStr = element.getDisplayString(withNullability: true);
+        var buffer = StringBuffer();
+        buffer.write('Element (${element.runtimeType}) $elementStr');
+        buffer.writeln(' is not defined in this library.');
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45430
+        buffer.writeln('elementPath: $elementPath');
+        buffer.writeln('unitPaths: ${units!.map((e) => e.path).toList()}');
+        throw ArgumentError('$buffer');
+      },
+    );
+
+    var unit = unitResult.unit;
+    if (unit == null) {
+      throw StateError('The result has no unit');
+    }
+
     var locator = _DeclarationByElementLocator(element);
-    unitResult.unit.accept(locator);
+    unit.accept(locator);
     var declaration = locator.result;
+
+    if (declaration == null) {
+      return null;
+    }
 
     return ElementDeclarationResultImpl(element, declaration, null, unitResult);
   }
@@ -208,10 +335,10 @@ class ResolvedUnitResultImpl extends FileResultImpl
   final bool exists;
 
   @override
-  final String content;
+  final String? content;
 
   @override
-  final CompilationUnit unit;
+  final CompilationUnit? unit;
 
   @override
   final List<AnalysisError> errors;
@@ -229,7 +356,13 @@ class ResolvedUnitResultImpl extends FileResultImpl
       : super(session, path, uri, lineInfo, isPart);
 
   @override
-  LibraryElement get libraryElement => unit.declaredElement.library;
+  LibraryElement get libraryElement {
+    var unit = this.unit;
+    if (unit == null) {
+      throw StateError('The result has no unit');
+    }
+    return unit.declaredElement!.library;
+  }
 
   @override
   ResultState get state => exists ? ResultState.VALID : ResultState.NOT_A_FILE;
@@ -238,7 +371,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   TypeProvider get typeProvider => libraryElement.typeProvider;
 
   @override
-  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem as TypeSystemImpl;
 }
 
 class UnitElementResultImpl extends AnalysisResultImpl
@@ -259,7 +392,7 @@ class UnitElementResultImpl extends AnalysisResultImpl
 
 class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
   final Element element;
-  AstNode result;
+  AstNode? result;
 
   _DeclarationByElementLocator(this.element);
 
@@ -344,7 +477,7 @@ class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
     super.visitNode(node);
   }
 
-  bool _hasOffset(AstNode node) {
+  bool _hasOffset(AstNode? node) {
     return node?.offset == element.nameOffset;
   }
 }

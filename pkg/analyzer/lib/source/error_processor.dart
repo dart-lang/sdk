@@ -25,24 +25,24 @@ class ErrorConfig {
   ///     new ErrorConfig({'missing_return' : 'error'});
   /// will create a processor config that turns `missing_return` hints into
   /// errors.
-  ErrorConfig(YamlNode codeMap) {
+  ErrorConfig(YamlNode? codeMap) {
     _processMap(codeMap);
   }
 
-  void _process(String code, Object action) {
+  void _process(String? code, Object action) {
     code = toUpperCase(code);
-    action = toLowerCase(action);
-    if (AnalyzerOptions.ignoreSynonyms.contains(action)) {
-      processors.add(ErrorProcessor.ignore(code));
+    var actionStr = toLowerCase(action);
+    if (AnalyzerOptions.ignoreSynonyms.contains(actionStr)) {
+      processors.add(ErrorProcessor.ignore(code!));
     } else {
-      ErrorSeverity severity = _toSeverity(action);
+      var severity = _toSeverity(actionStr);
       if (severity != null) {
-        processors.add(ErrorProcessor(code, severity));
+        processors.add(ErrorProcessor(code!, severity));
       }
     }
   }
 
-  void _processMap(YamlNode codes) {
+  void _processMap(YamlNode? codes) {
     if (codes is YamlMap) {
       codes.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
@@ -52,7 +52,7 @@ class ErrorConfig {
     }
   }
 
-  ErrorSeverity _toSeverity(String severity) => severityMap[severity];
+  ErrorSeverity? _toSeverity(String? severity) => severityMap[severity];
 }
 
 /// Process errors by filtering or changing associated [ErrorSeverity].
@@ -63,7 +63,7 @@ class ErrorProcessor {
   /// The desired severity of the processed error.
   ///
   /// If `null`, this processor will "filter" the associated error code.
-  final ErrorSeverity severity;
+  final ErrorSeverity? severity;
 
   /// Create an error processor that assigns errors with this [code] the
   /// given [severity].
@@ -87,8 +87,8 @@ class ErrorProcessor {
 
   /// Return an error processor associated in the [analysisOptions] for the
   /// given [error], or `null` if none is found.
-  static ErrorProcessor getProcessor(
-      AnalysisOptions analysisOptions, AnalysisError error) {
+  static ErrorProcessor? getProcessor(
+      AnalysisOptions? analysisOptions, AnalysisError error) {
     if (analysisOptions == null) {
       return null;
     }
@@ -98,7 +98,11 @@ class ErrorProcessor {
 
     // Add the strong mode processor.
     processors = processors.toList();
-    return processors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
-        orElse: () => null);
+    for (var processor in processors) {
+      if (processor.appliesTo(error)) {
+        return processor;
+      }
+    }
+    return null;
   }
 }

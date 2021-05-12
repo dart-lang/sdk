@@ -6,28 +6,32 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:meta/meta.dart';
 
 class BodyInferenceContext {
   static const _key = 'BodyInferenceContext';
 
   final TypeSystemImpl _typeSystem;
-  final bool _isAsynchronous;
-  final bool _isGenerator;
+  final bool isAsynchronous;
+  final bool isGenerator;
 
-  /// The context type, computed from the imposed return type schema.
+  /// The imposed return type, from the typing context.
   /// Might be `null` if an empty typing context.
-  final DartType contextType;
+  final DartType? imposedType;
+
+  /// The context type, computed from [imposedType].
+  /// Might be `null` if an empty typing context.
+  final DartType? contextType;
 
   /// Types of all `return` or `yield` statements in the body.
   final List<DartType> _returnTypes = [];
 
   factory BodyInferenceContext({
-    @required TypeSystemImpl typeSystem,
-    @required FunctionBody node,
-    @required DartType imposedType,
+    required TypeSystemImpl typeSystem,
+    required FunctionBody node,
+    required DartType? imposedType,
   }) {
     var contextType = _contextTypeForImposed(typeSystem, node, imposedType);
 
@@ -35,6 +39,7 @@ class BodyInferenceContext {
       typeSystem: typeSystem,
       isAsynchronous: node.isAsynchronous,
       isGenerator: node.isGenerator,
+      imposedType: imposedType,
       contextType: contextType,
     );
     node.setProperty(_key, bodyContext);
@@ -43,22 +48,23 @@ class BodyInferenceContext {
   }
 
   BodyInferenceContext._({
-    @required TypeSystemImpl typeSystem,
-    @required bool isAsynchronous,
-    @required bool isGenerator,
-    @required this.contextType,
-  })  : _typeSystem = typeSystem,
-        _isAsynchronous = isAsynchronous,
-        _isGenerator = isGenerator;
+    required TypeSystemImpl typeSystem,
+    required this.isAsynchronous,
+    required this.isGenerator,
+    required this.imposedType,
+    required this.contextType,
+  }) : _typeSystem = typeSystem;
+
+  bool get isSynchronous => !isAsynchronous;
 
   TypeProvider get _typeProvider => _typeSystem.typeProvider;
 
-  void addReturnExpression(Expression expression) {
+  void addReturnExpression(Expression? expression) {
     if (expression == null) {
       _returnTypes.add(_typeProvider.nullType);
     } else {
-      var type = expression.staticType;
-      if (_isAsynchronous) {
+      var type = expression.typeOrThrow;
+      if (isAsynchronous) {
         type = _typeSystem.flatten(type);
       }
       _returnTypes.add(type);
@@ -66,15 +72,15 @@ class BodyInferenceContext {
   }
 
   void addYield(YieldStatement node) {
-    var expressionType = node.expression.staticType;
+    var expressionType = node.expression.typeOrThrow;
 
     if (node.star == null) {
       _returnTypes.add(expressionType);
       return;
     }
 
-    if (_isGenerator) {
-      var requiredClass = _isAsynchronous
+    if (isGenerator) {
+      var requiredClass = isAsynchronous
           ? _typeProvider.streamElement
           : _typeProvider.iterableElement;
       var type = _argumentOf(expressionType, requiredClass);
@@ -85,7 +91,7 @@ class BodyInferenceContext {
   }
 
   DartType computeInferredReturnType({
-    @required bool endOfBlockIsReachable,
+    required bool endOfBlockIsReachable,
   }) {
     var actualReturnedType = _computeActualReturnedType(
       endOfBlockIsReachable: endOfBlockIsReachable,
@@ -93,15 +99,15 @@ class BodyInferenceContext {
 
     var clampedReturnedType = _clampToContextType(actualReturnedType);
 
-    if (_isGenerator) {
-      if (_isAsynchronous) {
-        return _typeProvider.streamType2(clampedReturnedType);
+    if (isGenerator) {
+      if (isAsynchronous) {
+        return _typeProvider.streamType(clampedReturnedType);
       } else {
-        return _typeProvider.iterableType2(clampedReturnedType);
+        return _typeProvider.iterableType(clampedReturnedType);
       }
     } else {
-      if (_isAsynchronous) {
-        return _typeProvider.futureType2(
+      if (isAsynchronous) {
+        return _typeProvider.futureType(
           _typeSystem.flatten(clampedReturnedType),
         );
       } else {
@@ -122,7 +128,7 @@ class BodyInferenceContext {
     // `FutureOr<void>`, let `S` be `void`.
     if (_typeSystem.isNonNullableByDefault) {
       if (R.isVoid ||
-          _isAsynchronous &&
+          isAsynchronous &&
               R is InterfaceType &&
               R.isDartAsyncFutureOr &&
               R.typeArguments[0].isVoid) {
@@ -131,7 +137,7 @@ class BodyInferenceContext {
     }
 
     // Otherwise, if `T <: R` then let `S` be `T`.
-    if (_typeSystem.isSubtypeOf2(T, R)) {
+    if (_typeSystem.isSubtypeOf(T, R)) {
       return T;
     }
 
@@ -140,9 +146,9 @@ class BodyInferenceContext {
   }
 
   DartType _computeActualReturnedType({
-    @required bool endOfBlockIsReachable,
+    required bool endOfBlockIsReachable,
   }) {
-    if (_isGenerator) {
+    if (isGenerator) {
       if (_returnTypes.isEmpty) {
         return DynamicTypeImpl.instance;
       }
@@ -155,11 +161,11 @@ class BodyInferenceContext {
     return _returnTypes.fold(initialType, _typeSystem.getLeastUpperBound);
   }
 
-  static BodyInferenceContext of(FunctionBody node) {
+  static BodyInferenceContext? of(FunctionBody node) {
     return node.getProperty(_key);
   }
 
-  static DartType _argumentOf(DartType type, ClassElement element) {
+  static DartType? _argumentOf(DartType type, ClassElement element) {
     var elementType = type.asInstanceOf(element);
     if (elementType != null) {
       return elementType.typeArguments[0];
@@ -167,10 +173,10 @@ class BodyInferenceContext {
     return null;
   }
 
-  static DartType _contextTypeForImposed(
+  static DartType? _contextTypeForImposed(
     TypeSystemImpl typeSystem,
     FunctionBody node,
-    DartType imposedType,
+    DartType? imposedType,
   ) {
     if (imposedType == null) {
       return null;
@@ -210,7 +216,7 @@ class BodyInferenceContext {
 
     // Otherwise the context type is `FutureOr<futureValueTypeSchema(S)>`,
     // where `S` is the imposed return type.
-    return typeSystem.typeProvider.futureOrType2(
+    return typeSystem.typeProvider.futureOrType(
       typeSystem.futureValueType(imposedType),
     );
   }

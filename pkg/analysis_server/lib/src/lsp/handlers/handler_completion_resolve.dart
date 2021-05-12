@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -146,7 +148,8 @@ class CompletionResolveHandler
         // a command that the client will call to apply those edits later.
         Command command;
         if (otherFilesChanges.isNotEmpty) {
-          final workspaceEdit = createWorkspaceEdit(server, otherFilesChanges);
+          final workspaceEdit =
+              createPlainWorkspaceEdit(server, otherFilesChanges);
           command = Command(
               title: 'Add import',
               command: Commands.sendWorkspaceEdit,
@@ -154,8 +157,10 @@ class CompletionResolveHandler
         }
 
         // Documentation is added on during resolve for LSP.
-        final formats = server.clientCapabilities?.textDocument?.completion
-            ?.completionItem?.documentationFormat;
+        final formats =
+            server.clientCapabilities.completionDocumentationFormats;
+        final supportsInsertReplace =
+            server.clientCapabilities.insertReplaceCompletionRanges;
         final dartDoc =
             analyzer.getDartDocPlainText(requestedElement.documentationComment);
         final documentation = asStringOrMarkupContent(formats, dartDoc);
@@ -175,10 +180,20 @@ class CompletionResolveHandler
           filterText: item.filterText,
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
-          textEdit: TextEdit(
-            range: toRange(lineInfo, data.rOffset, data.rLength),
-            newText: newInsertText,
-          ),
+          textEdit: supportsInsertReplace && data.iLength != data.rLength
+              ? Either2<TextEdit, InsertReplaceEdit>.t2(
+                  InsertReplaceEdit(
+                    insert: toRange(lineInfo, data.rOffset, data.iLength),
+                    replace: toRange(lineInfo, data.rOffset, data.rLength),
+                    newText: newInsertText,
+                  ),
+                )
+              : Either2<TextEdit, InsertReplaceEdit>.t1(
+                  TextEdit(
+                    range: toRange(lineInfo, data.rOffset, data.rLength),
+                    newText: newInsertText,
+                  ),
+                ),
           additionalTextEdits: thisFilesChanges
               .expand((change) =>
                   change.edits.map((edit) => toTextEdit(lineInfo, edit)))

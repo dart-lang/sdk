@@ -131,7 +131,7 @@ class NativeCallPattern : public ValueObject {
 //   call target.entry           call stub.entry         call stub.entry
 class SwitchableCallPatternBase : public ValueObject {
  public:
-  explicit SwitchableCallPatternBase(const Code& code);
+  explicit SwitchableCallPatternBase(const ObjectPool& object_pool);
 
   ObjectPtr data() const;
   void SetData(const Object& data) const;
@@ -153,7 +153,7 @@ class SwitchableCallPattern : public SwitchableCallPatternBase {
  public:
   SwitchableCallPattern(uword pc, const Code& code);
 
-  CodePtr target() const;
+  uword target_entry() const;
   void SetTarget(const Code& target) const;
 
  private:
@@ -166,9 +166,9 @@ class SwitchableCallPattern : public SwitchableCallPatternBase {
 // of the monomorphic function or a stub entry point.
 class BareSwitchableCallPattern : public SwitchableCallPatternBase {
  public:
-  BareSwitchableCallPattern(uword pc, const Code& code);
+  explicit BareSwitchableCallPattern(uword pc);
 
-  CodePtr target() const;
+  uword target_entry() const;
   void SetTarget(const Code& target) const;
 
  private:
@@ -193,8 +193,10 @@ class ReturnPattern : public ValueObject {
 class PcRelativeCallPatternBase : public ValueObject {
  public:
   // 24 bit signed integer which will get multiplied by 4.
-  static const intptr_t kLowerCallingRange = -(1 << 25) + Instr::kPCReadOffset;
-  static const intptr_t kUpperCallingRange = (1 << 25) - 1;
+  static constexpr intptr_t kLowerCallingRange =
+      -(1 << 25) + Instr::kPCReadOffset;
+  static constexpr intptr_t kUpperCallingRange =
+      (1 << 25) - Instr::kInstrSize + Instr::kPCReadOffset;
 
   explicit PcRelativeCallPatternBase(uword pc) : pc_(pc) {}
 

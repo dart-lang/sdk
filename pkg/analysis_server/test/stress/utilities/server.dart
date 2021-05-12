@@ -48,36 +48,36 @@ class RequestData {
   /// The method that was requested.
   final String method;
 
-  /// The request parameters.
-  final Map<String, dynamic> params;
+  /// The request parameters, or `null` if there are no parameters.
+  final Map<String, dynamic>? params;
 
   /// The time at which the request was sent.
   final int requestTime;
 
   /// The time at which the response was received, or `null` if no response has
   /// been received.
-  int responseTime;
+  int? responseTime;
 
   /// The response that was received.
-  Response _response;
+  Response? _response;
 
   /// The completer that will be completed when a response is received.
-  Completer<Response> _responseCompleter;
+  Completer<Response>? _responseCompleter;
 
   /// Initialize a newly created set of request data.
   RequestData(this.id, this.method, this.params, this.requestTime);
 
   /// Return the number of milliseconds that elapsed between the request and the
   /// response. This getter assumes that the response was received.
-  int get elapsedTime => responseTime - requestTime;
+  int get elapsedTime => responseTime! - requestTime;
 
   /// Return a future that will complete when a response is received.
   Future<Response> get respondedTo {
     if (_response != null) {
       return Future.value(_response);
     }
-    _responseCompleter ??= Completer<Response>();
-    return _responseCompleter.future;
+    var completer = _responseCompleter ??= Completer<Response>();
+    return completer.future;
   }
 
   /// Record that the given [response] was received.
@@ -89,8 +89,9 @@ class RequestData {
     }
     responseTime = currentTime;
     _response = response;
-    if (_responseCompleter != null) {
-      _responseCompleter.complete(response);
+    var completer = _responseCompleter;
+    if (completer != null) {
+      completer.complete(response);
       _responseCompleter = null;
     }
   }
@@ -110,11 +111,11 @@ class Server {
 
   /// The logger to which the communications log should be written, or `null` if
   /// the log should not be written.
-  final Logger logger;
+  final Logger? logger;
 
   /// The process in which the server is running, or `null` if the server hasn't
   /// been started yet.
-  Process _process;
+  Process? _process;
 
   /// Number that should be used to compute the 'id' to send in the next command
   /// sent to the server.
@@ -136,11 +137,11 @@ class Server {
 
   /// The completer that will be completed the next time a 'server.status'
   /// notification is received from the server with 'analyzing' set to false.
-  Completer<void> _analysisFinishedCompleter;
+  Completer<void>? _analysisFinishedCompleter;
 
   /// The completer that will be completed the next time a 'server.connected'
   /// notification is received from the server.
-  Completer<void> _serverConnectedCompleter;
+  Completer<void>? _serverConnectedCompleter;
 
   /// A table mapping the ids of requests that have been sent to the server to
   /// data about those requests.
@@ -165,8 +166,8 @@ class Server {
   /// multiple times in one test; each time it is used it will wait afresh for
   /// analysis to finish.
   Future get analysisFinished {
-    _analysisFinishedCompleter ??= Completer<void>();
-    return _analysisFinishedCompleter.future;
+    var completer = _analysisFinishedCompleter ??= Completer<void>();
+    return completer.future;
   }
 
   /// Return a list of the paths of files that are currently being analyzed.
@@ -241,7 +242,7 @@ class Server {
           .fold(0, (int count, List<RequestData> list) => count + list.length);
       var countWidth = maxCount.toString().length;
       for (var key in keys) {
-        var requests = requestsByMethod[key];
+        var requests = requestsByMethod[key]!;
         var noResponseCount = 0;
         var responseCount = 0;
         var minTime = -1;
@@ -306,7 +307,7 @@ class Server {
 
   /// Remove any existing overlays.
   void removeAllOverlays() {
-    Map<String, dynamic> files = HashMap<String, dynamic>();
+    var files = <String, Object>{};
     for (var path in filesWithOverlays) {
       files[path] = RemoveContentOverlay();
     }
@@ -344,7 +345,7 @@ class Server {
 
   void sendAnalysisSetAnalysisRoots(
       List<String> included, List<String> excluded,
-      {Map<String, String> packageRoots}) {
+      {Map<String, String>? packageRoots}) {
     _analysisRootIncludes = included;
     var params = AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
@@ -369,8 +370,8 @@ class Server {
     _send('analysis.setSubscriptions', params);
   }
 
-  void sendAnalysisUpdateContent(Map<String, dynamic> files) {
-    files.forEach((String path, dynamic overlay) {
+  void sendAnalysisUpdateContent(Map<String, Object> files) {
+    files.forEach((path, overlay) {
       if (overlay is AddContentOverlay) {
         filesWithOverlays.add(path);
       } else if (overlay is RemoveContentOverlay) {
@@ -397,7 +398,7 @@ class Server {
 
   RequestData sendEditFormat(
       String file, int selectionOffset, int selectionLength,
-      {int lineLength}) {
+      {int? lineLength}) {
     var params = EditFormatParams(file, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toJson();
@@ -423,7 +424,7 @@ class Server {
 
   RequestData sendEditGetRefactoring(RefactoringKind kind, String file,
       int offset, int length, bool validateOnly,
-      {RefactoringOptions options}) {
+      {RefactoringOptions? options}) {
     var params = EditGetRefactoringParams(
             kind, file, offset, length, validateOnly,
             options: options)
@@ -451,7 +452,7 @@ class Server {
     return _send('execution.deleteContext', params);
   }
 
-  RequestData sendExecutionMapUri(String id, {String file, String uri}) {
+  RequestData sendExecutionMapUri(String id, {String? file, String? uri}) {
     var params = ExecutionMapUriParams(id, file: file, uri: uri).toJson();
     return _send('execution.mapUri', params);
   }
@@ -485,7 +486,7 @@ class Server {
     _send('search.findTopLevelDeclarations', params);
   }
 
-  void sendSearchGetTypeHierarchy(String file, int offset, {bool superOnly}) {
+  void sendSearchGetTypeHierarchy(String file, int offset, {bool? superOnly}) {
     var params =
         SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
             .toJson();
@@ -519,10 +520,10 @@ class Server {
   /// highlight APIs.
   Future<void> start(
       {bool checked = true,
-      int diagnosticPort,
+      int? diagnosticPort,
       bool profileServer = false,
-      String sdkPath,
-      int servicesPort,
+      String? sdkPath,
+      int? servicesPort,
       bool useAnalysisHighlight2 = false}) async {
     if (_process != null) {
       throw Exception('Process already started');
@@ -571,14 +572,15 @@ class Server {
 //    stdout.writeln('Launching $serverPath');
 //    stdout.writeln('$dartBinary ${arguments.join(' ')}');
     _process = await Process.start(dartBinary, arguments);
-    _process.exitCode.then((int code) {
+    _process!.exitCode.then((int code) {
       if (code != 0) {
         throw StateError('Server terminated with exit code $code');
       }
     });
     _listenToOutput();
-    _serverConnectedCompleter = Completer<void>();
-    return _serverConnectedCompleter.future;
+    var completer = Completer<void>();
+    _serverConnectedCompleter = completer;
+    return completer.future;
   }
 
   /// Find the root directory of the analysis_server package by proceeding
@@ -599,18 +601,17 @@ class Server {
     switch (notification.event) {
       case 'server.connected':
 //        new ServerConnectedParams.fromNotification(notification);
-        _serverConnectedCompleter.complete(null);
+        _serverConnectedCompleter!.complete(null);
         break;
       case 'server.error':
 //        new ServerErrorParams.fromNotification(notification);
         throw StateError('Server error: ${notification.toJson()}');
-        break;
       case 'server.status':
         if (_analysisFinishedCompleter != null) {
           var params = ServerStatusParams.fromNotification(notification);
           var analysis = params.analysis;
           if (analysis != null && !analysis.isAnalyzing) {
-            _analysisFinishedCompleter.complete(null);
+            _analysisFinishedCompleter!.complete(null);
           }
         }
         break;
@@ -667,7 +668,7 @@ class Server {
   /// Handle a [response] received from the server.
   void _handleResponse(Response response) {
     var id = response.id.toString();
-    var requestData = _requestDataMap[id];
+    var requestData = _requestDataMap[id]!;
     requestData.recordResponse(response);
 //    switch (requestData.method) {
 //      case "analysis.getErrors":
@@ -752,8 +753,8 @@ class Server {
   void _handleStdOut(String line) {
     /// Cast the given [value] to a Map, or throw an [ArgumentError] if the
     /// value cannot be cast.
-    Map asMap(Object value) {
-      if (value is Map) {
+    Map<String, Object?> asMap(Object value) {
+      if (value is Map<String, Object?>) {
         return value;
       }
       throw ArgumentError('Expected a Map, found a ${value.runtimeType}');
@@ -768,7 +769,7 @@ class Server {
     var message = asMap(json.decoder.convert(trimmedLine));
     if (message.containsKey('id')) {
       // The message is a response.
-      var response = Response.fromJson(message);
+      var response = Response.fromJson(message)!;
       _handleResponse(response);
     } else {
       // The message is a notification.
@@ -786,17 +787,17 @@ class Server {
     void installHandler(
         Stream<List<int>> stream, void Function(String) handler) {
       stream
-          .transform((Utf8Codec()).decoder)
+          .transform(Utf8Codec().decoder)
           .transform(LineSplitter())
           .listen(handler);
     }
 
-    installHandler(_process.stdout, _handleStdOut);
-    installHandler(_process.stderr, _handleStdErr);
+    installHandler(_process!.stdout, _handleStdOut);
+    installHandler(_process!.stderr, _handleStdErr);
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
-  RequestData _send(String method, Map<String, dynamic> params) {
+  RequestData _send(String method, Map<String, dynamic>? params) {
     var id = '${_nextId++}';
     var requestData = RequestData(id, method, params, currentTime);
     _requestDataMap[id] = requestData;
@@ -805,7 +806,7 @@ class Server {
       command['params'] = params;
     }
     var line = json.encode(command);
-    _process.stdin.add(utf8.encoder.convert('$line\n'));
+    _process!.stdin.add(utf8.encoder.convert('$line\n'));
     logger?.log(fromClient, '$line');
     return requestData;
   }

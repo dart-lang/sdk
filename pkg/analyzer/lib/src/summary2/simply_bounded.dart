@@ -136,50 +136,21 @@ class SimplyBoundedDependencyWalker
   /// parameter declarations and their bounds are not included.
   static List<TypeAnnotation> _collectTypedefRhsTypes(AstNode node) {
     if (node is FunctionTypeAlias) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41023
-      if (node.parameters == null) {
-        var buffer = StringBuffer();
-        buffer.writeln('Unexpected FunctionTypeAlias state.');
-        try {
-          buffer.writeln('unit: ');
-          buffer.writeln(node.parent.toSource());
-        } catch (_) {
-          try {
-            buffer.writeln('node: ');
-            buffer.writeln(node.toSource());
-          } catch (_) {
-            try {
-              buffer.writeln('node parts:');
-              buffer.writeln('  name: ${node.name}');
-              buffer.writeln('  typeParameters: ${node.typeParameters}');
-              buffer.writeln('  returnType: ${node.returnType}');
-              buffer.writeln('  parameters: ${node.parameters}');
-            } catch (_) {
-              buffer.writeln('nothing worked');
-            }
-          }
-        }
-        throw StateError(buffer.toString());
-      }
-
       var collector = _TypeCollector();
       collector.addType(node.returnType);
       collector.visitParameters(node.parameters);
       return collector.types;
     } else if (node is GenericTypeAlias) {
       var type = node.type;
-      if (type != null) {
-        var collector = _TypeCollector();
-        if (type is GenericFunctionType) {
-          collector.addType(type.returnType);
-          collector.visitParameters(type.parameters);
-        } else {
-          collector.addType(type);
-        }
-        return collector.types;
+      var collector = _TypeCollector();
+      if (type is GenericFunctionType) {
+        collector.addType(type.returnType);
+        collector.visitTypeParameters(type.typeParameters);
+        collector.visitParameters(type.parameters);
       } else {
-        return const <TypeAnnotation>[];
+        collector.addType(type);
       }
+      return collector.types;
     } else {
       throw StateError('(${node.runtimeType}) $node');
     }
@@ -280,8 +251,6 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   /// Otherwise `true` is returned.
   bool _visitType(List<SimplyBoundedNode> dependencies, TypeAnnotation type,
       bool allowTypeParameters) {
-    if (type == null) return true;
-
     if (type is TypeName) {
       var element = type.name.staticElement;
 
@@ -315,6 +284,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
     if (type is GenericFunctionType) {
       var collector = _TypeCollector();
       collector.addType(type.returnType);
+      collector.visitTypeParameters(type.typeParameters);
       collector.visitParameters(type.parameters);
       for (var type in collector.types) {
         if (!_visitType(dependencies, type, allowTypeParameters)) {
@@ -332,7 +302,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
 class _TypeCollector {
   final List<TypeAnnotation> types = [];
 
-  void addType(TypeAnnotation type) {
+  void addType(TypeAnnotation? type) {
     if (type != null) {
       types.add(type);
     }
@@ -356,6 +326,14 @@ class _TypeCollector {
   void visitParameters(FormalParameterList parameterList) {
     for (var parameter in parameterList.parameters) {
       visitParameter(parameter);
+    }
+  }
+
+  void visitTypeParameters(TypeParameterList? node) {
+    if (node != null) {
+      for (var typeParameter in node.typeParameters) {
+        addType(typeParameter.bound);
+      }
     }
   }
 }

@@ -83,6 +83,10 @@ abstract class ClassHierarchy {
   /// _not_ including [cls].
   Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls);
 
+  /// Returns an iterable over all the classes that implement [cls], including
+  /// [cls] itself.
+  Iterable<ClassEntity> allSubtypesOf(ClassEntity cls);
+
   /// Returns the number of live classes that implement [cls] _not_
   /// including [cls] itself.
   int strictSubtypeCount(ClassEntity cls);
@@ -316,6 +320,16 @@ class ClassHierarchyImpl implements ClassHierarchy {
     } else {
       return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
           strict: true);
+    }
+  }
+
+  @override
+  Iterable<ClassEntity> allSubtypesOf(ClassEntity cls) {
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) {
+      return const <ClassEntity>[];
+    } else {
+      return classSet.subtypesByMask(ClassHierarchyNode.ALL);
     }
   }
 

@@ -466,10 +466,6 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write('void');
   }
 
-  void visitBottomType(BottomType node) {
-    sb.write('<bottom>');
-  }
-
   void visitNeverType(NeverType node) {
     sb.write('Never');
     if (node.nullability != Nullability.nonNullable) {
@@ -573,6 +569,16 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('>');
     }
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
+  }
+
+  void visitExtensionType(ExtensionType node) {
+    sb.write(node.extension.name);
+    if (node.typeArguments.isNotEmpty) {
+      sb.write('<');
+      visitList(node.typeArguments);
+      sb.write('>');
+    }
+    sb.write(nullabilityToText(node.declaredNullability, typeRepresentation));
   }
 }
 

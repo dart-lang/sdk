@@ -64,7 +64,7 @@ import "package:vm/target/flutter.dart" show FlutterTarget;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
-import 'incremental_load_from_dill_suite.dart' show getOptions;
+import 'incremental_suite.dart' show getOptions;
 
 import 'parser_test_listener.dart' show ParserTestListener;
 
@@ -983,7 +983,8 @@ worlds:
       // instead.
       if (uri.toString().endsWith(".dart")) {
         String textualOutlined =
-            textualOutline(data)?.replaceAll(RegExp(r'\n+'), "\n");
+            textualOutline(data, _getScannerConfiguration(uri))
+                ?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
         if (textualOutlined != null) {
@@ -1765,7 +1766,14 @@ worlds:
     return false;
   }
 
-  bool _isUriNnbd(Uri uri) {
+  ScannerConfiguration _getScannerConfiguration(Uri uri) {
+    return new ScannerConfiguration(
+        enableExtensionMethods: true,
+        enableNonNullable: _isUriNnbd(uri, crashOnFail: false),
+        enableTripleShift: false);
+  }
+
+  bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder libraryBuilder = _latestCrashingIncrementalCompiler
         .userCode.loader.builders[asImportUri];
@@ -1788,7 +1796,11 @@ worlds:
         }
       }
     }
-    throw "Couldn't lookup $uri at all!";
+    if (crashOnFail) {
+      throw "Couldn't lookup $uri at all!";
+    } else {
+      return false;
+    }
   }
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {
@@ -2147,12 +2159,18 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   }
 
   @override
+  Future<bool> existsAsyncIfPossible() => exists();
+
+  @override
   Future<List<int>> readAsBytes() {
     _ensureCachedIfOk();
     Uint8List data = fs.data[uri];
     if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
     return Future.value(data);
   }
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() {

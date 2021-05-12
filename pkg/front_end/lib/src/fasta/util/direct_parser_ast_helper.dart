@@ -1970,6 +1970,13 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  void handleConstFactory(Token constKeyword) {
+    DirectParserASTContentConstFactoryHandle data =
+        new DirectParserASTContentConstFactoryHandle(DirectParserASTType.HANDLE,
+            constKeyword: constKeyword);
+    seen(data);
+  }
+
   void beginForControlFlow(Token awaitToken, Token forToken) {
     DirectParserASTContentForControlFlowBegin data =
         new DirectParserASTContentForControlFlowBegin(DirectParserASTType.BEGIN,
@@ -5811,6 +5818,18 @@ class DirectParserASTContentConstExpressionEnd extends DirectParserASTContent {
 
   Map<String, Object> get deprecatedArguments => {
         "token": token,
+      };
+}
+
+class DirectParserASTContentConstFactoryHandle extends DirectParserASTContent {
+  final Token constKeyword;
+
+  DirectParserASTContentConstFactoryHandle(DirectParserASTType type,
+      {this.constKeyword})
+      : super("ConstFactory", type);
+
+  Map<String, Object> get deprecatedArguments => {
+        "constKeyword": constKeyword,
       };
 }
 

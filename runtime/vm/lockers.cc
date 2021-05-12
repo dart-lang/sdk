@@ -56,8 +56,7 @@ SafepointMutexLocker::SafepointMutexLocker(ThreadState* thread, Mutex* mutex)
   }
 }
 
-SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
-    : monitor_(monitor) {
+void SafepointMonitorLocker::AcquireLock() {
   ASSERT(monitor_ != NULL);
   if (!monitor_->TryEnter()) {
     // We did not get the lock and could potentially block, so transition
@@ -70,6 +69,10 @@ SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
       monitor_->Enter();
     }
   }
+}
+
+void SafepointMonitorLocker::ReleaseLock() {
+  monitor_->Exit();
 }
 
 Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
@@ -105,6 +108,12 @@ bool SafepointRwLock::IsCurrentThreadReader() {
 bool SafepointRwLock::EnterRead() {
   // No need to safepoint if the current thread is not attached.
   auto thread = Thread::Current();
+  // Attempt to acquire a lock while owning a safepoint could lead to a deadlock
+  // (some other thread might be forced to a safepoint while holding this lock).
+  ASSERT(thread == nullptr ||
+         !thread->isolate_group()->safepoint_handler()->IsOwnedByTheThread(
+             thread));
+
   const bool can_block_without_safepoint = thread == nullptr;
 
   bool acquired_read_lock = false;

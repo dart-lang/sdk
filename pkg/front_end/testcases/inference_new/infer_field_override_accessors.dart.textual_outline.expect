@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class A {
   A get x;
   void set x(B value);

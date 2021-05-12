@@ -8,10 +8,11 @@ import 'dart:io' as io;
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
-import 'package:stagehand/stagehand.dart' as stagehand;
 
 import '../core.dart';
 import '../sdk.dart';
+import '../templates.dart';
+import '../utils.dart';
 
 /// A command to create a new project from a set of templates.
 class CreateCommand extends DartdevCommand {
@@ -19,21 +20,11 @@ class CreateCommand extends DartdevCommand {
 
   static String defaultTemplateId = 'console-simple';
 
-  static List<String> legalTemplateIds = [
-    'console-simple',
-    'console-full',
-    'package-simple',
-    'web-simple'
-  ];
-
-  static Iterable<stagehand.Generator> get generators =>
-      legalTemplateIds.map(retrieveTemplateGenerator);
-
-  static stagehand.Generator retrieveTemplateGenerator(String templateId) =>
-      stagehand.getGenerator(templateId);
+  static final List<String> legalTemplateIds =
+      generators.map((generator) => generator.id).toList();
 
   CreateCommand({bool verbose = false})
-      : super(cmdName, 'Create a new project.') {
+      : super(cmdName, 'Create a new Dart project.') {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds,
@@ -76,7 +67,8 @@ class CreateCommand extends DartdevCommand {
     String templateId = argResults['template'];
 
     String dir = argResults.rest.first;
-    var targetDir = io.Directory(dir);
+    var targetDir = io.Directory(dir).absolute;
+    dir = targetDir.path;
     if (targetDir.existsSync() && !argResults['force']) {
       log.stderr(
         "Directory '$dir' already exists "
@@ -85,15 +77,27 @@ class CreateCommand extends DartdevCommand {
       return 73;
     }
 
+    String projectName = p.basename(dir);
+    if (projectName == '.') {
+      projectName = p.basename(io.Directory.current.path);
+    }
+    projectName = normalizeProjectName(projectName);
+
+    if (!isValidPackageName(projectName)) {
+      log.stderr('"$projectName" is not a valid Dart project name.\n\n'
+          'See https://dart.dev/tools/pub/pubspec#name for more information.');
+      return 73;
+    }
+
     log.stdout(
-      'Creating ${log.ansi.emphasized(p.absolute(dir))} '
+      'Creating ${log.ansi.emphasized(projectName)} '
       'using template $templateId...',
     );
     log.stdout('');
 
-    var generator = retrieveTemplateGenerator(templateId);
-    await generator.generate(
-      p.basename(dir),
+    var generator = getGenerator(templateId);
+    generator.generate(
+      projectName,
       DirectoryGeneratorTarget(generator, io.Directory(dir)),
     );
 
@@ -130,11 +134,12 @@ class CreateCommand extends DartdevCommand {
     }
 
     log.stdout('');
-    log.stdout('Created project $dir! In order to get started, type:');
+    log.stdout(
+        'Created project $projectName in ${p.relative(dir)}! In order to get '
+        'started, run the following commands:');
     log.stdout('');
     log.stdout(log.ansi.emphasized('  cd ${p.relative(dir)}'));
-    // TODO(devoncarew): Once we have a 'run' command, print out here how to run
-    // the app.
+    log.stdout(log.ansi.emphasized('  dart run'));
     log.stdout('');
 
     return 0;
@@ -151,7 +156,7 @@ class CreateCommand extends DartdevCommand {
   }
 
   String _availableTemplatesJson() {
-    var items = generators.map((stagehand.Generator generator) {
+    var items = generators.map((Generator generator) {
       var m = {
         'name': generator.id,
         'label': generator.label,
@@ -171,22 +176,24 @@ class CreateCommand extends DartdevCommand {
   }
 }
 
-class DirectoryGeneratorTarget extends stagehand.GeneratorTarget {
-  final stagehand.Generator generator;
+class DirectoryGeneratorTarget extends GeneratorTarget {
+  final Generator generator;
   final io.Directory dir;
 
   DirectoryGeneratorTarget(this.generator, this.dir) {
-    dir.createSync();
+    if (!dir.existsSync()) {
+      dir.createSync();
+    }
   }
 
   @override
-  Future createFile(String path, List<int> contents) async {
+  void createFile(String path, List<int> contents) {
     io.File file = io.File(p.join(dir.path, path));
 
     String name = p.relative(file.path, from: dir.path);
     log.stdout('  $name');
 
-    await file.create(recursive: true);
-    await file.writeAsBytes(contents);
+    file.createSync(recursive: true);
+    file.writeAsBytesSync(contents);
   }
 }

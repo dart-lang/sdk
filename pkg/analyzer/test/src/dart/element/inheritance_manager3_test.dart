@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1142,7 +1140,7 @@ class B extends A {
     );
   }
 
-  test_getMember_optIn_topMerge_getter() async {
+  test_getMember_optIn_topMerge_getter_existing() async {
     await resolveTestCode('''
 class A {
   dynamic get foo => 0;
@@ -1159,6 +1157,26 @@ class X extends A implements B {}
       className: 'X',
       name: 'foo',
       expected: 'B.foo: Object? Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_getter_synthetic() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<void> get foo;
+}
+
+abstract class B {
+  Future<dynamic> get foo;
+}
+
+abstract class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: Future<Object?> Function()',
     );
   }
 
@@ -1182,7 +1200,7 @@ class X extends A implements B {}
     );
   }
 
-  test_getMember_optIn_topMerge_setter() async {
+  test_getMember_optIn_topMerge_setter_existing() async {
     await resolveTestCode('''
 class A {
   set foo(dynamic _) {}
@@ -1199,6 +1217,26 @@ class X extends A implements B {}
       className: 'X',
       name: 'foo=',
       expected: 'B.foo=: void Function(Object?)',
+    );
+  }
+
+  test_getMember_optIn_topMerge_setter_synthetic() async {
+    await resolveTestCode('''
+abstract class A {
+  set foo(Future<void> _);
+}
+
+abstract class B {
+  set foo(Future<dynamic> _);
+}
+
+abstract class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo=',
+      expected: 'X.foo=: void Function(Future<Object?>)',
     );
   }
 
@@ -1284,7 +1322,7 @@ class C extends B {}
 }
 
 class _InheritanceManager3Base extends PubPackageResolutionTest {
-  InheritanceManager3 manager;
+  late final InheritanceManager3 manager;
 
   @override
   Future<void> resolveTestFile() async {
@@ -1292,8 +1330,8 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     manager = InheritanceManager3();
   }
 
-  void _assertExecutable(ExecutableElement element, String expected) {
-    if (expected != null) {
+  void _assertExecutable(ExecutableElement? element, String? expected) {
+    if (expected != null && element != null) {
       var enclosingElement = element.enclosingElement;
 
       var type = element.type;
@@ -1301,15 +1339,25 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
       var actual = '${enclosingElement.name}.${element.name}: $typeStr';
       expect(actual, expected);
+
+      if (element is PropertyAccessorElement) {
+        var variable = element.variable;
+        expect(variable.name, element.displayName);
+        if (element.isGetter) {
+          expect(variable.type, element.returnType);
+        } else {
+          expect(variable.type, element.parameters[0].type);
+        }
+      }
     } else {
       expect(element, isNull);
     }
   }
 
   void _assertGetInherited({
-    @required String className,
-    @required String name,
-    String expected,
+    required String className,
+    required String name,
+    String? expected,
   }) {
     var member = manager.getInherited2(
       findElement.classOrMixin(className),
@@ -1320,29 +1368,26 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertGetMember({
-    @required String className,
-    @required String name,
-    String expected,
+    required String className,
+    required String name,
+    String? expected,
     bool concrete = false,
     bool forSuper = false,
   }) {
-    ExecutableElement member;
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      member = manager.getMember2(
-        findElement.classOrMixin(className),
-        Name(null, name),
-        concrete: concrete,
-        forSuper: forSuper,
-      );
-    });
+    var member = manager.getMember2(
+      findElement.classOrMixin(className),
+      Name(null, name),
+      concrete: concrete,
+      forSuper: forSuper,
+    );
 
     _assertExecutable(member, expected);
   }
 
   void _assertGetMember2({
-    @required String className,
-    @required String name,
-    String expected,
+    required String className,
+    required String name,
+    String? expected,
   }) {
     _assertGetMember(
       className: className,
@@ -1374,8 +1419,8 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   void _assertNameToExecutableMap(
       Map<Name, ExecutableElement> map, String expected) {
     var lines = <String>[];
-    for (var name in map.keys) {
-      var element = map[name];
+    for (var entry in map.entries) {
+      var element = entry.value;
       var type = element.type;
 
       var enclosingElement = element.enclosingElement;

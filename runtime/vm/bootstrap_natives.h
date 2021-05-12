@@ -51,6 +51,7 @@ namespace dart {
   V(Integer_parse, 1)                                                          \
   V(Integer_shlFromInteger, 2)                                                 \
   V(Integer_shrFromInteger, 2)                                                 \
+  V(Integer_ushrFromInteger, 2)                                                \
   V(Bool_fromEnvironment, 3)                                                   \
   V(Bool_hasEnvironment, 2)                                                    \
   V(CapabilityImpl_factory, 1)                                                 \
@@ -65,7 +66,6 @@ namespace dart {
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
   V(SendPortImpl_sendAndExitInternal_, 2)                                      \
-  V(Smi_bitAndFromSmi, 2)                                                      \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
@@ -337,7 +337,7 @@ namespace dart {
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
-  V(Internal_inquireIs64Bit, 0)                                                \
+  V(Internal_has63BitSmis, 0)                                                  \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \
@@ -405,7 +405,6 @@ namespace dart {
   V(Ffi_storePointer, 3)                                                       \
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
-  V(Ffi_sizeOf, 0)                                                             \
   V(Ffi_asFunctionInternal, 1)                                                 \
   V(Ffi_nativeCallbackFunction, 2)                                             \
   V(Ffi_pointerFromFunction, 1)                                                \

@@ -54,13 +54,11 @@ testRedirectingFactoryPatchFile() async {
   var component = new ir.Component();
   new BinaryBuilder(new File.fromUri(componentUri).readAsBytesSync())
       .readComponent(component);
-  checkIsRedirectingFactory(component, 'collection', 'HashMap', 'identity',
-      isPatch: true);
+  checkIsRedirectingFactory(component, 'collection', 'HashMap', 'identity');
 }
 
 void checkIsRedirectingFactory(ir.Component component, String uriPath,
-    String className, String constructorName,
-    {bool isPatch: false}) {
+    String className, String constructorName) {
   var lib =
       component.libraries.firstWhere((l) => l.importUri.path.endsWith(uriPath));
   var cls = lib.classes.firstWhere((c) => c.name == className);
@@ -69,8 +67,7 @@ void checkIsRedirectingFactory(ir.Component component, String uriPath,
   Expect.isTrue(
       member.kind == ir.ProcedureKind.Factory, "$member is not a factory");
   Expect.isTrue(api.isRedirectingFactory(member));
-  // TODO: this should always be true. Issue #33495
-  Expect.equals(!isPatch, member.isRedirectingFactoryConstructor);
+  Expect.isTrue(member.isRedirectingFactoryConstructor);
 }
 
 const aSource = '''

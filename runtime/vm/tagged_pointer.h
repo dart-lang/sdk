@@ -188,6 +188,19 @@ class ObjectPtr {
       : tagged_pointer_(reinterpret_cast<uword>(heap_object) + kHeapObjectTag) {
   }
 
+  ObjectPtr Decompress(uword heap_base) const { return *this; }
+  ObjectPtr DecompressSmi() const { return *this; }
+  uword heap_base() const {
+    // TODO(rmacnak): Why does Windows have trouble linking GetClassId used
+    // here?
+#if !defined(HOST_OS_WINDOWS)
+    ASSERT(IsHeapObject());
+    ASSERT(!IsInstructions());
+    ASSERT(!IsInstructionsSection());
+#endif
+    return tagged_pointer_ & kHeapBaseMask;
+  }
+
  protected:
   uword untagged_pointer() const {
     ASSERT(IsHeapObject());
@@ -203,6 +216,47 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
   os << reinterpret_cast<void*>(static_cast<uword>(obj));
   return os;
 }
+#endif
+
+#if !defined(DART_COMPRESSED_POINTERS)
+typedef ObjectPtr CompressedObjectPtr;
+#define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
+  typedef klass##Ptr Compressed##klass##Ptr;
+#else
+class CompressedObjectPtr {
+ public:
+  explicit CompressedObjectPtr(ObjectPtr uncompressed)
+      : compressed_pointer_(
+            static_cast<uint32_t>(static_cast<uword>(uncompressed))) {}
+
+  ObjectPtr Decompress(uword heap_base) const {
+    return static_cast<ObjectPtr>(static_cast<uword>(compressed_pointer_) +
+                                  heap_base);
+  }
+
+  ObjectPtr DecompressSmi() const {
+    ASSERT((compressed_pointer_ & kSmiTagMask) != kHeapObjectTag);
+    return static_cast<ObjectPtr>(static_cast<uword>(compressed_pointer_));
+  }
+
+  const ObjectPtr& operator=(const ObjectPtr& other) {
+    compressed_pointer_ = static_cast<uint32_t>(static_cast<uword>(other));
+    return other;
+  }
+
+ protected:
+  uint32_t compressed_pointer_;
+};
+#define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
+  class Compressed##klass##Ptr : public Compressed##base##Ptr {                \
+   public:                                                                     \
+    explicit Compressed##klass##Ptr(klass##Ptr uncompressed)                   \
+        : Compressed##base##Ptr(uncompressed) {}                               \
+    const klass##Ptr& operator=(const klass##Ptr& other) {                     \
+      compressed_pointer_ = static_cast<uint32_t>(static_cast<uword>(other));  \
+      return other;                                                            \
+    }                                                                          \
+  };
 #endif
 
 #define DEFINE_TAGGED_POINTER(klass, base)                                     \
@@ -228,7 +282,8 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
     constexpr klass##Ptr(std::nullptr_t) : base##Ptr(nullptr) {} /* NOLINT */  \
     explicit klass##Ptr(const UntaggedObject* untagged)                        \
         : base##Ptr(reinterpret_cast<uword>(untagged) + kHeapObjectTag) {}     \
-  };
+  };                                                                           \
+  DEFINE_COMPRESSED_POINTER(klass, base)
 
 DEFINE_TAGGED_POINTER(Class, Object)
 DEFINE_TAGGED_POINTER(PatchClass, Object)
@@ -312,7 +367,12 @@ DEFINE_TAGGED_POINTER(FutureOr, Instance)
 #undef DEFINE_TAGGED_POINTER
 
 inline intptr_t RawSmiValue(const SmiPtr raw_value) {
+#if !defined(DART_COMPRESSED_POINTERS)
   const intptr_t value = static_cast<intptr_t>(raw_value);
+#else
+  const intptr_t value = static_cast<intptr_t>(static_cast<int32_t>(
+      static_cast<uint32_t>(static_cast<uintptr_t>(raw_value))));
+#endif
   ASSERT((value & kSmiTagMask) == kSmiTag);
   return (value >> kSmiTagShift);
 }

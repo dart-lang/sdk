@@ -436,17 +436,6 @@ class PowersetDomain implements AbstractValueDomain {
           _abstractValueDomain.isTruthy(value._abstractValue));
 
   @override
-  AbstractBool isDoubleOrNull(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-          _powersetBitsDomain.isDoubleOrNull(value._powersetBits),
-          _abstractValueDomain.isDoubleOrNull(value._abstractValue));
-
-  @override
-  AbstractBool isDouble(covariant PowersetValue value) =>
-      AbstractBool.strengthen(_powersetBitsDomain.isDouble(value._powersetBits),
-          _abstractValueDomain.isDouble(value._abstractValue));
-
-  @override
   AbstractBool isNumberOrNull(covariant PowersetValue value) =>
       AbstractBool.strengthen(
           _powersetBitsDomain.isNumberOrNull(value._powersetBits),
@@ -778,8 +767,8 @@ class PowersetDomain implements AbstractValueDomain {
       PowersetValue(_abstractValueDomain.numType, _powersetBitsDomain.numType);
 
   @override
-  AbstractValue get doubleType => PowersetValue(
-      _abstractValueDomain.doubleType, _powersetBitsDomain.doubleType);
+  AbstractValue get numNotIntType => PowersetValue(
+      _abstractValueDomain.numNotIntType, _powersetBitsDomain.numNotIntType);
 
   @override
   AbstractValue get intType =>

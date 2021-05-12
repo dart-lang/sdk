@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -20,21 +19,19 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
-  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-    return runTests<String>(dataDir,
-        args: args,
-        createUriForFileName: createUriForFileName,
-        onFailure: onFailure,
-        runTest:
-            runTestFor(const _InheritanceDataComputer(), [analyzerNnbdConfig]),
-        skipMap: {
-          analyzerMarker: [
-            // These are CFE-centric tests for an opt-in/opt-out sdk.
-            'object_opt_in',
-            'object_opt_out',
-          ]
-        });
-  });
+  return runTests<String>(dataDir,
+      args: args,
+      createUriForFileName: createUriForFileName,
+      onFailure: onFailure,
+      runTest:
+          runTestFor(const _InheritanceDataComputer(), [analyzerNnbdConfig]),
+      skipMap: {
+        analyzerMarker: [
+          // These are CFE-centric tests for an opt-in/opt-out sdk.
+          'object_opt_in',
+          'object_opt_out',
+        ]
+      });
 }
 
 String supertypeToString(InterfaceType type) {
@@ -71,7 +68,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    _InheritanceDataExtractor(unit.declaredElement.source.uri, actualMap)
+    _InheritanceDataExtractor(unit.declaredElement!.source.uri, actualMap)
         .run(unit);
   }
 }
@@ -83,7 +80,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
       : super(uri, actualMap);
 
   @override
-  String computeElementValue(Id id, Element element) {
+  String? computeElementValue(Id id, Element element) {
     if (element is LibraryElement) {
       return 'nnbd=${element.isNonNullableByDefault}';
     }
@@ -91,10 +88,10 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   }
 
   @override
-  void computeForClass(Declaration node, Id id) {
+  void computeForClass(Declaration node, Id? id) {
     super.computeForClass(node, id);
     if (node is ClassDeclaration) {
-      var element = node.declaredElement;
+      var element = node.declaredElement!;
 
       void registerMember(
           MemberId id, int offset, Object object, DartType type) {
@@ -104,9 +101,9 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
 
       var interface = inheritance.getInterface(element);
       for (var name in interface.map.keys) {
-        var executable = interface.map[name];
+        var executable = interface.map[name]!;
 
-        ClassElement enclosingClass = executable.enclosingElement;
+        var enclosingClass = executable.enclosingElement as ClassElement;
         if (enclosingClass.isDartCoreObject) continue;
 
         var id = MemberId.internal(
@@ -127,6 +124,8 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
           } else {
             type = executable.parameters.first.type;
           }
+        } else {
+          throw UnimplementedError('(${executable.runtimeType}) $executable');
         }
 
         registerMember(id, offset, executable, type);
@@ -135,9 +134,9 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   }
 
   @override
-  String computeNodeValue(Id id, AstNode node) {
+  String? computeNodeValue(Id id, AstNode node) {
     if (node is ClassDeclaration) {
-      var cls = node.declaredElement;
+      var cls = node.declaredElement!;
       var supertypes = <String>[];
       supertypes.add(supertypeToString(cls.thisType));
       for (var supertype in cls.allSupertypes) {

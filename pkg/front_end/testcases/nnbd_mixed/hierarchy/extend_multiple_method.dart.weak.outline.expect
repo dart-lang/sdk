@@ -1,0 +1,122 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:37:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedMethod
+//  - Interface1.extendedAbstractImplementedMultipleMethod
+//  - Interface2.extendedAbstractImplementedMultipleMethod
+//  - Super.extendedAbstractImplementedMethod
+//  - Super.extendedAbstractImplementedMultipleMethod
+//  - Super.extendedAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:22:8: Context: 'Interface1.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:26:8: Context: 'Interface1.extendedAbstractImplementedMultipleMethod' is defined here.
+//   void extendedAbstractImplementedMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:32:8: Context: 'Interface2.extendedAbstractImplementedMultipleMethod' is defined here.
+//   void extendedAbstractImplementedMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:12:8: Context: 'Super.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:16:8: Context: 'Super.extendedAbstractImplementedMultipleMethod' is defined here.
+//   void extendedAbstractImplementedMultipleMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
+//   void extendedAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:39:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedMethod
+//  - Interface1.extendedAbstractImplementedMultipleMethod
+//  - Interface2.extendedAbstractImplementedMultipleMethod
+//  - Super.extendedAbstractImplementedMethod
+//  - Super.extendedAbstractImplementedMultipleMethod
+//  - Super.extendedAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends Super implements Interface1, Interface2 {}
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:22:8: Context: 'Interface1.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:26:8: Context: 'Interface1.extendedAbstractImplementedMultipleMethod' is defined here.
+//   void extendedAbstractImplementedMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:32:8: Context: 'Interface2.extendedAbstractImplementedMultipleMethod' is defined here.
+//   void extendedAbstractImplementedMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:12:8: Context: 'Super.extendedAbstractImplementedMethod' is defined here.
+//   void extendedAbstractImplementedMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:16:8: Context: 'Super.extendedAbstractImplementedMultipleMethod' is defined here.
+//   void extendedAbstractImplementedMultipleMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_method.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
+//   void extendedAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method extendedConcreteMethod() → void
+    ;
+  abstract method extendedAbstractMethod() → void;
+  method extendedConcreteImplementedMethod() → void
+    ;
+  abstract method extendedAbstractImplementedMethod() → void;
+  method extendedConcreteImplementedMultipleMethod() → void
+    ;
+  abstract method extendedAbstractImplementedMultipleMethod() → void;
+}
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    ;
+  method extendedConcreteImplementedMethod() → void
+    ;
+  method extendedAbstractImplementedMethod() → void
+    ;
+  method extendedConcreteImplementedMultipleMethod() → void
+    ;
+  method extendedAbstractImplementedMultipleMethod() → void
+    ;
+}
+class Interface2 extends core::Object {
+  synthetic constructor •() → self::Interface2
+    ;
+  method extendedConcreteImplementedMultipleMethod() → void
+    ;
+  method extendedAbstractImplementedMultipleMethod() → void
+    ;
+}
+abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::AbstractClass
+    ;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    ;
+}
+class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+static method main() → dynamic
+  ;

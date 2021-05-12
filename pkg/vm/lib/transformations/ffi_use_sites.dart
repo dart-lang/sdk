@@ -13,7 +13,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
-        templateFfiNonConstantTypeArgumentWarning,
         templateFfiNotStatic,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;
@@ -27,7 +26,14 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
-    show FfiTransformerData, NativeType, FfiTransformer, optimizedTypes;
+    show
+        FfiTransformerData,
+        NativeType,
+        FfiTransformer,
+        nativeTypeSizes,
+        WORD_SIZE,
+        UNKNOWN,
+        wordSize;
 
 /// Checks and replaces calls to dart:ffi struct fields and methods.
 void transformLibraries(
@@ -69,9 +75,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   final Set<Class> emptyStructs;
   StaticTypeContext _staticTypeContext;
 
-  Library currentLibrary;
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
-  IndexedLibrary currentLibraryIndex;
 
   // Used to create private top-level fields with unique names for each
   // callback.
@@ -91,8 +95,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    currentLibrary = node;
-    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
     callbackCount = 0;
     return super.visitLibrary(node);
   }
@@ -177,19 +179,44 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       if (target == structPointerRef || target == structPointerElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _warningNativeTypeValid(nativeType, node, allowStructItself: false);
+        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
 
-        // TODO(http://dartbug.com/38721): Replace calls with direct
-        // constructor invocations.
+        return _replaceRef(node);
+      } else if (target == structArrayElemAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
+
+        return _replaceRefArray(node);
+      } else if (target == arrayArrayElemAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _ensureNativeTypeValid(nativeType, node,
+            allowStructItself: false, allowInlineArray: true);
+
+        return _replaceArrayArrayElemAt(node);
+      } else if (target == arrayArrayAssignAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _ensureNativeTypeValid(nativeType, node,
+            allowStructItself: false, allowInlineArray: true);
+
+        return _replaceArrayArrayElemAt(node, setter: true);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
+        // TODO(http://dartbug.com/38721): Change this to an error after
+        // package:ffi is no longer using sizeOf generically.
         if (!isFfiLibrary) {
-          _warningNativeTypeValid(nativeType, node);
+          _ensureNativeTypeValid(nativeType, node);
         }
 
-        // TODO(http://dartbug.com/38721): Replace calls with constant
-        // expressions.
+        if (nativeType is InterfaceType) {
+          Expression inlineSizeOf = _inlineSizeOf(nativeType);
+          if (inlineSizeOf != null) {
+            return inlineSizeOf;
+          }
+        }
       } else if (target == lookupFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
@@ -303,8 +330,29 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
 
-        // TODO(http://dartbug.com/38721): Inline the body to get rid of a
-        // generic invocation of sizeOf.
+        // TODO(http://dartbug.com/38721): Change this to an error.
+        if (nativeType is TypeParameterType) {
+          // Do not rewire generic invocations.
+          return node;
+        }
+
+        // Inline the body to get rid of a generic invocation of sizeOf.
+        // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
+        Expression sizeInBytes = _inlineSizeOf(nativeType);
+        if (sizeInBytes != null) {
+          if (node.arguments.positional.length == 2) {
+            sizeInBytes = MethodInvocation(
+                node.arguments.positional[1],
+                numMultiplication.name,
+                Arguments([sizeInBytes]),
+                numMultiplication);
+          }
+          return MethodInvocation(
+              node.arguments.positional[0],
+              allocatorAllocateMethod.name,
+              Arguments([sizeInBytes], types: node.arguments.types),
+              allocatorAllocateMethod);
+        }
       }
     } on _FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
@@ -313,6 +361,28 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     }
 
     return node;
+  }
+
+  Expression _inlineSizeOf(InterfaceType nativeType) {
+    final Class nativeClass = nativeType.classNode;
+    final NativeType nt = getType(nativeClass);
+    if (nt == null) {
+      // User-defined structs.
+      Field sizeOfField = nativeClass.fields.single;
+      return StaticGet(sizeOfField);
+    }
+    final int size = nativeTypeSizes[nt.index];
+    if (size == WORD_SIZE) {
+      return runtimeBranchOnLayout(wordSize);
+    }
+    if (size != UNKNOWN) {
+      return ConstantExpression(
+          IntConstant(size),
+          InterfaceType(listClass, Nullability.legacy,
+              [InterfaceType(intClass, Nullability.legacy)]));
+    }
+    // Size unknown.
+    return null;
   }
 
   // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
@@ -383,6 +453,186 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return StaticGet(field);
   }
 
+  Expression _replaceRef(StaticInvocation node) {
+    final dartType = node.arguments.types[0];
+    final clazz = (dartType as InterfaceType).classNode;
+    final constructor = clazz.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+    Expression pointer = NullCheck(node.arguments.positional[0]);
+    if (node.arguments.positional.length == 2) {
+      pointer = MethodInvocation(
+          pointer,
+          offsetByMethod.name,
+          Arguments([
+            MethodInvocation(
+                node.arguments.positional[1],
+                numMultiplication.name,
+                Arguments([_inlineSizeOf(dartType)]),
+                numMultiplication)
+          ]),
+          offsetByMethod);
+    }
+    return ConstructorInvocation(constructor, Arguments([pointer]));
+  }
+
+  Expression _replaceRefArray(StaticInvocation node) {
+    final dartType = node.arguments.types[0];
+    final clazz = (dartType as InterfaceType).classNode;
+    final constructor = clazz.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+
+    final typedDataBasePrime = typedDataBaseOffset(
+        PropertyGet(NullCheck(node.arguments.positional[0]),
+            arrayTypedDataBaseField.name, arrayTypedDataBaseField),
+        MethodInvocation(node.arguments.positional[1], numMultiplication.name,
+            Arguments([StaticGet(clazz.fields.single)]), numMultiplication),
+        StaticGet(clazz.fields.single),
+        dartType,
+        node.fileOffset);
+
+    return ConstructorInvocation(constructor, Arguments([typedDataBasePrime]));
+  }
+
+  /// Generates an expression that returns a new `Array<dartType>`.
+  ///
+  /// Sample input getter:
+  /// ```
+  /// this<Array<T>>[index]
+  /// ```
+  ///
+  /// Sample output getter:
+  ///
+  /// ```
+  /// Array #array = this!;
+  /// int #index = index!;
+  /// #array._checkIndex(#index);
+  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
+  /// int #offset = #elementSize * #index;
+  ///
+  /// new Array<T>._(
+  ///   typedDataBaseOffset(#array._typedDataBase, #offset, #elementSize),
+  ///   #array.nestedDimensionsFirst,
+  ///   #array.nestedDimensionsRest
+  /// )
+  /// ```
+  ///
+  /// Sample input setter:
+  /// ```
+  /// this<Array<T>>[index] = value
+  /// ```
+  ///
+  /// Sample output setter:
+  ///
+  /// ```
+  /// Array #array = this!;
+  /// int #index = index!;
+  /// #array._checkIndex(#index);
+  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
+  /// int #offset = #elementSize * #index;
+  ///
+  /// _memCopy(
+  ///   #array._typedDataBase, #offset, value._typedDataBase, 0, #elementSize)
+  /// ```
+  Expression _replaceArrayArrayElemAt(StaticInvocation node,
+      {bool setter: false}) {
+    final dartType = node.arguments.types[0];
+    final elementType = arraySingleElementType(dartType as InterfaceType);
+
+    final arrayVar = VariableDeclaration("#array",
+        initializer: NullCheck(node.arguments.positional[0]),
+        type: InterfaceType(arrayClass, Nullability.nonNullable))
+      ..fileOffset = node.fileOffset;
+    final indexVar = VariableDeclaration("#index",
+        initializer: NullCheck(node.arguments.positional[1]),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+    final singleElementSizeVar = VariableDeclaration("#singleElementSize",
+        initializer: _inlineSizeOf(elementType),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+    final elementSizeVar = VariableDeclaration("#elementSize",
+        initializer: MethodInvocation(
+            VariableGet(singleElementSizeVar),
+            numMultiplication.name,
+            Arguments([
+              PropertyGet(
+                  VariableGet(arrayVar),
+                  arrayNestedDimensionsFlattened.name,
+                  arrayNestedDimensionsFlattened)
+            ]),
+            numMultiplication),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+    final offsetVar = VariableDeclaration("#offset",
+        initializer: MethodInvocation(
+            VariableGet(elementSizeVar),
+            numMultiplication.name,
+            Arguments([
+              VariableGet(indexVar),
+            ]),
+            numMultiplication),
+        type: coreTypes.intNonNullableRawType)
+      ..fileOffset = node.fileOffset;
+
+    final checkIndexAndLocalVars = Block([
+      arrayVar,
+      indexVar,
+      ExpressionStatement(MethodInvocation(
+          VariableGet(arrayVar),
+          arrayCheckIndex.name,
+          Arguments([VariableGet(indexVar)]),
+          arrayCheckIndex)),
+      singleElementSizeVar,
+      elementSizeVar,
+      offsetVar
+    ]);
+
+    if (!setter) {
+      // `[]`
+      return BlockExpression(
+          checkIndexAndLocalVars,
+          ConstructorInvocation(
+              arrayConstructor,
+              Arguments([
+                typedDataBaseOffset(
+                    PropertyGet(VariableGet(arrayVar),
+                        arrayTypedDataBaseField.name, arrayTypedDataBaseField),
+                    VariableGet(offsetVar),
+                    VariableGet(elementSizeVar),
+                    dartType,
+                    node.fileOffset),
+                PropertyGet(
+                    VariableGet(arrayVar),
+                    arrayNestedDimensionsFirst.name,
+                    arrayNestedDimensionsFirst),
+                PropertyGet(VariableGet(arrayVar),
+                    arrayNestedDimensionsRest.name, arrayNestedDimensionsRest)
+              ], types: [
+                dartType
+              ])));
+    }
+
+    // `[]=`
+    return BlockExpression(
+        checkIndexAndLocalVars,
+        StaticInvocation(
+            memCopy,
+            Arguments([
+              PropertyGet(VariableGet(arrayVar), arrayTypedDataBaseField.name,
+                  arrayTypedDataBaseField)
+                ..fileOffset = node.fileOffset,
+              VariableGet(offsetVar),
+              PropertyGet(node.arguments.positional[2],
+                  arrayTypedDataBaseField.name, arrayTypedDataBaseField)
+                ..fileOffset = node.fileOffset,
+              ConstantExpression(IntConstant(0)),
+              VariableGet(elementSizeVar),
+            ]))
+          ..fileOffset = node.fileOffset);
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
@@ -394,22 +644,22 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             node.receiver.getStaticType(_staticTypeContext);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
-        _warningNativeTypeValid(nativeType, node);
+        _ensureNativeTypeValid(nativeType, node);
 
-        if (nativeType is TypeParameterType) {
-          // Do not rewire generic invocations.
-          return node;
-        }
-        final Class nativeClass = (nativeType as InterfaceType).classNode;
-        final NativeType nt = getType(nativeClass);
-        if (optimizedTypes.contains(nt)) {
-          final typeArguments = [
-            if (nt == NativeType.kPointer) _pointerTypeGetTypeArg(nativeType)
-          ];
-          return StaticInvocation(
-              elementAtMethods[nt],
-              Arguments([node.receiver, node.arguments.positional[0]],
-                  types: typeArguments));
+        Expression inlineSizeOf = _inlineSizeOf(nativeType);
+        if (inlineSizeOf != null) {
+          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
+          return MethodInvocation(
+              node.receiver,
+              offsetByMethod.name,
+              Arguments([
+                MethodInvocation(
+                    node.arguments.positional.single,
+                    numMultiplication.name,
+                    Arguments([inlineSizeOf]),
+                    numMultiplication)
+              ]),
+              offsetByMethod);
         }
       }
     } on _FfiStaticTypeError {
@@ -447,29 +697,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowHandle: false, bool allowStructItself = true}) {
+      {bool allowHandle: false,
+      bool allowStructItself = true,
+      bool allowInlineArray = false}) {
     if (!_nativeTypeValid(nativeType,
         allowStructs: true,
         allowStructItself: allowStructItself,
-        allowHandle: allowHandle)) {
+        allowHandle: allowHandle,
+        allowInlineArray: allowInlineArray)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
-              nativeType, currentLibrary.isNonNullableByDefault),
-          node.fileOffset,
-          1,
-          node.location.file);
-      throw _FfiStaticTypeError();
-    }
-  }
-
-  void _warningNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowHandle: false, bool allowStructItself = true}) {
-    if (!_nativeTypeValid(nativeType,
-        allowStructs: true,
-        allowStructItself: allowStructItself,
-        allowHandle: allowHandle)) {
-      diagnosticReporter.report(
-          templateFfiNonConstantTypeArgumentWarning.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
           node.fileOffset,
           1,
@@ -506,11 +743,13 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   bool _nativeTypeValid(DartType nativeType,
       {bool allowStructs: false,
       bool allowStructItself = false,
-      bool allowHandle = false}) {
+      bool allowHandle = false,
+      bool allowInlineArray = false}) {
     return convertNativeTypeToDartType(nativeType,
             allowStructs: allowStructs,
             allowStructItself: allowStructItself,
-            allowHandle: allowHandle) !=
+            allowHandle: allowHandle,
+            allowInlineArray: allowInlineArray) !=
         null;
   }
 
@@ -541,7 +780,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           : null;
     }
 
-    if (!nativeTypesClasses.contains(klass)) {
+    if (!nativeTypesClasses.contains(klass) && klass != arrayClass) {
       for (final parent in nativeTypesClasses) {
         if (hierarchy.isSubtypeOf(klass, parent)) {
           return parent;

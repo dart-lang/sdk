@@ -18,14 +18,14 @@ import 'log_file_input_converter.dart';
 import 'operation.dart';
 
 /// Common input converter superclass for sharing implementation.
-abstract class CommonInputConverter extends Converter<String, Operation> {
+abstract class CommonInputConverter extends Converter<String, Operation?> {
   static final ERROR_PREFIX = 'Server responded with an error: ';
   final Logger logger = Logger('InstrumentationInputConverter');
   final Set<String> eventsSeen = <String>{};
 
   /// A mapping from request/response id to request json
   /// for those requests for which a response has not been processed.
-  final Map<String, dynamic> requestMap = {};
+  final Map<String, Object?> requestMap = {};
 
   /// A mapping from request/response id to a completer
   /// for those requests for which a response has not been processed.
@@ -35,7 +35,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 
   /// A mapping from request/response id to the actual response result
   /// for those responses that have not been processed.
-  final Map<String, dynamic> responseMap = {};
+  final Map<String, Object?> responseMap = {};
 
   /// A mapping of current overlay content
   /// parallel to what is in the analysis server
@@ -56,16 +56,18 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 
   CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
-  Map<String, dynamic> asMap(dynamic value) => value as Map<String, dynamic>;
+  Map<String, Object?> asMap(dynamic value) => value as Map<String, Object?>;
+
+  Map<String, Object?>? asMap2(dynamic value) => value as Map<String, Object?>?;
 
   /// Return an operation for the notification or `null` if none.
-  Operation convertNotification(Map<String, dynamic> json) {
+  Operation? convertNotification(Map<String, dynamic> json) {
     String event = json['event'];
     if (event == SERVER_NOTIFICATION_STATUS) {
       // {"event":"server.status","params":{"analysis":{"isAnalyzing":false}}}
-      var params = asMap(json['params']);
+      var params = asMap2(json['params']);
       if (params != null) {
-        var analysis = asMap(params['analysis']);
+        var analysis = asMap2(params['analysis']);
         if (analysis != null && analysis['isAnalyzing'] == false) {
           return WaitForAnalysisCompleteOperation();
         }
@@ -82,23 +84,20 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   }
 
   /// Return an operation for the request or `null` if none.
-  Operation convertRequest(Map<String, dynamic> origJson) {
+  Operation convertRequest(Map<String, Object?> origJson) {
     var json = asMap(translateSrcPaths(origJson));
-    requestMap[json['id']] = json;
-    String method = json['method'];
+    requestMap[json['id'] as String] = json;
+    var method = json['method'] as String;
     // Sanity check operations that modify source
     // to ensure that the operation is on source in temp space
     if (method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
       // Track overlays in parallel with the analysis server
       // so that when an overlay is removed, the file can be updated on disk
-      var request = Request.fromJson(json);
+      var request = Request.fromJson(json)!;
       var params = AnalysisUpdateContentParams.fromRequest(request);
       params.files.forEach((String filePath, change) {
         if (change is AddContentOverlay) {
           var content = change.content;
-          if (content == null) {
-            throw 'expected new overlay content\n$json';
-          }
           overlays[filePath] = content;
         } else if (change is ChangeContentOverlay) {
           var content = overlays[filePath];
@@ -170,8 +169,9 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   void processErrorResponse(String id, exception) {
     var result = exception;
     if (exception is UnimplementedError) {
-      if (exception.message.startsWith(ERROR_PREFIX)) {
-        result = json.decode(exception.message.substring(ERROR_PREFIX.length));
+      var message = exception.message;
+      if (message!.startsWith(ERROR_PREFIX)) {
+        result = json.decode(message.substring(ERROR_PREFIX.length));
       }
     }
     processResponseResult(id, result);
@@ -184,7 +184,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   /// Return a future that completes when the response is received
   /// or `null` if the response has already been received
   /// and the completer completed.
-  Future processExpectedResponse(String id, Completer completer) {
+  Future<void>? processExpectedResponse(String id, Completer completer) {
     if (responseMap.containsKey(id)) {
       logger.log(Level.INFO, 'processing cached response $id');
       completer.complete(responseMap.remove(id));
@@ -226,7 +226,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
       return result;
     }
     if (json is Map) {
-      var result = <String, dynamic>{};
+      var result = <String, Object?>{};
       json.forEach((origKey, value) {
         result[translateSrcPaths(origKey)] = translateSrcPaths(value);
       });
@@ -239,7 +239,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 /// [InputConverter] converts an input stream
 /// into a series of operations to be sent to the analysis server.
 /// The input stream can be either an instrumentation or log file.
-class InputConverter extends Converter<String, Operation> {
+class InputConverter extends Converter<String, Operation?> {
   final Logger logger = Logger('InputConverter');
 
   /// A mapping of source path prefixes
@@ -257,7 +257,7 @@ class InputConverter extends Converter<String, Operation> {
 
   /// The underlying converter used to translate lines into operations
   /// or `null` if it has not yet been determined.
-  Converter<String, Operation> converter;
+  Converter<String, Operation?>? converter;
 
   /// [active] is `true` if converting lines to operations
   /// or `false` if an exception has occurred.
@@ -266,10 +266,11 @@ class InputConverter extends Converter<String, Operation> {
   InputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   @override
-  Operation convert(String line) {
+  Operation? convert(String line) {
     if (!active) {
       return null;
     }
+    var converter = this.converter;
     if (converter != null) {
       try {
         return converter.convert(line);
@@ -333,8 +334,8 @@ class PathMapEntry {
 }
 
 class _InputSink extends ChunkedConversionSink<String> {
-  final Converter<String, Operation> converter;
-  final Sink<Operation> outSink;
+  final Converter<String, Operation?> converter;
+  final Sink<Operation?> outSink;
 
   _InputSink(this.converter, this.outSink);
 

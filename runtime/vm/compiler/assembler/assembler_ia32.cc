@@ -1763,20 +1763,19 @@ void Assembler::CompareRegisters(Register a, Register b) {
 }
 
 void Assembler::LoadFromOffset(Register reg,
-                               Register base,
-                               int32_t offset,
+                               const Address& address,
                                OperandSize type) {
   switch (type) {
     case kByte:
-      return movsxb(reg, Address(base, offset));
+      return movsxb(reg, address);
     case kUnsignedByte:
-      return movzxb(reg, Address(base, offset));
+      return movzxb(reg, address);
     case kTwoBytes:
-      return movsxw(reg, Address(base, offset));
+      return movsxw(reg, address);
     case kUnsignedTwoBytes:
-      return movzxw(reg, Address(base, offset));
+      return movzxw(reg, address);
     case kFourBytes:
-      return movl(reg, Address(base, offset));
+      return movl(reg, address);
     default:
       UNREACHABLE();
       break;
@@ -1852,6 +1851,10 @@ void Assembler::Drop(intptr_t stack_elements) {
 
 void Assembler::LoadIsolate(Register dst) {
   movl(dst, Address(THR, target::Thread::isolate_offset()));
+}
+
+void Assembler::LoadIsolateGroup(Register dst) {
+  movl(dst, Address(THR, target::Thread::isolate_group_offset()));
 }
 
 void Assembler::LoadObject(Register dst,
@@ -2405,6 +2408,15 @@ void Assembler::Call(const Code& target,
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
+void Assembler::CallVmStub(const Code& target) {
+  const Object& target_as_object = CastHandle<Object, Code>(target);
+  ASSERT(target::CanEmbedAsRawPointerInGeneratedCode(target_as_object));
+  call(Address::Absolute(
+      target::ToRawPointer(target_as_object) +
+      target::Code::entry_point_offset(CodeEntryKind::kNormal) -
+      kHeapObjectTag));
+}
+
 void Assembler::CallToRuntime() {
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
@@ -2469,13 +2481,13 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   Address state_address(kNoRegister, 0);
 
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::IsolateGroup::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
   ASSERT(temp_reg != kNoRegister);
-  LoadIsolate(temp_reg);
+  LoadIsolateGroup(temp_reg);
   movl(temp_reg, Address(temp_reg, shared_table_offset));
   movl(temp_reg, Address(temp_reg, table_offset));
   cmpb(Address(temp_reg, class_offset), Immediate(0));
@@ -2705,8 +2717,8 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 
   const intptr_t table_offset =
-      target::Isolate::cached_class_table_table_offset();
-  LoadIsolate(result);
+      target::IsolateGroup::cached_class_table_table_offset();
+  LoadIsolateGroup(result);
   movl(result, Address(result, table_offset));
   movl(result, Address(result, class_id, TIMES_4, 0));
 }

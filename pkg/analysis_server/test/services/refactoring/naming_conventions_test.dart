@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -266,74 +268,6 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
         validateFunctionName('newName '), RefactoringProblemSeverity.FATAL,
         expectedMessage: 'Function name must not start or end with a blank.');
-  }
-
-  void test_validateFunctionTypeAliasName_doesNotStartWithLowerCase() {
-    assertRefactoringStatus(validateFunctionTypeAliasName('newName'),
-        RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            'Function type alias name should start with an uppercase letter.');
-  }
-
-  void test_validateFunctionTypeAliasName_empty() {
-    assertRefactoringStatus(
-        validateFunctionTypeAliasName(''), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function type alias name must not be empty.');
-  }
-
-  void test_validateFunctionTypeAliasName_invalidCharacters() {
-    assertRefactoringStatus(validateFunctionTypeAliasName('New-Name'),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function type alias name must not contain \'-\'.");
-  }
-
-  void test_validateFunctionTypeAliasName_leadingBlanks() {
-    assertRefactoringStatus(validateFunctionTypeAliasName(' NewName'),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Function type alias name must not start or end with a blank.');
-  }
-
-  void test_validateFunctionTypeAliasName_notIdentifierMiddle() {
-    assertRefactoringStatus(validateFunctionTypeAliasName('New-Name'),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function type alias name must not contain '-'.");
-  }
-
-  void test_validateFunctionTypeAliasName_notIdentifierStart() {
-    assertRefactoringStatus(validateFunctionTypeAliasName('newName'),
-        RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            'Function type alias name should start with an uppercase letter.');
-  }
-
-  void test_validateFunctionTypeAliasName_null() {
-    assertRefactoringStatus(
-        validateFunctionTypeAliasName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function type alias name must not be null.');
-  }
-
-  void test_validateFunctionTypeAliasName_OK() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName('NewName'));
-  }
-
-  void test_validateFunctionTypeAliasName_OK_leadingDollar() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName('\$NewName'));
-  }
-
-  void test_validateFunctionTypeAliasName_OK_leadingUnderscore() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName('_NewName'));
-  }
-
-  void test_validateFunctionTypeAliasName_OK_middleDollar() {
-    assertRefactoringStatusOK(validateFunctionTypeAliasName('New\$Name'));
-  }
-
-  void test_validateFunctionTypeAliasName_trailingBlanks() {
-    assertRefactoringStatus(validateFunctionTypeAliasName('NewName '),
-        RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Function type alias name must not start or end with a blank.');
   }
 
   void test_validateImportPrefixName_doesNotStartWithLowerCase() {
@@ -679,6 +613,72 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
         validateParameterName('newName '), RefactoringProblemSeverity.FATAL,
         expectedMessage: 'Parameter name must not start or end with a blank.');
+  }
+
+  void test_validateTypeAliasName_doesNotStartWithLowerCase() {
+    assertRefactoringStatus(
+        validateTypeAliasName('newName'), RefactoringProblemSeverity.WARNING,
+        expectedMessage:
+            'Type alias name should start with an uppercase letter.');
+  }
+
+  void test_validateTypeAliasName_empty() {
+    assertRefactoringStatus(
+        validateTypeAliasName(''), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be empty.');
+  }
+
+  void test_validateTypeAliasName_invalidCharacters() {
+    assertRefactoringStatus(
+        validateTypeAliasName('New-Name'), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Type alias name must not contain \'-\'.");
+  }
+
+  void test_validateTypeAliasName_leadingBlanks() {
+    assertRefactoringStatus(
+        validateTypeAliasName(' NewName'), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not start or end with a blank.');
+  }
+
+  void test_validateTypeAliasName_notIdentifierMiddle() {
+    assertRefactoringStatus(
+        validateTypeAliasName('New-Name'), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Type alias name must not contain '-'.");
+  }
+
+  void test_validateTypeAliasName_notIdentifierStart() {
+    assertRefactoringStatus(
+        validateTypeAliasName('newName'), RefactoringProblemSeverity.WARNING,
+        expectedMessage:
+            'Type alias name should start with an uppercase letter.');
+  }
+
+  void test_validateTypeAliasName_null() {
+    assertRefactoringStatus(
+        validateTypeAliasName(null), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be null.');
+  }
+
+  void test_validateTypeAliasName_OK() {
+    assertRefactoringStatusOK(validateTypeAliasName('NewName'));
+  }
+
+  void test_validateTypeAliasName_OK_leadingDollar() {
+    assertRefactoringStatusOK(validateTypeAliasName('\$NewName'));
+  }
+
+  void test_validateTypeAliasName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateTypeAliasName('_NewName'));
+  }
+
+  void test_validateTypeAliasName_OK_middleDollar() {
+    assertRefactoringStatusOK(validateTypeAliasName('New\$Name'));
+  }
+
+  void test_validateTypeAliasName_trailingBlanks() {
+    assertRefactoringStatus(
+        validateTypeAliasName('NewName '), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not start or end with a blank.');
   }
 
   void test_validateVariableName_builtIn() {

@@ -275,7 +275,7 @@ void GCCompactor::Compact(OldPage* pages,
     for (intptr_t i = 0; i < length; ++i) {
       auto raw_view = typed_data_views_[i];
       const classid_t cid =
-          raw_view->untag()->typed_data_->GetClassIdMayBeSmi();
+          raw_view->untag()->typed_data()->GetClassIdMayBeSmi();
 
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
@@ -631,13 +631,49 @@ void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
   *ptr = new_target;
 }
 
+DART_FORCE_INLINE
+void GCCompactor::ForwardCompressedPointer(uword heap_base,
+                                           CompressedObjectPtr* ptr) {
+  ObjectPtr old_target = ptr->Decompress(heap_base);
+  if (old_target->IsSmiOrNewObject()) {
+    return;  // Not moved.
+  }
+
+  uword old_addr = UntaggedObject::ToAddr(old_target);
+  intptr_t lo = 0;
+  intptr_t hi = image_page_hi_;
+  while (lo <= hi) {
+    intptr_t mid = (hi - lo + 1) / 2 + lo;
+    ASSERT(mid >= lo);
+    ASSERT(mid <= hi);
+    if (old_addr < image_page_ranges_[mid].start) {
+      hi = mid - 1;
+    } else if (old_addr >= image_page_ranges_[mid].end) {
+      lo = mid + 1;
+    } else {
+      return;  // Not moved (unaligned image page).
+    }
+  }
+
+  OldPage* page = OldPage::Of(old_target);
+  ForwardingPage* forwarding_page = page->forwarding_page();
+  if (forwarding_page == NULL) {
+    return;  // Not moved (VM isolate, large page, code page).
+  }
+
+  ObjectPtr new_target =
+      UntaggedObject::FromAddr(forwarding_page->Lookup(old_addr));
+  ASSERT(!new_target->IsSmiOrNewObject());
+  *ptr = new_target;
+}
+
 void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                             ObjectPtr* first,
-                                             ObjectPtr* last) {
+                                             CompressedObjectPtr* first,
+                                             CompressedObjectPtr* last) {
   // First we forward all fields of the typed data view.
-  ObjectPtr old_backing = view->untag()->typed_data_;
-  VisitPointers(first, last);
-  ObjectPtr new_backing = view->untag()->typed_data_;
+  ObjectPtr old_backing = view->untag()->typed_data();
+  VisitCompressedPointers(view->heap_base(), first, last);
+  ObjectPtr new_backing = view->untag()->typed_data();
 
   const bool backing_moved = old_backing != new_backing;
   if (backing_moved) {
@@ -658,9 +694,9 @@ void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
     // The backing store didn't move, we therefore don't need to update the
     // inner pointer.
     if (view->untag()->data_ == 0) {
-      ASSERT(RawSmiValue(view->untag()->offset_in_bytes_) == 0 &&
-             RawSmiValue(view->untag()->length_) == 0 &&
-             view->untag()->typed_data_ == Object::null());
+      ASSERT(RawSmiValue(view->untag()->offset_in_bytes()) == 0 &&
+             RawSmiValue(view->untag()->length()) == 0 &&
+             view->untag()->typed_data() == Object::null());
     }
   }
 }
@@ -670,6 +706,14 @@ void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
 void GCCompactor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   for (ObjectPtr* ptr = first; ptr <= last; ptr++) {
     ForwardPointer(ptr);
+  }
+}
+
+void GCCompactor::VisitCompressedPointers(uword heap_base,
+                                          CompressedObjectPtr* first,
+                                          CompressedObjectPtr* last) {
+  for (CompressedObjectPtr* ptr = first; ptr <= last; ptr++) {
+    ForwardCompressedPointer(heap_base, ptr);
   }
 }
 

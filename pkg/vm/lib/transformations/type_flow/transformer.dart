@@ -144,7 +144,7 @@ class TFADevirtualization extends Devirtualization {
 }
 
 /// Annotates kernel AST with metadata using results of type flow analysis.
-class AnnotateKernel extends RecursiveVisitor<Null> {
+class AnnotateKernel extends RecursiveVisitor {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final FieldMorpher fieldMorpher;
   final DirectCallMetadataRepository _directCallMetadataRepository;
@@ -523,8 +523,8 @@ class TreeShaker {
   }
 
   transformComponent(Component component) {
-    _pass1.transform(component);
-    _pass2.transform(component);
+    _pass1.transformComponent(component);
+    _pass2.transformComponent(component);
   }
 
   bool isClassReferencedFromNativeCode(Class c) =>
@@ -554,7 +554,17 @@ class TreeShaker {
                   isFieldInitializerReachable(f) &&
                   mayHaveSideEffects(f.initializer)) ||
               (f.isLate && f.isFinal)) ||
-      isMemberReferencedFromNativeCode(f);
+      isMemberReferencedFromNativeCode(f) ||
+      _isInstanceFieldOfAllocatedEnum(f);
+
+  /// Preserve instance fields of allocated enums as VM relies on their
+  /// existence. Non-allocated enums are converted into ordinary classes during
+  /// the 2nd pass.
+  bool _isInstanceFieldOfAllocatedEnum(Field node) =>
+      !node.isStatic &&
+      node.enclosingClass != null &&
+      node.enclosingClass.isEnum &&
+      isClassAllocated(node.enclosingClass);
 
   void addClassUsedInType(Class c) {
     if (_classesUsedInType.add(c)) {
@@ -563,8 +573,8 @@ class TreeShaker {
       }
       _usedClasses.add(c);
       visitIterable(c.supers, typeVisitor);
-      transformList(c.typeParameters, _pass1, c);
-      transformList(c.annotations, _pass1, c);
+      _pass1.transformTypeParameterList(c.typeParameters, c);
+      _pass1.transformExpressionList(c.annotations, c);
       // Preserve NSM forwarders. They are overlooked by TFA / tree shaker
       // as they are abstract and don't have a body.
       for (Procedure p in c.procedures) {
@@ -615,13 +625,14 @@ class TreeShaker {
       }
 
       if (func != null) {
-        transformList(func.typeParameters, _pass1, func);
-        transformList(func.positionalParameters, _pass1, func);
-        transformList(func.namedParameters, _pass1, func);
+        _pass1.transformTypeParameterList(func.typeParameters, func);
+        _pass1.transformVariableDeclarationList(
+            func.positionalParameters, func);
+        _pass1.transformVariableDeclarationList(func.namedParameters, func);
         func.returnType.accept(typeVisitor);
       }
 
-      transformList(m.annotations, _pass1, m);
+      _pass1.transformExpressionList(m.annotations, m);
 
       // If the member is kept alive we need to keep the extension alive.
       if (m.isExtensionMember) {
@@ -641,18 +652,20 @@ class TreeShaker {
 
   void addUsedExtension(Extension node) {
     if (_usedExtensions.add(node)) {
-      transformList(node.typeParameters, _pass1, node);
+      _pass1.transformTypeParameterList(node.typeParameters, node);
       node.onType?.accept(typeVisitor);
     }
   }
 
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
-      transformList(typedef.annotations, _pass1, typedef);
-      transformList(typedef.typeParameters, _pass1, typedef);
-      transformList(typedef.typeParametersOfFunctionType, _pass1, typedef);
-      transformList(typedef.positionalParameters, _pass1, typedef);
-      transformList(typedef.namedParameters, _pass1, typedef);
+      _pass1.transformExpressionList(typedef.annotations, typedef);
+      _pass1.transformTypeParameterList(typedef.typeParameters, typedef);
+      _pass1.transformTypeParameterList(
+          typedef.typeParametersOfFunctionType, typedef);
+      _pass1.transformVariableDeclarationList(
+          typedef.positionalParameters, typedef);
+      _pass1.transformVariableDeclarationList(typedef.namedParameters, typedef);
       typedef.type?.accept(typeVisitor);
     }
   }
@@ -741,7 +754,7 @@ class FieldMorpher {
 /// Visits Dart types and collects all classes and typedefs used in types.
 /// This visitor is used during pass 1 of tree shaking. It is a separate
 /// visitor because [Transformer] does not provide a way to traverse types.
-class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
+class _TreeShakerTypeVisitor extends RecursiveVisitor {
   final TreeShaker shaker;
 
   _TreeShakerTypeVisitor(this.shaker);
@@ -786,7 +799,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
 /// Visits all classes, members and bodies of reachable members.
 /// Collects all used classes, members and types, and
 /// transforms unreachable calls into 'throw' expressions.
-class _TreeShakerPass1 extends Transformer {
+class _TreeShakerPass1 extends RemovingTransformer {
   final TreeShaker shaker;
   final FieldMorpher fieldMorpher;
   final TypeEnvironment environment;
@@ -808,8 +821,8 @@ class _TreeShakerPass1 extends Transformer {
       : fieldMorpher = shaker.fieldMorpher,
         environment = shaker.typeFlowAnalysis.environment;
 
-  void transform(Component component) {
-    component.transformChildren(this);
+  void transformComponent(Component component) {
+    component.transformOrRemoveChildren(this);
   }
 
   bool _isUnreachable(TreeNode node) {
@@ -870,61 +883,62 @@ class _TreeShakerPass1 extends Transformer {
   NarrowNotNull _getNullTest(TreeNode node) =>
       shaker.typeFlowAnalysis.nullTest(node);
 
-  TreeNode _visitAssertNode(TreeNode node) {
+  TreeNode _visitAssertNode(TreeNode node, TreeNode removalSentinel) {
     if (kRemoveAsserts) {
-      return null;
+      return removalSentinel;
     } else {
-      node.transformChildren(this);
+      node.transformOrRemoveChildren(this);
       return node;
     }
   }
 
   @override
-  DartType visitDartType(DartType node) {
+  DartType visitDartType(DartType node, DartType removalSentinel) {
     node.accept(shaker.typeVisitor);
     return node;
   }
 
   @override
-  Supertype visitSupertype(Supertype node) {
+  Supertype visitSupertype(Supertype node, Supertype removalSentinel) {
     node.accept(shaker.typeVisitor);
     return node;
   }
 
   @override
-  TreeNode visitTypedef(Typedef node) {
+  TreeNode visitTypedef(Typedef node, TreeNode removalSentinel) {
     return node; // Do not go deeper.
   }
 
   @override
-  Extension visitExtension(Extension node) {
+  Extension visitExtension(Extension node, TreeNode removalSentinel) {
     // The extension can be considered a weak node, we'll only retain it if
     // normal code references any of it's members.
     return node;
   }
 
   @override
-  TreeNode visitClass(Class node) {
+  TreeNode visitClass(Class node, TreeNode removalSentinel) {
     if (shaker.isClassAllocated(node) ||
         shaker.isClassReferencedFromNativeCode(node)) {
       shaker.addClassUsedInType(node);
     }
-    transformList(node.constructors, this, node);
-    transformList(node.procedures, this, node);
-    transformList(node.fields, this, node);
-    transformList(node.redirectingFactoryConstructors, this, node);
+    transformConstructorList(node.constructors, node);
+    transformProcedureList(node.procedures, node);
+    transformFieldList(node.fields, node);
+    transformRedirectingFactoryConstructorList(
+        node.redirectingFactoryConstructors, node);
     return node;
   }
 
   @override
-  TreeNode defaultMember(Member node) {
+  TreeNode defaultMember(Member node, TreeNode removalSentinel) {
     currentMember = node;
     if (shaker.isMemberBodyReachable(node)) {
       if (kPrintTrace) {
         tracePrint("Visiting $node");
       }
       shaker.addUsedMember(node);
-      node.transformChildren(this);
+      node.transformOrRemoveChildren(this);
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
       // Preserve members referenced from native code to satisfy lookups, even
       // if they are not reachable. An instance member could be added via
@@ -937,7 +951,7 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitField(Field node) {
+  TreeNode visitField(Field node, TreeNode removalSentinel) {
     currentMember = node;
     if (shaker.retainField(node)) {
       if (kPrintTrace) {
@@ -946,7 +960,7 @@ class _TreeShakerPass1 extends Transformer {
       shaker.addUsedMember(node);
       if (node.initializer != null) {
         if (shaker.isFieldInitializerReachable(node)) {
-          node.transformChildren(this);
+          node.transformOrRemoveChildren(this);
         } else {
           node.initializer = _makeUnreachableCall([])..parent = node;
         }
@@ -961,8 +975,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitMethodInvocation(MethodInvocation node) {
-    node.transformChildren(this);
+  TreeNode visitMethodInvocation(
+      MethodInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(
           _flattenArguments(node.arguments, receiver: node.receiver));
@@ -984,8 +999,8 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitPropertyGet(PropertyGet node) {
-    node.transformChildren(this);
+  TreeNode visitPropertyGet(PropertyGet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);
     } else {
@@ -999,8 +1014,8 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitPropertySet(PropertySet node) {
-    node.transformChildren(this);
+  TreeNode visitPropertySet(PropertySet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver, node.value]);
     } else {
@@ -1014,8 +1029,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitSuperMethodInvocation(SuperMethodInvocation node) {
-    node.transformChildren(this);
+  TreeNode visitSuperMethodInvocation(
+      SuperMethodInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     } else {
@@ -1029,8 +1045,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitSuperPropertyGet(SuperPropertyGet node) {
-    node.transformChildren(this);
+  TreeNode visitSuperPropertyGet(
+      SuperPropertyGet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([]);
     } else {
@@ -1044,8 +1061,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitSuperPropertySet(SuperPropertySet node) {
-    node.transformChildren(this);
+  TreeNode visitSuperPropertySet(
+      SuperPropertySet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.value]);
     } else {
@@ -1059,8 +1077,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitStaticInvocation(StaticInvocation node) {
-    node.transformChildren(this);
+  TreeNode visitStaticInvocation(
+      StaticInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     }
@@ -1073,8 +1092,8 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitStaticGet(StaticGet node) {
-    node.transformChildren(this);
+  TreeNode visitStaticGet(StaticGet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([]);
     } else {
@@ -1088,14 +1107,14 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  Constant visitConstant(Constant node) {
+  Constant visitConstant(Constant node, Constant removalSentinel) {
     shaker.constantVisitor.analyzeConstant(node);
     return node;
   }
 
   @override
-  TreeNode visitStaticSet(StaticSet node) {
-    node.transformChildren(this);
+  TreeNode visitStaticSet(StaticSet node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.value]);
     } else {
@@ -1110,8 +1129,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitConstructorInvocation(ConstructorInvocation node) {
-    node.transformChildren(this);
+  TreeNode visitConstructorInvocation(
+      ConstructorInvocation node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     } else {
@@ -1125,8 +1145,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitRedirectingInitializer(RedirectingInitializer node) {
-    node.transformChildren(this);
+  TreeNode visitRedirectingInitializer(
+      RedirectingInitializer node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
@@ -1137,8 +1158,9 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitSuperInitializer(SuperInitializer node) {
-    node.transformChildren(this);
+  TreeNode visitSuperInitializer(
+      SuperInitializer node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
@@ -1148,19 +1170,21 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitFieldInitializer(FieldInitializer node) {
-    node.transformChildren(this);
+  TreeNode visitFieldInitializer(
+      FieldInitializer node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer([node.value]);
     } else {
-      assert(shaker.isMemberBodyReachable(node.field),
-          "Field should be reachable: ${node.field}");
-      if (!shaker.retainField(node.field)) {
+      final field = node.field;
+      assert(shaker.isMemberBodyReachable(field),
+          "Field should be reachable: ${field}");
+      if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
               VariableDeclaration(null, initializer: node.value));
         } else {
-          return null;
+          return removalSentinel;
         }
       }
       return node;
@@ -1168,23 +1192,25 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitAssertStatement(AssertStatement node) {
-    return _visitAssertNode(node);
+  TreeNode visitAssertStatement(
+      AssertStatement node, TreeNode removalSentinel) {
+    return _visitAssertNode(node, removalSentinel);
   }
 
   @override
-  TreeNode visitAssertBlock(AssertBlock node) {
-    return _visitAssertNode(node);
+  TreeNode visitAssertBlock(AssertBlock node, TreeNode removalSentinel) {
+    return _visitAssertNode(node, removalSentinel);
   }
 
   @override
-  TreeNode visitAssertInitializer(AssertInitializer node) {
-    return _visitAssertNode(node);
+  TreeNode visitAssertInitializer(
+      AssertInitializer node, TreeNode removalSentinel) {
+    return _visitAssertNode(node, removalSentinel);
   }
 
   @override
-  TreeNode visitAsExpression(AsExpression node) {
-    node.transformChildren(this);
+  TreeNode visitAsExpression(AsExpression node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     TypeCheck check = shaker.typeFlowAnalysis.explicitCast(node);
     if (check != null && check.canAlwaysSkip) {
       return StaticInvocation(
@@ -1195,8 +1221,8 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitNullCheck(NullCheck node) {
-    node.transformChildren(this);
+  TreeNode visitNullCheck(NullCheck node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     final nullTest = _getNullTest(node);
     if (nullTest.isAlwaysNotNull) {
       return StaticInvocation(
@@ -1221,24 +1247,24 @@ class _TreeShakerPass1 extends Transformer {
 /// This pass visits classes and members and removes unused classes and members.
 /// Bodies of unreachable but used members are replaced with 'throw'
 /// expressions. This pass does not dive deeper than member level.
-class _TreeShakerPass2 extends Transformer {
+class _TreeShakerPass2 extends RemovingTransformer {
   final TreeShaker shaker;
 
   _TreeShakerPass2(this.shaker);
 
-  void transform(Component component) {
-    component.transformChildren(this);
+  void transformComponent(Component component) {
+    component.transformOrRemoveChildren(this);
     for (Source source in component.uriToSource.values) {
       source?.constantCoverageConstructors?.removeWhere((Reference reference) {
         Member node = reference.asMember;
-        return !shaker.isMemberUsed(node) && !_preserveSpecialMember(node);
+        return !shaker.isMemberUsed(node);
       });
     }
   }
 
   @override
-  TreeNode visitLibrary(Library node) {
-    node.transformChildren(this);
+  TreeNode visitLibrary(Library node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
     // The transformer API does not iterate over `Library.additionalExports`,
     // so we manually delete the references to shaken nodes.
     node.additionalExports.removeWhere((Reference reference) {
@@ -1257,19 +1283,23 @@ class _TreeShakerPass2 extends Transformer {
   }
 
   @override
-  Typedef visitTypedef(Typedef node) {
-    return shaker.isTypedefUsed(node) ? node : null;
+  Typedef visitTypedef(Typedef node, TreeNode removalSentinel) {
+    return shaker.isTypedefUsed(node) ? node : removalSentinel;
   }
 
   @override
-  Class visitClass(Class node) {
+  Class visitClass(Class node, TreeNode removalSentinel) {
     if (!shaker.isClassUsed(node)) {
       debugPrint('Dropped class ${node.name}');
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted class.
-      node.reference.canonicalName = null;
+      assert(
+          node.reference.node == node,
+          "Trying to remove canonical name from reference on $node which has "
+          "been repurposed for ${node.reference.node}.");
+      node.reference.canonicalName?.unbind();
       Statistics.classesDropped++;
-      return null; // Remove the class.
+      return removalSentinel; // Remove the class.
     }
 
     if (!shaker.isClassUsedInType(node)) {
@@ -1282,6 +1312,7 @@ class _TreeShakerPass2 extends Transformer {
       node.implementedTypes.clear();
       node.typeParameters.clear();
       node.isAbstract = true;
+      node.isEnum = false;
       // Mixin applications cannot have static members.
       assert(node.mixedInType == null);
       node.annotations = const <Expression>[];
@@ -1290,28 +1321,41 @@ class _TreeShakerPass2 extends Transformer {
     if (!shaker.isClassAllocated(node)) {
       debugPrint('Class ${node.name} converted to abstract');
       node.isAbstract = true;
+      node.isEnum = false;
     }
 
-    node.transformChildren(this);
+    node.transformOrRemoveChildren(this);
 
     return node;
   }
 
-  /// Preserve instance fields of enums as VM relies on their existence.
-  bool _preserveSpecialMember(Member node) =>
-      node is Field &&
-      !node.isStatic &&
-      node.enclosingClass != null &&
-      node.enclosingClass.isEnum;
-
   @override
-  Member defaultMember(Member node) {
-    if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
+  Member defaultMember(Member node, TreeNode removalSentinel) {
+    if (!shaker.isMemberUsed(node)) {
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted member.
-      node.reference.canonicalName = null;
+      if (node is Field) {
+        assert(
+            node.getterReference.node == node,
+            "Trying to remove canonical name from getter reference on $node "
+            "which has been repurposed for ${node.getterReference.node}.");
+        node.getterReference.canonicalName?.unbind();
+        if (node.hasSetter) {
+          assert(
+              node.setterReference.node == node,
+              "Trying to remove canonical name from reference on $node which "
+              "has been repurposed for ${node.setterReference.node}.");
+          node.setterReference.canonicalName?.unbind();
+        }
+      } else {
+        assert(
+            node.reference.node == node,
+            "Trying to remove canonical name from reference on $node which has "
+            "been repurposed for ${node.reference.node}.");
+        node.reference.canonicalName?.unbind();
+      }
       Statistics.membersDropped++;
-      return null;
+      return removalSentinel;
     }
 
     if (!shaker.isMemberBodyReachable(node)) {
@@ -1358,7 +1402,7 @@ class _TreeShakerPass2 extends Transformer {
   }
 
   @override
-  Extension visitExtension(Extension node) {
+  Extension visitExtension(Extension node, TreeNode removalSentinel) {
     if (shaker.isExtensionUsed(node)) {
       int writeIndex = 0;
       for (int i = 0; i < node.members.length; ++i) {
@@ -1379,7 +1423,7 @@ class _TreeShakerPass2 extends Transformer {
       assert(node.members.length > 0);
       return node;
     }
-    return null;
+    return removalSentinel;
   }
 
   void _makeUnreachableBody(FunctionNode function) {
@@ -1391,7 +1435,7 @@ class _TreeShakerPass2 extends Transformer {
   }
 
   @override
-  TreeNode defaultTreeNode(TreeNode node) {
+  TreeNode defaultTreeNode(TreeNode node, TreeNode removalSentinel) {
     return node; // Do not traverse into other nodes.
   }
 }

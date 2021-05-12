@@ -52,16 +52,17 @@ class ParsedFunction;
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
-  V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
+  V(Function, UntaggedFunction, signature, FunctionType, FINAL_COMPRESSED)     \
   V(Context, UntaggedContext, parent, Context, FINAL)                          \
   V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
     FINAL)                                                                     \
   V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(ClosureData, UntaggedClosureData, default_type_arguments, TypeArguments,   \
-    FINAL)                                                                     \
-  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
-  V(FunctionType, UntaggedFunctionType, type_parameters, TypeArguments, FINAL) \
+    FINAL_COMPRESSED)                                                          \
+  V(Type, UntaggedType, arguments, TypeArguments, FINAL_COMPRESSED)            \
+  V(FunctionType, UntaggedFunctionType, type_parameters, TypeArguments,        \
+    FINAL_COMPRESSED)                                                          \
   V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
   V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)
 
@@ -83,16 +84,18 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function, Function, FINAL)                       \
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
-  V(ClosureData, UntaggedClosureData, default_type_arguments_info, Smi, FINAL) \
-  V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
-  V(Function, UntaggedFunction, parameter_names, Array, FINAL)                 \
-  V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
+  V(Function, UntaggedFunction, data, Dynamic, FINAL_COMPRESSED)               \
+  V(FunctionType, UntaggedFunctionType, parameter_names, Array,                \
+    FINAL_COMPRESSED)                                                          \
+  V(FunctionType, UntaggedFunctionType, parameter_types, Array,                \
+    FINAL_COMPRESSED)                                                          \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
-  V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
-  V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
-  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
-  V(String, UntaggedString, length, Smi, FINAL)                                \
+  V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL_COMPRESSED)       \
+  V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi,                \
+    FINAL_COMPRESSED)                                                          \
+  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL_COMPRESSED)     \
+  V(String, UntaggedString, length, Smi, FINAL_COMPRESSED)                     \
   V(LinkedHashMap, UntaggedLinkedHashMap, index, TypedDataUint32Array, VAR)    \
   V(LinkedHashMap, UntaggedLinkedHashMap, data, Array, VAR)                    \
   V(LinkedHashMap, UntaggedLinkedHashMap, hash_mask, Smi, VAR)                 \
@@ -104,10 +107,12 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
   V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
-  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
-  V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL)                \
-  V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
-  V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
+  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL_COMPRESSED)    \
+  V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL_COMPRESSED)     \
+  V(UnhandledException, UntaggedUnhandledException, exception, Dynamic,        \
+    FINAL_COMPRESSED)                                                          \
+  V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic,       \
+    FINAL_COMPRESSED)
 
 // List of slots that correspond to unboxed fields of native objects in the
 // following format:
@@ -125,6 +130,8 @@ class ParsedFunction;
 //
 // Note: As the underlying field is unboxed, these slots cannot be nullable.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
+  V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
+    FINAL)                                                                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
   V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \
@@ -240,6 +247,8 @@ class Slot : public ZoneAllocated {
   // of the corresponding Dart field.
   bool is_guarded_field() const { return IsGuardedBit::decode(flags_); }
 
+  bool is_compressed() const { return IsCompressedBit::decode(flags_); }
+
   // Static type of the slots if any.
   //
   // A value that is read from the slot is guaranteed to be assignable to its
@@ -294,6 +303,7 @@ class Slot : public ZoneAllocated {
   using IsImmutableBit = BitField<int8_t, bool, 0, 1>;
   using IsNullableBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
   using IsGuardedBit = BitField<int8_t, bool, IsNullableBit::kNextBit, 1>;
+  using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {

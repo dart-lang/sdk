@@ -83,7 +83,7 @@ void main() {
   });
 }
 
-List<int> makeLspPacket(String json, [String contentType]) {
+List<int> makeLspPacket(String json, [String? contentType]) {
   final utf8EncodedBody = utf8.encode(json);
   final header = 'Content-Length: ${utf8EncodedBody.length}' +
       (contentType != null ? '\r\nContent-Type: $contentType' : '') +

@@ -18,8 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class NonNullableTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NonNullableTest extends PubPackageResolutionTest {
   test_class_hierarchy() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -435,7 +434,8 @@ main() {
 }
 
 @reflectiveTest
-class NullableTest extends PubPackageResolutionTest {
+class NullableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   bool get typeToStringWithNullability => true;
 

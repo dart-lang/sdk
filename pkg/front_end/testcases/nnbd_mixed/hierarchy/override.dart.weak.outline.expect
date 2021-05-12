@@ -1,0 +1,58 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/override.dart:21:28: Error: The parameter 'i' of the method 'Class.extendedMethod2' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Super.extendedMethod2'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void extendedMethod2(int i);
+//                            ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/override.dart:10:8: Context: This is the overridden method ('extendedMethod2').
+//   void extendedMethod2(num i) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/override.dart:27:30: Error: The parameter 'n' of the method 'Class.overriddenMethod2' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Super.overriddenMethod2'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void overriddenMethod2(int n) {}
+//                              ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/override.dart:13:8: Context: This is the overridden method ('overriddenMethod2').
+//   void overriddenMethod2(num n) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/override.dart:16:7: Error: The implementation of 'extendedMethod1' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/override.dart:7:28: Context: The parameter 'i' of the method 'Super.extendedMethod1' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Class.extendedMethod1'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void extendedMethod1(int i) {}
+//                            ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/override.dart:18:8: Context: This is the overridden method ('extendedMethod1').
+//   void extendedMethod1(num n);
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method extendedMethod1(core::int i) → void
+    ;
+  method extendedMethod2(core::num i) → void
+    ;
+  method overriddenMethod1(core::int i) → void
+    ;
+  method overriddenMethod2(core::num n) → void
+    ;
+}
+class Class extends self::Super {
+  synthetic constructor •() → self::Class
+    ;
+  abstract method extendedMethod1(core::num n) → void;
+  abstract method extendedMethod2(core::int i) → void;
+  method overriddenMethod1(core::num n) → void
+    ;
+  method overriddenMethod2(core::int n) → void
+    ;
+}
+static method main() → dynamic
+  ;

@@ -17,23 +17,6 @@ main() {
 class ErrorSuppressionTest extends PubPackageResolutionTest {
   String get ignoredCode => 'unused_element';
 
-  test_does_not_ignore_errors() async {
-    await assertErrorsInCode('''
-int x = ''; // ignore: invalid_assignment
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
-    ]);
-  }
-
-  test_error_cannot_be_ignored() async {
-    await assertErrorsInCode('''
-// ignore: unused_import, undefined_function
-f() => g();
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 52, 1),
-    ]);
-  }
-
   test_error_code_mismatch() async {
     await assertErrorsInCode('''
 // ignore: $ignoredCode
@@ -83,7 +66,7 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     await assertNoErrorsInCode('''
 //ignore_for_file:   unused_element , unnecessary_cast
 int x = (0 as int);  //UNNECESSARY_CAST
-String _foo; //UNUSED_ELEMENT
+String _foo = ''; //UNUSED_ELEMENT
 ''');
   }
 
@@ -98,7 +81,7 @@ int x = (0 as int); // ignore: unnecessary_cast
 //UNNECESSARY_CAST
 int x = (0 as int);
 // ignore: unused_element
-String _foo; //UNUSED_ELEMENT
+String _foo = ''; //UNUSED_ELEMENT
 ''', [
       error(HintCode.UNNECESSARY_CAST, 28, 8),
     ]);
@@ -108,7 +91,7 @@ String _foo; //UNUSED_ELEMENT
     await assertErrorsInCode('''
 //UNNECESSARY_CAST
 int x = (0 as int);
-String _foo; // ignore: $ignoredCode
+String _foo = ''; // ignore: $ignoredCode
 ''', [
       error(HintCode.UNNECESSARY_CAST, 28, 8),
     ]);
@@ -119,7 +102,7 @@ String _foo; // ignore: $ignoredCode
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
 
-int f({@Required('x') int a}) => 0;
+int f({@Required('x') int? a}) => 0;
 
 // ignore: missing_required_param_with_details
 int x = f();
@@ -169,7 +152,7 @@ String y = 3; //INVALID_ASSIGNMENT
     await assertErrorsInCode('''
 int x = (0 as int); //This is the first comment...
 // ignore: $ignoredCode
-String _foo; //UNUSED_ELEMENT
+String _foo = ''; //UNUSED_ELEMENT
 ''', [
       error(HintCode.UNNECESSARY_CAST, 9, 8),
     ]);
@@ -178,7 +161,7 @@ String _foo; //UNUSED_ELEMENT
   test_multiple_ignore_for_files() async {
     await assertNoErrorsInCode('''
 int x = (0 as int); //UNNECESSARY_CAST
-String _foo; //UNUSED_ELEMENT
+String _foo = ''; //UNUSED_ELEMENT
 // ignore_for_file: unnecessary_cast,$ignoredCode
 ''');
   }

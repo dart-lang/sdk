@@ -6,7 +6,6 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-import 'calloc.dart';
 import 'dylib_utils.dart';
 
 typedef NativeUnaryOp = Int32 Function(Int32);
@@ -14,8 +13,8 @@ typedef NativeBinaryOp = Int32 Function(Int32, Int32);
 typedef UnaryOp = int Function(int);
 typedef BinaryOp = int Function(int, int);
 typedef GenericBinaryOp<T> = int Function(int, T);
-typedef NativeQuadOpSigned = Int64 Function(Int64, Int32, Int16, Int8);
-typedef NativeQuadOpUnsigned = Uint64 Function(Uint64, Uint32, Uint16, Uint8);
+typedef NativeQuadOpSigned = Int64 Function(Int8, Int16, Int32, Int64);
+typedef NativeQuadOpUnsigned = Uint64 Function(Uint8, Uint16, Uint32, Uint64);
 typedef NativeFunc4 = IntPtr Function(IntPtr);
 typedef NativeDoubleUnaryOp = Double Function(Double);
 typedef NativeFloatUnaryOp = Float Function(Float);
@@ -100,7 +99,7 @@ main() {
     print(result.runtimeType);
 
     var mint = 0x7FFFFFFFFFFFFFFF; // 2 ^ 63 - 1
-    result = intComputation(1, 1, 0, mint);
+    result = intComputation(1, 1, 1, mint);
     print(result);
     print(result.runtimeType);
   }

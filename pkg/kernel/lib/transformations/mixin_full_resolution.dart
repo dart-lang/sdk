@@ -156,6 +156,7 @@ class MixinFullResolution {
     int originalLength = class_.procedures.length;
     outer:
     for (var procedure in class_.mixin.procedures) {
+      if (procedure.isSynthetic) continue;
       // Forwarding stubs in the mixin class are used when calling through the
       // mixin class's interface, not when calling through the mixin
       // application.  They should not be copied.

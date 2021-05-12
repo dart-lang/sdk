@@ -167,7 +167,8 @@ class BaseFlowGraphBuilder {
   // Pass true for index_unboxed if indexing into external typed data.
   Fragment LoadIndexed(classid_t class_id,
                        intptr_t index_scale = compiler::target::kWordSize,
-                       bool index_unboxed = false);
+                       bool index_unboxed = false,
+                       AlignmentType alignment = kAlignedAccess);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
@@ -213,7 +214,8 @@ class BaseFlowGraphBuilder {
   // Takes a [class_id] valid for StoreIndexed.
   Fragment StoreIndexedTypedData(classid_t class_id,
                                  intptr_t index_scale,
-                                 bool index_unboxed);
+                                 bool index_unboxed,
+                                 AlignmentType alignment = kAlignedAccess);
 
   // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
   Fragment Box(Representation from);
@@ -432,8 +434,7 @@ class BaseFlowGraphBuilder {
 
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
-    return function_.IsInvokeFieldDispatcher() ||
-           function_.IsNoSuchMethodDispatcher();
+    return function_.HasSavedArgumentsDescriptor();
   }
 
   // Returns the saved arguments descriptor array for functions that have them.

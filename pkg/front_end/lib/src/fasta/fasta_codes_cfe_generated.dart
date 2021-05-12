@@ -916,35 +916,6 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
-    templateFfiNonConstantTypeArgumentWarning = const Template<
-            Message Function(DartType _type, bool isNonNullableByDefault)>(
-        messageTemplate:
-            r"""Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.""",
-        withArguments: _withArgumentsFfiNonConstantTypeArgumentWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
-    codeFfiNonConstantTypeArgumentWarning =
-    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-        "FfiNonConstantTypeArgumentWarning",
-        analyzerCodes: <String>["NON_CONSTANT_TYPE_ARGUMENT_WARNING"],
-        severity: Severity.info);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiNonConstantTypeArgumentWarning(
-    DartType _type, bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeFfiNonConstantTypeArgumentWarning,
-      message:
-          """Support for using non-constant type arguments '${type}' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.""" +
-              labeler.originMessages,
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
@@ -3668,7 +3639,7 @@ const Template<
             Message Function(String name, String name2, DartType _type,
                 bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
+            r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
         withArguments: _withArgumentsMixinInferenceNoMatchingClass);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3692,7 +3663,7 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
   String type = typeParts.join();
   return new Message(codeMixinInferenceNoMatchingClass,
       message:
-          """Type parameters could not be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
+          """Type parameters couldn't be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
               labeler.originMessages,
       arguments: {'name': name, 'name2': name2, 'type': _type});
 }
@@ -4660,6 +4631,78 @@ Message _withArgumentsSuperBoundedHint(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateSupertypeIsIllegalAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
+        withArguments: _withArgumentsSupertypeIsIllegalAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSupertypeIsIllegalAliased = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "SupertypeIsIllegalAliased",
+        analyzerCodes: <String>["EXTENDS_NON_CLASS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSupertypeIsIllegalAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSupertypeIsIllegalAliased,
+      message:
+          """The type '${name}' which is an alias of '${type}' can't be used as supertype.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateSupertypeIsNullableAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
+        withArguments: _withArgumentsSupertypeIsNullableAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSupertypeIsNullableAliased = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "SupertypeIsNullableAliased",
+        analyzerCodes: <String>["EXTENDS_NON_CLASS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSupertypeIsNullableAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSupertypeIsNullableAliased,
+      message:
+          """The type '${name}' which is an alias of '${type}' can't be used as supertype because it is nullable.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateSwitchExpressionNotAssignable = const Template<
             Message Function(
@@ -4755,6 +4798,156 @@ Message _withArgumentsThrowingNotAssignableToObjectError(
           """Can't throw a value of '${type}' since it is neither dynamic nor non-nullable.""" +
               labeler.originMessages,
       arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionGetter = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The getter '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
+        withArguments: _withArgumentsUndefinedExtensionGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeUndefinedExtensionGetter = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionGetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionGetter(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionGetter,
+      message:
+          """The getter '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the name to the name of an existing getter, or defining a getter or field named '${name}'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionMethod = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The method '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the name to the name of an existing method, or defining a method name '#name'.""",
+        withArguments: _withArgumentsUndefinedExtensionMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeUndefinedExtensionMethod = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionMethod",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionMethod(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionMethod,
+      message:
+          """The method '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the name to the name of an existing method, or defining a method name '${name}'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionOperator = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The operator '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
+        withArguments: _withArgumentsUndefinedExtensionOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeUndefinedExtensionOperator = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionOperator",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionOperator(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionOperator,
+      message:
+          """The operator '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the operator to an existing operator, or defining a '${name}' operator.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionSetter = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The setter '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
+        withArguments: _withArgumentsUndefinedExtensionSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeUndefinedExtensionSetter = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionSetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionSetter(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionSetter,
+      message:
+          """The setter '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name}'.""",
+      arguments: {'name': name, 'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

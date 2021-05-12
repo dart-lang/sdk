@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -78,6 +80,19 @@ class A {
   A(int i, double d);
 }
 ''', target: a);
+  }
+
+  Future<void> test_inPart_partOfName_noLibrary() async {
+    await resolveTestCode('''
+part of my_lib;
+
+class A {}
+
+void f() {
+  A(0);
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_insteadOfSyntheticDefault() async {

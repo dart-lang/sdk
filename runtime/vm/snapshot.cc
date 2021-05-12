@@ -301,6 +301,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       typed_data_(TypedData::Handle(zone_)),
       typed_data_view_(TypedDataView::Handle(zone_)),
       function_(Function::Handle(zone_)),
+      smi_(Smi::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       set_class_(Class::ZoneHandle(
           zone_,
@@ -625,7 +626,8 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.host_instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew,
+                                /*compressed*/ false);
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -710,7 +712,8 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
-ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
+ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(
+    IsolateGroup* isolate_group) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -747,7 +750,8 @@ ApiErrorPtr SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, false, kind_);
+  const char* expected_features =
+      Dart::FeaturesString(isolate_group, false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -1126,7 +1130,14 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(ObjectPtr rawobj) {
 
   // First check if it is a Smi (i.e not a heap object).
   if (!rawobj->IsHeapObject()) {
+#if !defined(DART_COMPRESSED_POINTERS)
     Write<int64_t>(static_cast<intptr_t>(rawobj));
+#else
+    // One might expect this to be unnecessary because the reader will just
+    // ignore the upper bits, but the upper bits affect the variable-length
+    // encoding and can change lower bits in the variable-length reader.
+    Write<int64_t>(static_cast<intptr_t>(rawobj) << 32 >> 32);
+#endif
     return true;
   }
 
@@ -1330,7 +1341,7 @@ void SnapshotWriter::WriteClassId(UntaggedClass* cls) {
   // Write out the library url and class name.
   LibraryPtr library = cls->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->untag()->url_, kAsInlinedObject);
+  WriteObjectImpl(library->untag()->url(), kAsInlinedObject);
   WriteObjectImpl(cls->name(), kAsInlinedObject);
 }
 
@@ -1434,7 +1445,7 @@ ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
     return static_cast<ClassPtr>(owner);
   }
   ASSERT(class_id == kPatchClassCid);
-  return static_cast<PatchClassPtr>(owner)->untag()->patched_class_;
+  return static_cast<PatchClassPtr>(owner)->untag()->patched_class();
 }
 
 void SnapshotWriter::CheckForNativeFields(ClassPtr cls) {
@@ -1566,7 +1577,7 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), false, kind_);
+      Dart::FeaturesString(IsolateGroup::Current(), false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -1579,6 +1590,17 @@ void SnapshotWriterVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   ASSERT(Utils::IsAligned(last, sizeof(*last)));
   for (ObjectPtr* current = first; current <= last; current++) {
     ObjectPtr raw_obj = *current;
+    writer_->WriteObjectImpl(raw_obj, as_references_);
+  }
+}
+
+void SnapshotWriterVisitor::VisitCompressedPointers(uword heap_base,
+                                                    CompressedObjectPtr* first,
+                                                    CompressedObjectPtr* last) {
+  ASSERT(Utils::IsAligned(first, sizeof(*first)));
+  ASSERT(Utils::IsAligned(last, sizeof(*last)));
+  for (CompressedObjectPtr* current = first; current <= last; current++) {
+    ObjectPtr raw_obj = current->Decompress(heap_base);
     writer_->WriteObjectImpl(raw_obj, as_references_);
   }
 }

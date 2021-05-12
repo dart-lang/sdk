@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -46,9 +48,9 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   }
 
   Future<AnalysisNavigationParams> getServerResult(
-      bool clientSupportsLocationLink, String path, int offset) async {
-    final collector = NavigationCollectorImpl(
-        collectCodeLocations: clientSupportsLocationLink);
+      bool supportsLocationLink, String path, int offset) async {
+    final collector =
+        NavigationCollectorImpl(collectCodeLocations: supportsLocationLink);
 
     final result = await server.getResolvedUnit(path);
     if (result?.state == ResultState.VALID) {
@@ -64,11 +66,8 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   @override
   Future<ErrorOr<Either2<List<Location>, List<LocationLink>>>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
-    final definitionCapabilities =
-        server?.clientCapabilities?.textDocument?.definition;
-
-    final clientSupportsLocationLink =
-        definitionCapabilities?.linkSupport == true;
+    final supportsLocationLink =
+        server.clientCapabilities.definitionLocationLink;
 
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
@@ -87,7 +86,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
 
       return offset.mapResult((offset) async {
         final allResults = [
-          await getServerResult(clientSupportsLocationLink, path, offset),
+          await getServerResult(supportsLocationLink, path, offset),
           ...await getPluginResults(path, offset),
         ];
 
@@ -97,7 +96,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
 
         // Convert and filter the results using the correct type of Location class
         // depending on the client capabilities.
-        if (clientSupportsLocationLink) {
+        if (supportsLocationLink) {
           final convertedResults = convert(
             mergedTargets,
             (target) => _toLocationLink(mergedResults, lineInfo, target),

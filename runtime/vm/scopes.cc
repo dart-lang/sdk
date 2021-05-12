@@ -362,7 +362,7 @@ LocalVarDescriptorsPtr LocalScope::GetVarDescriptors(
   const ContextScope& context_scope =
       ContextScope::Handle(func.context_scope());
   if (!context_scope.IsNull()) {
-    ASSERT(func.IsLocalFunction());
+    ASSERT(func.HasParent());
     for (int i = 0; i < context_scope.num_variables(); i++) {
       String& name = String::Handle(context_scope.NameAt(i));
       UntaggedLocalVarDescriptors::VarInfoKind kind;

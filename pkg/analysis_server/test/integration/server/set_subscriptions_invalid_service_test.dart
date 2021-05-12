@@ -16,15 +16,13 @@ void main() {
 @reflectiveTest
 class SetSubscriptionsInvalidTest
     extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_setSubscriptions_invalidService() {
+  Future<void> test_setSubscriptions_invalidService() async {
     // TODO(paulberry): verify that if an invalid service is specified, the
     // current subscriptions are unchanged.
-    return server.send('server.setSubscriptions', {
-      'subscriptions': ['bogus']
-    }).then((_) {
-      fail('setSubscriptions should have produced an error');
-    }, onError: (error) {
-      // The expected error occurred.
-    });
+    expect(() async {
+      await server.send('server.setSubscriptions', {
+        'subscriptions': ['bogus']
+      });
+    }, throwsA(const TypeMatcher<ServerErrorMessage>()));
   }
 }

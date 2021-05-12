@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:mirrors';
 
 import 'package:analysis_server/src/protocol_server.dart'
@@ -64,30 +66,35 @@ class AnalysisErrorTest {
             engine.LineInfo([0, 5, 9, 20]), false, null, [engineError]),
         engineError);
     expect(error.toJson(), {
-      'severity': 'ERROR',
-      'type': 'COMPILE_TIME_ERROR',
-      'location': {
-        'file': 'foo.dart',
-        'offset': 10,
-        'length': 20,
-        'startLine': 3,
-        'startColumn': 2
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
-      'message': 'my message',
-      'code': 'ambiguous_export',
-      'contextMessages': [
+      MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
+      CONTEXT_MESSAGES: [
         {
-          'message': 'context',
-          'location': {
-            'file': 'bar.dart',
-            'offset': 30,
-            'length': 5,
-            'startLine': 4,
-            'startColumn': 11
+          MESSAGE: 'context',
+          LOCATION: {
+            FILE: 'bar.dart',
+            OFFSET: 30,
+            LENGTH: 5,
+            START_LINE: 4,
+            START_COLUMN: 11,
+            END_LINE: 4,
+            END_COLUMN: 16,
           }
         }
       ],
-      'hasFix': false
+      HAS_FIX: false
     });
   }
 
@@ -102,11 +109,14 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
       CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -127,7 +137,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'test_error',
@@ -152,7 +164,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'my_lint',
@@ -172,10 +186,13 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -194,10 +211,13 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: -1,
-        START_COLUMN: -1
+        START_COLUMN: -1,
+        END_LINE: -1,
+        END_COLUMN: -1,
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -229,7 +249,6 @@ class EnumTest {
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.NEVER: ElementKind.UNKNOWN,
-      engine.ElementKind.TYPE_ALIAS: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
     });
   }

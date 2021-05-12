@@ -35,10 +35,8 @@ deferred_transitive_import_error_test: Skip
 causal_async_stack_test: Skip # Flaky.
 
 [ $mode == product ]
-dart_developer_env_test: SkipByDesign
 io/stdio_implicit_close_test: Skip # SkipByDesign
 no_profiler_test: SkipByDesign
-no_support_coverage_test: SkipByDesign
 no_support_debugger_test: SkipByDesign
 no_support_disassembler_test: SkipByDesign
 no_support_il_printer_test: SkipByDesign
@@ -61,7 +59,8 @@ io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 io/wait_for_test: SkipByDesign # Uses mirrors.
 verbose_gc_to_bmu_test: Skip # Attempts to spawn dart using Platform.executable
 
-[ $system == fuchsia ] # Fuchsia test runner doesn't support multi-tests yet.
+# Fuchsia test runner doesn't support multi-tests yet.
+[ $system == fuchsia ]
 deny_listed_test: Skip
 io/dart_std_io_pipe_test: Skip
 io/platform_resolved_executable_test: Skip
@@ -71,8 +70,8 @@ package/invalid_uri_test: Skip
 regress_29350_test: Skip
 
 [ $system != macos ]
-io/https_nonblocking_trust_evaluation_test: SkipByDesign
 io/https_connection_closed_during_handshake_test: SkipByDesign # long_ssl_cert_evaluation needed for long handshake is only supported on mac.
+io/https_nonblocking_trust_evaluation_test: SkipByDesign
 
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
@@ -85,7 +84,6 @@ env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $runtime == vm && $system == linux ]
 io/http_basic_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
-io/http_launch_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 
 [ $system == macos && ($runtime == dart_precompiled || $runtime == vm) ]
 io/raw_secure_server_socket_test: Crash
@@ -99,9 +97,6 @@ fragmentation_typed_data_test: SkipSlow
 
 [ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
 *: SkipByDesign
-
-[ $mode == product || $runtime == dart_precompiled ]
-no_assert_test: SkipByDesign
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 deferred_transitive_import_error_test: Skip

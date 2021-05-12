@@ -6,7 +6,7 @@
 
 library fasta.class_hierarchy_builder;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
@@ -116,100 +116,182 @@ bool isNameVisibleIn(Name name, LibraryBuilder libraryBuilder) {
 
 class Tuple {
   final Name name;
-  ClassMember declaredMember;
-  ClassMember declaredSetter;
-  ClassMember mixedInMember;
-  ClassMember mixedInSetter;
-  ClassMember extendedMember;
-  ClassMember extendedSetter;
-  List<ClassMember> implementedMembers;
-  List<ClassMember> implementedSetters;
+  ClassMember _declaredMember;
+  ClassMember _declaredSetter;
+  ClassMember _mixedInMember;
+  ClassMember _mixedInSetter;
+  ClassMember _extendedMember;
+  ClassMember _extendedSetter;
+  List<ClassMember> _implementedMembers;
+  List<ClassMember> _implementedSetters;
 
-  Tuple.declareMember(this.declaredMember)
-      : assert(!declaredMember.forSetter),
-        this.name = declaredMember.name;
+  Tuple.declareMember(this._declaredMember)
+      : assert(!_declaredMember.forSetter),
+        this.name = _declaredMember.name;
 
-  Tuple.mixInMember(this.mixedInMember)
-      : assert(!mixedInMember.forSetter),
-        this.name = mixedInMember.name;
+  Tuple.mixInMember(this._mixedInMember)
+      : assert(!_mixedInMember.forSetter),
+        this.name = _mixedInMember.name;
 
-  Tuple.extendMember(this.extendedMember)
-      : assert(!extendedMember.forSetter),
-        this.name = extendedMember.name;
+  Tuple.extendMember(this._extendedMember)
+      : assert(!_extendedMember.forSetter),
+        this.name = _extendedMember.name;
 
   Tuple.implementMember(ClassMember implementedMember)
       : assert(!implementedMember.forSetter),
         this.name = implementedMember.name,
-        implementedMembers = <ClassMember>[implementedMember];
+        _implementedMembers = <ClassMember>[implementedMember];
 
-  Tuple.declareSetter(this.declaredSetter)
-      : assert(declaredSetter.forSetter),
-        this.name = declaredSetter.name;
+  Tuple.declareSetter(this._declaredSetter)
+      : assert(_declaredSetter.forSetter),
+        this.name = _declaredSetter.name;
 
-  Tuple.mixInSetter(this.mixedInSetter)
-      : assert(mixedInSetter.forSetter),
-        this.name = mixedInSetter.name;
+  Tuple.mixInSetter(this._mixedInSetter)
+      : assert(_mixedInSetter.forSetter),
+        this.name = _mixedInSetter.name;
 
-  Tuple.extendSetter(this.extendedSetter)
-      : assert(extendedSetter.forSetter),
-        this.name = extendedSetter.name;
+  Tuple.extendSetter(this._extendedSetter)
+      : assert(_extendedSetter.forSetter),
+        this.name = _extendedSetter.name;
 
   Tuple.implementSetter(ClassMember implementedSetter)
       : assert(implementedSetter.forSetter),
         this.name = implementedSetter.name,
-        implementedSetters = <ClassMember>[implementedSetter];
+        _implementedSetters = <ClassMember>[implementedSetter];
+
+  ClassMember get declaredMember => _declaredMember;
+
+  void set declaredMember(ClassMember value) {
+    assert(!value.forSetter);
+    assert(
+        _declaredMember == null,
+        "Declared member already set to $_declaredMember, "
+        "trying to set it to $value.");
+    _declaredMember = value;
+  }
+
+  ClassMember get declaredSetter => _declaredSetter;
+
+  void set declaredSetter(ClassMember value) {
+    assert(value.forSetter);
+    assert(
+        _declaredSetter == null,
+        "Declared setter already set to $_declaredSetter, "
+        "trying to set it to $value.");
+    _declaredSetter = value;
+  }
+
+  ClassMember get extendedMember => _extendedMember;
+
+  void set extendedMember(ClassMember value) {
+    assert(!value.forSetter);
+    assert(
+        _extendedMember == null,
+        "Extended member already set to $_extendedMember, "
+        "trying to set it to $value.");
+    _extendedMember = value;
+  }
+
+  ClassMember get extendedSetter => _extendedSetter;
+
+  void set extendedSetter(ClassMember value) {
+    assert(value.forSetter);
+    assert(
+        _extendedSetter == null,
+        "Extended setter already set to $_extendedSetter, "
+        "trying to set it to $value.");
+    _extendedSetter = value;
+  }
+
+  ClassMember get mixedInMember => _mixedInMember;
+
+  void set mixedInMember(ClassMember value) {
+    assert(!value.forSetter);
+    assert(
+        _mixedInMember == null,
+        "Mixed in member already set to $_mixedInMember, "
+        "trying to set it to $value.");
+    _mixedInMember = value;
+  }
+
+  ClassMember get mixedInSetter => _mixedInSetter;
+
+  void set mixedInSetter(ClassMember value) {
+    assert(value.forSetter);
+    assert(
+        _mixedInSetter == null,
+        "Mixed in setter already set to $_mixedInSetter, "
+        "trying to set it to $value.");
+    _mixedInSetter = value;
+  }
+
+  List<ClassMember> get implementedMembers => _implementedMembers;
+
+  void addImplementedMember(ClassMember value) {
+    assert(!value.forSetter);
+    _implementedMembers ??= <ClassMember>[];
+    _implementedMembers.add(value);
+  }
+
+  List<ClassMember> get implementedSetters => _implementedSetters;
+
+  void addImplementedSetter(ClassMember value) {
+    assert(value.forSetter);
+    _implementedSetters ??= <ClassMember>[];
+    _implementedSetters.add(value);
+  }
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     String comma = '';
     sb.write('Tuple(');
-    if (declaredMember != null) {
+    if (_declaredMember != null) {
       sb.write(comma);
       sb.write('declaredMember=');
-      sb.write(declaredMember);
+      sb.write(_declaredMember);
       comma = ',';
     }
-    if (declaredSetter != null) {
+    if (_declaredSetter != null) {
       sb.write(comma);
       sb.write('declaredSetter=');
-      sb.write(declaredSetter);
+      sb.write(_declaredSetter);
       comma = ',';
     }
-    if (mixedInMember != null) {
+    if (_mixedInMember != null) {
       sb.write(comma);
       sb.write('mixedInMember=');
-      sb.write(mixedInMember);
+      sb.write(_mixedInMember);
       comma = ',';
     }
-    if (mixedInSetter != null) {
+    if (_mixedInSetter != null) {
       sb.write(comma);
       sb.write('mixedInSetter=');
-      sb.write(mixedInSetter);
+      sb.write(_mixedInSetter);
       comma = ',';
     }
-    if (extendedMember != null) {
+    if (_extendedMember != null) {
       sb.write(comma);
       sb.write('extendedMember=');
-      sb.write(extendedMember);
+      sb.write(_extendedMember);
       comma = ',';
     }
-    if (extendedSetter != null) {
+    if (_extendedSetter != null) {
       sb.write(comma);
       sb.write('extendedSetter=');
-      sb.write(extendedSetter);
+      sb.write(_extendedSetter);
       comma = ',';
     }
-    if (implementedMembers != null) {
+    if (_implementedMembers != null) {
       sb.write(comma);
       sb.write('implementedMembers=');
-      sb.write(implementedMembers);
+      sb.write(_implementedMembers);
       comma = ',';
     }
-    if (implementedSetters != null) {
+    if (_implementedSetters != null) {
       sb.write(comma);
       sb.write('implementedSetters=');
-      sb.write(implementedSetters);
+      sb.write(_implementedSetters);
       comma = ',';
     }
     sb.write(')');
@@ -1292,7 +1374,10 @@ class ClassHierarchyNodeBuilder {
       if (mixin is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = mixin;
         NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+            isUsedAsClass: true,
+            usedAsClassCharOffset: namedBuilder.charOffset,
+            usedAsClassFileUri: namedBuilder.fileUri);
       }
       if (mixin is ClassBuilder) {
         scope = mixin.scope.computeMixinScope();
@@ -1383,11 +1468,9 @@ class ClassHierarchyNodeBuilder {
         Tuple tuple = memberMap[name];
         if (tuple != null) {
           if (superInterfaceMember.forSetter) {
-            (tuple.implementedSetters ??= <ClassMember>[])
-                .add(superInterfaceMember);
+            tuple.addImplementedSetter(superInterfaceMember);
           } else {
-            (tuple.implementedMembers ??= <ClassMember>[])
-                .add(superInterfaceMember);
+            tuple.addImplementedMember(superInterfaceMember);
           }
         } else {
           if (superInterfaceMember.forSetter) {
@@ -1722,13 +1805,20 @@ class ClassHierarchyNodeBuilder {
       ClassMember mixedInGetable;
       if (tuple.mixedInMember != null &&
           !tuple.mixedInMember.isStatic &&
-          !tuple.mixedInMember.isDuplicate) {
+          !tuple.mixedInMember.isDuplicate &&
+          !tuple.mixedInMember.isSynthesized) {
         /// We treat
         ///
-        ///   class Mixin {
+        ///   opt-in:
+        ///   class Interface {
+        ///     method3() {}
+        ///   }
+        ///   opt-out:
+        ///   class Mixin implements Interface {
         ///     static method1() {}
         ///     method2() {}
         ///     method2() {}
+        ///     /*member-signature*/ method3() {}
         ///   }
         ///   class Class with Mixin {}
         ///
@@ -1737,6 +1827,27 @@ class ClassHierarchyNodeBuilder {
         ///   class Mixin {}
         ///   class Class with Mixin {}
         ///
+        /// Note that skipped synthetic getable 'method3' is still included
+        /// in the implemented getables, but its type will not define the type
+        /// when mixed in. For instance
+        ///
+        ///   opt-in:
+        ///   abstract class Interface {
+        ///     num get getter;
+        ///   }
+        ///   opt-out:
+        ///   abstract class Super {
+        ///     int get getter;
+        ///   }
+        ///   abstract class Mixin implements Interface {
+        ///     /*member-signature*/ num get getter;
+        ///   }
+        ///   abstract class Class extends Super with Mixin {}
+        ///
+        /// Here the type of `Class.getter` should not be defined from the
+        /// synthetic member signature `Mixin.getter` but as a combined member
+        /// signature of `Super.getter` and `Mixin.getter`, resulting in type
+        /// `int` instead of `num`.
         if (definingGetable == null) {
           /// class Mixin {
           ///   method() {}
@@ -1760,13 +1871,15 @@ class ClassHierarchyNodeBuilder {
       ClassMember mixedInSetable;
       if (tuple.mixedInSetter != null &&
           !tuple.mixedInSetter.isStatic &&
-          !tuple.mixedInSetter.isDuplicate) {
+          !tuple.mixedInSetter.isDuplicate &&
+          !tuple.mixedInSetter.isSynthesized) {
         /// We treat
         ///
         ///   class Mixin {
         ///     static set setter1(value) {}
         ///     set setter2(value) {}
         ///     set setter2(value) {}
+        ///     /*member-signature*/ setter3() {}
         ///   }
         ///   class Class with Mixin {}
         ///
@@ -1775,6 +1888,27 @@ class ClassHierarchyNodeBuilder {
         ///   class Mixin {}
         ///   class Class with Mixin {}
         ///
+        /// Note that skipped synthetic setable 'setter3' is still included
+        /// in the implemented setables, but its type will not define the type
+        /// when mixed in. For instance
+        ///
+        ///   opt-in:
+        ///   abstract class Interface {
+        ///     void set setter(int value);
+        ///   }
+        ///   opt-out:
+        ///   abstract class Super {
+        ///     void set setter(num value);
+        ///   }
+        ///   abstract class Mixin implements Interface {
+        ///     /*member-signature*/ num get getter;
+        ///   }
+        ///   abstract class Class extends Super with Mixin {}
+        ///
+        /// Here the type of `Class.setter` should not be defined from the
+        /// synthetic member signature `Mixin.setter` but as a combined member
+        /// signature of `Super.setter` and `Mixin.setter`, resulting in type
+        /// `num` instead of `int`.
         if (definingSetable == null) {
           /// class Mixin {
           ///   set setter(value) {}
@@ -2192,6 +2326,11 @@ class ClassHierarchyNodeBuilder {
             interfaceMember = new SynthesizedInterfaceMember(
                 classBuilder, name, interfaceMembers.toList(),
                 superClassMember: extendedMember,
+                // [definingMember] and [mixedInMember] are always the same
+                // here. Use the latter here and the former below to show the
+                // the member is canonical _because_ its the mixed in member and
+                // it defines the isProperty/forSetter properties _because_ it
+                // is the defining member.
                 canonicalMember: mixedInMember,
                 mixedInMember: mixedInMember,
                 isProperty: definingMember.isProperty,
@@ -2244,6 +2383,7 @@ class ClassHierarchyNodeBuilder {
               registerAbstractMember(interfaceMember);
             }
 
+            assert(!mixedInMember.isSynthesized);
             if (!mixedInMember.isSynthesized) {
               /// Members declared in the mixin must override extended and
               /// implemented members.
@@ -2311,6 +2451,11 @@ class ClassHierarchyNodeBuilder {
             interfaceMember = new SynthesizedInterfaceMember(
                 classBuilder, name, interfaceMembers.toList(),
                 superClassMember: mixedInMember,
+                // [definingMember] and [mixedInMember] are always the same
+                // here. Use the latter here and the former below to show the
+                // the member is canonical _because_ its the mixed in member and
+                // it defines the isProperty/forSetter properties _because_ it
+                // is the defining member.
                 canonicalMember: mixedInMember,
                 mixedInMember: mixedInMember,
                 isProperty: definingMember.isProperty,
@@ -2350,6 +2495,7 @@ class ClassHierarchyNodeBuilder {
               registerInheritedImplements(mixedInMember, {interfaceMember},
                   aliasForTesting: classMember);
             }
+            assert(!mixedInMember.isSynthesized);
             if (!mixedInMember.isSynthesized) {
               /// Members declared in the mixin must override extended and
               /// implemented members.
@@ -2414,6 +2560,11 @@ class ClassHierarchyNodeBuilder {
               interfaceMember = new SynthesizedInterfaceMember(
                   classBuilder, name, interfaceMembers.toList(),
                   superClassMember: extendedMember,
+                  // [definingMember] and [declaredMember] are always the same
+                  // here. Use the latter here and the former below to show the
+                  // the member is canonical _because_ its the declared member
+                  // and it defines the isProperty/forSetter properties
+                  // _because_ it is the defining member.
                   canonicalMember: declaredMember,
                   isProperty: definingMember.isProperty,
                   forSetter: definingMember.forSetter,

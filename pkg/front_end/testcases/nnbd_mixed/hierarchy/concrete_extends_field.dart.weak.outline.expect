@@ -1,0 +1,103 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:5:7: Error: The non-abstract class 'ConcreteSuper' is missing implementations for these members:
+//  - ConcreteSuper.declaredAbstractExtendsAbstractField
+//  - ConcreteSuper.declaredAbstractExtendsAbstractField=
+//  - ConcreteSuper.declaredConcreteExtendsAbstractField
+//  - ConcreteSuper.declaredConcreteExtendsAbstractField=
+//  - ConcreteSuper.extendedAbstractField
+//  - ConcreteSuper.extendedAbstractField=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:16:16: Context: 'ConcreteSuper.declaredAbstractExtendsAbstractField' is defined here.
+//   abstract int declaredAbstractExtendsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:16:16: Context: 'ConcreteSuper.declaredAbstractExtendsAbstractField=' is defined here.
+//   abstract int declaredAbstractExtendsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:14:16: Context: 'ConcreteSuper.declaredConcreteExtendsAbstractField' is defined here.
+//   abstract int declaredConcreteExtendsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:14:16: Context: 'ConcreteSuper.declaredConcreteExtendsAbstractField=' is defined here.
+//   abstract int declaredConcreteExtendsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:8:16: Context: 'ConcreteSuper.extendedAbstractField' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:8:16: Context: 'ConcreteSuper.extendedAbstractField=' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractExtendsAbstractField
+//  - ConcreteClass.declaredAbstractExtendsAbstractField=
+//  - ConcreteClass.declaredAbstractField
+//  - ConcreteClass.declaredAbstractField=
+//  - ConcreteSuper.extendedAbstractField
+//  - ConcreteSuper.extendedAbstractField=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:30:16: Context: 'ConcreteClass.declaredAbstractExtendsAbstractField' is defined here.
+//   abstract int declaredAbstractExtendsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:30:16: Context: 'ConcreteClass.declaredAbstractExtendsAbstractField=' is defined here.
+//   abstract int declaredAbstractExtendsAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:22:16: Context: 'ConcreteClass.declaredAbstractField' is defined here.
+//   abstract int declaredAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:22:16: Context: 'ConcreteClass.declaredAbstractField=' is defined here.
+//   abstract int declaredAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:8:16: Context: 'ConcreteSuper.extendedAbstractField' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_field.dart:8:16: Context: 'ConcreteSuper.extendedAbstractField=' is defined here.
+//   abstract int extendedAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class ConcreteSuper extends core::Object {
+  field core::int extendedConcreteField;
+  field core::int declaredConcreteExtendsConcreteField;
+  field core::int declaredAbstractExtendsConcreteField;
+  synthetic constructor •() → self::ConcreteSuper
+    ;
+  abstract get extendedAbstractField() → core::int;
+  abstract set extendedAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredConcreteExtendsAbstractField() → core::int;
+  abstract set declaredConcreteExtendsAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+  abstract set declaredAbstractExtendsAbstractField(core::int #externalFieldValue) → void;
+}
+class ConcreteClass extends self::ConcreteSuper {
+  field core::int declaredConcreteField;
+  field core::int declaredConcreteExtendsConcreteField;
+  field core::int declaredConcreteExtendsAbstractField;
+  synthetic constructor •() → self::ConcreteClass
+    ;
+  abstract get declaredAbstractField() → core::int;
+  abstract set declaredAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractExtendsConcreteField() → core::int;
+  abstract set declaredAbstractExtendsConcreteField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+  abstract set declaredAbstractExtendsAbstractField(core::int #externalFieldValue) → void;
+}
+static method main() → dynamic
+  ;

@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
   InterfaceType get boolNone {
@@ -149,23 +148,23 @@ mixin ElementsTypesMixin {
     return interfaceTypeStar(element);
   }
 
-  LibraryElementImpl get testLibrary => null;
+  LibraryElementImpl get testLibrary => throw UnimplementedError();
 
-  TypeProvider /*!*/ get typeProvider;
+  TypeProvider get typeProvider;
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
   ClassElementImpl class_({
-    @required String name,
+    required String name,
     bool isAbstract = false,
-    InterfaceType superType,
+    InterfaceType? superType,
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
     List<MethodElement> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
-    element.enclosingElement = testLibrary;
+    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.supertype = superType ?? typeProvider.objectType;
     element.interfaces = interfaces;
@@ -176,7 +175,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableNone(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable');
+    var element = coreLibrary.getType('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -185,7 +184,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableQuestion(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable');
+    var element = coreLibrary.getType('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -194,7 +193,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableStar(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable');
+    var element = coreLibrary.getType('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
@@ -202,10 +201,10 @@ mixin ElementsTypesMixin {
   }
 
   FunctionTypeImpl functionType({
-    @required List<TypeParameterElement> typeFormals,
-    @required List<ParameterElement> parameters,
-    @required DartType returnType,
-    @required NullabilitySuffix nullabilitySuffix,
+    required List<TypeParameterElement> typeFormals,
+    required List<ParameterElement> parameters,
+    required DartType returnType,
+    required NullabilitySuffix nullabilitySuffix,
   }) {
     return FunctionTypeImpl(
       typeFormals: typeFormals,
@@ -218,7 +217,7 @@ mixin ElementsTypesMixin {
   FunctionTypeImpl functionTypeNone({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
-    @required DartType returnType,
+    required DartType returnType,
   }) {
     return functionType(
       typeFormals: typeFormals,
@@ -231,7 +230,7 @@ mixin ElementsTypesMixin {
   FunctionTypeImpl functionTypeQuestion({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
-    @required DartType returnType,
+    required DartType returnType,
   }) {
     return functionType(
       typeFormals: typeFormals,
@@ -244,7 +243,7 @@ mixin ElementsTypesMixin {
   FunctionTypeImpl functionTypeStar({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
-    @required DartType returnType,
+    required DartType returnType,
   }) {
     return functionType(
       typeFormals: typeFormals,
@@ -301,22 +300,10 @@ mixin ElementsTypesMixin {
     return interfaceTypeStar(futureElement, typeArguments: [T]);
   }
 
-  GenericFunctionTypeElementImpl genericFunctionType({
-    List<TypeParameterElement> typeParameters,
-    List<ParameterElement> parameters,
-    DartType returnType,
-  }) {
-    var result = GenericFunctionTypeElementImpl.forOffset(0);
-    result.typeParameters = typeParameters;
-    result.parameters = parameters;
-    result.returnType = returnType ?? typeProvider.voidType;
-    return result;
-  }
-
   InterfaceType interfaceType(
     ClassElement element, {
     List<DartType> typeArguments = const [],
-    @required NullabilitySuffix nullabilitySuffix,
+    required NullabilitySuffix nullabilitySuffix,
   }) {
     return element.instantiate(
       typeArguments: typeArguments,
@@ -376,10 +363,10 @@ mixin ElementsTypesMixin {
   }
 
   LibraryElementImpl library_({
-    @required String uriStr,
-    @required TypeSystemImpl typeSystem,
-    @required AnalysisContext analysisContext,
-    @required AnalysisSessionImpl analysisSession,
+    required String uriStr,
+    required TypeSystemImpl typeSystem,
+    required AnalysisContext analysisContext,
+    required AnalysisSessionImpl analysisSession,
   }) {
     var library = LibraryElementImpl(
       analysisContext,
@@ -467,13 +454,13 @@ mixin ElementsTypesMixin {
   }
 
   MixinElementImpl mixin_({
-    @required String name,
+    required String name,
     List<TypeParameterElement> typeParameters = const [],
-    List<InterfaceType> constraints,
+    List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
     var element = MixinElementImpl(name, 0);
-    element.enclosingElement = testLibrary;
+    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
     element.interfaces = interfaces;
@@ -482,8 +469,8 @@ mixin ElementsTypesMixin {
   }
 
   ParameterElement namedParameter({
-    @required String name,
-    @required DartType type,
+    required String name,
+    required DartType type,
     bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name, 0);
@@ -494,8 +481,8 @@ mixin ElementsTypesMixin {
   }
 
   ParameterElement namedRequiredParameter({
-    @required String name,
-    @required DartType type,
+    required String name,
+    required DartType type,
     bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name, 0);
@@ -506,8 +493,8 @@ mixin ElementsTypesMixin {
   }
 
   ParameterElement positionalParameter({
-    String name,
-    @required DartType type,
+    String? name,
+    required DartType type,
     bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name ?? '', 0);
@@ -518,9 +505,9 @@ mixin ElementsTypesMixin {
   }
 
   TypeParameterTypeImpl promotedTypeParameterType({
-    @required TypeParameterElement element,
-    @required NullabilitySuffix nullabilitySuffix,
-    @required DartType promotedBound,
+    required TypeParameterElement element,
+    required NullabilitySuffix nullabilitySuffix,
+    required DartType promotedBound,
   }) {
     return TypeParameterTypeImpl(
       element: element,
@@ -563,8 +550,8 @@ mixin ElementsTypesMixin {
   }
 
   ParameterElement requiredParameter({
-    String name,
-    @required DartType type,
+    String? name,
+    required DartType type,
     bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name ?? '', 0);
@@ -575,18 +562,19 @@ mixin ElementsTypesMixin {
   }
 
   TypeAliasElementImpl typeAlias({
-    @required String name,
-    @required List<TypeParameterElement> typeParameters,
-    @required DartType aliasedType,
+    required String name,
+    required List<TypeParameterElement> typeParameters,
+    required DartType aliasedType,
   }) {
     var element = TypeAliasElementImpl(name, 0);
+    element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.aliasedType = aliasedType;
     return element;
   }
 
   TypeParameterElementImpl typeParameter(String name,
-      {DartType bound, Variance variance}) {
+      {DartType? bound, Variance? variance}) {
     var element = TypeParameterElementImpl.synthetic(name);
     element.bound = bound;
     element.variance = variance;
@@ -595,8 +583,8 @@ mixin ElementsTypesMixin {
 
   TypeParameterTypeImpl typeParameterType(
     TypeParameterElement element, {
-    @required NullabilitySuffix nullabilitySuffix,
-    DartType promotedBound,
+    required NullabilitySuffix nullabilitySuffix,
+    DartType? promotedBound,
   }) {
     return TypeParameterTypeImpl(
       element: element,
@@ -607,7 +595,7 @@ mixin ElementsTypesMixin {
 
   TypeParameterTypeImpl typeParameterTypeNone(
     TypeParameterElement element, {
-    DartType promotedBound,
+    DartType? promotedBound,
   }) {
     return typeParameterType(
       element,
@@ -618,7 +606,7 @@ mixin ElementsTypesMixin {
 
   TypeParameterTypeImpl typeParameterTypeQuestion(
     TypeParameterElement element, {
-    DartType promotedBound,
+    DartType? promotedBound,
   }) {
     return typeParameterType(
       element,
@@ -629,7 +617,7 @@ mixin ElementsTypesMixin {
 
   TypeParameterTypeImpl typeParameterTypeStar(
     TypeParameterElement element, {
-    DartType promotedBound,
+    DartType? promotedBound,
   }) {
     return typeParameterType(
       element,

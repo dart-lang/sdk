@@ -551,16 +551,55 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   static void parseErrors(String stderr, List<StaticError> errors,
       [List<StaticError> warnings]) {
-    for (var error in AnalyzerError.parseStderr(stderr)) {
-      var staticError = StaticError({ErrorSource.analyzer: error.errorCode},
-          line: error.line, column: error.column, length: error.length);
+    var jsonData = json.decode(stderr) as Map<String, dynamic>;
+    var version = jsonData['version'];
+    if (version != 1) {
+      DebugLogger.error('Unexpected analyzer JSON data version: $version');
+      throw UnimplementedError();
+    }
+    for (var diagnostic in jsonData['diagnostics'] as List<dynamic>) {
+      var diagnosticMap = diagnostic as Map<String, dynamic>;
+      var location = diagnosticMap['location'] as Map<String, dynamic>;
+      var file = location['file'] as String;
+      var type = diagnosticMap['type'] as String;
+      var code = (diagnosticMap['code'] as String).toUpperCase();
+      var staticError =
+          _decodeStaticError(ErrorSource.analyzer, '$type.$code', location);
+      var contextMessages = diagnosticMap['contextMessages'] as List<dynamic>;
+      for (var contextMessage in contextMessages ?? const []) {
+        var contextMessageMap = contextMessage as Map<String, dynamic>;
+        var contextLocation =
+            contextMessageMap['location'] as Map<String, dynamic>;
+        if (contextLocation['file'] == file) {
+          staticError.contextMessages.add(_decodeStaticError(
+              ErrorSource.context,
+              contextMessageMap['message'] as String,
+              contextLocation));
+        } else {
+          DebugLogger.warning(
+              "Context messages in other files not currently supported.");
+        }
+      }
 
-      if (error.severity == 'ERROR') {
+      var severity = diagnosticMap['severity'] as String;
+      if (severity == 'ERROR') {
         errors.add(staticError);
-      } else if (error.severity == 'WARNING') {
+      } else if (severity == 'WARNING') {
         warnings?.add(staticError);
       }
     }
+  }
+
+  static StaticError _decodeStaticError(
+      ErrorSource errorSource, String message, Map<String, dynamic> location) {
+    var locationRange = location['range'] as Map<String, dynamic>;
+    var locationRangeStart = locationRange['start'] as Map<String, dynamic>;
+    var locationRangeEnd = locationRange['end'] as Map<String, dynamic>;
+    return StaticError(errorSource, message,
+        line: locationRangeStart['line'] as int,
+        column: locationRangeStart['column'] as int,
+        length: (locationRangeEnd['offset'] as int) -
+            (locationRangeStart['offset'] as int));
   }
 
   AnalysisCommandOutput(
@@ -583,6 +622,23 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    List<StaticError> errors;
+    try {
+      errors = this.errors;
+    } catch (_) {
+      // This can happen in at least two scenarios:
+      // - The analyzer output was too long so it got truncated (so the
+      //   resulting output was ill-formed).  See also
+      //   https://github.com/dart-lang/sdk/issues/44493.
+      // - The analyzer did not find a file to analyze at the specified
+      //   location, so it generated the output "No dart files found at
+      //   <path>.dart" (which is not valid JSON).  See
+      //   https://github.com/dart-lang/sdk/issues/45556.
+      // TODO(paulberry,rnystrom): remove this logic once the two above bugs are
+      // fixed.
+      return Expectation.crash;
+    }
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -627,6 +683,23 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    List<StaticError> errors;
+    try {
+      errors = this.errors;
+    } catch (_) {
+      // This can happen in at least two scenarios:
+      // - The analyzer output was too long so it got truncated (so the
+      //   resulting output was ill-formed).  See also
+      //   https://github.com/dart-lang/sdk/issues/44493.
+      // - The analyzer did not find a file to analyze at the specified
+      //   location, so it generated the output "No dart files found at
+      //   <path>.dart" (which is not valid JSON).  See
+      //   https://github.com/dart-lang/sdk/issues/45556.
+      // TODO(paulberry,rnystrom): remove this logic once the two above bugs are
+      // fixed.
+      return Expectation.crash;
+    }
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -984,8 +1057,9 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   ///
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
+  // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+):\nError: (.*)$", multiLine: true);
+      RegExp(r"^([^:]+):(\d+):(\d+):\n(Error): (.*)$", multiLine: true);
 
   Dart2jsCompilerCommandOutput(
       Command command,
@@ -1017,8 +1091,9 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   ///
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
+  // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp = RegExp(
-      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): Error: (.*)$",
+      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): (Error): (.*)$",
       multiLine: true);
 
   DevCompilerCommandOutput(
@@ -1252,36 +1327,22 @@ class FastaCommandOutput extends CompilationCommandOutput
   static void parseErrors(
       String stdout, List<StaticError> errors, List<StaticError> warnings) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.cfe, _errorRegexp, stdout, errors);
-    _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.cfe, _warningRegexp, stdout, warnings);
+        ErrorSource.cfe, _errorRegexp, stdout, errors, warnings);
   }
 
-  /// Matches the first line of a Fasta error message. Fasta prints errors to
-  /// stdout that look like:
+  /// Matches the first line of a Fasta error, warning, or context message.
+  /// Fasta prints to stdout like:
   ///
   ///     tests/language_2/some_test.dart:7:21: Error: Some message.
   ///     Try fixing the code to be less bad.
   ///       var _ = <int>[if (1) 2];
   ///                    ^
   ///
-  /// The test runner only validates the main error message, and not the
-  /// suggested fixes, so we only parse the first line.
-  static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+): Error: (.*)$", multiLine: true);
-
-  /// Matches the first line of a Fasta warning message. Fasta prints errors to
-  /// stdout that look like:
-  ///
-  ///     tests/language_2/some_test.dart:7:21: Warning: Some message.
-  ///     Try fixing the code to be less bad.
-  ///       var _ = <int>[if (1) 2];
-  ///                    ^
-  ///
-  /// The test runner only validates the main error message, and not the
-  /// suggested fixes, so we only parse the first line.
-  static final _warningRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+): Warning: (.*)$", multiLine: true);
+  /// The test runner only validates the first line of the message, and not the
+  /// suggested fixes.
+  static final _errorRegexp = RegExp(
+      r"^([^:]+):(\d+):(\d+): (Context|Error|Warning): (.*)$",
+      multiLine: true);
 
   FastaCommandOutput(
       Command command,
@@ -1310,13 +1371,35 @@ mixin _StaticErrorOutput on CommandOutput {
   /// Parses compile errors reported by CFE using the given [regExp] and adds
   /// them to [errors] as coming from [errorSource].
   static void _parseCfeErrors(ErrorSource errorSource, RegExp regExp,
-      String stdout, List<StaticError> errors) {
+      String stdout, List<StaticError> errors,
+      [List<StaticError> warnings]) {
+    StaticError previousError;
     for (var match in regExp.allMatches(stdout)) {
       var line = int.parse(match.group(2));
       var column = int.parse(match.group(3));
-      var message = match.group(4);
-      errors
-          .add(StaticError({errorSource: message}, line: line, column: column));
+      var severity = match.group(4);
+      var message = match.group(5);
+
+      var error = StaticError(
+          severity == "Context" ? ErrorSource.context : errorSource, message,
+          line: line, column: column);
+
+      if (severity == "Context") {
+        // Attach context messages to the preceding error/warning.
+        if (previousError == null) {
+          DebugLogger.error("Got context message in CFE output before "
+              "error to attach it to.");
+        } else {
+          previousError.contextMessages.add(error);
+        }
+      } else {
+        if (severity == "Error") {
+          errors.add(error);
+        } else {
+          warnings.add(error);
+        }
+        previousError = error;
+      }
     }
   }
 
@@ -1353,7 +1436,14 @@ mixin _StaticErrorOutput on CommandOutput {
     // Handle static error test output specially. We don't want to show the raw
     // stdout if we can give the user the parsed expectations instead.
     if (testCase.testFile.isStaticErrorTest && !hasCrashed && !hasTimedOut) {
-      _validateExpectedErrors(testCase, output);
+      try {
+        _validateExpectedErrors(testCase, output);
+      } catch (_) {
+        // In the event of a crash trying to compute errors, go ahead and give
+        // the raw output.
+        super.describe(testCase, progress, output);
+        return;
+      }
     }
 
     // Don't show the "raw" output unless something strange happened or the
@@ -1417,7 +1507,7 @@ mixin _StaticErrorOutput on CommandOutput {
     assert(errorSource != null);
 
     var expected = testCase.testFile.expectedErrors
-        .where((error) => error.hasError(errorSource));
+        .where((error) => error.source == errorSource);
 
     var validation = StaticError.validateExpectations(
       expected,

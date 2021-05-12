@@ -109,8 +109,12 @@ class RunCommand extends DartdevCommand {
         );
     }
     argParser
-      ..addMultiOption('define',
-          abbr: 'D', help: 'Defines an environment variable', hide: true)
+      ..addMultiOption(
+        'define',
+        abbr: 'D',
+        valueHelp: 'key=value',
+        help: 'Define an environment declaration.',
+      )
       ..addFlag(
         'disable-service-auth-codes',
         hide: !verbose,
@@ -239,12 +243,17 @@ String maybeUriToFilename(String maybeUri) {
 class _DebuggingSession {
   Future<bool> start(
       String host, String port, bool disableServiceAuthCodes) async {
-    final serviceInfo = await Service.getInfo();
     final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
         ? sdk.ddsSnapshot
         : absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot');
     if (!Sdk.checkArtifactExists(ddsSnapshot)) {
       return false;
+    }
+    ServiceProtocolInfo serviceInfo = await Service.getInfo();
+    // Wait for VM service to publish its connection info.
+    while (serviceInfo.serverUri == null) {
+      await Future.delayed(Duration(milliseconds: 10));
+      serviceInfo = await Service.getInfo();
     }
     final process = await Process.start(
         sdk.dart,

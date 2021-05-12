@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_await_test.dart' as add_await;
@@ -51,6 +53,7 @@ import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion;
 import 'remove_operator_test.dart' as remove_operator;
+import 'remove_question_mark_test.dart' as remove_question_mark;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
@@ -115,6 +118,7 @@ void main() {
     remove_method_declaration.main();
     remove_non_null_assertion.main();
     remove_operator.main();
+    remove_question_mark.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_unnecessary_const.main();

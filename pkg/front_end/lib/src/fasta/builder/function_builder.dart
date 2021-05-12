@@ -6,8 +6,6 @@
 
 library fasta.procedure_builder;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
 
@@ -39,8 +37,11 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 
+import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'builder.dart';
 import 'class_builder.dart';
+import 'declaration_builder.dart';
 import 'extension_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
@@ -503,10 +504,23 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   bool _hasBuiltOutlineExpressions = false;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (!_hasBuiltOutlineExpressions) {
+      DeclarationBuilder classOrExtensionBuilder =
+          isClassMember || isExtensionMember ? parent : null;
       MetadataBuilder.buildAnnotations(
-          member, metadata, library, isClassMember ? parent : null, this);
+          member, metadata, library, classOrExtensionBuilder, this, fileUri);
+      if (typeVariables != null) {
+        for (int i = 0; i < typeVariables.length; i++) {
+          typeVariables[i].buildOutlineExpressions(
+              library,
+              classOrExtensionBuilder,
+              this,
+              coreTypes,
+              delayedActionPerformers);
+        }
+      }
 
       if (formals != null) {
         // For const constructors we need to include default parameter values
@@ -514,7 +528,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals) {
-          formal.buildOutlineExpressions(library);
+          formal.buildOutlineExpressions(library, delayedActionPerformers);
         }
       }
       _hasBuiltOutlineExpressions = true;

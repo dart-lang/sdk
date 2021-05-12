@@ -12,7 +12,7 @@ abstract class ClassWithCall {
 
 class Class {
   ClassWithCall get classWithCall =>
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
 
   int method() =>
@@ -34,7 +34,7 @@ abstract class GenericClassWithCall<T> {
 
 class GenericClass<S, T extends GenericClassWithCall<S>> {
   GenericClassWithCall<T> get classWithCall =>
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
 
   S method() =>

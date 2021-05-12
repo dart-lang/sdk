@@ -1,0 +1,73 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:5:7: Error: The non-abstract class 'ConcreteSuper' is missing implementations for these members:
+//  - ConcreteSuper.declaredAbstractExtendsAbstractField
+//  - ConcreteSuper.declaredConcreteExtendsAbstractField
+//  - ConcreteSuper.extendedAbstractField
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:16:22: Context: 'ConcreteSuper.declaredAbstractExtendsAbstractField' is defined here.
+//   abstract final int declaredAbstractExtendsAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:14:22: Context: 'ConcreteSuper.declaredConcreteExtendsAbstractField' is defined here.
+//   abstract final int declaredConcreteExtendsAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:8:22: Context: 'ConcreteSuper.extendedAbstractField' is defined here.
+//   abstract final int extendedAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractExtendsAbstractField
+//  - ConcreteClass.declaredAbstractField
+//  - ConcreteSuper.extendedAbstractField
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends ConcreteSuper {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:30:22: Context: 'ConcreteClass.declaredAbstractExtendsAbstractField' is defined here.
+//   abstract final int declaredAbstractExtendsAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:22:22: Context: 'ConcreteClass.declaredAbstractField' is defined here.
+//   abstract final int declaredAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_extends_final_field.dart:8:22: Context: 'ConcreteSuper.extendedAbstractField' is defined here.
+//   abstract final int extendedAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class ConcreteSuper extends core::Object {
+  final field core::int extendedConcreteField;
+  final field core::int declaredConcreteExtendsConcreteField;
+  final field core::int declaredAbstractExtendsConcreteField;
+  synthetic constructor •() → self::ConcreteSuper
+    ;
+  abstract get extendedAbstractField() → core::int;
+  abstract get declaredConcreteExtendsAbstractField() → core::int;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+}
+class ConcreteClass extends self::ConcreteSuper {
+  final field core::int declaredConcreteField;
+  final field core::int declaredConcreteExtendsConcreteField;
+  final field core::int declaredConcreteExtendsAbstractField;
+  synthetic constructor •() → self::ConcreteClass
+    ;
+  abstract get declaredAbstractField() → core::int;
+  abstract get declaredAbstractExtendsConcreteField() → core::int;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+}
+static method main() → dynamic
+  ;

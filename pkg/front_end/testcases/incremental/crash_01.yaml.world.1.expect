@@ -1,0 +1,34 @@
+main = <No Member>;
+library from "org-dartlang-test:///app/main.dart" as main {
+
+  import "package:flutter/src/cupertino/interface_level.dart";
+
+}
+library from "package:flutter/src/cupertino/interface_level.dart" as int {
+
+  import "package:flutter/src/widgets/framework.dart";
+
+  class CupertinoUserInterfaceLevel extends fra::InheritedWidget {
+    synthetic constructor •() → int::CupertinoUserInterfaceLevel
+      : super fra::InheritedWidget::•()
+      ;
+  }
+}
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  abstract class Widget extends dart.core::Object {
+    synthetic constructor •() → fra::Widget
+      : super dart.core::Object::•()
+      ;
+  }
+  abstract class ProxyWidget extends fra::Widget {
+    synthetic constructor •() → fra::ProxyWidget
+      : super fra::Widget::•()
+      ;
+  }
+  abstract class InheritedWidget extends fra::ProxyWidget {
+    synthetic constructor •() → fra::InheritedWidget
+      : super fra::ProxyWidget::•()
+      ;
+  }
+}

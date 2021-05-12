@@ -62,6 +62,10 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// `true` if we are in the type of an as expression.
   bool get inIsOrAsOperatorType;
 
+  bool get enableExtensionTypesInLibrary;
+
+  bool get enableConstFunctionsInLibrary;
+
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
@@ -122,7 +126,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       List<UnresolvedType> typeArguments,
       int charOffset,
       Constness constness,
-      {bool isTypeArgumentsInForest = false});
+      {bool isTypeArgumentsInForest = false,
+      TypeDeclarationBuilder typeAliasBuilder});
 
   UnresolvedType validateTypeUse(UnresolvedType unresolved,
       {bool nonInstanceAccessIsError, bool allowPotentiallyConstantType});
@@ -154,6 +159,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   void reportDuplicatedDeclaration(
       Builder existing, String name, int charOffset);
 
+  /// Creates a synthetic variable declaration for the value of [expression].
+  VariableDeclaration createVariableDeclarationForValue(Expression expression);
+
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
   Expression createVariableGet(VariableDeclaration variable, int charOffset,
@@ -163,6 +171,4 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   ///
   /// This is needed for type promotion.
   void registerVariableAssignment(VariableDeclaration variable);
-
-  void registerVariableDeclaration(VariableDeclaration variable);
 }

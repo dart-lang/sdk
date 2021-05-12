@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -508,13 +510,23 @@ class Driver implements ServerStarter {
   }
 
   String _getSdkPath(ArgResults args) {
-    if (args[DART_SDK] != null) {
-      return args[DART_SDK];
-    } else if (args[DART_SDK_ALIAS] != null) {
-      return args[DART_SDK_ALIAS];
-    } else {
-      return getSdkPath();
+    String sdkPath;
+
+    void tryCandidateArgument(String argumentName) {
+      var argumentValue = args[argumentName];
+      if (sdkPath == null && argumentValue is String) {
+        sdkPath = argumentValue;
+      }
     }
+
+    tryCandidateArgument(DART_SDK);
+    tryCandidateArgument(DART_SDK_ALIAS);
+    sdkPath ??= getSdkPath();
+
+    var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    return pathContext.normalize(
+      pathContext.absolute(sdkPath),
+    );
   }
 
   /// Print information about how to use the server.

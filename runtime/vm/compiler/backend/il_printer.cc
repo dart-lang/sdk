@@ -14,8 +14,7 @@
 
 namespace dart {
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
+#if defined(INCLUDE_IL_PRINTER)
 DEFINE_FLAG(bool,
             display_sorted_ic_data,
             false,
@@ -56,8 +55,7 @@ void FlowGraphPrinter::PrintBlocks() {
               Function::KindToCString(function_.kind()));
     // Output saved arguments descriptor information for dispatchers that
     // have it, so it's easy to see which dispatcher this graph represents.
-    if (function_.IsInvokeFieldDispatcher() ||
-        function_.IsNoSuchMethodDispatcher()) {
+    if (function_.HasSavedArgumentsDescriptor()) {
       const auto& args_desc_array = Array::Handle(function_.saved_args_desc());
       const ArgumentsDescriptor args_desc(args_desc_array);
       THR_Print(", %s", args_desc.ToCString());
@@ -732,22 +730,6 @@ void UnaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
-void CheckedSmiOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(op_kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
-}
-
-void CheckedSmiComparisonInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
-}
-
 void BinaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s", Token::Str(op_kind()));
   if (is_truncating()) {
@@ -1238,7 +1220,7 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-#else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#else  // defined(INCLUDE_IL_PRINTER)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1276,6 +1258,6 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
 
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 }  // namespace dart

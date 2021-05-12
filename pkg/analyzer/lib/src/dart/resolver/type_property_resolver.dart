@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -14,7 +15,6 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
@@ -25,19 +25,19 @@ class TypePropertyResolver {
   final TypeProviderImpl _typeProvider;
   final ExtensionMemberResolver _extensionResolver;
 
-  Expression _receiver;
-  SyntacticEntity _nameErrorEntity;
-  String _name;
+  late Expression? _receiver;
+  late SyntacticEntity _nameErrorEntity;
+  late String _name;
 
-  bool _needsGetterError;
-  bool _reportedGetterError;
-  ExecutableElement _getterRequested;
-  ExecutableElement _getterRecovery;
+  bool _needsGetterError = false;
+  bool _reportedGetterError = false;
+  ExecutableElement? _getterRequested;
+  ExecutableElement? _getterRecovery;
 
-  bool _needsSetterError;
-  bool _reportedSetterError;
-  ExecutableElement _setterRequested;
-  ExecutableElement _setterRecovery;
+  bool _needsSetterError = false;
+  bool _reportedSetterError = false;
+  ExecutableElement? _setterRequested;
+  ExecutableElement? _setterRecovery;
 
   TypePropertyResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
@@ -54,18 +54,17 @@ class TypePropertyResolver {
   ///
   /// The [receiver] might be `null`, used to identify `super`.
   ///
-  /// The [receiverErrorNode] is the node to report nullable dereference,
+  /// The [propertyErrorNode] is the node to report nullable dereference,
   /// if the [receiverType] is potentially nullable.
   ///
-  /// The [nameErrorEntity] is used to report the ambiguous extension issue.
+  /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
-    @required Expression receiver,
-    @required DartType receiverType,
-    @required String name,
-    @required AstNode receiverErrorNode,
-    @required SyntacticEntity nameErrorEntity,
+    required Expression? receiver,
+    required DartType receiverType,
+    required String name,
+    required SyntacticEntity propertyErrorEntity,
+    required SyntacticEntity nameErrorEntity,
   }) {
-    assert(receiverType != null);
     _receiver = receiver;
     _name = name;
     _nameErrorEntity = nameErrorEntity;
@@ -92,14 +91,23 @@ class TypePropertyResolver {
         return _toResult();
       }
 
-      var parentExpression = (receiver ?? receiverErrorNode).parent;
+      AstNode? parentExpression;
+      if (receiver != null) {
+        parentExpression = receiver.parent;
+      } else if (propertyErrorEntity is AstNode) {
+        parentExpression = propertyErrorEntity.parent;
+      } else {
+        throw StateError('Either `receiver` must be non-null or'
+            '`propertyErrorEntity` must be an AstNode to report an unchecked '
+            'invocation of a nullable value.');
+      }
+
       CompileTimeErrorCode errorCode;
       if (parentExpression == null) {
         errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
       } else {
         if (parentExpression is CascadeExpression) {
-          parentExpression =
-              (parentExpression as CascadeExpression).cascadeSections.first;
+          parentExpression = parentExpression.cascadeSections.first;
         }
         if (parentExpression is BinaryExpression) {
           errorCode = CompileTimeErrorCode
@@ -117,9 +125,23 @@ class TypePropertyResolver {
         }
       }
 
+      List<DiagnosticMessage> messages = [];
+      var flow = _resolver.flowAnalysis?.flow;
+      if (flow != null) {
+        if (receiver != null) {
+          messages = _resolver.computeWhyNotPromotedMessages(
+              receiver, nameErrorEntity, flow.whyNotPromoted(receiver)());
+        } else {
+          var thisType = _resolver.thisType;
+          if (thisType != null) {
+            messages = _resolver.computeWhyNotPromotedMessages(receiver,
+                nameErrorEntity, flow.whyNotPromotedImplicitThis(thisType)());
+          }
+        }
+      }
       _resolver.nullableDereferenceVerifier.report(
-          receiverErrorNode, receiverType,
-          errorCode: errorCode, arguments: [name]);
+          propertyErrorEntity, receiverType,
+          errorCode: errorCode, arguments: [name], messages: messages);
       _reportedGetterError = true;
       _reportedSetterError = true;
 
@@ -240,7 +262,7 @@ class TypePropertyResolver {
     bool ifNullSafe = false,
   }) {
     if (_typeSystem.isNonNullableByDefault ? ifNullSafe : ifLegacy) {
-      return type?.resolveToBound(_typeProvider.objectType);
+      return type.resolveToBound(_typeProvider.objectType);
     } else {
       return type;
     }

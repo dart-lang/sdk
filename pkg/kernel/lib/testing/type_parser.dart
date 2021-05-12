@@ -356,6 +356,9 @@ class Parser {
         type = new ParsedInterfaceType(
             "void", <ParsedType>[], ParsedNullability.nullable);
         optionalAdvance("?");
+      } else if (optionalAdvance("invalid")) {
+        type = new ParsedInterfaceType(
+            "invalid", <ParsedType>[], ParsedNullability.nullable);
       } else {
         String name = parseName();
         List<ParsedType> arguments = <ParsedType>[];

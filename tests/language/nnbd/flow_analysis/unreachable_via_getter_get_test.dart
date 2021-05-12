@@ -5,7 +5,6 @@
 // This test verifies that if a read is performed on a getter whose type is
 // `Never`, the resulting code block is considered unreachable by flow analysis.
 
-// SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
 
 Never get neverGetter => throw 'x';

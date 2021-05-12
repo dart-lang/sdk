@@ -6,6 +6,11 @@
 
 library fasta.incremental_compiler;
 
+import 'dart:async' show Completer;
+
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
@@ -14,8 +19,6 @@ import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
-        CanonicalNameError,
-        CanonicalNameSdkError,
         CompilationModeError,
         InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
@@ -46,6 +49,9 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter;
+
+import 'package:kernel/canonical_name.dart'
+    show CanonicalNameError, CanonicalNameSdkError;
 
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 
@@ -103,14 +109,6 @@ import 'util/experiment_environment_getter.dart' show getExperimentEnvironment;
 
 import 'util/textual_outline.dart' show textualOutline;
 
-import 'fasta_codes.dart'
-    show
-        DiagnosticMessageFromJson,
-        templateInitializeFromDillNotSelfContained,
-        templateInitializeFromDillNotSelfContainedNoDump,
-        templateInitializeFromDillUnknownProblem,
-        templateInitializeFromDillUnknownProblemNoDump;
-
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
@@ -121,9 +119,8 @@ import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
-import 'messages.dart' show Message;
-
-import 'source/source_library_builder.dart' show SourceLibraryBuilder;
+import 'source/source_library_builder.dart'
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 
 import 'ticker.dart' show Ticker;
 
@@ -163,6 +160,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   IncrementalKernelTarget userCode;
   Set<Library> previousSourceBuilders;
+
+  /// Guard against multiple computeDelta calls at the same time (possibly
+  /// caused by lacking awaits etc).
+  Completer<dynamic> currentlyCompiling;
 
   IncrementalCompiler.fromComponent(
       this.context, this.componentToInitializeFrom,
@@ -213,6 +214,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Component> computeDelta(
       {List<Uri> entryPoints, bool fullComponent: false}) async {
+    while (currentlyCompiling != null) {
+      await currentlyCompiling.future;
+    }
+    currentlyCompiling = new Completer();
     if (resetTicker) {
       ticker.reset();
     }
@@ -362,10 +367,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       NonNullableByDefaultCompiledMode compiledMode = componentWithDill == null
           ? data.component?.mode
           : componentWithDill.mode;
-      return context.options.target.configureComponent(
+      Component result = context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
         ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode)
         ..problemsAsJson = problemsAsJson;
+
+      // We're now done. Allow any waiting compile to start.
+      Completer<dynamic> currentlyCompilingLocal = currentlyCompiling;
+      currentlyCompiling = null;
+      currentlyCompilingLocal.complete();
+
+      return result;
     });
   }
 
@@ -1021,7 +1033,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (previousSource == null || previousSource.isEmpty) {
         return null;
       }
-      String before = textualOutline(previousSource, performModelling: true);
+      ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
+          enableExtensionMethods: true /* can't be disabled */,
+          enableNonNullable: builder
+              .isNonNullableByDefault /* depends on language version etc */,
+          enableTripleShift:
+              /* should this be on the library? */
+              /* this is effectively what the constant evaluator does */
+              context.options
+                  .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift));
+      String before = textualOutline(previousSource, scannerConfiguration,
+          performModelling: true);
       if (before == null) {
         return null;
       }
@@ -1029,8 +1051,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FileSystemEntity entity =
           c.options.fileSystem.entityForUri(builder.fileUri);
       if (await entity.exists()) {
-        now =
-            textualOutline(await entity.readAsBytes(), performModelling: true);
+        now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
+            performModelling: true);
       }
       if (before != now) {
         return null;
@@ -1862,12 +1884,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         libraryUri,
         debugExprUri,
         /*packageUri*/ null,
+        new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         userCode.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder.library,
       );
-      debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
       ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
@@ -2124,6 +2146,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     for (Uri entryPoint in entryPoints) {
       LibraryBuilder parent = partUriToParent[entryPoint];
+      if (parent == null) continue;
+      // TODO(jensj): .contains on a list is O(n).
+      // It will only be done for each entry point that's a part though, i.e.
+      // most likely very rarely.
       if (reusedLibraries.contains(parent)) {
         result.registerLibraryUriForPartUsedAsEntryPoint(
             entryPoint, parent.importUri);

@@ -7,26 +7,26 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:meta/meta.dart';
 
 class ReturnTypeVerifier {
   final TypeProviderImpl _typeProvider;
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
-  EnclosingExecutableContext enclosingExecutable;
+  late EnclosingExecutableContext enclosingExecutable;
 
   ReturnTypeVerifier({
-    @required TypeProviderImpl typeProvider,
-    @required TypeSystemImpl typeSystem,
-    @required ErrorReporter errorReporter,
-  })  : _typeProvider = typeProvider,
+    required TypeProviderImpl typeProvider,
+    required TypeSystemImpl typeSystem,
+    required ErrorReporter errorReporter,
+  })   : _typeProvider = typeProvider,
         _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
@@ -80,7 +80,7 @@ class ReturnTypeVerifier {
     _checkReturnExpression(expression);
   }
 
-  void verifyReturnType(TypeAnnotation returnType) {
+  void verifyReturnType(TypeAnnotation? returnType) {
     // If no declared type, then the type is `dynamic`, which is valid.
     if (returnType == null) {
       return;
@@ -152,7 +152,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = expression.staticType;
+    var S = expression.typeOrThrow;
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
@@ -208,7 +208,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (!S.isVoid) {
-        if (!_typeSystem.isAssignableTo2(S, T)) {
+        if (!_typeSystem.isAssignableTo(S, T)) {
           reportTypeError();
           return;
         }
@@ -244,8 +244,8 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `flatten(S)` is not `void`,
       // and `Future<flatten(S)>` is not assignable to `T`.
       if (!flatten_S.isVoid) {
-        var future_flatten_S = _typeProvider.futureType2(flatten_S);
-        if (!_typeSystem.isAssignableTo2(future_flatten_S, T)) {
+        var future_flatten_S = _typeProvider.futureType(flatten_S);
+        if (!_typeSystem.isAssignableTo(future_flatten_S, T)) {
           reportTypeError();
           return;
         }
@@ -259,7 +259,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = expression.staticType;
+    var S = expression.typeOrThrow;
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
@@ -315,7 +315,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (!S.isVoid) {
-        if (!_typeSystem.isAssignableTo2(S, T)) {
+        if (!_typeSystem.isAssignableTo(S, T)) {
           reportTypeError();
           return;
         }
@@ -346,8 +346,8 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `flatten(S)` is not `void`,
       // and `Future<flatten(S)>` is not assignable to `T`.
       if (!flatten_S.isVoid) {
-        if (!_typeSystem.isAssignableTo2(S, T_v) &&
-            !_typeSystem.isSubtypeOf2(flatten_S, T_v)) {
+        if (!_typeSystem.isAssignableTo(S, T_v) &&
+            !_typeSystem.isSubtypeOf(flatten_S, T_v)) {
           reportTypeError();
           return;
         }
@@ -407,7 +407,7 @@ class ReturnTypeVerifier {
       typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    return _typeSystem.isSubtypeOf2(lowerBound, returnType);
+    return _typeSystem.isSubtypeOf(lowerBound, returnType);
   }
 
   static bool _isVoidDynamic(DartType type) {

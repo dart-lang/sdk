@@ -19,7 +19,8 @@ main() {
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest {
+class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dynamic_explicitCore_withPrefix() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core' as mycore;
@@ -289,7 +290,7 @@ void f(A a) {
 
 @reflectiveTest
 class PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_hasReceiver_typeAlias_staticGetter() async {
     await assertNoErrorsInCode(r'''
 class A {

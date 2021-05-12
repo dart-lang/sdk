@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -63,7 +65,9 @@ class C {
 class C {
   C(int b = 1,);
 }
-''', errorFilter: (e) => e.offset == testCode.indexOf('int a'));
+''',
+        errorFilter: (e) => e.offset == testCode.indexOf('int a'),
+        allowFixAllFixes: true);
   }
 
   Future<void> test_first_requiredPositional_second_optionalNamed() async {

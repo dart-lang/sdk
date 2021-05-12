@@ -95,6 +95,9 @@ class UnknownType extends DartType {
   UnknownType withDeclaredNullability(Nullability nullability) => this;
 
   @override
+  UnknownType toNonNull() => this;
+
+  @override
   void toTextInternal(AstPrinter printer) {
     printer.write('?');
   }

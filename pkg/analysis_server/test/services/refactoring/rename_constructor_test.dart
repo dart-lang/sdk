@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -95,6 +97,7 @@ class A {
 
   Future<void> test_createChange_add() async {
     await indexTestUnit('''
+/// Documentation for [new A]
 class A {
   A() {} // marker
   factory A._() = A;
@@ -114,6 +117,7 @@ main() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
+/// Documentation for [new A.newName]
 class A {
   A.newName() {} // marker
   factory A._() = A.newName;
@@ -129,6 +133,7 @@ main() {
 
   Future<void> test_createChange_add_toSynthetic() async {
     await indexTestUnit('''
+/// Documentation for [new A]
 class A {
 }
 class B extends A {
@@ -146,6 +151,7 @@ main() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
+/// Documentation for [new A.newName]
 class A {
   A.newName();
 }
@@ -160,6 +166,7 @@ main() {
 
   Future<void> test_createChange_change() async {
     await indexTestUnit('''
+/// Documentation for [A.test] and [new A.test]
 class A {
   A.test() {} // marker
   factory A._() = A.test;
@@ -179,6 +186,7 @@ main() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
+/// Documentation for [A.newName] and [new A.newName]
 class A {
   A.newName() {} // marker
   factory A._() = A.newName;
@@ -194,6 +202,7 @@ main() {
 
   Future<void> test_createChange_remove() async {
     await indexTestUnit('''
+/// Documentation for [A.test] and [new A.test]
 class A {
   A.test() {} // marker
   factory A._() = A.test;
@@ -213,6 +222,7 @@ main() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
+/// Documentation for [A] and [new A]
 class A {
   A() {} // marker
   factory A._() = A;

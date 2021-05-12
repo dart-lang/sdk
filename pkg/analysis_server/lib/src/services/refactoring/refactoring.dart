@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
 import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
@@ -304,14 +306,14 @@ class RefactoringWorkspace {
   /// Whether the file with the given [path] is in a context root.
   bool containsFile(String path) {
     return drivers.any((driver) {
-      return driver.contextRoot.containsFile(path);
+      return driver.analysisContext.contextRoot.isAnalyzed(path);
     });
   }
 
   /// Returns the drivers that have [path] in a context root.
   Iterable<AnalysisDriver> driversContaining(String path) {
     return drivers.where((driver) {
-      return driver.contextRoot.containsFile(path);
+      return driver.analysisContext.contextRoot.isAnalyzed(path);
     });
   }
 }

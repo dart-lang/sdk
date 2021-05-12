@@ -212,7 +212,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
 
-  if (FLAG_enable_isolate_groups) {
+  if (IsolateGroup::AreIsolateGroupsEnabled()) {
     // Another isolate's mutator thread may have created [function] and
     // published it via an ICData, MegamorphicCache etc. Entering the lock below
     // is an acquire operation that pairs with the release operation when the
@@ -225,7 +225,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   // there's no existing code. In multi-isolate scenarios with shared JITed code
   // we can end up in the lazy compile runtime entry here with code being
   // installed.
-  ASSERT(!function.HasCode() || FLAG_enable_isolate_groups);
+  ASSERT(!function.HasCode() || IsolateGroup::AreIsolateGroupsEnabled());
 
   // Will throw if compilation failed (e.g. with compile-time error).
   function.EnsureHasCode();
@@ -233,7 +233,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 #if !defined(PRODUCT)
-  if (Debugger::IsDebugging(thread, function)) {
+  if (thread->isolate_group()->debugger()->IsDebugging(thread, function)) {
     // We cannot set breakpoints and single step in optimized code,
     // so do not optimize the function. Bump usage counter down to avoid
     // repeatedly entering the runtime for an optimization attempt.
@@ -323,10 +323,10 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   CodePtr FinalizeCompilation(compiler::Assembler* assembler,
                               FlowGraphCompiler* graph_compiler,
                               FlowGraph* flow_graph);
-  void CheckIfBackgroundCompilerIsBeingStopped(bool optimizing_compiler);
 
   ParsedFunction* parsed_function_;
   const bool optimized_;
@@ -342,6 +342,12 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     FlowGraph* flow_graph) {
   ASSERT(!CompilerState::Current().is_aot());
   const Function& function = parsed_function()->function();
+
+  // If another thread compiled and installed unoptmized code already,
+  // skip installation.
+  if (!optimized() && function.unoptimized_code() != Code::null()) {
+    return function.unoptimized_code();
+  }
   Zone* const zone = thread()->zone();
 
   // CreateDeoptInfo uses the object pool and needs to be done before
@@ -472,18 +478,6 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
   return code.ptr();
 }
 
-void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
-    bool optimizing_compiler) {
-  ASSERT(Compiler::IsBackgroundCompilation());
-  if (optimizing_compiler) {
-    if (!isolate()->optimizing_background_compiler()->is_running()) {
-      // The background compiler is being stopped.
-      Compiler::AbortBackgroundCompilation(
-          DeoptId::kNone, "Optimizing Background compilation is being stopped");
-    }
-  }
-}
-
 // Return null if bailed out.
 CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(!FLAG_precompiled_mode);
@@ -538,11 +532,8 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
 
         if (optimized()) {
-          if (Compiler::IsBackgroundCompilation() &&
-              (function.ic_data_array() == Array::null())) {
-            Compiler::AbortBackgroundCompilation(
-                DeoptId::kNone, "RestoreICDataMap: ICData array cleared.");
-          }
+          ASSERT(function.ic_data_array() != Array::null() ||
+                 function.ForceOptimize());
         }
 
         if (FLAG_print_ic_data_map) {
@@ -612,11 +603,21 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         auto install_code_fun = [&]() {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+#if !defined(PRODUCT)
+          // Isolate debuggers need to be notified of compiled function right
+          // away as code is installed because there might be latent breakpoints
+          // in compiled function, which have to be activated before functions
+          // code is executed. Otherwise concurrently running isolates might
+          // execute code before its patched and miss a need to pause at a
+          // breakpoint.
+          if (!result->IsNull()) {
+            if (!function.HasOptimizedCode()) {
+              thread()->isolate_group()->debugger()->NotifyCompilation(
+                  function);
+            }
+          }
+#endif
         };
-
-        if (Compiler::IsBackgroundCompilation()) {
-          CheckIfBackgroundCompilerIsBeingStopped(optimized());
-        }
 
         // Grab write program_lock outside of potential safepoint, that lock
         // can't be waited for inside the safepoint.
@@ -645,11 +646,6 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Must be called outside of safepoint.
         Code::NotifyCodeObservers(function, *result, optimized());
 
-#if !defined(PRODUCT)
-        if (!function.HasOptimizedCode()) {
-          isolate()->debugger()->NotifyCompilation(function);
-        }
-#endif
         if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
           Disassembler::DisassembleCode(function, *result, optimized());
         } else if (FLAG_disassemble_optimized && optimized() &&
@@ -700,8 +696,6 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                                        intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
-  ASSERT(function.is_background_optimizable() ||
-         !Compiler::IsBackgroundCompilation());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -750,18 +744,13 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
         if (error.ptr() == Object::background_compilation_error().ptr()) {
           if (FLAG_trace_compiler) {
             THR_Print(
-                "--> disabling background optimizations for '%s' (will "
-                "try to re-compile on isolate thread again)\n",
+                "--> discarding background compilation for '%s' (will "
+                "try to re-compile again later)\n",
                 function.ToFullyQualifiedCString());
           }
 
-          // Ensure we don't attempt to re-compile the function on the
-          // background compiler.
-          function.set_is_background_optimizable(false);
-
-          // Trigger another optimization soon on the main thread.
-          function.SetUsageCounter(
-              optimized ? FLAG_optimization_counter_threshold : 0);
+          // Trigger another optimization pass soon.
+          function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
           return Error::null();
         } else if (error.IsLanguageError() &&
                    LanguageError::Cast(error).kind() == Report::kBailout) {
@@ -1113,106 +1102,6 @@ class BackgroundCompilationQueue {
   DISALLOW_COPY_AND_ASSIGN(BackgroundCompilationQueue);
 };
 
-BackgroundCompiler::BackgroundCompiler(Isolate* isolate, bool optimizing)
-    : isolate_(isolate),
-      queue_monitor_(),
-      function_queue_(new BackgroundCompilationQueue()),
-      done_monitor_(),
-      running_(false),
-      done_(true),
-      optimizing_(optimizing),
-      disabled_depth_(0) {}
-
-// Fields all deleted in ::Stop; here clear them.
-BackgroundCompiler::~BackgroundCompiler() {
-  delete function_queue_;
-}
-
-void BackgroundCompiler::Run() {
-  while (running_) {
-    // Maybe something is already in the queue, check first before waiting
-    // to be notified.
-    bool result = Thread::EnterIsolateAsHelper(isolate_, Thread::kCompilerTask);
-    ASSERT(result);
-    {
-      Thread* thread = Thread::Current();
-      StackZone stack_zone(thread);
-      Zone* zone = stack_zone.GetZone();
-      HANDLESCOPE(thread);
-      Function& function = Function::Handle(zone);
-      {
-        MonitorLocker ml(&queue_monitor_);
-        if (running_) {
-          function = function_queue()->PeekFunction();
-        }
-      }
-      while (!function.IsNull()) {
-        ASSERT(is_optimizing());
-        Compiler::CompileOptimizedFunction(thread, function,
-                                           Compiler::kNoOSRDeoptId);
-
-        QueueElement* qelem = NULL;
-        {
-          MonitorLocker ml(&queue_monitor_);
-          if (!running_ || function_queue()->IsEmpty()) {
-            // We are shutting down, queue was cleared.
-            function = Function::null();
-          } else {
-            qelem = function_queue()->Remove();
-            const Function& old = Function::Handle(qelem->Function());
-            // If an optimizable method is not optimized, put it back on
-            // the background queue (unless it was passed to foreground).
-            if ((is_optimizing() && !old.HasOptimizedCode() &&
-                 old.IsOptimizable()) ||
-                FLAG_stress_test_background_compilation) {
-              if (old.is_background_optimizable() &&
-                  Compiler::CanOptimizeFunction(thread, old)) {
-                QueueElement* repeat_qelem = new QueueElement(old);
-                function_queue()->Add(repeat_qelem);
-              }
-            }
-            function = function_queue()->PeekFunction();
-          }
-        }
-        if (qelem != NULL) {
-          delete qelem;
-        }
-      }
-    }
-    Thread::ExitIsolateAsHelper();
-    {
-      // Wait to be notified when the work queue is not empty.
-      MonitorLocker ml(&queue_monitor_);
-      while (function_queue()->IsEmpty() && running_) {
-        ml.Wait();
-      }
-    }
-  }  // while running
-
-  {
-    // Notify that the thread is done.
-    MonitorLocker ml_done(&done_monitor_);
-    done_ = true;
-    ml_done.Notify();
-  }
-}
-
-void BackgroundCompiler::Compile(const Function& function) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  MonitorLocker ml(&queue_monitor_);
-  ASSERT(running_);
-  if (function_queue()->ContainsObj(function)) {
-    return;
-  }
-  QueueElement* elem = new QueueElement(function);
-  function_queue()->Add(elem);
-  ml.Notify();
-}
-
-void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
-  function_queue_->VisitObjectPointers(visitor);
-}
-
 class BackgroundCompilerTask : public ThreadPool::Task {
  public:
   explicit BackgroundCompilerTask(BackgroundCompiler* background_compiler)
@@ -1227,47 +1116,155 @@ class BackgroundCompilerTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(BackgroundCompilerTask);
 };
 
-void BackgroundCompiler::Start() {
+BackgroundCompiler::BackgroundCompiler(IsolateGroup* isolate_group)
+    : isolate_group_(isolate_group),
+      queue_monitor_(),
+      function_queue_(new BackgroundCompilationQueue()),
+      done_monitor_(),
+      running_(false),
+      done_(true),
+      disabled_depth_(0) {}
+
+// Fields all deleted in ::Stop; here clear them.
+BackgroundCompiler::~BackgroundCompiler() {
+  delete function_queue_;
+}
+
+void BackgroundCompiler::Run() {
+  while (true) {
+    // Maybe something is already in the queue, check first before waiting
+    // to be notified.
+    bool result = Thread::EnterIsolateGroupAsHelper(
+        isolate_group_, Thread::kCompilerTask, /*bypass_safepoint=*/false);
+    ASSERT(result);
+    {
+      Thread* thread = Thread::Current();
+      StackZone stack_zone(thread);
+      Zone* zone = stack_zone.GetZone();
+      HANDLESCOPE(thread);
+      Function& function = Function::Handle(zone);
+      {
+        SafepointMonitorLocker ml(&queue_monitor_);
+        if (running_) {
+          function = function_queue()->PeekFunction();
+        }
+      }
+      while (!function.IsNull()) {
+        Compiler::CompileOptimizedFunction(thread, function,
+                                           Compiler::kNoOSRDeoptId);
+
+        QueueElement* qelem = NULL;
+        {
+          SafepointMonitorLocker ml(&queue_monitor_);
+          if (!running_ || function_queue()->IsEmpty()) {
+            // We are shutting down, queue was cleared.
+            function = Function::null();
+          } else {
+            qelem = function_queue()->Remove();
+            const Function& old = Function::Handle(qelem->Function());
+            // If an optimizable method is not optimized, put it back on
+            // the background queue (unless it was passed to foreground).
+            if ((!old.HasOptimizedCode() && old.IsOptimizable()) ||
+                FLAG_stress_test_background_compilation) {
+              if (Compiler::CanOptimizeFunction(thread, old)) {
+                QueueElement* repeat_qelem = new QueueElement(old);
+                function_queue()->Add(repeat_qelem);
+              }
+            }
+            function = function_queue()->PeekFunction();
+          }
+        }
+        if (qelem != NULL) {
+          delete qelem;
+        }
+      }
+    }
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
+    {
+      // Wait to be notified when the work queue is not empty.
+      MonitorLocker ml(&queue_monitor_);
+      while (function_queue()->IsEmpty() && running_) {
+        ml.Wait();
+      }
+      if (!running_) {
+        break;
+      }
+    }
+  }  // while running
+
+  {
+    // Notify that the thread is done.
+    MonitorLocker ml_done(&done_monitor_);
+    done_ = true;
+    ml_done.NotifyAll();
+  }
+}
+
+bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint());
 
-  MonitorLocker ml(&done_monitor_);
-  if (running_ || !done_) return;
-  running_ = true;
-  done_ = false;
-  // If we ever wanted to run the BG compiler on the
-  // `IsolateGroup::mutator_pool()` we would need to ensure the BG compiler
-  // stops when it's idle - otherwise the [MutatorThreadPool]-based idle
-  // notification would not work anymore.
-  bool task_started = Dart::thread_pool()->Run<BackgroundCompilerTask>(this);
-  if (!task_started) {
-    running_ = false;
-    done_ = true;
+  SafepointMonitorLocker ml_done(&done_monitor_);
+  if (disabled_depth_ > 0) return false;
+  if (!running_ && done_) {
+    running_ = true;
+    done_ = false;
+    // If we ever wanted to run the BG compiler on the
+    // `IsolateGroup::mutator_pool()` we would need to ensure the BG compiler
+    // stops when it's idle - otherwise the [MutatorThreadPool]-based idle
+    // notification would not work anymore.
+    if (!Dart::thread_pool()->Run<BackgroundCompilerTask>(this)) {
+      running_ = false;
+      done_ = true;
+      return false;
+    }
   }
+
+  SafepointMonitorLocker ml(&queue_monitor_);
+  ASSERT(running_);
+  if (function_queue()->ContainsObj(function)) {
+    return true;
+  }
+  QueueElement* elem = new QueueElement(function);
+  function_queue()->Add(elem);
+  ml.NotifyAll();
+  return true;
+}
+
+void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
+  function_queue_->VisitObjectPointers(visitor);
 }
 
 void BackgroundCompiler::Stop() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate() == nullptr || thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint());
 
+  SafepointMonitorLocker ml_done(&done_monitor_);
+  StopLocked(thread, &ml_done);
+}
+
+void BackgroundCompiler::StopLocked(Thread* thread,
+                                    SafepointMonitorLocker* done_locker) {
   {
-    MonitorLocker ml(&queue_monitor_);
+    SafepointMonitorLocker ml(&queue_monitor_);
     running_ = false;
     function_queue_->Clear();
-    ml.Notify();  // Stop waiting for the queue.
+    ml.NotifyAll();  // Stop waiting for the queue.
   }
 
-  {
-    MonitorLocker ml_done(&done_monitor_);
-    while (!done_) {
-      ml_done.WaitWithSafepointCheck(thread);
-    }
+  while (!done_) {
+    done_locker->Wait();
   }
 }
 
 void BackgroundCompiler::Enable() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(!thread->IsAtSafepoint());
+
+  SafepointMonitorLocker ml_done(&done_monitor_);
   disabled_depth_--;
   if (disabled_depth_ < 0) {
     FATAL("Mismatched number of calls to BackgroundCompiler::Enable/Disable.");
@@ -1275,12 +1272,14 @@ void BackgroundCompiler::Enable() {
 }
 
 void BackgroundCompiler::Disable() {
-  Stop();
-  disabled_depth_++;
-}
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(!thread->IsAtSafepoint());
 
-bool BackgroundCompiler::IsDisabled() {
-  return disabled_depth_ > 0;
+  SafepointMonitorLocker ml_done(&done_monitor_);
+  disabled_depth_++;
+  if (done_) return;
+  StopLocked(thread, &ml_done);
 }
 
 #else  // DART_PRECOMPILED_RUNTIME
@@ -1339,15 +1338,12 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   UNREACHABLE();
 }
 
-void BackgroundCompiler::Compile(const Function& function) {
+bool BackgroundCompiler::EnqueueCompilation(const Function& function) {
   UNREACHABLE();
+  return false;
 }
 
 void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
-  UNREACHABLE();
-}
-
-void BackgroundCompiler::Start() {
   UNREACHABLE();
 }
 
@@ -1356,16 +1352,11 @@ void BackgroundCompiler::Stop() {
 }
 
 void BackgroundCompiler::Enable() {
-  UNREACHABLE();
+  // NOP
 }
 
 void BackgroundCompiler::Disable() {
-  UNREACHABLE();
-}
-
-bool BackgroundCompiler::IsDisabled() {
-  UNREACHABLE();
-  return true;
+  // NOP
 }
 
 #endif  // DART_PRECOMPILED_RUNTIME

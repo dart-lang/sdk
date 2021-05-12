@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ImportOfLegacyLibraryInoNullSafeTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class ImportOfLegacyLibraryInoNullSafeTest extends PubPackageResolutionTest {
   test_legacy_into_legacy() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.9

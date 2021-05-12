@@ -17,7 +17,7 @@ part of dart.ffi;
 /// type [int] or [float] and be annotated with a [NativeType] representing the
 /// native type, or must be of type [Pointer]. For example:
 ///
-/// ```
+/// ```c
 /// typedef struct {
 ///  int a;
 ///  float b;
@@ -25,12 +25,12 @@ part of dart.ffi;
 /// } my_struct;
 /// ```
 ///
-/// ```
+/// ```dart
 /// class MyStruct extends Struct {
-///   @Int32
+///   @Int32()
 ///   external int a;
 ///
-///   @Float
+///   @Float()
 ///   external double b;
 ///
 ///   external Pointer<Void> c;
@@ -59,9 +59,12 @@ abstract class Struct extends NativeType {
   Struct._fromPointer(this._addressOf);
 }
 
-/// Extension on [Struct] specialized for its subtypes.
-extension StructAddressOf<T extends Struct> on T {
-  /// Returns the address backing the reference.
-  @Deprecated('Hold on to the pointer backing a struct instead.')
-  Pointer<T> get addressOf => _addressOf as Pointer<T>;
+/// Annotation to specify on `Struct` subtypes to indicate that its members
+/// need to be packed.
+///
+/// Valid values for [memberAlignment] are 1, 2, 4, 8, and 16.
+class Packed {
+  final int memberAlignment;
+
+  const Packed(this.memberAlignment);
 }

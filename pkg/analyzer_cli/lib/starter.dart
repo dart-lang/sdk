@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:isolate';
-
 import 'package:analyzer_cli/src/driver.dart';
 
 /// An object that can be used to start a command-line analysis. This class
@@ -16,8 +14,5 @@ abstract class CommandLineStarter {
   factory CommandLineStarter() = Driver;
 
   /// Use the given command-line [arguments] to start this analyzer.
-  ///
-  /// If [sendPort] is provided it is used for bazel worker communication
-  /// instead of stdin/stdout.
-  Future<void> start(List<String> arguments, {SendPort sendPort});
+  Future<void> start(List<String> arguments);
 }

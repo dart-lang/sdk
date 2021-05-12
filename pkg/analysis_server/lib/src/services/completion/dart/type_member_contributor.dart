@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:collection';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -47,7 +49,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Determine the target expression's type.
-    var type = expression.staticType;
+    var type = expression.staticType?.resolveToBound(request.objectType);
     if (type == null || type.isDynamic) {
       // If the expression does not provide a good type, then attempt to get a
       // better type from the element.

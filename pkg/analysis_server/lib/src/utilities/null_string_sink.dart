@@ -5,11 +5,14 @@
 /// A string sink that ignores everything written to it.
 class NullStringSink implements StringSink {
   @override
-  void write(Object obj) {}
+  void write(Object? obj) {}
+
   @override
-  void writeAll(Iterable objects, [String separator = '']) {}
+  void writeAll(Iterable<dynamic> objects, [String separator = '']) {}
+
   @override
   void writeCharCode(int charCode) {}
+
   @override
-  void writeln([Object obj = '']) {}
+  void writeln([Object? obj = '']) {}
 }

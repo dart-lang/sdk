@@ -1,0 +1,5 @@
+class Class {
+  _privateMethod(covariant int i) {}
+}
+
+main() {}

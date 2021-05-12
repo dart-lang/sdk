@@ -34,16 +34,16 @@ class TodoFinder {
   ///
   /// @param unit the compilation unit containing the to-do comments
   void findIn(CompilationUnit unit) {
-    _gatherTodoComments(unit.beginToken, unit.lineInfo);
+    _gatherTodoComments(unit.beginToken, unit.lineInfo!);
   }
 
   /// Search the comment tokens reachable from the given token and create errors
   /// for each to-do comment.
   ///
   /// @param token the head of the list of tokens being searched
-  void _gatherTodoComments(Token token, LineInfo lineInfo) {
+  void _gatherTodoComments(Token? token, LineInfo lineInfo) {
     while (token != null && token.type != TokenType.EOF) {
-      Token commentToken = token.precedingComments;
+      Token? commentToken = token.precedingComments;
       while (commentToken != null) {
         if (commentToken.type == TokenType.SINGLE_LINE_COMMENT ||
             commentToken.type == TokenType.MULTI_LINE_COMMENT) {
@@ -64,7 +64,7 @@ class TodoFinder {
   ///
   /// Returns the next comment token to begin searching from (skipping over
   /// any continuations).
-  Token _scrapeTodoComment(Token commentToken, LineInfo lineInfo) {
+  Token? _scrapeTodoComment(Token commentToken, LineInfo lineInfo) {
     Iterable<Match> matches =
         TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
     // Track the comment that will be returned for looking for the next todo.
@@ -74,10 +74,10 @@ class TodoFinder {
     final commentLocation = lineInfo.getLocation(commentToken.offset);
 
     for (Match match in matches) {
-      int offset = commentToken.offset + match.start + match.group(1).length;
+      int offset = commentToken.offset + match.start + match.group(1)!.length;
       int column =
-          commentLocation.columnNumber + match.start + match.group(1).length;
-      String todoText = match.group(2);
+          commentLocation.columnNumber + match.start + match.group(1)!.length;
+      String todoText = match.group(2)!;
       int end = offset + todoText.length;
 
       if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {

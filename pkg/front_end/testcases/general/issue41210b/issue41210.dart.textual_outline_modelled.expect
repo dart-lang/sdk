@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'issue41210_lib.dart';
 
 class C with A, B {}

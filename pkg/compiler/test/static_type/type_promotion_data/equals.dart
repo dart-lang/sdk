@@ -53,7 +53,7 @@ bool equals(e1, e2, bool unordered) {
     if (
         /*{e1:[{true:Iterable<dynamic>,false:Set<dynamic>,Map<dynamic,dynamic>}|Set<dynamic>,Map<dynamic,dynamic>,Iterable<dynamic>]}*/
         e1 is List !=
-            /*{e1:[{true:Iterable<dynamic>,false:Set<dynamic>,Map<dynamic,dynamic>}|Set<dynamic>,Map<dynamic,dynamic>,Iterable<dynamic>]}*/
+            /*{e1:[{true:Iterable<dynamic>,false:Set<dynamic>,Map<dynamic,dynamic>}|Iterable<dynamic>,Set<dynamic>,Map<dynamic,dynamic>]}*/
             e2 is List) {
       return
           /*{e1:[{true:Iterable<dynamic>,false:Set<dynamic>,Map<dynamic,dynamic>}|Iterable<dynamic>,Set<dynamic>,Map<dynamic,dynamic>]}*/

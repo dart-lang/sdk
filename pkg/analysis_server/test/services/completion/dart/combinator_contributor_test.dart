@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -107,8 +109,10 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestFunction('F1', 'PB',
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestClass('Clz', kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestFunctionTypeAlias('F2', null,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestTypeAlias('F2',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        aliasedType: 'dynamic Function(int)',
+        returnType: 'dynamic');
     assertNotSuggested('C');
     assertNotSuggested('D');
     assertNotSuggested('X');

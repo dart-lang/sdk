@@ -70,8 +70,9 @@ bool IsBoolType(const AbstractType& type) {
   return type.IsBoolType();
 }
 
-bool IsIntType(const AbstractType& type) {
-  return type.IsIntType();
+bool IsSubtypeOfInt(const AbstractType& type) {
+  return type.IsIntType() || type.IsIntegerImplementationType() ||
+         type.IsSmiType() || type.IsMintType();
 }
 
 bool IsSmiType(const AbstractType& type) {
@@ -202,7 +203,7 @@ bool HasIntegerValue(const dart::Object& object, int64_t* value) {
 }
 
 int32_t CreateJitCookie() {
-  return static_cast<int32_t>(Isolate::Current()->random()->NextUInt32());
+  return static_cast<int32_t>(IsolateGroup::Current()->random()->NextUInt32());
 }
 
 word TypedDataElementSizeInBytes(classid_t cid) {
@@ -815,7 +816,13 @@ word ToRawPointer(const dart::Object& a) {
 #endif  // defined(TARGET_ARCH_IA32)
 
 word RegExp::function_offset(classid_t cid, bool sticky) {
+#if !defined(DART_COMPRESSED_POINTERS)
   return TranslateOffsetInWords(dart::RegExp::function_offset(cid, sticky));
+#else
+  // TODO(rmacnak): TranslateOffsetInWords doesn't account for, say, header
+  // being 1 word and slots being half words.
+  return dart::RegExp::function_offset(cid, sticky);
+#endif
 }
 
 const word Symbols::kNumberOfOneCharCodeSymbols =
@@ -869,6 +876,10 @@ word ObjectPool::NextFieldOffset() {
   return -kWordSize;
 }
 
+word ObjectPool::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(ObjectPool::element_offset(length));
+}
+
 word Class::NextFieldOffset() {
   return -kWordSize;
 }
@@ -898,6 +909,10 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
+word Array::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(Array::element_offset(length));
+}
+
 word GrowableObjectArray::NextFieldOffset() {
   return -kWordSize;
 }
@@ -908,6 +923,10 @@ word TypedDataBase::NextFieldOffset() {
 
 word TypedData::NextFieldOffset() {
   return -kWordSize;
+}
+
+word TypedData::InstanceSize(intptr_t lengthInBytes) {
+  return RoundedAllocationSize(TypedData::InstanceSize() + lengthInBytes);
 }
 
 word ExternalTypedData::NextFieldOffset() {
@@ -958,8 +977,18 @@ word OneByteString::NextFieldOffset() {
   return -kWordSize;
 }
 
+word OneByteString::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(OneByteString::InstanceSize() +
+                               length * dart::OneByteString::kBytesPerElement);
+}
+
 word TwoByteString::NextFieldOffset() {
   return -kWordSize;
+}
+
+word TwoByteString::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(TwoByteString::InstanceSize() +
+                               length * dart::TwoByteString::kBytesPerElement);
 }
 
 word ExternalOneByteString::NextFieldOffset() {
@@ -1030,8 +1059,16 @@ word ExceptionHandlers::NextFieldOffset() {
   return -kWordSize;
 }
 
+word ExceptionHandlers::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(ExceptionHandlers::element_offset(length));
+}
+
 word ContextScope::NextFieldOffset() {
   return -kWordSize;
+}
+
+word ContextScope::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(ContextScope::element_offset(length));
 }
 
 word UnlinkedCall::NextFieldOffset() {
@@ -1160,6 +1197,10 @@ word Field::NextFieldOffset() {
 
 word TypeArguments::NextFieldOffset() {
   return -kWordSize;
+}
+
+word TypeArguments::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(TypeArguments::type_at_offset(length));
 }
 
 word FreeListElement::FakeInstance::NextFieldOffset() {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -70,7 +72,7 @@ main() {
     var fixes = plugin.AnalysisErrorFixes(AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.HINT,
-        Location('', 0, 0, 0, 0),
+        Location('', 0, 0, 0, 0, 0, 0),
         'message',
         'code'));
     var result = plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
@@ -151,7 +153,7 @@ print(1)
 aaa:${toUri('/aaa/lib')}
 bbb:${toUri('/bbb/lib')}
 ''');
-    newFile('/aaa/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/aaa', r'''
 dependencies:
   bbb: any
 ''');

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,37 +20,8 @@ import 'package:analyzer_plugin/src/utilities/charcodes.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:dart_style/dart_style.dart';
-
-/// A [ChangeBuilder] used to build changes in Dart files.
-@Deprecated('Use ChangeBuilder')
-class DartChangeBuilderImpl extends ChangeBuilderImpl
-    implements DartChangeBuilder {
-  /// Initialize a newly created change builder.
-  @Deprecated('Use ChangeBuilder(session: session)')
-  DartChangeBuilderImpl(AnalysisSession session) : super(session: session);
-
-  @Deprecated('Use ChangeBuilder(workspace: workspace)')
-  DartChangeBuilderImpl.forWorkspace(ChangeWorkspace workspace)
-      : super(workspace: workspace);
-
-  @Deprecated('Use ChangeBuilder.addDartFileEdit')
-  @override
-  Future<void> addFileEdit(
-      String path, void Function(DartFileEditBuilder builder) buildFileEdit,
-      {ImportPrefixGenerator importPrefixGenerator}) {
-    return super.addDartFileEdit(path, buildFileEdit,
-        importPrefixGenerator: importPrefixGenerator);
-  }
-
-  @override
-  Future<DartFileEditBuilderImpl> createGenericFileEditBuilder(
-      String path) async {
-    return super.createDartFileEditBuilder(path);
-  }
-}
 
 /// An [EditBuilder] used to build edits in Dart files.
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
@@ -63,14 +33,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// The enclosing class element, possibly `null`.
   /// This field is lazily initialized in [_initializeEnclosingElements].
-  ClassElement _enclosingClass;
+  ClassElement? _enclosingClass;
 
   /// The enclosing executable element, possibly `null`.
   /// This field is lazily initialized in [_initializeEnclosingElements].
-  ExecutableElement _enclosingExecutable;
+  ExecutableElement? _enclosingExecutable;
 
   /// If not `null`, [write] will copy everything into this buffer.
-  StringBuffer _carbonCopyBuffer;
+  StringBuffer? _carbonCopyBuffer;
 
   /// Initialize a newly created builder to build a source edit.
   DartEditBuilderImpl(
@@ -102,13 +72,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeClassDeclaration(String name,
-      {Iterable<DartType> interfaces,
+      {Iterable<DartType>? interfaces,
       bool isAbstract = false,
-      void Function() membersWriter,
-      Iterable<DartType> mixins,
-      String nameGroupName,
-      DartType superclass,
-      String superclassGroupName}) {
+      void Function()? membersWriter,
+      Iterable<DartType>? mixins,
+      String? nameGroupName,
+      DartType? superclass,
+      String? superclassGroupName}) {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
     // parameterWriter parameter.
     if (isAbstract) {
@@ -140,15 +110,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeConstructorDeclaration(String className,
-      {ArgumentList argumentList,
-      void Function() bodyWriter,
-      String classNameGroupName,
-      SimpleIdentifier constructorName,
-      String constructorNameGroupName,
-      List<String> fieldNames,
-      void Function() initializerWriter,
+      {ArgumentList? argumentList,
+      void Function()? bodyWriter,
+      String? classNameGroupName,
+      SimpleIdentifier? constructorName,
+      String? constructorNameGroupName,
+      List<String>? fieldNames,
+      void Function()? initializerWriter,
       bool isConst = false,
-      void Function() parameterWriter}) {
+      void Function()? parameterWriter}) {
     if (isConst) {
       write(Keyword.CONST.lexeme);
       write(' ');
@@ -196,13 +166,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeFieldDeclaration(String name,
-      {void Function() initializerWriter,
+      {void Function()? initializerWriter,
       bool isConst = false,
       bool isFinal = false,
       bool isStatic = false,
-      String nameGroupName,
-      DartType type,
-      String typeGroupName}) {
+      String? nameGroupName,
+      DartType? type,
+      String? typeGroupName}) {
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -238,12 +208,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeFunctionDeclaration(String name,
-      {void Function() bodyWriter,
+      {void Function()? bodyWriter,
       bool isStatic = false,
-      String nameGroupName,
-      void Function() parameterWriter,
-      DartType returnType,
-      String returnTypeGroupName}) {
+      String? nameGroupName,
+      void Function()? parameterWriter,
+      DartType? returnType,
+      String? returnTypeGroupName}) {
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -277,11 +247,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeGetterDeclaration(String name,
-      {void Function() bodyWriter,
+      {void Function()? bodyWriter,
       bool isStatic = false,
-      String nameGroupName,
-      DartType returnType,
-      String returnTypeGroupName}) {
+      String? nameGroupName,
+      DartType? returnType,
+      String? returnTypeGroupName}) {
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -316,13 +286,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var import = _getBestImportForName(imports, name);
     if (import == null) {
       var library = dartFileEditBuilder._importLibrary(uris[0]);
-      if (library.prefix != null) {
-        write(library.prefix);
+      var prefix = library.prefix;
+      if (prefix != null) {
+        write(prefix);
         write('.');
       }
     } else {
-      if (import.prefix != null) {
-        write(import.prefix.displayName);
+      var prefix = import.prefix;
+      if (prefix != null) {
+        write(prefix.displayName);
         write('.');
       }
     }
@@ -331,12 +303,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeLocalVariableDeclaration(String name,
-      {void Function() initializerWriter,
+      {void Function()? initializerWriter,
       bool isConst = false,
       bool isFinal = false,
-      String nameGroupName,
-      DartType type,
-      String typeGroupName}) {
+      String? nameGroupName,
+      DartType? type,
+      String? typeGroupName}) {
     var typeRequired = true;
     if (isConst) {
       write(Keyword.CONST.lexeme);
@@ -369,10 +341,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeMixinDeclaration(String name,
-      {Iterable<DartType> interfaces,
-      void Function() membersWriter,
-      String nameGroupName,
-      Iterable<DartType> superclassConstraints}) {
+      {Iterable<DartType>? interfaces,
+      void Function()? membersWriter,
+      String? nameGroupName,
+      Iterable<DartType>? superclassConstraints}) {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
     // parameterWriter parameter.
     write('mixin ');
@@ -393,8 +365,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeOverride(
     ExecutableElement element, {
-    StringBuffer displayTextBuffer,
-    String returnTypeGroupName,
+    StringBuffer? displayTextBuffer,
+    String? returnTypeGroupName,
     bool invokeSuper = false,
   }) {
     void withCarbonCopyBuffer(Function() f) {
@@ -535,13 +507,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParameter(String name,
       {bool isCovariant = false,
       bool isRequiredNamed = false,
-      ExecutableElement methodBeingCopied,
-      String nameGroupName,
-      DartType type,
-      String typeGroupName}) {
+      ExecutableElement? methodBeingCopied,
+      String? nameGroupName,
+      DartType? type,
+      String? typeGroupName}) {
     bool writeType() {
       if (typeGroupName != null) {
-        bool hasType;
+        late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
           hasType = _writeType(type, methodBeingCopied: methodBeingCopied);
           builder.addSuperTypesAsSuggestions(type);
@@ -618,7 +590,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement methodBeingCopied}) {
+      {ExecutableElement? methodBeingCopied}) {
     var parameterNames = <String>{};
     for (var i = 0; i < parameters.length; i++) {
       var name = parameters.elementAt(i).name;
@@ -712,11 +684,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeSetterDeclaration(String name,
-      {void Function() bodyWriter,
+      {void Function()? bodyWriter,
       bool isStatic = false,
-      String nameGroupName,
-      DartType parameterType,
-      String parameterTypeGroupName}) {
+      String? nameGroupName,
+      DartType? parameterType,
+      String? parameterTypeGroupName}) {
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -746,10 +718,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  bool writeType(DartType type,
+  bool writeType(DartType? type,
       {bool addSupertypeProposals = false,
-      String groupName,
-      ExecutableElement methodBeingCopied,
+      String? groupName,
+      ExecutableElement? methodBeingCopied,
       bool required = false}) {
     var wroteType = false;
     if (type != null && !type.isDynamic) {
@@ -773,7 +745,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeTypeParameter(TypeParameterElement typeParameter,
-      {ExecutableElement methodBeingCopied}) {
+      {ExecutableElement? methodBeingCopied}) {
     write(typeParameter.name);
     if (typeParameter.bound != null) {
       write(' extends ');
@@ -783,7 +755,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeTypeParameters(List<TypeParameterElement> typeParameters,
-      {ExecutableElement methodBeingCopied}) {
+      {ExecutableElement? methodBeingCopied}) {
     if (typeParameters.isNotEmpty) {
       write('<');
       var isFirst = true;
@@ -799,7 +771,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeTypes(Iterable<DartType> types, {String prefix}) {
+  void writeTypes(Iterable<DartType>? types, {String? prefix}) {
     if (types == null || types.isEmpty) {
       return;
     }
@@ -853,7 +825,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   void _addSuperTypeProposals(
-      LinkedEditBuilder builder, DartType type, Set<DartType> alreadyAdded) {
+      LinkedEditBuilder builder, DartType? type, Set<DartType> alreadyAdded) {
     if (type is InterfaceType && alreadyAdded.add(type)) {
       builder.addSuggestion(
         LinkedEditSuggestionKind.TYPE,
@@ -878,7 +850,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return name;
   }
 
-  String _getBaseNameFromExpression(Expression expression) {
+  String? _getBaseNameFromExpression(Expression expression) {
     if (expression is AsExpression) {
       return _getBaseNameFromExpression(expression.expression);
     } else if (expression is ParenthesizedExpression) {
@@ -887,7 +859,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return _getBaseNameFromUnwrappedExpression(expression);
   }
 
-  String _getBaseNameFromLocationInParent(Expression expression) {
+  String? _getBaseNameFromLocationInParent(Expression expression) {
     // value in named expression
     if (expression.parent is NamedExpression) {
       var namedExpression = expression.parent as NamedExpression;
@@ -905,8 +877,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return null;
   }
 
-  String _getBaseNameFromUnwrappedExpression(Expression expression) {
-    String name;
+  String? _getBaseNameFromUnwrappedExpression(Expression expression) {
+    String? name;
     // analyze expressions
     if (expression is SimpleIdentifier) {
       return expression.name;
@@ -919,22 +891,20 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     } else if (expression is InstanceCreationExpression) {
       var constructorName = expression.constructorName;
       var typeName = constructorName.type;
-      if (typeName != null) {
-        var typeNameIdentifier = typeName.name;
-        // new ClassName()
-        if (typeNameIdentifier is SimpleIdentifier) {
-          return typeNameIdentifier.name;
+      var typeNameIdentifier = typeName.name;
+      // new ClassName()
+      if (typeNameIdentifier is SimpleIdentifier) {
+        return typeNameIdentifier.name;
+      }
+      // new prefix.name();
+      if (typeNameIdentifier is PrefixedIdentifier) {
+        var prefixed = typeNameIdentifier;
+        // new prefix.ClassName()
+        if (prefixed.prefix.staticElement is PrefixElement) {
+          return prefixed.identifier.name;
         }
-        // new prefix.name();
-        if (typeNameIdentifier is PrefixedIdentifier) {
-          var prefixed = typeNameIdentifier;
-          // new prefix.ClassName()
-          if (prefixed.prefix.staticElement is PrefixElement) {
-            return prefixed.identifier.name;
-          }
-          // new ClassName.constructorName()
-          return prefixed.prefix.name;
-        }
+        // new ClassName.constructorName()
+        return prefixed.prefix.name;
       }
     } else if (expression is IndexExpression) {
       name = _getBaseNameFromExpression(expression.realTarget);
@@ -965,7 +935,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Given a list of [imports] that do, or can, make the [name] visible in
   /// scope, return the one that will lead to the cleanest code.
-  ImportElement _getBestImportForName(
+  ImportElement? _getBestImportForName(
       List<ImportElement> imports, String name) {
     if (imports.isEmpty) {
       return null;
@@ -991,7 +961,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /// Returns all variants of names by removing leading words one by one.
-  List<String> _getCamelWordCombinations(String name) {
+  List<String> _getCamelWordCombinations(String? name) {
     var result = <String>[];
     var parts = getCamelWords(name);
     for (var i = 0; i < parts.length; i++) {
@@ -1022,8 +992,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Returns possible names for a variable with the given expected type and
   /// expression assigned.
-  List<String> _getVariableNameSuggestionsForExpression(DartType expectedType,
-      Expression assignedExpression, Set<String> excluded) {
+  List<String> _getVariableNameSuggestionsForExpression(DartType? expectedType,
+      Expression? assignedExpression, Set<String> excluded) {
     var res = <String>{};
     // use expression
     if (assignedExpression != null) {
@@ -1058,27 +1028,29 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// [_enclosingClass], or if there is a local equivalent to the type (such as
   /// in the case of a type parameter from a superclass), then return the type
   /// that is locally visible. Otherwise, return `null`.
-  DartType _getVisibleType(DartType type,
-      {ExecutableElement methodBeingCopied}) {
-    var element = type.element;
+  DartType? _getVisibleType(DartType? type,
+      {ExecutableElement? methodBeingCopied}) {
+    if (type is InterfaceType) {
+      var element = type.element;
+      if (element.isPrivate &&
+          !dartFileEditBuilder._isDefinedLocally(element)) {
+        return null;
+      }
+      return type;
+    }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
+      var element = type.element;
       var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
-        enclosing = enclosing.enclosingElement;
+        enclosing = enclosing!.enclosingElement;
       }
       if (enclosing == _enclosingExecutable ||
           enclosing == _enclosingClass ||
           enclosing == methodBeingCopied) {
         return type;
       }
-      return null;
-    }
-    if (element == null) {
-      return type;
-    }
-    if (element.isPrivate && !dartFileEditBuilder._isDefinedLocally(element)) {
       return null;
     }
     return type;
@@ -1116,16 +1088,20 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     var import = dartFileEditBuilder._getImportElement(element);
     if (import != null) {
-      if (import.prefix != null) {
-        write(import.prefix.displayName);
+      var prefix = import.prefix;
+      if (prefix != null) {
+        write(prefix.displayName);
         write('.');
       }
     } else {
-      var library = element.library.source.uri;
-      var import = dartFileEditBuilder._importLibrary(library);
-      if (import.prefix != null) {
-        write(import.prefix);
-        write('.');
+      var library = element.library?.source.uri;
+      if (library != null) {
+        var import = dartFileEditBuilder._importLibrary(library);
+        var prefix = import.prefix;
+        if (prefix != null) {
+          write(prefix);
+          write('.');
+        }
       }
     }
   }
@@ -1155,8 +1131,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   ///
   /// Causes any libraries whose elements are used by the generated code, to be
   /// imported.
-  bool _writeType(DartType type,
-      {ExecutableElement methodBeingCopied, bool required = false}) {
+  bool _writeType(DartType? type,
+      {ExecutableElement? methodBeingCopied, bool required = false}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
@@ -1178,22 +1154,20 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       return false;
     }
-    // The type `void` does not have an element.
-    if (type is VoidType) {
-      write('void');
+
+    var aliasElement = type.aliasElement;
+    var aliasArguments = type.aliasArguments;
+    if (aliasElement != null && aliasArguments != null) {
+      _writeTypeElementArguments(
+        element: aliasElement,
+        typeArguments: aliasArguments,
+        methodBeingCopied: methodBeingCopied,
+      );
+      _writeTypeNullability(type);
       return true;
     }
 
-    var element = type.element;
-    // Typedef(s) are represented as GenericFunctionTypeElement(s).
-    if (element is GenericFunctionTypeElement &&
-        element.typeParameters.isEmpty &&
-        element.enclosingElement is FunctionTypeAliasElement) {
-      element = element.enclosingElement;
-    }
-
-    // Just a Function, not FunctionTypeAliasElement.
-    if (type is FunctionType && element is! FunctionTypeAliasElement) {
+    if (type is FunctionType) {
       if (_writeType(type.returnType, methodBeingCopied: methodBeingCopied)) {
         write(' ');
       }
@@ -1204,6 +1178,41 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return true;
     }
 
+    if (type is InterfaceType) {
+      _writeTypeElementArguments(
+        element: type.element,
+        typeArguments: type.typeArguments,
+        methodBeingCopied: methodBeingCopied,
+      );
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is NeverType) {
+      write('Never');
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is TypeParameterType) {
+      write(type.element.name);
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is VoidType) {
+      write('void');
+      return true;
+    }
+
+    throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
+  void _writeTypeElementArguments({
+    required Element element,
+    required List<DartType> typeArguments,
+    required ExecutableElement? methodBeingCopied,
+  }) {
     // Ensure that the element is imported.
     _writeLibraryReference(element);
 
@@ -1212,12 +1221,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     write(name);
 
     // Write type arguments.
-    if (type is ParameterizedType) {
-      var arguments = type.typeArguments;
+    if (typeArguments.isNotEmpty) {
       // Check if has arguments.
       var hasArguments = false;
       var allArgumentsVisible = true;
-      for (var argument in arguments) {
+      for (var argument in typeArguments) {
         hasArguments = hasArguments || !argument.isDynamic;
         allArgumentsVisible = allArgumentsVisible &&
             _getVisibleType(argument, methodBeingCopied: methodBeingCopied) !=
@@ -1226,8 +1234,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // Write type arguments only if they are useful.
       if (hasArguments && allArgumentsVisible) {
         write('<');
-        for (var i = 0; i < arguments.length; i++) {
-          var argument = arguments[i];
+        for (var i = 0; i < typeArguments.length; i++) {
+          var argument = typeArguments[i];
           if (i != 0) {
             write(', ');
           }
@@ -1237,12 +1245,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write('>');
       }
     }
+  }
 
+  void _writeTypeNullability(DartType type) {
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
       write('?');
     }
-
-    return true;
   }
 }
 
@@ -1254,10 +1262,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   /// The change builder for the library
   /// or `null` if the receiver is the builder for the library.
-  final DartFileEditBuilderImpl libraryChangeBuilder;
+  final DartFileEditBuilderImpl? libraryChangeBuilder;
 
   /// The optional generator of prefixes for new imports.
-  ImportPrefixGenerator importPrefixGenerator;
+  ImportPrefixGenerator? importPrefixGenerator;
 
   /// A mapping from libraries that need to be imported in order to make visible
   /// the names used in generated code, to information about these imports.
@@ -1273,7 +1281,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// the given [resolvedUnit] and [timeStamp].
   DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
       int timeStamp, this.libraryChangeBuilder)
-      : super(changeBuilder, resolvedUnit.path, timeStamp);
+      : super(changeBuilder, resolvedUnit.path!, timeStamp);
 
   @override
   bool get hasEdits =>
@@ -1295,8 +1303,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void convertFunctionFromSyncToAsync(
-      FunctionBody body, TypeProvider typeProvider) {
-    if (body == null && body.keyword != null) {
+      FunctionBody? body, TypeProvider typeProvider) {
+    if (body == null || body.keyword != null) {
       throw ArgumentError(
           'The function must have a synchronous, non-generator body.');
     }
@@ -1345,7 +1353,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void format(SourceRange range) {
-    var newContent = resolvedUnit.content;
+    var newContent = resolvedUnit.content!;
     var newRangeOffset = range.offset;
     var newRangeLength = range.length;
     for (var edit in fileEdit.edits) {
@@ -1400,13 +1408,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return ImportLibraryElementResultImpl(null);
   }
 
-  String importLibraryWithRelativeUri(String uriText, [String prefix]) {
+  String importLibraryWithRelativeUri(String uriText, [String? prefix]) {
     return _importLibraryWithRelativeUri(uriText, prefix).uriText;
   }
 
   @override
   void replaceTypeWithFuture(
-      TypeAnnotation typeAnnotation, TypeProvider typeProvider) {
+      TypeAnnotation? typeAnnotation, TypeProvider typeProvider) {
     //
     // Check whether the type needs to be replaced.
     //
@@ -1415,8 +1423,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    addReplacement(range.node(typeAnnotation), (EditBuilder builder) {
-      var futureType = typeProvider.futureType2(type);
+    addReplacement(range.node(typeAnnotation!), (EditBuilder builder) {
+      var futureType = typeProvider.futureType(type);
       if (!(builder as DartEditBuilder).writeType(futureType)) {
         builder.write('void');
       }
@@ -1426,10 +1434,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Adds edits ensure that all the [imports] are imported into the library.
   void _addLibraryImports(Iterable<_LibraryToImport> imports) {
     // Prepare information about existing imports.
-    LibraryDirective libraryDirective;
+    LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
-    PartDirective partDirective;
-    for (var directive in resolvedUnit.unit.directives) {
+    PartDirective? partDirective;
+    var unit = resolvedUnit.unit!;
+    for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
       } else if (directive is ImportDirective) {
@@ -1447,9 +1456,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       builder.write("import '");
       builder.write(import.uriText);
       builder.write("'");
-      if (import.prefix != null) {
+      var prefix = import.prefix;
+      if (prefix != null) {
         builder.write(' as ');
-        builder.write(import.prefix);
+        builder.write(prefix);
       }
       builder.write(';');
     }
@@ -1462,14 +1472,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var inserted = false;
 
         void insert(
-            {ImportDirective prev,
-            ImportDirective next,
+            {ImportDirective? prev,
+            required ImportDirective next,
             bool trailingNewLine = false}) {
           var lineInfo = resolvedUnit.lineInfo;
           if (prev != null) {
             var offset = prev.end;
             var line = lineInfo.getLocation(offset).lineNumber;
-            Token comment = prev.endToken.next.precedingComments;
+            Token? comment = prev.endToken.next?.precedingComments;
             while (comment != null) {
               if (lineInfo.getLocation(comment.offset).lineNumber == line) {
                 offset = comment.end;
@@ -1481,7 +1491,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
               writeImport(builder, import);
             });
           } else {
-            var offset = next.offset;
+            // Annotations attached to the first directive should remain above
+            // the newly inserted import, as they are treated as being for the
+            // file.
+            var isFirst =
+                next == (next.parent as CompilationUnit).directives.first;
+            var offset = isFirst && next is AnnotatedNode
+                ? next.firstTokenAfterCommentAndMetadata.offset
+                : next.offset;
             addInsertion(offset, (EditBuilder builder) {
               writeImport(builder, import);
               builder.writeln();
@@ -1493,9 +1510,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           inserted = true;
         }
 
-        ImportDirective lastExisting;
-        ImportDirective lastExistingDart;
-        ImportDirective lastExistingPackage;
+        ImportDirective? lastExisting;
+        ImportDirective? lastExistingDart;
+        ImportDirective? lastExistingPackage;
         var isLastExistingDart = false;
         var isLastExistingPackage = false;
         for (var existingImport in importDirectives) {
@@ -1540,7 +1557,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           isLastExistingPackage = isExistingPackage;
         }
         if (!inserted) {
-          addInsertion(lastExisting.end, (EditBuilder builder) {
+          addInsertion(lastExisting!.end, (EditBuilder builder) {
             if (isPackage) {
               if (isLastExistingDart) {
                 builder.writeln();
@@ -1590,11 +1607,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // If still at the beginning of the file, add before the first declaration.
     int offset;
     var insertEmptyLineAfter = false;
-    if (resolvedUnit.unit.declarations.isNotEmpty) {
-      offset = resolvedUnit.unit.declarations.first.offset;
+    if (unit.declarations.isNotEmpty) {
+      offset = unit.declarations.first.offset;
       insertEmptyLineAfter = true;
     } else {
-      offset = resolvedUnit.unit.end;
+      offset = unit.end;
     }
     addInsertion(offset, (EditBuilder builder) {
       for (var i = 0; i < importList.length; i++) {
@@ -1611,7 +1628,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Return the import element used to import the given [element] into the
   /// target library, or `null` if the element was not imported, such as when
   /// the element is declared in the same library.
-  ImportElement _getImportElement(Element element) {
+  ImportElement? _getImportElement(Element element) {
     for (var import in resolvedUnit.libraryElement.imports) {
       var definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
@@ -1623,7 +1640,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   Iterable<ImportElement> _getImportsForUri(Uri uri) sync* {
     for (var import in resolvedUnit.libraryElement.imports) {
-      var importUri = import.importedLibrary.source.uri;
+      var importUri = import.importedLibrary?.source.uri;
       if (importUri == uri) {
         yield import;
       }
@@ -1649,7 +1666,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (import == null) {
       var uriText = _getLibraryUriText(uri);
       var prefix =
-          importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
+          importPrefixGenerator != null ? importPrefixGenerator!(uri) : null;
       import = _LibraryToImport(uriText, prefix);
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
@@ -1659,7 +1676,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Arrange to have an import added for the library with the given relative
   /// [uriText].
   _LibraryToImport _importLibraryWithRelativeUri(String uriText,
-      [String prefix]) {
+      [String? prefix]) {
     var import = librariesToRelativelyImport[uriText];
     if (import == null) {
       import = _LibraryToImport(uriText, prefix);
@@ -1677,7 +1694,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// containing the given [node] with the type `Future`. The [typeProvider] is
   /// used to check the current return type, because if it is already `Future`
   /// no edit will be added.
-  void _replaceReturnTypeWithFuture(AstNode node, TypeProvider typeProvider) {
+  void _replaceReturnTypeWithFuture(AstNode? node, TypeProvider typeProvider) {
     while (node != null) {
       node = node.parent;
       if (node is FunctionDeclaration) {
@@ -1695,7 +1712,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   static bool _isFusedWithPreviousToken(Token token) {
-    return token.previous.end == token.offset;
+    return token.previous?.end == token.offset;
   }
 }
 
@@ -1708,13 +1725,13 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
   DartLinkedEditBuilderImpl(EditBuilderImpl editBuilder) : super(editBuilder);
 
   @override
-  void addSuperTypesAsSuggestions(DartType type) {
+  void addSuperTypesAsSuggestions(DartType? type) {
     _addSuperTypesAsSuggestions(type, <DartType>{});
   }
 
   /// Safely implement [addSuperTypesAsSuggestions] by using the set of
   /// [alreadyAdded] types to prevent infinite loops.
-  void _addSuperTypesAsSuggestions(DartType type, Set<DartType> alreadyAdded) {
+  void _addSuperTypesAsSuggestions(DartType? type, Set<DartType> alreadyAdded) {
     if (type is InterfaceType && alreadyAdded.add(type)) {
       addSuggestion(
         LinkedEditSuggestionKind.TYPE,
@@ -1731,18 +1748,18 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
 /// Information about a library to import.
 class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
   @override
-  final String prefix;
+  final String? prefix;
 
   ImportLibraryElementResultImpl(this.prefix);
 }
 
 class _EnclosingElementFinder {
-  ClassElement enclosingClass;
-  ExecutableElement enclosingExecutable;
+  ClassElement? enclosingClass;
+  ExecutableElement? enclosingExecutable;
 
   _EnclosingElementFinder();
 
-  void find(AstNode target, int offset) {
+  void find(AstNode? target, int offset) {
     var node = NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
@@ -1762,7 +1779,7 @@ class _EnclosingElementFinder {
 /// Information about a new library to import.
 class _LibraryToImport {
   final String uriText;
-  final String prefix;
+  final String? prefix;
 
   _LibraryToImport(this.uriText, this.prefix);
 

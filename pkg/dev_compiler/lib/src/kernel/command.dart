@@ -15,8 +15,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' hide MapEntry;
-import 'package:kernel/ast.dart' show NonNullableByDefaultCompiledMode;
+import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:path/path.dart' as p;
@@ -380,6 +379,7 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.BinaryPrinter(sink).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
+  String fullDillUri;
   if (argResults['experimental-output-compiled-kernel'] as bool) {
     if (outPaths.length > 1) {
       print(
@@ -396,8 +396,8 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       compiledLibraries.unbindCanonicalNames();
     }
-    var sink =
-        File(p.withoutExtension(outPaths.first) + '.full.dill').openWrite();
+    fullDillUri = p.withoutExtension(outPaths.first) + '.full.dill';
+    var sink = File(fullDillUri).openWrite();
     kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
@@ -445,6 +445,7 @@ Future<CompilerResult> _compile(List<String> args,
         emitDebugMetadata: options.emitDebugMetadata,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
+        fullDillUri: fullDillUri,
         customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
@@ -579,9 +580,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   return CompilerResult(0);
 }
 
-// Compute code size to embed in the generated JavaScript
-// for this module.  Return `null` to indicate when size could not be properly
-// computed for this module.
+/// Compute code size to embed in the generated JavaScript for this module.
 int _computeDartSize(Component component) {
   var dartSize = 0;
   var uriToSource = component.uriToSource;
@@ -589,7 +588,11 @@ int _computeDartSize(Component component) {
     var libUri = lib.fileUri;
     var importUri = lib.importUri;
     var source = uriToSource[libUri];
-    if (source == null) return null;
+    if (source == null) {
+      // Sources that only contain external declarations have nothing to add to
+      // the sum.
+      continue;
+    }
     dartSize += source.source.length;
     for (var part in lib.parts) {
       var partUri = part.partUri;
@@ -599,7 +602,11 @@ int _computeDartSize(Component component) {
       }
       var fileUri = libUri.resolve(partUri);
       var partSource = uriToSource[fileUri];
-      if (partSource == null) return null;
+      if (partSource == null) {
+        // Sources that only contain external declarations have nothing to add
+        // to the sum.
+        continue;
+      }
       dartSize += partSource.source.length;
     }
   }
@@ -641,6 +648,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     bool emitDebugMetadata = false,
     String jsUrl,
     String mapUrl,
+    String fullDillUri,
     String sourceMapBase,
     String customScheme,
     String multiRootOutputPath,
@@ -699,19 +707,20 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
       SharedCompiler.metricsLocationID, '$compileTimeStatistics');
 
   var debugMetadata = emitDebugMetadata
-      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl)
+      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl, fullDillUri)
       : null;
 
   return JSCode(text, builtMap, metadata: debugMetadata);
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
-    String sourceMapUri, String moduleUri) {
+    String sourceMapUri, String moduleUri, String fullDillUri) {
   var metadata = ModuleMetadata(
       program.name,
       loadFunctionName(program.name),
       sourceMapUri,
       moduleUri,
+      fullDillUri,
       component.mode == NonNullableByDefaultCompiledMode.Strong);
 
   for (var lib in component.libraries) {
@@ -730,8 +739,19 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   var declaredVariables = <String, String>{};
   for (var i = 0; i < args.length;) {
     var arg = args[i];
+    String rest;
+    const defineFlag = '--define';
     if (arg.startsWith('-D') && arg.length > 2) {
-      var rest = arg.substring(2);
+      rest = arg.substring(2);
+    } else if (arg.startsWith('$defineFlag=') &&
+        arg.length > defineFlag.length + 1) {
+      rest = arg.substring(defineFlag.length + 1);
+    } else if (arg == defineFlag) {
+      i++;
+      rest = args[i];
+    }
+
+    if (rest != null) {
       var eq = rest.indexOf('=');
       if (eq <= 0) {
         var kind = eq == 0 ? 'name' : 'value';

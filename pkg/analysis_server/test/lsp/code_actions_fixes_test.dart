@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -94,6 +97,61 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     };
     applyChanges(contents, fixAction.edit.changes);
     expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_createFile() async {
+    const content = '''
+    import '[[newfile.dart]]';
+    ''';
+
+    final expectedCreatedFile =
+        path.join(path.dirname(mainFilePath), 'newfile.dart');
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+      workspaceCapabilities: withResourceOperationKinds(
+          emptyWorkspaceClientCapabilities, [ResourceOperationKind.Create]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(codeActions,
+        CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'");
+
+    expect(fixAction, isNotNull);
+    expect(fixAction.edit.documentChanges, isNotNull);
+
+    // Ensure applying the changes creates the file and with the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, fixAction.edit.documentChanges);
+    expect(contents[expectedCreatedFile], isNotEmpty);
+  }
+
+  Future<void> test_filtersCorrectly() async {
+    const content = '''
+    import 'dart:async';
+    [[import]] 'dart:convert';
+
+    Future foo;
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final ofKind = (CodeActionKind kind) => getCodeActions(
+          mainFileUri.toString(),
+          range: rangeFromMarkers(content),
+          kinds: [kind],
+        );
+
+    // The code above will return a quickfix.remove.unusedImport
+    expect(await ofKind(CodeActionKind.QuickFix), isNotEmpty);
+    expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
+    expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
+    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
   }
 
   Future<void> test_noDuplicates_sameFix() async {
@@ -216,43 +274,10 @@ class FixesCodeActionsWithNullSafetyTest extends AbstractCodeActionsTest {
   @override
   String get testPackageLanguageVersion => latestLanguageVersion;
 
-  Future<void> test_fixAll_notForAmbigiousProducers() async {
-    // The ReplaceWithIsEmpty producer does not provide a FixKind up-front, as
-    // it may produce `REPLACE_WITH_IS_EMPTY` or `REPLACE_WITH_IS_NOT_EMPTY`
-    // depending on the code.
-    // This test ensures this does not crash, and does not produce an apply-all.
-    registerLintRules();
-    newFile(analysisOptionsPath, content: '''
-linter:
-  rules:
-    - prefer_is_empty
-    ''');
-
-    const content = '''
-var a = [];
-var b = a.[[length]] == 0;
-var c = a.length == 0;
-    ''';
-
-    newFile(mainFilePath, content: withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
-
-    final allFixes = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
-
-    // Expect only the single-fix, there should be no apply-all.
-    expect(allFixes, hasLength(1));
-    final fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
-    expect(fixTitle, equals("Replace with \'isEmpty\'"));
-  }
-
   Future<void> test_fixAll_notWhenNoBatchFix() async {
     // Some fixes (for example 'create function foo') are not available in the
-    // batch processor, so should not generate Apply-all fixes even if there
-    // are multiple.
+    // batch processor, so should not generate fix-all-in-file fixes even if there
+    // are multiple instances.
     const content = '''
 var a = [[foo]]();
 var b = bar();
@@ -273,7 +298,10 @@ var b = bar();
     expect(fixTitle, equals("Create function 'foo'"));
   }
 
+  @failingTest
   Future<void> test_fixAll_notWhenSingle() async {
+    // TODO(dantup): Fix the text used to locate the fix once the
+    // new server support has landed.
     const content = '''
 void f(String a) {
   [[print(a!)]];
@@ -293,7 +321,10 @@ void f(String a) {
     expect(fixAction, isNull);
   }
 
+  @failingTest
   Future<void> test_fixAll_whenMultiple() async {
+    // TODO(dantup): Fix this test up to use the new server support for
+    // fix-all-in-file once landed.
     const content = '''
 void f(String a) {
   [[print(a!!)]];

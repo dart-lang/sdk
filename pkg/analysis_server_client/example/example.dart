@@ -35,7 +35,7 @@ void main(List<String> args) async {
       AnalysisSetAnalysisRootsParams([target], const []).toJson());
 
   // Continue to watch for analysis until the user presses Ctrl-C
-  StreamSubscription<ProcessSignal> subscription;
+  late StreamSubscription<ProcessSignal> subscription;
   subscription = ProcessSignal.sigint.watch().listen((_) async {
     print('Exiting...');
     // ignore: unawaited_futures
@@ -107,15 +107,14 @@ class _Handler with NotificationHandler, ConnectionHandler {
     } else {
       print('Server Error: ${params.message}');
     }
-    if (params.stackTrace != null) {
-      print(params.stackTrace);
-    }
+    print(params.stackTrace);
     super.onServerError(params);
   }
 
   @override
   void onServerStatus(ServerStatusParams params) {
-    if (!params.analysis.isAnalyzing) {
+    var analysisStatus = params.analysis;
+    if (analysisStatus != null && !analysisStatus.isAnalyzing) {
       // Whenever the server stops analyzing,
       // print a brief summary of what issues have been found.
       if (errorCount == 0) {

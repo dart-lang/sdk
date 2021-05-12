@@ -17,9 +17,12 @@ void main() {
 }
 
 @reflectiveTest
-class InferredTypeTest extends PubPackageResolutionTest {
+class InferredTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   CompilationUnitElement get _resultUnitElement {
-    return result.unit.declaredElement;
+    return result.unit!.declaredElement!;
   }
 
   test_asyncClosureReturnType_flatten() async {
@@ -1688,7 +1691,11 @@ main() {
   }
 
   test_futureThen() async {
-    String build({String declared, String downwards, String upwards}) => '''
+    String build(
+            {required String declared,
+            required String downwards,
+            required String upwards}) =>
+        '''
 import 'dart:async';
 
 class MyFuture<T> implements Future<T> {
@@ -1729,7 +1736,11 @@ void main() {
   }
 
   test_futureThen_conditional() async {
-    String build({String declared, String downwards, String upwards}) => '''
+    String build(
+            {required String declared,
+            required String downwards,
+            required String upwards}) =>
+        '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -1812,7 +1823,11 @@ m2() {
 
   test_futureThen_upwards() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27088.
-    String build({String declared, String downwards, String upwards}) => '''
+    String build(
+            {required String declared,
+            required String downwards,
+            required String upwards}) =>
+        '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -1884,9 +1899,8 @@ main() {
 
   test_futureUnion_asyncConditional() async {
     String build(
-            {String declared,
-            String downwards,
-            String upwards,
+            {required String downwards,
+            required String upwards,
             String expectedInfo = ''}) =>
         '''
 import 'dart:async';
@@ -1920,9 +1934,9 @@ $downwards<int> g3(bool x) async {
 
   test_futureUnion_downwards() async {
     String build(
-        {String declared,
-        String downwards,
-        String upwards,
+        {required String declared,
+        required String downwards,
+        required String upwards,
         String expectedError = ''}) {
       return '''
 import 'dart:async';
@@ -2213,7 +2227,7 @@ class D<T> {
 }
 typedef void F<V>(V v);
 ''');
-    var f = _resultUnitElement.getType('C').methods[0];
+    var f = _resultUnitElement.getType('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function(U) Function<U>(U)');
   }
 
@@ -2227,7 +2241,7 @@ abstract class D<T> {
 }
 typedef List<V> G<V>();
 ''');
-    var f = _resultUnitElement.getType('C').methods[0];
+    var f = _resultUnitElement.getType('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function<U>(List<U> Function())');
   }
 
@@ -2241,7 +2255,7 @@ class D<T> {
 }
 typedef V F<V>();
 ''');
-    var f = _resultUnitElement.getType('C').methods[0];
+    var f = _resultUnitElement.getType('C')!.methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
   }
 
@@ -2955,7 +2969,7 @@ class D {
   int foo;
 }
 ''');
-    var f = _resultUnitElement.getType('C').accessors[0];
+    var f = _resultUnitElement.getType('C')!.accessors[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -2968,7 +2982,7 @@ class D {
   set foo(int x) {}
 }
 ''');
-    var f = _resultUnitElement.getType('C').accessors[0];
+    var f = _resultUnitElement.getType('C')!.accessors[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
@@ -2982,10 +2996,10 @@ class C {
   };
 }
 ''');
-    var x = _resultUnitElement.getType('C').fields[0];
+    var x = _resultUnitElement.getType('C')!.fields[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultUnitElement.getType('C').fields[1];
+    var y = _resultUnitElement.getType('C')!.fields[1];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
@@ -3000,7 +3014,7 @@ class C {
     var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultUnitElement.getType('C').fields[0];
+    var y = _resultUnitElement.getType('C')!.fields[0];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'String');
   }
@@ -3288,7 +3302,7 @@ class C {
       (int i) => {i: b};
 }
 ''');
-    var f = _resultUnitElement.getType('C').fields[0];
+    var f = _resultUnitElement.getType('C')!.fields[0];
     _assertTypeStr(f.type, 'Map<int, bool> Function(int) Function(bool)');
   }
 
@@ -3298,7 +3312,7 @@ class C {
   static final f = (bool b) => b;
 }
 ''');
-    var f = _resultUnitElement.getType('C').fields[0];
+    var f = _resultUnitElement.getType('C')!.fields[0];
     _assertTypeStr(f.type, 'bool Function(bool)');
   }
 
@@ -3308,7 +3322,7 @@ class C {
   static final f = (bool b) => 1;
 }
 ''');
-    var f = _resultUnitElement.getType('C').fields[0];
+    var f = _resultUnitElement.getType('C')!.fields[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 

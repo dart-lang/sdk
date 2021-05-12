@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -65,6 +67,21 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
         // Type v = Conditional;
         if (inVariable) {
           var variable = conditional.parent as VariableDeclaration;
+          var variableList = variable.parent as VariableDeclarationList;
+          if (variableList.type == null) {
+            var type = variable.declaredElement.type;
+            var keyword = variableList.keyword;
+            if (keyword != null && keyword.keyword == Keyword.VAR) {
+              builder.addReplacement(range.token(keyword), (builder) {
+                builder.writeType(type);
+              });
+            } else {
+              builder.addInsertion(variable.name.offset, (builder) {
+                builder.writeType(type);
+                builder.write(' ');
+              });
+            }
+          }
           builder.addDeletion(range.endEnd(variable.name, conditional));
           var conditionSrc = utils.getNodeText(conditional.condition);
           var thenSrc = utils.getNodeText(conditional.thenExpression);

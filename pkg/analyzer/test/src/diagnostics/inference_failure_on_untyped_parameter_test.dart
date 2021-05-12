@@ -52,7 +52,7 @@ void fn(String cb(var x)) => print(cb(7));
 
   test_namedParameter_withType() async {
     await assertNoErrorsInCode(r'''
-void fn({int a}) => print(a);
+void fn({int a = 0}) => print(a);
 ''');
   }
 

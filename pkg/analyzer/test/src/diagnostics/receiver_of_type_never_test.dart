@@ -15,8 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidUseOfNeverTest extends PubPackageResolutionTest {
   test_binaryExpression_never_eqEq() async {
     await assertErrorsInCode(r'''
 void f(Never x) {
@@ -79,7 +78,7 @@ void f(Never? x) {
 ''', [
       error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
-          21,
+          23,
           1),
     ]);
 
@@ -205,7 +204,7 @@ void f(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          21, 1),
+          22, 1),
     ]);
 
     assertIndexExpression(
@@ -223,7 +222,7 @@ void f(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          21, 1),
+          22, 1),
     ]);
 
     assertAssignment(
@@ -255,7 +254,7 @@ void f(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          21, 1),
+          22, 1),
     ]);
 
     assertIndexExpression(
@@ -365,7 +364,7 @@ void f(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          21, 1),
+          22, 2),
     ]);
 
     assertPostfixExpression(
@@ -407,7 +406,7 @@ void f(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          23, 1),
+          21, 2),
     ]);
 
     assertPrefixExpression(
@@ -518,7 +517,7 @@ void f(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          21, 1),
+          23, 3),
     ]);
 
     assertSimpleIdentifier(
@@ -558,7 +557,8 @@ void f(Never? x) {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest {
+class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_binaryExpression_eqEq() async {
     await assertNoErrorsInCode(r'''
 void f() {
@@ -569,7 +569,7 @@ void f() {
     assertBinaryExpression(
       findNode.binary('=='),
       element: elementMatcher(
-        objectElement.getMethod('=='),
+        objectElement.getMethod('==')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'bool',
@@ -619,7 +619,7 @@ void f() {
     assertSimpleIdentifier(
       findNode.simple('toString'),
       element: elementMatcher(
-        objectElement.getMethod('toString'),
+        objectElement.getMethod('toString')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'String Function()',
@@ -636,7 +636,7 @@ void f() {
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
       element: elementMatcher(
-        objectElement.getGetter('hashCode'),
+        objectElement.getGetter('hashCode')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',

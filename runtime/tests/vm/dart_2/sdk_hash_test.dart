@@ -29,13 +29,14 @@ Future<void> main(List<String> args) async {
 
     {
       final result = await Process.run(dart, [
+        '--verbosity=warning',
         '--snapshot-kind=kernel',
         '--snapshot=$dillPath',
         sourcePath,
       ]);
       Expect.equals('', result.stderr);
       Expect.equals(0, result.exitCode);
-      Expect.equals('$unsoundNullSafetyMessage\n', result.stdout);
+      Expect.equals('', result.stdout);
     }
 
     {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <array>
+
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
@@ -4732,6 +4734,157 @@ TEST_CASE(IsolateReload_SuperGetterReboundToMethod) {
 
   EXPECT_STREQ("123:Closure: () => dynamic from Function 'x':.",
                SimpleInvokeStr(lib, "main"));
+}
+
+// Regression test for b/179030011: incorrect lifetime management when reloading
+// with multicomponent Kernel binary. When loading kernel blobs through tag
+// handler (Dart_kKernelTag) we need to make sure to preserve a link between
+// KernelProgramInfo objects and original typed data, because it might be
+// comming with a finalizer, which otherwise might end up being called
+// prematurely.
+namespace {
+
+// Compile the given |source| to Kernel binary.
+static void CompileToKernel(Dart_SourceFile source,
+                            const uint8_t** kernel_buffer,
+                            intptr_t* kernel_buffer_size) {
+  Dart_SourceFile sources[] = {source};
+  char* error = TestCase::CompileTestScriptWithDFE(
+      sources[0].uri, ARRAY_SIZE(sources), sources, kernel_buffer,
+      kernel_buffer_size,
+      /*incrementally=*/false);
+  EXPECT(error == NULL);
+  EXPECT_NOTNULL(kernel_buffer);
+}
+
+// LibraryTagHandler which returns a fixed Kernel binary back every time it
+// receives a Dart_kKernelTag request. The binary is wrapped in an external
+// typed data with a finalizer attached to it. If this finalizer is called
+// it will set |was_finalized_| to true.
+class KernelTagHandler {
+ public:
+  KernelTagHandler(uint8_t* kernel_buffer, intptr_t kernel_buffer_size)
+      : kernel_buffer_(kernel_buffer), kernel_buffer_size_(kernel_buffer_size) {
+    Dart_SetLibraryTagHandler(&LibraryTagHandler);
+    instance_ = this;
+  }
+
+  ~KernelTagHandler() {
+    Dart_SetLibraryTagHandler(nullptr);
+    instance_ = nullptr;
+  }
+
+  static KernelTagHandler* Current() { return instance_; }
+
+  bool was_called() const { return was_called_; }
+  bool was_finalized() const { return was_finalized_; }
+
+ private:
+  static void Finalizer(void* isolate_callback_data, void* peer) {
+    if (auto handler = KernelTagHandler::Current()) {
+      handler->was_finalized_ = true;
+    }
+  }
+
+  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+                                       Dart_Handle library,
+                                       Dart_Handle url) {
+    if (tag == Dart_kKernelTag) {
+      auto handler = KernelTagHandler::Current();
+      handler->was_called_ = true;
+
+      Dart_Handle result = Dart_NewExternalTypedData(
+          Dart_TypedData_kUint8, handler->kernel_buffer_,
+          handler->kernel_buffer_size_);
+      Dart_NewFinalizableHandle(result, handler->kernel_buffer_,
+                                handler->kernel_buffer_size_, &Finalizer);
+      return result;
+    }
+    UNREACHABLE();
+    return Dart_Null();
+  }
+
+  static KernelTagHandler* instance_;
+  uint8_t* kernel_buffer_;
+  intptr_t kernel_buffer_size_;
+  bool was_finalized_ = false;
+  bool was_called_ = false;
+};
+
+KernelTagHandler* KernelTagHandler::instance_ = nullptr;
+}  // namespace
+
+TEST_CASE(IsolateReload_RegressB179030011) {
+  struct Component {
+    Dart_SourceFile source;
+    const uint8_t* kernel_buffer;
+    intptr_t kernel_buffer_size;
+  };
+
+  // clang-format off
+  std::array<Component, 2> components = {{
+    {{
+      "file:///test-app",
+      R"(
+        class A {}
+        void main() {
+          A();
+        }
+      )"
+    }, nullptr, 0},
+    {{
+      "file:///library",
+      R"(
+        class B {}
+      )"
+    }, nullptr, 0}
+  }};
+  // clang-format on
+
+  for (auto& component : components) {
+    CompileToKernel(component.source, &component.kernel_buffer,
+                    &component.kernel_buffer_size);
+    TestCaseBase::AddToKernelBuffers(component.kernel_buffer);
+  }
+
+  // Concatenate all components.
+  intptr_t kernel_buffer_size = 0;
+  for (auto component : components) {
+    kernel_buffer_size += component.kernel_buffer_size;
+  }
+  uint8_t* kernel_buffer = static_cast<uint8_t*>(malloc(kernel_buffer_size));
+  TestCaseBase::AddToKernelBuffers(kernel_buffer);
+  intptr_t pos = 0;
+  for (auto component : components) {
+    memcpy(kernel_buffer + pos, component.kernel_buffer,  // NOLINT
+           component.kernel_buffer_size);
+    pos += component.kernel_buffer_size;
+  }
+
+  // Load the first component into the isolate (to have something set as
+  // root library).
+  Dart_Handle lib = Dart_LoadLibraryFromKernel(
+      components[0].kernel_buffer, components[0].kernel_buffer_size);
+  EXPECT_VALID(lib);
+  EXPECT_VALID(Dart_SetRootLibrary(lib));
+
+  {
+    KernelTagHandler handler(kernel_buffer, kernel_buffer_size);
+    {
+      // Additional API scope to prevent handles leaking into outer scope.
+      Dart_EnterScope();
+      // root_script_url does not really matter.
+      TestCase::TriggerReload(/*root_script_url=*/"something.dill");
+      Dart_ExitScope();
+    }
+    EXPECT(handler.was_called());
+
+    // Check that triggering GC does not cause finalizer registered by
+    // tag handler to fire - meaning that kernel binary continues to live.
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+    EXPECT(!handler.was_finalized());
+  }
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

@@ -333,7 +333,8 @@ class CompileTask {
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
-      printComponentText(outline, libraryFilter: kernelTarget.isSourceLibrary);
+      printComponentText(outline,
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
     }
     if (output != null) {
       if (omitPlatform) {
@@ -367,7 +368,7 @@ class CompileTask {
         await kernelTarget.buildComponent(verify: c.options.verify);
     if (c.options.debugDump) {
       printComponentText(component,
-          libraryFilter: kernelTarget.isSourceLibrary);
+          libraryFilter: kernelTarget.isSourceLibraryForDebugging);
     }
     if (omitPlatform) {
       component.computeCanonicalNames();

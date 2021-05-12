@@ -5,10 +5,8 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
-import 'package:vm_service/src/dart_io_extensions.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 const String kSetHttpEnableTimelineLogging =
@@ -87,5 +85,9 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: setup);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'http_enable_timeline_logging_service_test.dart',
+      testeeBefore: setup,
+    );

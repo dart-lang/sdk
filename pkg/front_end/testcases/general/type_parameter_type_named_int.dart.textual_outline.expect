@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class Foo<T> {
   List<T> get list;
   void setList<T>(List<T> value);

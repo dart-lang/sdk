@@ -39,9 +39,9 @@ class Class1<T extends core::Object? = core::Object?> extends core::Object /*has
     : super core::Object::•()
     ;
   static factory redirect<T extends core::Object? = core::Object?>() → opt::Class1<opt::Class1::redirect::T%>
-    let<BottomType> #redirecting_factory = opt::Class1::_ in let opt::Class1::redirect::T% #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class1::_ in let opt::Class1::redirect::T% #typeArg0 = null in invalid-expression;
   static factory constRedirect<T extends core::Object? = core::Object?>() → opt::Class1<opt::Class1::constRedirect::T%>
-    let<BottomType> #redirecting_factory = opt::Class1::_ in let opt::Class1::constRedirect::T% #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class1::_ in let opt::Class1::constRedirect::T% #typeArg0 = null in invalid-expression;
   static factory fact<T extends core::Object? = core::Object?>() → opt::Class1<opt::Class1::fact::T%>
     return new opt::Class1::_<opt::Class1::fact::T%>();
 }
@@ -51,9 +51,9 @@ class Class2<T extends core::Object = core::Object> extends core::Object /*hasCo
     : super core::Object::•()
     ;
   static factory redirect<T extends core::Object = core::Object>() → opt::Class2<opt::Class2::redirect::T>
-    let<BottomType> #redirecting_factory = opt::Class2::_ in let opt::Class2::redirect::T #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class2::_ in let opt::Class2::redirect::T #typeArg0 = null in invalid-expression;
   static factory constRedirect<T extends core::Object = core::Object>() → opt::Class2<opt::Class2::constRedirect::T>
-    let<BottomType> #redirecting_factory = opt::Class2::_ in let opt::Class2::constRedirect::T #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class2::_ in let opt::Class2::constRedirect::T #typeArg0 = null in invalid-expression;
   static factory fact<T extends core::Object = core::Object>() → opt::Class2<opt::Class2::fact::T>
     return new opt::Class2::_<opt::Class2::fact::T>();
 }
@@ -63,9 +63,9 @@ class Class3<T extends core::String = core::String> extends core::Object /*hasCo
     : super core::Object::•()
     ;
   static factory redirect<T extends core::String = core::String>() → opt::Class3<opt::Class3::redirect::T>
-    let<BottomType> #redirecting_factory = opt::Class3::_ in let opt::Class3::redirect::T #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class3::_ in let opt::Class3::redirect::T #typeArg0 = null in invalid-expression;
   static factory constRedirect<T extends core::String = core::String>() → opt::Class3<opt::Class3::constRedirect::T>
-    let<BottomType> #redirecting_factory = opt::Class3::_ in let opt::Class3::constRedirect::T #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class3::_ in let opt::Class3::constRedirect::T #typeArg0 = null in invalid-expression;
   static factory fact<T extends core::String = core::String>() → opt::Class3<opt::Class3::fact::T>
     return new opt::Class3::_<opt::Class3::fact::T>();
 }
@@ -75,9 +75,9 @@ class Class4<T extends core::Object? = dynamic> extends core::Object /*hasConstC
     : super core::Object::•()
     ;
   static factory redirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::redirect::T%>
-    let<BottomType> #redirecting_factory = opt::Class4::_ in let opt::Class4::redirect::T% #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class4::_ in let opt::Class4::redirect::T% #typeArg0 = null in invalid-expression;
   static factory constRedirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::constRedirect::T%>
-    let<BottomType> #redirecting_factory = opt::Class4::_ in let opt::Class4::constRedirect::T% #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class4::_ in let opt::Class4::constRedirect::T% #typeArg0 = null in invalid-expression;
   static factory fact<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::fact::T%>
     return new opt::Class4::_<opt::Class4::fact::T%>();
 }
@@ -87,9 +87,9 @@ class Class5<T extends dynamic = dynamic> extends core::Object /*hasConstConstru
     : super core::Object::•()
     ;
   static factory redirect<T extends dynamic = dynamic>() → opt::Class5<opt::Class5::redirect::T%>
-    let<BottomType> #redirecting_factory = opt::Class5::_ in let opt::Class5::redirect::T% #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class5::_ in let opt::Class5::redirect::T% #typeArg0 = null in invalid-expression;
   static factory constRedirect<T extends dynamic = dynamic>() → opt::Class5<opt::Class5::constRedirect::T%>
-    let<BottomType> #redirecting_factory = opt::Class5::_ in let opt::Class5::constRedirect::T% #typeArg0 = null in invalid-expression;
+    let Never #redirecting_factory = opt::Class5::_ in let opt::Class5::constRedirect::T% #typeArg0 = null in invalid-expression;
   static factory fact<T extends dynamic = dynamic>() → opt::Class5<opt::Class5::fact::T%>
     return new opt::Class5::_<opt::Class5::fact::T%>();
 }

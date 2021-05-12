@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/commands/fix_all_of_error_code_in_file.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.dart';
@@ -25,8 +26,6 @@ class ExecuteCommandHandler
           Commands.organizeImports: OrganizeImportsCommandHandler(server),
           Commands.performRefactor: PerformRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
-          Commands.fixAllOfErrorCodeInFile:
-              FixAllOfErrorCodeInFileCommandHandler(server),
         },
         super(server);
 
@@ -48,7 +47,7 @@ class ExecuteCommandHandler
 
     final progress = params.workDoneToken != null
         ? ProgressReporter.clientProvided(server, params.workDoneToken)
-        : server.clientCapabilities.window?.workDoneProgress == true
+        : server.clientCapabilities.workDoneProgress
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
     return handler.handle(params.arguments, progress, cancellationToken);

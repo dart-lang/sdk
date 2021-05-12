@@ -436,6 +436,19 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
         if (!arguments.IsNull()) {
           type_arg = arguments.TypeAt(i);
           // The parsed type_arg may or may not be finalized.
+          if (type_arg.IsTypeRef()) {
+            // Dereferencing the TypeRef 'rotates' the cycle in the recursive
+            // type argument, so that the top level type arguments of the type
+            // do not start with a TypeRef, for better readability and possibly
+            // fewer later dereferences in various type traversal routines.
+            // This rotation is not required for correctness.
+            // The cycle containing TypeRefs always involves type arguments of
+            // the super class in the flatten argument vector, so it is safe to
+            // remove TypeRefs from type arguments corresponding to the type
+            // parameters of the type class.
+            // Such TypeRefs may appear after instantiation of types at runtime.
+            type_arg = TypeRef::Cast(type_arg).type();
+          }
         }
         full_arguments.SetTypeAt(offset + i, type_arg);
       }
@@ -1309,12 +1322,11 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 void ClassFinalizer::SortClasses() {
   auto T = Thread::Current();
   auto Z = T->zone();
-  auto I = T->isolate();
   auto IG = T->isolate_group();
 
   // Prevent background compiler from adding deferred classes or canonicalizing
   // new types while classes are being sorted and type hashes are modified.
-  BackgroundCompiler::Stop(I);
+  NoBackgroundCompilerScope no_bg_compiler(T);
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
 
   ClassTable* table = IG->class_table();
@@ -1384,11 +1396,11 @@ void ClassFinalizer::SortClasses() {
   ASSERT(next_new_cid == num_cids);
   RemapClassIds(old_to_new_cid.get());
   RehashTypes();         // Types use cid's as part of their hashes.
-  I->RehashConstants();  // Const objects use cid's as part of their hashes.
+  IG->RehashConstants();  // Const objects use cid's as part of their hashes.
 
   // Ensure any newly spawned isolate will apply this permutation map right
   // after kernel loading.
-  I->group()->source()->cid_permutation_map = std::move(old_to_new_cid);
+  IG->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
@@ -1420,10 +1432,10 @@ class CidRewriteVisitor : public ObjectVisitor {
           Map(param->untag()->parameterized_class_id_);
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
-      ObjectPtr id = type->untag()->type_class_id_;
+      ObjectPtr id = type->untag()->type_class_id();
       if (!id->IsHeapObject()) {
-        type->untag()->type_class_id_ =
-            Smi::New(Map(Smi::Value(Smi::RawCast(id))));
+        type->untag()->set_type_class_id(
+            Smi::New(Map(Smi::Value(Smi::RawCast(id)))));
       }
     } else {
       intptr_t old_cid = obj->GetClassId();
@@ -1452,11 +1464,8 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     HeapIterationScope his(T);
 
     IG->shared_class_table()->Remap(old_to_new_cid);
-    IG->ForEachIsolate(
-        [&](Isolate* I) {
-          I->set_remapping_cids(true);
-        },
-        /*is_at_safepoint=*/true);
+    IG->set_remapping_cids(true);
+
     // Update the class table. Do it before rewriting cids in headers, as
     // the heap walkers load an object's size *after* calling the visitor.
     IG->class_table()->Remap(old_to_new_cid);
@@ -1468,11 +1477,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
       IG->heap()->VisitObjects(&visitor);
     }
 
-    IG->ForEachIsolate(
-        [&](Isolate* I) {
-          I->set_remapping_cids(false);
-        },
-        /*is_at_safepoint=*/true);
+    IG->set_remapping_cids(false);
 #if defined(DEBUG)
     IG->class_table()->Validate();
 #endif
@@ -1558,7 +1563,6 @@ class ClearTypeHashVisitor : public ObjectVisitor {
 void ClassFinalizer::RehashTypes() {
   auto T = Thread::Current();
   auto Z = T->zone();
-  auto I = T->isolate();
   auto IG = T->isolate_group();
 
   // Clear all cached hash values.
@@ -1642,7 +1646,7 @@ void ClassFinalizer::RehashTypes() {
 
   // The canonical constant tables use canonical hashcodes which can change
   // due to cid-renumbering.
-  I->RehashConstants();
+  IG->RehashConstants();
 
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
   CanonicalTypeArgumentsSet typeargs_table(

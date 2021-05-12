@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -22,7 +21,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 class AbstractContextTest with ResourceProviderMixin {
   OverlayResourceProvider overlayResourceProvider;
 
-  AnalysisContextCollection _analysisContextCollection;
+  AnalysisContextCollectionImpl _analysisContextCollection;
   AnalysisDriver _driver;
 
   final Set<String> knownPackages = {};
@@ -109,20 +108,14 @@ export 'package:test_core/test_core.dart';
   /// given [path], or throw [StateError] if the [path] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisContext getContext(String path) {
-    if (_analysisContextCollection == null) {
-      _createAnalysisContexts();
-    }
-    path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _getContext(path);
   }
 
   /// Return the existing analysis driver that should be used to analyze the
   /// given [path], or throw [StateError] if the [path] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver getDriver(String path) {
-    DriverBasedAnalysisContext context =
-        getContext(path) as DriverBasedAnalysisContext;
-    return context.driver;
+    return _getContext(path).driver;
   }
 
   LineInfo getLineInfo(String path) => session.getFile(path).lineInfo;
@@ -188,5 +181,16 @@ environment:
     );
 
     _driver = getDriver(convertPath(testsPath));
+  }
+
+  /// Return the existing analysis context that should be used to analyze the
+  /// given [path], or throw [StateError] if the [path] is not analyzed in any
+  /// of the created analysis contexts.
+  DriverBasedAnalysisContext _getContext(String path) {
+    if (_analysisContextCollection == null) {
+      _createAnalysisContexts();
+    }
+    path = convertPath(path);
+    return _analysisContextCollection.contextFor(path);
   }
 }

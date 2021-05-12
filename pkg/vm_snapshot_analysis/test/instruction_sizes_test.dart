@@ -24,9 +24,9 @@ class K {
 @pragma('vm:never-inline')
 dynamic makeSomeClosures() {
   return [
-    () => const K(0),
-    () => const K(1),
-    () => 11,
+    () => [const K(0)],
+    () => [const K(1)],
+    () => [11],
   ];
 }
 
@@ -50,6 +50,12 @@ class C {
   }
 }
 
+class D {
+  static dynamic tornOff() sync* {
+    yield const K(5);
+  }
+}
+
 @pragma('vm:never-inline')
 Function tearOff(dynamic o) {
   return o.tornOff;
@@ -61,6 +67,7 @@ void main(List<String> args) {
   }
   print(tearOff(args.isEmpty ? A() : B()));
   print(C.tornOff);
+  print(D.tornOff);
 }
 """
 };
@@ -77,10 +84,10 @@ class K {
 @pragma('vm:never-inline')
 dynamic makeSomeClosures() {
   return [
-    () => const K(0),
-    () => const K(1),
-    () => 11,
-    () => {},  // modified
+    () => [const K(0)],
+    () => [const K(1)],
+    () => [11],
+    () => [const K(2)],  // modified
   ];
 }
 
@@ -107,6 +114,12 @@ class C {
   }
 }
 
+class D {
+  static dynamic tornOff() sync* {
+    yield const K(5);
+  }
+}
+
 @pragma('vm:never-inline')
 Function tearOff(dynamic o) {
   return o.tornOff;
@@ -116,6 +129,7 @@ void main(List<String> args) {
   // modified
   print(tearOff(args.isEmpty ? A() : B()));
   print(C.tornOff);
+  print(D.tornOff);
 }
 """
 };
@@ -130,7 +144,7 @@ class K {
 @pragma('vm:never-inline')
 dynamic makeSomeClosures() {
   return [
-    () => const K(0),
+    () => [const K(0)],
   ];
 }
 
@@ -154,6 +168,12 @@ class C {
   }
 }
 
+class D {
+  static dynamic tornOff() sync* {
+    yield const K(5);
+  }
+}
+
 @pragma('vm:never-inline')
 Function tearOff(dynamic o) {
   return o.tornOff;
@@ -165,6 +185,7 @@ void main(List<String> args) {
   }
   print(tearOff(args.isEmpty ? A() : B()));
   print(C.tornOff);
+  print(D.tornOff);
 }
 """
 };
@@ -202,10 +223,24 @@ void main() async {
     // If we are not running from the prebuilt SDK then this test does nothing.
     return;
   }
+  group('no-size-impact', () {
+    for (var flag in [printInstructionSizesFlag, writeV8ProfileFlag]) {
+      test(flag, () async {
+        await withFlagImpl(testSource, null, (baseline) async {
+          await withFlagImpl(testSource, flag, (snapshotWithFlag) async {
+            final sizeBaseline = File(baseline.outputBinary).statSync().size;
+            final sizeWithFlag =
+                File(snapshotWithFlag.outputBinary).statSync().size;
+            expect(sizeWithFlag - sizeBaseline, equals(0));
+          });
+        });
+      });
+    }
+  });
 
   group('instruction-sizes', () {
     test('basic-parsing', () async {
-      await withSymbolSizes('basic-parsing', testSource, (sizesJson) async {
+      await withSymbolSizes(testSource, (sizesJson) async {
         final json = await loadJson(File(sizesJson));
         final symbols = instruction_sizes.fromJson(json);
         expect(symbols, isNotNull,
@@ -271,6 +306,10 @@ void main() async {
         // with {body}.
         expect(inputDartSymbolNames['C'], contains('[tear-off] tornOff'));
 
+        // Presence of sync* modifier should not cause tear-off name to end
+        // with {body}.
+        expect(inputDartSymbolNames['D'], contains('[tear-off] tornOff'));
+
         // Check that output does not contain '[unknown stub]'
         expect(symbolRawNames[''][''], isNot(contains('[unknown stub]')),
             reason: 'All stubs must be named');
@@ -278,8 +317,7 @@ void main() async {
     });
 
     test('program-info-from-sizes', () async {
-      await withSymbolSizes('program-info-from-sizes', testSource,
-          (sizesJson) async {
+      await withSymbolSizes(testSource, (sizesJson) async {
         final json = await loadJson(File(sizesJson));
         final info = loadProgramInfoFromJson(json);
         expect(info.root.children, contains('dart:core'));
@@ -293,6 +331,7 @@ void main() async {
         expect(inputLib.children, contains('A'));
         expect(inputLib.children, contains('B'));
         expect(inputLib.children, contains('C'));
+        expect(inputLib.children, contains('D'));
 
         final topLevel = inputLib.children[''];
         expect(topLevel.children, contains('makeSomeClosures'));
@@ -323,11 +362,21 @@ void main() async {
           expect(inputLib.children['C'].children, contains(name));
           expect(inputLib.children['C'].children[name].children, isEmpty);
         }
+
+        for (var name in [
+          'tornOff{body}',
+          'tornOff{body depth 2}',
+          'tornOff',
+          '[tear-off] tornOff'
+        ]) {
+          expect(inputLib.children['D'].children, contains(name));
+          expect(inputLib.children['D'].children[name].children, isEmpty);
+        }
       });
     });
 
     test('histograms', () async {
-      await withSymbolSizes('histograms', testSource, (sizesJson) async {
+      await withSymbolSizes(testSource, (sizesJson) async {
         final json = await loadJson(File(sizesJson));
         final info = loadProgramInfoFromJson(json);
         final bySymbol = computeHistogram(info, HistogramType.bySymbol);
@@ -343,6 +392,10 @@ void main() async {
             bySymbol.buckets,
             contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'C', 'tornOff')));
+        expect(
+            bySymbol.buckets,
+            contains(bySymbol.bucketFor(
+                'package:input', 'package:input/input.dart', 'D', 'tornOff')));
 
         final byClass = computeHistogram(info, HistogramType.byClass);
         expect(
@@ -357,6 +410,10 @@ void main() async {
             byClass.buckets,
             contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'C', 'does-not-matter')));
+        expect(
+            byClass.buckets,
+            contains(byClass.bucketFor('package:input',
+                'package:input/input.dart', 'D', 'does-not-matter')));
 
         final byLibrary = computeHistogram(info, HistogramType.byLibrary);
         expect(
@@ -379,9 +436,8 @@ void main() async {
     });
 
     test('diff', () async {
-      await withSymbolSizes('diff-1', testSource, (sizesJson) async {
-        await withSymbolSizes('diff-2', testSourceModified,
-            (modifiedSizesJson) async {
+      await withSymbolSizes(testSource, (sizesJson) async {
+        await withSymbolSizes(testSourceModified, (modifiedSizesJson) async {
           final infoJson = await loadJson(File(sizesJson));
           final info = loadProgramInfoFromJson(infoJson);
           final modifiedJson = await loadJson(File(modifiedSizesJson));
@@ -401,7 +457,7 @@ void main() async {
                       'makeSomeClosures': {
                         '#type': 'function',
                         '#size': greaterThan(0), // We added code here.
-                        '<anonymous closure @180>': {
+                        '<anonymous closure @186>': {
                           '#type': 'function',
                           '#size': greaterThan(0),
                         },
@@ -426,9 +482,8 @@ void main() async {
     });
 
     test('diff-collapsed', () async {
-      await withSymbolSizes('diff-collapsed-1', testSource, (sizesJson) async {
-        await withSymbolSizes('diff-collapsed-2', testSourceModified2,
-            (modifiedSizesJson) async {
+      await withSymbolSizes(testSource, (sizesJson) async {
+        await withSymbolSizes(testSourceModified2, (modifiedSizesJson) async {
           final json = await loadJson(File(sizesJson));
           final info =
               loadProgramInfoFromJson(json, collapseAnonymousClosures: true);
@@ -436,11 +491,17 @@ void main() async {
           final modifiedInfo = loadProgramInfoFromJson(modifiedJson,
               collapseAnonymousClosures: true);
           final diff = computeDiff(info, modifiedInfo);
-
           expect(
               diffToJson(diff),
               equals({
                 '#type': 'library',
+                '@stubs': {
+                  '#type': 'library',
+                  'Type Test Type: int*': {
+                    '#type': 'function',
+                    '#size': lessThan(0),
+                  },
+                },
                 'package:input': {
                   '#type': 'package',
                   'package:input/input.dart': {
@@ -466,8 +527,7 @@ void main() async {
 
   group('v8-profile', () {
     test('program-info-from-profile', () async {
-      await withV8Profile('program-info-from-profile', testSource,
-          (profileJson) async {
+      await withV8Profile(testSource, (profileJson) async {
         final infoJson = await loadJson(File(profileJson));
         final info = loadProgramInfoFromJson(infoJson);
         expect(info.root.children, contains('dart:core'));
@@ -522,11 +582,60 @@ void main() async {
             .where((n) => n.type == 'Class')
             .map((n) => n.name);
         expect(classesOwnedByC, equals(['C']));
+
+        final classD = inputLib.children['D'];
+        expect(classD.children, contains('tornOff'));
+        for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
+          expect(classD.children['tornOff'].children, contains(name));
+        }
+        expect(classD.children['tornOff'].children['tornOff{body}'].children,
+            contains('tornOff{body depth 2}'));
+
+        // Verify that [ProgramInfoNode] owns its corresponding snapshot [Node].
+        final classesOwnedByD = info.snapshotInfo.snapshot.nodes
+            .where((n) => info.snapshotInfo.ownerOf(n) == classD)
+            .where((n) => n.type == 'Class')
+            .map((n) => n.name);
+        expect(classesOwnedByD, equals(['D']));
+      });
+    });
+
+    // This test verifies that we are able to attribute instructions to the
+    // function they originated from.
+    test('instruction ownership is preserved', () async {
+      await withV8Profile(testSource, (profileJson) async {
+        await withSymbolSizes(testSource, (sizesJson) async {
+          final fromProfile =
+              loadProgramInfoFromJson(await loadJson(File(profileJson)));
+          final fromSymbolSizes = loadProgramInfoFromJson(
+              await loadJson(File(sizesJson)),
+              collapseAnonymousClosures: true);
+          final functionNode = fromProfile.lookup([
+            'package:input',
+            'package:input/input.dart',
+            '::',
+            'makeSomeClosures'
+          ]);
+          final codeNode = fromProfile.snapshotInfo.snapshot.nodes.firstWhere(
+              (n) =>
+                  n.type == 'Code' &&
+                  fromProfile.snapshotInfo.ownerOf(n) == functionNode &&
+                  n.name.contains('makeSomeClosures'));
+          expect(codeNode['<instructions>'], isNotNull);
+          final instructionsSize = codeNode['<instructions>'].selfSize;
+          final symbolSize = fromSymbolSizes.lookup([
+            'package:input',
+            'package:input/input.dart',
+            '',
+            'makeSomeClosures'
+          ]).size;
+          expect(instructionsSize - symbolSize, equals(0));
+        });
       });
     });
 
     test('histograms', () async {
-      await withV8Profile('histograms', testSource, (sizesJson) async {
+      await withV8Profile(testSource, (sizesJson) async {
         final infoJson = await loadJson(File(sizesJson));
         final info = loadProgramInfoFromJson(infoJson);
         final bySymbol = computeHistogram(info, HistogramType.bySymbol);
@@ -542,6 +651,10 @@ void main() async {
             bySymbol.buckets,
             contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'C', 'tornOff')));
+        expect(
+            bySymbol.buckets,
+            contains(bySymbol.bucketFor(
+                'package:input', 'package:input/input.dart', 'D', 'tornOff')));
 
         final byClass = computeHistogram(info, HistogramType.byClass);
         expect(
@@ -556,6 +669,10 @@ void main() async {
             byClass.buckets,
             contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'C', 'does-not-matter')));
+        expect(
+            byClass.buckets,
+            contains(byClass.bucketFor('package:input',
+                'package:input/input.dart', 'D', 'does-not-matter')));
 
         final byLibrary = computeHistogram(info, HistogramType.byLibrary);
         expect(
@@ -578,9 +695,8 @@ void main() async {
     });
 
     test('diff', () async {
-      await withV8Profile('diff-1', testSource, (profileJson) async {
-        await withV8Profile('diff-2', testSourceModified,
-            (modifiedProfileJson) async {
+      await withV8Profile(testSource, (profileJson) async {
+        await withV8Profile(testSourceModified, (modifiedProfileJson) async {
           final infoJson = await loadJson(File(profileJson));
           final info = loadProgramInfoFromJson(infoJson);
           final modifiedJson = await loadJson(File(modifiedProfileJson));
@@ -599,7 +715,7 @@ void main() async {
                       'makeSomeClosures': {
                         '#type': 'function',
                         '#size': greaterThan(0),
-                        '<anonymous closure @180>': {
+                        '<anonymous closure @186>': {
                           '#type': 'function',
                           '#size': greaterThan(0),
                         },
@@ -624,9 +740,8 @@ void main() async {
     });
 
     test('diff-collapsed', () async {
-      await withV8Profile('diff-collapsed-1', testSource, (profileJson) async {
-        await withV8Profile('diff-collapsed-2', testSourceModified2,
-            (modifiedProfileJson) async {
+      await withV8Profile(testSource, (profileJson) async {
+        await withV8Profile(testSourceModified2, (modifiedProfileJson) async {
           final infoJson = await loadJson(File(profileJson));
           final info = loadProgramInfoFromJson(infoJson,
               collapseAnonymousClosures: true);
@@ -646,7 +761,6 @@ void main() async {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
-                        '#size': lessThan(0),
                         '<anonymous closure>': {
                           '#type': 'function',
                           '#size': lessThan(0),
@@ -661,7 +775,7 @@ void main() async {
     });
 
     test('treemap', () async {
-      await withV8Profile('treemap', testSource, (profileJson) async {
+      await withV8Profile(testSource, (profileJson) async {
         final infoJson = await loadJson(File(profileJson));
         final info = await loadProgramInfoFromJson(infoJson,
             collapseAnonymousClosures: true);
@@ -695,8 +809,7 @@ void main() async {
     });
 
     test('dominators', () async {
-      await withV8Profile('dominators', chainOfStaticCalls,
-          (profileJson) async {
+      await withV8Profile(chainOfStaticCalls, (profileJson) async {
         // Note: computing dominators also verifies that we don't have
         // unreachable nodes in the snapshot.
         final infoJson = await loadJson(File(profileJson));
@@ -709,13 +822,17 @@ void main() async {
   });
 }
 
-Future withSymbolSizes(String prefix, Map<String, String> source,
-        Future Function(String sizesJson) f) =>
-    withFlag(prefix, source, '--print_instructions_sizes_to', f);
+final printInstructionSizesFlag = '--print_instructions_sizes_to';
 
-Future withV8Profile(String prefix, Map<String, String> source,
-        Future Function(String sizesJson) f) =>
-    withFlag(prefix, source, '--write_v8_snapshot_profile_to', f);
+Future withSymbolSizes(
+        Map<String, String> source, Future Function(String sizesJson) f) =>
+    withFlag(source, printInstructionSizesFlag, f);
+
+final writeV8ProfileFlag = '--write_v8_snapshot_profile_to';
+
+Future withV8Profile(
+        Map<String, String> source, Future Function(String sizesJson) f) =>
+    withFlag(source, writeV8ProfileFlag, f);
 
 // On Windows there is some issue with interpreting entry point URI as a package URI
 // it instead gets interpreted as a file URI - which breaks comparison. So we

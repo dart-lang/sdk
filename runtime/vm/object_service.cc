@@ -7,6 +7,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/debugger.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stub_code.h"
@@ -99,7 +100,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", false);
-  jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate->group()));
+  jsobj.AddProperty("traceAllocations", TraceAllocation(isolate->group()));
 
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
@@ -998,6 +999,12 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
   AddCommonObjectProperties(jsobj, "Instance", ref);
+  {
+    NoSafepointScope safepoint_scope;
+    uint32_t hash_code = HeapSnapshotWriter::GetHeapSnapshotIdentityHash(
+        Thread::Current(), ptr());
+    jsobj->AddProperty64("identityHashCode", hash_code);
+  }
   if (ref) {
     return;
   }

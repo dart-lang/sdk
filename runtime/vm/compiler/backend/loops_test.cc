@@ -68,9 +68,13 @@ static const char* ComputeInduction(Thread* thread, const char* script_chars) {
   Invoke(root_library, "main");
 
   std::initializer_list<CompilerPass::Id> passes = {
-      CompilerPass::kComputeSSA,      CompilerPass::kTypePropagation,
-      CompilerPass::kApplyICData,     CompilerPass::kSelectRepresentations,
-      CompilerPass::kTypePropagation, CompilerPass::kCanonicalize,
+      CompilerPass::kComputeSSA,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kCanonicalize,
   };
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
   TestPipeline pipeline(function, CompilerPass::kJIT);
@@ -300,7 +304,7 @@ ISOLATE_UNIT_TEST_CASE(WrapAroundAndDerived) {
   const char* expected =
       "  [0\n"
       "  WRAP(99, LIN(0 + 1 * i))\n"    // phi (w)
-      "  LIN(0 + 1 * i) 100\n"          // phi
+      "  LIN(0 + 1 * i) 100\n"          // phi (i)
       "  WRAP(102, LIN(3 + 1 * i))\n"   // a
       "  WRAP(94, LIN(-5 + 1 * i))\n"   // b
       "  WRAP(693, LIN(0 + 7 * i))\n"   // c
@@ -383,11 +387,15 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionUpWrap) {
   const char* expected =
       "  [0\n"
       "  LIN(9223372036854775806 + 1 * i)\n"  // phi
+#if !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(9223372036854775806 + 1 * i)\n"  // (un)boxing
       "  LIN(9223372036854775806 + 1 * i)\n"
       "  LIN(9223372036854775806 + 1 * i)\n"
+#endif                                        // !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(9223372036854775807 + 1 * i)\n"  // add
+#if !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(9223372036854775807 + 1 * i)\n"  // unbox
+#endif                                        // !defined(TARGET_ARCH_IS_64_BIT)
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
@@ -426,11 +434,15 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionDownWrap) {
   const char* expected =
       "  [0\n"
       "  LIN(-9223372036854775807 + -1 * i)\n"  // phi
+#if !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(-9223372036854775807 + -1 * i)\n"  // (un)boxing
       "  LIN(-9223372036854775807 + -1 * i)\n"
       "  LIN(-9223372036854775807 + -1 * i)\n"
+#endif  // !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(-9223372036854775808 + -1 * i)\n"  // sub
+#if !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(-9223372036854775808 + -1 * i)\n"  // unbox
+#endif  // !defined(TARGET_ARCH_IS_64_BIT)
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }

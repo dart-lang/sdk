@@ -9,11 +9,10 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:test/test.dart';
@@ -23,18 +22,16 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
-  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-    return runTests<String>(dataDir,
-        args: args,
-        createUriForFileName: createUriForFileName,
-        onFailure: onFailure,
-        runTest:
-            runTestFor(const _NullabilityDataComputer(), [analyzerNnbdConfig]));
-  });
+  return runTests<String>(dataDir,
+      args: args,
+      createUriForFileName: createUriForFileName,
+      onFailure: onFailure,
+      runTest:
+          runTestFor(const _NullabilityDataComputer(), [analyzerNnbdConfig]));
 }
 
 class FlowTestBase {
-  FlowAnalysisDataForTesting flowResult;
+  late final FlowAnalysisDataForTesting flowResult;
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
@@ -59,8 +56,9 @@ class _NullabilityDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    _NullabilityDataExtractor(unit.declaredElement.source.uri, actualMap,
-            unit.declaredElement.library.typeSystem)
+    var unitElement = unit.declaredElement!;
+    _NullabilityDataExtractor(
+            unitElement.source.uri, actualMap, unitElement.library.typeSystem)
         .run(unit);
   }
 }
@@ -73,15 +71,15 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
       : super(uri, actualMap);
 
   @override
-  String computeNodeValue(Id id, AstNode node) {
+  String? computeNodeValue(Id id, AstNode node) {
     if (node is SimpleIdentifier &&
         node.inGetterContext() &&
         !node.inDeclarationContext()) {
       var element = node.staticElement;
       if (element is LocalVariableElement || element is ParameterElement) {
-        TypeImpl promotedType = _readType(node);
-        TypeImpl declaredType = (element as VariableElement).type;
-        var isPromoted = promotedType != null && promotedType != declaredType;
+        var promotedType = _readType(node);
+        var declaredType = (element as VariableElement).type;
+        var isPromoted = promotedType != declaredType;
         if (isPromoted &&
             _typeSystem.isPotentiallyNullable(declaredType) &&
             !_typeSystem.isPotentiallyNullable(promotedType)) {
@@ -95,13 +93,13 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
   static DartType _readType(SimpleIdentifier node) {
     var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
-      return parent.readType;
+      return parent.readType!;
     } else if (parent is PostfixExpression) {
-      return parent.readType;
+      return parent.readType ?? node.typeOrThrow;
     } else if (parent is PrefixExpression) {
-      return parent.readType;
+      return parent.readType ?? node.typeOrThrow;
     } else {
-      return node.staticType;
+      return node.typeOrThrow;
     }
   }
 }
@@ -110,10 +108,10 @@ class _NullabilityDataInterpreter implements DataInterpreter<String> {
   const _NullabilityDataInterpreter();
 
   @override
-  String getText(String actualData, [String indentation]) => actualData;
+  String getText(String actualData, [String? indentation]) => actualData;
 
   @override
-  String isAsExpected(String actualData, String expectedData) {
+  String? isAsExpected(String actualData, String? expectedData) {
     if (actualData == expectedData) {
       return null;
     } else {

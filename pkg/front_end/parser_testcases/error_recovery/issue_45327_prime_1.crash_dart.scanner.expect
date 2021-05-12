@@ -1,0 +1,13 @@
+class Foo<T> {
+foo(Object? key) {
+if (key is! T or
+)}
+}
+
+
+[UnmatchedToken]class[KeywordToken] Foo[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]
+foo[StringToken]([BeginToken]Object[StringToken]?[SimpleToken] key[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]key[StringToken] is[KeywordToken]![SimpleToken] T[StringToken] or[StringToken]
+)[SyntheticToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

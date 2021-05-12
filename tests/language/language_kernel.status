@@ -200,7 +200,6 @@ nnbd/static_errors/use_nnbd_sdk_test/06: Skip # Issue 39813
 nnbd/syntax/class_member_declarations_test/none: Skip # Issue 39823
 nnbd/syntax/nullable_type_test: Skip # Issue 39820
 nnbd/syntax/opt_out_nnbd_modifiers_test: Skip # Issue 37957
-nnbd/syntax/pre_nnbd_modifiers_test: Skip # Issue 37957
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic/function_dcall_test/01: SkipByDesign # Prints type names
@@ -209,14 +208,12 @@ mixin/mixin3_test: SkipByDesign # Prints type names
 mixin/mixin5_test: SkipByDesign # Prints type names
 mixin/mixin6_test: SkipByDesign # Prints type names
 mixin/mixin_bound2_test: SkipByDesign # Prints type names
-type_object/literal_test: SkipByDesign # Uses lots of strings with type names in them
 unsorted/many_named_arguments_test: SkipByDesign # Checks names of arguments
 unsorted/symbol_literal_test/02: SkipByDesign # We don't obfuscate const Symbol constructor
 vm/bool_check_stack_traces_test: SkipByDesign # Looks for filenames in stacktrace output
 vm/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
 vm/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
 vm/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated name in error message
-vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
 
 [ $compiler == dartk && $mode == debug && $hot_reload ]
 async_star/async_star2_test/01: Crash
@@ -226,7 +223,6 @@ async_star/async_star2_test/05: Crash
 enum/duplicate_test/02: Crash # Issue 34606
 enum/duplicate_test/none: Crash # Issue 34606
 enum/private_test/01: Crash # Issue 34606
-enum/test: Crash # Issue 34606
 unsorted/inference_enum_list_test: Skip # Issue 35885
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
@@ -262,36 +258,23 @@ vm/precompiled_static_initializer_test: Slow, Pass
 # ==== dartkp + dart_precompiled status lines ====
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 assert/with_type_test_or_cast_test: Crash
-closure/implicit_test: Skip # Incompatible flag: --use_slow_path
 const/const2_test: Skip # Incompatible flag: --compile_all
 const/evaluation_test: SkipByDesign
 deferred/redirecting_factory_test: Crash # Issue 23408, KernelVM bug: Deferred loading kernel issue 30273.
-enum/mirror_test: SkipByDesign
 export/ambiguous_main_test: Skip # Issue 29895 Fail Issue 14763
 export/double_same_main_test: Skip # Issue 29895 Crash Issue 29895
 field/increment_bailout_test: SkipByDesign
 generic_methods_recursive_bound_test/03: Crash
-instance/creation_in_function_annotation_test: SkipByDesign
 main/no_main_test/01: Skip
 main/not_a_function_test: Skip
 mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
 no_such_method/many_overridden_test.dart: SkipByDesign
-no_such_method/overridden_test: SkipByDesign
-no_such_method/test: SkipByDesign
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
 optimize/deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
-redirecting/factory_reflection_test: SkipByDesign
-regress/regress13462_0_test: SkipByDesign
-regress/regress13462_1_test: SkipByDesign
-regress/regress18535_test: SkipByDesign
-regress/regress21079_test: SkipByDesign
-regress/regress28255_test: SkipByDesign
 unsorted/hello_dart_test: Skip # Incompatible flag: --compile_all
 unsorted/invocation_mirror2_test: SkipByDesign
-unsorted/invocation_mirror_invoke_on2_test: SkipByDesign
-unsorted/invocation_mirror_invoke_on_test: SkipByDesign
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM

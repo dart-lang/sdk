@@ -105,14 +105,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// using `[]` or other [List] constructors.
   ///
   /// All elements of the created list share the same [fill] value.
-  /// ```
+  /// ```dart
   /// var shared = List.filled(3, []);
   /// shared[0].add(499);
   /// print(shared);  // => [[499], [499], [499]]
   /// ```
   /// You can use [List.generate] to create a list with a fixed length
   /// and a new object at each position.
-  /// ```
+  /// ```dart
   /// var unique = List.generate(3, (_) => []);
   /// unique[0].add(499);
   /// print(unique); // => [[499], [], []]
@@ -124,7 +124,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If [growable] is `false`, which is the default,
   /// the list is a fixed-length list of length zero.
   /// If [growable] is `true`, the list is growable and equivalent to `<E>[]`.
-  @Since("2.8")
+  @Since("2.9")
   external factory List.empty({bool growable = false});
 
   /// Creates a list containing all [elements].
@@ -377,14 +377,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The first time an object `o` is encountered so that `test(o)` is true,
   /// the index of `o` is returned.
   ///
-  /// ```
+  /// ```dart
   /// var notes = ['do', 're', 'mi', 're'];
   /// notes.indexWhere((note) => note.startsWith('r'));       // 1
   /// notes.indexWhere((note) => note.startsWith('r'), 2);    // 3
   /// ```
   ///
   /// Returns -1 if [element] is not found.
-  /// ```
+  /// ```dart
   /// notes.indexWhere((note) => note.startsWith('k'));    // -1
   /// ```
   int indexWhere(bool test(E element), [int start = 0]);
@@ -396,14 +396,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// the index of `o` is returned.
   /// If [start] is omitted, it defaults to the [length] of the list.
   ///
-  /// ```
+  /// ```dart
   /// var notes = ['do', 're', 'mi', 're'];
   /// notes.lastIndexWhere((note) => note.startsWith('r'));       // 3
   /// notes.lastIndexWhere((note) => note.startsWith('r'), 2);    // 1
   /// ```
   ///
   /// Returns -1 if [element] is not found.
-  /// ```
+  /// ```dart
   /// notes.lastIndexWhere((note) => note.startsWith('k'));    // -1
   /// ```
   int lastIndexWhere(bool test(E element), [int? start]);
@@ -645,7 +645,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// must be non-`null`.
   void fillRange(int start, int end, [E? fillValue]);
 
-  /// Replaces a range of elements with the elements of [replacement].
+  /// Replaces a range of elements with the elements of [replacements].
   ///
   /// Removes the objects in the range from [start] to [end],
   /// then inserts the elements of [replacements] at [start].
@@ -667,10 +667,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// but may be more efficient.
   ///
   /// The list must be growable.
-  /// This method does not work on fixed-length lists, even when [replacement]
+  /// This method does not work on fixed-length lists, even when [replacements]
   /// has the same number of elements as the replaced range. In that case use
   /// [setRange] instead.
-  void replaceRange(int start, int end, Iterable<E> replacement);
+  void replaceRange(int start, int end, Iterable<E> replacements);
 
   /// An unmodifiable [Map] view of this list.
   ///

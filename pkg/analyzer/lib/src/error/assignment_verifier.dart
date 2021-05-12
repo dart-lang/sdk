@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for verifying resolution of assignments, in form of explicit
 /// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
@@ -30,10 +29,10 @@ class AssignmentVerifier {
   /// it is not `null`, we report [CompileTimeErrorCode.UNDEFINED_SETTER]
   /// instead of a more generic [CompileTimeErrorCode.UNDEFINED_IDENTIFIER].
   void verify({
-    @required SimpleIdentifier node,
-    @required Element requested,
-    @required Element recovery,
-    @required Object receiverTypeObject,
+    required SimpleIdentifier node,
+    required Element? requested,
+    required Element? recovery,
+    required Object? receiverTypeObject,
   }) {
     if (requested != null) {
       if (requested is VariableElement) {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,7 +25,7 @@ class TransformSetManager {
   List<TransformSet> forLibrary(LibraryElement library) {
     var transformSets = <TransformSet>[];
     var analysisContext = library.session.analysisContext;
-    var workspace = analysisContext.workspace;
+    var workspace = analysisContext.contextRoot.workspace;
     var libraryPath = library.source.fullName;
     var package = workspace.findPackageFor(libraryPath);
     if (package == null) {
@@ -59,7 +61,7 @@ class TransformSetManager {
       var parser = TransformSetParser(
           ErrorReporter(
               AnalysisErrorListener.NULL_LISTENER, file.createSource()),
-          file.parent.parent.shortName);
+          file.parent2.parent2.shortName);
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

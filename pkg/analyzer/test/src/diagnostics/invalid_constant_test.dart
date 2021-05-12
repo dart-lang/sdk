@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidConstantTest extends PubPackageResolutionTest {
+class InvalidConstantTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_in_initializer_assert_condition() async {
     await assertErrorsInCode('''
 class A {

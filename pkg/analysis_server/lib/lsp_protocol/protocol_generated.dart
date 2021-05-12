@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
-// ignore_for_file: unnecessary_brace_in_string_interps
-// ignore_for_file: unused_import
-// ignore_for_file: unused_shown_name
+// ignore_for_file: unnecessary_parenthesis
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
@@ -19,8 +17,7 @@ import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart'
-    show listEqual, mapEqual;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
@@ -463,7 +460,8 @@ class CallHierarchyIncomingCall implements ToJsonable {
     __result['from'] =
         from?.toJson() ?? (throw 'from is required but was not set');
     __result['fromRanges'] =
-        fromRanges ?? (throw 'fromRanges is required but was not set');
+        fromRanges?.map((item) => item.toJson())?.toList() ??
+            (throw 'fromRanges is required but was not set');
     return __result;
   }
 
@@ -755,7 +753,7 @@ class CallHierarchyItem implements ToJsonable {
     __result['kind'] =
         kind?.toJson() ?? (throw 'kind is required but was not set');
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags.map((item) => item.toJson()).toList();
     }
     if (detail != null) {
       __result['detail'] = detail;
@@ -1024,7 +1022,8 @@ class CallHierarchyOutgoingCall implements ToJsonable {
     var __result = <String, dynamic>{};
     __result['to'] = to?.toJson() ?? (throw 'to is required but was not set');
     __result['fromRanges'] =
-        fromRanges ?? (throw 'fromRanges is required but was not set');
+        fromRanges?.map((item) => item.toJson())?.toList() ??
+            (throw 'fromRanges is required but was not set');
     return __result;
   }
 
@@ -2637,7 +2636,8 @@ class CodeAction implements ToJsonable {
       __result['kind'] = kind.toJson();
     }
     if (diagnostics != null) {
-      __result['diagnostics'] = diagnostics;
+      __result['diagnostics'] =
+          diagnostics.map((item) => item.toJson()).toList();
     }
     if (isPreferred != null) {
       __result['isPreferred'] = isPreferred;
@@ -3026,8 +3026,8 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet?.map((item) => item.toJson())?.toList() ??
+        (throw 'valueSet is required but was not set');
     return __result;
   }
 
@@ -3281,9 +3281,10 @@ class CodeActionContext implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['diagnostics'] =
-        diagnostics ?? (throw 'diagnostics is required but was not set');
+        diagnostics?.map((item) => item.toJson())?.toList() ??
+            (throw 'diagnostics is required but was not set');
     if (only != null) {
-      __result['only'] = only;
+      __result['only'] = only.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -3532,7 +3533,8 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (codeActionKinds != null) {
-      __result['codeActionKinds'] = codeActionKinds;
+      __result['codeActionKinds'] =
+          codeActionKinds.map((item) => item.toJson()).toList();
     }
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
@@ -3853,7 +3855,8 @@ class CodeActionRegistrationOptions
     var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
     if (codeActionKinds != null) {
-      __result['codeActionKinds'] = codeActionKinds;
+      __result['codeActionKinds'] =
+          codeActionKinds.map((item) => item.toJson()).toList();
     }
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
@@ -4885,7 +4888,8 @@ class ColorPresentation implements ToJsonable {
       __result['textEdit'] = textEdit.toJson();
     }
     if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] = additionalTextEdits;
+      __result['additionalTextEdits'] =
+          additionalTextEdits.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -5512,7 +5516,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       __result['commitCharactersSupport'] = commitCharactersSupport;
     }
     if (documentationFormat != null) {
-      __result['documentationFormat'] = documentationFormat;
+      __result['documentationFormat'] =
+          documentationFormat.map((item) => item.toJson()).toList();
     }
     if (deprecatedSupport != null) {
       __result['deprecatedSupport'] = deprecatedSupport;
@@ -5707,7 +5712,7 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet;
+      __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -5780,8 +5785,8 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet?.map((item) => item.toJson())?.toList() ??
+        (throw 'valueSet is required but was not set');
     return __result;
   }
 
@@ -5938,8 +5943,8 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet?.map((item) => item.toJson())?.toList() ??
+        (throw 'valueSet is required but was not set');
     return __result;
   }
 
@@ -6144,8 +6149,17 @@ class CompletionItem implements ToJsonable {
     final insertTextMode = json['insertTextMode'] != null
         ? InsertTextMode.fromJson(json['insertTextMode'])
         : null;
-    final textEdit =
-        json['textEdit'] != null ? TextEdit.fromJson(json['textEdit']) : null;
+    final textEdit = TextEdit.canParse(json['textEdit'], nullLspJsonReporter)
+        ? Either2<TextEdit, InsertReplaceEdit>.t1(json['textEdit'] != null
+            ? TextEdit.fromJson(json['textEdit'])
+            : null)
+        : (InsertReplaceEdit.canParse(json['textEdit'], nullLspJsonReporter)
+            ? Either2<TextEdit, InsertReplaceEdit>.t2(json['textEdit'] != null
+                ? InsertReplaceEdit.fromJson(json['textEdit'])
+                : null)
+            : (json['textEdit'] == null
+                ? null
+                : (throw '''${json['textEdit']} was not one of (TextEdit, InsertReplaceEdit)''')));
     final additionalTextEdits = json['additionalTextEdits']
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
@@ -6282,7 +6296,7 @@ class CompletionItem implements ToJsonable {
   /// must be a prefix of the edit's replace range, that means it must be
   /// contained and starting at the same position.
   ///  @since 3.16.0 additional type `InsertReplaceEdit`
-  final TextEdit textEdit;
+  final Either2<TextEdit, InsertReplaceEdit> textEdit;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -6291,7 +6305,7 @@ class CompletionItem implements ToJsonable {
       __result['kind'] = kind.toJson();
     }
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags.map((item) => item.toJson()).toList();
     }
     if (detail != null) {
       __result['detail'] = detail;
@@ -6321,10 +6335,11 @@ class CompletionItem implements ToJsonable {
       __result['insertTextMode'] = insertTextMode.toJson();
     }
     if (textEdit != null) {
-      __result['textEdit'] = textEdit.toJson();
+      __result['textEdit'] = textEdit;
     }
     if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] = additionalTextEdits;
+      __result['additionalTextEdits'] =
+          additionalTextEdits.map((item) => item.toJson()).toList();
     }
     if (commitCharacters != null) {
       __result['commitCharacters'] = commitCharacters;
@@ -6468,8 +6483,10 @@ class CompletionItem implements ToJsonable {
       reporter.push('textEdit');
       try {
         if (obj['textEdit'] != null &&
-            !(TextEdit.canParse(obj['textEdit'], reporter))) {
-          reporter.reportError('must be of type TextEdit');
+            !((TextEdit.canParse(obj['textEdit'], reporter) ||
+                InsertReplaceEdit.canParse(obj['textEdit'], reporter)))) {
+          reporter.reportError(
+              'must be of type Either2<TextEdit, InsertReplaceEdit>');
           return false;
         }
       } finally {
@@ -6689,7 +6706,8 @@ class CompletionList implements ToJsonable {
     var __result = <String, dynamic>{};
     __result['isIncomplete'] =
         isIncomplete ?? (throw 'isIncomplete is required but was not set');
-    __result['items'] = items ?? (throw 'items is required but was not set');
+    __result['items'] = items?.map((item) => item.toJson())?.toList() ??
+        (throw 'items is required but was not set');
     return __result;
   }
 
@@ -7427,7 +7445,8 @@ class ConfigurationParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['items'] = items ?? (throw 'items is required but was not set');
+    __result['items'] = items?.map((item) => item.toJson())?.toList() ??
+        (throw 'items is required but was not set');
     return __result;
   }
 
@@ -7727,7 +7746,8 @@ class CreateFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['files'] = files ?? (throw 'files is required but was not set');
+    __result['files'] = files?.map((item) => item.toJson())?.toList() ??
+        (throw 'files is required but was not set');
     return __result;
   }
 
@@ -8855,7 +8875,8 @@ class DeleteFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['files'] = files ?? (throw 'files is required but was not set');
+    __result['files'] = files?.map((item) => item.toJson())?.toList() ??
+        (throw 'files is required but was not set');
     return __result;
   }
 
@@ -9016,10 +9037,11 @@ class Diagnostic implements ToJsonable {
     __result['message'] =
         message ?? (throw 'message is required but was not set');
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags.map((item) => item.toJson()).toList();
     }
     if (relatedInformation != null) {
-      __result['relatedInformation'] = relatedInformation;
+      __result['relatedInformation'] =
+          relatedInformation.map((item) => item.toJson()).toList();
     }
     if (data != null) {
       __result['data'] = data;
@@ -9511,7 +9533,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
                     item != null
                         ? TextDocumentContentChangeEvent2.fromJson(item)
                         : null)
-                : (throw '''${item} was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
+                : (throw '''$item was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
         ?.cast<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>()
         ?.toList();
     return DidChangeTextDocumentParams(
@@ -9719,8 +9741,8 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['changes'] =
-        changes ?? (throw 'changes is required but was not set');
+    __result['changes'] = changes?.map((item) => item.toJson())?.toList() ??
+        (throw 'changes is required but was not set');
     return __result;
   }
 
@@ -9799,8 +9821,8 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['watchers'] =
-        watchers ?? (throw 'watchers is required but was not set');
+    __result['watchers'] = watchers?.map((item) => item.toJson())?.toList() ??
+        (throw 'watchers is required but was not set');
     return __result;
   }
 
@@ -13029,7 +13051,7 @@ class DocumentSymbol implements ToJsonable {
     __result['kind'] =
         kind?.toJson() ?? (throw 'kind is required but was not set');
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags.map((item) => item.toJson()).toList();
     }
     if (deprecated != null) {
       __result['deprecated'] = deprecated;
@@ -13039,7 +13061,7 @@ class DocumentSymbol implements ToJsonable {
     __result['selectionRange'] = selectionRange?.toJson() ??
         (throw 'selectionRange is required but was not set');
     if (children != null) {
-      __result['children'] = children;
+      __result['children'] = children.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -13391,7 +13413,7 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet;
+      __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -13464,8 +13486,8 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet?.map((item) => item.toJson())?.toList() ??
+        (throw 'valueSet is required but was not set');
     return __result;
   }
 
@@ -14929,8 +14951,8 @@ class FileOperationRegistrationOptions implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['filters'] =
-        filters ?? (throw 'filters is required but was not set');
+    __result['filters'] = filters?.map((item) => item.toJson())?.toList() ??
+        (throw 'filters is required but was not set');
     return __result;
   }
 
@@ -16101,7 +16123,8 @@ class HoverClientCapabilities implements ToJsonable {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
     if (contentFormat != null) {
-      __result['contentFormat'] = contentFormat;
+      __result['contentFormat'] =
+          contentFormat.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -17003,7 +17026,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       __result['trace'] = trace;
     }
     if (workspaceFolders != null) {
-      __result['workspaceFolders'] = workspaceFolders;
+      __result['workspaceFolders'] =
+          workspaceFolders.map((item) => item.toJson()).toList();
     }
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -18103,7 +18127,8 @@ class LinkedEditingRanges implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['ranges'] = ranges ?? (throw 'ranges is required but was not set');
+    __result['ranges'] = ranges?.map((item) => item.toJson())?.toList() ??
+        (throw 'ranges is required but was not set');
     if (wordPattern != null) {
       __result['wordPattern'] = wordPattern;
     }
@@ -20844,8 +20869,8 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet?.map((item) => item.toJson())?.toList() ??
+        (throw 'valueSet is required but was not set');
     return __result;
   }
 
@@ -20942,7 +20967,8 @@ class PublishDiagnosticsParams implements ToJsonable {
       __result['version'] = version;
     }
     __result['diagnostics'] =
-        diagnostics ?? (throw 'diagnostics is required but was not set');
+        diagnostics?.map((item) => item.toJson())?.toList() ??
+            (throw 'diagnostics is required but was not set');
     return __result;
   }
 
@@ -21836,7 +21862,8 @@ class RegistrationParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['registrations'] =
-        registrations ?? (throw 'registrations is required but was not set');
+        registrations?.map((item) => item.toJson())?.toList() ??
+            (throw 'registrations is required but was not set');
     return __result;
   }
 
@@ -22402,7 +22429,8 @@ class RenameFilesParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['files'] = files ?? (throw 'files is required but was not set');
+    __result['files'] = files?.map((item) => item.toJson())?.toList() ??
+        (throw 'files is required but was not set');
     return __result;
   }
 
@@ -23590,8 +23618,8 @@ class SelectionRangeParams
     var __result = <String, dynamic>{};
     __result['textDocument'] = textDocument?.toJson() ??
         (throw 'textDocument is required but was not set');
-    __result['positions'] =
-        positions ?? (throw 'positions is required but was not set');
+    __result['positions'] = positions?.map((item) => item.toJson())?.toList() ??
+        (throw 'positions is required but was not set');
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -24076,8 +24104,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
         tokenTypes ?? (throw 'tokenTypes is required but was not set');
     __result['tokenModifiers'] =
         tokenModifiers ?? (throw 'tokenModifiers is required but was not set');
-    __result['formats'] =
-        formats ?? (throw 'formats is required but was not set');
+    __result['formats'] = formats?.map((item) => item.toJson())?.toList() ??
+        (throw 'formats is required but was not set');
     if (overlappingTokenSupport != null) {
       __result['overlappingTokenSupport'] = overlappingTokenSupport;
     }
@@ -24481,7 +24509,8 @@ class SemanticTokensDelta implements ToJsonable {
     if (resultId != null) {
       __result['resultId'] = resultId;
     }
-    __result['edits'] = edits ?? (throw 'edits is required but was not set');
+    __result['edits'] = edits?.map((item) => item.toJson())?.toList() ??
+        (throw 'edits is required but was not set');
     return __result;
   }
 
@@ -24732,7 +24761,8 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['edits'] = edits ?? (throw 'edits is required but was not set');
+    __result['edits'] = edits?.map((item) => item.toJson())?.toList() ??
+        (throw 'edits is required but was not set');
     return __result;
   }
 
@@ -27917,7 +27947,7 @@ class ShowMessageRequestParams implements ToJsonable {
     __result['message'] =
         message ?? (throw 'message is required but was not set');
     if (actions != null) {
-      __result['actions'] = actions;
+      __result['actions'] = actions.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -28055,7 +28085,8 @@ class SignatureHelp implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['signatures'] =
-        signatures ?? (throw 'signatures is required but was not set');
+        signatures?.map((item) => item.toJson())?.toList() ??
+            (throw 'signatures is required but was not set');
     if (activeSignature != null) {
       __result['activeSignature'] = activeSignature;
     }
@@ -28366,7 +28397,8 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (documentationFormat != null) {
-      __result['documentationFormat'] = documentationFormat;
+      __result['documentationFormat'] =
+          documentationFormat.map((item) => item.toJson()).toList();
     }
     if (parameterInformation != null) {
       __result['parameterInformation'] = parameterInformation.toJson();
@@ -29142,7 +29174,7 @@ class SignatureInformation implements ToJsonable {
       __result['documentation'] = documentation;
     }
     if (parameters != null) {
-      __result['parameters'] = parameters;
+      __result['parameters'] = parameters.map((item) => item.toJson()).toList();
     }
     if (activeParameter != null) {
       __result['activeParameter'] = activeParameter;
@@ -29408,7 +29440,7 @@ class SymbolInformation implements ToJsonable {
     __result['kind'] =
         kind?.toJson() ?? (throw 'kind is required but was not set');
     if (tags != null) {
-      __result['tags'] = tags;
+      __result['tags'] = tags.map((item) => item.toJson()).toList();
     }
     if (deprecated != null) {
       __result['deprecated'] = deprecated;
@@ -30630,14 +30662,17 @@ class TextDocumentEdit implements ToJsonable {
         ? OptionalVersionedTextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final edits = json['edits']
-        ?.map((item) => TextEdit.canParse(item, nullLspJsonReporter)
-            ? Either2<TextEdit, AnnotatedTextEdit>.t1(
-                item != null ? TextEdit.fromJson(item) : null)
+        ?.map((item) => SnippetTextEdit.canParse(item, nullLspJsonReporter)
+            ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t1(
+                item != null ? SnippetTextEdit.fromJson(item) : null)
             : (AnnotatedTextEdit.canParse(item, nullLspJsonReporter)
-                ? Either2<TextEdit, AnnotatedTextEdit>.t2(
+                ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t2(
                     item != null ? AnnotatedTextEdit.fromJson(item) : null)
-                : (throw '''${item} was not one of (TextEdit, AnnotatedTextEdit)''')))
-        ?.cast<Either2<TextEdit, AnnotatedTextEdit>>()
+                : (TextEdit.canParse(item, nullLspJsonReporter)
+                    ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(
+                        item != null ? TextEdit.fromJson(item) : null)
+                    : (throw '''$item was not one of (SnippetTextEdit, AnnotatedTextEdit, TextEdit)'''))))
+        ?.cast<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>()
         ?.toList();
     return TextDocumentEdit(textDocument: textDocument, edits: edits);
   }
@@ -30645,7 +30680,7 @@ class TextDocumentEdit implements ToJsonable {
   /// The edits to be applied.
   ///  @since 3.16.0 - support for AnnotatedTextEdit. This is guarded by the
   /// client capability `workspace.workspaceEdit.changeAnnotationSupport`
-  final List<Either2<TextEdit, AnnotatedTextEdit>> edits;
+  final List<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>> edits;
 
   /// The text document to change.
   final OptionalVersionedTextDocumentIdentifier textDocument;
@@ -30690,10 +30725,12 @@ class TextDocumentEdit implements ToJsonable {
           return false;
         }
         if (!((obj['edits'] is List &&
-            (obj['edits'].every((item) => (TextEdit.canParse(item, reporter) ||
-                AnnotatedTextEdit.canParse(item, reporter))))))) {
+            (obj['edits'].every((item) =>
+                (SnippetTextEdit.canParse(item, reporter) ||
+                    AnnotatedTextEdit.canParse(item, reporter) ||
+                    TextEdit.canParse(item, reporter))))))) {
           reporter.reportError(
-              'must be of type List<Either2<TextEdit, AnnotatedTextEdit>>');
+              'must be of type List<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>');
           return false;
         }
       } finally {
@@ -30713,8 +30750,9 @@ class TextDocumentEdit implements ToJsonable {
           listEqual(
               edits,
               other.edits,
-              (Either2<TextEdit, AnnotatedTextEdit> a,
-                      Either2<TextEdit, AnnotatedTextEdit> b) =>
+              (Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit> a,
+                      Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>
+                          b) =>
                   a == b) &&
           true;
     }
@@ -31741,6 +31779,9 @@ class TextEdit implements ToJsonable {
     if (AnnotatedTextEdit.canParse(json, nullLspJsonReporter)) {
       return AnnotatedTextEdit.fromJson(json);
     }
+    if (SnippetTextEdit.canParse(json, nullLspJsonReporter)) {
+      return SnippetTextEdit.fromJson(json);
+    }
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final newText = json['newText'];
     return TextEdit(range: range, newText: newText);
@@ -32436,8 +32477,9 @@ class UnregistrationParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['unregisterations'] = unregisterations ??
-        (throw 'unregisterations is required but was not set');
+    __result['unregisterations'] =
+        unregisterations?.map((item) => item.toJson())?.toList() ??
+            (throw 'unregisterations is required but was not set');
     return __result;
   }
 
@@ -33599,7 +33641,7 @@ class WorkspaceEdit implements ToJsonable {
                         item != null ? TextDocumentEdit.fromJson(item) : null)
                     : (CreateFile.canParse(item, nullLspJsonReporter)
                         ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
-                        : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
+                        : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''$item was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
                 ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
                 ?.toList())
             : (json['documentChanges'] == null ? null : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
@@ -33806,7 +33848,8 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       __result['documentChanges'] = documentChanges;
     }
     if (resourceOperations != null) {
-      __result['resourceOperations'] = resourceOperations;
+      __result['resourceOperations'] =
+          resourceOperations.map((item) => item.toJson()).toList();
     }
     if (failureHandling != null) {
       __result['failureHandling'] = failureHandling.toJson();
@@ -34109,9 +34152,10 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['added'] = added ?? (throw 'added is required but was not set');
-    __result['removed'] =
-        removed ?? (throw 'removed is required but was not set');
+    __result['added'] = added?.map((item) => item.toJson())?.toList() ??
+        (throw 'added is required but was not set');
+    __result['removed'] = removed?.map((item) => item.toJson())?.toList() ??
+        (throw 'removed is required but was not set');
     return __result;
   }
 
@@ -34426,7 +34470,7 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet;
+      __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -34499,8 +34543,8 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['valueSet'] =
-        valueSet ?? (throw 'valueSet is required but was not set');
+    __result['valueSet'] = valueSet?.map((item) => item.toJson())?.toList() ??
+        (throw 'valueSet is required but was not set');
     return __result;
   }
 

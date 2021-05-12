@@ -30,7 +30,7 @@ class WebServer {
   final InstrumentationLog log;
 
   /// Future that is completed with the HTTP server once it is running.
-  Future<HttpServer> _server;
+  late Future<HttpServer> _server;
 
   /// Initialize a newly created server.
   WebServer(this.log);
@@ -38,7 +38,7 @@ class WebServer {
   Map<String, String> getParameterMap(HttpRequest request) {
     Map<String, String> parameterMap = HashMap<String, String>();
     var query = request.uri.query;
-    if (query != null && query.isNotEmpty) {
+    if (query.isNotEmpty) {
       var pairs = query.split('&');
       for (var pair in pairs) {
         var parts = pair.split('=');
@@ -155,7 +155,7 @@ class WebServer {
     var groupId = parameterMap['group'];
     var startIndex = parameterMap['start'];
     var page = LogPage(log);
-    page.selectedGroup = EntryGroup.withId(groupId ?? 'nonTask');
+    page.selectedGroup = EntryGroup.withId(groupId ?? 'nonTask')!;
     if (startIndex != null) {
       page.pageStart = int.parse(startIndex);
     } else {
@@ -167,15 +167,13 @@ class WebServer {
 
   /// Write a representation of the given [stackTrace] to the given [sink].
   void _writeStackTrace(StringSink sink, StackTrace stackTrace) {
-    if (stackTrace != null) {
-      var trace = stackTrace.toString().replaceAll('#', '<br>#');
-      if (trace.startsWith('<br>#')) {
-        trace = trace.substring(4);
-      }
-      sink.write('<p>');
-      sink.write(trace);
-      sink.write('</p>');
+    var trace = stackTrace.toString().replaceAll('#', '<br>#');
+    if (trace.startsWith('<br>#')) {
+      trace = trace.substring(4);
     }
+    sink.write('<p>');
+    sink.write(trace);
+    sink.write('</p>');
   }
 
   void _writeStatsPage(HttpRequest request, StringBuffer buffer) {

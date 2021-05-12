@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
 /// Computes the "remainder" of [T] when [S] has been removed from consideration
@@ -13,7 +11,7 @@ import 'package:kernel/type_environment.dart';
 DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
   // * If T <: S then Never
   if (typeEnvironment.isSubtypeOf(T, S, SubtypeCheckMode.withNullabilities)) {
-    return const NeverType(Nullability.nonNullable);
+    return const NeverType.nonNullable();
   }
 
   // * Else if T is R? and Null <: S then factor(R, S)

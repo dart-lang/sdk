@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -71,19 +70,16 @@ class DiagnosticFactory {
   /// before it was declared.
   AnalysisError referencedBeforeDeclaration(
       Source source, Identifier identifier,
-      {Element element}) {
+      {Element? element}) {
     String name = identifier.name;
-    Element staticElement = element ?? identifier.staticElement;
-    List<DiagnosticMessage> contextMessages;
+    Element staticElement = element ?? identifier.staticElement!;
+    List<DiagnosticMessage>? contextMessages;
     int declarationOffset = staticElement.nameOffset;
-    if (declarationOffset >= 0 && staticElement != null) {
-      CompilationUnitElement unit = staticElement.thisOrAncestorOfType();
-      CharacterLocation location = unit.lineInfo.getLocation(declarationOffset);
+    if (declarationOffset >= 0) {
       contextMessages = [
         DiagnosticMessageImpl(
             filePath: source.fullName,
-            message:
-                "The declaration of '$name' is on line ${location.lineNumber}.",
+            message: "The declaration of '$name' is here.",
             offset: declarationOffset,
             length: staticElement.nameLength)
       ];

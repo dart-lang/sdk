@@ -14,8 +14,8 @@ import "dart:async";
   checkTypeBound(4),
   print(1)],
  type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,

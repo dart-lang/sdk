@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart' show DartType, Library, NeverType, Nullability;
+import 'package:kernel/ast.dart' show DartType, Library, NeverType;
 
 import 'package:kernel/src/standard_bounds.dart';
 
@@ -21,10 +21,10 @@ mixin TypeSchemaStandardBounds on StandardBounds {
     //  S2` where `Si` is the greatest closure of `Ti` with respect to `_`.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;
-    type1 = greatestClosure(type1, coreTypes.objectNullableRawType,
-        const NeverType(Nullability.nonNullable));
-    type2 = greatestClosure(type2, coreTypes.objectNullableRawType,
-        const NeverType(Nullability.nonNullable));
+    type1 = greatestClosure(
+        type1, coreTypes.objectNullableRawType, const NeverType.nonNullable());
+    type2 = greatestClosure(
+        type2, coreTypes.objectNullableRawType, const NeverType.nonNullable());
 
     return super.getNullabilityAwareStandardLowerBoundInternal(
         type1, type2, clientLibrary);
@@ -52,10 +52,10 @@ mixin TypeSchemaStandardBounds on StandardBounds {
     //  where `Si` is the least closure of `Ti` with respect to `_`.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;
-    type1 = leastClosure(type1, coreTypes.objectNullableRawType,
-        const NeverType(Nullability.nonNullable));
-    type2 = leastClosure(type2, coreTypes.objectNullableRawType,
-        const NeverType(Nullability.nonNullable));
+    type1 = leastClosure(
+        type1, coreTypes.objectNullableRawType, const NeverType.nonNullable());
+    type2 = leastClosure(
+        type2, coreTypes.objectNullableRawType, const NeverType.nonNullable());
     return super.getNullabilityAwareStandardUpperBoundInternal(
         type1, type2, clientLibrary);
   }

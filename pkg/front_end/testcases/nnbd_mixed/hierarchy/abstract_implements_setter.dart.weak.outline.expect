@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    ;
+  set implementedConcreteSetter(core::int value) → void
+    ;
+  abstract set implementedAbstractSetter(core::int value) → void;
+  set declaredConcreteImplementsConcreteSetter(core::int value) → void
+    ;
+  set declaredAbstractImplementsConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredConcreteImplementsAbstractSetter(core::int value) → void;
+  abstract set declaredAbstractImplementsAbstractSetter(core::int value) → void;
+}
+abstract class AbstractClass extends core::Object implements self::Interface {
+  synthetic constructor •() → self::AbstractClass
+    ;
+  set declaredConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractSetter(core::int value) → void;
+  set declaredConcreteImplementsConcreteSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractImplementsConcreteSetter(core::int value) → void;
+  set declaredConcreteImplementsAbstractSetter(core::int value) → void
+    ;
+  abstract set declaredAbstractImplementsAbstractSetter(core::int value) → void;
+}
+static method main() → dynamic
+  ;

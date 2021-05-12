@@ -49,7 +49,8 @@ abstract class SerializationStrategy<T> {
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
-      List<T> data);
+      List<T> closedWorldData,
+      List<T> globalTypeInferenceResultsData);
 
   List<T> serializeClosedWorld(JsClosedWorld closedWorld);
 
@@ -83,10 +84,28 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
-      List<int> data) {
-    DataSource source = new BinarySourceImpl(data, useDataKinds: useDataKinds);
-    return deserializeGlobalTypeInferenceResultsFromSource(options, reporter,
-        environment, abstractValueStrategy, component, source);
+      List<int> closedWorldData,
+      List<int> globalTypeInferenceResultsData) {
+    DataSource closedWorldSource =
+        BinarySourceImpl(closedWorldData, useDataKinds: useDataKinds);
+    DataSource globalTypeInferenceResultsSource = BinarySourceImpl(
+        globalTypeInferenceResultsData,
+        useDataKinds: useDataKinds);
+    JsClosedWorld closedWorld = deserializeClosedWorldFromSource(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorldSource);
+    return deserializeGlobalTypeInferenceResultsFromSource(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorld,
+        globalTypeInferenceResultsSource);
   }
 
   @override
@@ -134,10 +153,28 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
-      List<int> data) {
-    DataSource source = new BinarySourceImpl(data, useDataKinds: useDataKinds);
-    return deserializeGlobalTypeInferenceResultsFromSource(options, reporter,
-        environment, abstractValueStrategy, component, source);
+      List<int> closedWorldData,
+      List<int> globalTypeInferenceResultsData) {
+    DataSource closedWorldSource =
+        BinarySourceImpl(closedWorldData, useDataKinds: useDataKinds);
+    DataSource globalTypeInferenceResultsSource = BinarySourceImpl(
+        globalTypeInferenceResultsData,
+        useDataKinds: useDataKinds);
+    JsClosedWorld closedWorld = deserializeClosedWorldFromSource(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorldSource);
+    return deserializeGlobalTypeInferenceResultsFromSource(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorld,
+        globalTypeInferenceResultsSource);
   }
 
   @override
@@ -186,10 +223,28 @@ class ObjectsInMemorySerializationStrategy
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
-      List<Object> data) {
-    DataSource source = new ObjectSource(data, useDataKinds: useDataKinds);
-    return deserializeGlobalTypeInferenceResultsFromSource(options, reporter,
-        environment, abstractValueStrategy, component, source);
+      List<Object> closedWorldData,
+      List<Object> globalTypeInferenceResultsData) {
+    DataSource closedWorldSource =
+        ObjectSource(closedWorldData, useDataKinds: useDataKinds);
+    DataSource globalTypeInferenceResultsSource = ObjectSource(
+        globalTypeInferenceResultsData,
+        useDataKinds: useDataKinds);
+    JsClosedWorld closedWorld = deserializeClosedWorldFromSource(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorldSource);
+    return deserializeGlobalTypeInferenceResultsFromSource(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorld,
+        globalTypeInferenceResultsSource);
   }
 
   @override

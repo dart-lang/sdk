@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -10,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import 'completion.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -20,7 +23,8 @@ void main() {
 }
 
 @reflectiveTest
-class CompletionTest extends AbstractLspAnalysisServerTest {
+class CompletionTest extends AbstractLspAnalysisServerTest
+    with CompletionTestMixin {
   void expectAutoImportCompletion(List<CompletionItem> items, String file) {
     expect(
       items.singleWhere(
@@ -126,11 +130,9 @@ main() {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b})'));
-    expect(item.textEdit.newText, equals(item.insertText));
-    expect(
-      item.textEdit.range,
-      equals(rangeFromMarkers(content)),
-    );
+    final textEdit = toTextEdit(item.textEdit);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_completeFunctionCalls_flutterSetState() async {
@@ -175,11 +177,9 @@ class _MyWidgetState extends State<MyWidget> {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals('setState(() {\n      \${0:}\n    \\});'));
-    expect(item.textEdit.newText, equals(item.insertText));
-    expect(
-      item.textEdit.range,
-      equals(rangeFromMarkers(content)),
-    );
+    final textEdit = toTextEdit(item.textEdit);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_completeFunctionCalls_noRequiredParameters() async {
@@ -206,11 +206,9 @@ class _MyWidgetState extends State<MyWidget> {
     // With no required params, there should still be parens and a tabstop inside.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${0:})'));
-    expect(item.textEdit.newText, equals(item.insertText));
-    expect(
-      item.textEdit.range,
-      equals(rangeFromMarkers(content)),
-    );
+    final textEdit = toTextEdit(item.textEdit);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_completeFunctionCalls_show() async {
@@ -234,7 +232,8 @@ class _MyWidgetState extends State<MyWidget> {
     // no need for snippets.
     expect(item.insertTextFormat, isNull);
     expect(item.insertText, equals(r'min'));
-    expect(item.textEdit.newText, equals(item.insertText));
+    final textEdit = toTextEdit(item.textEdit);
+    expect(textEdit.newText, equals(item.insertText));
   }
 
   Future<void> test_completeFunctionCalls_suggestionSets() async {
@@ -267,11 +266,9 @@ class _MyWidgetState extends State<MyWidget> {
     // Ensure the item can be resolved and gets a proper TextEdit.
     final resolved = await resolveCompletion(item);
     expect(resolved.textEdit, isNotNull);
-    expect(resolved.textEdit.newText, equals(item.insertText));
-    expect(
-      resolved.textEdit.range,
-      equals(rangeFromMarkers(content)),
-    );
+    final textEdit = toTextEdit(resolved.textEdit);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_completionKinds_default() async {
@@ -360,6 +357,34 @@ class _MyWidgetState extends State<MyWidget> {
 
     await expectLater(
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
+  }
+
+  Future<void> test_filterTextNotIncludeAdditionalText() async {
+    // Some completions (eg. overrides) have additional text that is not part
+    // of the label. That text should _not_ appear in filterText as it will
+    // affect the editors relevance ranking as the user types.
+    // https://github.com/dart-lang/sdk/issues/45157
+    final content = '''
+    abstract class Person {
+      String get name;
+    }
+
+    class Student extends Person {
+      nam^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('name =>'),
+        orElse: () => null);
+    expect(item, isNotNull);
+    expect(item.label, equals('name => …'));
+    expect(item.filterText, isNull); // Falls back to label
+    expect(item.insertText, equals('''@override
+  // TODO: implement name
+  String get name => throw UnimplementedError();'''));
   }
 
   Future<void> test_fromPlugin_dartFile() async {
@@ -510,6 +535,87 @@ class _MyWidgetState extends State<MyWidget> {
     });
   }
 
+  Future<void> test_insertReplaceRanges() async {
+    final content = '''
+    class MyClass {
+      String abcdefghij;
+    }
+
+    main() {
+      MyClass a;
+      a.abc^def
+    }
+    ''';
+
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
+          emptyTextDocumentClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
+    final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    // When using the replacement range, we should get exactly the symbol
+    // we expect.
+    final replaced = applyTextEdits(
+      withoutMarkers(content),
+      [textEditForReplace(item.textEdit)],
+    );
+    expect(replaced, contains('a.abcdefghij\n'));
+    // When using the insert range, we should retain what was after the caret
+    // ("def" in this case).
+    final inserted = applyTextEdits(
+      withoutMarkers(content),
+      [textEditForInsert(item.textEdit)],
+    );
+    expect(inserted, contains('a.abcdefghijdef\n'));
+  }
+
+  Future<void> test_insertTextMode_multiline() async {
+    final content = '''
+    import 'package:flutter/material.dart';
+
+    class _MyWidgetState extends State<MyWidget> {
+      @override
+      Widget build(BuildContext context) {
+        [[setSt^]]
+        return Container();
+      }
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('setState'));
+
+    // Multiline completions should always set insertTextMode.asIs.
+    expect(item.insertText, contains('\n'));
+    expect(item.insertTextMode, equals(InsertTextMode.asIs));
+  }
+
+  Future<void> test_insertTextMode_singleLine() async {
+    final content = '''
+    main() {
+      ^
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('main'));
+
+    // Single line completions should never set insertTextMode.asIs to
+    // avoid bloating payload size where it wouldn't matter.
+    expect(item.insertText, isNot(contains('\n')));
+    expect(item.insertTextMode, isNull);
+  }
+
   Future<void> test_insideString() async {
     final content = '''
     var a = "This is ^a test"
@@ -595,6 +701,97 @@ class _MyWidgetState extends State<MyWidget> {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
+  Future<void> test_namedArg_insertReplaceRanges() async {
+    /// Helper to check multiple completions in the same template file.
+    Future<void> check(
+      String code,
+      String expectedLabel, {
+      String expectedReplace,
+      String expectedInsert,
+    }) async {
+      final content = '''
+class A { const A({int argOne, int argTwo, String argThree}); }
+final varOne = '';
+$code
+main() { }
+''';
+      final expectedReplaced = '''
+class A { const A({int argOne, int argTwo, String argThree}); }
+final varOne = '';
+$expectedReplace
+main() { }
+''';
+      final expectedInserted = '''
+class A { const A({int argOne, int argTwo, String argThree}); }
+final varOne = '';
+$expectedInsert
+main() { }
+''';
+
+      await verifyCompletions(
+        mainFileUri,
+        content,
+        expectCompletions: [expectedLabel],
+        applyEditsFor: expectedLabel,
+        verifyInsertReplaceRanges: true,
+        expectedContent: expectedReplaced,
+        expectedContentIfInserting: expectedInserted,
+      );
+    }
+
+    // When at the start of the identifier, it will be set as the replacement
+    // range so we don't expect the ': ,'
+    await check(
+      '@A(^argOne: 1)',
+      'argTwo',
+      expectedReplace: '@A(argTwo: 1)',
+      expectedInsert: '@A(argTwoargOne: 1)',
+    );
+
+    // When adding a name to an existing value, it should always insert.
+    await check(
+      '@A(^1)',
+      'argOne: ',
+      expectedReplace: '@A(argOne: 1)',
+      expectedInsert: '@A(argOne: 1)',
+    );
+
+    // When adding a name to an existing variable, it should always insert.
+    await check(
+      '@A(argOne: 1, ^varOne)',
+      'argTwo: ',
+      expectedReplace: '@A(argOne: 1, argTwo: varOne)',
+      expectedInsert: '@A(argOne: 1, argTwo: varOne)',
+    );
+
+    // // Inside the identifier also should be expected to replace.
+    await check(
+      '@A(arg^One: 1)',
+      'argTwo',
+      expectedReplace: '@A(argTwo: 1)',
+      expectedInsert: '@A(argTwoOne: 1)',
+    );
+
+    // If there's a space, there's no replacement range so we should still get
+    // the colon/comma since this is always an insert (and both operations will
+    // produce the same text).
+    await check(
+      '@A(^ argOne: 1)',
+      'argTwo: ',
+      expectedReplace: '@A(argTwo: ^, argOne: 1)',
+      expectedInsert: '@A(argTwo: ^, argOne: 1)',
+    );
+
+    // Partially typed names in front of values (that aren't considered part of
+    // the same identifier) should also suggest name labels.
+    await check(
+      '''@A(argOne: 1, argTh^'Foo')''',
+      'argThree: ',
+      expectedReplace: '''@A(argOne: 1, argThree: 'Foo')''',
+      expectedInsert: '''@A(argOne: 1, argThree: 'Foo')''',
+    );
+  }
+
   Future<void> test_namedArg_offsetBeforeCompletionTarget() async {
     // This test checks for a previous bug where the completion target was a
     // symbol far after the cursor offset (`aaaa` here) and caused the whole
@@ -633,7 +830,10 @@ class _MyWidgetState extends State<MyWidget> {
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
     expect(item.insertText, anyOf(equals('test'), isNull));
-    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
+    final updated = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(item.textEdit)],
+    );
     expect(updated, contains('one: '));
   }
 
@@ -656,9 +856,10 @@ class _MyWidgetState extends State<MyWidget> {
     // need to be provided.
     expect(item.insertTextFormat, isNull);
     expect(item.insertText, isNull);
-    expect(item.textEdit.newText, equals('one: '));
+    final textEdit = toTextEdit(item.textEdit);
+    expect(textEdit.newText, equals('one: '));
     expect(
-      item.textEdit.range,
+      textEdit.range,
       equals(Range(
           start: positionFromMarker(content),
           end: positionFromMarker(content))),
@@ -687,9 +888,10 @@ class _MyWidgetState extends State<MyWidget> {
     // placeholder.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'one: ${0:},'));
-    expect(item.textEdit.newText, equals(r'one: ${0:},'));
+    final textEdit = toTextEdit(item.textEdit);
+    expect(textEdit.newText, equals(r'one: ${0:},'));
     expect(
-      item.textEdit.range,
+      textEdit.range,
       equals(Range(
           start: positionFromMarker(content),
           end: positionFromMarker(content))),
@@ -742,7 +944,10 @@ class _MyWidgetState extends State<MyWidget> {
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
-    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
+    final updated = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(item.textEdit)],
+    );
     expect(updated, contains('a.abcdefghij'));
   }
 
@@ -864,7 +1069,9 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+      [toTextEdit(resolved.textEdit)]
+          .followedBy(resolved.additionalTextEdits)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -968,7 +1175,9 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+      [toTextEdit(resolved.textEdit)]
+          .followedBy(resolved.additionalTextEdits)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -1115,6 +1324,98 @@ main() {
     expectAutoImportCompletion(resolvedCompletions, '../reexport2.dart');
   }
 
+  Future<void> test_suggestionSets_insertReplaceRanges() async {
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: '''
+      /// This class is in another file.
+      class InOtherFile {}
+      ''',
+    );
+
+    final content = '''
+main() {
+  InOtherF^il
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
+          emptyTextDocumentClientCapabilities),
+      workspaceCapabilities:
+          withApplyEditSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    // Find the completion for the class in the other file.
+    final completion = res.singleWhere((c) => c.label == 'InOtherFile');
+    expect(completion, isNotNull);
+
+    // Expect no docs or text edit, since these are added during resolve.
+    expect(completion.documentation, isNull);
+    expect(completion.textEdit, isNull);
+
+    // Resolve the completion item (via server) to get its edits. This is the
+    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
+    // populate additional info (in our case, the additional edits for inserting
+    // the import).
+    final resolved = await resolveCompletion(completion);
+    expect(resolved, isNotNull);
+
+    // Ensure the detail field was update to show this will auto-import.
+    expect(
+        resolved.detail, startsWith("Auto import from '../other_file.dart'"));
+
+    // Ensure the doc comment was added.
+    expect(
+      resolved.documentation.valueEquals('This class is in another file.'),
+      isTrue,
+    );
+
+    // Ensure the edit was added on.
+    expect(resolved.textEdit, isNotNull);
+
+    // There should be no command for this item because it doesn't need imports
+    // in other files. Same-file completions are in additionalEdits.
+    expect(resolved.command, isNull);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically
+    // then check the contents.
+
+    final newContentReplaceMode = applyTextEdits(
+      withoutMarkers(content),
+      [textEditForReplace(resolved.textEdit)]
+          .followedBy(resolved.additionalTextEdits)
+          .toList(),
+    );
+    final newContentInsertMode = applyTextEdits(
+      withoutMarkers(content),
+      [textEditForInsert(resolved.textEdit)]
+          .followedBy(resolved.additionalTextEdits)
+          .toList(),
+    );
+
+    // Ensure both edits were made - the completion, and the inserted import.
+    expect(newContentReplaceMode, equals('''
+import '../other_file.dart';
+
+main() {
+  InOtherFile
+}
+    '''));
+    // In insert mode, we'd have the trailing "il" still after the caret.
+    expect(newContentInsertMode, equals('''
+import '../other_file.dart';
+
+main() {
+  InOtherFileil
+}
+    '''));
+  }
+
   Future<void> test_suggestionSets_insertsIntoPartFiles() async {
     // File we'll be adding an import for.
     newFile(
@@ -1160,7 +1461,9 @@ main() {
     // Apply all current-document edits.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+      [toTextEdit(resolved.textEdit)]
+          .followedBy(resolved.additionalTextEdits)
+          .toList(),
     );
     expect(newContent, equals('''
 part of 'parent.dart';
@@ -1262,7 +1565,9 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+      [toTextEdit(resolved.textEdit)]
+          .followedBy(resolved.additionalTextEdits)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -1354,7 +1659,9 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+      [toTextEdit(resolved.textEdit)]
+          .followedBy(resolved.additionalTextEdits)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -1448,7 +1755,10 @@ main() {
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
-    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
+    final updated = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(item.textEdit)],
+    );
     expect(updated, contains('a.abcdefghij'));
   }
 }
@@ -1483,11 +1793,9 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
-    expect(item.textEdit.newText, equals(item.insertText));
-    expect(
-      item.textEdit.range,
-      equals(rangeFromMarkers(content)),
-    );
+    final textEdit = toTextEdit(item.textEdit);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
   Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
@@ -1527,10 +1835,8 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     // Ensure the item can be resolved and gets a proper TextEdit.
     final resolved = await resolveCompletion(item);
     expect(resolved.textEdit, isNotNull);
-    expect(resolved.textEdit.newText, equals(item.insertText));
-    expect(
-      resolved.textEdit.range,
-      equals(rangeFromMarkers(content)),
-    );
+    final textEdit = toTextEdit(resolved.textEdit);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 }

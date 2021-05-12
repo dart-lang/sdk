@@ -854,8 +854,8 @@ void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   if (!FLAG_fields_may_be_reset) {
     const Field& field = instr->field();
     ASSERT(field.is_static());
-    if (field.is_final() && instr->IsFieldInitialized()) {
-      Instance& obj = Instance::Handle(Z, field.StaticValue());
+    auto& obj = Instance::Handle(Z);
+    if (field.is_final() && instr->IsFieldInitialized(&obj)) {
       if (obj.IsSmi() || (obj.IsOld() && obj.IsCanonical())) {
         SetValue(instr, obj);
         return;
@@ -1153,15 +1153,6 @@ void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
     }
   }
   SetValue(binary_op, non_constant_);
-}
-
-void ConstantPropagator::VisitCheckedSmiOp(CheckedSmiOpInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitCheckedSmiComparison(
-    CheckedSmiComparisonInstr* instr) {
-  SetValue(instr, non_constant_);
 }
 
 void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {

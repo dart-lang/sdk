@@ -22,9 +22,6 @@ const int _MAX_VALUE = 1 << 10;
 /// distance algorithm.
 int levenshtein(String s, String t, int threshold,
     {bool caseSensitive = true}) {
-  if (s == null || t == null) {
-    throw ArgumentError('Strings must not be null');
-  }
   if (threshold < 0) {
     throw ArgumentError('Threshold must not be negative');
   }

@@ -252,9 +252,10 @@ import 'dart:math' as math show sin;
   }
 
   void _assertMultiplyDefinedElement(
-    MultiplyDefinedElementImpl element,
+    Element? element,
     List<Element> expected,
   ) {
+    element as MultiplyDefinedElementImpl;
     expect(element.conflictingElements, unorderedEquals(expected));
   }
 }

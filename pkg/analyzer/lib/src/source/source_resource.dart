@@ -36,15 +36,15 @@ class FileSource extends Source {
   final File file;
 
   /// The cached absolute path of this source.
-  String _absolutePath;
+  String? _absolutePath;
 
   /// The cached encoding for this source.
-  String _encoding;
+  String? _encoding;
 
   /// Initialize a newly created source object to represent the given [file]. If
   /// a [uri] is given, then it will be used as the URI from which the source
   /// was derived, otherwise a `file:` URI will be created based on the [file].
-  FileSource(File file, [Uri uri])
+  FileSource(File file, [Uri? uri])
       : uri = uri ?? file.toUri(),
         file = file,
         id = _idTable.putIfAbsent(
@@ -110,9 +110,6 @@ class FileSource extends Source {
 
   @override
   String toString() {
-    if (file == null) {
-      return "<unknown source>";
-    }
     return file.path;
   }
 }

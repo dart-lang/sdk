@@ -115,7 +115,7 @@ abstract class AbstractScanner implements Scanner {
    */
   Token? commentsTail;
 
-  late final List<int> lineStarts;
+  final List<int> lineStarts;
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
@@ -1948,22 +1948,11 @@ TokenType closeBraceInfoFor(BeginToken begin) {
 }
 
 class LineStarts extends Object with ListMixin<int> {
-  late List<int> array;
+  List<int> array;
   int arrayLength = 0;
 
-  LineStarts(int? numberOfBytesHint) {
-    // Let's assume the average Dart file is 300 bytes.
-    if (numberOfBytesHint == null) numberOfBytesHint = 300;
-
-    // Let's assume we have on average 22 bytes per line.
-    final int expectedNumberOfLines = 1 + (numberOfBytesHint ~/ 22);
-
-    if (numberOfBytesHint > 65535) {
-      array = new Uint32List(expectedNumberOfLines);
-    } else {
-      array = new Uint16List(expectedNumberOfLines);
-    }
-
+  LineStarts(int? numberOfBytesHint)
+      : array = _createInitialArray(numberOfBytesHint) {
     // The first line starts at character offset 0.
     add(/* value = */ 0);
   }
@@ -2021,6 +2010,20 @@ class LineStarts extends Object with ListMixin<int> {
     final Uint32List newArray = new Uint32List(newLength);
     newArray.setRange(/* start = */ 0, arrayLength, array);
     array = newArray;
+  }
+
+  static List<int> _createInitialArray(int? numberOfBytesHint) {
+    // Let's assume the average Dart file is 300 bytes.
+    numberOfBytesHint ??= 300;
+
+    // Let's assume we have on average 22 bytes per line.
+    final int expectedNumberOfLines = 1 + (numberOfBytesHint ~/ 22);
+
+    if (numberOfBytesHint > 65535) {
+      return new Uint32List(expectedNumberOfLines);
+    } else {
+      return new Uint16List(expectedNumberOfLines);
+    }
   }
 }
 

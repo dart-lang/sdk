@@ -75,6 +75,7 @@ automagically
 auxiliary
 awaited
 awaiting
+awaits
 b
 b0i
 b0m
@@ -100,6 +101,7 @@ bb
 became
 beforehand
 behave
+believe
 bellow
 belonging
 beloning
@@ -208,6 +210,7 @@ codebase
 codec
 codes
 collision
+colorized
 com
 combinations
 combinator
@@ -248,6 +251,7 @@ corelib
 corrected
 corrections
 cosmetic
+costly
 counters
 covariances
 coverage
@@ -308,6 +312,7 @@ deserializers
 deserializes
 deserializing
 design
+designation
 despite
 destination
 destinations
@@ -348,6 +353,7 @@ dsdk
 dst
 dummy
 dupdate
+dyn
 e
 easy
 ecma
@@ -373,6 +379,7 @@ end'ed
 enforce
 enforced
 enforces
+enforcing
 enumerates
 env
 eof
@@ -385,11 +392,14 @@ establish
 established
 estimate
 eval
+execute
 exhausted
+existence
 existentially
 exp
 expando
 expense
+explaining
 exportable
 exportee
 exportees
@@ -403,6 +413,7 @@ f
 faced
 factor
 factored
+fairly
 fangorn
 fasta
 favored
@@ -487,6 +498,7 @@ goto
 gotos
 gradually
 graphs
+growability
 gt
 guarantee
 guarded
@@ -498,6 +510,7 @@ h
 hacky
 hadn't
 hang
+happy
 hardcode
 harness
 hashes
@@ -628,6 +641,7 @@ layout
 lc
 ld
 leafp
+leeway
 len
 lets
 letting
@@ -669,6 +683,7 @@ macos
 maintaining
 mangled
 manipulation
+manner
 markdown
 masking
 masks
@@ -681,6 +696,7 @@ meeting
 merely
 meta
 metadata's
+metadatum
 method10a
 method10b
 method1a
@@ -708,6 +724,7 @@ method8b
 method9a
 method9b
 mi
+migrated
 migration
 mime
 min
@@ -792,6 +809,7 @@ ordered
 orders
 ordinal
 org
+orphancy
 orphans
 ors
 os
@@ -839,6 +857,7 @@ per
 perf
 permanently
 permit
+physically
 pi
 picking
 pkg
@@ -847,8 +866,10 @@ player
 plugin
 pm
 pn
+pointed
 pointwise
 polluted
+polymorphism
 pool
 popped
 pos
@@ -861,6 +882,7 @@ prebuilt
 preexisted
 preexisting
 preorder
+presented
 presubmit
 prev
 prime
@@ -871,6 +893,7 @@ proc
 producers
 product
 progresses
+promo
 proof
 prop
 propose
@@ -910,6 +933,7 @@ ran
 randomly
 ranges
 ranked
+rarely
 ratio
 rb
 rc
@@ -978,6 +1002,7 @@ replaces
 replicated
 repo
 repositories
+repurposed
 requirement
 res
 residue
@@ -1025,6 +1050,7 @@ semantically
 semver
 separators
 sequencing
+sequential
 serializables
 serializer
 serializers
@@ -1169,6 +1195,7 @@ tells
 temp
 temporaries
 temps
+tempting
 term
 termcap
 terminator
@@ -1266,6 +1293,7 @@ unification
 unifier
 unify
 uninstantiable
+uninstantiated
 unions
 uniqueness
 unittest
@@ -1316,6 +1344,7 @@ vector
 vegorov
 verbosity
 versa
+viable
 vice
 video
 violated
@@ -1328,6 +1357,8 @@ vn
 vs
 vtab
 w
+waiting
+wanting
 waste
 wasted
 watch
@@ -1347,10 +1378,12 @@ widgets
 wiki
 wikipedia
 wind
+wiser
 with1
 wn
 worthwhile
 worthy
+woven
 writeln
 wrongfully
 wrt

@@ -1,0 +1,8 @@
+// @dart = 2.9
+Iterable takesNoArg() => null;
+void returnVoid() {}
+int returnInt() => 42;
+dynamic returnDynamic() => [];
+Object returnObject() => 0;
+test() {}
+main() {}

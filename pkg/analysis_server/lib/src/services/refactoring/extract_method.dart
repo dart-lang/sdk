@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
@@ -762,7 +764,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     } else if (_returnType == null) {
       variableType = null;
       if (_hasAwait) {
-        returnType = _getTypeCode(typeProvider.futureDynamicType);
+        var futureVoid = typeProvider.futureType(typeProvider.voidType);
+        returnType = _getTypeCode(futureVoid);
       } else {
         returnType = 'void';
       }
@@ -777,7 +780,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       variableType = _getTypeCode(_returnType);
       if (_hasAwait) {
         if (_returnType.element != typeProvider.futureElement) {
-          returnType = _getTypeCode(typeProvider.futureType2(_returnType));
+          returnType = _getTypeCode(typeProvider.futureType(_returnType));
         }
       } else {
         returnType = variableType;

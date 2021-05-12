@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 
@@ -37,9 +39,10 @@ class PluginWatcher implements DriverWatcher {
   /// method must be called before the driver has been allowed to perform any
   /// analysis.
   @override
-  void addedDriver(AnalysisDriver driver, ContextRoot contextRoot) {
+  void addedDriver(AnalysisDriver driver) {
+    var contextRoot = driver.analysisContext.contextRoot;
     _driverInfo[driver] = _DriverInfo(
-        contextRoot, <String>[contextRoot.root, _getSdkPath(driver)]);
+        contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
     var enabledPlugins = driver.analysisOptions.enabledPluginNames;
     for (var hostPackageName in enabledPlugins) {
       //
@@ -64,7 +67,8 @@ class PluginWatcher implements DriverWatcher {
           // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
           // If we don't, then tests don't have any way to know when to expect
           // that the list of plugins has been updated.
-          manager.addPluginToContextRoot(contextRoot, pluginPath);
+          manager.addPluginToContextRoot(
+              driver.analysisContext.contextRoot, pluginPath);
         }
       }
     }
@@ -77,7 +81,7 @@ class PluginWatcher implements DriverWatcher {
     if (info == null) {
       throw StateError('Cannot remove a driver that was not added');
     }
-    manager.removedContextRoot(info.contextRoot);
+    manager.removedContextRoot(driver.analysisContext.contextRoot);
     _driverInfo.remove(driver);
   }
 

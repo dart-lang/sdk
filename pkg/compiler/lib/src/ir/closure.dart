@@ -230,7 +230,7 @@ class VariableUse {
   final VariableUseKind kind;
   final ir.Member member;
   final ir.LocalFunction localFunction;
-  final ir.MethodInvocation invocation;
+  final ir.Expression invocation;
   final ir.Instantiation instantiation;
 
   const VariableUse._simple(this.kind)
@@ -343,7 +343,7 @@ enum TypeVariableKind { cls, method, local, function }
 /// A fake ir.Node that holds the TypeParameterType as well as the context in
 /// which it occurs.
 class TypeVariableTypeWithContext implements ir.Node {
-  final ir.Node context;
+  final ir.TreeNode context;
   final ir.TypeParameterType type;
   final TypeVariableKind kind;
   final ir.TreeNode typeDeclaration;

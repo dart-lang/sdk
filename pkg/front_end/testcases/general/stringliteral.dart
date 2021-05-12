@@ -7,5 +7,5 @@ var phrase = "The quick $color fox\njumped over the $thing.\n";
 var adjacent = '$color$color$color';
 var linebreaks = '$color\n$color\n$color';
 var other = '$color\n is \n$color';
-
+// @dart=2.9
 main() {}

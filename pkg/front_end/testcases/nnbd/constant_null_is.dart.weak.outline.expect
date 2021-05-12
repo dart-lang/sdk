@@ -1,0 +1,80 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool field;
+  const constructor constructor1(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    ;
+  const constructor constructor2(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T?, super core::Object::•()
+    ;
+  const constructor constructor3(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>, super core::Object::•()
+    ;
+  const constructor constructor4(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>?, super core::Object::•()
+    ;
+}
+static final field core::bool isWeakMode;
+static const field core::bool c0 = null is{ForNonNullableByDefault} core::int?;
+static const field core::bool c1 = null is{ForNonNullableByDefault} core::int;
+static const field core::bool c2 = null is{ForNonNullableByDefault} Null;
+static const field core::bool c3 = null is{ForNonNullableByDefault} Never?;
+static const field core::bool c4 = null is{ForNonNullableByDefault} Never;
+static const field core::bool c5 = null is{ForNonNullableByDefault} FutureOr<core::int?>;
+static const field core::bool c6 = null is{ForNonNullableByDefault} FutureOr<core::int>;
+static const field core::bool c7 = null is{ForNonNullableByDefault} FutureOr<core::int>?;
+static const field core::bool c8 = null is{ForNonNullableByDefault} FutureOr<Null>;
+static const field core::bool c9 = null is{ForNonNullableByDefault} FutureOr<Null>?;
+static const field core::bool c10 = null is{ForNonNullableByDefault} FutureOr<Never>;
+static const field core::bool c11 = null is{ForNonNullableByDefault} FutureOr<Never?>;
+static const field core::bool c12 = null is{ForNonNullableByDefault} FutureOr<Never>?;
+static const field self::Class<core::int> e1 = const self::Class::constructor1<core::int>(null);
+static const field self::Class<core::List<core::int>> e2 = const self::Class::constructor1<core::List<core::int>>(const <Null>[null]);
+static const field self::Class<Null> e3 = const self::Class::constructor1<Null>(null);
+static const field self::Class<core::int> e4 = const self::Class::constructor2<core::int>(null);
+static const field self::Class<core::int?> e5 = const self::Class::constructor2<core::int?>(null);
+static const field self::Class<Null> e6 = const self::Class::constructor2<Null>(null);
+static const field self::Class<core::int> e7 = const self::Class::constructor3<core::int>(null);
+static const field self::Class<core::int?> e8 = const self::Class::constructor3<core::int?>(null);
+static const field self::Class<Null> e9 = const self::Class::constructor3<Null>(null);
+static const field self::Class<core::int> e10 = const self::Class::constructor4<core::int>(null);
+static const field self::Class<core::int?> e11 = const self::Class::constructor4<core::int?>(null);
+static const field self::Class<Null> e12 = const self::Class::constructor4<Null>(null);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual, core::String message) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:9:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:10:17 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:11:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:12:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:13:17 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:14:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:15:17 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:16:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:17:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:18:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:19:18 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:20:18 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:21:18 -> BoolConstant(true)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:22:18 -> InstanceConstant(const Class<int*>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:23:18 -> InstanceConstant(const Class<List<int*>*>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:24:18 -> InstanceConstant(const Class<Null>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:25:18 -> InstanceConstant(const Class<int*>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:26:18 -> InstanceConstant(const Class<int?>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:27:18 -> InstanceConstant(const Class<Null>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:28:18 -> InstanceConstant(const Class<int*>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:29:18 -> InstanceConstant(const Class<int?>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:30:18 -> InstanceConstant(const Class<Null>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:31:19 -> InstanceConstant(const Class<int*>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:32:19 -> InstanceConstant(const Class<int?>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:33:19 -> InstanceConstant(const Class<Null>{Class.field: true})
+Extra constant evaluation: evaluated: 33, effectively constant: 25

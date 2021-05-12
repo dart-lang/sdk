@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -98,7 +100,7 @@ class RefactoringStatusTest {
   }
 
   void test_addFatalError_withLocation() {
-    var location = Location('/test.dart', 1, 2, 3, 4);
+    var location = Location('/test.dart', 1, 2, 3, 4, 5, 6);
     var refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
@@ -211,7 +213,7 @@ class RefactoringStatusTest {
   }
 
   void test_newError() {
-    var location = Location('/test.dart', 1, 2, 3, 4);
+    var location = Location('/test.dart', 1, 2, 3, 4, 5, 6);
     var refactoringStatus = RefactoringStatus.error('msg', location);
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     expect(refactoringStatus.problem.message, 'msg');

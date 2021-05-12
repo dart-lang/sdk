@@ -5,7 +5,6 @@
 import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
 
-import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 fib(n) {
@@ -56,5 +55,10 @@ var vmArgs = [
   '--profile-vm=false', // So this also works with KBC.
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, testeeBefore: testeeDo, extraArgs: vmArgs);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      tests,
+      'get_cpu_samples_rpc_test.dart',
+      testeeBefore: testeeDo,
+      extraArgs: vmArgs,
+    );

@@ -246,7 +246,7 @@ testWriteFromToReadOnlyFile() {
   createTestFile((file, done) {
     var openedFile = file.openSync(mode: FileMode.read);
 
-    List data = [0, 1, 2, 3];
+    List<int> data = [0, 1, 2, 3];
     // Writing to read only file should throw an exception.
     Expect.throws(() => openedFile.writeFromSync(data, 0, data.length),
         (e) => checkWriteReadOnlyFileSystemException(e));
@@ -292,7 +292,7 @@ testOperateOnClosedFile() {
     var openedFile = file.openSync(mode: FileMode.read);
     openedFile.closeSync();
 
-    List data = [0, 1, 2, 3];
+    List<int> data = [0, 1, 2, 3];
     Expect.throws(
         () => openedFile.readByteSync(), (e) => checkFileClosedException(e));
     Expect.throws(

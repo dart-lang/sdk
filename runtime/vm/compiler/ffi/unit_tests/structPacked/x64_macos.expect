@@ -1,0 +1,6 @@
+S+0 Compound(size: 9)
+S+16 Compound(size: 9)
+rsi int32[int8]
+xmm0 double
+=>
+P(rdi int64, ret:rax int64) Compound(size: 9)

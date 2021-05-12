@@ -111,4 +111,9 @@ var fileTests = <IsolateTest>[
   },
 ];
 
-main(args) async => runIsolateTests(args, fileTests, testeeBefore: setupFiles);
+main([args = const <String>[]]) async => runIsolateTests(
+      args,
+      fileTests,
+      'file_service_test.dart',
+      testeeBefore: setupFiles,
+    );

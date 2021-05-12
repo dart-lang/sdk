@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -157,6 +159,31 @@ main() {
     // Expect the first to fail because of the modified content.
     await expectLater(
         req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+  }
+
+  Future<void> test_filtersCorrectly() async {
+    const content = '''
+main() {
+  print('Test!');
+  [[print('Test!');]]
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final ofKind = (CodeActionKind kind) => getCodeActions(
+          mainFileUri.toString(),
+          range: rangeFromMarkers(content),
+          kinds: [kind],
+        );
+
+    // The code above will return a RefactorExtract that should be included
+    // by both Refactor and RefactorExtract, but not RefactorExtractFoo or
+    // RefactorRewrite
+    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
+    expect(await ofKind(CodeActionKind.RefactorExtract), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.extract.foo')), isEmpty);
+    expect(await ofKind(CodeActionKind.RefactorRewrite), isEmpty);
   }
 
   Future<void> test_generatesNames() async {

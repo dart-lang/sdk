@@ -54,6 +54,17 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.coutExpression("$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+
+        String result = '<< "["';
+        result += indices
+            .map((i) => this_.elementType.coutExpression("$variableName[$i]"))
+            .join('<< ", "');
+        result += '<< "]"';
+        return result.trimCouts();
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -90,6 +101,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.addToResultStatements("$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+        return indices
+            .map((i) =>
+                this_.elementType.addToResultStatements("$variableName[$i]"))
+            .join();
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -119,6 +138,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.assignValueStatements(a, "$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+        return indices
+            .map((i) =>
+                this_.elementType.assignValueStatements(a, "$variableName[$i]"))
+            .join();
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -197,14 +224,18 @@ extension on CType {
         return "${dartType} ${variableName};\n";
 
       case StructType:
-        return "${dartType} ${variableName} = calloc<$dartType>().ref;\n";
+        return """
+final ${variableName}Pointer = calloc<$dartType>();
+final ${dartType} ${variableName} = ${variableName}Pointer.ref;
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
   }
 
   /// A list of Dart statements allocating as zero or nullptr.
-  String dartAllocateZeroStatements(String variableName) {
+  String dartAllocateZeroStatements(String variableName,
+      {bool structsAsPointers = false}) {
     switch (this.runtimeType) {
       case FundamentalType:
         final this_ = this as FundamentalType;
@@ -214,7 +245,11 @@ extension on CType {
         return "${dartType} ${variableName} = 0.0;\n";
 
       case StructType:
-        return "${dartType} ${variableName} = ${dartType}();\n";
+        if (structsAsPointers) {
+          return "Pointer<${dartType}> ${variableName}Pointer = nullptr;\n";
+        } else {
+          return "${dartType} ${variableName} = ${dartType}();\n";
+        }
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -229,7 +264,7 @@ extension on List<Member> {
   }
 
   /// A list of Dart statements as zero or nullptr.
-  String dartAllocateZeroStatements([String namePrefix = ""]) {
+  String dartAllocateZeroStatements(String namePrefix) {
     return map((m) => m.type.dartAllocateZeroStatements("$namePrefix${m.name}"))
         .join();
   }
@@ -243,7 +278,7 @@ extension on CType {
         return "";
 
       case StructType:
-        return "calloc.free($variableName.addressOf);\n";
+        return "calloc.free(${variableName}Pointer);\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -293,6 +328,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.dartExpectsStatements("$expected.", "$actual.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return """
+for (int i = 0; i < ${this_.length}; i++){
+  ${this_.elementType.dartExpectsStatements("$expected[i]", "$actual[i]")}
+}
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -323,6 +366,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.cExpectsStatements("$expected.", "$actual.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return """
+for (intptr_t i = 0; i < ${this_.length}; i++){
+  ${this_.elementType.cExpectsStatements("$expected[i]", "$actual[i]")}
+}
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -342,6 +393,14 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.cExpectsZeroStatements("$actual.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return """
+for (intptr_t i = 0; i < ${this_.length}; i++){
+  ${this_.elementType.cExpectsZeroStatements("$actual[i]")}
+}
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -375,6 +434,10 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.firstArgumentName("$variableName.");
+
+      case FixedLengthArrayType:
+        final this_ = this as FixedLengthArrayType;
+        return this_.elementType.firstArgumentName("$variableName[0]");
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -392,12 +455,30 @@ extension on List<Member> {
 
 extension on StructType {
   String dartClass(bool nnbd) {
+    final packingAnnotation = hasPacking ? "@Packed(${packing})" : "";
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField(nnbd)}\n\n";
     }
-    String toStringBody = members.map((m) => "\$\{${m.name}\}").join(", ");
+    String toStringBody = members.map((m) {
+      if (m.type is FixedLengthArrayType) {
+        int dimensionNumber = 0;
+        String inlineFor = "";
+        String read = m.name;
+        String closing = "";
+        for (final dimension in (m.type as FixedLengthArrayType).dimensions) {
+          final i = "i$dimensionNumber";
+          inlineFor += "[for (var $i = 0; $i < $dimension; $i += 1)";
+          read += "[$i]";
+          closing += "]";
+          dimensionNumber++;
+        }
+        return "\$\{$inlineFor $read $closing\}";
+      }
+      return "\$\{${m.name}\}";
+    }).join(", ");
     return """
+    $packingAnnotation
     class $name extends Struct {
       $dartFields
 
@@ -407,14 +488,19 @@ extension on StructType {
   }
 
   String get cDefinition {
+    final packingPragmaPush =
+        hasPacking ? "#pragma pack(push, ${packing})" : "";
+    final packingPragmaPop = hasPacking ? "#pragma pack(pop)" : "";
     String cFields = "";
     for (final member in members) {
       cFields += "  ${member.cStructField}\n";
     }
     return """
+    $packingPragmaPush
     struct $name {
       $cFields
     };
+    $packingPragmaPop
 
     """;
   }
@@ -472,6 +558,8 @@ extension on FunctionType {
 
     final prints = arguments.map((a) => "\$\{${a.name}\}").join(", ");
 
+    bool structsAsPointers = false;
+    String assignReturnGlobal = "";
     String buildReturnValue = "";
     switch (testType) {
       case TestType.structArguments:
@@ -481,19 +569,24 @@ extension on FunctionType {
 
         ${arguments.addToResultStatements('${dartName}_')}
         """;
+        assignReturnGlobal = "${dartName}Result = result;";
         break;
       case TestType.structReturn:
         // Allocate a struct.
         buildReturnValue = """
-        ${returnValue.dartType} result = calloc<${returnValue.dartType}>().ref;
+        final resultPointer = calloc<${returnValue.dartType}>();
+        final result = resultPointer.ref;
 
         ${arguments.copyValueStatements("${dartName}_", "result.")}
         """;
+        assignReturnGlobal = "${dartName}ResultPointer = resultPointer;";
+        structsAsPointers = true;
         break;
       case TestType.structReturnArgument:
         buildReturnValue = """
         ${returnValue.cType} result = ${dartName}_${structReturnArgument.name};
         """;
+        assignReturnGlobal = "${dartName}Result = result;";
         break;
     }
 
@@ -542,12 +635,12 @@ extension on FunctionType {
     $globals
 
     // Result variable also global, so we can delete it after the callback.
-    ${returnValue.dartAllocateZeroStatements("${dartName}Result")}
+    ${returnValue.dartAllocateZeroStatements("${dartName}Result", structsAsPointers: structsAsPointers)}
 
     ${returnValue.dartType} ${dartName}CalculateResult() {
       $buildReturnValue
 
-      ${dartName}Result = result;
+      $assignReturnGlobal
 
       return result;
     }
@@ -563,7 +656,7 @@ extension on FunctionType {
       if (${arguments.firstArgumentName()} == $throwExceptionValue ||
           ${arguments.firstArgumentName()} == $returnNullValue) {
         print("throwing!");
-        throw Exception("$cName throwing on purpuse!");
+        throw Exception("$cName throwing on purpose!");
       }
 
       $copyToGlobals
@@ -749,7 +842,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
 import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
@@ -802,7 +894,6 @@ import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'callback_tests_utils.dart';
-import 'calloc.dart';
 
 // Reuse the struct classes.
 import 'function_structs_by_value_generated_test.dart';

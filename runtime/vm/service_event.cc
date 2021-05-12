@@ -13,8 +13,20 @@ namespace dart {
 
 #ifndef PRODUCT
 
+ServiceEvent::ServiceEvent(EventKind event_kind)
+    : ServiceEvent(nullptr, nullptr, event_kind) {}
+
+ServiceEvent::ServiceEvent(IsolateGroup* isolate_group, EventKind event_kind)
+    : ServiceEvent(isolate_group, nullptr, event_kind) {}
+
 ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
+    : ServiceEvent(isolate->group(), isolate, event_kind) {}
+
+ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
+                           Isolate* isolate,
+                           EventKind event_kind)
     : isolate_(isolate),
+      isolate_group_(isolate_group),
       kind_(event_kind),
       flag_name_(NULL),
       flag_new_value_(NULL),

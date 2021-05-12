@@ -1,0 +1,57 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field self::Class* _field;
+  synthetic constructor •() → self::Class*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  get field = self::Extension|get#field;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+  operator + = self::Extension|+;
+  operator unary- = self::Extension|unary-;
+  set field = self::Extension|set#field;
+}
+static method Extension|get#field(lowered final self::Class* #this) → self::Class*
+  ;
+static method Extension|set#field(lowered final self::Class* #this, self::Class* value) → void
+  ;
+static method Extension|method(lowered final self::Class* #this) → self::Class*
+  ;
+static method Extension|get#method(lowered final self::Class* #this) → () →* self::Class*
+  return () → self::Class* => self::Extension|method(#this);
+static method Extension|[](lowered final self::Class* #this, self::Class* key) → self::Class*
+  ;
+static method Extension|[]=(lowered final self::Class* #this, self::Class* key, self::Class* value) → void
+  ;
+static method Extension|+(lowered final self::Class* #this, core::int* value) → self::Class*
+  ;
+static method Extension|unary-(lowered final self::Class* #this) → self::Class*
+  ;
+static method main() → dynamic
+  ;
+static method propertyAccess(self::Class* c) → void
+  ;
+static method indexAccess(self::Class* c) → void
+  ;
+static method operatorAccess(self::Class* c) → void
+  ;
+static method ifNull(self::Class* c) → void
+  ;
+static method throws(() →* void f) → void
+  ;

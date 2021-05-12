@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,20 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class NullabilityEliminatorTest with ElementsTypesMixin {
-  @override
-  TypeProvider typeProvider;
-
-  void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: FeatureSet.forTesting(
-        sdkVersion: '2.6.0',
-        additionalFeatures: [Feature.non_nullable],
-      ),
-    );
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-  }
-
+class NullabilityEliminatorTest extends AbstractTypeSystemNullSafetyTest {
   test_dynamicType() {
     _verifySame(typeProvider.dynamicType);
   }
@@ -172,12 +156,12 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
     );
     expect(_typeToString(input), 'int Function()');
     expect(input.aliasElement, same(A));
-    expect(input.aliasArguments.map(_typeToString).join(', '), 'int');
+    expect(input.aliasArguments!.map(_typeToString).join(', '), 'int');
 
     var result = NullabilityEliminator.perform(typeProvider, input);
     expect(_typeToString(result), 'int* Function()*');
     expect(result.aliasElement, same(A));
-    expect(result.aliasArguments.map(_typeToString).join(', '), 'int*');
+    expect(result.aliasArguments!.map(_typeToString).join(', '), 'int*');
   }
 
   test_functionType_typeParameters() {
@@ -295,7 +279,7 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
     var result = NullabilityEliminator.perform(typeProvider, input);
     expect(_typeToString(result), 'List<int*>*');
     expect(result.aliasElement, same(A));
-    expect(result.aliasArguments.map(_typeToString).join(', '), 'int*');
+    expect(result.aliasArguments!.map(_typeToString).join(', '), 'int*');
   }
 
   test_interfaceType_int() {

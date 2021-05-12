@@ -34,7 +34,7 @@ void main(List<String> args) {
   });
 }
 
-class ScopeOffsetValidator extends Visitor<void> {
+class ScopeOffsetValidator extends Visitor<void> with VisitorVoidMixin {
   int classCount = 0;
   int memberCount = 0;
   int blockCount = 0;
@@ -81,7 +81,7 @@ class ScopeOffsetValidator extends Visitor<void> {
                 member.isForwardingStub ||
                 member.stubKind == ProcedureStubKind.ConcreteMixinStub
             : (member is Field)
-                ? member.name.name.contains(redirectingName)
+                ? member.name.text.contains(redirectingName)
                 : false;
 
     if (!noBreakPointPossible) {

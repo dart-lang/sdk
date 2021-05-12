@@ -50,12 +50,14 @@ void bar() {
     expect(result.optionsProblems, isEmpty);
     expect(result.finalProblems, isEmpty);
     expect(result.potentialEdits, isNull);
-    expect(result.change.edits, isNotEmpty);
+
+    var change = result.change!;
+    expect(change.edits, isNotEmpty);
+    var fileEdit = change.edits.first;
 
     // apply the refactoring, expect that the new code has no errors
-    var change = result.change;
-    expect(change.edits.first.edits, isNotEmpty);
-    for (var edit in change.edits.first.edits) {
+    expect(fileEdit.edits, isNotEmpty);
+    for (var edit in fileEdit.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
     await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});

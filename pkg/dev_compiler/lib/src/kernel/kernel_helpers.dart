@@ -53,7 +53,7 @@ String getTopLevelName(NamedNode n) {
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
   if (n is Field) return n.name.text;
-  return n.canonicalName?.name;
+  return n.reference.canonicalName?.name;
 }
 
 /// Given an annotated [node] and a [test] function, returns the first matching
@@ -135,6 +135,7 @@ bool isOperatorMethodName(String name) {
     case '&':
     case '>>':
     case '<<':
+    case '>>>':
     case '+':
     case 'unary-':
     case '-':
@@ -332,6 +333,9 @@ class LabelContinueFinder extends StatementVisitor<void> {
     visit(node.body);
     visit(node.finalizer);
   }
+
+  @override
+  void defaultStatement(Statement node) {}
 }
 
 /// Ensures that all of the known DartType implementors are handled.
@@ -341,8 +345,7 @@ class LabelContinueFinder extends StatementVisitor<void> {
 /// object of DartType. It doesn't introduce a run-time overhead in production
 /// code if used in an assert.
 bool isKnownDartTypeImplementor(DartType t) {
-  return t is BottomType ||
-      t is DynamicType ||
+  return t is DynamicType ||
       t is FunctionType ||
       t is FutureOrType ||
       t is InterfaceType ||

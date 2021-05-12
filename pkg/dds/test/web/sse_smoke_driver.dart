@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 // This file must be compiled for changes to be picked up.
 //
 // Run the following command from the root of this package if this file is
@@ -23,9 +25,6 @@ Future<void> main() async {
   // Connect to DDS
   final ddsUri = await testerStream.next;
   final ddsChannel = SseClient(ddsUri);
-
-  // Wait for ddsChannel to be established.
-  await ddsChannel.onOpen.first;
 
   final vmService = VmService(
     ddsChannel.stream,

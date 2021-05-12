@@ -2,17 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:kernel/ast.dart';
 
 /// Simple unreachable code elimination: removes asserts and if statements
 /// with constant conditions. Does a very limited constant folding of
 /// logical expressions.
 Component transformComponent(Component component, bool enableAsserts) {
-  new SimpleUnreachableCodeElimination(enableAsserts).visitComponent(component);
+  new SimpleUnreachableCodeElimination(enableAsserts)
+      .visitComponent(component, null);
   return component;
 }
 
-class SimpleUnreachableCodeElimination extends Transformer {
+class SimpleUnreachableCodeElimination extends RemovingTransformer {
   final bool enableAsserts;
 
   SimpleUnreachableCodeElimination(this.enableAsserts);
@@ -37,35 +40,38 @@ class SimpleUnreachableCodeElimination extends Transformer {
   Expression _createBoolLiteral(bool value, int fileOffset) =>
       new BoolLiteral(value)..fileOffset = fileOffset;
 
-  Statement _makeEmptyBlockIfNull(Statement node, TreeNode parent) =>
-      node == null ? (Block(<Statement>[])..parent = parent) : node;
+  Statement _makeEmptyBlockIfEmptyStatement(Statement node, TreeNode parent) =>
+      node is EmptyStatement ? (Block(<Statement>[])..parent = parent) : node;
 
   @override
-  TreeNode visitIfStatement(IfStatement node) {
-    node.transformChildren(this);
+  TreeNode visitIfStatement(IfStatement node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    final condition = node.condition;
+    if (_isBoolConstant(condition)) {
+      final value = _getBoolConstantValue(condition);
+      return value
+          ? node.then
+          : (node.otherwise ?? removalSentinel ?? new EmptyStatement());
+    }
+    node.then = _makeEmptyBlockIfEmptyStatement(node.then, node);
+    return node;
+  }
+
+  @override
+  visitConditionalExpression(
+      ConditionalExpression node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
     final condition = node.condition;
     if (_isBoolConstant(condition)) {
       final value = _getBoolConstantValue(condition);
       return value ? node.then : node.otherwise;
     }
-    node.then = _makeEmptyBlockIfNull(node.then, node);
     return node;
   }
 
   @override
-  visitConditionalExpression(ConditionalExpression node) {
-    node.transformChildren(this);
-    final condition = node.condition;
-    if (_isBoolConstant(condition)) {
-      final value = _getBoolConstantValue(condition);
-      return value ? node.then : node.otherwise;
-    }
-    return node;
-  }
-
-  @override
-  TreeNode visitNot(Not node) {
-    node.transformChildren(this);
+  TreeNode visitNot(Not node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
     final operand = node.operand;
     if (_isBoolConstant(operand)) {
       return _createBoolLiteral(
@@ -75,8 +81,9 @@ class SimpleUnreachableCodeElimination extends Transformer {
   }
 
   @override
-  TreeNode visitLogicalExpression(LogicalExpression node) {
-    node.transformChildren(this);
+  TreeNode visitLogicalExpression(
+      LogicalExpression node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
     final left = node.left;
     final right = node.right;
     final operatorEnum = node.operatorEnum;
@@ -104,8 +111,8 @@ class SimpleUnreachableCodeElimination extends Transformer {
   }
 
   @override
-  visitStaticGet(StaticGet node) {
-    node.transformChildren(this);
+  visitStaticGet(StaticGet node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
     final target = node.target;
     if (target is Field && target.isConst) {
       throw 'StaticGet from const field $target should be evaluated by front-end: $node';
@@ -114,34 +121,38 @@ class SimpleUnreachableCodeElimination extends Transformer {
   }
 
   @override
-  TreeNode visitAssertStatement(AssertStatement node) {
+  TreeNode visitAssertStatement(
+      AssertStatement node, TreeNode? removalSentinel) {
     if (!enableAsserts) {
-      return null;
+      return removalSentinel ?? new EmptyStatement();
     }
-    return super.visitAssertStatement(node);
+    return super.visitAssertStatement(node, removalSentinel);
   }
 
   @override
-  TreeNode visitAssertBlock(AssertBlock node) {
+  TreeNode visitAssertBlock(AssertBlock node, TreeNode? removalSentinel) {
     if (!enableAsserts) {
-      return null;
+      return removalSentinel ?? new EmptyStatement();
     }
-    return super.visitAssertBlock(node);
+    return super.visitAssertBlock(node, removalSentinel);
   }
 
   @override
-  TreeNode visitAssertInitializer(AssertInitializer node) {
+  TreeNode visitAssertInitializer(
+      AssertInitializer node, TreeNode? removalSentinel) {
     if (!enableAsserts) {
-      return null;
+      // Initializers only occur in the initializer list where they are always
+      // removable.
+      return removalSentinel!;
     }
-    return super.visitAssertInitializer(node);
+    return super.visitAssertInitializer(node, removalSentinel);
   }
 
   @override
-  TreeNode visitTryFinally(TryFinally node) {
-    node.transformChildren(this);
+  TreeNode visitTryFinally(TryFinally node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
     final fin = node.finalizer;
-    if (fin == null || (fin is Block && fin.statements.isEmpty)) {
+    if (fin is EmptyStatement || (fin is Block && fin.statements.isEmpty)) {
       return node.body;
     }
     return node;
@@ -157,8 +168,8 @@ class SimpleUnreachableCodeElimination extends Transformer {
   }
 
   @override
-  TreeNode visitTryCatch(TryCatch node) {
-    node.transformChildren(this);
+  TreeNode visitTryCatch(TryCatch node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
     // Can replace try/catch with its body if all catches are just rethow.
     for (Catch catchClause in node.catches) {
       if (!_isRethrow(catchClause.body)) {
@@ -174,30 +185,30 @@ class SimpleUnreachableCodeElimination extends Transformer {
   // need to guard against null.
 
   @override
-  TreeNode visitWhileStatement(WhileStatement node) {
-    node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body, node);
+  TreeNode visitWhileStatement(WhileStatement node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    node.body = _makeEmptyBlockIfEmptyStatement(node.body, node);
     return node;
   }
 
   @override
-  TreeNode visitDoStatement(DoStatement node) {
-    node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body, node);
+  TreeNode visitDoStatement(DoStatement node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    node.body = _makeEmptyBlockIfEmptyStatement(node.body, node);
     return node;
   }
 
   @override
-  TreeNode visitForStatement(ForStatement node) {
-    node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body, node);
+  TreeNode visitForStatement(ForStatement node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    node.body = _makeEmptyBlockIfEmptyStatement(node.body, node);
     return node;
   }
 
   @override
-  TreeNode visitForInStatement(ForInStatement node) {
-    node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body, node);
+  TreeNode visitForInStatement(ForInStatement node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    node.body = _makeEmptyBlockIfEmptyStatement(node.body, node);
     return node;
   }
 }

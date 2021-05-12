@@ -1,0 +1,3 @@
+// @dart = 2.9
+typedef F = void Function<X extends F>() Function();
+void main() {}

@@ -104,12 +104,24 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
+  String computeMemberValue(Id id, Member node) {
+    if (node is Procedure && node.function.futureValueType != null) {
+      return 'futureValueType=${typeToText(node.function.futureValueType)}';
+    }
+    return null;
+  }
+
+  @override
   String computeNodeValue(Id id, TreeNode node) {
     if (isSkippedExpression(node)) {
       return null;
     }
     if (node is Expression) {
       DartType type = node.getStaticType(_staticTypeContext);
+      if (node is FunctionExpression && node.function.futureValueType != null) {
+        return '${typeToText(type)},'
+            'futureValueType=${typeToText(node.function.futureValueType)}';
+      }
       return typeToText(type);
     } else if (node is Arguments) {
       if (node.types.isNotEmpty) {
@@ -120,6 +132,10 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
         DartType type = _staticTypeContext.typeEnvironment.forInElementType(
             node, node.iterable.getStaticType(_staticTypeContext));
         return typeToText(type);
+      }
+    } else if (node is FunctionDeclaration) {
+      if (node.function.futureValueType != null) {
+        return 'futureValueType=${typeToText(node.function.futureValueType)}';
       }
     }
     return null;

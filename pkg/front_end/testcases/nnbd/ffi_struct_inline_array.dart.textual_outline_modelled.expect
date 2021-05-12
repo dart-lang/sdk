@@ -1,0 +1,9 @@
+import "package:ffi/ffi.dart";
+import 'dart:ffi';
+
+class StructInlineArray extends Struct {
+  @Array(8)
+  external Array<Uint8> a0;
+}
+
+main() {}

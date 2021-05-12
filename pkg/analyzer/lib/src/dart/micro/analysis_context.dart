@@ -2,31 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:meta/meta.dart';
 
 MicroContextObjects createMicroContextObjects({
-  @required FileResolver fileResolver,
-  @required AnalysisOptionsImpl analysisOptions,
-  @required SourceFactory sourceFactory,
-  @required ContextRootImpl root,
-  @required ResourceProvider resourceProvider,
-  @required Workspace workspace,
+  required FileResolver fileResolver,
+  required AnalysisOptionsImpl analysisOptions,
+  required SourceFactory sourceFactory,
+  required ContextRootImpl root,
+  required ResourceProvider resourceProvider,
 }) {
   var declaredVariables = DeclaredVariables();
   var synchronousSession = SynchronousSession(
@@ -40,6 +42,7 @@ MicroContextObjects createMicroContextObjects({
   );
 
   var analysisSession = _MicroAnalysisSessionImpl(
+    fileResolver,
     declaredVariables,
     sourceFactory,
   );
@@ -51,7 +54,6 @@ MicroContextObjects createMicroContextObjects({
     declaredVariables,
     sourceFactory,
     resourceProvider,
-    workspace: workspace,
   );
 
   analysisContext2.currentSession = analysisSession;
@@ -74,11 +76,11 @@ class MicroContextObjects {
   final _MicroAnalysisContextImpl analysisContext2;
 
   MicroContextObjects({
-    @required this.declaredVariables,
-    @required this.synchronousSession,
-    @required this.analysisSession,
-    @required this.analysisContext,
-    @required this.analysisContext2,
+    required this.declaredVariables,
+    required this.synchronousSession,
+    required this.analysisSession,
+    required this.analysisContext,
+    required this.analysisContext2,
   });
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
@@ -88,6 +90,24 @@ class MicroContextObjects {
   InheritanceManager3 get inheritanceManager {
     return analysisSession.inheritanceManager;
   }
+}
+
+class _FakeAnalysisDriver implements AnalysisDriver {
+  final FileResolver fileResolver;
+
+  late _MicroAnalysisSessionImpl _currentSession;
+
+  _FakeAnalysisDriver(this.fileResolver);
+
+  @override
+  AnalysisSessionImpl get currentSession {
+    _currentSession = fileResolver.contextObjects?.analysisSession
+        as _MicroAnalysisSessionImpl;
+    return _currentSession;
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MicroAnalysisContextImpl implements AnalysisContext {
@@ -100,12 +120,11 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   final ContextRoot contextRoot;
 
   @override
-  _MicroAnalysisSessionImpl currentSession;
+  late _MicroAnalysisSessionImpl currentSession;
 
   final DeclaredVariables declaredVariables;
 
   final SourceFactory sourceFactory;
-  Workspace _workspace;
 
   _MicroAnalysisContextImpl(
     this.fileResolver,
@@ -113,9 +132,8 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
     this.contextRoot,
     this.declaredVariables,
     this.sourceFactory,
-    this.resourceProvider, {
-    Workspace workspace,
-  }) : _workspace = workspace;
+    this.resourceProvider,
+  );
 
   @override
   AnalysisOptionsImpl get analysisOptions {
@@ -123,37 +141,34 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  Folder get sdkRoot => null;
+  Folder? get sdkRoot => null;
 
+  @Deprecated('Use contextRoot.workspace instead')
   @override
   Workspace get workspace {
-    return _workspace ??= _buildWorkspace();
+    return contextRoot.workspace;
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  Workspace _buildWorkspace() {
-    String path = contextRoot.root.path;
-    ContextBuilder builder = ContextBuilder(
-        resourceProvider, null /* sdkManager */, null /* contentCache */);
-    return ContextBuilder.createWorkspace(resourceProvider, path, builder);
-  }
 }
 
 class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
+  final FileResolver fileResolver;
+
   @override
   final DeclaredVariables declaredVariables;
 
   final SourceFactory sourceFactory;
 
   @override
-  _MicroAnalysisContextImpl analysisContext;
+  late _MicroAnalysisContextImpl analysisContext;
 
   _MicroAnalysisSessionImpl(
+    this.fileResolver,
     this.declaredVariables,
     this.sourceFactory,
-  ) : super(null);
+  ) : super(_FakeAnalysisDriver(fileResolver));
 
   @override
   ResourceProvider get resourceProvider =>
@@ -169,25 +184,27 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   FileResult getFile(String path) {
+    var fileContext = analysisContext.fileResolver.getFileContext(
+      path: path,
+      performance: OperationPerformanceImpl('<default>'),
+    );
     return FileResultImpl(
       this,
       path,
-      uriConverter.pathToUri(path),
-      null,
+      fileContext.file.uri,
+      fileContext.file.lineInfo,
       false,
     );
   }
 
   @override
+  Future<LibraryElement> getLibraryByUri(String uriStr) async {
+    return analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
+  }
+
+  @override
   Future<ResolvedLibraryResult> getResolvedLibrary(String path) async {
-    var resolvedUnit = await getResolvedUnit(path);
-    return ResolvedLibraryResultImpl(
-      this,
-      path,
-      resolvedUnit.uri,
-      resolvedUnit.libraryElement,
-      [resolvedUnit],
-    );
+    return analysisContext.fileResolver.resolveLibrary(path: path);
   }
 
   @override
@@ -206,14 +223,14 @@ class _UriConverterImpl implements UriConverter {
   _UriConverterImpl(this.resourceProvider, this.sourceFactory);
 
   @override
-  Uri pathToUri(String path, {String containingPath}) {
+  Uri? pathToUri(String path, {String? containingPath}) {
     var fileUri = resourceProvider.pathContext.toUri(path);
-    var fileSource = sourceFactory.forUri2(fileUri);
+    var fileSource = sourceFactory.forUri2(fileUri)!;
     return sourceFactory.restoreUri(fileSource);
   }
 
   @override
-  String uriToPath(Uri uri) {
+  String? uriToPath(Uri uri) {
     return sourceFactory.forUri2(uri)?.fullName;
   }
 }

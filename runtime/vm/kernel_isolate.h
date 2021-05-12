@@ -79,7 +79,8 @@ class KernelIsolate : public AllStatic {
 
   static Dart_KernelCompilationResult ListDependencies();
 
-  static void NotifyAboutIsolateShutdown(const Isolate* isolate);
+  static void NotifyAboutIsolateGroupShutdown(
+      const IsolateGroup* isolate_group);
 
   static void AddExperimentalFlag(const char* value);
   static bool GetExperimentalFlag(ExperimentalFeature feature);
@@ -115,7 +116,8 @@ class KernelIsolate : public AllStatic {
   static bool IsRunning() { return false; }
   static void Shutdown() {}
   static bool IsKernelIsolate(const Isolate* isolate) { return false; }
-  static void NotifyAboutIsolateShutdown(const Isolate* isolate) {}
+  static void NotifyAboutIsolateGroupShutdown(
+      const IsolateGroup* isolate_group) {}
   static bool GetExperimentalFlag(const char* value) { return false; }
 
  protected:

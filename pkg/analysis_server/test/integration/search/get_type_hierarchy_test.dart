@@ -18,9 +18,9 @@ void main() {
 @reflectiveTest
 class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
   /// Pathname of the main file to run tests in.
-  String pathname;
+  late String pathname;
 
-  Future getTypeHierarchy_badTarget() {
+  Future getTypeHierarchy_badTarget() async {
     var text = r'''
 main() {
   if /* target */ (true) {
@@ -28,12 +28,11 @@ main() {
   }
 }
 ''';
-    return typeHierarchyTest(text).then((HierarchyResults results) {
-      expect(results, isNull);
-    });
+    var results = await typeHierarchyTestNullable(text);
+    expect(results, isNull);
   }
 
-  Future getTypeHierarchy_classElement() {
+  Future<void> getTypeHierarchy_classElement() {
     var text = r'''
 class Base {}
 class Pivot /* target */ extends Base {}
@@ -45,11 +44,12 @@ class Derived extends Pivot {}
       void checkElement(String name) {
         // We don't check the full element data structure; just enough to make
         // sure that we're pointing to the correct element.
-        var element = results.items[results.nameToIndex[name]].classElement;
+        // var element = results.items[results.nameToIndex[name]].classElement;
+        var element = results.getItem(name).classElement;
         expect(element.kind, equals(ElementKind.CLASS));
         expect(element.name, equals(name));
         if (name != 'Object') {
-          expect(element.location.offset,
+          expect(element.location!.offset,
               equals(text.indexOf('class $name') + 'class '.length));
         }
       }
@@ -74,14 +74,13 @@ class Pivot /* target */ extends Base<int> {}
     });
   }
 
-  Future getTypeHierarchy_functionTarget() {
+  Future getTypeHierarchy_functionTarget() async {
     var text = r'''
 main /* target */ () {
 }
 ''';
-    return typeHierarchyTest(text).then((HierarchyResults results) {
-      expect(results, isNull);
-    });
+    var results = await typeHierarchyTestNullable(text);
+    expect(results, isNull);
   }
 
   Future getTypeHierarchy_interfaces() {
@@ -119,13 +118,13 @@ class Derived2 extends Derived1 {
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(6));
       expect(results.getItem('Object').memberElement, isNull);
-      expect(results.getItem('Base1').memberElement.location.offset,
+      expect(results.getItem('Base1').memberElement!.location!.offset,
           equals(text.indexOf('foo /* base1 */')));
       expect(results.getItem('Base2').memberElement, isNull);
-      expect(results.getItem('Pivot').memberElement.location.offset,
+      expect(results.getItem('Pivot').memberElement!.location!.offset,
           equals(text.indexOf('foo /* target */')));
       expect(results.getItem('Derived1').memberElement, isNull);
-      expect(results.getItem('Derived2').memberElement.location.offset,
+      expect(results.getItem('Derived2').memberElement!.location!.offset,
           equals(text.indexOf('foo /* derived2 */')));
     });
   }
@@ -189,7 +188,7 @@ class Pivot /* target */ extends Base2 {}
     });
   }
 
-  Future<void> test_getTypeHierarchy() {
+  Future<void> test_getTypeHierarchy() async {
     pathname = sourcePath('test.dart');
     // Write a dummy file which will be overridden by tests using
     // [sendAnalysisUpdateContent].
@@ -198,30 +197,34 @@ class Pivot /* target */ extends Base2 {}
 
     // Run all the getTypeHierarchy tests at once so that the server can take
     // advantage of incremental analysis and the test doesn't time out.
-    var tests = [
-      getTypeHierarchy_classElement,
-      getTypeHierarchy_displayName,
-      getTypeHierarchy_memberElement,
-      getTypeHierarchy_superclass,
-      getTypeHierarchy_interfaces,
-      getTypeHierarchy_mixins,
-      getTypeHierarchy_subclasses,
-      getTypeHierarchy_badTarget,
-      getTypeHierarchy_functionTarget
-    ];
-    return Future.forEach(tests, (test) => test());
+    await getTypeHierarchy_classElement();
+    await getTypeHierarchy_displayName();
+    await getTypeHierarchy_memberElement();
+    await getTypeHierarchy_superclass();
+    await getTypeHierarchy_interfaces();
+    await getTypeHierarchy_mixins();
+    await getTypeHierarchy_subclasses();
+    await getTypeHierarchy_badTarget();
+    await getTypeHierarchy_functionTarget();
   }
 
   Future<HierarchyResults> typeHierarchyTest(String text) async {
+    var results = (await typeHierarchyTestNullable(text))!;
+    return results;
+  }
+
+  Future<HierarchyResults?> typeHierarchyTestNullable(String text) async {
     var offset = text.indexOf(' /* target */') - 1;
     sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
     await analysisFinished;
     var result = await sendSearchGetTypeHierarchy(pathname, offset);
-    if (result.hierarchyItems == null) {
+
+    var hierarchyItems = result.hierarchyItems;
+    if (hierarchyItems == null) {
       return null;
-    } else {
-      return HierarchyResults(result.hierarchyItems);
     }
+
+    return HierarchyResults(hierarchyItems);
   }
 }
 
@@ -232,16 +235,14 @@ class HierarchyResults {
 
   /// The first hierarchy item from the result, which represents the pivot
   /// class.
-  TypeHierarchyItem pivot;
+  final TypeHierarchyItem pivot;
 
   /// A map from element name to item index.
-  Map<String, int> nameToIndex;
+  final Map<String, int> nameToIndex = {};
 
   /// Create a [HierarchyResults] object based on the result from a
   /// getTypeHierarchy request.
-  HierarchyResults(this.items) {
-    pivot = items[0];
-    nameToIndex = <String, int>{};
+  HierarchyResults(this.items) : pivot = items[0] {
     for (var i = 0; i < items.length; i++) {
       nameToIndex[items[i].classElement.name] = i;
     }
@@ -249,8 +250,9 @@ class HierarchyResults {
 
   /// Get an item by class name.
   TypeHierarchyItem getItem(String name) {
-    if (nameToIndex.containsKey(name)) {
-      return items[nameToIndex[name]];
+    var index = nameToIndex[name];
+    if (index != null) {
+      return items[index];
     } else {
       fail('Class $name not found in hierarchy results');
     }

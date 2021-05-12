@@ -45,8 +45,7 @@
   },
   "pkg/compiler/lib/src/deferred_load.dart": {
     "Dynamic access of 'memberContext'.": 1,
-    "Dynamic access of 'name'.": 1,
-    "Dynamic invocation of '[]='.": 1
+    "Dynamic access of 'name'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/container_type_mask.dart": {
     "Dynamic access of 'isNullable'.": 2,
@@ -197,6 +196,9 @@
     "Dynamic invocation of '[]='.": 1,
     "Dynamic invocation of 'add'.": 1
   },
+  "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_merger.dart": {
+    "Dynamic invocation of '[]='.": 1
+  },
   "pkg/js_ast/lib/src/builder.dart": {
     "Dynamic invocation of 'call'.": 2
   },
@@ -222,7 +224,6 @@
     "Dynamic access of 'type'.": 4
   },
   "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
     "Dynamic access of 'positional'.": 2,
     "Dynamic access of 'length'.": 2,
     "Dynamic access of 'named'.": 2,

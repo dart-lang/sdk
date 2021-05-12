@@ -794,6 +794,7 @@ dependence
 dependencies
 dependency
 dependent
+dependents
 depending
 depends
 deprecate
@@ -856,6 +857,9 @@ dig
 digit
 digits
 dill
+dimension
+dimensional
+dimensions
 dir
 direct
 direction
@@ -878,6 +882,7 @@ discards
 discover
 discovered
 discovery
+discrepancy
 disk
 dispatch
 dispatches
@@ -1604,6 +1609,7 @@ invariantly
 inversion
 invert
 inverted
+inverter
 investigate
 invisible
 invocation
@@ -2022,6 +2028,7 @@ odd
 odds
 of
 off
+offs
 offset
 offsets
 often
@@ -2107,6 +2114,8 @@ owner
 package
 packaged
 packages
+packed
+packing
 pad
 padded
 padding
@@ -2161,6 +2170,8 @@ perfect
 perform
 performance
 performed
+performer
+performers
 performing
 performs
 perhaps
@@ -3034,6 +3045,7 @@ throws
 thumb
 thunk
 thus
+tightly
 time
 timeline
 times
@@ -3124,6 +3136,7 @@ two
 type
 typed
 typedef
+typedef's
 typedefs
 types
 typically
@@ -3142,6 +3155,7 @@ unbalanced
 unbind
 uncertain
 unchanged
+unchecked
 unclaimed
 unclear
 undeclared

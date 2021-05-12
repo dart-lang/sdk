@@ -9,38 +9,7 @@ library fasta.kernel_target;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
     show DillLibraryBuilder;
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        CanonicalName,
-        Class,
-        Component,
-        Constructor,
-        DartType,
-        EmptyStatement,
-        Expression,
-        Field,
-        FieldInitializer,
-        FunctionNode,
-        Initializer,
-        InterfaceType,
-        InvalidInitializer,
-        InvalidType,
-        Library,
-        Name,
-        NamedExpression,
-        NonNullableByDefaultCompiledMode,
-        NullLiteral,
-        Procedure,
-        RedirectingInitializer,
-        Reference,
-        Source,
-        SuperInitializer,
-        Supertype,
-        TypeParameter,
-        TypeParameterType,
-        VariableDeclaration,
-        VariableGet;
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart';
@@ -51,7 +20,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-import 'package:package_config/package_config.dart';
+import 'package:package_config/package_config.dart' hide LanguageVersion;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 import '../../base/nnbd_mode.dart';
@@ -102,7 +71,8 @@ import '../messages.dart'
 import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart'
+    show LanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
@@ -113,7 +83,6 @@ import 'constant_evaluator.dart' as constants
         transformProcedure,
         ConstantCoverage;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
-import 'metadata_collector.dart' show MetadataCollector;
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
@@ -124,9 +93,6 @@ class KernelTarget extends TargetImplementation {
   final bool includeComments;
 
   final DillTarget dillTarget;
-
-  /// The [MetadataCollector] to write metadata to.
-  final MetadataCollector metadataCollector;
 
   SourceLoader loader;
 
@@ -177,10 +143,8 @@ class KernelTarget extends TargetImplementation {
   final List<ClonedFunctionNode> clonedFunctionNodes = <ClonedFunctionNode>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
-      UriTranslator uriTranslator,
-      {MetadataCollector metadataCollector})
+      UriTranslator uriTranslator)
       : dillTarget = dillTarget,
-        metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();
   }
@@ -252,6 +216,7 @@ class KernelTarget extends TargetImplementation {
       Uri uri,
       Uri fileUri,
       Uri packageUri,
+      LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner) {
@@ -301,7 +266,8 @@ class KernelTarget extends TargetImplementation {
         return builder;
       }
     }
-    return new SourceLibraryBuilder(uri, fileUri, packageUri, loader, origin,
+    return new SourceLibraryBuilder(
+        uri, fileUri, packageUri, packageLanguageVersion, loader, origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner);
   }
@@ -309,7 +275,7 @@ class KernelTarget extends TargetImplementation {
   /// Returns classes defined in libraries in [loader].
   List<SourceClassBuilder> collectMyClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
-    loader.builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in loader.builders.values) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -319,7 +285,7 @@ class KernelTarget extends TargetImplementation {
           }
         }
       }
-    });
+    }
     return result;
   }
 
@@ -479,9 +445,6 @@ class KernelTarget extends TargetImplementation {
     }
     component.setMainMethodAndMode(mainReference, true, compiledMode);
 
-    if (metadataCollector != null) {
-      component.addMetadataRepository(metadataCollector.repository);
-    }
     assert(_getLibraryNnbdModeError(component) == null,
         "Got error: ${_getLibraryNnbdModeError(component)}");
 
@@ -566,7 +529,7 @@ class KernelTarget extends TargetImplementation {
 
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    loader.builders.forEach((Uri uri, LibraryBuilder library) {
+    for (LibraryBuilder library in loader.builders.values) {
       if (library.loader == loader) {
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
@@ -590,7 +553,7 @@ class KernelTarget extends TargetImplementation {
           }
         }
       }
-    });
+    }
     ticker.logMs("Installed Object as implicit superclass");
   }
 
@@ -684,7 +647,10 @@ class KernelTarget extends TargetImplementation {
     if (supertype is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = supertype;
       NamedTypeBuilder namedBuilder = type;
-      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+          isUsedAsClass: true,
+          usedAsClassCharOffset: namedBuilder.charOffset,
+          usedAsClassFileUri: namedBuilder.fileUri);
     }
     if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
@@ -1056,32 +1022,28 @@ class KernelTarget extends TargetImplementation {
         new Map<ConstructorBuilder, Set<FieldBuilder>>.identity();
     Set<FieldBuilder> initializedFields = null;
 
-    builder
-        .forEachDeclaredConstructor((String name, Builder constructorBuilder) {
-      if (constructorBuilder is ConstructorBuilder) {
-        if (constructorBuilder.isExternal) return;
-        // In case of duplicating constructors the earliest ones (those that
-        // declared towards the beginning of the file) come last in the list.
-        // To report errors on the first definition of a constructor, we need to
-        // iterate until that last element.
-        ConstructorBuilder earliest = constructorBuilder;
-        while (earliest.next != null) {
-          earliest = earliest.next;
-        }
+    builder.forEachDeclaredConstructor(
+        (String name, ConstructorBuilder constructorBuilder) {
+      if (constructorBuilder.isExternal) return;
+      // In case of duplicating constructors the earliest ones (those that
+      // declared towards the beginning of the file) come last in the list.
+      // To report errors on the first definition of a constructor, we need to
+      // iterate until that last element.
+      ConstructorBuilder earliest = constructorBuilder;
+      while (earliest.next != null) {
+        earliest = earliest.next;
+      }
 
-        bool isRedirecting = false;
-        for (Initializer initializer in earliest.constructor.initializers) {
-          if (initializer is RedirectingInitializer) {
-            isRedirecting = true;
-          }
+      bool isRedirecting = false;
+      for (Initializer initializer in earliest.constructor.initializers) {
+        if (initializer is RedirectingInitializer) {
+          isRedirecting = true;
         }
-        if (!isRedirecting) {
-          Set<FieldBuilder> fields =
-              earliest.takeInitializedFields() ?? const {};
-          constructorInitializedFields[earliest] = fields;
-          (initializedFields ??= new Set<FieldBuilder>.identity())
-              .addAll(fields);
-        }
+      }
+      if (!isRedirecting) {
+        Set<FieldBuilder> fields = earliest.takeInitializedFields() ?? const {};
+        constructorInitializedFields[earliest] = fields;
+        (initializedFields ??= new Set<FieldBuilder>.identity()).addAll(fields);
       }
     });
 
@@ -1248,6 +1210,8 @@ class KernelTarget extends TargetImplementation {
         evaluateAnnotations: true,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        enableConstFunctions:
+            isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
@@ -1296,6 +1260,8 @@ class KernelTarget extends TargetImplementation {
         evaluateAnnotations: true,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        enableConstFunctions:
+            isExperimentEnabledGlobally(ExperimentalFlag.constFunctions),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 
@@ -1348,7 +1314,9 @@ class KernelTarget extends TargetImplementation {
 
   /// Return `true` if the given [library] was built by this [KernelTarget]
   /// from sources, and not loaded from a [DillTarget].
-  bool isSourceLibrary(Library library) {
+  /// Note that this is meant for debugging etc and that it is slow, each
+  /// call takes O(# libraries).
+  bool isSourceLibraryForDebugging(Library library) {
     return loader.libraries.contains(library);
   }
 

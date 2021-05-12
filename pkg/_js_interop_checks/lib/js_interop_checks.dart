@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropAnonymousFactoryPositionalParameters,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
+        messageJsInteropExternalMemberNotJSAnnotated,
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
@@ -22,17 +23,45 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 
 import 'src/js_interop.dart';
 
-class JsInteropChecks extends RecursiveVisitor<void> {
+class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   final Map<String, Class> _nativeClasses;
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _libraryHasJSAnnotation = false;
+
+  /// Libraries that use `external` to exclude from checks on external.
+  static final Iterable<String> _pathsWithAllowedDartExternalUsage = <String>[
+    '_foreign_helper', // for foreign helpers
+    '_interceptors', // for ddc JS string
+    '_native_typed_data',
+    '_runtime', // for ddc types at runtime
+    'async',
+    'core', // for environment constructors
+    'html',
+    'html_common',
+    'indexed_db',
+    'js',
+    'js_util',
+    'svg',
+    'web_audio',
+    'web_gl',
+    'web_sql'
+  ];
+
+  /// Native tests to exclude from checks on external.
+  // TODO(rileyporter): Use ExternalName from CFE to exclude native tests.
+  List<Pattern> _allowedNativeTestPatterns = [
+    RegExp(r'(?<!generated_)tests/web/native'),
+    RegExp(r'(?<!generated_)tests/web/internal'),
+    'generated_tests/web/native/native_test',
+    RegExp(r'(?<!generated_)tests/web_2/native'),
+    RegExp(r'(?<!generated_)tests/web_2/internal'),
+    'generated_tests/web_2/native/native_test',
+  ];
+
   bool _libraryIsGlobalNamespace = false;
-  // TODO(srujzs): This currently disables this check always. This check should
-  // instead only be disabled up until a given language version.
-  bool _disableJSNativeClassConflict = true;
 
   JsInteropChecks(
       this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
@@ -86,7 +115,8 @@ class JsInteropChecks extends RecursiveVisitor<void> {
             cls.location.file);
       }
     }
-    if (!_disableJSNativeClassConflict &&
+    // Since this is a breaking check, it is language-versioned.
+    if (cls.enclosingLibrary.languageVersion >= Version(2, 13) &&
         _classHasJSAnnotation &&
         !_classHasAnonymousAnnotation &&
         _libraryIsGlobalNamespace) {
@@ -233,6 +263,30 @@ class JsInteropChecks extends RecursiveVisitor<void> {
                 enclosingClass.name.length)
           ]);
     }
+
+    // Check for correct `external` usage.
+    if (member.isExternal &&
+        !_isAllowedExternalUsage(member) &&
+        !hasJSInteropAnnotation(member)) {
+      if (member.enclosingClass != null && !_classHasJSAnnotation ||
+          member.enclosingClass == null && !_libraryHasJSAnnotation) {
+        _diagnosticsReporter.report(
+            messageJsInteropExternalMemberNotJSAnnotated,
+            member.fileOffset,
+            member.name.text.length,
+            member.location.file);
+      }
+    }
+  }
+
+  /// Verifies given member is one of the allowed usages of external:
+  /// a dart low level library, a foreign helper, a native test,
+  /// or a from environment constructor.
+  bool _isAllowedExternalUsage(Member member) {
+    Uri uri = member.enclosingLibrary.importUri;
+    return uri.scheme == 'dart' &&
+            _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
+        _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
   }
 
   /// Returns whether [member] is considered to be a JS interop member.

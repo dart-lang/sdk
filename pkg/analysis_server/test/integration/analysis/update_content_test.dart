@@ -76,7 +76,7 @@ void main() {
     standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
-    var errors1 = currentAnalysisErrors[pathname];
+    var errors1 = existingErrorsForFile(pathname);
     expect(errors1, hasLength(1));
     expect(errors1[0].location.file, equals(pathname));
 
@@ -97,7 +97,7 @@ void main() {
     });
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
-    var errors2 = currentAnalysisErrors[pathname];
+    var errors2 = existingErrorsForFile(pathname);
     expect(errors2, hasLength(1));
     expect(errors2[0].location.file, equals(pathname));
   }

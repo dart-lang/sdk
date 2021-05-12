@@ -45,7 +45,7 @@ String keyToIdentifier(String key) {
 class _ExperimentsGenerator {
   final Map experimentsYaml;
 
-  List<String> keysSorted;
+  late List<String> keysSorted;
 
   final out = StringBuffer('''
 //
@@ -57,25 +57,27 @@ class _ExperimentsGenerator {
 part of 'experiments.dart';
 ''');
 
-  Map<String, dynamic> _features;
+  Map<String, dynamic>? _features;
 
   _ExperimentsGenerator(this.experimentsYaml);
 
   Map<String, dynamic> get features {
-    if (_features != null) return _features;
-    _features = {};
+    var features = _features;
+    if (features != null) return features;
+
+    features = <String, dynamic>{};
     Map yamlFeatures = experimentsYaml['features'];
     for (MapEntry entry in yamlFeatures.entries) {
-      String category = entry.value['category'] ?? 'language';
+      String category = (entry.value as YamlMap)['category'] ?? 'language';
       if (category != "language") {
         // Skip a feature with a category that's not language. In the future
         // possibly allow e.g. 'analyzer' etc.
         continue;
       }
-      _features[entry.key] = entry.value;
+      features[entry.key] = entry.value;
     }
 
-    return _features;
+    return _features = features;
   }
 
   void generateFormatCode() {
@@ -208,7 +210,7 @@ class IsExpired {
     for (var key in keysSorted) {
       var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
-      bool expired = entry['expired'];
+      bool? expired = entry['expired'];
       out.write('''
       /// Expiration status of the experiment "$key"
       static const bool ${keyToIdentifier(key)} = ${expired == true};

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -79,7 +81,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
 
-    newFile('/home/test/pubspec.yaml', content: '');
+    newPubspecYamlFile('/home/test', '');
     newFile('/home/test/.packages', content: '''
 test:${toUri('/home/test/lib')}
 ''');

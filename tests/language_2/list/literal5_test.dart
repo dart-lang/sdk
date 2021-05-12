@@ -6,10 +6,7 @@
 
 main() {
   new List<int>[1, 2];
-  //          ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected '(' after this.
-  //             ^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected ']' before this.
+//^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.LITERAL_WITH_CLASS_AND_NEW
+// [cfe] A list literal can't be prefixed by 'new List'.
 }

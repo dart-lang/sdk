@@ -80,7 +80,7 @@ class ManifestWarningCode extends ErrorCode {
 
   /// Initialize a newly created warning code to have the given [name],
   /// [message] and [correction].
-  const ManifestWarningCode(String name, String message, {String correction})
+  const ManifestWarningCode(String name, String message, {String? correction})
       : super(
           correction: correction,
           message: message,

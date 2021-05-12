@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedIdentifierTest extends PubPackageResolutionTest {
+class UndefinedIdentifierTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @failingTest
   test_commentReference() async {
     await assertErrorsInCode('''

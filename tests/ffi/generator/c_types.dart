@@ -59,6 +59,12 @@ abstract class CType {
   /// Get a size in bytes that is the same on all architectures.
   int get size;
 
+  /// All members have a floating point type.
+  bool get isOnlyFloatingPoint;
+
+  /// All members have a integer type.
+  bool get isOnlyInteger;
+
   String toString() => dartCType;
 
   const CType();
@@ -72,6 +78,8 @@ class FundamentalType extends CType {
   bool get isFloatingPoint =>
       primitive == PrimitiveType.float || primitive == PrimitiveType.double_;
   bool get isInteger => !isFloatingPoint;
+  bool get isOnlyFloatingPoint => isFloatingPoint;
+  bool get isOnlyInteger => isInteger;
   bool get isUnsigned =>
       primitive == PrimitiveType.uint8 ||
       primitive == PrimitiveType.uint16 ||
@@ -105,6 +113,9 @@ class PointerType extends CType {
   String get dartStructFieldAnnotation => "";
   bool get hasSize => false;
   int get size => throw "Size unknown";
+
+  bool get isOnlyFloatingPoint => false;
+  bool get isOnlyInteger => true;
 }
 
 /// Used to give [StructType] fields and [FunctionType] arguments names.
@@ -119,7 +130,14 @@ class Member {
     return "${type.dartStructFieldAnnotation} $modifier ${type.dartType} $name;";
   }
 
-  String get cStructField => "${type.cType} $name;";
+  String get cStructField {
+    String postFix = "";
+    if (type is FixedLengthArrayType) {
+      final dimensions = (type as FixedLengthArrayType).dimensions;
+      postFix = "[${dimensions.join("][")}]";
+    }
+    return "${type.cType} $name$postFix;";
+  }
 
   String toString() => "$type $name";
 }
@@ -137,20 +155,24 @@ List<Member> generateMemberNames(List<CType> memberTypes) {
 class StructType extends CType {
   final List<Member> members;
 
+  final int? packing;
+
   /// To disambiguate same size structs.
   final String suffix;
 
   /// To override names.
   final String overrideName;
 
-  StructType(List<CType> memberTypes)
+  StructType(List<CType> memberTypes, {int? this.packing})
       : this.members = generateMemberNames(memberTypes),
         this.suffix = "",
         this.overrideName = "";
-  StructType.disambiguate(List<CType> memberTypes, this.suffix)
+  StructType.disambiguate(List<CType> memberTypes, this.suffix,
+      {int? this.packing})
       : this.members = generateMemberNames(memberTypes),
         this.overrideName = "";
-  StructType.override(List<CType> memberTypes, this.overrideName)
+  StructType.override(List<CType> memberTypes, this.overrideName,
+      {int? this.packing})
       : this.members = generateMemberNames(memberTypes),
         this.suffix = "";
 
@@ -165,35 +187,39 @@ class StructType extends CType {
       !memberTypes.map((e) => e.hasSize).contains(false) && !hasPadding;
   int get size => memberTypes.fold(0, (int acc, e) => acc + e.size);
 
-  /// Rough approximation, to not redo all ABI logic here.
-  bool get hasPadding =>
-      members.length < 2 ? false : members[0].type.size < members[1].type.size;
+  bool get hasPacking => packing != null;
+
+  bool get hasPadding {
+    if (members.length < 2) {
+      return false;
+    }
+    if (packing == 1) {
+      return false;
+    }
+
+    /// Rough approximation, to not redo all ABI logic here.
+    return members[0].type.size < members[1].type.size;
+  }
 
   bool get hasNestedStructs =>
       members.map((e) => e.type is StructType).contains(true);
 
+  bool get hasInlineArrays =>
+      members.map((e) => e.type is FixedLengthArrayType).contains(true);
+
+  bool get hasMultiDimensionalInlineArrays => members
+      .map((e) => e.type)
+      .whereType<FixedLengthArrayType>()
+      .where((e) => e.isMulti)
+      .isNotEmpty;
+
   /// All members have the same type.
   bool get isHomogeneous => memberTypes.toSet().length == 1;
 
-  /// All members have a floating point type.
-  bool get isOnlyFloatingPoint => !memberTypes.map((e) {
-        if (e is FundamentalType) {
-          return e.isFloatingPoint;
-        }
-        if (e is StructType) {
-          return e.isOnlyFloatingPoint;
-        }
-      }).contains(false);
-
-  /// All members have a integer type.
-  bool get isOnlyInteger => !memberTypes.map((e) {
-        if (e is FundamentalType) {
-          return e.isInteger;
-        }
-        if (e is StructType) {
-          return e.isOnlyInteger;
-        }
-      }).contains(false);
+  bool get isOnlyFloatingPoint =>
+      !memberTypes.map((e) => e.isOnlyFloatingPoint).contains(false);
+  bool get isOnlyInteger =>
+      !memberTypes.map((e) => e.isOnlyInteger).contains(false);
 
   bool get isMixed => !isOnlyInteger && !isOnlyFloatingPoint;
 
@@ -205,8 +231,20 @@ class StructType extends CType {
     if (hasSize) {
       result += "${size}Byte" + (size != 1 ? "s" : "");
     }
+    if (hasPacking) {
+      result += "Packed";
+      if (packing! > 1) {
+        result += "$packing";
+      }
+    }
     if (hasNestedStructs) {
       result += "Nested";
+    }
+    if (hasInlineArrays) {
+      result += "InlineArray";
+      if (hasMultiDimensionalInlineArrays) {
+        result += "MultiDimensional";
+      }
     }
     if (members.length == 0) {
       // No suffix.
@@ -224,6 +262,51 @@ class StructType extends CType {
     result += suffix;
     return result;
   }
+}
+
+class FixedLengthArrayType extends CType {
+  final CType elementType;
+  final int length;
+
+  FixedLengthArrayType(this.elementType, this.length);
+
+  factory FixedLengthArrayType.multi(CType elementType, List<int> dimensions) {
+    if (dimensions.length == 1) {
+      return FixedLengthArrayType(elementType, dimensions.single);
+    }
+
+    final remainingDimensions = dimensions.sublist(1);
+    final nestedArray =
+        FixedLengthArrayType.multi(elementType, remainingDimensions);
+    return FixedLengthArrayType(nestedArray, dimensions.first);
+  }
+
+  String get cType => elementType.cType;
+  String get dartCType => "Array<${elementType.dartCType}>";
+  String get dartType => "Array<${elementType.dartCType}>";
+
+  String get dartStructFieldAnnotation {
+    if (dimensions.length > 5) {
+      return "@Array.multi([${dimensions.join(", ")}])";
+    }
+    return "@Array(${dimensions.join(", ")})";
+  }
+
+  List<int> get dimensions {
+    final elementType = this.elementType;
+    if (elementType is FixedLengthArrayType) {
+      return [length, ...elementType.dimensions];
+    }
+    return [length];
+  }
+
+  bool get isMulti => elementType is FixedLengthArrayType;
+
+  bool get hasSize => elementType.hasSize;
+  int get size => elementType.size * length;
+
+  bool get isOnlyFloatingPoint => elementType.isOnlyFloatingPoint;
+  bool get isOnlyInteger => elementType.isOnlyInteger;
 }
 
 class FunctionType extends CType {
@@ -253,6 +336,9 @@ class FunctionType extends CType {
 
   bool get hasSize => false;
   int get size => throw "Unknown size.";
+
+  bool get isOnlyFloatingPoint => throw "Not implemented";
+  bool get isOnlyInteger => throw "Not implemented";
 
   /// Group consecutive [arguments] by same type.
   ///

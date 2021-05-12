@@ -15,8 +15,9 @@ class int {
   int _bitAndFromInteger(int other);
   int _bitOrFromInteger(int other);
   int _bitXorFromInteger(int other);
-  int _shrFromInteger(int other);
   int _shlFromInteger(int other);
+  int _shrFromInteger(int other);
+  int _ushrFromInteger(int other);
 
   static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
@@ -31,7 +32,7 @@ class int {
         return null; // Empty.
       }
     }
-    var smiLimit = is64Bit ? 18 : 9;
+    var smiLimit = has63BitSmis ? 18 : 9;
     if ((last - ix) >= smiLimit) {
       return null; // May not fit into a Smi.
     }
@@ -133,7 +134,7 @@ class int {
 
   static int _parseRadix(String source, int radix, int start, int end, int sign,
       bool allowU64, onError) {
-    int tableIndex = (radix - 2) * 4 + (is64Bit ? 2 : 0);
+    int tableIndex = (radix - 2) * 4 + (has63BitSmis ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {
@@ -180,7 +181,7 @@ class int {
           // Although the unsigned overflow limits do not depend on the
           // platform, the multiplier and block size, which are used to
           // compute it, do.
-          int X = is64Bit ? 1 : 0;
+          int X = has63BitSmis ? 1 : 0;
           if (allowU64 &&
               !(result >= _int64UnsignedOverflowLimits[X] &&
                   (result > _int64UnsignedOverflowLimits[X] ||

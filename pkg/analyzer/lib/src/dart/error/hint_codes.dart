@@ -15,6 +15,69 @@ import 'package:analyzer/src/error/analyzer_error_code.dart';
  */
 class HintCode extends AnalyzerErrorCode {
   /**
+   * Parameters:
+   * 0: the name of the actual argument type
+   * 1: the name of the expected function return type
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an invocation of
+  // `Future.catchError` has an argument that is a function whose parameters
+  // aren't compatible with the arguments that will be passed to the function
+  // when it's invoked. The static type of the first argument to `catchError`
+  // is just `Function`, even though the function that is passed in is expected
+  // to have either a single parameter of type `Object` or two parameters of
+  // type `Object` and `StackTrace`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the closure being
+  // passed to `catchError` doesn't take any parameters, but the function is
+  // required to take at least one parameter:
+  //
+  // ```dart
+  // void f(Future<int> f) {
+  //   f.catchError([!() => 0!]);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the closure being
+  // passed to `catchError` takes three parameters, but it can't have more than
+  // two required parameters:
+  //
+  // ```dart
+  // void f(Future<int> f) {
+  //   f.catchError([!(one, two, three) => 0!]);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because even though the closure
+  // being passed to `catchError` takes one parameter, the closure doesn't have
+  // a type that is compatible with `Object`:
+  //
+  // ```dart
+  // void f(Future<int> f) {
+  //   f.catchError([!(String error) => 0!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the function being passed to `catchError` so that it has either one
+  // or two required parameters, and the parameters have the required types:
+  //
+  // ```dart
+  // void f(Future<int> f) {
+  //   f.catchError((Object error) => 0);
+  // }
+  // ```
+  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
+      HintCode(
+          'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
+          "The argument type '{0}' can't be assigned to the parameter type "
+              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.");
+
+  /**
    * Users should not assign values marked `@doNotStore`.
    */
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
@@ -372,7 +435,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DUPLICATE_HIDDEN_NAME =
       HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
           correction: "Try removing the repeated name from the list of hidden "
-              "members.");
+              "members.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -426,7 +490,8 @@ class HintCode extends AnalyzerErrorCode {
           "already being ignored.",
       correction:
           "Try removing the name from the list, or removing the whole comment "
-          "if this is the only name in the list.");
+          "if this is the only name in the list.",
+      hasPublishedDocs: true);
 
   /**
    * Duplicate imports.
@@ -505,7 +570,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DUPLICATE_SHOWN_NAME =
       HintCode('DUPLICATE_SHOWN_NAME', "Duplicate shown name.",
           correction: "Try removing the repeated name from the list of shown "
-              "members.");
+              "members.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1750,11 +1816,60 @@ class HintCode extends AnalyzerErrorCode {
    * 0: the return type as declared in the return statement
    * 1: the expected return type as defined by the type of the Future
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an invocation of
+  // `Future.catchError` has an argument whose return type isn't compatible with
+  // the type returned by the instance of `Future`. At runtime, the method
+  // `catchError` attempts to return the value from the callback as the result
+  // of the future, which results in another exception being thrown.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `future` is declared to
+  // return an `int` while `callback` is declared to return a `String`, and
+  // `String` isn't a subtype of `int`:
+  //
+  // ```dart
+  // void f(Future<int> future, String Function(dynamic, StackTrace) callback) {
+  //   future.catchError([!callback!]);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the closure being
+  // passed to `catchError` returns an `int` while `future` is declared to
+  // return a `String`:
+  //
+  // ```dart
+  // void f(Future<String> future) {
+  //   future.catchError((error, stackTrace) => [!3!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the instance of `Future` is declared correctly, then change the callback
+  // to match:
+  //
+  // ```dart
+  // void f(Future<int> future, int Function(dynamic, StackTrace) callback) {
+  //   future.catchError(callback);
+  // }
+  // ```
+  //
+  // If the declaration of the instance of `Future` is wrong, then change it to
+  // match the callback:
+  //
+  // ```dart
+  // void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
+  //   future.catchError(callback);
+  // }
+  // ```
   static const HintCode RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR = HintCode(
-    'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
-    "A value of type '{0}' can't be returned by the 'onError' handler because "
-        "it must be assignable to '{1}'.",
-  );
+      'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
+      "A value of type '{0}' can't be returned by the 'onError' handler "
+          "because it must be assignable to '{1}'.",
+      uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR');
 
   /**
    * Parameters:
@@ -1762,9 +1877,10 @@ class HintCode extends AnalyzerErrorCode {
    * 1: the expected return type as defined by the type of the Future
    */
   static const HintCode RETURN_TYPE_INVALID_FOR_CATCH_ERROR = HintCode(
-      'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
+      'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
       "The return type '{0}' isn't assignable to '{1}', as required by "
-          "'Future.catchError'.");
+          "'Future.catchError'.",
+      uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR');
 
   /**
    * No parameters.
@@ -2222,7 +2338,8 @@ class HintCode extends AnalyzerErrorCode {
       'SDK_VERSION_NEVER',
       "The type 'Never' wasn't supported until version 2.X.0, but this code is "
           "required to be able to run on earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2646,6 +2763,14 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the name of the type
+   */
+  static const HintCode UNNECESSARY_QUESTION_MARK = HintCode(
+      'UNNECESSARY_QUESTION_MARK',
+      "The '?' is unnecessary because '{0}' is nullable without it.");
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -2681,6 +2806,7 @@ class HintCode extends AnalyzerErrorCode {
     'UNNECESSARY_TYPE_CHECK',
     "Unnecessary type check; the result is always 'false'.",
     correction: "Try correcting the type check, or removing the type check.",
+    hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
   );
 
@@ -2691,6 +2817,7 @@ class HintCode extends AnalyzerErrorCode {
     'UNNECESSARY_TYPE_CHECK',
     "Unnecessary type check; the result is always 'true'.",
     correction: "Try correcting the type check, or removing the type check.",
+    hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
   );
 
@@ -2991,7 +3118,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNUSED_LOCAL_VARIABLE = HintCode(
       'UNUSED_LOCAL_VARIABLE',
       "The value of the local variable '{0}' isn't used.",
-      correction: "Try removing the variable, or using it.",
+      correction: "Try removing the variable or using it.",
       hasPublishedDocs: true);
 
   /**
@@ -3038,9 +3165,9 @@ class HintCode extends AnalyzerErrorCode {
   const HintCode(
     String name,
     String message, {
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
-    String uniqueName,
+    String? uniqueName,
   }) : super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,

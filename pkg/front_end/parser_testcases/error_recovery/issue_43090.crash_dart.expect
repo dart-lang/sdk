@@ -1,0 +1,31 @@
+Problems reported:
+
+parser/error_recovery/issue_43090.crash:1:12: Expected an identifier, but got '='.
+typedef A< = void Function();
+           ^
+
+beginCompilationUnit(typedef)
+  beginMetadataStar(typedef)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(typedef)
+    beginFunctionTypeAlias(typedef)
+      handleIdentifier(A, typedefDeclaration)
+      beginTypeVariables(<)
+        beginMetadataStar(=)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '='., Try inserting an identifier before '='., {lexeme: =}], =, =)
+        handleIdentifier(, typeVariableDeclaration)
+        beginTypeVariable()
+          handleTypeVariablesDefined(, 1)
+          handleNoType()
+        endTypeVariable(=, 0, null, null)
+      endTypeVariables(<, >)
+      beginFunctionType(void)
+        handleNoTypeVariables(()
+        handleVoidKeyword(void)
+        beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+        endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+      endFunctionType(Function, null)
+    endFunctionTypeAlias(typedef, =, ;)
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

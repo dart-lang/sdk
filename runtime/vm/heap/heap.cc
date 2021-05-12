@@ -40,23 +40,6 @@ DEFINE_FLAG(bool,
             false,
             "Explicitly disable heap verification.");
 
-// We ensure that the GC does not use the current isolate.
-class NoActiveIsolateScope {
- public:
-  NoActiveIsolateScope() : thread_(Thread::Current()) {
-    saved_isolate_ = thread_->isolate_;
-    thread_->isolate_ = nullptr;
-  }
-  ~NoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == nullptr);
-    thread_->isolate_ = saved_isolate_;
-  }
-
- private:
-  Thread* thread_;
-  Isolate* saved_isolate_;
-};
-
 Heap::Heap(IsolateGroup* isolate_group,
            bool is_vm_isolate,
            intptr_t max_new_gen_semi_words,
@@ -239,7 +222,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       heap_(isolate_group()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
-  isolate()->safepoint_handler()->SafepointThreads(thread);
+  isolate_group()->safepoint_handler()->SafepointThreads(thread);
 
   {
     // It's not safe to iterate over old space when concurrent marking or
@@ -290,7 +273,7 @@ HeapIterationScope::~HeapIterationScope() {
     ml.NotifyAll();
   }
 
-  isolate()->safepoint_handler()->ResumeThreads(thread());
+  isolate_group()->safepoint_handler()->ResumeThreads(thread());
 }
 
 void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {
@@ -1007,64 +990,70 @@ void Heap::RecordAfterGC(GCType type) {
 #ifndef PRODUCT
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {
-    isolate_group_->ForEachIsolate([&](Isolate* isolate) {
-      if (!Isolate::IsSystemIsolate(isolate)) {
-        ServiceEvent event(isolate, ServiceEvent::kGC);
-        event.set_gc_stats(&stats_);
-        Service::HandleEvent(&event);
-      }
-    });
+    isolate_group_->ForEachIsolate(
+        [&](Isolate* isolate) {
+          if (!Isolate::IsSystemIsolate(isolate)) {
+            ServiceEvent event(isolate, ServiceEvent::kGC);
+            event.set_gc_stats(&stats_);
+            Service::HandleEvent(&event);
+          }
+        },
+        /*at_safepoint=*/true);
   }
 #endif  // !PRODUCT
   if (Dart::gc_event_callback() != nullptr) {
-    isolate_group_->ForEachIsolate([&](Isolate* isolate) {
-      if (!Isolate::IsSystemIsolate(isolate)) {
-        Dart_GCEvent event;
-        auto isolate_id = Utils::CStringUniquePtr(
-            OS::SCreate(nullptr, ISOLATE_SERVICE_ID_FORMAT_STRING,
-                        isolate->main_port()),
-            std::free);
-        int64_t isolate_uptime_micros = isolate->UptimeMicros();
+    isolate_group_->ForEachIsolate(
+        [&](Isolate* isolate) {
+          if (!Isolate::IsSystemIsolate(isolate)) {
+            Dart_GCEvent event;
+            auto isolate_id = Utils::CStringUniquePtr(
+                OS::SCreate(nullptr, ISOLATE_SERVICE_ID_FORMAT_STRING,
+                            isolate->main_port()),
+                std::free);
+            int64_t isolate_uptime_micros = isolate->UptimeMicros();
 
-        event.isolate_id = isolate_id.get();
-        event.type = GCTypeToString(stats_.type_);
-        event.reason = GCReasonToString(stats_.reason_);
+            event.isolate_id = isolate_id.get();
+            event.type = GCTypeToString(stats_.type_);
+            event.reason = GCReasonToString(stats_.reason_);
 
-        // New space - Scavenger.
-        {
-          intptr_t new_space_collections = new_space_.collections();
+            // New space - Scavenger.
+            {
+              intptr_t new_space_collections = new_space_.collections();
 
-          event.new_space.collections = new_space_collections;
-          event.new_space.used = stats_.after_.new_.used_in_words * kWordSize;
-          event.new_space.capacity =
-              stats_.after_.new_.capacity_in_words * kWordSize;
-          event.new_space.external =
-              stats_.after_.new_.external_in_words * kWordSize;
-          event.new_space.time =
-              MicrosecondsToSeconds(new_space_.gc_time_micros());
-          event.new_space.avg_collection_period =
-              AvgCollectionPeriod(isolate_uptime_micros, new_space_collections);
-        }
+              event.new_space.collections = new_space_collections;
+              event.new_space.used =
+                  stats_.after_.new_.used_in_words * kWordSize;
+              event.new_space.capacity =
+                  stats_.after_.new_.capacity_in_words * kWordSize;
+              event.new_space.external =
+                  stats_.after_.new_.external_in_words * kWordSize;
+              event.new_space.time =
+                  MicrosecondsToSeconds(new_space_.gc_time_micros());
+              event.new_space.avg_collection_period = AvgCollectionPeriod(
+                  isolate_uptime_micros, new_space_collections);
+            }
 
-        // Old space - Page.
-        {
-          intptr_t old_space_collections = old_space_.collections();
+            // Old space - Page.
+            {
+              intptr_t old_space_collections = old_space_.collections();
 
-          event.old_space.collections = old_space_collections;
-          event.old_space.used = stats_.after_.old_.used_in_words * kWordSize;
-          event.old_space.capacity =
-              stats_.after_.old_.capacity_in_words * kWordSize;
-          event.old_space.external =
-              stats_.after_.old_.external_in_words * kWordSize;
-          event.old_space.time =
-              MicrosecondsToSeconds(old_space_.gc_time_micros());
-          event.old_space.avg_collection_period =
-              AvgCollectionPeriod(isolate_uptime_micros, old_space_collections);
-        }
+              event.old_space.collections = old_space_collections;
+              event.old_space.used =
+                  stats_.after_.old_.used_in_words * kWordSize;
+              event.old_space.capacity =
+                  stats_.after_.old_.capacity_in_words * kWordSize;
+              event.old_space.external =
+                  stats_.after_.old_.external_in_words * kWordSize;
+              event.old_space.time =
+                  MicrosecondsToSeconds(old_space_.gc_time_micros());
+              event.old_space.avg_collection_period = AvgCollectionPeriod(
+                  isolate_uptime_micros, old_space_collections);
+            }
 
-        (*Dart::gc_event_callback())(&event);
-      }
-    });
+            (*Dart::gc_event_callback())(&event);
+          }
+        },
+        /*at_safepoint=*/true);
   }
 }
 
@@ -1210,13 +1199,14 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
   }
 }
 
-WritableCodePages::WritableCodePages(Thread* thread, Isolate* isolate)
-    : StackResource(thread), isolate_(isolate) {
-  isolate_->group()->heap()->WriteProtectCode(false);
+WritableCodePages::WritableCodePages(Thread* thread,
+                                     IsolateGroup* isolate_group)
+    : StackResource(thread), isolate_group_(isolate_group) {
+  isolate_group_->heap()->WriteProtectCode(false);
 }
 
 WritableCodePages::~WritableCodePages() {
-  isolate_->group()->heap()->WriteProtectCode(true);
+  isolate_group_->heap()->WriteProtectCode(true);
 }
 
 }  // namespace dart

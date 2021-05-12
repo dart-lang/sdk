@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -270,7 +272,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             opType.includeReturnValueSuggestions &&
             (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
         suggestLocalFields) {
-      var inheritanceDistance = -1.0;
+      var inheritanceDistance = 0.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
@@ -310,16 +312,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(declaration.declaredElement,
-          kind: _defaultKind);
+      builder.suggestTypeAlias(declaration.declaredElement, kind: _defaultKind);
     }
   }
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(declaration.declaredElement,
-          kind: _defaultKind);
+      builder.suggestTypeAlias(declaration.declaredElement, kind: _defaultKind);
     }
   }
 
@@ -343,7 +343,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
-      var inheritanceDistance = -1.0;
+      var inheritanceDistance = 0.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {

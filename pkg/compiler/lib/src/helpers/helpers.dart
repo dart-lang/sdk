@@ -10,7 +10,6 @@ library dart2js.helpers;
 import '../common.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../util/util.dart';
-import 'trace.dart';
 
 export 'debug_collection.dart';
 export 'expensive_map.dart';

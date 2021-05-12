@@ -418,8 +418,10 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
     _data._intLiterals.add(value);
   }
 
+  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
+  // invocation encoding is no longer used.
   @override
-  void registerRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     _data._runtimeTypeUses ??= [];
     _data._runtimeTypeUses
@@ -1577,7 +1579,9 @@ class _ContainerLiteral {
 class _RuntimeTypeUse {
   static const String tag = '_RuntimeTypeUse';
 
-  final ir.PropertyGet node;
+  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
+  // invocation encoding is no longer used.
+  final ir.Expression node;
   final RuntimeTypeUseKind kind;
   final ir.DartType receiverType;
   final ir.DartType argumentType;

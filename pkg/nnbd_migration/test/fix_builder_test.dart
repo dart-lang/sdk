@@ -1429,9 +1429,7 @@ _f(Iterable<int> x) => x.firstWhere((n) => n.isEven, orElse: () => null);
       methodInvocation.methodName: isMethodNameChange('firstWhereOrNull'),
       methodInvocation.argumentList:
           isDropArgument({functionExpression.parent: anything}),
-      // Behavior of the function expression and its subexpression don't matter
-      // because they're being dropped.
-      functionExpression.parent: anything,
+      // Behavior of the null literal doesn't matter because it's being dropped.
       findNode.nullLiteral('null'): anything
     });
     expect(fixBuilder.needsIterableExtension, true);
@@ -3267,7 +3265,7 @@ int/*!*/ f(C/*!*/ c) => c?.i;
     var propertyAccess = findNode.propertyAccess('?.');
     visitSubexpression(propertyAccess, 'int', changes: {
       propertyAccess: TypeMatcher<NodeChangeForPropertyAccess>()
-          .having((c) => c.addsNullCheck, 'addsNullCheck', true)
+          .havingNullCheckWithInfo(isNotNull)
           .having((c) => c.removeNullAwareness, 'removeNullAwareness', true)
     });
   }
@@ -3906,21 +3904,25 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
           .having((c) => c.conditionValue, 'conditionValue', knownValue);
 }
 
-extension on TypeMatcher<NodeChangeForExpression> {
-  TypeMatcher<NodeChangeForExpression> havingNullCheckWithInfo(
-          dynamic matcher) =>
-      having((c) => c.addsNullCheck, 'addsNullCheck', true)
-          .having((c) => c.addNullCheckInfo, 'addNullCheckInfo', matcher);
+extension _NodeChangeForExpressionExtension<T extends NodeChangeForExpression>
+    on TypeMatcher<T> {
+  TypeMatcher<T> havingExpressionChange(
+          dynamic changeMatcher, dynamic infoMatcher) =>
+      having((c) => c.expressionChanges.single, 'expressionChanges.single',
+              changeMatcher)
+          .having((c) => c.expressionChangeInfos.single,
+              'expressionChangeInfos.single', infoMatcher);
 
-  TypeMatcher<NodeChangeForExpression> havingNoValidMigrationWithInfo(
-          dynamic matcher) =>
-      having((c) => c.addsNoValidMigration, 'addsNoValidMigration', true)
-          .having((c) => c.addNoValidMigrationInfo, 'addNoValidMigrationInfo',
-              matcher);
+  TypeMatcher<T> havingNullCheckWithInfo(dynamic matcher) =>
+      havingExpressionChange(TypeMatcher<NullCheckChange>(), matcher);
 
-  TypeMatcher<NodeChangeForExpression> havingIndroduceAsWithInfo(
+  TypeMatcher<T> havingNoValidMigrationWithInfo(dynamic matcher) =>
+      havingExpressionChange(TypeMatcher<NoValidMigrationChange>(), matcher);
+
+  TypeMatcher<T> havingIndroduceAsWithInfo(
           dynamic typeStringMatcher, dynamic infoMatcher) =>
-      having((c) => c.introducesAsType.toString(), 'introducesAsType (string)',
-              typeStringMatcher)
-          .having((c) => c.introducesAsInfo, 'introducesAsInfo', infoMatcher);
+      havingExpressionChange(
+          TypeMatcher<IntroduceAsChange>().having(
+              (c) => c.type.toString(), 'type (string)', typeStringMatcher),
+          infoMatcher);
 }

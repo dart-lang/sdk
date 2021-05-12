@@ -1,0 +1,9 @@
+import "package:expect/expect.dart";
+
+const var1 = varAssignmentTest(1);
+const var3 = varAssignmentTest3(1);
+const var4 = varAssignmentTest3(2);
+int function() {}
+int varAssignmentTest(int a) {}
+int varAssignmentTest3(int a) {}
+void main() {}

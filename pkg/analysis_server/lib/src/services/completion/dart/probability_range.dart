@@ -12,12 +12,15 @@ class ProbabilityRange {
 
   /// Initialize a newly created probability range to have the given [lower] and
   /// [upper] bounds.
-  const ProbabilityRange({this.lower, this.upper});
+  const ProbabilityRange({required this.lower, required this.upper});
+
+  /// The middle of the range.
+  double get middle => (upper + lower) / 2;
 
   /// Given the [probability] of an occurrence of an event that is conditional
   /// on the event represented by this range, return the probability of the
   /// event independent of the event based on this range.
   double conditionalProbability(double probability) {
-    return lower + ((upper - lower) * probability);
+    return middle + ((upper - lower) * probability / 2);
   }
 }

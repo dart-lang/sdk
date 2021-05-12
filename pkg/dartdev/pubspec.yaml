@@ -27,10 +27,11 @@ dependencies:
   path: ^1.0.0
   pedantic: ^1.9.0
   pub: any
-  stagehand: any
   telemetry:
     path: ../telemetry
   usage: ^3.4.0
 
 dev_dependencies:
+  pub_semver: any
   test: ^1.0.0
+  yaml: any

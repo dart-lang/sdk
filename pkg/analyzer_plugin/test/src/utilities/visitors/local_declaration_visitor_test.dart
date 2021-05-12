@@ -42,7 +42,7 @@ class TestVisitor extends LocalDeclarationVisitor {
   TestVisitor(int offset) : super(offset);
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
     expect(name, isNotNull);
   }
 }

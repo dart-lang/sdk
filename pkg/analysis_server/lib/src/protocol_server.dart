@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -10,11 +12,11 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
@@ -45,6 +47,14 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
+String getAliasedTypeString(engine.Element element) {
+  if (element is engine.TypeAliasElement) {
+    var aliasedType = element.aliasedType;
+    return aliasedType.getDisplayString(withNullability: false);
+  }
+  return null;
+}
+
 String getReturnTypeString(engine.Element element) {
   if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
@@ -58,16 +68,13 @@ String getReturnTypeString(engine.Element element) {
         ? type.getDisplayString(withNullability: false)
         : 'dynamic';
   } else if (element is engine.TypeAliasElement) {
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement is engine.GenericFunctionTypeElement) {
-      var returnType = aliasedElement.returnType;
+    var aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      var returnType = aliasedType.returnType;
       return returnType.getDisplayString(withNullability: false);
-    } else {
-      return null;
     }
-  } else {
-    return null;
   }
+  return null;
 }
 
 /// Translates engine errors through the ErrorProcessor.
@@ -110,15 +117,23 @@ AnalysisError newAnalysisError_fromEngine(
     var length = error.length;
     var startLine = -1;
     var startColumn = -1;
+    var endLine = -1;
+    var endColumn = -1;
     var lineInfo = result.lineInfo;
     if (lineInfo != null) {
-      CharacterLocation lineLocation = lineInfo.getLocation(offset);
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
+      var startLocation = lineInfo.getLocation(offset);
+      if (startLocation != null) {
+        startLine = startLocation.lineNumber;
+        startColumn = startLocation.columnNumber;
+      }
+      var endLocation = lineInfo.getLocation(offset + length);
+      if (endLocation != null) {
+        endLine = endLocation.lineNumber;
+        endColumn = endLocation.columnNumber;
       }
     }
-    location = Location(file, offset, length, startLine, startColumn);
+    location = Location(
+        file, offset, length, startLine, startColumn, endLine, endColumn);
   }
 
   // Default to the error's severity if none is specified.
@@ -152,12 +167,18 @@ DiagnosticMessage newDiagnosticMessage(
   var offset = message.offset;
   var length = message.length;
 
-  var lineLocation = result.lineInfo.getLocation(offset);
-  var startLine = lineLocation.lineNumber;
-  var startColumn = lineLocation.columnNumber;
+  var startLocation = result.lineInfo.getLocation(offset);
+  var startLine = startLocation.lineNumber;
+  var startColumn = startLocation.columnNumber;
+
+  var endLocation = result.lineInfo.getLocation(offset + length);
+  var endLine = endLocation.lineNumber;
+  var endColumn = endLocation.columnNumber;
 
   return DiagnosticMessage(
-      message.message, Location(file, offset, length, startLine, startColumn));
+      message.message,
+      Location(
+          file, offset, length, startLine, startColumn, endLine, endColumn));
 }
 
 /// Create a Location based on an [engine.Element].
@@ -280,17 +301,23 @@ Location _locationForArgs(
     engine.CompilationUnitElement unitElement, engine.SourceRange range) {
   var startLine = 0;
   var startColumn = 0;
+  var endLine = 0;
+  var endColumn = 0;
   try {
     var lineInfo = unitElement.lineInfo;
     if (lineInfo != null) {
-      CharacterLocation offsetLocation = lineInfo.getLocation(range.offset);
-      startLine = offsetLocation.lineNumber;
-      startColumn = offsetLocation.columnNumber;
+      var startLocation = lineInfo.getLocation(range.offset);
+      startLine = startLocation.lineNumber;
+      startColumn = startLocation.columnNumber;
+
+      var endLocation = lineInfo.getLocation(range.end);
+      endLine = endLocation.lineNumber;
+      endColumn = endLocation.columnNumber;
     }
   } on AnalysisException {
     // TODO(brianwilkerson) It doesn't look like the code in the try block
     //  should be able to throw an exception. Try removing the try statement.
   }
   return Location(unitElement.source.fullName, range.offset, range.length,
-      startLine, startColumn);
+      startLine, startColumn, endLine, endColumn);
 }

@@ -28,7 +28,7 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
       this.resourceProvider, this.offset, this.length, this.result);
 
   @override
-  String get path => result.path;
+  String get path => result.path!;
 }
 
 /// A concrete implementation of [NavigationCollector].
@@ -59,7 +59,7 @@ class NavigationCollectorImpl implements NavigationCollector {
   @override
   void addRange(
       SourceRange range, ElementKind targetKind, Location targetLocation,
-      {Location targetCodeLocation}) {
+      {Location? targetCodeLocation}) {
     addRegion(range.offset, range.length, targetKind, targetLocation,
         targetCodeLocation: targetCodeLocation);
   }
@@ -67,7 +67,7 @@ class NavigationCollectorImpl implements NavigationCollector {
   @override
   void addRegion(
       int offset, int length, ElementKind targetKind, Location targetLocation,
-      {Location targetCodeLocation}) {
+      {Location? targetCodeLocation}) {
     var range = SourceRange(offset, length);
     // add new target
     var targets = regionMap.putIfAbsent(range, () => <int>[]);
@@ -96,7 +96,7 @@ class NavigationCollectorImpl implements NavigationCollector {
     return index;
   }
 
-  int _addTarget(ElementKind kind, Location location, Location codeLocation) {
+  int _addTarget(ElementKind kind, Location location, Location? codeLocation) {
     var pair = Pair<ElementKind, Location>(kind, location);
     var index = targetMap[pair];
     if (index == null) {

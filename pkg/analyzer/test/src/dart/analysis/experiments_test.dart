@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,8 +36,8 @@ class ExperimentsTest {
   }
 
   ExperimentStatus fromStrings2({
-    @required Version sdkLanguageVersion,
-    @required List<String> flags,
+    required Version sdkLanguageVersion,
+    required List<String> flags,
   }) {
     return overrideKnownFeatures(knownFeatures, () {
       return ExperimentStatus.fromStrings2(
@@ -375,12 +374,14 @@ class ExperimentsTest {
       expect(getFlags(status), [true, true, true]);
 
       // Restricting to the SDK version does not change anything.
-      var status2 = status.restrictToVersion(Version.parse('1.5.0'));
+      var status2 =
+          status.restrictToVersion(Version.parse('1.5.0')) as ExperimentStatus;
       assertSdkLanguageVersion(status2, '1.5');
       expect(getFlags(status2), [true, true, true]);
 
       // Restricting to the previous version disables the experiments.
-      var status3 = status.restrictToVersion(Version.parse('1.4.0'));
+      var status3 =
+          status.restrictToVersion(Version.parse('1.4.0')) as ExperimentStatus;
       assertSdkLanguageVersion(status3, '1.5');
       expect(getFlags(status3), [true, false, false]);
     });
@@ -432,12 +433,14 @@ class ExperimentsTest {
       expect(getFlags(status), [true, true, true, true]);
 
       // Restricting to the SDK version does not change anything.
-      var status2 = status.restrictToVersion(Version.parse('1.5.0'));
+      var status2 =
+          status.restrictToVersion(Version.parse('1.5.0')) as ExperimentStatus;
       assertSdkLanguageVersion(status2, '1.5');
       expect(getFlags(status2), [true, true, true, true]);
 
       // Restricting to a version disables some experiments.
-      var status3 = status.restrictToVersion(Version.parse('1.4.0'));
+      var status3 =
+          status.restrictToVersion(Version.parse('1.4.0')) as ExperimentStatus;
       assertSdkLanguageVersion(status3, '1.5');
       expect(getFlags(status3), [true, true, false, false]);
     });

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -11,14 +13,15 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceBooleanWithBoolMultiTest);
     defineReflectiveTests(ReplaceBooleanWithBoolTest);
   });
 }
 
 @reflectiveTest
-class ReplaceBooleanWithBoolTest extends FixProcessorTest {
+class ReplaceBooleanWithBoolMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
+  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL_MULTI;
 
   Future<void> test_all() async {
     await resolveTestCode('''
@@ -34,6 +37,12 @@ main() {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class ReplaceBooleanWithBoolTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
   Future<void> test_single() async {
     await resolveTestCode('''

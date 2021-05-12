@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -79,7 +81,10 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
     // Force the server to rebuild all contexts, as happens when the file watcher
     // fails on Windows.
     // https://github.com/dart-lang/sdk/issues/44650
-    server.contextManager.refresh(null);
+    server.contextManager.refresh();
+
+    // Give it time to process the newly scheduled files.
+    await pumpEventQueue(times: 5000);
 
     // Ensure the set is still returned after the rebuild.
     results = await _getSuggestions(testFile, 0);

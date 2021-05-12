@@ -145,6 +145,20 @@ class OldPage {
     ASSERT((index >= 0) && (index < card_table_size()));
     card_table_[index] = 1;
   }
+#if defined(DART_COMPRESSED_POINTERS)
+  void RememberCard(CompressedObjectPtr const* slot) {
+    ASSERT(Contains(reinterpret_cast<uword>(slot)));
+    if (card_table_ == NULL) {
+      card_table_ = reinterpret_cast<uint8_t*>(
+          calloc(card_table_size(), sizeof(uint8_t)));
+    }
+    intptr_t offset =
+        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    card_table_[index] = 1;
+  }
+#endif
   void VisitRememberedCards(ObjectPointerVisitor* visitor);
 
  private:

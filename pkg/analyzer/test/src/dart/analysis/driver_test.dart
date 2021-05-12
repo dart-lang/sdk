@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -51,14 +52,14 @@ Future pumpEventQueue([int times = 5000]) {
 
 @reflectiveTest
 class AnalysisDriverSchedulerTest with ResourceProviderMixin {
-  DartSdk sdk;
+  late DartSdk sdk;
   final ByteStore byteStore = MemoryByteStore();
   final FileContentOverlay contentOverlay = FileContentOverlay();
 
   final StringBuffer logBuffer = StringBuffer();
-  PerformanceLog logger;
+  late final PerformanceLog logger;
 
-  AnalysisDriverScheduler scheduler;
+  late final AnalysisDriverScheduler scheduler;
 
   List<ResolvedUnitResult> allResults = [];
 
@@ -446,13 +447,13 @@ part of 'lib.dart';
     ResolvedUnitResult partResult1 = await driver.getResult(part1);
     ResolvedUnitResult partResult2 = await driver.getResult(part2);
 
-    CompilationUnit libUnit = libResult.unit;
-    CompilationUnit partUnit1 = partResult1.unit;
-    CompilationUnit partUnit2 = partResult2.unit;
+    CompilationUnit libUnit = libResult.unit!;
+    CompilationUnit partUnit1 = partResult1.unit!;
+    CompilationUnit partUnit2 = partResult2.unit!;
 
-    CompilationUnitElement unitElement = libUnit.declaredElement;
-    CompilationUnitElement partElement1 = partUnit1.declaredElement;
-    CompilationUnitElement partElement2 = partUnit2.declaredElement;
+    CompilationUnitElement unitElement = libUnit.declaredElement!;
+    CompilationUnitElement partElement1 = partUnit1.declaredElement!;
+    CompilationUnitElement partElement2 = partUnit2.declaredElement!;
 
     LibraryElement libraryElement = unitElement.library;
     {
@@ -673,7 +674,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit, 'A', 'int');
+      _assertTopLevelVarType(ar.unit!, 'A', 'int');
     }
     allResults.clear();
 
@@ -690,7 +691,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit, 'A', 'double');
+      _assertTopLevelVarType(ar.unit!, 'A', 'double');
     }
   }
 
@@ -744,12 +745,12 @@ var B1 = A1;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit, 'A1', 'int');
-      _assertTopLevelVarType(ar.unit, 'A2', 'int');
+      _assertTopLevelVarType(ar.unit!, 'A1', 'int');
+      _assertTopLevelVarType(ar.unit!, 'A2', 'int');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      _assertTopLevelVarType(br.unit, 'B1', 'int');
+      _assertTopLevelVarType(br.unit!, 'B1', 'int');
     }
 
     // Clear the results and update "a".
@@ -767,12 +768,12 @@ var A2 = B1;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit, 'A1', 'double');
-      _assertTopLevelVarType(ar.unit, 'A2', 'double');
+      _assertTopLevelVarType(ar.unit!, 'A1', 'double');
+      _assertTopLevelVarType(ar.unit!, 'A2', 'double');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      _assertTopLevelVarType(br.unit, 'B1', 'double');
+      _assertTopLevelVarType(br.unit!, 'B1', 'double');
     }
   }
 
@@ -785,7 +786,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       ResolvedUnitResult result = allResults[0];
       expect(result.path, testFile);
-      _assertTopLevelVarType(result.unit, 'V', 'int');
+      _assertTopLevelVarType(result.unit!, 'V', 'int');
     }
 
     // Update the file, but don't notify the driver.
@@ -808,7 +809,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       ResolvedUnitResult result = allResults[0];
       expect(result.path, testFile);
-      _assertTopLevelVarType(result.unit, 'V', 'double');
+      _assertTopLevelVarType(result.unit!, 'V', 'double');
     }
   }
 
@@ -823,9 +824,9 @@ class A {
 class C {}
 ''');
     var result = await driver.getResult(testFile);
-    var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
+    var atD = AstFinder.getClass(result.unit!, 'C').metadata[0];
     var atDI = atD.elementAnnotation as ElementAnnotationImpl;
-    var value = atDI.evaluationResult.value;
+    var value = atDI.evaluationResult!.value;
     // That is illegal.
     expect(value, isNull);
   }
@@ -840,15 +841,14 @@ class D {
 }
 ''');
     var result = await driver.getResult(testFile);
-    var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
+    var atD = AstFinder.getClass(result.unit!, 'C').metadata[0];
     var atDI = atD.elementAnnotation as ElementAnnotationImpl;
-    var value = atDI.evaluationResult.value;
-    expect(value, isNotNull);
+    var value = atDI.evaluationResult!.value!;
     expect(value.type, isNotNull);
     assertType(value.type, 'D');
-    expect(value.fields.keys, ['value']);
-    expect(value.getField('value').toIntValue(), 1);
-    expect(atDI.evaluationResult.errors, isEmpty);
+    expect(value.fields!.keys, ['value']);
+    expect(value.getField('value')!.toIntValue(), 1);
+    expect(atDI.evaluationResult!.errors, isEmpty);
   }
 
   test_const_annotation_withoutArgs() async {
@@ -857,8 +857,8 @@ const x = 1;
 @x class C {}
 ''');
     var result = await driver.getResult(testFile);
-    Annotation at_x = AstFinder.getClass(result.unit, 'C').metadata[0];
-    expect(at_x.elementAnnotation.computeConstantValue().toIntValue(), 1);
+    Annotation at_x = AstFinder.getClass(result.unit!, 'C').metadata[0];
+    expect(at_x.elementAnnotation!.computeConstantValue()!.toIntValue(), 1);
   }
 
   test_const_circular_reference() async {
@@ -867,9 +867,9 @@ const x = y + 1;
 const y = x + 1;
 ''');
     var result = await driver.getResult(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x')
+    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x')
         as TopLevelVariableElementImpl;
-    _expectCircularityError(x.evaluationResult);
+    _expectCircularityError(x.evaluationResult!);
   }
 
   test_const_dependency_sameUnit() async {
@@ -878,10 +878,10 @@ const x = y + 1;
 const y = 1;
 ''');
     var result = await driver.getResult(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
-    var y = AstFinder.getTopLevelVariableElement(result.unit, 'y');
-    expect(x.computeConstantValue().toIntValue(), 2);
-    expect(y.computeConstantValue().toIntValue(), 1);
+    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
+    var y = AstFinder.getTopLevelVariableElement(result.unit!, 'y');
+    expect(x.computeConstantValue()!.toIntValue(), 2);
+    expect(y.computeConstantValue()!.toIntValue(), 1);
   }
 
   test_const_externalConstFactory() async {
@@ -895,7 +895,7 @@ class C extends B {
 class B {}
 ''');
     var result = await driver.getResult(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
+    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
     expect(x.computeConstantValue(), isNotNull);
   }
 
@@ -961,7 +961,7 @@ class Derived extends Base {
 const x = const Derived();
 ''');
     var result = await driver.getResult(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
+    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
     expect(x.computeConstantValue(), isNotNull);
   }
 
@@ -970,8 +970,8 @@ const x = const Derived();
 const x = 1;
 ''');
     var result = await driver.getResult(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
-    expect(x.computeConstantValue().toIntValue(), 1);
+    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
+    expect(x.computeConstantValue()!.toIntValue(), 1);
   }
 
   test_currentSession() async {
@@ -1030,7 +1030,7 @@ const x = 1;
     await driver.discoverAvailableFiles();
 
     void assertHasDartUri(String uri) {
-      var file = sdk.mapDartUri(uri).fullName;
+      var file = sdk.mapDartUri(uri)!.fullName;
       expect(driver.knownFiles, contains(file));
     }
 
@@ -1106,8 +1106,7 @@ bbb() {}
 
     Source generatedSource = _SourceMock(generatedPath, uri);
 
-    generatedUriResolver.resolveAbsoluteFunction =
-        (uri, actualUri) => generatedSource;
+    generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
     generatedUriResolver.restoreAbsoluteFunction = (Source source) {
       String path = source.fullName;
       if (path == templatePath || path == generatedPath) {
@@ -1124,12 +1123,12 @@ bbb() {}
     expect(allResults, isEmpty);
 
     var result = await driver.getResult(templatePath);
-    expect(result, isNull);
+    expect(result.state, ResultState.NOT_FILE_OF_URI);
     expect(allExceptions, isEmpty);
     expect(allResults, isEmpty);
 
-    var element = await driver.getUnitElement(templatePath);
-    expect(element, isNull);
+    var elementResult = await driver.getUnitElement(templatePath);
+    expect(elementResult.state, ResultState.NOT_FILE_OF_URI);
     expect(allExceptions, isEmpty);
     expect(allResults, isEmpty);
 
@@ -1158,7 +1157,7 @@ bbb() {}
     String content = 'int f() => 42 + bar();';
     addTestFile(content, priority: true);
 
-    ErrorsResult result = await driver.getErrors(testFile);
+    var result = await driver.getErrors(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.errors, hasLength(1));
@@ -1343,7 +1342,7 @@ main() {
 ''';
     addTestFile(content);
 
-    AnalysisDriverUnitIndex index = await driver.getIndex(testFile);
+    AnalysisDriverUnitIndex index = (await driver.getIndex(testFile))!;
 
     int unitId = index.strings.indexOf('package:test/test.dart');
     int fooId = index.strings.indexOf('foo');
@@ -1401,12 +1400,12 @@ class B {}
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.state, ResultState.VALID);
     expect(result.content, content);
-    expect(result.unit, isNotNull);
+    expect(result.unit!, isNotNull);
     expect(result.errors, hasLength(0));
 
-    var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertType(f.declaredElement.type, 'int Function()');
-    assertType(f.returnType.type, 'int');
+    var f = result.unit!.declarations[0] as FunctionDeclaration;
+    assertType(f.declaredElement!.type, 'int Function()');
+    assertType(f.returnType!.typeOrThrow, 'int');
 
     // The same result is also received through the stream.
     await waitForIdleWithoutExceptions();
@@ -1455,7 +1454,7 @@ main() {
       expect(error.length, 2);
       expect(error.errorCode, HintCode.UNUSED_LOCAL_VARIABLE);
       expect(error.message, "The value of the local variable 'vv' isn't used.");
-      expect(error.correction, "Try removing the variable, or using it.");
+      expect(error.correction, "Try removing the variable or using it.");
     }
   }
 
@@ -1537,7 +1536,7 @@ class C {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResult(testFile);
-    _assertClassFieldType(result.unit, 'C', 'f', 'int');
+    _assertClassFieldType(result.unit!, 'C', 'f', 'int');
   }
 
   test_getResult_inferTypes_instanceMethod() async {
@@ -1552,8 +1551,8 @@ class B extends A {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResult(testFile);
-    _assertClassMethodReturnType(result.unit, 'A', 'm', 'int');
-    _assertClassMethodReturnType(result.unit, 'B', 'm', 'int');
+    _assertClassMethodReturnType(result.unit!, 'A', 'm', 'int');
+    _assertClassMethodReturnType(result.unit!, 'B', 'm', 'int');
   }
 
   test_getResult_invalid_annotation_functionAsConstructor() async {
@@ -1565,7 +1564,7 @@ class C {}
 ''', priority: true);
 
     ResolvedUnitResult result = await driver.getResult(testFile);
-    ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
+    ClassDeclaration c = result.unit!.declarations[1] as ClassDeclaration;
     Annotation a = c.metadata[0];
     expect(a.name.name, 'fff');
     expect(a.name.staticElement, isFunctionElement);
@@ -1608,7 +1607,7 @@ export 'dart:math';
     // Has only exports for valid URIs.
     List<ExportElement> imports = result.libraryElement.exports;
     expect(imports.map((import) {
-      return import.exportedLibrary?.source?.uri?.toString();
+      return import.exportedLibrary?.source.uri.toString();
     }), ['dart:async', null, 'dart:math']);
   }
 
@@ -1625,7 +1624,7 @@ import 'dart:math';
     // Has only imports for valid URIs.
     List<ImportElement> imports = result.libraryElement.imports;
     expect(imports.map((import) {
-      return import.importedLibrary?.source?.uri?.toString();
+      return import.importedLibrary?.source.uri.toString();
     }), ['dart:async', null, 'dart:math', 'dart:core']);
   }
 
@@ -1652,7 +1651,7 @@ class A{}
 ''');
 
     var result = await driver.getResult(path);
-    var languageVersion = result.unit.languageVersionToken;
+    var languageVersion = result.unit!.languageVersionToken!;
     expect(languageVersion.major, 2);
     expect(languageVersion.minor, 7);
   }
@@ -1741,7 +1740,7 @@ main() {
 
     ResolvedUnitResult result = await driver.getResult(path);
     expect(result, isNotNull);
-    expect(result.unit.declaredElement.types.map((e) => e.name), ['A']);
+    expect(result.unit!.declaredElement!.types.map((e) => e.name), ['A']);
   }
 
   test_getResult_recursiveFlatten() async {
@@ -1774,18 +1773,18 @@ var VC = new A<double>();
 
     {
       ResolvedUnitResult result = await driver.getResult(b);
-      expect(_getImportSource(result.unit, 0).uri.toString(),
+      expect(_getImportSource(result.unit!, 0).uri.toString(),
           'package:test/a.dart');
-      _assertTopLevelVarType(result.unit, 'VB', 'A<int>');
+      _assertTopLevelVarType(result.unit!, 'VB', 'A<int>');
     }
 
     {
       ResolvedUnitResult result = await driver.getResult(c);
       expect(
-        _getImportSource(result.unit, 0).uri,
+        _getImportSource(result.unit!, 0).uri,
         toUri('/test/lib/a.dart'),
       );
-      _assertTopLevelVarType(result.unit, 'VC', 'A<double>');
+      _assertTopLevelVarType(result.unit!, 'VC', 'A<double>');
     }
   }
 
@@ -1808,8 +1807,8 @@ var B1 = A1;
 
     {
       ResolvedUnitResult result = await driver.getResult(a);
-      _assertTopLevelVarType(result.unit, 'A1', 'int');
-      _assertTopLevelVarType(result.unit, 'A2', 'int');
+      _assertTopLevelVarType(result.unit!, 'A1', 'int');
+      _assertTopLevelVarType(result.unit!, 'A2', 'int');
     }
 
     // Update "a" so that "A1" is now "double".
@@ -1828,36 +1827,35 @@ var A2 = B1;
 
     {
       ResolvedUnitResult result = await driver.getResult(a);
-      _assertTopLevelVarType(result.unit, 'A1', 'double');
-      _assertTopLevelVarType(result.unit, 'A2', 'double');
+      _assertTopLevelVarType(result.unit!, 'A1', 'double');
+      _assertTopLevelVarType(result.unit!, 'A2', 'double');
     }
   }
 
   test_getResult_thenRemove() async {
     addTestFile('main() {}', priority: true);
 
-    Future<ResolvedUnitResult> resultFuture = driver.getResult(testFile);
+    var resultFuture = driver.getResult(testFile);
     driver.removeFile(testFile);
 
-    ResolvedUnitResult result = await resultFuture;
-    expect(result, isNotNull);
+    var result = await resultFuture;
     expect(result.path, testFile);
-    expect(result.unit, isNotNull);
+    expect(result.unit!, isNotNull);
   }
 
   test_getResult_twoPendingFutures() async {
     String content = 'main() {}';
     addTestFile(content, priority: true);
 
-    Future<ResolvedUnitResult> future1 = driver.getResult(testFile);
-    Future<ResolvedUnitResult> future2 = driver.getResult(testFile);
+    var future1 = driver.getResult(testFile);
+    var future2 = driver.getResult(testFile);
 
     // Both futures complete, with the same result.
     ResolvedUnitResult result1 = await future1;
     ResolvedUnitResult result2 = await future2;
     expect(result2, same(result1));
     expect(result1.path, testFile);
-    expect(result1.unit, isNotNull);
+    expect(result1.unit!, isNotNull);
   }
 
   test_getSourceKind_changedFile() async {
@@ -1949,7 +1947,6 @@ main() {
     addTestFile(content);
 
     UnitElementResult unitResult = await driver.getUnitElement(testFile);
-    expect(unitResult, isNotNull);
     CompilationUnitElement unitElement = unitResult.element;
     expect(unitElement.source.fullName, testFile);
     expect(unitElement.functions.map((c) => c.name),
@@ -1978,7 +1975,6 @@ import 'package:test/b.dart';
     var path = convertPath('/test.txt');
     newFile(path, content: 'class A {}');
     UnitElementResult unitResult = await driver.getUnitElement(path);
-    expect(unitResult, isNotNull);
     expect(unitResult.element.types.map((e) => e.name), ['A']);
   }
 
@@ -2015,7 +2011,7 @@ import 'package:test/b.dart';
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Ask to analyze the file, so there is a file to analyze.
-    Future<ResolvedUnitResult> future = driver.getResult(testFile);
+    var future = driver.getResult(testFile);
     expect(driver.hasFilesToAnalyze, isTrue);
 
     // Once analysis is done, there is nothing to analyze.
@@ -2065,8 +2061,8 @@ class C {
 ''');
 
     var result = await driver.getResult(b);
-    var c = _getTopLevelVar(result.unit, 'c');
-    var typeC = c.declaredElement.type as InterfaceType;
+    var c = _getTopLevelVar(result.unit!, 'c');
+    var typeC = c.declaredElement!.type as InterfaceType;
     // The class C has an old field 'foo', not the new 'bar'.
     expect(typeC.element.getField('foo'), isNotNull);
     expect(typeC.element.getField('bar'), isNull);
@@ -2088,7 +2084,7 @@ var b = new B();
 
     ResolvedUnitResult result = await driver.getResult(a);
     expect(result.errors, isEmpty);
-    _assertTopLevelVarType(result.unit, 'b', 'B');
+    _assertTopLevelVarType(result.unit!, 'b', 'B');
   }
 
   test_importOfNonLibrary_part_afterLibrary() async {
@@ -2213,7 +2209,7 @@ import 'b.dart';
   }
 
   test_missingDartLibrary_async() async {
-    var asyncPath = sdk.mapDartUri('dart:async').fullName;
+    var asyncPath = sdk.mapDartUri('dart:async')!.fullName;
     getFile(asyncPath).delete();
     addTestFile('class C {}');
 
@@ -2225,7 +2221,7 @@ import 'b.dart';
   }
 
   test_missingDartLibrary_core() async {
-    var corePath = sdk.mapDartUri('dart:core').fullName;
+    var corePath = sdk.mapDartUri('dart:core')!.fullName;
     getFile(corePath).delete();
     addTestFile('class C {}');
 
@@ -2401,7 +2397,7 @@ class A {}
 ''');
 
     var parseResult = driver.parseFileSync(path);
-    var languageVersion = parseResult.unit.languageVersionToken;
+    var languageVersion = parseResult.unit.languageVersionToken!;
     expect(languageVersion.major, 2);
     expect(languageVersion.minor, 7);
   }
@@ -2525,15 +2521,15 @@ var b = new B();
     {
       ResolvedUnitResult result = await driver.getResult(a);
       expect(result.errors, isEmpty);
-      _assertTopLevelVarType(result.unit, 'c', 'C');
+      _assertTopLevelVarType(result.unit!, 'c', 'C');
     }
 
     // Now c.dart can be resolved without errors in the context of a.dart
     {
       ResolvedUnitResult result = await driver.getResult(c);
       expect(result.errors, isEmpty);
-      _assertTopLevelVarType(result.unit, 'a', 'A');
-      _assertTopLevelVarType(result.unit, 'b', 'B');
+      _assertTopLevelVarType(result.unit!, 'a', 'A');
+      _assertTopLevelVarType(result.unit!, 'b', 'B');
     }
   }
 
@@ -2564,8 +2560,8 @@ var b = new B();
     // So, A and B references are resolved.
     ResolvedUnitResult result = await driver.getResult(c);
     expect(result.errors, isEmpty);
-    _assertTopLevelVarType(result.unit, 'a', 'A');
-    _assertTopLevelVarType(result.unit, 'b', 'B');
+    _assertTopLevelVarType(result.unit!, 'a', 'A');
+    _assertTopLevelVarType(result.unit!, 'b', 'B');
   }
 
   test_part_getResult_changePart_invalidatesLibraryCycle() async {
@@ -2609,7 +2605,7 @@ var b = new B();
     // A and B references.
     ResolvedUnitResult result = await driver.getResult(c);
     expect(result.errors, isNotEmpty);
-    expect(result.unit, isNotNull);
+    expect(result.unit!, isNotNull);
   }
 
   test_part_getUnitElement_afterLibrary() async {
@@ -2881,7 +2877,7 @@ var b = new B();
     // analyze the delayed parts.
     ResolvedUnitResult result = allResults.lastWhere((r) => r.path == c);
     expect(result.errors, isEmpty);
-    expect(result.unit, isNotNull);
+    expect(result.unit!, isNotNull);
   }
 
   test_removeFile_changeFile_implicitlyAnalyzed() async {
@@ -2902,11 +2898,11 @@ var A = B;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit, 'A', 'int');
+      _assertTopLevelVarType(ar.unit!, 'A', 'int');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      _assertTopLevelVarType(br.unit, 'B', 'int');
+      _assertTopLevelVarType(br.unit!, 'B', 'int');
     }
     allResults.clear();
 
@@ -2922,7 +2918,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit, 'A', 'double');
+      _assertTopLevelVarType(ar.unit!, 'A', 'double');
     }
   }
 
@@ -3001,7 +2997,7 @@ A a;
 
     // Configure UriResolver to provide this generated file.
     generatedUriResolver.resolveAbsoluteFunction =
-        (uri, actualUri) => aGeneratedFile.createSource(actualUri);
+        (uri) => aGeneratedFile.createSource(uri);
     generatedUriResolver.restoreAbsoluteFunction = (source) {
       String path = source.fullName;
       if (path == a || path == aGeneratedPath) {
@@ -3067,7 +3063,7 @@ class F extends X {}
     driver.changeFile(b);
     await waitForIdleWithoutExceptions();
 
-    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+    List<String> analyzedPaths = allResults.map((r) => r.path!).toList();
 
     // The changed file must be the first.
     expect(analyzedPaths[0], b);
@@ -3109,7 +3105,7 @@ class F extends X {}
     driver.changeFile(a);
     await waitForIdleWithoutExceptions();
 
-    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+    List<String> analyzedPaths = allResults.map((r) => r.path!).toList();
 
     // The changed files must be the first.
     expect(analyzedPaths[0], a);
@@ -3131,12 +3127,12 @@ class F extends X {}
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.content, content);
-    expect(result.unit, isNotNull);
+    expect(result.unit!, isNotNull);
     expect(result.errors, hasLength(0));
 
-    var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertType(f.declaredElement.type, 'int Function()');
-    assertType(f.returnType.type, 'int');
+    var f = result.unit!.declarations[0] as FunctionDeclaration;
+    assertType(f.declaredElement!.type, 'int Function()');
+    assertType(f.returnType!.typeOrThrow, 'int');
   }
 
   test_results_priorityFirst() async {
@@ -3156,7 +3152,7 @@ class F extends X {}
     expect(allResults, hasLength(3));
     ResolvedUnitResult result = allResults[0];
     expect(result.path, b);
-    expect(result.unit, isNotNull);
+    expect(result.unit!, isNotNull);
     expect(result.errors, hasLength(0));
   }
 
@@ -3259,21 +3255,21 @@ var v = 0
   void _assertClassFieldType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassField(unit, className, fieldName);
-    var type = node.declaredElement.type;
+    var type = node.declaredElement!.type;
     assertType(type, expected);
   }
 
   void _assertClassMethodReturnType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassMethod(unit, className, fieldName);
-    var type = node.declaredElement.returnType;
+    var type = node.declaredElement!.returnType;
     assertType(type, expected);
   }
 
   void _assertTopLevelVarType(
       CompilationUnit unit, String name, String expected) {
     VariableDeclaration variable = _getTopLevelVar(unit, name);
-    assertType(variable.declaredElement.type, expected);
+    assertType(variable.declaredElement!.type, expected);
   }
 
   void _expectCircularityError(EvaluationResultImpl evaluationResult) {
@@ -3325,11 +3321,11 @@ var v = 0
 
   ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
     var import = unit.directives[directiveIndex] as ImportDirective;
-    return import.element;
+    return import.element!;
   }
 
   Source _getImportSource(CompilationUnit unit, int directiveIndex) {
-    return _getImportElement(unit, directiveIndex).importedLibrary.source;
+    return _getImportElement(unit, directiveIndex).importedLibrary!.source;
   }
 
   VariableDeclaration _getTopLevelVar(CompilationUnit unit, String name) {

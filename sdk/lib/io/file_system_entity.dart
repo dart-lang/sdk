@@ -437,7 +437,7 @@ abstract class FileSystemEntity {
   /// [FileSystemEvent] can be or'ed together to mix events. Default is
   /// [FileSystemEvent.ALL].
   ///
-  /// A move event may be reported as seperate delete and create events.
+  /// A move event may be reported as separate delete and create events.
   Stream<FileSystemEvent> watch(
       {int events = FileSystemEvent.all, bool recursive = false}) {
     // FIXME(bkonyi): find a way to do this using the raw path.
@@ -494,7 +494,7 @@ abstract class FileSystemEntity {
   /// the current working directory.
   ///
   /// On Windows, a path is absolute if it starts with `\\`
-  /// (two backslashesor representing a UNC path) or with a drive letter
+  /// (two backslashes or representing a UNC path) or with a drive letter
   /// between `a` and `z` (upper or lower case) followed by `:\` or `:/`.
   /// The makes, for example, `\file.ext` a non-absolute path
   /// because it depends on the current drive letter.
