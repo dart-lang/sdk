@@ -401,8 +401,8 @@ class MarkdownIndexer {
           .writeln('**[${rule.name}](${rule.name}.md)** - ${rule.description}');
       if (flutterRules.contains(rule.name)) {
         buffer.writeln('[![flutter](style-flutter.svg)]'
-            '(https://github.com/flutter/flutter/blob/master/packages/'
-            'flutter/lib/analysis_options_user.yaml)');
+            '(https://github.com/flutter/packages/blob/master/packages/'
+            'flutter_lints/lib/flutter.yaml)');
       }
       if (pedanticRules.contains(rule.name)) {
         buffer.writeln('[![pedantic](style-pedantic.svg)]'

@@ -23,7 +23,7 @@ final _effectiveDartOptionsUrl =
     _effectiveDartOptionsRootUrl.resolve('analysis_options.yaml');
 
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml');
+    '/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
 final _flutterRepoOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/flutter/flutter/master/analysis_options.yaml');
 final _repoPathPrefix =
