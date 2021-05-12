@@ -75,6 +75,9 @@ final highlightRegionTokenModifiers =
   HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION: {
     SemanticTokenModifiers.declaration
   },
+  HighlightRegionType.VALID_STRING_ESCAPE: {
+    CustomSemanticTokenModifiers.escape
+  },
 };
 
 /// A mapping from [HighlightRegionType] to [SemanticTokenTypes].
@@ -137,6 +140,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.TYPE_PARAMETER: SemanticTokenTypes.typeParameter,
   HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE:
       SemanticTokenTypes.variable,
+  HighlightRegionType.VALID_STRING_ESCAPE: SemanticTokenTypes.string,
 };
 
 /// A helper for converting from Server highlight regions to LSP semantic tokens.
