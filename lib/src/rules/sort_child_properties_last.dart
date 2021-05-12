@@ -13,8 +13,8 @@ const _desc = r'Sort child properties last in widget instance creations.';
 const _details = r'''
 Sort child properties last in widget instance creations.  This improves
 readability and plays nicest with UI as Code visualization in IDEs with UI as
-Code Guides in editors (such as IntelliJ) where Properties in the correct order 
-appear clearly associated with the constructor call and separated from the 
+Code Guides in editors (such as IntelliJ) where Properties in the correct order
+appear clearly associated with the constructor call and separated from the
 children.
 
 **BAD:**
@@ -74,6 +74,10 @@ return Scaffold(
   ),
 );
 ```
+
+Exception: It's allowed to have parameter with a function expression after the
+`child` property.
+
 ''';
 
 class SortChildPropertiesLast extends LintRule implements NodeLintRule {
@@ -104,14 +108,22 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     var arguments = node.argumentList.arguments;
-    if (arguments.length < 2 || isChildArg(arguments.last)) {
+    if (arguments.length < 2 ||
+        isChildArg(arguments.last) ||
+        arguments.where(isChildArg).length != 1) {
       return;
     }
 
-    for (var i = 0; i < arguments.length - 1; ++i) {
-      if (isChildArg(arguments[i])) {
-        rule.reportLint(arguments[i]);
-      }
+    var onlyClosuresAfterChild = arguments.reversed
+        .takeWhile((argument) => !isChildArg(argument))
+        .toList()
+        .reversed
+        .where((element) =>
+            element is NamedExpression &&
+            element.expression is! FunctionExpression)
+        .isEmpty;
+    if (!onlyClosuresAfterChild) {
+      rule.reportLint(arguments.firstWhere(isChildArg));
     }
   }
 

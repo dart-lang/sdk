@@ -94,3 +94,23 @@ nestedChildren() {
     crossAxisAlignment: CrossAxisAlignment.center,
   );
 }
+
+class WithClosure extends Widget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        key: 0,
+        child: Center( // OK
+          child: Column(
+            key: 0,
+            children: [],
+          ),
+        ),
+        onPress: () {
+          // some code
+        },
+      ),
+    );
+  }
+}
