@@ -122,6 +122,12 @@ class ArgumentsDescriptor : public ValueObject {
 
   enum { kCachedDescriptorCount = 32 };
 
+  // For creating ArgumentDescriptor Slots.
+  static constexpr bool ContainsCompressedPointers() {
+    // Use the same state as the backing store.
+    return Array::ContainsCompressedPointers();
+  }
+
  private:
   // Absolute indices into the array.
   // Keep these in sync with the constants in invocation_mirror_patch.dart.

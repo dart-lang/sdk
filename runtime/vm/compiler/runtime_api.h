@@ -486,6 +486,10 @@ class Class : public AllStatic {
   // Return instance size for the given class on the target.
   static uword GetInstanceSize(const dart::Class& handle);
 
+  // Return whether objects of the class on the target contain compressed
+  // pointers.
+  static bool HasCompressedPointers(const dart::Class& handle);
+
   // Returns the number of type arguments.
   static intptr_t NumTypeArguments(const dart::Class& klass);
 
