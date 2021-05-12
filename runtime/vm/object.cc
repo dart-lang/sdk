@@ -15255,8 +15255,8 @@ const char* ExceptionHandlers::ToCString() const {
   if (num_entries() == 0) {
     return "empty ExceptionHandlers\n";
   }
-  Array& handled_types = Array::Handle();
-  Type& type = Type::Handle();
+  auto& handled_types = Array::Handle();
+  auto& type = AbstractType::Handle();
   ExceptionHandlerInfo info;
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
