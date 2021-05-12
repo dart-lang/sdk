@@ -444,8 +444,8 @@ class Place : public ValueObject {
 
   static bool IsAllocation(Definition* defn) {
     return (defn != NULL) &&
-           (defn->IsAllocateObject() || defn->IsCreateArray() ||
-            defn->IsAllocateTypedData() ||
+           (defn->IsAllocateObject() || defn->IsAllocateClosure() ||
+            defn->IsCreateArray() || defn->IsAllocateTypedData() ||
             defn->IsAllocateUninitializedContext() ||
             (defn->IsStaticCall() &&
              defn->AsStaticCall()->IsRecognizedFactory()));
@@ -1554,7 +1554,9 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
     for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
          instr_it.Advance()) {
       Definition* def = instr_it.Current()->AsDefinition();
-      if (def != nullptr && (def->IsAllocateObject() || def->IsCreateArray()) &&
+      if (def != nullptr &&
+          (def->IsAllocateObject() || def->IsAllocateClosure() ||
+           def->IsCreateArray()) &&
           def->env() == nullptr && !moved.HasKey(def)) {
         Instruction* use = DominantUse(def);
         if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
