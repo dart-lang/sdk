@@ -24,9 +24,9 @@ Future<String> get pedanticLatestVersion async {
   return parts[1].split('.yaml')[0];
 }
 
+/// todo(pq): de-duplicate these fetches / URIs
 Future<List<String>> _readFlutterLints() async => _fetchLints(
-// todo(pq):update when landed
-    'https://raw.githubusercontent.com/dart-lang/lints/400c60bf379bbad5b161148f52a29c0e4fd378f6/lib/flutter.yaml');
+    'https://raw.githubusercontent.com/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
 
 Future<List<String>> _readRecommendedLints() async => _fetchLints(
     'https://raw.githubusercontent.com/dart-lang/lints/main/lib/recommended.yaml');
