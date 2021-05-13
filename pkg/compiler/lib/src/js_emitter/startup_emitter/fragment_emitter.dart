@@ -420,19 +420,6 @@ function initializeDeferredHunk(hunk) {
   hunk(hunkHelpers, #embeddedGlobalsObject, holders, #staticState);
 }
 
-// Returns the global with the given [name].
-function getGlobalFromName(name) {
-  // TODO(floitsch): we are running through all holders. Since negative
-  // lookups are expensive we might need to improve this.
-  // Relies on the fact that all names are unique across all holders.
-  for (var i = 0; i < holders.length; i++) {
-    // The constant holder reuses the same names. Therefore we must skip it.
-    if (holders[i] == #constantHolderReference) continue;
-    // Relies on the fact that all variables are unique.
-    if (holders[i][name]) return holders[i][name];
-  }
-}
-
 if (#isTrackingAllocations) {
   var allocations = #deferredGlobal['allocations'] = {};
 }
@@ -738,8 +725,6 @@ class FragmentEmitter {
       'embeddedGlobalsObject': js.js("init"),
       'staticStateDeclaration': DeferredHolderParameter(),
       'staticState': DeferredHolderParameter(),
-      'constantHolderReference':
-          DeferredHolderResourceExpression.constantHolderReference(),
       'holders': holderDeclaration,
       'callName': js.string(_namer.fixedNames.callNameField),
       'stubName': js.string(_namer.stubNameField),
@@ -1820,15 +1805,6 @@ class FragmentEmitter {
         js.string(MANGLED_GLOBAL_NAMES), new js.ObjectInitializer(names));
   }
 
-  /// Emits the [GET_TYPE_FROM_NAME] embedded global.
-  ///
-  /// This embedded global provides a way to go from a class name (which is
-  /// also the constructor's name) to the constructor itself.
-  js.Property emitGetTypeFromName() {
-    js.Expression function = js.js("getGlobalFromName");
-    return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
-  }
-
   /// Emits the [METADATA] embedded global.
   ///
   /// The metadata itself has already been computed earlier and is stored in
@@ -1879,8 +1855,6 @@ class FragmentEmitter {
     // mangled names.
     globals.add(js.Property(
         js.string(MANGLED_NAMES), js.ObjectInitializer(<js.Property>[])));
-
-    globals.add(emitGetTypeFromName());
 
     globals.addAll(emitMetadata(program));
 

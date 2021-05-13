@@ -284,83 +284,6 @@ class DeferredHolderResource extends js.DeferredStatement
   }
 }
 
-enum DeferredHolderResourceExpressionKind {
-  constantHolderReference,
-}
-
-/// Similar to [DeferredHolderExpression], [DeferredHolderResourceExpression]
-/// is used by resources which want to insert a DeferredExpression into the
-/// ast. This class does not support serialization.
-class DeferredHolderResourceExpression extends js.DeferredExpression
-    implements js.AstContainer {
-  final DeferredHolderResourceExpressionKind kind;
-  final Entity entity;
-  js.Expression _value;
-
-  @override
-  final js.JavaScriptNodeSourceInformation sourceInformation;
-
-  DeferredHolderResourceExpression(this.kind, this.entity)
-      : sourceInformation = null;
-  DeferredHolderResourceExpression._(
-      this.kind, this.entity, this._value, this.sourceInformation);
-
-  factory DeferredHolderResourceExpression.constantHolderReference() {
-    return DeferredHolderResourceExpression(
-        DeferredHolderResourceExpressionKind.constantHolderReference, null);
-  }
-
-  set value(js.Expression value) {
-    assert(!isFinalized && value != null);
-    _value = value;
-  }
-
-  @override
-  js.Expression get value {
-    assert(isFinalized, '$this is unassigned');
-    return _value;
-  }
-
-  @override
-  bool get isFinalized => _value != null;
-
-  @override
-  DeferredHolderResourceExpression withSourceInformation(
-      js.JavaScriptNodeSourceInformation newSourceInformation) {
-    if (newSourceInformation == sourceInformation) return this;
-    if (newSourceInformation == null) return this;
-    return DeferredHolderResourceExpression._(
-        kind, entity, _value, newSourceInformation);
-  }
-
-  @override
-  int get precedenceLevel => _value?.precedenceLevel ?? js.PRIMARY;
-
-  @override
-  int get hashCode {
-    return Hashing.objectsHash(kind, entity);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is DeferredHolderExpression &&
-        kind == other.kind &&
-        entity == other.entity;
-  }
-
-  @override
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('DeferredHolderResourceExpression(kind=$kind,entity=$entity,');
-    sb.write('value=$_value)');
-    return sb.toString();
-  }
-
-  @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
-}
-
 abstract class DeferredHolderExpressionFinalizer {
   /// Collects DeferredHolderExpressions from the JavaScript
   /// AST [code];
@@ -380,7 +303,6 @@ class DeferredHolderExpressionFinalizerImpl
   final List<DeferredHolderExpression> holderReferences = [];
   final List<DeferredHolderParameter> holderParameters = [];
   final List<DeferredHolderResource> holderResources = [];
-  final List<DeferredHolderResourceExpression> holderResourceExpressions = [];
   final Set<String> _uniqueHolders = {};
   final List<String> _holders = [];
   final Map<Entity, String> _entityMap = {};
@@ -627,17 +549,6 @@ class DeferredHolderExpressionFinalizerImpl
     resource.statement = js.Block(statements);
   }
 
-  /// Creates a reference to the constant holder.
-  void allocateConstantHolderReference(
-      DeferredHolderResourceExpression resource) {
-    String constantHolder = _holders.firstWhere(
-        (holder) => holder == globalObjectForConstants(),
-        orElse: () => null);
-    resource.value = constantHolder == null
-        ? js.LiteralNull()
-        : js.VariableUse(constantHolder);
-  }
-
   /// Allocates all [DeferredHolderResource]s and
   /// [DeferredHolderResourceExpression]s.
   void allocateResources() {
@@ -660,15 +571,6 @@ class DeferredHolderExpressionFinalizerImpl
           break;
       }
     }
-
-    // Finally, finalize any [DeferredHolderResourceExpression]s.
-    for (var resource in holderResourceExpressions) {
-      switch (resource.kind) {
-        case DeferredHolderResourceExpressionKind.constantHolderReference:
-          allocateConstantHolderReference(resource);
-          break;
-      }
-    }
   }
 
   @override
@@ -683,11 +585,6 @@ class DeferredHolderExpressionFinalizerImpl
 
   void _registerDeferredHolderResource(DeferredHolderResource node) {
     holderResources.add(node);
-  }
-
-  void _registerDeferredHolderResourceExpression(
-      DeferredHolderResourceExpression node) {
-    holderResourceExpressions.add(node);
   }
 
   void _registerDeferredHolderParameter(DeferredHolderParameter node) {
@@ -722,8 +619,6 @@ class _DeferredHolderExpressionCollectorVisitor extends js.BaseVisitor<void> {
   void visitDeferredExpression(js.DeferredExpression node) {
     if (node is DeferredHolderExpression) {
       _finalizer._registerDeferredHolderExpression(node);
-    } else if (node is DeferredHolderResourceExpression) {
-      _finalizer._registerDeferredHolderResourceExpression(node);
     } else {
       visitNode(node);
     }

@@ -7,9 +7,6 @@
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_foreign_helper';
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_embedded_names';
-
 /// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
@@ -19,8 +16,6 @@ main() {
   jsCallEmpty();
   jsCallVoid();
   jsCallUnion();
-
-  jsEmbeddedGlobal_getTypeFromName();
 
   jsStringConcat();
 }
@@ -36,11 +31,6 @@ jsCallVoid() => JS('void', '#', 0);
 
 /*member: jsCallUnion:Union([exact=JSString], [subclass=JSInt])*/
 jsCallUnion() => JS('int|String', '#', 0);
-
-/*member: jsEmbeddedGlobal_getTypeFromName:[null|subclass=Object]*/
-jsEmbeddedGlobal_getTypeFromName() {
-  return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-}
 
 /*member: jsStringConcat:[exact=JSString]*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');

@@ -11,7 +11,6 @@ import 'dart:_js_embedded_names'
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
-        GET_TYPE_FROM_NAME,
         GET_ISOLATE_TAG,
         INITIALIZE_LOADED_HUNK,
         INTERCEPTED_NAMES,
