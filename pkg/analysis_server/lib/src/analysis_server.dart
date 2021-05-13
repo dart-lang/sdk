@@ -685,6 +685,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         _notificationManager.recordAnalysisErrors(NotificationManager.serverId,
             path, server.doAnalysisError_listFromEngine(result));
       }
+      analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
       var unit = result.unit;
       if (unit != null) {
         if (analysisServer._hasAnalysisServiceSubscription(

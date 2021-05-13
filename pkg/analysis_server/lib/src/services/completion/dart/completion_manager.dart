@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
@@ -93,6 +94,7 @@ class DartCompletionManager {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
     CompletionPreference? completionPreference,
+    DocumentationCache? documentationCache,
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
@@ -105,6 +107,7 @@ class DartCompletionManager {
       request,
       dartdocDirectiveInfo,
       completionPreference: completionPreference,
+      documentationCache: documentationCache,
     );
 
     // Don't suggest in comments.
@@ -297,6 +300,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   final CompletionPreference completionPreference;
 
+  final DocumentationCache? documentationCache;
+
   DartCompletionRequestImpl._(
       this.result,
       this.resourceProvider,
@@ -308,7 +313,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.dartdocDirectiveInfo,
       this._originalRequest,
       this.performance,
-      {CompletionPreference? completionPreference})
+      {CompletionPreference? completionPreference,
+      this.documentationCache})
       : featureComputer =
             FeatureComputer(result.typeSystem, result.typeProvider),
         completionPreference =
@@ -431,7 +437,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       OperationPerformanceImpl performance,
       CompletionRequest request,
       DartdocDirectiveInfo? dartdocDirectiveInfo,
-      {CompletionPreference? completionPreference}) async {
+      {CompletionPreference? completionPreference,
+      DocumentationCache? documentationCache}) async {
     request.checkAborted();
 
     return performance.run(
@@ -453,6 +460,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
           request,
           (request as CompletionRequestImpl).performance,
           completionPreference: completionPreference,
+          documentationCache: documentationCache,
         );
       },
     );

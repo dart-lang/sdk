@@ -177,7 +177,7 @@ class DartdocDirectiveInfo {
       }
       start = eolIndex + 1;
     }
-    if (lastNonEmpty < firstNonEmpty) {
+    if (firstNonEmpty < 0 || lastNonEmpty < firstNonEmpty) {
       // All of the lines are empty.
       return const <String>[];
     }

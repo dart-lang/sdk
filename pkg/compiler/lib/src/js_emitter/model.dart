@@ -165,11 +165,7 @@ class Constant {
   }
 }
 
-abstract class FieldContainer {
-  List<Field> get staticFieldsForReflection;
-}
-
-class Library implements FieldContainer {
+class Library {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final LibraryEntity element;
@@ -179,11 +175,8 @@ class Library implements FieldContainer {
   final List<Class> classes;
   final List<ClassTypeData> classTypeData;
 
-  @override
-  final List<Field> staticFieldsForReflection;
-
-  Library(this.element, this.uri, this.statics, this.classes,
-      this.classTypeData, this.staticFieldsForReflection);
+  Library(
+      this.element, this.uri, this.statics, this.classes, this.classTypeData);
 
   @override
   String toString() {
@@ -233,7 +226,7 @@ class ClassTypeData {
           check.cls == commonElements.objectClass || check.cls == element);
 }
 
-class Class implements FieldContainer {
+class Class {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final ClassEntity element;
@@ -256,8 +249,7 @@ class Class implements FieldContainer {
 
   /// noSuchMethod stubs in the special case that the class is Object.
   final List<StubMethod> noSuchMethodStubs;
-  @override
-  final List<Field> staticFieldsForReflection;
+
   final bool hasRtiField; // Per-instance runtime type information pseudo-field.
   final bool onlyForRti;
   final bool onlyForConstructor;
@@ -289,7 +281,6 @@ class Class implements FieldContainer {
       this.name,
       this.methods,
       this.fields,
-      this.staticFieldsForReflection,
       this.callStubs,
       this.noSuchMethodStubs,
       this.checkedSetters,
@@ -335,7 +326,6 @@ class MixinApplication extends Class {
       ClassTypeData typeData,
       js.Name name,
       List<Field> instanceFields,
-      List<Field> staticFieldsForReflection,
       List<StubMethod> callStubs,
       List<StubMethod> checkedSetters,
       List<StubMethod> isChecks,
@@ -350,7 +340,6 @@ class MixinApplication extends Class {
             name,
             const <Method>[],
             instanceFields,
-            staticFieldsForReflection,
             callStubs,
             const <StubMethod>[],
             checkedSetters,

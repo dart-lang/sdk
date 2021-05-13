@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
@@ -1034,6 +1035,8 @@ class CompletionMetricsComputer {
       MetricsSuggestionListener listener,
       OperationPerformanceImpl performance,
       CompletionRequestImpl request,
+      DartdocDirectiveInfo dartdocDirectiveInfo,
+      DocumentationCache? documentationCache,
       [DeclarationsTracker? declarationsTracker,
       protocol.CompletionAvailableSuggestionsParams?
           availableSuggestionsParams]) async {
@@ -1042,9 +1045,10 @@ class CompletionMetricsComputer {
     if (declarationsTracker == null) {
       // available suggestions == false
       suggestions = await DartCompletionManager(
-        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        dartdocDirectiveInfo: dartdocDirectiveInfo,
         listener: listener,
-      ).computeSuggestions(performance, request);
+      ).computeSuggestions(performance, request,
+          documentationCache: documentationCache);
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -1053,12 +1057,13 @@ class CompletionMetricsComputer {
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
-        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        dartdocDirectiveInfo: dartdocDirectiveInfo,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(performance, request);
+      ).computeSuggestions(performance, request,
+          documentationCache: documentationCache);
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);
@@ -1141,123 +1146,129 @@ class CompletionMetricsComputer {
 
     // Loop through each file, resolve the file and call
     // forEachExpectedCompletion
+
+    var dartdocDirectiveInfo = DartdocDirectiveInfo();
+    var documentationCache = DocumentationCache(dartdocDirectiveInfo);
+    var results = <ResolvedUnitResult>[];
     var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          _resolvedUnitResult = await context.currentSession
-              .getResolvedUnit2(filePath) as ResolvedUnitResult;
+          var result = await context.currentSession.getResolvedUnit2(filePath)
+              as ResolvedUnitResult;
 
-          var analysisError = getFirstErrorOrNull(_resolvedUnitResult);
+          var analysisError = getFirstErrorOrNull(result);
           if (analysisError != null) {
             print('File $filePath skipped due to errors such as:');
             print('  ${analysisError.toString()}');
             print('');
             continue;
-          }
-
-          // Use the ExpectedCompletionsVisitor to compute the set of expected
-          // completions for this CompilationUnit.
-          final visitor = ExpectedCompletionsVisitor(filePath);
-          _resolvedUnitResult.unit!.accept(visitor);
-
-          for (var expectedCompletion in visitor.expectedCompletions) {
-            var resolvedUnitResult = _resolvedUnitResult;
-
-            // If an overlay option is being used, compute the overlay file, and
-            // have the context reanalyze the file
-            if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
-              var overlayContents = _getOverlayContents(
-                  _resolvedUnitResult.content!, expectedCompletion);
-
-              _provider.setOverlay(filePath,
-                  content: overlayContents,
-                  modificationStamp: overlayModificationStamp++);
-              context.driver.changeFile(filePath);
-              resolvedUnitResult = await context.currentSession
-                  .getResolvedUnit2(filePath) as ResolvedUnitResult;
-            }
-
-            // As this point the completion suggestions are computed,
-            // and results are collected with varying settings for
-            // comparison:
-
-            Future<int> handleExpectedCompletion(
-                {required MetricsSuggestionListener listener,
-                required CompletionMetrics metrics}) async {
-              var stopwatch = Stopwatch()..start();
-              var request = CompletionRequestImpl(
-                resolvedUnitResult,
-                expectedCompletion.offset,
-                CompletionPerformance(),
-              );
-              var directiveInfo = DartdocDirectiveInfo();
-
-              late OpType opType;
-              late List<protocol.CompletionSuggestion> suggestions;
-              await request.performance.runRequestOperation(
-                (performance) async {
-                  var dartRequest = await DartCompletionRequestImpl.from(
-                      performance, request, directiveInfo);
-                  opType =
-                      OpType.forCompletion(dartRequest.target, request.offset);
-                  suggestions = await _computeCompletionSuggestions(
-                    listener,
-                    performance,
-                    request,
-                    metrics.availableSuggestions ? declarationsTracker : null,
-                    metrics.availableSuggestions
-                        ? availableSuggestionsParams
-                        : null,
-                  );
-                },
-              );
-              stopwatch.stop();
-
-              return forEachExpectedCompletion(
-                  request,
-                  listener,
-                  expectedCompletion,
-                  opType.completionLocation,
-                  suggestions,
-                  metrics,
-                  stopwatch.elapsedMilliseconds);
-            }
-
-            var bestRank = -1;
-            var bestName = '';
-            var defaultTag = getCurrentTag();
-            for (var metrics in targetMetrics) {
-              // Compute the completions.
-              metrics.enable();
-              metrics.userTag.makeCurrent();
-              // if (FeatureComputer.noDisabledFeatures) {
-              //   var line = expectedCompletion.lineNumber;
-              //   var column = expectedCompletion.columnNumber;
-              //   print('$filePath:$line:$column');
-              // }
-              var listener = MetricsSuggestionListener();
-              var rank = await handleExpectedCompletion(
-                  listener: listener, metrics: metrics);
-              if (bestRank < 0 || rank < bestRank) {
-                bestRank = rank;
-                bestName = metrics.name;
-              }
-              defaultTag.makeCurrent();
-              metrics.disable();
-            }
-            rankComparison.count(bestName);
-
-            // If an overlay option is being used, remove the overlay applied
-            // earlier
-            if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
-              _provider.removeOverlay(filePath);
-            }
+          } else {
+            results.add(result);
+            documentationCache.cacheFromResult(result);
           }
         } catch (exception, stackTrace) {
           print('Exception caught analyzing: $filePath');
           print(exception.toString());
           print(stackTrace);
+        }
+      }
+    }
+    for (var result in results) {
+      _resolvedUnitResult = result;
+      var filePath = result.path!;
+      // Use the ExpectedCompletionsVisitor to compute the set of expected
+      // completions for this CompilationUnit.
+      final visitor = ExpectedCompletionsVisitor(filePath);
+      _resolvedUnitResult.unit!.accept(visitor);
+
+      for (var expectedCompletion in visitor.expectedCompletions) {
+        var resolvedUnitResult = _resolvedUnitResult;
+
+        // If an overlay option is being used, compute the overlay file, and
+        // have the context reanalyze the file
+        if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
+          var overlayContents = _getOverlayContents(
+              _resolvedUnitResult.content!, expectedCompletion);
+
+          _provider.setOverlay(filePath,
+              content: overlayContents,
+              modificationStamp: overlayModificationStamp++);
+          context.driver.changeFile(filePath);
+          resolvedUnitResult = await context.currentSession
+              .getResolvedUnit2(filePath) as ResolvedUnitResult;
+        }
+
+        // As this point the completion suggestions are computed,
+        // and results are collected with varying settings for
+        // comparison:
+
+        Future<int> handleExpectedCompletion(
+            {required MetricsSuggestionListener listener,
+            required CompletionMetrics metrics}) async {
+          var stopwatch = Stopwatch()..start();
+          var request = CompletionRequestImpl(
+            resolvedUnitResult,
+            expectedCompletion.offset,
+            CompletionPerformance(),
+          );
+          var directiveInfo = DartdocDirectiveInfo();
+
+          late OpType opType;
+          late List<protocol.CompletionSuggestion> suggestions;
+          await request.performance.runRequestOperation(
+            (performance) async {
+              var dartRequest = await DartCompletionRequestImpl.from(
+                  performance, request, directiveInfo);
+              opType = OpType.forCompletion(dartRequest.target, request.offset);
+              suggestions = await _computeCompletionSuggestions(
+                listener,
+                performance,
+                request,
+                dartdocDirectiveInfo,
+                documentationCache,
+                metrics.availableSuggestions ? declarationsTracker : null,
+                metrics.availableSuggestions
+                    ? availableSuggestionsParams
+                    : null,
+              );
+            },
+          );
+          stopwatch.stop();
+
+          return forEachExpectedCompletion(
+              request,
+              listener,
+              expectedCompletion,
+              opType.completionLocation,
+              suggestions,
+              metrics,
+              stopwatch.elapsedMilliseconds);
+        }
+
+        var bestRank = -1;
+        var bestName = '';
+        var defaultTag = getCurrentTag();
+        for (var metrics in targetMetrics) {
+          // Compute the completions.
+          metrics.enable();
+          metrics.userTag.makeCurrent();
+          var listener = MetricsSuggestionListener();
+          var rank = await handleExpectedCompletion(
+              listener: listener, metrics: metrics);
+          if (bestRank < 0 || rank < bestRank) {
+            bestRank = rank;
+            bestName = metrics.name;
+          }
+          defaultTag.makeCurrent();
+          metrics.disable();
+        }
+        rankComparison.count(bestName);
+
+        // If an overlay option is being used, remove the overlay applied
+        // earlier.
+        if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
+          _provider.removeOverlay(filePath);
         }
       }
     }

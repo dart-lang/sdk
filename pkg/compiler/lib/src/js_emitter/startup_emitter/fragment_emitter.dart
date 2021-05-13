@@ -420,19 +420,6 @@ function initializeDeferredHunk(hunk) {
   hunk(hunkHelpers, #embeddedGlobalsObject, holders, #staticState);
 }
 
-// Returns the global with the given [name].
-function getGlobalFromName(name) {
-  // TODO(floitsch): we are running through all holders. Since negative
-  // lookups are expensive we might need to improve this.
-  // Relies on the fact that all names are unique across all holders.
-  for (var i = 0; i < holders.length; i++) {
-    // The constant holder reuses the same names. Therefore we must skip it.
-    if (holders[i] == #constantHolderReference) continue;
-    // Relies on the fact that all variables are unique.
-    if (holders[i][name]) return holders[i][name];
-  }
-}
-
 if (#isTrackingAllocations) {
   var allocations = #deferredGlobal['allocations'] = {};
 }
@@ -738,8 +725,6 @@ class FragmentEmitter {
       'embeddedGlobalsObject': js.js("init"),
       'staticStateDeclaration': DeferredHolderParameter(),
       'staticState': DeferredHolderParameter(),
-      'constantHolderReference':
-          DeferredHolderResourceExpression.constantHolderReference(),
       'holders': holderDeclaration,
       'callName': js.string(_namer.fixedNames.callNameField),
       'stubName': js.string(_namer.stubNameField),
@@ -1039,19 +1024,26 @@ class FragmentEmitter {
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = generateGettersSetters(cls);
     Iterable<Method> allMethods = [
-      methods,
-      checkedSetters,
-      isChecks,
-      callStubs,
-      noSuchMethodStubs,
-      gettersSetters
-    ].expand((x) => x);
+      ...methods,
+      ...checkedSetters,
+      ...isChecks,
+      ...callStubs,
+      ...noSuchMethodStubs,
+      ...gettersSetters
+    ];
 
     List<js.Property> properties = [];
 
     if (cls.superclass == null) {
-      // ie11 might require us to set 'constructor' but we aren't 100% sure.
+      // This is Dart `Object`. Add properties that are usually added by
+      // `inherit`.
+
+      // TODO(sra): Adding properties here appears to be redundant with the call
+      // to `inherit(P.Object, null)` in the generated code. See if we can
+      // remove that.
+
       if (_options.legacyJavaScript) {
+        // IE11 might require us to set 'constructor' but we aren't 100% sure.
         properties
             .add(js.Property(js.string("constructor"), classReference(cls)));
       }
@@ -1147,15 +1139,12 @@ class FragmentEmitter {
 
   /// Generates all getters and setters the given class [cls] needs.
   Iterable<Method> generateGettersSetters(Class cls) {
-    Iterable<Method> getters = cls.fields
-        .where((Field field) => field.needsGetter)
-        .map(generateGetter);
-
-    Iterable<Method> setters = cls.fields
-        .where((Field field) => field.needsUncheckedSetter)
-        .map(generateSetter);
-
-    return [getters, setters].expand((x) => x);
+    return [
+      for (Field field in cls.fields)
+        if (field.needsGetter) generateGetter(field),
+      for (Field field in cls.fields)
+        if (field.needsUncheckedSetter) generateSetter(field),
+    ];
   }
 
   /// Emits the given instance [method].
@@ -1816,15 +1805,6 @@ class FragmentEmitter {
         js.string(MANGLED_GLOBAL_NAMES), new js.ObjectInitializer(names));
   }
 
-  /// Emits the [GET_TYPE_FROM_NAME] embedded global.
-  ///
-  /// This embedded global provides a way to go from a class name (which is
-  /// also the constructor's name) to the constructor itself.
-  js.Property emitGetTypeFromName() {
-    js.Expression function = js.js("getGlobalFromName");
-    return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
-  }
-
   /// Emits the [METADATA] embedded global.
   ///
   /// The metadata itself has already been computed earlier and is stored in
@@ -1875,8 +1855,6 @@ class FragmentEmitter {
     // mangled names.
     globals.add(js.Property(
         js.string(MANGLED_NAMES), js.ObjectInitializer(<js.Property>[])));
-
-    globals.add(emitGetTypeFromName());
 
     globals.addAll(emitMetadata(program));
 
