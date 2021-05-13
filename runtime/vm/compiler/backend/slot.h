@@ -185,14 +185,12 @@ class Slot : public ZoneAllocated {
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
 
-  // Return a slot that represents type arguments field at the given offset
-  // or for the given class.
+  // Return a slot that represents type arguments field for the given class.
   //
   // We do not distinguish type argument fields within disjoint
   // class hierarchies: type argument fields at the same offset would be
   // represented by the same Slot object. Type argument slots are final
   // so disambiguating type arguments fields does not improve alias analysis.
-  static const Slot& GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset);
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
 
   // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
