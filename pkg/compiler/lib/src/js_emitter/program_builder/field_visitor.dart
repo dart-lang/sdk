@@ -4,7 +4,7 @@
 
 part of dart2js.js_emitter.program_builder;
 
-/// [member] is a field (instance, static, or top level).
+/// [member] is an instance field.
 ///
 /// [name] is the field name that the [Namer] has picked for this field's
 /// storage, that is, the JavaScript property name.
@@ -35,36 +35,18 @@ class FieldVisitor {
 
   /// Invokes [f] for each of the fields of [element].
   ///
-  /// [element] must be a [ClassEntity] or a [LibraryEntity].
-  ///
-  /// If [element] is a [ClassEntity], the static fields of the class are
-  /// visited if [visitStatics] is true and the instance fields are visited if
-  /// [visitStatics] is false.
-  ///
-  /// If [element] is a [LibraryEntity], [visitStatics] must be true.
-  ///
   /// When visiting the instance fields of a class, the fields of its superclass
   /// are also visited if the class is instantiated.
-  ///
-  /// Invariant: [element] must be a declaration element.
-  void visitFields(AcceptField f,
-      {bool visitStatics: false, LibraryEntity library, ClassEntity cls}) {
-    bool isNativeClass = false;
-    bool isLibrary = false;
-    bool isInstantiated = false;
-    if (cls != null) {
-      isNativeClass = _nativeData.isNativeClass(cls);
+  void visitFields(AcceptField f, ClassEntity cls) {
+    assert(
+        cls != null, failedAt(NO_LOCATION_SPANNABLE, 'Expected a ClassEntity'));
 
-      // If the class is never instantiated we still need to set it up for
-      // inheritance purposes, but we can simplify its JavaScript constructor.
-      isInstantiated = _codegenWorld.directlyInstantiatedClasses.contains(cls);
-    } else if (library != null) {
-      isLibrary = true;
-      assert(visitStatics, failedAt(library));
-    } else {
-      failedAt(
-          NO_LOCATION_SPANNABLE, 'Expected a ClassEntity or a LibraryEntity.');
-    }
+    bool isNativeClass = _nativeData.isNativeClass(cls);
+
+    // If the class is never instantiated we still need to set it up for
+    // inheritance purposes, but we can simplify its JavaScript constructor.
+    bool isInstantiated =
+        _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
     void visitField(FieldEntity field, {ClassEntity holder}) {
       bool isMixinNativeField =
@@ -76,7 +58,7 @@ class FieldVisitor {
       // setters.
       bool needsGetter = false;
       bool needsSetter = false;
-      if (isLibrary || isMixinNativeField || holder == cls) {
+      if (isMixinNativeField || holder == cls) {
         needsGetter = fieldNeedsGetter(field);
         needsSetter = fieldNeedsSetter(field);
       }
@@ -101,34 +83,22 @@ class FieldVisitor {
       }
     }
 
-    if (isLibrary) {
-      _elementEnvironment.forEachLibraryMember(library, (MemberEntity member) {
-        if (member.isField) visitField(member);
-      });
-    } else if (visitStatics) {
-      _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
-        if (member.isField && member.isStatic) {
-          visitField(member, holder: cls);
-        }
-      });
-    } else {
-      // TODO(kasperl): We should make sure to only emit one version of
-      // overridden fields. Right now, we rely on the ordering so the
-      // fields pulled in from mixins are replaced with the fields from
-      // the class definition.
+    // TODO(kasperl): We should make sure to only emit one version of
+    // overridden fields. Right now, we rely on the ordering so the
+    // fields pulled in from mixins are replaced with the fields from
+    // the class definition.
 
-      // If a class is not instantiated then we add the field just so we can
-      // generate the field getter/setter dynamically. Since this is only
-      // allowed on fields that are in [element] we don't need to visit
-      // superclasses for non-instantiated classes.
-      _elementEnvironment.forEachClassMember(cls,
-          (ClassEntity holder, MemberEntity member) {
-        if (cls != holder && !isInstantiated) return;
-        if (member.isField && !member.isStatic) {
-          visitField(member, holder: holder);
-        }
-      });
-    }
+    // If a class is not instantiated then we add the field just so we can
+    // generate the field getter/setter dynamically. Since this is only
+    // allowed on fields that are in [element] we don't need to visit
+    // superclasses for non-instantiated classes.
+    _elementEnvironment.forEachClassMember(cls,
+        (ClassEntity holder, MemberEntity member) {
+      if (cls != holder && !isInstantiated) return;
+      if (member.isField && !member.isStatic) {
+        visitField(member, holder: holder);
+      }
+    });
   }
 
   bool fieldNeedsGetter(FieldEntity field) {

@@ -543,12 +543,7 @@ class ProgramBuilder {
         .toList();
     classTypeData.addAll(classes.map((Class cls) => cls.typeData).toList());
 
-    bool visitStatics = true;
-    List<Field> staticFieldsForReflection =
-        _buildFields(library: library, visitStatics: visitStatics);
-
-    return new Library(library, uri, statics, classes, classTypeData,
-        staticFieldsForReflection);
+    return Library(library, uri, statics, classes, classTypeData);
   }
 
   Class _buildClass(ClassEntity cls) {
@@ -655,16 +650,7 @@ class ProgramBuilder {
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForConstructorOrRti
         ? const []
-        : _buildFields(
-            cls: cls,
-            visitStatics: false,
-            isHolderInterceptedClass: isInterceptedClass);
-    List<Field> staticFieldsForReflection = onlyForConstructorOrRti
-        ? const []
-        : _buildFields(
-            cls: cls,
-            visitStatics: true,
-            isHolderInterceptedClass: isInterceptedClass);
+        : _buildFields(cls: cls, isHolderInterceptedClass: isInterceptedClass);
 
     TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(
         cls, _generatedCode,
@@ -717,28 +703,19 @@ class ProgramBuilder {
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
 
-      result = new MixinApplication(
-          cls,
-          typeData,
-          name,
-          instanceFields,
-          staticFieldsForReflection,
-          callStubs,
-          checkedSetters,
-          isChecks,
-          typeTests.functionTypeIndex,
+      result = MixinApplication(cls, typeData, name, instanceFields, callStubs,
+          checkedSetters, isChecks, typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
           onlyForConstructor: onlyForConstructor);
     } else {
-      result = new Class(
+      result = Class(
           cls,
           typeData,
           name,
           methods,
           instanceFields,
-          staticFieldsForReflection,
           callStubs,
           noSuchMethodStubs,
           checkedSetters,
@@ -1009,18 +986,14 @@ class ProgramBuilder {
   }
 
   List<Field> _buildFields(
-      {bool visitStatics: false,
-      bool isHolderInterceptedClass: false,
-      LibraryEntity library,
-      ClassEntity cls}) {
+      {bool isHolderInterceptedClass: false, ClassEntity cls}) {
     List<Field> fields = <Field>[];
 
     void visitField(FieldEntity field, js.Name name, js.Name accessorName,
         bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
       int getterFlags = 0;
       if (needsGetter) {
-        if (visitStatics ||
-            !_interceptorData.fieldHasInterceptedGetter(field)) {
+        if (!_interceptorData.fieldHasInterceptedGetter(field)) {
           getterFlags = 1;
         } else {
           getterFlags += 2;
@@ -1035,8 +1008,7 @@ class ProgramBuilder {
 
       int setterFlags = 0;
       if (needsSetter) {
-        if (visitStatics ||
-            !_interceptorData.fieldHasInterceptedSetter(field)) {
+        if (!_interceptorData.fieldHasInterceptedSetter(field)) {
           setterFlags = 1;
         } else {
           setterFlags += 2;
@@ -1056,7 +1028,7 @@ class ProgramBuilder {
         constantValue = fieldData.constantValue;
       }
 
-      fields.add(new Field(
+      fields.add(Field(
           field,
           name,
           accessorName,
@@ -1068,10 +1040,9 @@ class ProgramBuilder {
           fieldData.isElided));
     }
 
-    FieldVisitor visitor = new FieldVisitor(
+    FieldVisitor visitor = FieldVisitor(
         _elementEnvironment, _codegenWorld, _nativeData, _namer, _closedWorld);
-    visitor.visitFields(visitField,
-        visitStatics: visitStatics, library: library, cls: cls);
+    visitor.visitFields(visitField, cls);
 
     return fields;
   }

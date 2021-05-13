@@ -1039,19 +1039,26 @@ class FragmentEmitter {
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = generateGettersSetters(cls);
     Iterable<Method> allMethods = [
-      methods,
-      checkedSetters,
-      isChecks,
-      callStubs,
-      noSuchMethodStubs,
-      gettersSetters
-    ].expand((x) => x);
+      ...methods,
+      ...checkedSetters,
+      ...isChecks,
+      ...callStubs,
+      ...noSuchMethodStubs,
+      ...gettersSetters
+    ];
 
     List<js.Property> properties = [];
 
     if (cls.superclass == null) {
-      // ie11 might require us to set 'constructor' but we aren't 100% sure.
+      // This is Dart `Object`. Add properties that are usually added by
+      // `inherit`.
+
+      // TODO(sra): Adding properties here appears to be redundant with the call
+      // to `inherit(P.Object, null)` in the generated code. See if we can
+      // remove that.
+
       if (_options.legacyJavaScript) {
+        // IE11 might require us to set 'constructor' but we aren't 100% sure.
         properties
             .add(js.Property(js.string("constructor"), classReference(cls)));
       }
@@ -1147,15 +1154,12 @@ class FragmentEmitter {
 
   /// Generates all getters and setters the given class [cls] needs.
   Iterable<Method> generateGettersSetters(Class cls) {
-    Iterable<Method> getters = cls.fields
-        .where((Field field) => field.needsGetter)
-        .map(generateGetter);
-
-    Iterable<Method> setters = cls.fields
-        .where((Field field) => field.needsUncheckedSetter)
-        .map(generateSetter);
-
-    return [getters, setters].expand((x) => x);
+    return [
+      for (Field field in cls.fields)
+        if (field.needsGetter) generateGetter(field),
+      for (Field field in cls.fields)
+        if (field.needsUncheckedSetter) generateSetter(field),
+    ];
   }
 
   /// Emits the given instance [method].

@@ -134,23 +134,6 @@ class LibraryData {
       }
     }
 
-    void addField(Field field) {
-      ClassEntity enclosingClass = field.element?.enclosingClass;
-      if (enclosingClass != null) {
-        ClassData data =
-            _classMap.putIfAbsent(enclosingClass, () => new ClassData(null));
-        assert(!data._fieldMap.containsKey(field.element));
-        data._fieldMap[field.element] = field;
-      } else if (field.element != null) {
-        assert(!_fieldMap.containsKey(field.element));
-        _fieldMap[field.element] = field;
-      }
-    }
-
-    for (Field field in library.staticFieldsForReflection) {
-      addField(field);
-    }
-
     void addStaticField(StaticField field) {
       ClassEntity enclosingClass = field.element?.enclosingClass;
       if (enclosingClass != null) {
