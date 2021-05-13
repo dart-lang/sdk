@@ -15,6 +15,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
@@ -25,6 +26,7 @@ import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -82,6 +84,10 @@ abstract class AbstractAnalysisServer {
 
   DeclarationsTracker? declarationsTracker;
   DeclarationsTrackerData? declarationsTrackerData;
+
+  /// A map from analysis contexts to the documentation cache associated with
+  /// each context.
+  Map<AnalysisContext, DocumentationCache> documentationForContext = {};
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -217,6 +223,7 @@ abstract class AbstractAnalysisServer {
 
   void addContextsToDeclarationsTracker() {
     declarationsTracker?.discardContexts();
+    documentationForContext.clear();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
       driver.resetUriResolution();
@@ -273,6 +280,19 @@ abstract class AbstractAnalysisServer {
             ?.getContext(result.session.analysisContext)
             ?.dartdocDirectiveInfo ??
         DartdocDirectiveInfo();
+  }
+
+  /// Return the object used to cache the documentation for elements in the
+  /// context that produced the [result], or `null` if there is no cache for the
+  /// context.
+  DocumentationCache? getDocumentationCacheFor(ResolvedUnitResult result) {
+    var context = result.session.analysisContext;
+    var tracker = declarationsTracker?.getContext(context);
+    if (tracker == null) {
+      return null;
+    }
+    return documentationForContext.putIfAbsent(
+        context, () => DocumentationCache(tracker.dartdocDirectiveInfo));
   }
 
   /// Return a [Future] that completes with the [Element] at the given
