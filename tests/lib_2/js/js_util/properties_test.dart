@@ -52,6 +52,11 @@ class ExampleTypedLiteral {
   external get b;
 }
 
+class ExampleTearoff {
+  int x = 3;
+  foo() => x;
+}
+
 String _getBarWithSideEffect() {
   var x = 5;
   expect(x, equals(5));
@@ -316,6 +321,10 @@ main() {
       String bar = _getBarWithSideEffect();
       js_util.setProperty(f, bar, 'baz');
       expect(js_util.getProperty(f, bar), equals('baz'));
+
+      // Using a tearoff as the property value
+      js_util.setProperty(f, 'tearoff', allowInterop(ExampleTearoff().foo));
+      expect(js_util.callMethod(f, 'tearoff', []), equals(3));
     });
   });
 

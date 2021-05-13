@@ -108,6 +108,10 @@ abstract class CustomSemanticTokenModifiers {
   /// to class names that are not constructors.
   static const constructor = SemanticTokenModifiers('constructor');
 
+  /// A modifier applied to escape characters within a string to allow colouring
+  /// them differently.
+  static const escape = SemanticTokenModifiers('escape');
+
   /// All custom semantic token modifiers, used to populate the LSP Legend which must
   /// include all used modifiers.
   static const values = [control, label, constructor];

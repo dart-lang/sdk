@@ -857,6 +857,62 @@ multi
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_strings_escape() async {
+    // The 9's in these strings are not part of the escapes (they make the
+    // strings too long).
+    final content = r'''
+const string1 = 'it\'s escaped\\\n';
+const string2 = 'hex \x12\x1299';
+const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
+''';
+
+    final expected = [
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string1', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'it", SemanticTokenTypes.string),
+      _Token(r"\'", SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token('s escaped', SemanticTokenTypes.string),
+      _Token(r'\\', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\n', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r"'", SemanticTokenTypes.string),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string2', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'hex ", SemanticTokenTypes.string),
+      _Token(r'\x12', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\x12', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      // The 99 is not part of the escape
+      _Token("99'", SemanticTokenTypes.string),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string3', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'unicode ", SemanticTokenTypes.string),
+      _Token(r'\u1234', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\u1234', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      // The 99 is not part of the escape
+      _Token('99', SemanticTokenTypes.string),
+      _Token(r'\u{123456}', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      // The 99 makes this invalid so i's not an escape
+      _Token(r"\u{12345699}'", SemanticTokenTypes.string),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_topLevel() async {
     final content = '''
     /// strings docs

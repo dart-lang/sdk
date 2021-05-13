@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
+import 'package:_fe_analyzer_shared/src/parser/quote.dart'
+    show analyzeQuote, Quote, firstQuoteLength, lastQuoteLength;
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart' as char;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
     show SemanticTokenTypes, SemanticTokenModifiers;
 import 'package:analysis_server/src/lsp/constants.dart'
@@ -953,6 +958,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
+    if (computer._computeSemanticTokens) {
+      _addRegions_stringEscapes(node);
+    }
     super.visitSimpleStringLiteral(node);
   }
 
@@ -1063,6 +1071,100 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       var end = star != null ? star.end : keyword.end;
       computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN,
           semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+    }
+  }
+
+  void _addRegions_stringEscapes(SimpleStringLiteral node) {
+    final string = node.literal.lexeme;
+    final quote = analyzeQuote(string);
+    final startIndex = firstQuoteLength(string, quote);
+    final endIndex = string.length - lastQuoteLength(quote);
+    switch (quote) {
+      case Quote.Single:
+      case Quote.Double:
+      case Quote.MultiLineSingle:
+      case Quote.MultiLineDouble:
+        _findEscapes(node, startIndex: startIndex, endIndex: endIndex,
+            listener: (offset, end) {
+          final length = end - offset;
+          computer._addRegion(node.offset + offset, length,
+              HighlightRegionType.VALID_STRING_ESCAPE);
+        });
+        break;
+      case Quote.RawSingle:
+      case Quote.RawDouble:
+      case Quote.RawMultiLineSingle:
+      case Quote.RawMultiLineDouble:
+        // Raw strings don't have escape characters.
+        break;
+    }
+  }
+
+  /// Finds escaped regions within a string between [startIndex] and [endIndex],
+  /// calling [listener] for each found region.
+  void _findEscapes(
+    SimpleStringLiteral node, {
+    required int startIndex,
+    required int endIndex,
+    required void Function(int offset, int end) listener,
+  }) {
+    final string = node.literal.lexeme;
+    final codeUnits = string.codeUnits;
+    final length = string.length;
+
+    bool isBackslash(int i) => i <= length && codeUnits[i] == char.$BACKSLASH;
+    bool isHexEscape(int i) => i <= length && codeUnits[i] == char.$x;
+    bool isUnicodeHexEscape(int i) => i <= length && codeUnits[i] == char.$u;
+    bool isOpenBrace(int i) =>
+        i <= length && codeUnits[i] == char.$OPEN_CURLY_BRACKET;
+    bool isCloseBrace(int i) =>
+        i <= length && codeUnits[i] == char.$CLOSE_CURLY_BRACKET;
+    int? numHexDigits(int i, {required int min, required int max}) {
+      var numHexDigits = 0;
+      for (var j = i; j < math.min(i + max, length); j++) {
+        if (!char.isHexDigit(codeUnits[j])) {
+          break;
+        }
+        numHexDigits++;
+      }
+      return numHexDigits >= min ? numHexDigits : null;
+    }
+
+    for (var i = startIndex; i < endIndex;) {
+      if (isBackslash(i)) {
+        final backslashOffset = i++;
+        // All escaped characters are a single character except for:
+        // `\uXXXX` or `\u{XX?X?X?X?X?}` for Unicode hex escape.
+        // `\xXX` for hex escape.
+        if (isHexEscape(i)) {
+          // Expect exactly 2 hex digits.
+          final numDigits = numHexDigits(i + 1, min: 2, max: 2);
+          if (numDigits != null) {
+            i += 1 + numDigits;
+            listener(backslashOffset, i);
+          }
+        } else if (isUnicodeHexEscape(i) && isOpenBrace(i + 1)) {
+          // Expect 1-6 hex digits followed by '}'.
+          final numDigits = numHexDigits(i + 2, min: 1, max: 6);
+          if (numDigits != null && isCloseBrace(i + 2 + numDigits)) {
+            i += 2 + numDigits + 1;
+            listener(backslashOffset, i);
+          }
+        } else if (isUnicodeHexEscape(i)) {
+          // Expect exactly 4 hex digits.
+          final numDigits = numHexDigits(i + 1, min: 4, max: 4);
+          if (numDigits != null) {
+            i += 1 + numDigits;
+            listener(backslashOffset, i);
+          }
+        } else {
+          i++;
+          // Single-character escape.
+          listener(backslashOffset, i);
+        }
+      } else {
+        i++;
+      }
     }
   }
 }
