@@ -106,7 +106,7 @@ vars = {
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "505f163f7cb48e917503e4a23fbff1227e08b263",
+  "dartdoc_rev" : "e6a9b7c536a85e49233c97bb892bbb0ab778e425",
   "devtools_rev" : "12ad5341ae0a275042c84a4e7be9a6c98db65612",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
