@@ -182,6 +182,187 @@ Future testExistingFile(String name) async {
   Expect.fail("bind should fail with existing file");
 }
 
+Future testSetSockOpt(String name) async {
+  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var server = await ServerSocket.bind(address, 0, shared: false);
+
+  var sub;
+  sub = server.listen((s) {
+    sub.cancel();
+    server.close();
+  });
+
+  var socket = await Socket.connect(address, server.port);
+  socket.write(" socket content");
+
+  // Get some socket options.
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelTcp, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelUdp, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv4, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv6, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelSocket, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Protocol not available'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv4MulticastInterface, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv6MulticastInterface, i, false);
+      var result = socket.getRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  // Set some socket options
+  try {
+    socket.setOption(SocketOption.tcpNoDelay, true);
+  } catch (e) {
+    Expect.isTrue(e.toString().contains('Operation not supported'));
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelTcp, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelUdp, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv4, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelIPv6, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option =
+          RawSocketOption.fromBool(RawSocketOption.levelSocket, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Protocol not available'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv4MulticastInterface, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    try {
+      RawSocketOption option = RawSocketOption.fromBool(
+          RawSocketOption.IPv6MulticastInterface, i, false);
+      var result = socket.setRawOption(option);
+    } catch (e) {
+      Expect.isTrue(e.toString().contains('Operation not supported'));
+    }
+  }
+
+  socket.destroy();
+  await server.close();
+}
+
+Future testHttpServer(String name) async {
+  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var httpServer = await HttpServer.bind(address, 0);
+
+  var sub;
+  sub = httpServer.listen((s) {
+    sub.cancel();
+    httpServer.close();
+  });
+
+  var socket = await Socket.connect(address, httpServer.port);
+
+  socket.destroy();
+  await httpServer.close();
+}
+
 // Create socket in temp directory
 Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
@@ -212,6 +393,12 @@ void main() async {
     await testAbstractAddress();
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testExistingFile('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testSetSockOpt('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testHttpServer('${dir.path}');
     });
   } catch (e) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
