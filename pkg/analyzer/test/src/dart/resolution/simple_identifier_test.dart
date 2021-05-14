@@ -65,6 +65,19 @@ main() {
     );
   }
 
+  test_never_implicitCore() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  Never;
+}    
+''');
+    assertSimpleIdentifier(
+      findNode.simple('Never;'),
+      element: neverElement,
+      type: 'Type',
+    );
+  }
+
   test_implicitCall_tearOff() async {
     await assertNoErrorsInCode('''
 class A {

@@ -554,18 +554,6 @@ void f(Never? x) {
       type: 'String Function()',
     );
   }
-
-  test_invalid_never_type_assign() async {
-    await assertErrorsInCode('int i = Never;', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 5),
-    ]);
-  }
-
-  test_invalid_never_type_in_binary_expr() async {
-    await assertErrorsInCode('var i = 1 + 2 + Never;', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 16, 5),
-    ]);
-  }
 }
 
 @reflectiveTest
