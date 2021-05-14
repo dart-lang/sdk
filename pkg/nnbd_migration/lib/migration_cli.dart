@@ -21,8 +21,8 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/src/core.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/exceptions.dart';
@@ -137,8 +137,7 @@ class CommandLineOptions {
       @required this.webPreview});
 }
 
-// TODO(devoncarew): Refactor so this class extends DartdevCommand.
-class MigrateCommand extends Command<int> {
+class MigrateCommand extends DartdevCommand {
   static const String cmdName = 'migrate';
 
   static const String cmdDescription =
@@ -152,30 +151,15 @@ class MigrateCommand extends Command<int> {
 
   final bool verbose;
 
-  ArgParser _argParser;
-
-  MigrateCommand({this.verbose = false}) {
+  MigrateCommand({this.verbose = false})
+      : super(cmdName, '$cmdDescription\n\n$migrationGuideLink') {
     MigrationCli._defineOptions(argParser, !verbose);
   }
-
-  @override
-  ArgParser get argParser {
-    // We override this in order to configure the help text line wrapping.
-    return _argParser ??= ArgParser(
-      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : null,
-    );
-  }
-
-  @override
-  String get description => '$cmdDescription\n\n$migrationGuideLink';
 
   @override
   String get invocation {
     return '${super.invocation} [project or directory]';
   }
-
-  @override
-  String get name => cmdName;
 
   @override
   FutureOr<int> run() async {
