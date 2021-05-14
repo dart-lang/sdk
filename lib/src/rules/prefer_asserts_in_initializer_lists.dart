@@ -104,7 +104,9 @@ class _ClassAndSuperClasses {
     if (_classes.isEmpty) {
       void addRecursively(ClassElement? element) {
         if (element != null && _classes.add(element)) {
-          element.mixins.forEach((t) => addRecursively(t.element));
+          for (var t in element.mixins) {
+            addRecursively(t.element);
+          }
           addRecursively(element.supertype?.element);
         }
       }

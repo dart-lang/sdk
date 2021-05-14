@@ -224,9 +224,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var loopParts = node.forLoopParts;
     if (loopParts is ForPartsWithExpression) {
       loopParts.initialization?.accept(reportNoClearEffect);
-      loopParts.updaters.forEach((u) {
+      for (var u in loopParts.updaters) {
         u.accept(reportNoClearEffect);
-      });
+      }
     }
   }
 }

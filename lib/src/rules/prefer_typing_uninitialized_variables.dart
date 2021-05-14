@@ -84,10 +84,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    node.variables.forEach((v) {
+    for (var v in node.variables) {
       if (v.initializer == null) {
         rule.reportLint(v);
       }
-    });
+    }
   }
 }

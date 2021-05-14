@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    node.fields.variables.forEach((VariableDeclaration variable) {
+    for (var variable in node.fields.variables) {
       var declaredElement = variable.declaredElement;
       if (declaredElement != null) {
         var field = _getOverriddenMember(declaredElement);
@@ -132,7 +132,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportLint(variable.name);
         }
       }
-    });
+    }
   }
 
   PropertyAccessorElement? _getOverriddenMember(Element member) {

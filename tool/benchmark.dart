@@ -33,7 +33,7 @@ class AllMatchesBenchmark extends BaseBenchmark {
   void run() {
     for (var name in ['foo.dart', 'a-b.dart', 'a-b.css.dart', 'foo']) {
       //Test.
-      '\.'.allMatches(name).length;
+      '.'.allMatches(name).length;
     }
   }
 }

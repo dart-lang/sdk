@@ -100,10 +100,10 @@ class _Visitor extends UnifyingAstVisitor<void> {
         _checkAccess(libraryUnitsInContext);
 
         // clean up
-        libraryUnitsInContext.forEach((unit) {
+        for (var unit in libraryUnitsInContext) {
           lateables.remove(unit);
           nullableAccess.remove(unit);
-        });
+        }
       }
     }
   }

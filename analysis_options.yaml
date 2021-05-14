@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   strong-mode:
@@ -36,34 +36,21 @@ linter:
 #    - avoid_types_on_closure_parameters
 #    - avoid_unused_constructor_parameters # under review (see #1068)
 #    - avoid_void_async # under review (see #1068)
-    - await_only_futures
-    - camel_case_types
     - cancel_subscriptions
 #    - cascade_invocations
     - cast_nullable_to_non_nullable
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
 #    - constant_identifier_names
-    - control_flow_in_finally
     - directives_ordering
-    - empty_statements
-    - file_names
-    - hash_and_equals
-    - implementation_imports
     - invariant_booleans
-    - iterable_contains_unrelated_type
     - join_return_with_assignment
 #    - lines_longer_than_80_chars # under review (see #1068)
-    - list_remove_unrelated_type
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
-    - non_constant_identifier_names
 #    - one_member_abstracts
     - only_throw_errors
-    - overridden_fields
     - package_api_docs
-    - package_names
-    - package_prefixed_library_names
     - parameter_assignments
     - prefer_asserts_in_initializer_lists
 #    - prefer_bool_in_asserts # Deprecated
@@ -73,21 +60,13 @@ linter:
 #    - prefer_const_literals_to_create_immutables # under review (see #1068)
     - prefer_constructors_over_static_methods
     - prefer_expression_function_bodies
-    - prefer_final_fields
 #    - prefer_final_locals
     - prefer_foreach
 #    - prefer_function_declarations_over_variables
-    - prefer_initializing_formals
-    - prefer_inlined_adds
     - prefer_interpolation_to_compose_strings
-    - prefer_is_not_operator
 #    - prefer_mixin
     - prefer_null_aware_method_calls
-    - prefer_null_aware_operators
     - prefer_relative_imports
-    - prefer_typing_uninitialized_variables
-    - prefer_void_to_null
-    - provide_deprecation_message
 #    - public_member_api_docs
 #    - sort_constructors_first
     - sort_pub_dependencies
@@ -96,14 +75,12 @@ linter:
     - test_types_in_equals
     - throw_in_finally
 #    - type_annotate_public_apis
-    - unnecessary_brace_in_string_interps
+    - unawaited_futures # pedantic
     - unnecessary_final
-    - unnecessary_getters_setters
     - unnecessary_lambdas
     - unnecessary_null_aware_assignments
     - unnecessary_null_checks
     - unnecessary_nullable_for_final_variable_declarations
-    - unnecessary_overrides
     - unnecessary_parenthesis
     - unnecessary_statements
     - use_if_null_to_convert_nulls_to_bools
@@ -111,4 +88,3 @@ linter:
     - use_setters_to_change_properties
     - use_string_buffers
     - use_to_and_as_if_applicable
-    - void_checks

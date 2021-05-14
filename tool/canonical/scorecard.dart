@@ -27,10 +27,10 @@ void main() async {
     // Detail.bugs,
   ];
 
-  var sorter = (LintScore s1, LintScore s2) {
+  int sorter(LintScore s1, LintScore s2) {
     var base = _compareRuleSets(s1.ruleSets, s2.ruleSets) * 1000;
     return s1.name.compareTo(s2.name) + base;
-  };
+  }
 
   print(scorecard.asMarkdown(details, sorter: sorter));
 
@@ -238,9 +238,13 @@ class ScoreCard {
     // Header.
     var sb = StringBuffer();
     void writeHeader(StringBuffer sb) {
-      details.forEach((detail) => sb.write('| ${detail.name} '));
+      for (var detail in details) {
+        sb.write('| ${detail.name} ');
+      }
       sb.write('|\n');
-      details.forEach((detail) => sb.write(detail.header.markdown));
+      for (var detail in details) {
+        sb.write(detail.header.markdown);
+      }
       sb.write(' |\n');
     }
 

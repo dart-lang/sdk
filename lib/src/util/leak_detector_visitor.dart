@@ -12,22 +12,22 @@ import '../analyzer.dart';
 import '../ast.dart';
 import '../util/dart_type_utilities.dart';
 
-_PredicateBuilder _hasConstructorFieldInitializers = (VariableDeclaration v) =>
+_Predicate _hasConstructorFieldInitializers(
+        VariableDeclaration v) =>
     (AstNode n) =>
         n is ConstructorFieldInitializer &&
         n.fieldName.staticElement == v.name.staticElement;
 
-_PredicateBuilder _hasFieldFormalParameter =
-    (VariableDeclaration v) => (AstNode n) {
-          if (n is FieldFormalParameter) {
-            var staticElement = n.identifier.staticElement;
-            return staticElement is FieldFormalParameterElement &&
-                staticElement.field == v.name.staticElement;
-          }
-          return false;
-        };
+_Predicate _hasFieldFormalParameter(VariableDeclaration v) => (AstNode n) {
+      if (n is FieldFormalParameter) {
+        var staticElement = n.identifier.staticElement;
+        return staticElement is FieldFormalParameterElement &&
+            staticElement.field == v.name.staticElement;
+      }
+      return false;
+    };
 
-_PredicateBuilder _hasReturn = (VariableDeclaration v) => (AstNode n) {
+_Predicate _hasReturn(VariableDeclaration v) => (AstNode n) {
       if (n is ReturnStatement) {
         var expression = n.expression;
         if (expression is SimpleIdentifier) {
@@ -57,9 +57,9 @@ _VisitVariableDeclaration _buildVariableReporter(
       var containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
 
       var validators = <Iterable<AstNode>>[];
-      predicateBuilders.forEach((f) {
+      for (var f in predicateBuilders) {
         validators.add(containerNodes.where(f(variable)));
-      });
+      }
 
       validators
         ..add(_findVariableAssignments(containerNodes, variable))

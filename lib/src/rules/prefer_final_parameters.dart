@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _reportApplicableParameters(
       FormalParameterList? parameters, FunctionBody body) {
     if (parameters != null) {
-      parameters.parameters.forEach((param) {
+      for (var param in parameters.parameters) {
         if (param.isFinal || param.isConst || param is FieldFormalParameter) {
           return;
         }
@@ -103,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportLint(param);
         }
-      });
+      }
     }
   }
 

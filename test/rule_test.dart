@@ -81,23 +81,23 @@ void defineRuleTests() {
 void defineRuleUnitTests() {
   group('uris', () {
     group('isPackage', () {
-      [
+      for (var uri in [
         Uri.parse('package:foo/src/bar.dart'),
         Uri.parse('package:foo/src/baz/bar.dart')
-      ].forEach((uri) {
+      ]) {
         test(uri.toString(), () {
           expect(isPackage(uri), isTrue);
         });
-      });
-      [
+      }
+      for (var uri in [
         Uri.parse('foo/bar.dart'),
         Uri.parse('src/bar.dart'),
         Uri.parse('dart:async')
-      ].forEach((uri) {
+      ]) {
         test(uri.toString(), () {
           expect(isPackage(uri), isFalse);
         });
-      });
+      }
     });
 
     group('samePackage', () {
@@ -116,20 +116,22 @@ void defineRuleUnitTests() {
     });
 
     group('implementation', () {
-      [
+      for (var uri in [
         Uri.parse('package:foo/src/bar.dart'),
         Uri.parse('package:foo/src/baz/bar.dart')
-      ].forEach((uri) {
+      ]) {
         test(uri.toString(), () {
           expect(isImplementation(uri), isTrue);
         });
-      });
-      [Uri.parse('package:foo/bar.dart'), Uri.parse('src/bar.dart')]
-          .forEach((uri) {
+      }
+      for (var uri in [
+        Uri.parse('package:foo/bar.dart'),
+        Uri.parse('src/bar.dart')
+      ]) {
         test(uri.toString(), () {
           expect(isImplementation(uri), isFalse);
         });
-      });
+      }
     });
   });
 
@@ -212,7 +214,7 @@ void defineSoloRuleTest(String ruleToTest) {
 
 void testRule(String ruleName, File file,
     {bool debug = true, String? analysisOptions}) {
-  test('$ruleName', () async {
+  test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
     }
@@ -240,13 +242,13 @@ void testRule(String ruleName, File file,
     var lints = await driver.lintFiles([file]);
 
     var actual = <Annotation>[];
-    lints.forEach((AnalysisErrorInfo info) {
-      info.errors.forEach((AnalysisError error) {
+    for (var info in lints) {
+      for (var error in info.errors) {
         if (error.errorCode.type == ErrorType.LINT) {
           actual.add(Annotation.forError(error, info.lineInfo));
         }
-      });
-    });
+      }
+    }
     actual.sort();
     try {
       expect(actual, unorderedMatches(expected));

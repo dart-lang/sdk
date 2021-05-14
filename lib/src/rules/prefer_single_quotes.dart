@@ -85,15 +85,15 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
       node.parent?.thisOrAncestorOfType<StringInterpolation>() != null;
 
   @override
-  void visitSimpleStringLiteral(SimpleStringLiteral string) {
-    if (useSingle && (string.isSingleQuoted || string.value.contains("'")) ||
-        !useSingle && (!string.isSingleQuoted || string.value.contains('"'))) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    if (useSingle && (node.isSingleQuoted || node.value.contains("'")) ||
+        !useSingle && (!node.isSingleQuoted || node.value.contains('"'))) {
       return;
     }
 
     // Bail out on 'strings ${x ? "containing" : "other"} strings'
-    if (!isNestedString(string)) {
-      rule.reportLintForToken(string.literal);
+    if (!isNestedString(node)) {
+      rule.reportLintForToken(node.literal);
     }
   }
 

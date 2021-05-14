@@ -135,14 +135,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parameters = node.functionExpression.parameters;
     if (parameters != null) {
       // Getter do not have formal parameters.
-      parameters.parameters.forEach((e) {
+      for (var e in parameters.parameters) {
         var declaredElement = e.declaredElement;
         if (declaredElement != null &&
             node.functionExpression.body
                 .isPotentiallyMutatedInScope(declaredElement)) {
           _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
-      });
+      }
     }
   }
 
@@ -151,13 +151,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parameterList = node.parameters;
     if (parameterList != null) {
       // Getters don't have parameters.
-      parameterList.parameters.forEach((e) {
+      for (var e in parameterList.parameters) {
         var declaredElement = e.declaredElement;
         if (declaredElement != null &&
             node.body.isPotentiallyMutatedInScope(declaredElement)) {
           _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
-      });
+      }
     }
   }
 

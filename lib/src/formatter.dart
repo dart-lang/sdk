@@ -33,7 +33,7 @@ String getLineContents(int? lineNumber, AnalysisError error) {
 }
 
 String pluralize(String word, int? count) =>
-    "$count ${count == 1 ? '$word' : '${word}s'}";
+    "$count ${count == 1 ? word : '${word}s'}";
 String shorten(String? fileRoot, String fullName) {
   if (fileRoot == null || !fullName.startsWith(fileRoot)) {
     return fullName;
@@ -247,11 +247,11 @@ class SimpleFormatter implements ReportFormatter {
     var pad = tableWidth - longest;
     var line = ''.padLeft(tableWidth, '-');
     out..writeln(line)..writeln('Counts')..writeln(line);
-    codes.forEach((c) {
+    for (var code in codes) {
       out
-        ..write('${c.padRight(longest)}')
-        ..writeln('${stats[c].toString().padLeft(pad)}');
-    });
+        ..write(code.padRight(longest))
+        ..writeln(stats[code].toString().padLeft(pad));
+    }
     out.writeln(line);
   }
 
@@ -285,17 +285,19 @@ class SimpleFormatter implements ReportFormatter {
 
   void writeLints() {
     var filter = this.filter;
-    errors.forEach((info) => (info.errors.toList()..sort(compare)).forEach((e) {
-          if (filter != null && filter.filter(e)) {
-            filteredLintCount++;
-          } else {
-            ++errorCount;
-            if (!quiet) {
-              _writeLint(e, info.lineInfo);
-            }
-            _recordStats(e);
+    for (var info in errors) {
+      for (var e in (info.errors.toList()..sort(compare))) {
+        if (filter != null && filter.filter(e)) {
+          filteredLintCount++;
+        } else {
+          ++errorCount;
+          if (!quiet) {
+            _writeLint(e, info.lineInfo);
           }
-        }));
+          _recordStats(e);
+        }
+      }
+    }
     if (!quiet) {
       out.writeln();
     }

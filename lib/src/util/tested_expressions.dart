@@ -144,9 +144,9 @@ class TestedExpressions {
       }
     }
 
-    binaryExpressions.forEach((Expression ex) {
+    for (var ex in binaryExpressions) {
       if (contradictions.isNotEmpty) {
-        return;
+        break;
       }
 
       var expression = ex as BinaryExpression;
@@ -182,7 +182,7 @@ class TestedExpressions {
           }
         }
       });
-    });
+    }
 
     if (contradictions.isEmpty) {
       binaryExpressions.forEach(_recurseOnChildNodes(contradictions));

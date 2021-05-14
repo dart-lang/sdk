@@ -87,25 +87,19 @@ Future<String> get effectiveDartLatestVersion async {
   return parts[1].split('.yaml')[0];
 }
 
-String get enumerateErrorRules => rules
-    .where((r) => r.group == Group.errors)
-    .map((r) => '${toDescription(r)}')
-    .join('\n\n');
+String get enumerateErrorRules =>
+    rules.where((r) => r.group == Group.errors).map(toDescription).join('\n\n');
 
 String get enumerateGroups => Group.builtin
     .map((Group g) =>
         '<li><strong>${g.name} -</strong> ${markdownToHtml(g.description)}</li>')
     .join('\n');
 
-String get enumeratePubRules => rules
-    .where((r) => r.group == Group.pub)
-    .map((r) => '${toDescription(r)}')
-    .join('\n\n');
+String get enumeratePubRules =>
+    rules.where((r) => r.group == Group.pub).map(toDescription).join('\n\n');
 
-String get enumerateStyleRules => rules
-    .where((r) => r.group == Group.style)
-    .map((r) => '${toDescription(r)}')
-    .join('\n\n');
+String get enumerateStyleRules =>
+    rules.where((r) => r.group == Group.style).map(toDescription).join('\n\n');
 
 Future<String> get pedanticLatestVersion async {
   var url =
@@ -205,10 +199,10 @@ Future<void> generateDocs(String? dir) async {
   await fetchSinceInfo();
 
   // Generate rule files.
-  rules.forEach((l) {
+  for (var l in rules) {
     RuleHtmlGenerator(l).generate(outDir);
     RuleMarkdownGenerator(l).generate(filePath: outDir);
-  });
+  }
 
   // Generate index.
   HtmlIndexer(Registry.ruleRegistry).generate(outDir);
@@ -396,7 +390,7 @@ class MarkdownIndexer {
     buffer.writeln(ruleFootMatter);
     buffer.writeln();
 
-    var emit = (LintRule rule) {
+    void emit(LintRule rule) {
       buffer
           .writeln('**[${rule.name}](${rule.name}.md)** - ${rule.description}');
       if (flutterRules.contains(rule.name)) {
@@ -413,7 +407,7 @@ class MarkdownIndexer {
             '(https://github.com/tenhobi/effective_dart)');
       }
       buffer.writeln();
-    };
+    }
 
     buffer.writeln('## Error Rules');
     buffer.writeln();
@@ -688,7 +682,7 @@ class RuleMarkdownGenerator {
 
     buffer.writeln('## Description');
     buffer.writeln();
-    buffer.writeln('${details.trim()}');
+    buffer.writeln(details.trim());
 
     // incompatible rules
     var incompatibleRules = rule.incompatibleRules;

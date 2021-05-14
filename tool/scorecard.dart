@@ -191,9 +191,13 @@ class ScoreCard {
   String asMarkdown(List<Detail> details) {
     // Header.
     var sb = StringBuffer();
-    details.forEach((detail) => sb.write('| ${detail.name} '));
+    for (var detail in details) {
+      sb.write('| ${detail.name} ');
+    }
     sb.write('|\n');
-    details.forEach((detail) => sb.write(detail.header.markdown));
+    for (var detail in details) {
+      sb.write(detail.header.markdown);
+    }
     sb.write(' |\n');
 
     // Body.
