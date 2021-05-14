@@ -214,19 +214,17 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
   }
 }
 
-const Slot& Slot::GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset) {
-  ASSERT(offset != Class::kNoTypeArguments);
-  return SlotCache::Instance(thread).Canonicalize(Slot(
-      Kind::kTypeArguments,
-      IsImmutableBit::encode(true) |
-          IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers()),
-      kTypeArgumentsCid, offset, ":type_arguments",
-      /*static_type=*/nullptr, kTagged));
-}
-
 const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
-  return GetTypeArgumentsSlotAt(
-      thread, compiler::target::Class::TypeArgumentsFieldOffset(cls));
+  const intptr_t offset =
+      compiler::target::Class::TypeArgumentsFieldOffset(cls);
+  ASSERT(offset != Class::kNoTypeArguments);
+  return SlotCache::Instance(thread).Canonicalize(
+      Slot(Kind::kTypeArguments,
+           IsImmutableBit::encode(true) |
+               IsCompressedBit::encode(
+                   compiler::target::Class::HasCompressedPointers(cls)),
+           kTypeArgumentsCid, offset, ":type_arguments",
+           /*static_type=*/nullptr, kTagged));
 }
 
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,

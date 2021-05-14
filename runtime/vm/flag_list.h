@@ -99,7 +99,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
     "Check validity of token positions while compiling flow graphs")           \
-  P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \
   P(compactor_tasks, int, 2,                                                   \
@@ -112,7 +111,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Deoptimize on every N stack overflow checks")                             \
   P(deoptimize_on_runtime_call_every, int, 0,                                  \
     "Deoptimize functions on every runtime call.")                             \
-  R(disable_alloc_stubs_after_gc, false, bool, false, "Stress testing flag.")  \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
@@ -123,8 +121,6 @@ constexpr bool FLAG_support_il_printer = false;
   R(strict_null_safety_checks, false, bool, false,                             \
     "Enable strict type checks for non-nullable types and required "           \
     "parameters.")                                                             \
-  P(enable_kernel_expression_compilation, bool, true,                          \
-    "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \

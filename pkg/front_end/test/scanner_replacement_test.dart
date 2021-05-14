@@ -5,7 +5,6 @@
 // @dart = 2.9
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' as analyzer;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
