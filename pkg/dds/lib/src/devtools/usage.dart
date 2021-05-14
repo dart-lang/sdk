@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
-
 // TODO(bkonyi): remove once package:devtools_server_api is available
 // See https://github.com/flutter/devtools/issues/2958.
 
@@ -21,13 +19,13 @@ class FlutterUsage {
   /// used for testing.
   FlutterUsage({
     String settingsName = 'flutter',
-    String versionOverride,
-    String configDirOverride,
+    String? versionOverride,
+    String? configDirOverride,
   }) {
     _analytics = AnalyticsIO('', settingsName, '');
   }
 
-  Analytics _analytics;
+  late Analytics _analytics;
 
   /// Does the .flutter store exist?
   static bool get doesStoreExist {
@@ -48,8 +46,8 @@ class DevToolsUsage {
   /// Create a new Usage instance; [versionOverride] and [configDirOverride] are
   /// used for testing.
   DevToolsUsage({
-    String versionOverride,
-    String configDirOverride,
+    String? versionOverride,
+    String? configDirOverride,
   }) {
     LocalFileSystem.maybeMoveLegacyDevToolsStore();
     properties = IOPersistentProperties(
@@ -70,9 +68,9 @@ class DevToolsUsage {
   /// It is a requirement that the API apiSetActiveSurvey must be called before
   /// calling any survey method on DevToolsUsage (addSurvey, rewriteActiveSurvey,
   /// surveyShownCount, incrementSurveyShownCount, or surveyActionTaken).
-  String _activeSurvey;
+  String? _activeSurvey;
 
-  IOPersistentProperties properties;
+  late IOPersistentProperties properties;
 
   static const _surveyActionTaken = 'surveyActionTaken';
   static const _surveyShownCount = 'surveyShownCount';
@@ -95,23 +93,21 @@ class DevToolsUsage {
     return properties['enabled'];
   }
 
-  set enabled(bool value) {
+  set enabled(bool? value) {
     properties['enabled'] = value;
     return properties['enabled'];
   }
 
-  bool surveyNameExists(String surveyName) => properties[surveyName] != null;
+  bool surveyNameExists(String? surveyName) => properties[surveyName] != null;
 
-  void _addSurvey(String surveyName) {
-    assert(activeSurvey != null);
+  void _addSurvey(String? surveyName) {
     assert(activeSurvey == surveyName);
     rewriteActiveSurvey(false, 0);
   }
 
-  String get activeSurvey => _activeSurvey;
+  String? get activeSurvey => _activeSurvey;
 
-  set activeSurvey(String surveyName) {
-    assert(surveyName != null);
+  set activeSurvey(String? surveyName) {
     _activeSurvey = surveyName;
 
     if (!surveyNameExists(activeSurvey)) {
@@ -121,16 +117,14 @@ class DevToolsUsage {
   }
 
   /// Need to rewrite the entire survey structure for property to be persisted.
-  void rewriteActiveSurvey(bool actionTaken, int shownCount) {
-    assert(activeSurvey != null);
+  void rewriteActiveSurvey(bool? actionTaken, int? shownCount) {
     properties[activeSurvey] = {
       _surveyActionTaken: actionTaken,
       _surveyShownCount: shownCount,
     };
   }
 
-  int get surveyShownCount {
-    assert(activeSurvey != null);
+  int? get surveyShownCount {
     final prop = properties[activeSurvey];
     if (prop[_surveyShownCount] == null) {
       rewriteActiveSurvey(prop[_surveyActionTaken], 0);
@@ -139,19 +133,16 @@ class DevToolsUsage {
   }
 
   void incrementSurveyShownCount() {
-    assert(activeSurvey != null);
     surveyShownCount; // Ensure surveyShownCount has been initialized.
     final prop = properties[activeSurvey];
     rewriteActiveSurvey(prop[_surveyActionTaken], prop[_surveyShownCount] + 1);
   }
 
   bool get surveyActionTaken {
-    assert(activeSurvey != null);
     return properties[activeSurvey][_surveyActionTaken] == true;
   }
 
-  set surveyActionTaken(bool value) {
-    assert(activeSurvey != null);
+  set surveyActionTaken(bool? value) {
     final prop = properties[activeSurvey];
     rewriteActiveSurvey(value, prop[_surveyShownCount]);
   }
@@ -177,7 +168,7 @@ const JsonEncoder _jsonEncoder = JsonEncoder.withIndent('  ');
 class IOPersistentProperties extends PersistentProperties {
   IOPersistentProperties(
     String name, {
-    String documentDirPath,
+    String? documentDirPath,
   }) : super(name) {
     final String fileName = name.replaceAll(' ', '_');
     documentDirPath ??= LocalFileSystem.devToolsDir();
@@ -196,22 +187,22 @@ class IOPersistentProperties extends PersistentProperties {
     syncSettings();
   }
 
-  File _file;
+  late File _file;
 
-  Map _map;
-
-  @override
-  dynamic operator [](String key) => _map[key];
+  Map? _map;
 
   @override
-  void operator []=(String key, dynamic value) {
-    if (value == null && !_map.containsKey(key)) return;
-    if (_map[key] == value) return;
+  dynamic operator [](String? key) => _map![key];
+
+  @override
+  void operator []=(String? key, dynamic value) {
+    if (value == null && !_map!.containsKey(key)) return;
+    if (_map![key] == value) return;
 
     if (value == null) {
-      _map.remove(key);
+      _map!.remove(key);
     } else {
-      _map[key] = value;
+      _map![key] = value;
     }
 
     try {
@@ -231,6 +222,6 @@ class IOPersistentProperties extends PersistentProperties {
   }
 
   void remove(String propertyName) {
-    _map.remove(propertyName);
+    _map!.remove(propertyName);
   }
 }
