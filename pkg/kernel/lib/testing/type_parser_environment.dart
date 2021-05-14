@@ -12,17 +12,6 @@ import 'package:kernel/testing/mock_sdk.dart' show mockSdk;
 
 import 'package:kernel/testing/type_parser.dart' as type_parser show parse;
 
-import 'package:kernel/testing/type_parser.dart'
-    show
-        ParsedClass,
-        ParsedIntersectionType,
-        ParsedFunctionType,
-        ParsedInterfaceType,
-        ParsedType,
-        ParsedTypeVariable,
-        ParsedTypedef,
-        ParsedVoidType,
-        Visitor;
 import 'package:kernel/testing/type_parser.dart';
 
 Component parseComponent(String source, Uri uri) {

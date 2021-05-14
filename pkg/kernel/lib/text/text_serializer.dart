@@ -8,8 +8,6 @@ import '../ast.dart';
 
 import 'serializer_combinators.dart';
 
-import '../visitor.dart' show ExpressionVisitor;
-
 abstract class Tagger<T> {
   String tag(T object);
 }

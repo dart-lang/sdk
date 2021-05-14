@@ -9,7 +9,6 @@ import 'dart:math' as math;
 import '../ast.dart';
 import '../core_types.dart';
 import '../type_environment.dart';
-import '../visitor.dart';
 
 import 'async.dart';
 

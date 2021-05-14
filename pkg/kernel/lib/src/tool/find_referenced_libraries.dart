@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/visitor.dart';
 
 Set<Library> findAllReferencedLibraries(List<Library> from) {
   _LibraryCollector collector = new _LibraryCollector();
