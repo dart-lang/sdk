@@ -3315,8 +3315,7 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
-  const FunctionAccessKind function_access_kind =
-      static_cast<FunctionAccessKind>(ReadByte());  // read kind.
+  ReadByte();                                  // read kind.
   const TokenPosition position = ReadPosition();    // read position.
   if (p != nullptr) *p = position;
 
@@ -3326,7 +3325,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
       call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
 
   const bool is_unchecked_closure_call =
-      (function_access_kind == FunctionAccessKind::kFunctionType);
+      (call_site_attributes.receiver_type != nullptr) &&
+      call_site_attributes.receiver_type->IsFunctionType();
   Fragment instructions;
 
   instructions += BuildExpression();  // read receiver.
