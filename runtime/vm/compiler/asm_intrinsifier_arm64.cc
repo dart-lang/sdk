@@ -1714,7 +1714,12 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ b(normal_ir_body, NE);
   ASSERT(kSmiTagShift == 1);
   __ AddImmediate(R0, target::TwoByteString::data_offset() - kHeapObjectTag);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ ldr(R1, Address(R0, R1), kUnsignedTwoBytes);
+#else
+  // Upper half of a compressed Smi is garbage.
+  __ ldr(R1, Address(R0, R1, SXTW, Address::Unscaled), kUnsignedTwoBytes);
+#endif
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
@@ -1970,7 +1975,12 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
   __ SmiUntag(R2);
   __ AddImmediate(R3, R0,
                   target::TwoByteString::data_offset() - kHeapObjectTag);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ str(R2, Address(R3, R1), kUnsignedTwoBytes);
+#else
+  // Upper half of a compressed Smi is garbage.
+  __ str(R2, Address(R3, R1, SXTW, Address::Unscaled), kUnsignedTwoBytes);
+#endif
   __ ret();
 }
 
@@ -1979,6 +1989,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);
@@ -1992,6 +2005,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);

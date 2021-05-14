@@ -1563,6 +1563,12 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ CompareClassId(RAX, kTwoByteStringCid);
   __ j(NOT_EQUAL, normal_ir_body);
   ASSERT(kSmiTagShift == 1);
+#if defined(DART_COMPRESSED_POINTERS)
+  // The upper half of a compressed Smi contains undefined bits, but no x64
+  // addressing mode will ignore these bits. We have already checked the index
+  // is positive, so we just clear the upper bits, which is shorter than movsxd.
+  __ orl(RCX, RCX);
+#endif
   __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1,
                               target::OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(target::Symbols::kNumberOfOneCharCodeSymbols));
@@ -1827,6 +1833,12 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
   __ movq(RAX, Address(RSP, +3 * target::kWordSize));  // target::TwoByteString.
   // Untag index and multiply by element size -> no-op.
   __ SmiUntag(RCX);
+#if defined(DART_COMPRESSED_POINTERS)
+  // The upper half of a compressed Smi contains undefined bits, but no x64
+  // addressing mode will ignore these bits. We know the index is positive, so
+  // we just clear the upper bits, which is shorter than movsxd.
+  __ orl(RBX, RBX);
+#endif
   __ movw(FieldAddress(RAX, RBX, TIMES_1, target::TwoByteString::data_offset()),
           RCX);
   __ ret();
@@ -1834,7 +1846,10 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
 
 void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
-  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.v=
+  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RDI, RDI);
+#endif
   Label ok;
   TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).
@@ -1847,7 +1862,10 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
 
 void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
-  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.v=
+  __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ movsxd(RDI, RDI);
+#endif
   Label ok;
   TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).
