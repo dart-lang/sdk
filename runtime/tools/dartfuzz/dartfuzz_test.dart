@@ -30,8 +30,7 @@ class TestResult {
 
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
-  ProcessResult res = Process.runSync(
-      'timeout', ['-s', '$sigkill', '$timeout', ...cmd],
+  var res = Process.runSync('timeout', ['-s', '$sigkill', '$timeout', ...cmd],
       environment: env);
   if (debug) {
     print('\nrunning $cmd yields:\n'
@@ -48,9 +47,9 @@ abstract class TestRunner {
   // Factory.
   static TestRunner getTestRunner(String mode, String top, String tmp,
       Map<String, String> env, String fileName, Random rand) {
-    String prefix = mode.substring(0, 3).toUpperCase();
-    String tag = getTag(mode);
-    List<String> extraFlags = [];
+    var prefix = mode.substring(0, 3).toUpperCase();
+    var tag = getTag(mode);
+    var extraFlags = <String>[];
     // Every once in a while, stress test JIT.
     if (mode.startsWith('jit') && rand.nextInt(4) == 0) {
       final r = rand.nextInt(7);
@@ -62,20 +61,20 @@ abstract class TestRunner {
         extraFlags += ['--intrinsify=false'];
       } else if (r == 2) {
         final freq = rand.nextInt(1000) + 500;
-        prefix += '-COMPACTEVERY-${freq}';
-        extraFlags += ['--gc_every=${freq}', '--use_compactor=true'];
+        prefix += '-COMPACTEVERY-$freq';
+        extraFlags += ['--gc_every=$freq', '--use_compactor=true'];
       } else if (r == 3) {
         final freq = rand.nextInt(1000) + 500;
-        prefix += '-MARKSWEEPEVERY-${freq}';
-        extraFlags += ['--gc_every=${freq}', '--use_compactor=false'];
+        prefix += '-MARKSWEEPEVERY-$freq';
+        extraFlags += ['--gc_every=$freq', '--use_compactor=false'];
       } else if (r == 4) {
         final freq = rand.nextInt(100) + 50;
-        prefix += '-DEPOPTEVERY-${freq}';
-        extraFlags += ['--deoptimize_every=${freq}'];
+        prefix += '-DEPOPTEVERY-$freq';
+        extraFlags += ['--deoptimize_every=$freq'];
       } else if (r == 5) {
         final freq = rand.nextInt(100) + 50;
-        prefix += '-STACKTRACEEVERY-${freq}';
-        extraFlags += ['--stacktrace_every=${freq}'];
+        prefix += '-STACKTRACEEVERY-$freq';
+        extraFlags += ['--stacktrace_every=$freq'];
       } else if (r == 6) {
         prefix += '-OPTCOUNTER';
         extraFlags += ['--optimization_counter_threshold=1'];
@@ -139,21 +138,19 @@ class TestRunnerJIT implements TestRunner {
       this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
-    cmd = [
-      dart,
-      ...extraFlags,
-      '--old_gen_heap_size=${dartHeapSize}',
-      fileName
-    ];
+    cmd = [dart, ...extraFlags, '--old_gen_heap_size=$dartHeapSize', fileName];
   }
 
+  @override
   TestResult run() {
     return runCommand(cmd, env);
   }
 
+  @override
   void printReproductionCommand() =>
-      print(cmd.join(" ").replaceAll('$top/', ''));
+      print(cmd.join(' ').replaceAll('$top/', ''));
 
+  @override
   String description;
   String dart;
   String fileName;
@@ -176,27 +173,30 @@ class TestRunnerAOT implements TestRunner {
     cmd = [precompiler, ...extraFlags, fileName, snapshot];
   }
 
+  @override
   TestResult run() {
-    TestResult result = runCommand(cmd, env);
+    var result = runCommand(cmd, env);
     if (result.exitCode != 0) {
       return result;
     }
     return runCommand(
-        [dart, '--old_gen_heap_size=${dartHeapSize}', snapshot], env);
+        [dart, '--old_gen_heap_size=$dartHeapSize', snapshot], env);
   }
 
+  @override
   void printReproductionCommand() {
     print([
       "DART_CONFIGURATION='${env['DART_CONFIGURATION']}'",
       "DART_VM_FLAGS='${env['DART_VM_FLAGS']}'",
       ...cmd
-    ].join(" ").replaceAll('$top/', '').replaceAll('$tmp/', ''));
+    ].join(' ').replaceAll('$top/', '').replaceAll('$tmp/', ''));
     print([dart, snapshot]
-        .join(" ")
+        .join(' ')
         .replaceAll('$top/', '')
         .replaceAll('$tmp/', ''));
   }
 
+  @override
   String description;
   String precompiler;
   String dart;
@@ -217,22 +217,25 @@ class TestRunnerDJS implements TestRunner {
     js = '$tmp/out.js';
   }
 
+  @override
   TestResult run() {
-    TestResult result = runCommand([dart2js, fileName, '-o', js], env);
+    var result = runCommand([dart2js, fileName, '-o', js], env);
     if (result.exitCode != 0) {
       return result;
     }
     return runCommand(['nodejs', js], env);
   }
 
+  @override
   void printReproductionCommand() {
     print([dart2js, fileName, '-o', js]
-        .join(" ")
+        .join(' ')
         .replaceAll('$top/', '')
         .replaceAll('$tmp/', ''));
     print('nodejs out.js');
   }
 
+  @override
   String description;
   String dart2js;
   String fileName;
@@ -260,12 +263,12 @@ class DartFuzzTest {
   int run() {
     setup();
 
-    print('\n${isolate}: start');
+    print('\n$isolate: start');
     if (showStats) {
       showStatistics();
     }
 
-    for (int i = 0; i < repeat; i++) {
+    for (var i = 0; i < repeat; i++) {
       numTests++;
       seed = rand.nextInt(1 << 32);
       generateTest();
@@ -279,15 +282,15 @@ class DartFuzzTest {
       }
     }
 
-    print('\n${isolate}: done');
+    print('\n$isolate: done');
     showStatistics();
     print('');
     if (timeoutSeeds.isNotEmpty) {
-      print('\n${isolate} timeout: ' + timeoutSeeds.join(", "));
+      print('\n$isolate timeout: ' + timeoutSeeds.join(', '));
       print('');
     }
     if (skippedSeeds.isNotEmpty) {
-      print('\n${isolate} skipped: ' + skippedSeeds.join(", "));
+      print('\n$isolate skipped: ' + skippedSeeds.join(', '));
       print('');
     }
 
@@ -356,7 +359,7 @@ class DartFuzzTest {
       // Report every 10 minutes.
       if ((current_time - report_time) > (10 * 60 * 1000)) {
         print(
-            '\n${isolate}: busy @${numTests} ${current_time - start_time} seconds....');
+            '\n$isolate: busy @$numTests ${current_time - start_time} seconds....');
         report_time = current_time;
       }
     }
@@ -380,17 +383,17 @@ class DartFuzzTest {
   }
 
   void runTest() {
-    TestResult result1 = runner1.run();
-    TestResult result2 = runner2.run();
+    var result1 = runner1.run();
+    var result2 = runner2.run();
     var report = checkDivergence(result1, result2);
     if (report == ReportStatus.rerun && rerun) {
-      print("\nCommencing re-run .... \n");
+      print('\nCommencing re-run .... \n');
       numDivergences--;
       result1 = runner1.run();
       result2 = runner2.run();
       report = checkDivergence(result1, result2);
       if (report == ReportStatus.no_divergence) {
-        print("\nNo error on re-run\n");
+        print('\nNo error on re-run\n');
         numRerun++;
       }
     }
@@ -454,9 +457,9 @@ class DartFuzzTest {
 
   String generateReport(TestResult result1, TestResult result2) {
     if (result1.exitCode == result2.exitCode) {
-      return "output";
+      return 'output';
     } else {
-      return "${result1.exitCode} vs ${result2.exitCode}";
+      return '${result1.exitCode} vs ${result2.exitCode}';
     }
   }
 
@@ -467,8 +470,8 @@ class DartFuzzTest {
 
   void reportDivergence(TestResult result1, TestResult result2) {
     numDivergences++;
-    String report = generateReport(result1, result2);
-    print('\n${isolate}: !DIVERGENCE! $version:$seed (${report})');
+    var report = generateReport(result1, result2);
+    print('\n$isolate: !DIVERGENCE! $version:$seed ($report)');
     if (result1.exitCode == result2.exitCode) {
       if (numOutputLines > 0) {
         // Only report the actual output divergence details up to
@@ -493,17 +496,17 @@ class DartFuzzTest {
   }
 
   void showReproduce() {
-    print("\n-- BEGIN REPRODUCE  --\n");
-    print("DART SDK REVISION: $dartSdkRevision\n");
+    print('\n-- BEGIN REPRODUCE  --\n');
+    print('DART SDK REVISION: $dartSdkRevision\n');
     print(
         "dart runtime/tools/dartfuzz/dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
         "--${flatTp ? "" : "no-"}flat "
-        "--seed ${seed} fuzz.dart");
-    print("\n-- RUN 1 --\n");
+        '--seed $seed fuzz.dart');
+    print('\n-- RUN 1 --\n');
     runner1.printReproductionCommand();
-    print("\n-- RUN 2 --\n");
+    print('\n-- RUN 2 --\n');
     runner2.printReproductionCommand();
-    print("\n-- END REPRODUCE  --\n");
+    print('\n-- END REPRODUCE  --\n');
   }
 
   // Context.
@@ -564,31 +567,31 @@ class DartFuzzTestSession {
       : top = getTop(tp),
         dartSdkRevision = getDartSdkRevision(tp);
 
-  start() async {
+  Future<void> start() async {
     print('\n**\n**** Dart Fuzz Testing Session\n**\n');
-    print('Fuzz Version      : ${version}');
-    print('Dart SDK Revision : ${dartSdkRevision}');
-    print('Isolates          : ${isolates}');
-    print('Tests             : ${repeat}');
+    print('Fuzz Version      : $version');
+    print('Dart SDK Revision : $dartSdkRevision');
+    print('Isolates          : $isolates');
+    print('Tests             : $repeat');
     if (time > 0) {
-      print('Time              : ${time} seconds');
+      print('Time              : $time seconds');
     } else {
       print('Time              : unlimited');
     }
-    print('True Divergence   : ${trueDivergence}');
-    print('Show Stats        : ${showStats}');
-    print('Dart Dev          : ${top}');
+    print('True Divergence   : $trueDivergence');
+    print('Show Stats        : $showStats');
+    print('Dart Dev          : $top');
     // Fork.
-    List<ReceivePort> ports = List();
-    for (int i = 0; i < isolates; i++) {
-      ReceivePort r = ReceivePort();
+    var ports = <ReceivePort>[];
+    for (var i = 0; i < isolates; i++) {
+      var r = ReceivePort();
       ports.add(r);
       port = r.sendPort;
       await Isolate.spawn(run, this);
     }
     // Join.
-    int divergences = 0;
-    for (int i = 0; i < isolates; i++) {
+    var divergences = 0;
+    for (var i = 0; i < isolates; i++) {
       var d = await ports[i].first;
       divergences += d;
     }
@@ -600,8 +603,8 @@ class DartFuzzTestSession {
     }
   }
 
-  static run(DartFuzzTestSession session) {
-    int divergences = 0;
+  static void run(DartFuzzTestSession session) {
+    var divergences = 0;
     try {
       final m1 = getMode(session.mode1, null);
       final m2 = getMode(session.mode2, m1);
@@ -636,8 +639,7 @@ class DartFuzzTestSession {
   }
 
   static String getDartSdkRevision(String top) {
-    ProcessResult res =
-        Process.runSync(Platform.resolvedExecutable, ['--version']);
+    var res = Process.runSync(Platform.resolvedExecutable, ['--version']);
     return res.stderr;
   }
 
@@ -646,7 +648,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      Random rand = Random();
+      var rand = Random();
       do {
         mode = clusterModes[rand.nextInt(clusterModes.length)];
       } while (mode == other);
@@ -712,7 +714,7 @@ class DartFuzzTestSession {
 }
 
 /// Main driver for a fuzz testing session.
-main(List<String> arguments) {
+void main(List<String> arguments) {
   // Set up argument parser.
   final parser = ArgParser()
     ..addOption('isolates', help: 'number of isolates to use', defaultsTo: '1')

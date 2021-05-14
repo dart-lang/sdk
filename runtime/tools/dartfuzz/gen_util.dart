@@ -28,7 +28,7 @@ class GenUtil {
     // Set paths. Note that for this particular use case, packageRoot can be
     // any directory. Here, we set it to the top of the SDK development, and
     // derive the required sdkPath from there.
-    final String packageRoot = getTop(dart_top);
+    final packageRoot = getTop(dart_top);
     if (packageRoot == null) {
       throw StateError('No environment variable DART_TOP');
     }
@@ -42,7 +42,7 @@ class GenUtil {
     final provider = PhysicalResourceProvider.INSTANCE;
     final collection = AnalysisContextCollectionImpl(
         includedPaths: <String>[packageRoot],
-        excludedPaths: <String>[packageRoot + "/pkg/front_end/test"],
+        excludedPaths: <String>[packageRoot + '/pkg/front_end/test'],
         resourceProvider: provider,
         sdkPath: sdkPath);
     return collection.contexts[0].currentSession;
