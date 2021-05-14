@@ -752,27 +752,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _methods;
     }
 
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var containerRef = reference!.getChild('@method');
-      return _methods = context
-          .getMethods(linkedNode as CompilationUnitMember)
-          .where((node) => node.propertyKeyword == null)
-          .map((node) {
-        var name = node.name.name;
-        if (node.name.name == '-') {
-          var parameters = node.parameters;
-          if (parameters != null && parameters.parameters.isEmpty) {
-            name = 'unary-';
-          }
-        }
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as MethodElement?;
-        element ??= MethodElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _methods;
   }
 
@@ -1200,7 +1179,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<PropertyAccessorElement> _accessors = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
-  List<ClassElement> _enums = _Sentinel.classElement;
+  List<ClassElement> _enums = const [];
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
@@ -1269,22 +1248,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get enums {
-    if (!identical(_enums, _Sentinel.classElement)) {
-      return _enums;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@enum');
-      _enums =
-          _linkedUnitDeclarations.whereType<EnumDeclarationImpl>().map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement;
-        element ??= EnumElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _enums;
   }
 
@@ -3156,23 +3119,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(String name, int offset) : super(name, offset);
 
-  EnumElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
-      Reference reference, EnumDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
     linkedData?.read(this);
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    if (linkedNode != null) {
-      _resynthesizeMembers2();
-    }
-
     return _accessors;
   }
 
@@ -3199,14 +3148,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   List<FieldElement> get fields {
     linkedData?.read(this);
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    if (linkedNode != null) {
-      _resynthesizeMembers2();
-    }
-
     return _fields;
   }
 
@@ -3246,14 +3187,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   List<MethodElement> get methods {
     linkedData?.read(this);
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    if (linkedNode != null) {
-      _resynthesizeMembers2();
-    }
-
     return _methods;
   }
 
@@ -3262,19 +3195,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   @override
@@ -3297,10 +3218,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
     var method = MethodElementImpl('toString', -1);
     method.isSynthetic = true;
     method.enclosingElement = this;
-    if (linkedNode != null) {
-      method.returnType = library.typeProvider.stringType;
-      method.reference = reference!.getChild('@method').getChild('toString');
-    }
+    method.reference = reference?.getChild('@method').getChild('toString');
     _methods = <MethodElement>[method];
   }
 
@@ -3312,50 +3230,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
     reference.element = this;
 
     this.linkedData = linkedData;
-  }
-
-  void _resynthesizeMembers2() {
-    var fields = <FieldElementImpl>[];
-    var getters = <PropertyAccessorElementImpl>[];
-
-    // Build the 'index' field.
-    {
-      var field = FieldElementImpl('index', -1)
-        ..enclosingElement = this
-        ..isSynthetic = true
-        ..isFinal = true
-        ..type = library.typeProvider.intType;
-      fields.add(field);
-      getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
-          reference: reference!.getChild('@getter').getChild('index'))
-        ..enclosingElement = this);
-    }
-
-    // Build the 'values' field.
-    {
-      var field = ConstFieldElementImpl_EnumValues(this);
-      fields.add(field);
-      getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
-          reference: reference!.getChild('@getter').getChild('values'))
-        ..enclosingElement = this);
-    }
-
-    // Build fields for all enum constants.
-    var containerRef = reference!.getChild('@constant');
-    var constants = (linkedNode as EnumDeclaration).constants;
-    for (var i = 0; i < constants.length; ++i) {
-      var constant = constants[i];
-      var name = constant.name.name;
-      var reference = containerRef.getChild(name);
-      var field = ConstFieldElementImpl_EnumValue.forLinkedNode(
-          this, reference, constant, i);
-      fields.add(field);
-      getters.add(field.getter as PropertyAccessorElementImpl);
-    }
-
-    _fields = fields;
-    _accessors = getters;
-    createToStringMethodElement();
   }
 }
 
@@ -3653,7 +3527,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
   List<FieldElement> _fields = _Sentinel.fieldElement;
 
   /// A list containing all of the methods contained in this extension.
-  List<MethodElement> _methods = _Sentinel.methodElement;
+  List<MethodElement> _methods = const [];
 
   ElementLinkedData? linkedData;
 
@@ -3770,31 +3644,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodElement> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var containerRef = reference!.getChild('@method');
-      return _methods = context
-          .getMethods(linkedNode as CompilationUnitMember)
-          .where((node) => node.propertyKeyword == null)
-          .map((node) {
-        var name = node.name.name;
-        if (node.name.name == '-') {
-          var parameters = node.parameters;
-          if (parameters != null && parameters.parameters.isEmpty) {
-            name = 'unary-';
-          }
-        }
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as MethodElement?;
-        element ??= MethodElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _methods;
   }
 
@@ -5136,12 +4985,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// given [offset].
   MethodElementImpl(String name, int offset) : super(name, offset);
 
-  MethodElementImpl.forLinkedNode(TypeParameterizedElementMixin enclosingClass,
-      Reference reference, MethodDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosingClass, reference, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
-
   @override
   MethodElement get declaration => this;
 
@@ -5174,9 +5017,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   bool get isStatic {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isStatic(linkedNode!);
-    }
     return hasModifier(Modifier.STATIC);
   }
 

@@ -89,9 +89,16 @@ class Linker {
     timerLinkingRemoveBundle.stop();
   }
 
+  void _buildEnumChildren() {
+    for (var library in builders.values) {
+      library.buildEnumChildren();
+    }
+  }
+
   void _buildOutlines() {
     _computeLibraryScopes();
     _createTypeSystem();
+    _buildEnumChildren();
     _resolveTypes();
     _performTopLevelInference();
     _resolveConstructors();
@@ -113,8 +120,8 @@ class Linker {
     }
 
     for (var library in builders.values) {
-      library.buildElements();
       library.addLocalDeclarations();
+      library.buildElements();
     }
 
     for (var library in builders.values) {

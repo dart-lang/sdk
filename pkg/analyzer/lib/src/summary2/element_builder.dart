@@ -38,12 +38,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void buildDeclarationElements(CompilationUnit unit) {
     // TODO(scheglov) Use `unit.accept` when all nodes handled.
     for (var declaration in unit.declarations) {
-      if (declaration is FunctionDeclaration ||
+      if (declaration is ClassDeclaration ||
+          declaration is EnumDeclaration ||
+          declaration is ExtensionDeclaration ||
+          declaration is FunctionDeclaration ||
+          declaration is MixinDeclaration ||
           declaration is TopLevelVariableDeclaration) {
         declaration.accept(this);
       }
     }
     _unitElement.accessors = _enclosingContext.propertyAccessors;
+    _unitElement.enums = _enclosingContext.enums;
     _unitElement.functions = _enclosingContext.functions;
     _unitElement.topLevelVariables = _enclosingContext.properties
         .whereType<TopLevelVariableElementImpl>()
@@ -68,8 +73,30 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    _buildClassOrMixin(node);
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.parameter.accept(this);
+  }
+
+  @override
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var nameOffset = nameNode.offset;
+
+    var element = EnumElementImpl(name, nameOffset);
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addEnum(name, element);
+    _libraryBuilder.localScope.declare(name, reference);
   }
 
   @override
@@ -82,6 +109,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.element = element;
     _exports.add(element);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var element = node.declaredElement as ExtensionElementImpl;
+    var holder = _buildClassMembers(element, node.members);
+    element.methods = holder.methods;
   }
 
   @override
@@ -177,20 +211,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     nameNode.staticElement = executableElement;
     _linker.elementNodes[executableElement] = node;
 
-    var holder = _EnclosingContext(reference, executableElement);
-    _withEnclosing(holder, () {
-      var formalParameters = functionExpression.parameters;
-      if (formalParameters != null) {
-        formalParameters.accept(this);
-        executableElement.parameters = holder.parameters;
-      }
-
-      var typeParameters = functionExpression.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        executableElement.typeParameters = holder.typeParameters;
-      }
-    });
+    _buildExecutableElementChildren(
+      reference: reference,
+      element: executableElement,
+      formalParameters: functionExpression.parameters,
+      typeParameters: functionExpression.typeParameters,
+    );
 
     var localScope = _libraryBuilder.localScope;
     if (node.isSetter) {
@@ -275,6 +301,52 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {}
+
+  @override
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+    // TODO(scheglov) support properties
+    if (node.propertyKeyword != null) {
+      return;
+    }
+
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var nameOffset = nameNode.offset;
+
+    if (name == '-') {
+      var parameters = node.parameters;
+      if (parameters != null && parameters.parameters.isEmpty) {
+        name = 'unary-';
+      }
+    }
+
+    var element = MethodElementImpl(name, nameOffset);
+    element.hasImplicitReturnType = node.returnType == null;
+    element.isAbstract = node.isAbstract;
+    element.isAsynchronous = node.body.isAsynchronous;
+    element.isExternal =
+        node.externalKeyword != null || node.body is NativeFunctionBody;
+    element.isGenerator = node.body.isGenerator;
+    element.isStatic = node.isStatic;
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addMethod(name, element);
+    _buildExecutableElementChildren(
+      reference: reference,
+      element: element,
+      formalParameters: node.parameters,
+      typeParameters: node.typeParameters,
+    );
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _buildClassOrMixin(node);
+  }
 
   @override
   void visitPartDirective(PartDirective node) {}
@@ -403,6 +475,47 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     return annotations;
   }
 
+  _EnclosingContext _buildClassMembers(
+    ElementImpl element,
+    List<ClassMember> members,
+  ) {
+    var holder = _EnclosingContext(element.reference!, element);
+    _withEnclosing(holder, () {
+      // TODO(scheglov) build all members
+      for (var member in members) {
+        if (member is MethodDeclaration) {
+          member.accept(this);
+        }
+      }
+    });
+    return holder;
+  }
+
+  void _buildClassOrMixin(ClassOrMixinDeclaration node) {
+    var element = node.declaredElement as ClassElementImpl;
+    var holder = _buildClassMembers(element, node.members);
+    element.methods = holder.methods;
+  }
+
+  void _buildExecutableElementChildren({
+    required Reference reference,
+    required ExecutableElementImpl element,
+    FormalParameterList? formalParameters,
+    TypeParameterList? typeParameters,
+  }) {
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      if (formalParameters != null) {
+        formalParameters.accept(this);
+        element.parameters = holder.parameters;
+      }
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+  }
+
   void _buildSyntheticVariable({
     required String name,
     required PropertyAccessorElementImpl accessorElement,
@@ -476,6 +589,64 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
+  static void buildEnumChildren(
+    Linker linker,
+    LibraryElementImpl libraryElement,
+  ) {
+    for (var unitElement in libraryElement.units) {
+      for (var element in unitElement.enums) {
+        var node = linker.elementNodes[element] as EnumDeclaration;
+        element as EnumElementImpl;
+        var reference = element.reference!;
+
+        var fields = <FieldElementImpl>[];
+        var getters = <PropertyAccessorElementImpl>[];
+
+        // Build the 'index' field.
+        {
+          var field = FieldElementImpl('index', -1)
+            ..enclosingElement = element
+            ..isSynthetic = true
+            ..isFinal = true
+            ..type = libraryElement.typeProvider.intType;
+          fields.add(field);
+          getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
+              reference: reference.getChild('@getter').getChild('index'))
+            ..enclosingElement = element);
+        }
+
+        // Build the 'values' field.
+        {
+          var field = ConstFieldElementImpl_EnumValues(element);
+          fields.add(field);
+          getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
+              reference: reference.getChild('@getter').getChild('values'))
+            ..enclosingElement = element);
+        }
+
+        // Build fields for all enum constants.
+        var containerRef = reference.getChild('@constant');
+        var constants = node.constants;
+        for (var i = 0; i < constants.length; ++i) {
+          var constant = constants[i];
+          var name = constant.name.name;
+          var reference = containerRef.getChild(name);
+          var field = ConstFieldElementImpl_EnumValue.forLinkedNode(
+              element, reference, constant, i);
+          fields.add(field);
+          getters.add(field.getter as PropertyAccessorElementImpl);
+        }
+
+        element.fields = fields;
+        element.accessors = getters;
+
+        element.createToStringMethodElement();
+        (element.getMethod('toString') as MethodElementImpl).returnType =
+            libraryElement.typeProvider.stringType;
+      }
+    }
+  }
+
   static List<NamespaceCombinator> _buildCombinators(
     List<Combinator> combinators,
   ) {
@@ -500,13 +671,20 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 class _EnclosingContext {
   final Reference reference;
   final ElementImpl element;
+  final List<EnumElementImpl> enums = [];
   final List<FunctionElementImpl> functions = [];
+  final List<MethodElementImpl> methods = [];
   final List<ParameterElementImpl> parameters = [];
   final List<PropertyInducingElementImpl> properties = [];
   final List<PropertyAccessorElementImpl> propertyAccessors = [];
   final List<TypeParameterElementImpl> typeParameters = [];
 
   _EnclosingContext(this.reference, this.element);
+
+  Reference addEnum(String name, EnumElementImpl element) {
+    enums.add(element);
+    return _bindReference('@enum', name, element);
+  }
 
   Reference addFunction(String name, FunctionElementImpl element) {
     functions.add(element);
@@ -516,6 +694,11 @@ class _EnclosingContext {
   Reference addGetter(String name, PropertyAccessorElementImpl element) {
     propertyAccessors.add(element);
     return _bindReference('@getter', name, element);
+  }
+
+  Reference addMethod(String name, MethodElementImpl element) {
+    methods.add(element);
+    return _bindReference('@method', name, element);
   }
 
   Reference? addParameter(String? name, ParameterElementImpl element) {

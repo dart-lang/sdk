@@ -86,7 +86,6 @@ class LibraryBuilder {
     for (var linkingUnit in context.units) {
       var unitRef = reference.getChild('@unit').getChild(linkingUnit.uriStr);
       var classRef = unitRef.getChild('@class');
-      var enumRef = unitRef.getChild('@enum');
       var extensionRef = unitRef.getChild('@extension');
       var mixinRef = unitRef.getChild('@mixin');
       var typeAliasRef = unitRef.getChild('@typeAlias');
@@ -113,15 +112,7 @@ class LibraryBuilder {
               reference,
               node);
         } else if (node is ast.EnumDeclarationImpl) {
-          var name = node.name.name;
-          var reference = enumRef.getChild(name);
-          reference.node ??= node;
-          localScope.declare(name, reference);
-
-          EnumElementImpl.forLinkedNode(
-              linkingUnit.reference.element as CompilationUnitElementImpl,
-              reference,
-              node);
+          // Handled in ElementBuilder.
         } else if (node is ast.ExtensionDeclarationImpl) {
           var name = node.name?.name;
           var refName = name ?? 'extension-${nextUnnamedExtensionId++}';
@@ -217,6 +208,10 @@ class LibraryBuilder {
       }
       elementBuilder.buildDeclarationElements(unitContext.unit);
     }
+  }
+
+  void buildEnumChildren() {
+    ElementBuilder.buildEnumChildren(linker, element);
   }
 
   void buildInitialExportScope() {
