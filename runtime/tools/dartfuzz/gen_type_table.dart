@@ -484,6 +484,9 @@ void printTypeTable(Set<InterfaceType> allTypes,
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart = 2.9
+// ignore_for_file: annotate_overrides
+// ignore_for_file: unused_element
+// ignore_for_file: unused_field
 
 /// Class that represents some common Dart types.
 ///
@@ -649,7 +652,7 @@ void printTypeTable(Set<InterfaceType> allTypes,
 
 ''');
 
-  print('  static const VOID = const ' 'DartType._withName(\"void\");');
+  print("  static const VOID = DartType._withName('void');");
   var instTypes = <String>{};
 
   // Generate one static DartType instance for all instantiable types.
@@ -658,8 +661,8 @@ void printTypeTable(Set<InterfaceType> allTypes,
     var constName = getConstName(baseType.displayName);
     instTypes.add(constName);
     if (!subclass) {
-      print('  static const $constName = const '
-          'DartType._withName(\"${baseType.displayName}\");');
+      print('  static const $constName = '
+          "DartType._withName('${baseType.displayName}');");
     }
   });
 
@@ -671,8 +674,8 @@ void printTypeTable(Set<InterfaceType> allTypes,
     print('  // NON INSTANTIABLE' '');
     interfaceRels.keys.forEach((constName) {
       if (instTypes.contains(constName)) return true;
-      print('  static const $constName = const '
-          'DartType._withName(\"__$constName\");');
+      print('  static const $constName = '
+          "DartType._withName('__$constName');");
     });
   }
 

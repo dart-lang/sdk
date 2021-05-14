@@ -658,7 +658,7 @@ void dumpHeader() {
 
 /// NOTE: this code has been generated automatically.
 
-import \"dartfuzz_type_table.dart\";
+import 'dartfuzz_type_table.dart';
 
 /// Enum for different restrictions on parameters for library methods.
 /// none - No restriction on the corresponding parameter.
