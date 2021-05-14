@@ -6439,6 +6439,18 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+static bool CanBeImmediateOperand(Value* value) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  if ((constant == NULL) ||
+      !compiler::Assembler::IsSafeSmi(constant->value())) {
+    return false;
+  }
+
+  compiler::Operand o;
+  const int64_t operand = compiler::target::SmiValue(constant->value());
+  return compiler::Operand::CanHold(operand, &o);
+}
+
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -6447,8 +6459,15 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                    Location::RequiresRegister()));
+
+  if ((op_kind() == Token::kBIT_AND || op_kind() == Token::kBIT_OR ||
+      op_kind() == Token::kBIT_XOR || op_kind() == Token::kADD ||
+      op_kind() == Token::kSUB) && CanBeImmediateOperand(right())) {
+    summary->set_in(1, Location::Constant(right()->definition()->AsConstant()));
+  } else {
+    summary->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                      Location::RequiresRegister()));
+  }
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
   if (op_kind() == Token::kMUL) {
@@ -6461,15 +6480,55 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
-  PairLocation* right_pair = locs()->in(1).AsPairLocation();
-  Register right_lo = right_pair->At(0).reg();
-  Register right_hi = right_pair->At(1).reg();
   PairLocation* out_pair = locs()->out(0).AsPairLocation();
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
   ASSERT(!can_overflow());
   ASSERT(!CanDeoptimize());
 
+  if (locs()->in(1).IsConstant()) {
+    const Object& constant = locs()->in(1).constant();
+    ASSERT(compiler::target::IsSmi(constant));
+    const intptr_t value = compiler::target::SmiValue(constant);
+    compiler::Operand o;
+    if (compiler::Operand::CanHold(value, &o)) {
+      switch (op_kind()) {
+        case Token::kBIT_AND: {
+          __ and_(out_lo, left_lo, o);
+          __ mov(out_hi, compiler::Operand(left_hi));
+          break;
+        }
+        case Token::kBIT_OR: {
+          __ orr(out_lo, left_lo, o);
+          __ mov(out_hi, compiler::Operand(left_hi));
+          break;
+        }
+        case Token::kBIT_XOR: {
+          __ eor(out_lo, left_lo, o);
+          __ mov(out_hi, compiler::Operand(left_hi));
+          break;
+        }
+        case Token::kADD: {
+          __ adds(out_lo, left_lo, o);
+          __ adcs(out_hi, left_hi, compiler::Operand(0));
+          break;
+        }
+        case Token::kSUB: {
+          __ subs(out_lo, left_lo, o);
+          __ sbcs(out_hi, left_hi, compiler::Operand(0));
+          break;
+        }
+        default:
+          UNREACHABLE();
+      }
+      return;
+    }
+    UNREACHABLE();
+  }
+
+  PairLocation* right_pair = locs()->in(1).AsPairLocation();
+  Register right_lo = right_pair->At(0).reg();
+  Register right_hi = right_pair->At(1).reg();
   switch (op_kind()) {
     case Token::kBIT_AND: {
       __ and_(out_lo, left_lo, compiler::Operand(right_lo));
