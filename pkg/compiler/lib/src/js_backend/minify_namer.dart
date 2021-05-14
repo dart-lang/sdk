@@ -20,8 +20,6 @@ class MinifyNamer extends Namer
   _FieldNamingRegistry fieldRegistry;
 
   @override
-  bool get shouldMinify => true;
-  @override
   String get genericInstantiationPrefix => r'$I';
 
   final ALPHABET_CHARACTERS = 52; // a-zA-Z.

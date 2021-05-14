@@ -9,13 +9,9 @@ class FrequencyBasedNamer extends Namer
     implements jsAst.TokenFinalizer {
   @override
   _FieldNamingRegistry fieldRegistry;
-  List<TokenName> tokens = <TokenName>[];
+  List<TokenName> tokens = [];
 
-  Map<NamingScope, TokenScope> _tokenScopes =
-      new Maplet<NamingScope, TokenScope>();
-
-  @override
-  bool get shouldMinify => true;
+  Map<NamingScope, TokenScope> _tokenScopes = {};
 
   @override
   String get genericInstantiationPrefix => r'$I';

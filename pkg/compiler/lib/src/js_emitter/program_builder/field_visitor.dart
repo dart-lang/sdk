@@ -9,10 +9,6 @@ part of dart2js.js_emitter.program_builder;
 /// [name] is the field name that the [Namer] has picked for this field's
 /// storage, that is, the JavaScript property name.
 ///
-/// [accessorName] is the name of the accessor. For instance fields this is
-/// mostly the same as [name] except when [member] is shadowing a field in its
-/// superclass.  For other fields, they are rarely the same.
-///
 /// [needsGetter] and [needsSetter] represent if a getter or a setter
 /// respectively is needed.  There are many factors in this, for example, if the
 /// accessor can be inlined.
@@ -20,8 +16,8 @@ part of dart2js.js_emitter.program_builder;
 /// [needsCheckedSetter] indicates that a checked getter is needed, and in this
 /// case, [needsSetter] is always false. [needsCheckedSetter] is only true when
 /// type assertions are enabled (checked mode).
-typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
-    bool needsGetter, bool needsSetter, bool needsCheckedSetter);
+typedef void AcceptField(FieldEntity member, js.Name name, bool needsGetter,
+    bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
   final JElementEnvironment _elementEnvironment;
@@ -66,8 +62,7 @@ class FieldVisitor {
       if ((isInstantiated && !_nativeData.isNativeClass(cls)) ||
           needsGetter ||
           needsSetter) {
-        js.Name accessorName = _namer.fieldAccessorName(field);
-        js.Name fieldName = _namer.fieldPropertyName(field);
+        js.Name fieldName = _namer.instanceFieldPropertyName(field);
         bool needsCheckedSetter = false;
         if (_closedWorld.annotationsData
                 .getParameterCheckPolicy(field)
@@ -78,8 +73,7 @@ class FieldVisitor {
           needsSetter = false;
         }
         // Getters and setters with suffixes will be generated dynamically.
-        f(field, fieldName, accessorName, needsGetter, needsSetter,
-            needsCheckedSetter);
+        f(field, fieldName, needsGetter, needsSetter, needsCheckedSetter);
       }
     }
 

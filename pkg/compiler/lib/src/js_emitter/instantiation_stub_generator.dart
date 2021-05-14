@@ -81,14 +81,14 @@ class InstantiationStubGenerator {
     for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
       arguments.add(js('this.#.#[#]', [
         _namer.rtiFieldJsName,
-        _namer.fieldPropertyName(_commonElements.rtiRestField),
+        _namer.instanceFieldPropertyName(_commonElements.rtiRestField),
         js.number(i)
       ]));
     }
 
     jsAst.Fun function = js('function(#) { return this.#.#(#); }', [
       parameters,
-      _namer.fieldPropertyName(functionField),
+      _namer.instanceFieldPropertyName(functionField),
       _namer.invocationName(targetSelector),
       arguments,
     ]);
@@ -126,7 +126,7 @@ class InstantiationStubGenerator {
         _emitter.staticFunctionAccess(
             _commonElements.instantiatedGenericFunctionTypeNewRti),
         _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
-        _namer.fieldPropertyName(functionField),
+        _namer.instanceFieldPropertyName(functionField),
         _namer.rtiFieldJsName,
       ]);
 

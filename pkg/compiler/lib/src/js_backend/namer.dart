@@ -430,7 +430,6 @@ class Namer extends ModularNamer {
   static const String _callPrefixDollar = r'call$';
 
   static final jsAst.Name _literalDollar = new StringBackedName(r'$');
-  static final jsAst.Name _literalDynamic = new StringBackedName("dynamic");
 
   jsAst.Name _literalGetterPrefix;
   jsAst.Name _literalSetterPrefix;
@@ -552,7 +551,6 @@ class Namer extends ModularNamer {
   jsAst.Name get noSuchMethodName => invocationName(Selectors.noSuchMethod_);
 
   String get closureInvocationSelectorName => Identifiers.call;
-  bool get shouldMinify => false;
 
   NamingScope _getPrivateScopeFor(PrivatelyNamedJSEntity entity) {
     return _privateNamingScopes.putIfAbsent(
@@ -770,17 +768,8 @@ class Namer extends ModularNamer {
   /// Returns the disambiguated name for the given field, used for constructing
   /// the getter and setter names.
   jsAst.Name fieldAccessorName(FieldEntity element) {
-    return element.isInstanceMember
-        ? _disambiguateMember(element.memberName)
-        : _disambiguateGlobalMember(element);
-  }
-
-  /// Returns name of the JavaScript property used to store a static or instance
-  /// field.
-  jsAst.Name fieldPropertyName(FieldEntity element) {
-    return element.isInstanceMember
-        ? instanceFieldPropertyName(element)
-        : _disambiguateGlobalMember(element);
+    assert(element.isInstanceMember, '$element');
+    return _disambiguateMember(element.memberName);
   }
 
   @override
@@ -789,10 +778,6 @@ class Namer extends ModularNamer {
 
   @override
   jsAst.Name globalPropertyNameForClass(ClassEntity element) =>
-      _disambiguateGlobalType(element);
-
-  @override
-  jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
   @override
@@ -817,8 +802,10 @@ class Namer extends ModularNamer {
     ]);
   }
 
+  /// Returns the JavaScript property name used to store an instance field.
   @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
+    assert(!element.isStatic, '$element');
     ClassEntity enclosingClass = element.enclosingClass;
 
     if (_nativeData.hasFixedBackendName(element)) {
@@ -1315,23 +1302,6 @@ class Namer extends ModularNamer {
   }
 
   @override
-  jsAst.Name runtimeTypeName(Entity element) {
-    if (element == null) return _literalDynamic;
-    // The returned name affects both the global and instance member namespaces:
-    //
-    // - If given a class, this must coincide with the class name, which
-    //   is also the GLOBAL property name of its constructor.
-    //
-    // - The result is used to derive `$isX` and `$asX` names, which are used
-    //   as INSTANCE property names.
-    //
-    // To prevent clashes in both namespaces at once, we disambiguate the name
-    // as a global here, and in [_sanitizeForAnnotations] we ensure that
-    // ordinary instance members cannot start with `$is` or `$as`.
-    return _disambiguateGlobalType(element);
-  }
-
-  @override
   jsAst.Name className(ClassEntity class_) => _disambiguateGlobalType(class_);
 
   @override
@@ -1390,7 +1360,7 @@ class Namer extends ModularNamer {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return new CompoundName([
       new StringBackedName(fixedNames.operatorIsPrefix),
-      runtimeTypeName(element)
+      className(element)
     ]);
   }
 
@@ -2104,14 +2074,6 @@ abstract class ModularNamer {
         DeferredHolderExpressionKind.globalObjectForClass, element);
   }
 
-  /// Returns a variable use for accessing the type [element].
-  ///
-  /// This is one of the [reservedGlobalObjectNames]
-  jsAst.Expression readGlobalObjectForType(Entity element) {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForType, element);
-  }
-
   /// Returns a variable use for accessing the member [element].
   jsAst.Expression readGlobalObjectForMember(MemberEntity element) {
     return DeferredHolderExpression(
@@ -2131,13 +2093,6 @@ abstract class ModularNamer {
   /// Should be used together with [globalObjectForMember], which denotes the
   /// object on which the returned property name should be used.
   jsAst.Name globalPropertyNameForMember(MemberEntity element);
-
-  /// Returns a JavaScript property name used to store the type (typedef)
-  /// [element] on one of the global objects.
-  ///
-  /// Should be used together with [globalObjectForType], which denotes the
-  /// object on which the returned property name should be used.
-  jsAst.Name globalPropertyNameForType(Entity element);
 
   /// Returns a name, the string of which is a globally unique key distinct from
   /// other global property names.
@@ -2201,16 +2156,6 @@ abstract class ModularNamer {
   jsAst.Name nameForOneShotInterceptor(
       Selector selector, Set<ClassEntity> classes);
 
-  /// Returns the runtime name for [element].
-  ///
-  /// This name is used as the basis for deriving `is` and `as` property names
-  /// for the given type.
-  ///
-  /// The result is not always safe as a property name unless prefixing
-  /// [operatorIsPrefix]. If this is a function type, then by convention, an
-  /// underscore must also separate [operatorIsPrefix] from the type name.
-  jsAst.Name runtimeTypeName(Entity element);
-
   /// Property name in which to store the given static or instance [method].
   /// For instance methods, this includes the suffix encoding arity and named
   /// parameters.
@@ -2231,8 +2176,8 @@ abstract class ModularNamer {
 
   /// Returns the disambiguated name of [class_].
   ///
-  /// This is both the *runtime type* of the class (see [runtimeTypeName])
-  /// and a global property name in which to store its JS constructor.
+  /// This is both the *runtime type* of the class and a global property name in
+  /// which to store its JS constructor.
   jsAst.Name className(ClassEntity class_);
 
   /// The prefix used for encoding async properties.
@@ -2358,11 +2303,11 @@ abstract class ModularNamer {
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(_commonElements.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        return runtimeTypeName(_commonElements.nullClass);
+        return className(_commonElements.nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        return runtimeTypeName(_commonElements.objectClass);
+        return className(_commonElements.objectClass);
       case JsGetName.FUTURE_CLASS_TYPE_NAME:
-        return runtimeTypeName(_commonElements.futureClass);
+        return className(_commonElements.futureClass);
       case JsGetName.RTI_FIELD_AS:
         return instanceFieldPropertyName(_commonElements.rtiAsField);
       case JsGetName.RTI_FIELD_IS:
@@ -2386,14 +2331,6 @@ class ModularNamerImpl extends ModularNamer {
   @override
   jsAst.Name get rtiFieldJsName {
     jsAst.Name name = new ModularName(ModularNameKind.rtiField);
-    _registry.registerModularName(name);
-    return name;
-  }
-
-  @override
-  jsAst.Name runtimeTypeName(Entity element) {
-    jsAst.Name name =
-        new ModularName(ModularNameKind.runtimeTypeName, data: element);
     _registry.registerModularName(name);
     return name;
   }
@@ -2465,14 +2402,6 @@ class ModularNamerImpl extends ModularNamer {
   jsAst.Name operatorIs(ClassEntity element) {
     jsAst.Name name =
         new ModularName(ModularNameKind.operatorIs, data: element);
-    _registry.registerModularName(name);
-    return name;
-  }
-
-  @override
-  jsAst.Name globalPropertyNameForType(Entity element) {
-    jsAst.Name name = new ModularName(ModularNameKind.globalPropertyNameForType,
-        data: element);
     _registry.registerModularName(name);
     return name;
   }

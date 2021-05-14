@@ -4628,8 +4628,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
         ClassEntity objectClass = closedWorld.commonElements.objectClass;
-        return js.js
-            .expressionTemplateYielding(_emitter.typeAccess(objectClass));
+        return js.js.expressionTemplateYielding(
+            _emitter.constructorAccess(objectClass));
 
       case JsBuiltin.dartClosureConstructor:
         ClassEntity closureClass = closedWorld.commonElements.closureClass;
@@ -4638,8 +4638,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         registry
             // ignore:deprecated_member_use_from_same_package
             .registerInstantiatedClass(closureClass);
-        return js.js
-            .expressionTemplateYielding(_emitter.typeAccess(closureClass));
+        return js.js.expressionTemplateYielding(
+            _emitter.constructorAccess(closureClass));
 
       case JsBuiltin.getMetadata:
         String metadataAccess =

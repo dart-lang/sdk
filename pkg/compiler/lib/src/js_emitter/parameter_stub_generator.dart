@@ -205,7 +205,7 @@ class ParameterStubGenerator {
         // Instead we need to call the statically resolved target.
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
         body = js.statement('return #.#.call(this, #);', [
-          _emitter.prototypeAccess(superClass, hasBeenInstantiated: true),
+          _emitter.prototypeAccess(superClass),
           methodName,
           targetArguments
         ]);
