@@ -5,8 +5,10 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -43,6 +45,8 @@ class Linker {
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
+  final Map<ElementImpl, ast.AstNode> elementNodes = Map.identity();
+
   late InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
   late Uint8List astBytes;
@@ -59,6 +63,13 @@ class Linker {
   }
 
   Reference get rootReference => elementFactory.rootReference;
+
+  /// If the [element] is part of a library being linked, return the node
+  /// from which it was created.
+  ast.AstNode? getLinkingNode(Element element) {
+    var node = elementNodes[element];
+    return node ?? (element as ElementImpl).linkedNode;
+  }
 
   void link(List<LinkInputLibrary> inputLibraries) {
     for (var inputLibrary in inputLibraries) {
@@ -102,7 +113,7 @@ class Linker {
     }
 
     for (var library in builders.values) {
-      library.buildDirectives();
+      library.buildElements();
       library.addLocalDeclarations();
     }
 
@@ -201,7 +212,7 @@ class Linker {
     VarianceBuilder().perform(this);
     computeSimplyBounded(builders.values);
     TypeAliasSelfReferenceFinder().perform(this);
-    TypesBuilder().build(nodesToBuildType);
+    TypesBuilder(this).build(nodesToBuildType);
   }
 
   void _writeLibraries() {
@@ -237,7 +248,7 @@ class LinkInputUnit {
   final String? partUriStr;
   final Source source;
   final bool isSynthetic;
-  final CompilationUnit unit;
+  final ast.CompilationUnit unit;
 
   LinkInputUnit(
     this.partUriStr,

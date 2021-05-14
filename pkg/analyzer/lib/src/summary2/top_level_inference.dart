@@ -76,7 +76,7 @@ class ConstantInitializersResolver {
   void _resolveVariable(VariableElement element) {
     if (element.isSynthetic) return;
 
-    var variable = _getLinkedNode(element) as VariableDeclaration;
+    var variable = linker.getLinkingNode(element) as VariableDeclaration;
     if (variable.initializer == null) return;
 
     var declarationList = variable.parent as VariableDeclarationList;
@@ -321,7 +321,7 @@ class _InitializerInference {
   void _addVariableNode(PropertyInducingElement element) {
     if (element.isSynthetic) return;
 
-    var node = _getLinkedNode(element) as VariableDeclaration;
+    var node = _linker.getLinkingNode(element) as VariableDeclaration;
     var variableList = node.parent as VariableDeclarationList;
     if (variableList.type != null) {
       return;
@@ -401,6 +401,7 @@ class _VariableInferenceNode extends _InferenceNode {
       var initializerType = _node.initializer!.typeOrThrow;
       initializerType = _refineType(initializerType);
       _elementImpl.type = initializerType;
+      _elementImpl.hasTypeInferred = true;
     }
 
     isEvaluated = true;

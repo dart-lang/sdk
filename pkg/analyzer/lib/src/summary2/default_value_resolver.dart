@@ -70,6 +70,15 @@ class DefaultValueResolver {
     _parameters(element.parameters);
   }
 
+  DefaultFormalParameter? _defaultParameter(ParameterElementImpl element) {
+    var node = _linker.getLinkingNode(element);
+    if (node is DefaultFormalParameter && node.defaultValue != null) {
+      return node;
+    } else {
+      return null;
+    }
+  }
+
   void _extension(ExtensionElement extensionElement) {
     for (var element in extensionElement.methods) {
       _setScopeFromElement(element);
@@ -117,16 +126,7 @@ class DefaultValueResolver {
   }
 
   void _setScopeFromElement(Element element) {
-    _scope = LinkingNodeContext.get((element as ElementImpl).linkedNode!).scope;
-  }
-
-  static DefaultFormalParameter? _defaultParameter(
-      ParameterElementImpl element) {
-    var node = element.linkedNode;
-    if (node is DefaultFormalParameter && node.defaultValue != null) {
-      return node;
-    } else {
-      return null;
-    }
+    var node = _linker.getLinkingNode(element)!;
+    _scope = LinkingNodeContext.get(node).scope;
   }
 }

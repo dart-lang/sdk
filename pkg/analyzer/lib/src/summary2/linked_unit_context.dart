@@ -51,17 +51,6 @@ class LinkedUnitContext {
     return libraryElement.typeProvider;
   }
 
-  void createGenericFunctionTypeElement(int id, GenericFunctionTypeImpl node) {
-    var containerRef = this.reference.getChild('@genericFunctionType');
-    var reference = containerRef.getChild('$id');
-    var element = GenericFunctionTypeElementImpl.forLinkedNode(
-      this.reference.element as ElementImpl,
-      reference,
-      node,
-    );
-    node.declaredElement = element;
-  }
-
   List<ConstructorInitializer> getConstructorInitializers(
     ConstructorDeclaration node,
   ) {

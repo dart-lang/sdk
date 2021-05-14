@@ -1197,7 +1197,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
-  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
+  List<PropertyAccessorElement> _accessors = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
   List<ClassElement> _enums = _Sentinel.classElement;
@@ -1208,7 +1208,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
-  List<FunctionElement> _functions = _Sentinel.functionElement;
+  List<FunctionElement> _functions = const [];
 
   /// A list containing all of the mixins contained in this compilation unit.
   List<ClassElement> _mixins = _Sentinel.classElement;
@@ -1227,7 +1227,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ClassElement> _types = _Sentinel.classElement;
 
   /// A list containing all of the variables contained in this compilation unit.
-  List<TopLevelVariableElement> _variables = _Sentinel.topLevelVariables;
+  List<TopLevelVariableElement> _variables = const [];
 
   ElementLinkedData? linkedData;
 
@@ -1246,15 +1246,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    if (linkedNode != null) {
-      _createPropertiesAndAccessors(this);
-      return _accessors;
-    }
-
     return _accessors;
   }
 
@@ -1344,24 +1335,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<FunctionElement> get functions {
-    if (!identical(_functions, _Sentinel.functionElement)) {
-      return _functions;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@function');
-      return _functions = _linkedUnitDeclarations
-          .whereType<FunctionDeclarationImpl>()
-          .where((node) => !node.isGetter && !node.isSetter)
-          .map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as FunctionElement?;
-        element ??= FunctionElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _functions;
   }
 
@@ -1454,15 +1427,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
-    if (!identical(_variables, _Sentinel.topLevelVariables)) {
-      return _variables;
-    }
-
-    if (linkedNode != null) {
-      _createPropertiesAndAccessors(this);
-      return _variables;
-    }
-
     return _variables;
   }
 
@@ -1616,99 +1580,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(typeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
-  }
-
-  static void _createPropertiesAndAccessors(CompilationUnitElementImpl unit) {
-    if (!identical(unit._variables, _Sentinel.topLevelVariables)) {
-      return;
-    }
-    assert(identical(unit._accessors, _Sentinel.propertyAccessorElement));
-
-    var accessorMap =
-        <CompilationUnitElementImpl, List<PropertyAccessorElement>>{};
-    var variableMap =
-        <CompilationUnitElementImpl, List<TopLevelVariableElement>>{};
-
-    var units = unit.library.units;
-    for (var unit in units) {
-      var unitImpl = unit as CompilationUnitElementImpl;
-      var context = unitImpl.linkedContext!;
-
-      var accessorList = <PropertyAccessorElement>[];
-      accessorMap[unitImpl] = accessorList;
-
-      var variableList = <TopLevelVariableElement>[];
-      variableMap[unitImpl] = variableList;
-
-      // TODO(scheglov) Bad, we want to read only functions / variables.
-      var unitNode = context.unit;
-      var unitDeclarations = unitNode.declarations;
-
-      var variables = context.topLevelVariables(unitNode);
-      for (var variable in variables) {
-        var variableElement =
-            variable.declaredElement as TopLevelVariableElementImpl?;
-        if (variableElement == null) {
-          var name = variable.name.name;
-          var reference =
-              unitImpl.reference!.getChild('@variable').getChild(name);
-          variableElement = TopLevelVariableElementImpl.forLinkedNodeFactory(
-              unitImpl, reference, variable);
-        }
-        variableList.add(variableElement);
-
-        accessorList.add(variableElement.getter!);
-        if (variableElement.setter != null) {
-          accessorList.add(variableElement.setter!);
-        }
-      }
-
-      for (var node in unitDeclarations) {
-        if (node is FunctionDeclaration) {
-          var isGetter = node.isGetter;
-          var isSetter = node.isSetter;
-          if (!isGetter && !isSetter) continue;
-
-          var name = node.name.name;
-          var containerRef = isGetter
-              ? unitImpl.reference!.getChild('@getter')
-              : unitImpl.reference!.getChild('@setter');
-
-          var accessorElement =
-              node.declaredElement as PropertyAccessorElementImpl?;
-          accessorElement ??= PropertyAccessorElementImpl.forLinkedNode(
-              unitImpl, containerRef.getChild(name), node);
-          accessorList.add(accessorElement);
-
-          var fieldRef =
-              unitImpl.reference!.getChild('@variable').getChild(name);
-          var field = fieldRef.element as TopLevelVariableElementImpl?;
-          if (field == null) {
-            field = TopLevelVariableElementImpl(name, -1);
-            fieldRef.element = field;
-            field.enclosingElement = unitImpl;
-            field.isSynthetic = true;
-            field.isFinal = isGetter;
-            variableList.add(field);
-          } else {
-            field.isFinal = false;
-          }
-
-          accessorElement.variable = field;
-          if (isGetter) {
-            field.getter = accessorElement;
-          } else {
-            field.setter = accessorElement;
-          }
-        }
-      }
-    }
-
-    for (var unit in units) {
-      var unitImpl = unit as CompilationUnitElementImpl;
-      unitImpl._accessors = accessorMap[unit]!;
-      unitImpl._variables = variableMap[unit]!;
-    }
   }
 }
 
@@ -2172,10 +2043,6 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   /// the given [name] and [offset].
   ConstTopLevelVariableElementImpl(String name, int offset)
       : super(name, offset);
-
-  ConstTopLevelVariableElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
 
   @override
   Expression? get constantInitializer {
@@ -4269,36 +4136,12 @@ class FunctionElementImpl extends ExecutableElementImpl
   /// [offset].
   FunctionElementImpl(String name, int offset) : super(name, offset);
 
-  FunctionElementImpl.forLinkedNode(ElementImpl enclosing, Reference reference,
-      FunctionDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
-
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
   FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
 
-  /// Synthesize an unnamed function element that takes [parameters] and returns
-  /// [returnType].
-  FunctionElementImpl.synthetic(
-      List<ParameterElement> parameters, DartType returnType)
-      : super("", -1) {
-    isSynthetic = true;
-    this.returnType = returnType;
-    this.parameters = parameters;
-  }
-
   @override
   ExecutableElement get declaration => this;
-
-  @override
-  String get displayName {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
-    return super.displayName;
-  }
 
   @override
   String get identifier {
@@ -5487,34 +5330,38 @@ class Modifier implements Comparable<Modifier> {
   /// initializer.
   static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
 
+  /// A flag used for fields and top-level variables that have implicit type,
+  /// and specify when the type has been inferred.
+  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 14);
+
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 14);
+      Modifier('HAS_PART_OF_DIRECTIVE', 15);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 16);
+  static const Modifier LATE = Modifier('LATE', 17);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 17);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 18);
+  static const Modifier SETTER = Modifier('SETTER', 19);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 19);
+  static const Modifier STATIC = Modifier('STATIC', 20);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 20);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -6596,7 +6443,11 @@ abstract class PropertyInducingElementImpl
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  bool get hasTypeInferred => _type != null;
+  bool get hasTypeInferred => hasModifier(Modifier.HAS_TYPE_INFERRED);
+
+  set hasTypeInferred(bool value) {
+    setModifier(Modifier.HAS_TYPE_INFERRED, value);
+  }
 
   @override
   bool get isConstantEvaluated => true;
@@ -6719,42 +6570,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   /// the given [name] and [offset].
   TopLevelVariableElementImpl(String name, int offset) : super(name, offset);
 
-  TopLevelVariableElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    if (linkedNode is VariableDeclarationImpl) {
-      linkedNode.name.staticElement = this;
-    }
-    if (!linkedNode.isSynthetic) {
-      var enclosingRef = enclosing.reference!;
-      createImplicitAccessors(enclosingRef, name);
-    }
-  }
-
-  factory TopLevelVariableElementImpl.forLinkedNodeFactory(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
-    if (enclosing.enclosingUnit.linkedContext!.isConst(linkedNode)) {
-      return ConstTopLevelVariableElementImpl.forLinkedNode(
-        enclosing,
-        reference,
-        linkedNode,
-      );
-    }
-    return TopLevelVariableElementImpl.forLinkedNode(
-      enclosing,
-      reference,
-      linkedNode,
-    );
-  }
-
   @override
   TopLevelVariableElement get declaration => this;
 
   @override
   bool get isExternal {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isExternal(linkedNode!);
-    }
     return hasModifier(Modifier.EXTERNAL);
   }
 
@@ -7429,7 +7249,6 @@ class _Sentinel {
   static final List<ExportElement> exportElement = List.unmodifiable([]);
   static final List<ExtensionElement> extensionElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
-  static final List<FunctionElement> functionElement = List.unmodifiable([]);
   @Deprecated('Use TypeAliasElement instead')
   static final List<FunctionTypeAliasElement> functionTypeAliasElement =
       List.unmodifiable([]);
@@ -7438,8 +7257,6 @@ class _Sentinel {
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<ParameterElement> parameterElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
-      List.unmodifiable([]);
-  static final List<TopLevelVariableElement> topLevelVariables =
       List.unmodifiable([]);
   static final List<TypeAliasElement> typeAliasElement = List.unmodifiable([]);
   static final List<TypeParameterElement> typeParameterElement =

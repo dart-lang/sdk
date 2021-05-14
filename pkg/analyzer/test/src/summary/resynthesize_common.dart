@@ -7459,6 +7459,40 @@ f() => 0;
     expect(f.hasImplicitReturnType, isTrue);
   }
 
+  test_function_parameter_fieldFormal() async {
+    var library = await checkLibrary('''
+void f(int this.a) {}
+''');
+    checkElementText(library, r'''
+void f(final int this.a) {}
+''');
+  }
+
+  test_function_parameter_fieldFormal_default() async {
+    var library = await checkLibrary('''
+void f({int this.a: 42}) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f({final int this.a}) {}
+  a
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_function_parameter_fieldFormal_functionTyped() async {
+    var library = await checkLibrary('''
+void f(int this.a(int b)) {}
+''');
+    checkElementText(library, r'''
+void f(final int Function(int) this.a/*(int b)*/) {}
+''');
+  }
+
   test_function_parameter_final() async {
     var library = await checkLibrary('f(final x) {}');
     checkElementText(library, r'''
@@ -11241,6 +11275,19 @@ const dynamic a = null;
 ''');
   }
 
+  test_metadata_simpleFormalParameter_unit_setter() async {
+    var library = await checkLibrary('''
+const a = null;
+
+set foo(@a int x) {}
+''');
+    checkElementText(library, r'''
+const dynamic a = null;
+void set foo(@
+        a/*location: test.dart;a?*/ int x) {}
+''');
+  }
+
   test_metadata_simpleFormalParameter_withDefault() async {
     var library = await checkLibrary('const a = null; f([@a x = null]) {}');
     checkElementText(library, r'''
@@ -14544,6 +14591,22 @@ notSimplyBounded typedef F<T extends U* = Null*, U> = U* Function(T* t);
 dynamic f() {}
 dynamic g() {}
 ''');
+  }
+
+  test_unit_variable_final_withSetter() async {
+    var library = await checkLibrary(r'''
+final int foo = 0;
+set foo(int newValue) {}
+''');
+    checkElementText(
+        library,
+        r'''
+final int foo;
+synthetic int get foo {}
+void set foo(int newValue) {}
+''',
+        withSyntheticFields: true,
+        withSyntheticAccessors: true);
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
