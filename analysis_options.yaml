@@ -13,14 +13,12 @@ linter:
     - always_put_required_named_parameters_first
 #    - always_specify_types
     - avoid_annotating_with_dynamic
-#    - avoid_as
 #    - avoid_bool_literals_in_conditional_expressions # under review (see #1068)
     - avoid_catches_without_on_clauses
     - avoid_catching_errors
 #    - avoid_classes_with_only_static_members
 #    - avoid_double_and_int_checks # under review (see #1068)
 #    - avoid_field_initializers_in_const_classes # under review (see #1068)
-#    - avoid_function_literals_in_foreach_calls
 #    - avoid_implementing_value_types
 #    - avoid_js_rounded_ints # under review (see #1068)
     - avoid_positional_boolean_parameters
@@ -31,7 +29,6 @@ linter:
     - avoid_returning_null_for_future
     - avoid_returning_this
     - avoid_setters_without_getters
-#    - avoid_single_cascade_in_expression_statements # under review (see #1068)
     - avoid_slow_async_io
 #    - avoid_types_on_closure_parameters
 #    - avoid_unused_constructor_parameters # under review (see #1068)
@@ -41,7 +38,6 @@ linter:
     - cast_nullable_to_non_nullable
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
-#    - constant_identifier_names
     - directives_ordering
     - invariant_booleans
     - join_return_with_assignment
@@ -53,7 +49,6 @@ linter:
     - package_api_docs
     - parameter_assignments
     - prefer_asserts_in_initializer_lists
-#    - prefer_bool_in_asserts # Deprecated
 #    - prefer_const_constructors
     - prefer_const_constructors_in_immutables
 #    - prefer_const_declarations # under review (see #1068)
@@ -62,7 +57,6 @@ linter:
     - prefer_expression_function_bodies
 #    - prefer_final_locals
     - prefer_foreach
-#    - prefer_function_declarations_over_variables
     - prefer_interpolation_to_compose_strings
 #    - prefer_mixin
     - prefer_null_aware_method_calls
@@ -71,7 +65,6 @@ linter:
 #    - sort_constructors_first
     - sort_pub_dependencies
 #    - sort_unnamed_constructors_first
-#    - super_goes_last
     - test_types_in_equals
     - throw_in_finally
 #    - type_annotate_public_apis
