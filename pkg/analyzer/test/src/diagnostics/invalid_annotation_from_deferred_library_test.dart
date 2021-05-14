@@ -41,7 +41,8 @@ import 'lib1.dart' deferred as a;
 class C { const C(int i); }
 @C(a.x) main () {}
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_EVAL_DEFERRED_LIBRARY, 79, 3),
+      error(CompileTimeErrorCode
+          .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY, 79, 3),
     ]);
   }
 

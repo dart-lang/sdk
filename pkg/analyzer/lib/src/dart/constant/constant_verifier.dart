@@ -422,7 +422,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (realArgument is PrefixedIdentifier && realArgument.isDeferred) {
         _reportErrorIfFromDeferredLibrary(
             realArgument,
-            CompileTimeErrorCode.NON_CONSTANT_EVAL_DEFERRED_LIBRARY,
+            CompileTimeErrorCode
+                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
             [realArgument]);
       }
     }
