@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
+import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -440,10 +441,7 @@ class LibraryReader {
     libraryElement.languageVersion = _readLanguageVersion();
     libraryElement.imports = _reader.readTypedList(_readImportElement);
     libraryElement.exports = _reader.readTypedList(_readExportElement);
-
-    libraryElement.hasExtUri = _reader.readBool();
-    libraryElement.hasPartOfDirective = _reader.readBool();
-    libraryElement.isSynthetic = _reader.readBool();
+    LibraryElementFlags.read(_reader, libraryElement);
 
     var unitContainerRef = _reference.getChild('@unit');
     var unitCount = _reader.readUInt30();
@@ -496,10 +494,7 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
-
-    element.isAbstract = _reader.readBool();
-    element.isMixinApplication = _reader.readBool();
-    element.isSimplyBounded = _reader.readBool();
+    ClassElementFlags.read(_reader, element);
 
     element.typeParameters = _readTypeParameters();
 
@@ -561,10 +556,7 @@ class LibraryReader {
         offset: resolutionOffset,
       );
       element.setLinkedData(reference, linkedData);
-      element.isConst = _reader.readBool();
-      element.isExternal = _reader.readBool();
-      element.isFactory = _reader.readBool();
-      element.isSynthetic = _reader.readBool();
+      ConstructorElementFlags.read(_reader, element);
       element.parameters = _readParameters(element, reference);
       return element;
     });
@@ -733,16 +725,7 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
 
-    element.hasImplicitType = _reader.readBool();
-    element.hasInitializer = _reader.readBool();
-    element.inheritsCovariant = _reader.readBool();
-    element.isAbstract = _reader.readBool();
-    element.isConst = _reader.readBool();
-    element.isCovariant = _reader.readBool();
-    element.isExternal = _reader.readBool();
-    element.isFinal = _reader.readBool();
-    element.isLate = _reader.readBool();
-    element.isStatic = _reader.readBool();
+    FieldElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
     element.createImplicitAccessors(classReference, name);
 
@@ -797,11 +780,7 @@ class LibraryReader {
       );
       element.setLinkedData(reference, linkedData);
 
-      element.hasImplicitReturnType = _reader.readBool();
-      element.isAsynchronous = _reader.readBool();
-      element.isExternal = _reader.readBool();
-      element.isGenerator = _reader.readBool();
-
+      FunctionElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
 
@@ -811,8 +790,7 @@ class LibraryReader {
 
   ImportElementImpl _readImportElement() {
     var element = ImportElementImpl(-1);
-    element.isDeferred = _reader.readBool();
-    element.isSynthetic = _reader.readBool();
+    ImportElementFlags.read(_reader, element);
     element.uri = _reader.readOptionalStringReference();
     var prefixName = _reader.readOptionalStringReference();
     if (prefixName != null) {
@@ -859,13 +837,7 @@ class LibraryReader {
         offset: resolutionOffset,
       );
       element.setLinkedData(reference, linkedData);
-      element.hasImplicitReturnType = _reader.readBool();
-      element.isAbstract = _reader.readBool();
-      element.isAsynchronous = _reader.readBool();
-      element.isExternal = _reader.readBool();
-      element.isGenerator = _reader.readBool();
-      element.isStatic = _reader.readBool();
-
+      MethodElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
       element.typeInferenceError = _readTopLevelInferenceError();
@@ -964,11 +936,7 @@ class LibraryReader {
         reference.element = element;
       }
       element.parameterKind = kind;
-
-      element.hasImplicitType = _reader.readBool();
-      element.inheritsCovariant = _reader.readBool();
-      element.isExplicitlyCovariant = _reader.readBool();
-      element.isFinal = _reader.readBool();
+      ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
       return element;
@@ -983,14 +951,13 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var name = _reader.readStringReference();
-    var isGetter = _reader.readBool();
-    var isSetter = _reader.readBool();
-    var reference = classReference
-        .getChild(isGetter ? '@getter' : '@setter')
-        .getChild(name);
 
     var element = PropertyAccessorElementImpl(name, -1);
+    PropertyAccessorElementFlags.read(_reader, element);
 
+    var reference = classReference
+        .getChild(element.isGetter ? '@getter' : '@setter')
+        .getChild(name);
     var linkedData = PropertyAccessorElementLinkedData(
       reference: reference,
       libraryReader: this,
@@ -999,14 +966,6 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
 
-    element.hasImplicitReturnType = _reader.readBool();
-    element.isAbstract = _reader.readBool();
-    element.isAsynchronous = _reader.readBool();
-    element.isExternal = _reader.readBool();
-    element.isGenerator = _reader.readBool();
-    element.isGetter = isGetter;
-    element.isSetter = isSetter;
-    element.isStatic = _reader.readBool();
     element.parameters = _readParameters(element, reference);
     return element;
   }
@@ -1114,11 +1073,7 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
 
     element.isConst = isConst;
-    element.hasImplicitType = _reader.readBool();
-    element.hasInitializer = _reader.readBool();
-    element.isExternal = _reader.readBool();
-    element.isFinal = _reader.readBool();
-    element.isLate = _reader.readBool();
+    TopLevelVariableElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
     element.createImplicitAccessors(unitReference, name);
 
@@ -1176,8 +1131,7 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
 
     element.isFunctionTypeAliasBased = isFunctionTypeAliasBased;
-    element.hasSelfReference = _reader.readBool();
-    element.isSimplyBounded = _reader.readBool();
+    TypeAliasElementFlags.read(_reader, element);
 
     element.typeParameters = _readTypeParameters();
 

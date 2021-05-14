@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
@@ -106,9 +107,7 @@ class BundleWriter {
     _writeList(libraryElement.imports, _writeImportElement);
     _writeList(libraryElement.exports, _writeExportElement);
     _resolutionSink.writeElement(libraryElement.entryPoint);
-    _sink.writeBool(libraryElement.hasExtUri);
-    _sink.writeBool(libraryElement.hasPartOfDirective);
-    _sink.writeBool(libraryElement.isSynthetic);
+    LibraryElementFlags.write(_sink, libraryElement);
     _sink.writeUInt30(libraryElement.units.length);
     for (var unitElement in libraryElement.units) {
       _writeUnitElement(unitElement);
@@ -125,13 +124,11 @@ class BundleWriter {
   }
 
   void _writeClassElement(ClassElement element) {
+    element as ClassElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
-    // TODO(scheglov) pack flags
-    _sink.writeBool(element.isAbstract);
-    _sink.writeBool(element.isMixinApplication);
-    _sink.writeBool(element.isSimplyBounded);
+    ClassElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -161,11 +158,7 @@ class BundleWriter {
     element as ConstructorElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
-    // TODO(scheglov) pack flags
-    _sink.writeBool(element.isConst);
-    _sink.writeBool(element.isExternal);
-    _sink.writeBool(element.isFactory);
-    _sink.writeBool(element.isSynthetic);
+    ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _resolutionSink.localElements.pushScope();
@@ -233,16 +226,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstFieldElementImpl);
-    _sink.writeBool(element.hasImplicitType);
-    _sink.writeBool(element.hasInitializer);
-    _sink.writeBool(element.inheritsCovariant);
-    _sink.writeBool(element.isAbstract);
-    _sink.writeBool(element.isConst);
-    _sink.writeBool(element.isCovariant);
-    _sink.writeBool(element.isExternal);
-    _sink.writeBool(element.isFinal);
-    _sink.writeBool(element.isLate);
-    _sink.writeBool(element.isStatic);
+    FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.type);
@@ -250,12 +234,10 @@ class BundleWriter {
   }
 
   void _writeFunctionElement(FunctionElement element) {
+    element as FunctionElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
-    _sink.writeBool(element.hasImplicitReturnType);
-    _sink.writeBool(element.isAsynchronous);
-    _sink.writeBool(element.isExternal);
-    _sink.writeBool(element.isGenerator);
+    FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -266,8 +248,8 @@ class BundleWriter {
   }
 
   void _writeImportElement(ImportElement element) {
-    _sink.writeBool(element.isDeferred);
-    _sink.writeBool(element.isSynthetic);
+    element as ImportElementImpl;
+    ImportElementFlags.write(_sink, element);
     _sink._writeOptionalStringReference(element.uri);
     _sink._writeOptionalStringReference(element.prefix?.name);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
@@ -300,12 +282,7 @@ class BundleWriter {
     element as MethodElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
-    _sink.writeBool(element.hasImplicitReturnType);
-    _sink.writeBool(element.isAbstract);
-    _sink.writeBool(element.isAsynchronous);
-    _sink.writeBool(element.isExternal);
-    _sink.writeBool(element.isGenerator);
-    _sink.writeBool(element.isStatic);
+    MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -362,10 +339,7 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _sink.writeBool(element.isInitializingFormal);
     _sink._writeFormalParameterKind(element);
-    _sink.writeBool(element.hasImplicitType);
-    _sink.writeBool(element.inheritsCovariant);
-    _sink.writeBool(element.isExplicitlyCovariant);
-    _sink.writeBool(element.isFinal);
+    ParameterElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -384,16 +358,10 @@ class BundleWriter {
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement element) {
+    element as PropertyAccessorElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.displayName);
-    _sink.writeBool(element.isGetter);
-    _sink.writeBool(element.isSetter);
-    _sink.writeBool(element.hasImplicitReturnType);
-    _sink.writeBool(element.isAbstract);
-    _sink.writeBool(element.isAsynchronous);
-    _sink.writeBool(element.isExternal);
-    _sink.writeBool(element.isGenerator);
-    _sink.writeBool(element.isStatic);
+    PropertyAccessorElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
@@ -415,11 +383,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
     _sink.writeBool(element.isConst);
-    _sink.writeBool(element.hasImplicitType);
-    _sink.writeBool(element.hasInitializer);
-    _sink.writeBool(element.isExternal);
-    _sink.writeBool(element.isFinal);
-    _sink.writeBool(element.isLate);
+    TopLevelVariableElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.type);
@@ -431,10 +395,8 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
-    // TODO(scheglov) pack flags
     _sink.writeBool(element.isFunctionTypeAliasBased);
-    _sink.writeBool(element.hasSelfReference);
-    _sink.writeBool(element.isSimplyBounded);
+    TypeAliasElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
