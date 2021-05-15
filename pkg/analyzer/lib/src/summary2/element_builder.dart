@@ -78,6 +78,33 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorDeclaration(
+    covariant ConstructorDeclarationImpl node,
+  ) {
+    var nameNode = node.name;
+    var name = nameNode?.name ?? '';
+    var nameOffset = nameNode?.offset ?? -1;
+
+    var element = ConstructorElementImpl(name, nameOffset);
+    element.constantInitializers = node.initializers;
+    element.isConst = node.constKeyword != null;
+    element.isExternal = node.externalKeyword != null;
+    element.isFactory = node.factoryKeyword != null;
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    node.declaredElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addConstructor(name, element);
+    _buildExecutableElementChildren(
+      reference: reference,
+      element: element,
+      formalParameters: node.parameters,
+    );
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.parameter.accept(this);
   }
@@ -186,18 +213,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element = DefaultFieldFormalParameterElementImpl(name, nameOffset)
         ..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
+      _enclosingContext.addParameter(name, element);
     } else {
       element = FieldFormalParameterElementImpl(name, nameOffset);
       _linker.elementNodes[element] = node;
+      _enclosingContext.addParameter(null, element);
     }
-    element.hasImplicitType = node.type == null;
+    element.hasImplicitType = node.type == null && node.parameters == null;
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
     element.parameterKind = node.kind;
     _setCodeRange(element, node);
 
-    _enclosingContext.addParameter(element.name, element);
     nameNode.staticElement = element;
 
     var fakeReference = Reference.root();
@@ -445,11 +473,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element = DefaultParameterElementImpl(name, nameOffset)
         ..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
+      _enclosingContext.addParameter(name, element);
     } else {
       element = ParameterElementImpl(name, nameOffset);
       _linker.elementNodes[element] = node;
+      _enclosingContext.addParameter(null, element);
     }
-    _enclosingContext.addParameter(element.name, element);
 
     element.hasImplicitType = node.type == null;
     element.isConst = node.isConst;
@@ -537,19 +566,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   _EnclosingContext _buildClassMembers(
-      ElementImpl element, List<ClassMember> members) {
+      ElementImpl element, NodeList<ClassMember> members) {
     var hasConstConstructor = members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
     var holder = _EnclosingContext(element.reference!, element,
         hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
-      // TODO(scheglov) build all members
-      for (var member in members) {
-        if (member is FieldDeclaration || member is MethodDeclaration) {
-          member.accept(this);
-        }
-      }
+      members.accept(this);
     });
     return holder;
   }
@@ -560,6 +584,27 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.accessors = holder.propertyAccessors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
+
+    var constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      var containerRef = element.reference!.getChild('@constructor');
+      constructors = [
+        ConstructorElementImpl('', -1)
+          ..isSynthetic = true
+          ..reference = containerRef.getChild(''),
+      ];
+    }
+    element.constructors = constructors;
+
+    // We have all fields and constructors.
+    // Now we can resolve field formal parameters.
+    for (var constructor in constructors) {
+      for (var parameter in constructor.parameters) {
+        if (parameter is FieldFormalParameterElementImpl) {
+          parameter.field = element.getField(parameter.name);
+        }
+      }
+    }
   }
 
   void _buildExecutableElementChildren({
@@ -766,6 +811,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 class _EnclosingContext {
   final Reference reference;
   final ElementImpl element;
+  final List<ConstructorElementImpl> constructors = [];
   final List<EnumElementImpl> enums = [];
   final List<FunctionElementImpl> functions = [];
   final List<MethodElementImpl> methods = [];
@@ -780,6 +826,11 @@ class _EnclosingContext {
     this.element, {
     this.hasConstConstructor = false,
   });
+
+  Reference addConstructor(String name, ConstructorElementImpl element) {
+    constructors.add(element);
+    return _bindReference('@constructor', name, element);
+  }
 
   Reference addEnum(String name, EnumElementImpl element) {
     enums.add(element);

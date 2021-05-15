@@ -140,9 +140,10 @@ class _ConstructorInferenceNode extends _InferenceNode {
     this._constructor,
     Map<String, FieldElement> fieldMap,
   ) {
+    // TODO(scheglov) Can we rewrite this to just elements?
     for (var parameterElement in _constructor.parameters) {
       if (parameterElement is FieldFormalParameterElement) {
-        var parameterNode = _getLinkedNode(parameterElement);
+        var parameterNode = _walker._linker.getLinkingNode(parameterElement);
         if (parameterNode is DefaultFormalParameter) {
           parameterNode = parameterNode.parameter;
         }

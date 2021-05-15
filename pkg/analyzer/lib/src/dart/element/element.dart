@@ -509,32 +509,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _constructors;
     }
 
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var containerRef = reference!.getChild('@constructor');
-      _constructors = context.getConstructors(linkedNode!).map((node) {
-        var name = node.name?.name ?? '';
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement;
-        element ??= ConstructorElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-
-      if (_constructors.isEmpty) {
-        return _constructors = [
-          ConstructorElementImpl.forLinkedNode(
-            this,
-            containerRef.getChild(''),
-            null,
-          )
-            ..isSynthetic = true
-            ..name = ''
-            ..nameOffset = -1
-            .._constantInitializers = const [],
-        ];
-      }
-    }
-
     if (_constructors.isEmpty) {
       var constructor = ConstructorElementImpl('', -1);
       constructor.isSynthetic = true;
@@ -954,13 +928,17 @@ class ClassElementImpl extends AbstractClassElementImpl
     // substituting type parameters as appropriate.
     return constructorsToForward
         .map((ConstructorElement superclassConstructor) {
-      var containerRef = reference!.getChild('@constructor');
       var name = superclassConstructor.name;
-      var implicitConstructor = ConstructorElementImpl.forLinkedNode(
-          this, containerRef.getChild(name), null);
+      var implicitConstructor = ConstructorElementImpl(name, -1);
       implicitConstructor.isSynthetic = true;
       implicitConstructor.name = name;
       implicitConstructor.nameOffset = -1;
+
+      var containerRef = reference!.getChild('@constructor');
+      var implicitReference = containerRef.getChild(name);
+      implicitConstructor.reference = implicitReference;
+      implicitReference.element = implicitConstructor;
+
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =
           superclassConstructor.isConst && !hasMixinWithInstanceVariables;
@@ -1639,15 +1617,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
-  List<ConstructorInitializer> _constantInitializers =
-      _Sentinel.constructorInitializer;
+  List<ConstructorInitializer> _constantInitializers = const [];
 
-  /// The offset of the `.` before this constructor name or `null` if not named.
-  int? _periodOffset;
+  @override
+  int? periodOffset;
 
-  /// Return the offset of the character immediately following the last
-  /// character of this constructor's name, or `null` if not named.
-  int? _nameEnd;
+  @override
+  int? nameEnd;
 
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
@@ -1661,26 +1637,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// and [offset].
   ConstructorElementImpl(String name, int offset) : super(name, offset);
 
-  ConstructorElementImpl.forLinkedNode(ClassElementImpl enclosingClass,
-      Reference reference, ConstructorDeclarationImpl? linkedNode)
-      : super.forLinkedNode(enclosingClass, reference, linkedNode) {
-    linkedNode?.declaredElement = this;
-  }
-
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {
     linkedData?.read(this);
-    if (!identical(_constantInitializers, _Sentinel.constructorInitializer)) {
-      return _constantInitializers;
-    }
-
-    if (linkedNode != null) {
-      return _constantInitializers = linkedContext!.getConstructorInitializers(
-        linkedNode as ConstructorDeclaration,
-      );
-    }
-
     return _constantInitializers;
   }
 
@@ -1698,9 +1658,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return linkedData.reference.name;
     }
 
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.displayName;
   }
 
@@ -1710,10 +1667,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isConst {
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as ConstructorDeclaration;
-      return linkedNode.constKeyword != null;
-    }
     return hasModifier(Modifier.CONST);
   }
 
@@ -1734,10 +1687,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isFactory {
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as ConstructorDeclaration;
-      return linkedNode.factoryKeyword != null;
-    }
     return hasModifier(Modifier.FACTORY);
   }
 
@@ -1753,60 +1702,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
-  int? get nameEnd {
-    if (linkedNode != null) {
-      var node = linkedNode as ConstructorDeclaration;
-      if (node.name != null) {
-        return node.name!.end;
-      } else {
-        return node.returnType.end;
-      }
-    }
-
-    return _nameEnd;
-  }
-
-  set nameEnd(int? nameEnd) {
-    _nameEnd = nameEnd;
-  }
-
-  @override
-  int? get periodOffset {
-    if (linkedNode != null) {
-      var node = linkedNode as ConstructorDeclaration;
-      return node.period?.offset;
-    }
-
-    return _periodOffset;
-  }
-
-  set periodOffset(int? periodOffset) {
-    _periodOffset = periodOffset;
-  }
-
-  @override
   ConstructorElement? get redirectedConstructor {
     linkedData?.read(this);
-    if (_redirectedConstructor != null) return _redirectedConstructor;
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      if (isFactory) {
-        var node = context
-            .getConstructorRedirected(linkedNode as ConstructorDeclaration);
-        return _redirectedConstructor = node?.staticElement;
-      } else {
-        var initializers = context
-            .getConstructorInitializers(linkedNode as ConstructorDeclaration);
-        for (var initializer in initializers) {
-          if (initializer is RedirectingConstructorInvocation) {
-            return _redirectedConstructor = initializer.staticElement;
-          }
-        }
-      }
-      return null;
-    }
-
     return _redirectedConstructor;
   }
 
@@ -6820,8 +6717,6 @@ mixin _HasLibraryMixin on ElementImpl {
 class _Sentinel {
   static final List<ClassElement> classElement = List.unmodifiable([]);
   static final List<ConstructorElement> constructorElement =
-      List.unmodifiable([]);
-  static final List<ConstructorInitializer> constructorInitializer =
       List.unmodifiable([]);
   static final List<ElementAnnotation> elementAnnotation =
       List.unmodifiable([]);
