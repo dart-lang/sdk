@@ -115,7 +115,61 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var element = node.declaredElement as ExtensionElementImpl;
     var holder = _buildClassMembers(element, node.members);
+    element.accessors = holder.propertyAccessors;
+    element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
+  }
+
+  @override
+  void visitFieldDeclaration(
+    covariant FieldDeclarationImpl node,
+  ) {
+    var enclosingRef = _enclosingContext.reference;
+
+    for (var variable in node.fields.variables) {
+      var nameNode = variable.name as SimpleIdentifierImpl;
+      var name = nameNode.name;
+      var nameOffset = nameNode.offset;
+
+      FieldElementImpl element;
+      if (_shouldBeConstField(node)) {
+        element = ConstFieldElementImpl(name, nameOffset)
+          ..constantInitializer = variable.initializer;
+      } else {
+        element = FieldElementImpl(name, nameOffset);
+      }
+
+      element.hasInitializer = variable.initializer != null;
+      element.isAbstract = node.abstractKeyword != null;
+      element.isConst = node.fields.isConst;
+      element.isCovariant = node.covariantKeyword != null;
+      element.isExternal = node.externalKeyword != null;
+      element.isFinal = node.fields.isFinal;
+      element.isLate = node.fields.isLate;
+      element.isStatic = node.isStatic;
+      element.metadata = _buildAnnotations(node.metadata);
+
+      if (node.fields.type == null) {
+        element.hasImplicitType = true;
+        element.type = DynamicTypeImpl.instance;
+      }
+
+      element.createImplicitAccessors(enclosingRef, name);
+
+      _linker.elementNodes[element] = variable;
+      _enclosingContext.addField(name, element);
+      nameNode.staticElement = element;
+
+      var getter = element.getter;
+      if (getter is PropertyAccessorElementImpl) {
+        _enclosingContext.addGetter(name, getter);
+      }
+
+      var setter = element.setter;
+      if (setter is PropertyAccessorElementImpl) {
+        _enclosingContext.addSetter(name, setter);
+      }
+    }
   }
 
   @override
@@ -304,40 +358,61 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    // TODO(scheglov) support properties
-    if (node.propertyKeyword != null) {
-      return;
-    }
-
     var nameNode = node.name;
     var name = nameNode.name;
     var nameOffset = nameNode.offset;
 
-    if (name == '-') {
-      var parameters = node.parameters;
-      if (parameters != null && parameters.parameters.isEmpty) {
-        name = 'unary-';
+    Reference reference;
+    ExecutableElementImpl executableElement;
+    if (node.isGetter) {
+      var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.isAbstract = node.isAbstract;
+      element.isGetter = true;
+      element.isStatic = node.isStatic;
+
+      reference = _enclosingContext.addGetter(name, element);
+      executableElement = element;
+
+      _buildSyntheticVariable(name: name, accessorElement: element);
+    } else if (node.isSetter) {
+      var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.isAbstract = node.isAbstract;
+      element.isSetter = true;
+      element.isStatic = node.isStatic;
+
+      reference = _enclosingContext.addSetter(name, element);
+      executableElement = element;
+
+      _buildSyntheticVariable(name: name, accessorElement: element);
+    } else {
+      if (name == '-') {
+        var parameters = node.parameters;
+        if (parameters != null && parameters.parameters.isEmpty) {
+          name = 'unary-';
+        }
       }
+
+      var element = MethodElementImpl(name, nameOffset);
+      element.isAbstract = node.isAbstract;
+      element.isStatic = node.isStatic;
+
+      reference = _enclosingContext.addMethod(name, element);
+      executableElement = element;
     }
-
-    var element = MethodElementImpl(name, nameOffset);
-    element.hasImplicitReturnType = node.returnType == null;
-    element.isAbstract = node.isAbstract;
-    element.isAsynchronous = node.body.isAsynchronous;
-    element.isExternal =
+    executableElement.hasImplicitReturnType = node.returnType == null;
+    executableElement.isAsynchronous = node.body.isAsynchronous;
+    executableElement.isExternal =
         node.externalKeyword != null || node.body is NativeFunctionBody;
-    element.isGenerator = node.body.isGenerator;
-    element.isStatic = node.isStatic;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
+    executableElement.isGenerator = node.body.isGenerator;
+    executableElement.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(executableElement, node);
 
-    nameNode.staticElement = element;
-    _linker.elementNodes[element] = node;
+    nameNode.staticElement = executableElement;
+    _linker.elementNodes[executableElement] = node;
 
-    var reference = _enclosingContext.addMethod(name, element);
     _buildExecutableElementChildren(
       reference: reference,
-      element: element,
+      element: executableElement,
       formalParameters: node.parameters,
       typeParameters: node.typeParameters,
     );
@@ -457,33 +532,21 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.typeParameters.accept(this);
   }
 
-  List<ElementAnnotation> _buildAnnotations(
-    List<Annotation> nodeList,
-  ) {
-    var length = nodeList.length;
-    if (length == 0) {
-      return const <ElementAnnotation>[];
-    }
-
-    var annotations = <ElementAnnotation>[];
-    for (int i = 0; i < length; i++) {
-      var ast = nodeList[i];
-      annotations.add(ElementAnnotationImpl(_unitElement)
-        ..annotationAst = ast
-        ..element = ast.element);
-    }
-    return annotations;
+  List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {
+    return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
   _EnclosingContext _buildClassMembers(
-    ElementImpl element,
-    List<ClassMember> members,
-  ) {
-    var holder = _EnclosingContext(element.reference!, element);
+      ElementImpl element, List<ClassMember> members) {
+    var hasConstConstructor = members.any((e) {
+      return e is ConstructorDeclaration && e.constKeyword != null;
+    });
+    var holder = _EnclosingContext(element.reference!, element,
+        hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
       // TODO(scheglov) build all members
       for (var member in members) {
-        if (member is MethodDeclaration) {
+        if (member is FieldDeclaration || member is MethodDeclaration) {
           member.accept(this);
         }
       }
@@ -494,6 +557,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void _buildClassOrMixin(ClassOrMixinDeclaration node) {
     var element = node.declaredElement as ClassElementImpl;
     var holder = _buildClassMembers(element, node.members);
+    element.accessors = holder.propertyAccessors;
+    element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
   }
 
@@ -578,6 +643,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     return defaultUri;
   }
 
+  bool _shouldBeConstField(FieldDeclaration node) {
+    var fields = node.fields;
+    return fields.isConst ||
+        fields.isFinal && _enclosingContext.hasConstConstructor;
+  }
+
   /// Make the given [context] be the current one while running [f].
   void _withEnclosing(_EnclosingContext context, void Function() f) {
     var previousContext = _enclosingContext;
@@ -631,8 +702,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           var constant = constants[i];
           var name = constant.name.name;
           var reference = containerRef.getChild(name);
-          var field = ConstFieldElementImpl_EnumValue.forLinkedNode(
-              element, reference, constant, i);
+          var field = ConstFieldElementImpl_EnumValue(element, name, i);
+          field.reference = reference;
+          field.metadata = _buildAnnotationsWithUnit(
+            unitElement as CompilationUnitElementImpl,
+            constant.metadata,
+          );
+          field.createImplicitAccessors(containerRef.parent!, name);
           fields.add(field);
           getters.add(field.getter as PropertyAccessorElementImpl);
         }
@@ -645,6 +721,25 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
             libraryElement.typeProvider.stringType;
       }
     }
+  }
+
+  static List<ElementAnnotation> _buildAnnotationsWithUnit(
+    CompilationUnitElementImpl unitElement,
+    List<Annotation> nodeList,
+  ) {
+    var length = nodeList.length;
+    if (length == 0) {
+      return const <ElementAnnotation>[];
+    }
+
+    var annotations = <ElementAnnotation>[];
+    for (int i = 0; i < length; i++) {
+      var ast = nodeList[i];
+      annotations.add(ElementAnnotationImpl(unitElement)
+        ..annotationAst = ast
+        ..element = ast.element);
+    }
+    return annotations;
   }
 
   static List<NamespaceCombinator> _buildCombinators(
@@ -678,12 +773,22 @@ class _EnclosingContext {
   final List<PropertyInducingElementImpl> properties = [];
   final List<PropertyAccessorElementImpl> propertyAccessors = [];
   final List<TypeParameterElementImpl> typeParameters = [];
+  final bool hasConstConstructor;
 
-  _EnclosingContext(this.reference, this.element);
+  _EnclosingContext(
+    this.reference,
+    this.element, {
+    this.hasConstConstructor = false,
+  });
 
   Reference addEnum(String name, EnumElementImpl element) {
     enums.add(element);
     return _bindReference('@enum', name, element);
+  }
+
+  Reference addField(String name, FieldElementImpl element) {
+    properties.add(element);
+    return _bindReference('@field', name, element);
   }
 
   Reference addFunction(String name, FunctionElementImpl element) {

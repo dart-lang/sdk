@@ -482,15 +482,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _accessors;
     }
 
-    if (linkedNode != null) {
-      if (linkedNode is ClassOrMixinDeclaration) {
-        _createPropertiesAndAccessors();
-        return _accessors;
-      } else {
-        return _accessors = const [];
-      }
-    }
-
     return _accessors;
   }
 
@@ -575,15 +566,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (linkedData is ClassElementLinkedData) {
       linkedData.readMembers(this);
       return _fields;
-    }
-
-    if (linkedNode != null) {
-      if (linkedNode is ClassOrMixinDeclaration) {
-        _createPropertiesAndAccessors();
-        return _fields;
-      } else {
-        _fields = const [];
-      }
     }
 
     return _fields;
@@ -1040,71 +1022,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }).toList(growable: false);
   }
 
-  void _createPropertiesAndAccessors() {
-    assert(identical(_accessors, _Sentinel.propertyAccessorElement));
-    assert(identical(_fields, _Sentinel.fieldElement));
-
-    var context = enclosingUnit.linkedContext;
-    var accessorList = <PropertyAccessorElement>[];
-    var fieldList = <FieldElement>[];
-
-    var fields = context!.getFields(linkedNode as CompilationUnitMember);
-    for (var field in fields) {
-      var name = field.name.name;
-      var fieldElement = field.declaredElement as FieldElementImpl?;
-      fieldElement ??= FieldElementImpl.forLinkedNodeFactory(
-          this, reference!.getChild('@field').getChild(name), field);
-      fieldList.add(fieldElement);
-
-      accessorList.add(fieldElement.getter!);
-      if (fieldElement.setter != null) {
-        accessorList.add(fieldElement.setter!);
-      }
-    }
-
-    var methods = context.getMethods(linkedNode as CompilationUnitMember);
-    for (var method in methods) {
-      var isGetter = method.isGetter;
-      var isSetter = method.isSetter;
-      if (!isGetter && !isSetter) continue;
-
-      var name = method.name.name;
-      var containerRef = isGetter
-          ? reference!.getChild('@getter')
-          : reference!.getChild('@setter');
-
-      var accessorElement =
-          method.declaredElement as PropertyAccessorElementImpl?;
-      accessorElement ??= PropertyAccessorElementImpl.forLinkedNode(
-          this, containerRef.getChild(name), method);
-      accessorList.add(accessorElement);
-
-      var fieldRef = reference!.getChild('@field').getChild(name);
-      var field = fieldRef.element as FieldElementImpl?;
-      if (field == null) {
-        field = FieldElementImpl(name, -1);
-        fieldRef.element = field;
-        field.enclosingElement = this;
-        field.isSynthetic = true;
-        field.isFinal = isGetter;
-        field.isStatic = accessorElement.isStatic;
-        fieldList.add(field);
-      } else {
-        field.isFinal = false;
-      }
-
-      accessorElement.variable = field;
-      if (isGetter) {
-        field.getter ??= accessorElement;
-      } else {
-        field.setter ??= accessorElement;
-      }
-    }
-
-    _accessors = accessorList;
-    _fields = fieldList;
-  }
-
   /// Return `true` if the given [type] is an [InterfaceType] that can be used
   /// as a class.
   bool _isInterfaceTypeClass(DartType? type) {
@@ -1559,10 +1476,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /// [name] and [offset].
   ConstFieldElementImpl(String name, int offset) : super(name, offset);
 
-  ConstFieldElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
   @override
   Expression? get constantInitializer {
     linkedData?.read(this);
@@ -1577,10 +1490,6 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   ConstFieldElementImpl_EnumValue(
       EnumElementImpl enumElement, String name, this._index)
       : super(enumElement, name);
-
-  ConstFieldElementImpl_EnumValue.forLinkedNode(EnumElementImpl enumElement,
-      Reference reference, AstNode linkedNode, this._index)
-      : super.forLinkedNode(enumElement, reference, linkedNode);
 
   @override
   Expression? get constantInitializer => null;
@@ -1617,22 +1526,6 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 
   @override
   bool get hasInitializer => false;
-
-  @override
-  String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-    return super.nameOffset;
-  }
 
   @override
   InterfaceType get type =>
@@ -1692,10 +1585,6 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   ConstFieldElementImpl_ofEnum(this._enum, String name) : super(name, -1) {
     enclosingElement = _enum;
   }
-
-  ConstFieldElementImpl_ofEnum.forLinkedNode(
-      this._enum, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(_enum, reference, linkedNode);
 
   @override
   set evaluationResult(_) {
@@ -3521,10 +3410,10 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   /// A list containing all of the accessors (getters and setters) contained in
   /// this extension.
-  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
+  List<PropertyAccessorElement> _accessors = const [];
 
   /// A list containing all of the fields contained in this extension.
-  List<FieldElement> _fields = _Sentinel.fieldElement;
+  List<FieldElement> _fields = const [];
 
   /// A list containing all of the methods contained in this extension.
   List<MethodElement> _methods = const [];
@@ -3545,17 +3434,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    if (linkedNode != null) {
-      if (linkedNode is ExtensionDeclaration) {
-        _createPropertiesAndAccessors();
-        return _accessors;
-      }
-    }
-
     return _accessors;
   }
 
@@ -3596,19 +3474,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<FieldElement> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    if (linkedNode != null) {
-      if (linkedNode is ExtensionDeclaration) {
-        _createPropertiesAndAccessors();
-        return _fields;
-      } else {
-        return _fields;
-      }
-    }
-
     return _fields;
   }
 
@@ -3742,74 +3607,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
     safelyVisitChildren(methods, visitor);
     safelyVisitChildren(typeParameters, visitor);
   }
-
-  /// Create the accessors and fields when [linkedNode] is not `null`.
-  void _createPropertiesAndAccessors() {
-    assert(identical(_accessors, _Sentinel.propertyAccessorElement));
-    assert(identical(_fields, _Sentinel.fieldElement));
-
-    var context = enclosingUnit.linkedContext!;
-    var accessorList = <PropertyAccessorElement>[];
-    var fieldList = <FieldElement>[];
-
-    var fields = context.getFields(linkedNode as CompilationUnitMember);
-    for (var field in fields) {
-      var name = field.name.name;
-      var fieldElement = field.declaredElement as FieldElementImpl?;
-      fieldElement ??= FieldElementImpl.forLinkedNodeFactory(
-          this, reference!.getChild('@field').getChild(name), field);
-      fieldList.add(fieldElement);
-
-      accessorList.add(fieldElement.getter!);
-      if (fieldElement.setter != null) {
-        accessorList.add(fieldElement.setter!);
-      }
-    }
-
-    var methods = context.getMethods(linkedNode as CompilationUnitMember);
-    for (var method in methods) {
-      var isGetter = method.isGetter;
-      var isSetter = method.isSetter;
-      if (!isGetter && !isSetter) continue;
-
-      var name = method.name.name;
-      var containerRef = isGetter
-          ? reference!.getChild('@getter')
-          : reference!.getChild('@setter');
-
-      var accessorElement =
-          method.declaredElement as PropertyAccessorElementImpl?;
-      accessorElement ??= PropertyAccessorElementImpl.forLinkedNode(
-          this, containerRef.getChild(name), method);
-      accessorList.add(accessorElement);
-
-      var fieldRef = reference!.getChild('@field').getChild(name);
-      var field = fieldRef.element as FieldElementImpl?;
-      if (field == null) {
-        field = FieldElementImpl(name, -1);
-        fieldRef.element = field;
-        field.enclosingElement = this;
-        field.isSynthetic = true;
-        field.isFinal = isGetter;
-        field.isStatic = accessorElement.isStatic;
-        fieldList.add(field);
-      } else {
-        // TODO(brianwilkerson) Shouldn't this depend on whether there is a
-        //  setter?
-        field.isFinal = false;
-      }
-
-      accessorElement.variable = field;
-      if (isGetter) {
-        field.getter = accessorElement;
-      } else {
-        field.setter = accessorElement;
-      }
-    }
-
-    _accessors = accessorList;
-    _fields = fieldList;
-  }
 }
 
 /// A concrete implementation of a [FieldElement].
@@ -3823,48 +3620,16 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// [name] at the given [offset].
   FieldElementImpl(String name, int offset) : super(name, offset);
 
-  FieldElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    if (linkedNode is VariableDeclarationImpl) {
-      linkedNode.name.staticElement = this;
-    }
-    if (!linkedNode.isSynthetic) {
-      var enclosingRef = enclosing.reference!;
-      createImplicitAccessors(enclosingRef, name);
-    }
-  }
-
-  factory FieldElementImpl.forLinkedNodeFactory(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
-    var context = enclosing.enclosingUnit.linkedContext!;
-    if (context.shouldBeConstFieldElement(linkedNode)) {
-      return ConstFieldElementImpl.forLinkedNode(
-        enclosing,
-        reference,
-        linkedNode,
-      );
-    }
-    return FieldElementImpl.forLinkedNode(enclosing, reference, linkedNode);
-  }
-
   @override
   FieldElement get declaration => this;
 
   @override
   bool get isAbstract {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isAbstract(linkedNode!);
-    }
     return hasModifier(Modifier.ABSTRACT);
   }
 
   @override
   bool get isCovariant {
-    if (linkedNode != null) {
-      return linkedContext!.isExplicitlyCovariant(linkedNode!);
-    }
-
     return hasModifier(Modifier.COVARIANT);
   }
 
@@ -3881,17 +3646,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isExternal {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isExternal(linkedNode!);
-    }
     return hasModifier(Modifier.EXTERNAL);
   }
 
   @override
   bool get isStatic {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isStatic(linkedNode!);
-    }
     return hasModifier(Modifier.STATIC);
   }
 
@@ -5990,10 +5749,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// [name] and [offset].
   PropertyAccessorElementImpl(String name, int offset) : super(name, offset);
 
-  PropertyAccessorElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
   PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable,
@@ -6038,9 +5793,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isGetter {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isGetter(linkedNode!);
-    }
     return hasModifier(Modifier.GETTER);
   }
 
@@ -6051,9 +5803,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isSetter {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isSetter(linkedNode!);
-    }
     return hasModifier(Modifier.SETTER);
   }
 
@@ -6064,9 +5813,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isStatic {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isStatic(linkedNode!);
-    }
     return hasModifier(Modifier.STATIC);
   }
 
@@ -6091,13 +5837,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   String get name {
-    if (linkedNode != null) {
-      var name = reference!.name;
-      if (isSetter) {
-        return '$name=';
-      }
-      return name;
-    }
     if (isSetter) {
       return "${super.name}=";
     }
