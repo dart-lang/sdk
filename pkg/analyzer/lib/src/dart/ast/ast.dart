@@ -2680,6 +2680,52 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 }
 
+/// An expression representing a reference to a constructor, e.g. the expression
+/// `List.filled` in `var x = List.filled;`.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an identifier refers to a type); they are
+/// produced at resolution time.
+class ConstructorReferenceImpl extends ExpressionImpl
+    implements ConstructorReference {
+  ConstructorNameImpl _constructorName;
+
+  ConstructorReferenceImpl(this._constructorName) {
+    _becomeParentOf(_constructorName);
+  }
+
+  @override
+  Token get beginToken => constructorName.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      ChildEntities()..add(constructorName);
+
+  @override
+  ConstructorNameImpl get constructorName => _constructorName;
+
+  set constructorName(ConstructorNameImpl value) {
+    _constructorName = _becomeParentOf(value);
+  }
+
+  @override
+  Token get endToken => constructorName.endToken;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw UnimplementedError(
+        'Visitor support for ConstructorReference is not yet implemented');
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constructorName.accept(visitor);
+  }
+}
+
 /// A continue statement.
 ///
 ///    continueStatement ::=
@@ -4970,6 +5016,64 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool _extendsNullShorting(Expression child) => identical(child, _function);
+}
+
+/// An expression representing a reference to a function, possibly with type
+/// arguments applied to it, e.g. the expression `print` in `var x = print;`.
+class FunctionReferenceImpl extends ExpressionImpl
+    implements FunctionReference {
+  ExpressionImpl _function;
+
+  TypeArgumentListImpl? _typeArguments;
+
+  @override
+  List<DartType>? typeArgumentTypes;
+
+  FunctionReferenceImpl(this._function, {TypeArgumentListImpl? typeArguments})
+      : _typeArguments = typeArguments {
+    _becomeParentOf(_function);
+    _becomeParentOf(_typeArguments);
+  }
+
+  @override
+  Token get beginToken => function.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      ChildEntities()..add(function)..add(typeArguments);
+
+  @override
+  Token get endToken => typeArguments?.endToken ?? function.endToken;
+
+  @override
+  ExpressionImpl get function => _function;
+
+  set function(ExpressionImpl value) {
+    _function = _becomeParentOf(value);
+  }
+
+  @override
+  Precedence get precedence =>
+      typeArguments == null ? function.precedence : Precedence.postfix;
+
+  @override
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  set typeArguments(TypeArgumentListImpl? value) {
+    _typeArguments = _becomeParentOf(value);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw UnimplementedError(
+        'Visitor support for FunctionReference is not yet implemented');
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    function.accept(visitor);
+    typeArguments?.accept(visitor);
+  }
 }
 
 /// A function type alias.
@@ -9960,6 +10064,56 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     _typeArguments?.accept(visitor);
+  }
+}
+
+/// An expression representing a type, e.g. the expression `int` in
+/// `var x = int;`.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an identifier refers to a type); they are
+/// produced at resolution time.
+///
+/// The `.staticType` getter returns the type of the expression (which will
+/// always be the type `Type`).  To see the type represented by the type literal
+/// use `.typeName.type`.
+class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
+  TypeNameImpl _typeName;
+
+  TypeLiteralImpl(this._typeName) {
+    _becomeParentOf(_typeName);
+  }
+
+  @override
+  Token get beginToken => typeName.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()..add(typeName);
+
+  @override
+  Token get endToken => typeName.endToken;
+
+  @override
+  Precedence get precedence => typeName.typeArguments == null
+      ? typeName.name.precedence
+      : Precedence.postfix;
+
+  @override
+  TypeNameImpl get typeName => _typeName;
+
+  set typeName(TypeNameImpl value) {
+    _typeName = _becomeParentOf(value);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw UnimplementedError(
+        'Visitor support for TypeLiteral is not yet implemented');
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeName.accept(visitor);
   }
 }
 
