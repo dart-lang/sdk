@@ -69,7 +69,9 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
 
 String kernelLibraryToString(Library library) {
   final StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showMetadata: true).writeLibraryFile(library);
+  final printer = new Printer(buffer, showMetadata: true);
+  printer.writeLibraryFile(library);
+  printer.writeConstantTable(library.enclosingComponent);
   return buffer
       .toString()
       .replaceAll(library.importUri.toString(), library.name);

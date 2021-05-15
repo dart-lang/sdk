@@ -162,3 +162,27 @@ class ZopDrop extends pro::GeneratedMessage {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(0, v);
   }
 }
+constants  {
+  #C1 = false
+  #C2 = tearoff self::BarKeep::create
+  #C3 = tearoff self::ZopDrop::create
+  #C4 = tearoff self::HasKeep::create
+  #C5 = tearoff self::ClearKeep::create
+  #C6 = "dart2js:noInline"
+  #C7 = null
+  #C8 = core::pragma {name:#C6, options:#C7}
+  #C9 = 1
+  #C10 = pro::TagNumber {tagNumber:#C9}
+  #C11 = 3
+  #C12 = pro::TagNumber {tagNumber:#C11}
+  #C13 = 4
+  #C14 = pro::TagNumber {tagNumber:#C13}
+  #C15 = 5
+  #C16 = pro::TagNumber {tagNumber:#C15}
+  #C17 = 6
+  #C18 = pro::TagNumber {tagNumber:#C17}
+  #C19 = 7
+  #C20 = pro::TagNumber {tagNumber:#C19}
+  #C21 = 2
+  #C22 = pro::TagNumber {tagNumber:#C21}
+}

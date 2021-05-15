@@ -36,3 +36,6 @@ static method main(core::List<core::String*>* args) → dynamic {
   [@vm.direct-call.metadata=dart.core::Stopwatch.stop] [@vm.inferred-type.metadata=!? (skip check)] timer.{core::Stopwatch::stop}();
   core::print("Elapsed ${[@vm.direct-call.metadata=dart.core::Stopwatch.elapsedMilliseconds] timer.{core::Stopwatch::elapsedMilliseconds}}ms, result ${self::x}");
 }
+constants  {
+  #C1 = 10
+}

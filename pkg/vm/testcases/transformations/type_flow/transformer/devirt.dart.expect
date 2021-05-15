@@ -64,3 +64,6 @@ static method main(core::List<core::String*>* args) → dynamic {
   self::callerE1();
   self::callerE2([@vm.inferred-type.metadata=#lib::E?] self::ee);
 }
+constants  {
+  #C1 = "abc"
+}

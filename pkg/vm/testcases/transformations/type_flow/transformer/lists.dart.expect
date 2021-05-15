@@ -51,3 +51,9 @@ static method main() → dynamic {
   core::print([@vm.direct-call.metadata=#lib::A.generateFactory4] [@vm.inferred-type.metadata=!] x.{self::A::generateFactory4});
   core::print([@vm.direct-call.metadata=#lib::A.generateFactory5] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::List<dart.core::int*>*>] x.{self::A::generateFactory5});
 }
+constants  {
+  #C1 = <core::int*>[]
+  #C2 = 1
+  #C3 = 2
+  #C4 = <core::int*>[#C2, #C3]
+}

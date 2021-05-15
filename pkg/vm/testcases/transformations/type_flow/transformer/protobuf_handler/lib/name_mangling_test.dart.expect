@@ -54,3 +54,13 @@ class NameManglingKeep extends pro::GeneratedMessage {
   method hasClone_10() → core::bool
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}();
 }
+constants  {
+  #C1 = false
+  #C2 = tearoff self::AKeep::create
+  #C3 = "dart2js:noInline"
+  #C4 = null
+  #C5 = core::pragma {name:#C3, options:#C4}
+  #C6 = tearoff self::NameManglingKeep::create
+  #C7 = 10
+  #C8 = pro::TagNumber {tagNumber:#C7}
+}

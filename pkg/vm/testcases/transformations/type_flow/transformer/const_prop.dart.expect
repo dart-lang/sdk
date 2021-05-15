@@ -58,3 +58,19 @@ static method main() → dynamic {
   self::testPassEnum();
   let final dynamic #t1 = [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2, 3])] self::getList() in self::testList();
 }
+constants  {
+  #C1 = 40
+  #C2 = 42
+  #C3 = 43
+  #C4 = 3.14
+  #C5 = "bazz"
+  #C6 = 1
+  #C7 = "B.b2"
+  #C8 = self::B {index:#C6, _name:#C7}
+  #C9 = 2
+  #C10 = 3
+  #C11 = <core::int*>[#C6, #C9, #C10]
+  #C12 = 4
+  #C13 = 5
+  #C14 = <core::int*>[#C12, #C13]
+}
