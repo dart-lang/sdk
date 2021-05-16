@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
+// import 'dart:math';
 
 /// Decodes [input] in a chunked way and yields to the event loop
 /// as soon as [maxMicroseconds] have elapsed.
@@ -12,7 +12,7 @@ Future<dynamic> decodeJsonChunked(String input, int maxMicroseconds) {
   var outSink = new ChunkedConversionSink.withCallback((x) {
     result = x[0];
   });
-  var inSink = JSON.decoder.startChunkedConversion(outSink);
+  var inSink = json.decoder.startChunkedConversion(outSink);
   var chunkSize = input.length ~/ chunkCount;
 
   int i = 0;
