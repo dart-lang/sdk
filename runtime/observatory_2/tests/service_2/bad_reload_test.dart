@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=bad_reload/v1/main.dart
+// OtherResources=bad_reload/v2/main.dart
+
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -37,6 +40,14 @@ Future<String> invokeTest(Isolate isolate) async {
   return result.valueAsString;
 }
 
+Future<void> invokeTestWithError(Isolate isolate) async {
+  await isolate.reload();
+  Library lib = isolate.rootLibrary;
+  await lib.load();
+  final result = await lib.evaluate('test()');
+  expect(result.isError, isTrue);
+}
+
 var tests = <IsolateTest>[
   // Stopped at 'debugger' statement.
   hasStoppedAtBreakpoint,
@@ -65,14 +76,13 @@ var tests = <IsolateTest>[
     );
     // Observe that it failed.
     expect(response['success'], isFalse);
-    List notices = response['details']['notices'];
+    List notices = response['notices'];
     expect(notices.length, equals(1));
     Map<String, dynamic> reasonForCancelling = notices[0];
     expect(reasonForCancelling['type'], equals('ReasonForCancelling'));
     expect(reasonForCancelling['message'], contains('library_isnt_here_man'));
 
-    String v2 = await invokeTest(spawnedIsolate);
-    expect(v2, 'apple');
+    await invokeTestWithError(spawnedIsolate);
   }
 ];
 

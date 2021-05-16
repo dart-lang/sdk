@@ -171,7 +171,6 @@ class BaseFlowGraphBuilder {
                        AlignmentType alignment = kAlignedAccess);
 
   Fragment LoadUntagged(intptr_t offset);
-  Fragment StoreUntagged(intptr_t offset);
   Fragment ConvertUntaggedToUnboxed(Representation to);
   Fragment ConvertUnboxedToUntagged(Representation from);
   Fragment UnboxSmiToIntptr();
@@ -192,12 +191,20 @@ class BaseFlowGraphBuilder {
   Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
   Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
   static const Field& MayCloneField(Zone* zone, const Field& field);
-  Fragment StoreInstanceField(
+  Fragment StoreNativeField(
       TokenPosition position,
-      const Slot& field,
+      const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+  Fragment StoreNativeField(
+      const Slot& slot,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier) {
+    return StoreNativeField(TokenPosition::kNoSource, slot, kind,
+                            emit_store_barrier);
+  }
   Fragment StoreInstanceField(
       const Field& field,
       StoreInstanceFieldInstr::Kind kind =
@@ -334,8 +341,8 @@ class BaseFlowGraphBuilder {
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
-  Fragment AllocateClosure(TokenPosition position,
-                           const Function& closure_function);
+  // Top of the stack should be the closure function.
+  Fragment AllocateClosure(TokenPosition position = TokenPosition::kNoSource);
   Fragment CreateArray();
   Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);

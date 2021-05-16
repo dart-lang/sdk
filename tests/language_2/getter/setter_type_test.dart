@@ -4,6 +4,8 @@
 // Getters and setters can have different types, but it is a warning if the
 // two types are not assignable.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 int bar = 499;

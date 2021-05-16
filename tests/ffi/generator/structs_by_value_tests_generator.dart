@@ -24,14 +24,19 @@ enum TestType {
 
 extension on FunctionType {
   TestType get testType {
-    if (arguments.containsStructs && returnValue is FundamentalType) {
+    if (arguments.containsComposites && returnValue is FundamentalType) {
       return TestType.structArguments;
     }
-    if (returnValue is StructType && argumentTypes.contains(returnValue)) {
+    if (returnValue is CompositeType && argumentTypes.contains(returnValue)) {
       return TestType.structReturnArgument;
     }
     if (returnValue is StructType) {
-      if (arguments.length == (returnValue as StructType).members.length) {
+      if (arguments.length == (returnValue as CompositeType).members.length) {
+        return TestType.structReturn;
+      }
+    }
+    if (returnValue is UnionType) {
+      if (arguments.length == 1) {
         return TestType.structReturn;
       }
     }
@@ -52,7 +57,8 @@ extension on CType {
         return "<< $variableName";
 
       case StructType:
-        final this_ = this as StructType;
+      case UnionType:
+        final this_ = this as CompositeType;
         return this_.members.coutExpression("$variableName.");
 
       case FixedLengthArrayType:
@@ -102,6 +108,12 @@ extension on CType {
         final this_ = this as StructType;
         return this_.members.addToResultStatements("$variableName.");
 
+      case UnionType:
+        final this_ = this as UnionType;
+        final member = this_.members.first;
+        return member.type
+            .addToResultStatements("$variableName.${member.name}");
+
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
         final indices = [for (var i = 0; i < this_.length; i += 1) i];
@@ -138,6 +150,12 @@ extension on CType {
       case StructType:
         final this_ = this as StructType;
         return this_.members.assignValueStatements(a, "$variableName.");
+
+      case UnionType:
+        final this_ = this as UnionType;
+        final member = this_.members.first;
+        return member.type
+            .assignValueStatements(a, "$variableName.${member.name}");
 
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
@@ -224,6 +242,7 @@ extension on CType {
         return "${dartType} ${variableName};\n";
 
       case StructType:
+      case UnionType:
         return """
 final ${variableName}Pointer = calloc<$dartType>();
 final ${dartType} ${variableName} = ${variableName}Pointer.ref;
@@ -245,6 +264,7 @@ final ${dartType} ${variableName} = ${variableName}Pointer.ref;
         return "${dartType} ${variableName} = 0.0;\n";
 
       case StructType:
+      case UnionType:
         if (structsAsPointers) {
           return "Pointer<${dartType}> ${variableName}Pointer = nullptr;\n";
         } else {
@@ -278,6 +298,7 @@ extension on CType {
         return "";
 
       case StructType:
+      case UnionType:
         return "calloc.free(${variableName}Pointer);\n";
     }
 
@@ -298,6 +319,7 @@ extension on CType {
     switch (this.runtimeType) {
       case FundamentalType:
       case StructType:
+      case UnionType:
         return "${cType} ${variableName};\n";
     }
 
@@ -432,7 +454,8 @@ extension on CType {
         return variableName;
 
       case StructType:
-        final this_ = this as StructType;
+      case UnionType:
+        final this_ = this as CompositeType;
         return this_.members.firstArgumentName("$variableName.");
 
       case FixedLengthArrayType:
@@ -453,9 +476,12 @@ extension on List<Member> {
   }
 }
 
-extension on StructType {
+extension on CompositeType {
   String dartClass(bool nnbd) {
-    final packingAnnotation = hasPacking ? "@Packed(${packing})" : "";
+    final self = this;
+    final packingAnnotation = (self is StructType) && self.hasPacking
+        ? "@Packed(${self.packing})"
+        : "";
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField(nnbd)}\n\n";
@@ -479,7 +505,7 @@ extension on StructType {
     }).join(", ");
     return """
     $packingAnnotation
-    class $name extends Struct {
+    class $name extends $dartSuperClass {
       $dartFields
 
       String toString() => "($toStringBody)";
@@ -488,16 +514,20 @@ extension on StructType {
   }
 
   String get cDefinition {
-    final packingPragmaPush =
-        hasPacking ? "#pragma pack(push, ${packing})" : "";
-    final packingPragmaPop = hasPacking ? "#pragma pack(pop)" : "";
+    final self = this;
+    final packingPragmaPush = (self is StructType) && self.hasPacking
+        ? "#pragma pack(push, ${self.packing})"
+        : "";
+    final packingPragmaPop =
+        (self is StructType) && self.hasPacking ? "#pragma pack(pop)" : "";
+
     String cFields = "";
     for (final member in members) {
       cFields += "  ${member.cStructField}\n";
     }
     return """
     $packingPragmaPush
-    struct $name {
+    $cKeyword $name {
       $cFields
     };
     $packingPragmaPop
@@ -727,7 +757,7 @@ extension on FunctionType {
         arguments.map((e) => "${e.type.cType} ${e.name}").join(", ");
 
     return """
-    // Used for testing structs by value.
+    // Used for testing structs and unions by value.
     ${reason.makeCComment()}
     DART_EXPORT ${returnValue.cType} $cName($argumentss) {
       std::cout << \"$cName\" ${arguments.coutExpression()} << \"\\n\";
@@ -779,7 +809,7 @@ extension on FunctionType {
     }
 
     return """
-    // Used for testing structs by value.
+    // Used for testing structs and unions by value.
     ${reason.makeCComment()}
     DART_EXPORT intptr_t
     Test$cName(
@@ -859,7 +889,7 @@ void writeDartCallTest() {
       }
     }
     """);
-    buffer.writeAll(structs.map((e) => e.dartClass(nnbd)));
+    buffer.writeAll(compounds.map((e) => e.dartClass(nnbd)));
     buffer.writeAll(functions.map((e) => e.dartCallCode));
 
     final path = callTestPath(nnbd);
@@ -984,7 +1014,7 @@ void writeC() {
   final StringBuffer buffer = StringBuffer();
   buffer.write(headerC);
 
-  buffer.writeAll(structs.map((e) => e.cDefinition));
+  buffer.writeAll(compounds.map((e) => e.cDefinition));
   buffer.writeAll(functions.map((e) => e.cCallCode));
   buffer.writeAll(functions.map((e) => e.cCallbackCode));
 

@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 import 'templates/console_full.dart';
 import 'templates/console_simple.dart';
 import 'templates/package_simple.dart';
-import 'templates/server_simple.dart';
+import 'templates/server_shelf.dart';
 import 'templates/web_simple.dart';
 
 final _substituteRegExp = RegExp(r'__([a-zA-Z]+)__');
@@ -19,7 +19,7 @@ final List<Generator> generators = [
   ConsoleSimpleGenerator(),
   ConsoleFullGenerator(),
   PackageSimpleGenerator(),
-  ServerSimpleGenerator(),
+  ServerShelfGenerator(),
   WebSimpleGenerator(),
 ];
 

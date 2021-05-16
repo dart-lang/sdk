@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 import 'dart:io' as io;
 import 'dart:io';
@@ -17,6 +15,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
@@ -27,6 +26,7 @@ import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -47,6 +47,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -61,7 +62,7 @@ abstract class AbstractAnalysisServer {
 
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
-  ContextManager contextManager;
+  late ContextManager contextManager;
 
   /// The object used to manage sending a subset of notifications to the client.
   /// The subset of notifications are those to which plugins may contribute.
@@ -69,25 +70,29 @@ abstract class AbstractAnalysisServer {
   AbstractNotificationManager notificationManager;
 
   /// The object used to manage the execution of plugins.
-  PluginManager pluginManager;
+  late PluginManager pluginManager;
 
   /// The object used to manage the SDK's known to this server.
   final DartSdkManager sdkManager;
 
-  /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
-  SearchEngine searchEngine;
+  /// The [SearchEngine] for this server.
+  late final SearchEngine searchEngine;
 
-  ByteStore byteStore;
+  late ByteStore byteStore;
 
-  nd.AnalysisDriverScheduler analysisDriverScheduler;
+  late nd.AnalysisDriverScheduler analysisDriverScheduler;
 
-  DeclarationsTracker declarationsTracker;
-  DeclarationsTrackerData declarationsTrackerData;
+  DeclarationsTracker? declarationsTracker;
+  DeclarationsTrackerData? declarationsTrackerData;
+
+  /// A map from analysis contexts to the documentation cache associated with
+  /// each context.
+  Map<AnalysisContext, DocumentationCache> documentationForContext = {};
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
   /// server.
-  final DiagnosticServer diagnosticServer;
+  final DiagnosticServer? diagnosticServer;
 
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
@@ -98,25 +103,25 @@ abstract class AbstractAnalysisServer {
 
   /// Performance information after initial analysis is complete
   /// or `null` if the initial analysis is not yet complete
-  ServerPerformance performanceAfterStartup;
+  ServerPerformance? performanceAfterStartup;
 
   /// A client for making requests to the pub.dev API.
   final PubApi pubApi;
 
   /// A service for fetching pub.dev package details.
-  PubPackageService pubPackageService;
+  late PubPackageService pubPackageService;
 
   /// The class into which performance information is currently being recorded.
   /// During startup, this will be the same as [performanceDuringStartup]
   /// and after startup is complete, this switches to [performanceAfterStartup].
-  ServerPerformance performance;
+  late ServerPerformance performance;
 
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
 
-  RequestStatisticsHelper requestStatistics;
+  RequestStatisticsHelper? requestStatistics;
 
-  PerformanceLog analysisPerformanceLogger;
+  PerformanceLog? analysisPerformanceLogger;
 
   /// The set of the files that are currently priority.
   final Set<String> priorityFiles = <String>{};
@@ -139,10 +144,10 @@ abstract class AbstractAnalysisServer {
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
-    http.Client httpClient,
+    http.Client? httpClient,
     this.notificationManager, {
     this.requestStatistics,
-    bool enableBazelWatcher,
+    bool enableBazelWatcher = false,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
@@ -158,22 +163,22 @@ abstract class AbstractAnalysisServer {
         instrumentationService);
     var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
-    {
-      var name = options.newAnalysisDriverLog;
-      StringSink sink = NullStringSink();
-      if (name != null) {
-        if (name == 'stdout') {
-          sink = io.stdout;
-        } else if (name.startsWith('file:')) {
-          var path = name.substring('file:'.length);
-          sink = FileStringSink(path);
-        }
+    var name = options.newAnalysisDriverLog;
+    StringSink sink = NullStringSink();
+    if (name != null) {
+      if (name == 'stdout') {
+        sink = io.stdout;
+      } else if (name.startsWith('file:')) {
+        var path = name.substring('file:'.length);
+        sink = FileStringSink(path);
       }
-      if (requestStatistics != null) {
-        sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
-      }
-      analysisPerformanceLogger = PerformanceLog(sink);
     }
+    final requestStatistics = this.requestStatistics;
+    if (requestStatistics != null) {
+      sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
+    }
+    final analysisPerformanceLogger =
+        this.analysisPerformanceLogger = PerformanceLog(sink);
 
     byteStore = createByteStore(resourceProvider);
 
@@ -182,10 +187,11 @@ abstract class AbstractAnalysisServer {
         driverWatcher: pluginWatcher);
 
     if (options.featureSet.completion) {
-      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
-      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+      var tracker = declarationsTracker =
+          DeclarationsTracker(byteStore, resourceProvider);
+      declarationsTrackerData = DeclarationsTrackerData(tracker);
       analysisDriverScheduler.outOfBandWorker =
-          CompletionLibrariesWorker(declarationsTracker);
+          CompletionLibrariesWorker(tracker);
     }
 
     contextManager = ContextManagerImpl(
@@ -217,8 +223,9 @@ abstract class AbstractAnalysisServer {
 
   void addContextsToDeclarationsTracker() {
     declarationsTracker?.discardContexts();
+    documentationForContext.clear();
     for (var driver in driverMap.values) {
-      declarationsTracker?.addContext(driver.analysisContext);
+      declarationsTracker?.addContext(driver.analysisContext!);
       driver.resetUriResolution();
     }
   }
@@ -232,8 +239,7 @@ abstract class AbstractAnalysisServer {
     const memoryCacheSize = 128 * M;
 
     if (resourceProvider is OverlayResourceProvider) {
-      OverlayResourceProvider overlay = resourceProvider;
-      resourceProvider = overlay.baseProvider;
+      resourceProvider = resourceProvider.baseProvider;
     }
     if (resourceProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
@@ -249,22 +255,20 @@ abstract class AbstractAnalysisServer {
   /// Return an analysis driver to which the file with the given [path] is
   /// added if one exists, otherwise a driver in which the file was analyzed if
   /// one exists, otherwise the first driver, otherwise `null`.
-  nd.AnalysisDriver getAnalysisDriver(String path) {
+  nd.AnalysisDriver? getAnalysisDriver(String path) {
     var drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
       // Sort the drivers so that more deeply nested contexts will be checked
       // before enclosing contexts.
       drivers.sort((first, second) {
-        var firstRoot = first.analysisContext.contextRoot.root.path;
-        var secondRoot = second.analysisContext.contextRoot.root.path;
+        var firstRoot = first.analysisContext!.contextRoot.root.path;
+        var secondRoot = second.analysisContext!.contextRoot.root.path;
         return secondRoot.length - firstRoot.length;
       });
-      var driver = drivers.firstWhere(
-          (driver) => driver.analysisContext.contextRoot.isAnalyzed(path),
-          orElse: () => null);
-      driver ??= drivers.firstWhere(
-          (driver) => driver.knownFiles.contains(path),
-          orElse: () => null);
+      var driver = drivers.firstWhereOrNull(
+          (driver) => driver.analysisContext!.contextRoot.isAnalyzed(path));
+      driver ??= drivers
+          .firstWhereOrNull((driver) => driver.knownFiles.contains(path));
       driver ??= drivers.first;
       return driver;
     }
@@ -278,18 +282,31 @@ abstract class AbstractAnalysisServer {
         DartdocDirectiveInfo();
   }
 
+  /// Return the object used to cache the documentation for elements in the
+  /// context that produced the [result], or `null` if there is no cache for the
+  /// context.
+  DocumentationCache? getDocumentationCacheFor(ResolvedUnitResult result) {
+    var context = result.session.analysisContext;
+    var tracker = declarationsTracker?.getContext(context);
+    if (tracker == null) {
+      return null;
+    }
+    return documentationForContext.putIfAbsent(
+        context, () => DocumentationCache(tracker.dartdocDirectiveInfo));
+  }
+
   /// Return a [Future] that completes with the [Element] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element> getElementAtOffset(String file, int offset) async {
+  Future<Element?> getElementAtOffset(String file, int offset) async {
     if (!priorityFiles.contains(file)) {
       var driver = getAnalysisDriver(file);
       if (driver == null) {
         return null;
       }
 
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult == null) {
+      var unitElementResult = await driver.getUnitElement2(file);
+      if (unitElementResult is! UnitElementResult) {
         return null;
       }
 
@@ -305,7 +322,7 @@ abstract class AbstractAnalysisServer {
 
   /// Return the [Element] of the given [node], or `null` if [node] is `null` or
   /// does not have an element.
-  Element getElementOfNode(AstNode node) {
+  Element? getElementOfNode(AstNode? node) {
     if (node == null) {
       return null;
     }
@@ -328,7 +345,7 @@ abstract class AbstractAnalysisServer {
   /// Return a [Future] that completes with the resolved [AstNode] at the
   /// given [offset] of the given [file], or with `null` if there is no node as
   /// the [offset].
-  Future<AstNode> getNodeAtOffset(String file, int offset) async {
+  Future<AstNode?> getNodeAtOffset(String file, int offset) async {
     var result = await getResolvedUnit(file);
     var unit = result?.unit;
     if (unit != null) {
@@ -338,18 +355,20 @@ abstract class AbstractAnalysisServer {
   }
 
   /// Return the unresolved unit for the file with the given [path].
-  ParsedUnitResult getParsedUnit(String path) {
+  ParsedUnitResult? getParsedUnit(String path) {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
 
-    return getAnalysisDriver(path)?.currentSession?.getParsedUnit(path);
+    var session = getAnalysisDriver(path)?.currentSession;
+    var result = session?.getParsedUnit2(path);
+    return result is ParsedUnitResult ? result : null;
   }
 
   /// Return the resolved unit for the file with the given [path]. The file is
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
-  Future<ResolvedUnitResult> getResolvedUnit(String path,
+  Future<ResolvedUnitResult?>? getResolvedUnit(String path,
       {bool sendCachedToStream = false}) {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
@@ -361,9 +380,11 @@ abstract class AbstractAnalysisServer {
     }
 
     return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
+        .getResult2(path, sendCachedToStream: sendCachedToStream)
+        .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((e, st) {
       instrumentationService.logException(e, st);
+      // ignore: invalid_return_type_for_catch_error
       return null;
     });
   }
@@ -425,10 +446,10 @@ abstract class AbstractAnalysisServer {
 
   /// Return the path to the location of the byte store on disk, or `null` if
   /// there is no on-disk byte store.
-  String _getByteStorePath() {
+  String? _getByteStorePath() {
     ResourceProvider provider = resourceProvider;
     if (provider is OverlayResourceProvider) {
-      provider = (provider as OverlayResourceProvider).baseProvider;
+      provider = provider.baseProvider;
     }
     if (provider is PhysicalResourceProvider) {
       var stateLocation = provider.getStateLocation('.analysis-driver');

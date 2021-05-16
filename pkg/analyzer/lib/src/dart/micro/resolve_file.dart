@@ -18,10 +18,12 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -36,10 +38,24 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
 
 const M = 1024 * 1024 /*1 MiB*/;
 const memoryCacheSize = 200 * M;
+
+class CiderSearchMatch {
+  final String path;
+  final List<int> offsets;
+
+  CiderSearchMatch(this.path, this.offsets);
+
+  @override
+  bool operator ==(Object object) =>
+      object is CiderSearchMatch &&
+      path == object.path &&
+      const ListEquality<int>().equals(offsets, object.offsets);
+}
 
 class FileContext {
   final AnalysisOptionsImpl analysisOptions;
@@ -54,12 +70,14 @@ class FileResolver {
   CiderByteStore byteStore;
   final SourceFactory sourceFactory;
 
-  /*
-   * A function that returns the digest for a file as a String. The function
-   * returns a non null value, can return an empty string if file does
-   * not exist/has no contents.
-   */
+  /// A function that returns the digest for a file as a String. The function
+  /// returns a non null value, can return an empty string if file does
+  /// not exist/has no contents.
   final String Function(String path) getFileDigest;
+
+  /// A function that returns true if the given file path is likely to be that
+  /// of a file that is generated.
+  final bool Function(String path)? isGenerated;
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.
@@ -96,6 +114,7 @@ class FileResolver {
     String Function(String path) getFileDigest,
     void Function(List<String> paths)? prefetchFiles, {
     required Workspace workspace,
+    bool Function(String path)? isGenerated,
     @deprecated Duration? libraryContextResetTimeout,
   }) : this.from(
           logger: logger,
@@ -104,6 +123,8 @@ class FileResolver {
           getFileDigest: getFileDigest,
           prefetchFiles: prefetchFiles,
           workspace: workspace,
+          isGenerated: isGenerated,
+
           // ignore: deprecated_member_use_from_same_package
           libraryContextResetTimeout: libraryContextResetTimeout,
         );
@@ -115,6 +136,7 @@ class FileResolver {
     required String Function(String path) getFileDigest,
     required void Function(List<String> paths)? prefetchFiles,
     required Workspace workspace,
+    bool Function(String path)? isGenerated,
     CiderByteStore? byteStore,
     @deprecated Duration? libraryContextResetTimeout,
   })  : logger = logger,
@@ -123,6 +145,7 @@ class FileResolver {
         getFileDigest = getFileDigest,
         prefetchFiles = prefetchFiles,
         workspace = workspace,
+        isGenerated = isGenerated,
         byteStore = byteStore ?? CiderCachedByteStore(memoryCacheSize);
 
   /// Update the resolver to reflect the fact that the file with the given
@@ -163,6 +186,31 @@ class FileResolver {
 
   @deprecated
   void dispose() {}
+
+  /// Looks for references to the Element at the given offset and path. All the
+  /// files currently cached by the resolver are searched, generated files are
+  /// ignored.
+  List<CiderSearchMatch> findReferences(int offset, String path,
+      {OperationPerformanceImpl? performance}) {
+    var references = <CiderSearchMatch>[];
+    var unit = resolve(path: path);
+    var node = NodeLocator(offset).searchWithin(unit.unit);
+    var element = getElementOfNode(node);
+    if (element != null) {
+      // TODO(keertip): check if element is named constructor.
+      var result = fsState!.getFilesContaining(element.displayName);
+      result.forEach((filePath) {
+        var resolved = resolve(path: filePath);
+        var collector = ReferencesCollector(element);
+        resolved.unit?.accept(collector);
+        var offsets = collector.offsets;
+        if (offsets.isNotEmpty) {
+          references.add(CiderSearchMatch(filePath, offsets));
+        }
+      });
+    }
+    return references;
+  }
 
   ErrorsResult getErrors({
     required String path,
@@ -555,6 +603,7 @@ class FileResolver {
         featureSetProvider,
         getFileDigest,
         prefetchFiles,
+        isGenerated,
       );
     }
 
@@ -745,7 +794,6 @@ class _LibraryContext {
     }
 
     for (var cycle in loadedBundles) {
-      addIfNotNull(cycle.astId);
       addIfNotNull(cycle.resolutionId);
     }
     loadedBundles.clear();
@@ -769,14 +817,21 @@ class _LibraryContext {
 
       cycle.directDependencies.forEach(loadBundle);
 
-      var astKey = '${cycle.cyclePathsHash}.ast';
       var resolutionKey = '${cycle.cyclePathsHash}.resolution';
-      var astData = byteStore.get(astKey, cycle.signature);
       var resolutionData = byteStore.get(resolutionKey, cycle.signature);
-      var astBytes = astData?.bytes;
       var resolutionBytes = resolutionData?.bytes;
 
-      if (astBytes == null || resolutionBytes == null) {
+      var unitsInformativeBytes = <Uri, Uint8List>{};
+      for (var library in cycle.libraries) {
+        for (var file in library.libraryFiles) {
+          var informativeBytes = file.informativeBytes;
+          if (informativeBytes != null) {
+            unitsInformativeBytes[file.uri] = informativeBytes;
+          }
+        }
+      }
+
+      if (resolutionBytes == null) {
         librariesLinkedTimer.start();
 
         inputsTimer.start();
@@ -823,13 +878,7 @@ class _LibraryContext {
         var linkResult = link2.link(elementFactory, inputLibraries, true);
         librariesLinked += cycle.libraries.length;
 
-        astBytes = linkResult.astBytes;
         resolutionBytes = linkResult.resolutionBytes;
-
-        astData = byteStore.putGet(astKey, cycle.signature, astBytes);
-        astBytes = astData.bytes;
-        performance.getDataInt('bytesPut').add(astBytes.length);
-
         resolutionData =
             byteStore.putGet(resolutionKey, cycle.signature, resolutionBytes);
         resolutionBytes = resolutionData.bytes;
@@ -837,17 +886,15 @@ class _LibraryContext {
 
         librariesLinkedTimer.stop();
       } else {
-        performance.getDataInt('bytesGet').add(astBytes.length);
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
-      cycle.astId = astData!.id;
       cycle.resolutionId = resolutionData!.id;
 
       elementFactory.addBundle(
         BundleReader(
           elementFactory: elementFactory,
-          astBytes: astBytes as Uint8List,
+          unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: resolutionBytes as Uint8List,
         ),
       );
@@ -884,7 +931,6 @@ class _LibraryContext {
 
     loadedBundles.removeWhere((cycle) {
       if (cycle.libraries.any(removedSet.contains)) {
-        addIfNotNull(cycle.astId);
         addIfNotNull(cycle.resolutionId);
         return true;
       }

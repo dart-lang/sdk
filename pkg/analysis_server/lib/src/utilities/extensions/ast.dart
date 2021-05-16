@@ -87,6 +87,14 @@ extension AstNodeExtensions on AstNode {
   }
 }
 
+extension CompilationUnitExtension on CompilationUnit {
+  /// Is `true` if library being analyzed is non-nullable by default.
+  ///
+  /// Will return false if the AST structure has not been resolved.
+  bool get isNonNullableByDefault =>
+      declaredElement?.library.isNonNullableByDefault ?? false;
+}
+
 extension ExpressionExtensions on Expression {
   /// Return `true` if this expression is an invocation of the method `cast`
   /// from either Iterable`, `List`, `Map`, or `Set`.
@@ -117,7 +125,7 @@ extension FunctionBodyExtensions on FunctionBody {
 
 extension MethodDeclarationExtension on MethodDeclaration {
   Token? get propertyKeywordGet {
-    var propertyKeyword = this.propertyKeyword;
+    final propertyKeyword = this.propertyKeyword;
     return propertyKeyword != null && propertyKeyword.keyword == Keyword.GET
         ? propertyKeyword
         : null;
@@ -126,7 +134,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
 
 extension VariableDeclarationListExtension on VariableDeclarationList {
   Token? get finalKeyword {
-    var keyword = this.keyword;
+    final keyword = this.keyword;
     return keyword != null && keyword.keyword == Keyword.FINAL ? keyword : null;
   }
 }

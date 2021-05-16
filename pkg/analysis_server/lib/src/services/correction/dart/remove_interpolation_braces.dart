@@ -18,7 +18,7 @@ class RemoveInterpolationBraces extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is InterpolationExpression) {
       var right = node.rightBracket;
       if (right != null) {

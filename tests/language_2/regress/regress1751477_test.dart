@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'regress1751477_lib1.dart' deferred as lib1;
 import 'regress1751477_lib2.dart' deferred as lib2;
 import 'regress1751477_lib3.dart' deferred as lib3;

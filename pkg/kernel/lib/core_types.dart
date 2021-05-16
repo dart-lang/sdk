@@ -119,8 +119,8 @@ class CoreTypes {
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
 
-  late final Procedure asyncErrorWrapperHelperProcedure = index
-      .getTopLevelMember('dart:async', '_asyncErrorWrapperHelper') as Procedure;
+  late final Procedure asyncErrorWrapperHelperProcedure =
+      index.getTopLevelProcedure('dart:async', '_asyncErrorWrapperHelper');
 
   late final Library asyncLibrary = index.getLibrary('dart:async');
 
@@ -139,33 +139,33 @@ class CoreTypes {
   late final Member asyncStarStreamControllerClose =
       index.getMember('dart:async', '_AsyncStarStreamController', 'close');
 
-  late final Constructor asyncStarStreamControllerDefaultConstructor = index
-      .getMember('dart:async', '_AsyncStarStreamController', '') as Constructor;
+  late final Constructor asyncStarStreamControllerDefaultConstructor =
+      index.getConstructor('dart:async', '_AsyncStarStreamController', '');
 
   late final Member asyncStarStreamControllerStream =
       index.getMember('dart:async', '_AsyncStarStreamController', 'get:stream');
 
-  late final Procedure asyncStarMoveNextHelper = index.getTopLevelMember(
-      'dart:async', '_asyncStarMoveNextHelper') as Procedure;
+  late final Procedure asyncStarMoveNextHelper =
+      index.getTopLevelProcedure('dart:async', '_asyncStarMoveNextHelper');
 
-  late final Procedure asyncThenWrapperHelperProcedure = index
-      .getTopLevelMember('dart:async', '_asyncThenWrapperHelper') as Procedure;
+  late final Procedure asyncThenWrapperHelperProcedure =
+      index.getTopLevelProcedure('dart:async', '_asyncThenWrapperHelper');
 
   late final Procedure awaitHelperProcedure =
-      index.getTopLevelMember('dart:async', '_awaitHelper') as Procedure;
+      index.getTopLevelProcedure('dart:async', '_awaitHelper');
 
   late final Class boolClass = index.getClass('dart:core', 'bool');
 
   late final Class futureImplClass = index.getClass('dart:async', '_Future');
 
   late final Constructor futureImplConstructor =
-      index.getMember('dart:async', '_Future', '') as Constructor;
+      index.getConstructor('dart:async', '_Future', '');
 
-  late final Procedure completeOnAsyncReturn = index.getTopLevelMember(
-      'dart:async', '_completeOnAsyncReturn') as Procedure;
+  late final Procedure completeOnAsyncReturn =
+      index.getTopLevelProcedure('dart:async', '_completeOnAsyncReturn');
 
-  late final Procedure completeOnAsyncError = index.getTopLevelMember(
-      'dart:async', '_completeOnAsyncError') as Procedure;
+  late final Procedure completeOnAsyncError =
+      index.getTopLevelProcedure('dart:async', '_completeOnAsyncError');
 
   late final Library coreLibrary = index.getLibrary('dart:core');
 
@@ -180,7 +180,7 @@ class CoreTypes {
       index.getClass('dart:async', 'FutureOr');
 
   late final Procedure identicalProcedure =
-      index.getTopLevelMember('dart:core', 'identical') as Procedure;
+      index.getTopLevelProcedure('dart:core', 'identical');
 
   late final Class intClass = index.getClass('dart:core', 'int');
 
@@ -192,47 +192,46 @@ class CoreTypes {
   late final Class invocationMirrorClass =
       index.getClass('dart:core', '_InvocationMirror');
 
-  late final Constructor invocationMirrorWithTypeConstructor = index.getMember(
-      'dart:core', '_InvocationMirror', '_withType') as Constructor;
+  late final Constructor invocationMirrorWithTypeConstructor =
+      index.getConstructor('dart:core', '_InvocationMirror', '_withType');
 
   late final Class iterableClass = index.getClass('dart:core', 'Iterable');
 
   late final Procedure iterableGetIterator =
-      index.getMember('dart:core', 'Iterable', 'get:iterator') as Procedure;
+      index.getProcedure('dart:core', 'Iterable', 'get:iterator');
 
   late final Class iteratorClass = index.getClass('dart:core', 'Iterator');
 
   late final Procedure iteratorMoveNext =
-      index.getMember('dart:core', 'Iterator', 'moveNext') as Procedure;
+      index.getProcedure('dart:core', 'Iterator', 'moveNext');
 
   late final Procedure iteratorGetCurrent =
-      index.getMember('dart:core', 'Iterator', 'get:current') as Procedure;
+      index.getProcedure('dart:core', 'Iterator', 'get:current');
 
   late final Class listClass = index.getClass('dart:core', 'List');
 
   late final Procedure listDefaultConstructor =
-      index.getMember('dart:core', 'List', '') as Procedure;
+      index.getProcedure('dart:core', 'List', '');
 
   late final Procedure listFromConstructor =
-      index.getMember('dart:core', 'List', 'from') as Procedure;
+      index.getProcedure('dart:core', 'List', 'from');
 
   late final Procedure listUnmodifiableConstructor =
-      index.getMember('dart:core', 'List', 'unmodifiable') as Procedure;
+      index.getProcedure('dart:core', 'List', 'unmodifiable');
 
   late final Class setClass = index.getClass('dart:core', 'Set');
 
   late final Class mapClass = index.getClass('dart:core', 'Map');
 
   late final Procedure mapUnmodifiable =
-      index.getMember('dart:core', 'Map', 'unmodifiable') as Procedure;
+      index.getProcedure('dart:core', 'Map', 'unmodifiable');
 
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   late final Library? mirrorsLibrary = index.tryGetLibrary('dart:mirrors');
 
   late final Constructor noSuchMethodErrorDefaultConstructor =
       // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
-      index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation')
-          as Constructor;
+      index.getConstructor('dart:core', 'NoSuchMethodError', 'withInvocation');
 
   late final Class deprecatedNullClass = index.getClass('dart:core', 'Null');
 
@@ -241,18 +240,17 @@ class CoreTypes {
   late final Class objectClass = index.getClass('dart:core', 'Object');
 
   late final Procedure objectEquals =
-      index.getMember('dart:core', 'Object', '==') as Procedure;
+      index.getProcedure('dart:core', 'Object', '==');
 
   late final Class pragmaClass = index.getClass('dart:core', 'pragma');
 
-  late final Field pragmaName =
-      index.getMember('dart:core', 'pragma', 'name') as Field;
+  late final Field pragmaName = index.getField('dart:core', 'pragma', 'name');
 
   late final Field pragmaOptions =
-      index.getMember('dart:core', 'pragma', 'options') as Field;
+      index.getField('dart:core', 'pragma', 'options');
 
   late final Constructor pragmaConstructor =
-      index.getMember('dart:core', 'pragma', '_') as Constructor;
+      index.getConstructor('dart:core', 'pragma', '_');
 
   late final Class stackTraceClass = index.getClass('dart:core', 'StackTrace');
 
@@ -268,7 +266,7 @@ class CoreTypes {
       index.getClass('dart:async', '_StreamIterator');
 
   late final Constructor streamIteratorDefaultConstructor =
-      index.getMember('dart:async', '_StreamIterator', '') as Constructor;
+      index.getConstructor('dart:async', '_StreamIterator', '');
 
   late final Member streamIteratorMoveNext =
       index.getMember('dart:async', '_StreamIterator', 'moveNext');
@@ -281,7 +279,7 @@ class CoreTypes {
   late final Class symbolClass = index.getClass('dart:core', 'Symbol');
 
   late final Constructor syncIterableDefaultConstructor =
-      index.getMember('dart:core', '_SyncIterable', '') as Constructor;
+      index.getConstructor('dart:core', '_SyncIterable', '');
 
   late final Class syncIteratorClass =
       index.getClass('dart:core', '_SyncIterator');
@@ -294,17 +292,84 @@ class CoreTypes {
 
   late final Class typeClass = index.getClass('dart:core', 'Type');
 
-  late final Constructor fallThroughErrorUrlAndLineConstructor = index
-      .getMember('dart:core', 'FallThroughError', '_create') as Constructor;
+  late final Constructor fallThroughErrorUrlAndLineConstructor =
+      index.getConstructor('dart:core', 'FallThroughError', '_create');
 
   late final Procedure boolFromEnvironment =
-      index.getMember('dart:core', 'bool', 'fromEnvironment') as Procedure;
+      index.getProcedure('dart:core', 'bool', 'fromEnvironment');
 
   late final Procedure createSentinelMethod =
-      index.getTopLevelMember('dart:_internal', 'createSentinel') as Procedure;
+      index.getTopLevelProcedure('dart:_internal', 'createSentinel');
 
   late final Procedure isSentinelMethod =
-      index.getTopLevelMember('dart:_internal', 'isSentinel') as Procedure;
+      index.getTopLevelProcedure('dart:_internal', 'isSentinel');
+
+  late final Constructor
+      lateInitializationFieldAssignedDuringInitializationConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'fieldADI');
+
+  late final Constructor
+      lateInitializationLocalAssignedDuringInitializationConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'localADI');
+
+  late final Constructor lateInitializationFieldNotInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'fieldNI');
+
+  late final Constructor lateInitializationLocalNotInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'localNI');
+
+  late final Constructor lateInitializationFieldAlreadyInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'fieldAI');
+
+  late final Constructor lateInitializationLocalAlreadyInitializedConstructor =
+      index.getConstructor('dart:_internal', 'LateError', 'localAI');
+
+  late final Constructor reachabilityErrorConstructor =
+      index.getConstructor('dart:_internal', 'ReachabilityError', '');
+
+  late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
+
+  late final Constructor cellConstructor =
+      index.getMember('dart:_late_helper', '_Cell', '') as Constructor;
+
+  late final Constructor cellNamedConstructor =
+      index.getMember('dart:_late_helper', '_Cell', 'named') as Constructor;
+
+  late final Class initializedCellClass =
+      index.getClass('dart:_late_helper', '_InitializedCell');
+
+  late final Constructor initializedCellConstructor = index.getMember(
+      'dart:_late_helper', '_InitializedCell', '') as Constructor;
+
+  late final Constructor initializedCellNamedConstructor = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'named') as Constructor;
+
+  late final Procedure cellReadLocal =
+      index.getMember('dart:_late_helper', '_Cell', 'readLocal') as Procedure;
+
+  late final Procedure cellReadField =
+      index.getMember('dart:_late_helper', '_Cell', 'readField') as Procedure;
+
+  late final Procedure initializedCellRead = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'read') as Procedure;
+
+  late final Procedure initializedCellReadFinal = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'readFinal') as Procedure;
+
+  late final Procedure cellValueSetter =
+      index.getMember('dart:_late_helper', '_Cell', 'set:value') as Procedure;
+
+  late final Procedure cellFinalLocalValueSetter = index.getMember(
+      'dart:_late_helper', '_Cell', 'set:finalLocalValue') as Procedure;
+
+  late final Procedure cellFinalFieldValueSetter = index.getMember(
+      'dart:_late_helper', '_Cell', 'set:finalFieldValue') as Procedure;
+
+  late final Procedure initializedCellValueSetter = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'set:value') as Procedure;
+
+  late final Procedure initializedCellFinalValueSetter = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'set:finalValue') as Procedure;
 
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
@@ -1028,29 +1093,6 @@ class CoreTypes {
     return result;
   }
 
-  late final Constructor
-      lateInitializationFieldAssignedDuringInitializationConstructor =
-      index.getMember('dart:_internal', 'LateError', 'fieldADI') as Constructor;
-
-  late final Constructor
-      lateInitializationLocalAssignedDuringInitializationConstructor =
-      index.getMember('dart:_internal', 'LateError', 'localADI') as Constructor;
-
-  late final Constructor lateInitializationFieldNotInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'fieldNI') as Constructor;
-
-  late final Constructor lateInitializationLocalNotInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'localNI') as Constructor;
-
-  late final Constructor lateInitializationFieldAlreadyInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'fieldAI') as Constructor;
-
-  late final Constructor lateInitializationLocalAlreadyInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'localAI') as Constructor;
-
-  late final Constructor reachabilityErrorConstructor =
-      index.getMember('dart:_internal', 'ReachabilityError', '') as Constructor;
-
   InterfaceType bottomInterfaceType(Class klass, Nullability nullability) {
     InterfaceType? result = _bottomInterfaceTypes[klass];
     if (result == null) {
@@ -1142,7 +1184,7 @@ class CoreTypes {
     // BOTTOM(X extends T) is true iff BOTTOM(T).
     if (type is TypeParameterType && type.isPotentiallyNonNullable) {
       assert(type.promotedBound == null);
-      return isBottom(type.parameter.bound!);
+      return isBottom(type.parameter.bound);
     }
 
     return false;

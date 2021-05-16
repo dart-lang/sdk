@@ -10,9 +10,6 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show ErrorToken;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show Token, KeywordToken, BeginToken;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'

@@ -14,18 +14,28 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'element_text.dart';
 import 'resynthesize_common.dart';
 import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResynthesizeAst2Test);
+    // defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
+}
+
+@reflectiveTest
+class ApplyCheckElementTextReplacements {
+  test_applyReplacements() {
+    applyCheckElementTextReplacements();
+  }
 }
 
 @reflectiveTest
@@ -81,6 +91,16 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var inputLibraries = <LinkInputLibrary>[];
     _addNonDartLibraries({}, inputLibraries, source);
 
+    var unitsInformativeBytes = <Uri, Uint8List>{};
+    for (var inputLibrary in inputLibraries) {
+      for (var inputUnit in inputLibrary.units) {
+        var informativeBytes = writeUnitInformative(inputUnit.unit);
+        // TODO(scheglov) store Uri, don't parse
+        var uri = Uri.parse(inputUnit.uriStr);
+        unitsInformativeBytes[uri] = informativeBytes;
+      }
+    }
+
     var analysisContext = AnalysisContextImpl(
       SynchronousSession(
         AnalysisOptionsImpl()..contextFeatures = featureSet,
@@ -97,7 +117,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     elementFactory.addBundle(
       BundleReader(
         elementFactory: elementFactory,
-        astBytes: sdkBundle.astBytes,
+        unitsInformativeBytes: {},
         resolutionBytes: sdkBundle.resolutionBytes,
       ),
     );
@@ -107,7 +127,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     elementFactory.addBundle(
       BundleReader(
         elementFactory: elementFactory,
-        astBytes: linkResult.astBytes,
+        unitsInformativeBytes: unitsInformativeBytes,
         resolutionBytes: linkResult.resolutionBytes,
       ),
     );

@@ -33,21 +33,29 @@ DEFINE_NATIVE_ENTRY(Object_equals, 0, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
-// Please note that no handle is created for the argument.
-// This is safe since the argument is only used in a tail call.
-// The performance benefit is more than 5% when using hashCode.
+static intptr_t GetHash(Isolate* isolate, const ObjectPtr obj) {
 #if defined(HASH_IN_OBJECT_HEADER)
-  return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
+  return Object::GetCachedHash(obj);
 #else
   Heap* heap = isolate->group()->heap();
-  ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
-  return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+  ASSERT(obj->IsDartInstance());
+  return heap->GetHash(obj);
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Object_setHash, 0, 2) {
+DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
+  // Please note that no handle is created for the argument.
+  // This is safe since the argument is only used in a tail call.
+  // The performance benefit is more than 5% when using hashCode.
+  return Smi::New(GetHash(isolate, arguments->NativeArgAt(0)));
+}
+
+DEFINE_NATIVE_ENTRY(Object_setHashIfNotSetYet, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
+  const intptr_t current_hash = GetHash(isolate, arguments->NativeArgAt(0));
+  if (current_hash != 0) {
+    return Smi::New(current_hash);
+  }
 #if defined(HASH_IN_OBJECT_HEADER)
   Object::SetCachedHash(arguments->NativeArgAt(0), hash.Value());
 #else
@@ -56,7 +64,7 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 0, 2) {
   Heap* heap = isolate->group()->heap();
   heap->SetHash(instance.ptr(), hash.Value());
 #endif
-  return Object::null();
+  return hash.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Object_toString, 0, 1) {
@@ -441,18 +449,19 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   const Closure& closure =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Function& target = Function::Handle(zone, closure.function());
-  const TypeArguments& bounds =
-      TypeArguments::Handle(zone, target.type_parameters());
-
-  // Either the bounds are all-dynamic or the function is not generic.
-  if (bounds.IsNull()) return Object::null();
+  const TypeParameters& type_params =
+      TypeParameters::Handle(zone, target.type_parameters());
+  if (type_params.IsNull() || type_params.AllDynamicBounds()) {
+    // The function is not generic or the bounds are all dynamic.
+    return Object::null();
+  }
 
   const TypeArguments& type_args_to_check =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
 
   // This should be guaranteed by the front-end.
   ASSERT(type_args_to_check.IsNull() ||
-         bounds.Length() <= type_args_to_check.Length());
+         type_params.Length() <= type_args_to_check.Length());
 
   // The bounds on the closure may need instantiation.
   const TypeArguments& instantiator_type_args =
@@ -462,10 +471,8 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
 
   AbstractType& supertype = AbstractType::Handle(zone);
   AbstractType& subtype = AbstractType::Handle(zone);
-  TypeParameter& parameter = TypeParameter::Handle(zone);
-  for (intptr_t i = 0; i < bounds.Length(); ++i) {
-    parameter ^= bounds.TypeAt(i);
-    supertype = parameter.bound();
+  for (intptr_t i = 0; i < type_params.Length(); ++i) {
+    supertype = type_params.BoundAt(i);
     subtype = type_args_to_check.IsNull() ? Object::dynamic_type().ptr()
                                           : type_args_to_check.TypeAt(i);
 
@@ -484,7 +491,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
         ASSERT(caller_frame != NULL);
         location = caller_frame->GetTokenPos();
       }
-      String& parameter_name = String::Handle(zone, parameter.Name());
+      const auto& parameter_name = String::Handle(zone, type_params.NameAt(i));
       Exceptions::CreateAndThrowTypeError(location, subtype, supertype,
                                           parameter_name);
       UNREACHABLE();

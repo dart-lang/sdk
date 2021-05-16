@@ -161,7 +161,7 @@ class ModularConstantEmitter
 
   @override
   jsAst.Expression visitLateSentinel(LateSentinelConstantValue constant, [_]) =>
-      js('#', _namer.staticStateHolder);
+      _namer.globalObjectForStaticState();
 
   @override
   jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
@@ -437,8 +437,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     assert(type.element == _commonElements.jsArrayClass);
     if (_rtiNeed.classNeedsTypeArguments(type.element)) {
-      return new jsAst.Call(
-          getHelperProperty(_commonElements.setRuntimeTypeInfo),
+      return new jsAst.Call(getHelperProperty(_commonElements.setArrayType),
           [value, _reifiedTypeNewRti(type)]);
     }
     return value;

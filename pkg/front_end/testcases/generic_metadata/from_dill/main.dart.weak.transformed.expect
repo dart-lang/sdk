@@ -15,9 +15,9 @@ static method main() → dynamic {
   mai::C4<<T extends core::Object? = dynamic>(T%) → void> c7 = new mai::C4::•<<T extends core::Object? = dynamic>(T%) → void>();
   mai::C4<<T extends core::Object? = dynamic>(T%) → void> c8 = new mai::C4::•<<T extends core::Object? = dynamic>(T%) → void>();
   mai::C5<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> c9 = new mai::C5::•<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T>();
-  mai::C5<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> c10 = new mai::C5::•<<T extends <S extends core::Object? = dynamic>(S%) → S% = <S extends core::Object? = dynamic>(S%) → S%>(T) → T>();
+  mai::C5<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> c10 = new mai::C5::•<<T extends <S extends core::Object? = dynamic>(S%) → S%>(T) → T>();
   mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c11 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
-  mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c12 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = S%, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
+  mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c12 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S%, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
 }
 
 library /*isNonNullableByDefault*/;
@@ -30,37 +30,37 @@ typedef exp3 = <T extends core::Object? = dynamic>() → T%;
 typedef exp4 = <T extends core::Object? = dynamic>(T%) → void;
 typedef exp5 = <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T;
 typedef exp6 = <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%;
-class C1<X extends <T extends core::Object? = dynamic>(T%) → T% = <T extends core::Object? = dynamic>(T%) → T%> extends core::Object {
+class C1<X extends <T extends core::Object? = dynamic>(T%) → T%> extends core::Object {
   constructor •() → mai::C1<mai::C1::X>
     : super core::Object::•() {
     mai::expect(#C1, mai::C1::X);
   }
 }
-class C2<X extends <T extends core::Object? = dynamic>() → void = <T extends core::Object? = dynamic>() → void> extends core::Object {
+class C2<X extends <T extends core::Object? = dynamic>() → void> extends core::Object {
   constructor •() → mai::C2<mai::C2::X>
     : super core::Object::•() {
     mai::expect(#C2, mai::C2::X);
   }
 }
-class C3<X extends <T extends core::Object? = dynamic>() → T% = <T extends core::Object? = dynamic>() → T%> extends core::Object {
+class C3<X extends <T extends core::Object? = dynamic>() → T%> extends core::Object {
   constructor •() → mai::C3<mai::C3::X>
     : super core::Object::•() {
     mai::expect(#C3, mai::C3::X);
   }
 }
-class C4<X extends <T extends core::Object? = dynamic>(T%) → void = <T extends core::Object? = dynamic>(T%) → void> extends core::Object {
+class C4<X extends <T extends core::Object? = dynamic>(T%) → void> extends core::Object {
   constructor •() → mai::C4<mai::C4::X>
     : super core::Object::•() {
     mai::expect(#C4, mai::C4::X);
   }
 }
-class C5<X extends <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T = <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> extends core::Object {
+class C5<X extends <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> extends core::Object {
   constructor •() → mai::C5<mai::C5::X>
     : super core::Object::•() {
     mai::expect(#C5, mai::C5::X);
   }
 }
-class C6<X extends <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T% = <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> extends core::Object {
+class C6<X extends <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> extends core::Object {
   constructor •() → mai::C6<mai::C6::X>
     : super core::Object::•() {
     mai::expect(#C6, mai::C6::X);
@@ -76,6 +76,6 @@ constants  {
   #C2 = TypeLiteralConstant(<T extends core::Object? = dynamic>() →* void)
   #C3 = TypeLiteralConstant(<T extends core::Object? = dynamic>() →* T*)
   #C4 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T*) →* void)
-  #C5 = TypeLiteralConstant(<T extends <S extends core::Object? = dynamic>(S*) →* S* = <S extends core::Object? = dynamic>(S*) →* S*>(T*) →* T*)
-  #C6 = TypeLiteralConstant(<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T*, S*, <V extends S* = S*, U extends core::Object? = dynamic>(T*, U*, V*, core::Map<S*, U*>*) →* V*) →* T*)
+  #C5 = TypeLiteralConstant(<T extends <S extends core::Object? = dynamic>(S*) →* S*>(T*) →* T*)
+  #C6 = TypeLiteralConstant(<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T*, S*, <V extends S*, U extends core::Object? = dynamic>(T*, U*, V*, core::Map<S*, U*>*) →* V*) →* T*)
 }

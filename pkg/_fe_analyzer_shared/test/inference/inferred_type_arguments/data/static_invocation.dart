@@ -73,7 +73,7 @@ staticInvocations() {
   int extendsNumReturnArg6 = extendsNumReturnArg/*<int>*/("");
   int extendsNumReturnArg7 = extendsNumReturnArg<num>(0);
 
-  multipleArgs();
+  multipleArgs /*analyzer.<dynamic,dynamic,dynamic>*/ ();
   multipleArgs/*<int,String,bool>*/(0, true, "");
   multipleArgs<int, bool, String>(0, true, "");
 }

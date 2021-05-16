@@ -50,6 +50,17 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     assertSuggestion('name: ');
   }
 
+  void test_emptyPreviousSibling() {
+    // Ensure handling of nulls does not pick up nulls from previous siblings
+    getCompletions('''
+flutter:
+  assets:
+  fonts:
+    ^
+''');
+    assertSuggestion('family: ');
+  }
+
   void test_environment() {
     getCompletions('''
 environment:
@@ -279,6 +290,8 @@ flutter:
   }
 
   void test_packageName() async {
+    /// Sample package name list JSON in the same format as the API:
+    /// https://pub.dev/api/package-name-completion-data
     const samplePackageList = '''
   { "packages": ["one", "two", "three"] }
   ''';

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for http://dartbug.com/23127
 // Tests super calls to a custom element upgrade constructor with various
 // combinations of parameters and type arguments.

@@ -4,6 +4,8 @@
 //
 // VMOptions=--optimization-counter-threshold=100
 
+// @dart = 2.9
+
 import "load_inval_code_lib.dart" deferred as d;
 
 bool loaded = false;

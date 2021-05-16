@@ -518,7 +518,33 @@ struct Struct15BytesInlineArrayMixed {
   Struct5BytesPackedMixed a0[3];
 };
 
-// Used for testing structs by value.
+union Union4BytesMixed {
+  uint32_t a0;
+  float a1;
+};
+
+union Union8BytesNestedFloat {
+  double a0;
+  Struct8BytesHomogeneousFloat a1;
+};
+
+union Union9BytesNestedInt {
+  Struct8BytesInt a0;
+  Struct9BytesHomogeneousUint8 a1;
+};
+
+union Union16BytesNestedInlineArrayFloat {
+  float a0[4];
+  Struct16BytesHomogeneousFloat a1;
+};
+
+union Union16BytesNestedFloat {
+  Struct8BytesHomogeneousFloat a0;
+  Struct12BytesHomogeneousFloat a1;
+  Struct16BytesHomogeneousFloat a2;
+};
+
+// Used for testing structs and unions by value.
 // Smallest struct with data.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT int64_t PassStruct1ByteIntx10(Struct1ByteInt a0,
@@ -559,7 +585,7 @@ DART_EXPORT int64_t PassStruct1ByteIntx10(Struct1ByteInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Not a multiple of word size, not a power of two.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT int64_t
@@ -635,7 +661,7 @@ PassStruct3BytesHomogeneousUint8x10(Struct3BytesHomogeneousUint8 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Not a multiple of word size, not a power of two.
 // With alignment rules taken into account size is 4 bytes.
 // 10 struct arguments will exhaust available registers.
@@ -691,7 +717,7 @@ PassStruct3BytesInt2ByteAlignedx10(Struct3BytesInt2ByteAligned a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Exactly word size on 32-bit architectures.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT int64_t
@@ -742,7 +768,7 @@ PassStruct4BytesHomogeneousInt16x10(Struct4BytesHomogeneousInt16 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Sub word size on 64 bit architectures.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT int64_t
@@ -874,7 +900,7 @@ PassStruct7BytesHomogeneousUint8x10(Struct7BytesHomogeneousUint8 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Sub word size on 64 bit architectures.
 // With alignment rules taken into account size is 8 bytes.
 // 10 struct arguments will exhaust available registers.
@@ -942,7 +968,7 @@ PassStruct7BytesInt4ByteAlignedx10(Struct7BytesInt4ByteAligned a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Exactly word size struct on 64bit architectures.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT int64_t PassStruct8BytesIntx10(Struct8BytesInt a0,
@@ -1005,7 +1031,7 @@ DART_EXPORT int64_t PassStruct8BytesIntx10(Struct8BytesInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments passed in FP registers as long as they fit.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT float PassStruct8BytesHomogeneousFloatx10(
@@ -1056,7 +1082,7 @@ DART_EXPORT float PassStruct8BytesHomogeneousFloatx10(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments go in int registers because it is not only float.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT float PassStruct8BytesMixedx10(Struct8BytesMixed a0,
@@ -1119,7 +1145,7 @@ DART_EXPORT float PassStruct8BytesMixedx10(Struct8BytesMixed a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument is a single byte over a multiple of word size.
 // 10 struct arguments will exhaust available registers.
 // Struct only has 1-byte aligned fields to test struct alignment itself.
@@ -1284,7 +1310,7 @@ PassStruct9BytesHomogeneousUint8x10(Struct9BytesHomogeneousUint8 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument is a single byte over a multiple of word size.
 // With alignment rules taken into account size is 12 or 16 bytes.
 // 10 struct arguments will exhaust available registers.
@@ -1341,7 +1367,7 @@ PassStruct9BytesInt4Or8ByteAlignedx10(Struct9BytesInt4Or8ByteAligned a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm hardfp and arm64.
 // Struct arguments will exhaust available registers, and leave some empty.
 // The last argument is to test whether arguments are backfilled.
@@ -1387,7 +1413,7 @@ DART_EXPORT float PassStruct12BytesHomogeneousFloatx6(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On Linux x64 argument is transferred on stack because it is over 16 bytes.
 // Arguments in FPU registers on arm hardfp and arm64.
 // 5 struct arguments will exhaust available registers.
@@ -1434,7 +1460,7 @@ DART_EXPORT float PassStruct16BytesHomogeneousFloatx5(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments are split over FP and int registers.
 // On x64, it will exhaust the integer registers with the 6th argument.
 // The rest goes on the stack.
@@ -1486,7 +1512,7 @@ DART_EXPORT double PassStruct16BytesMixedx10(Struct16BytesMixed a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments are split over FP and int registers.
 // On x64, it will exhaust the integer registers with the 6th argument.
 // The rest goes on the stack.
@@ -1564,7 +1590,7 @@ DART_EXPORT float PassStruct16BytesMixed2x10(Struct16BytesMixed2 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments are passed as pointer to copy on arm64.
 // Tests that the memory allocated for copies are rounded up to word size.
 DART_EXPORT int64_t PassStruct17BytesIntx10(Struct17BytesInt a0,
@@ -1630,7 +1656,7 @@ DART_EXPORT int64_t PassStruct17BytesIntx10(Struct17BytesInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is extended to the right size.
 //
@@ -1943,7 +1969,7 @@ PassStruct19BytesHomogeneousUint8x10(Struct19BytesHomogeneousUint8 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument too big to go into integer registers on arm64.
 // The arguments are passed as pointers to copies.
 // The amount of arguments exhausts the number of integer registers, such that
@@ -2034,7 +2060,7 @@ PassStruct20BytesHomogeneousInt32x10(Struct20BytesHomogeneousInt32 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument too big to go into FPU registers in hardfp and arm64.
 DART_EXPORT float PassStruct20BytesHomogeneousFloat(
     Struct20BytesHomogeneousFloat a0) {
@@ -2056,7 +2082,7 @@ DART_EXPORT float PassStruct20BytesHomogeneousFloat(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm64.
 // 5 struct arguments will exhaust available registers.
 DART_EXPORT double PassStruct32BytesHomogeneousDoublex5(
@@ -2102,7 +2128,7 @@ DART_EXPORT double PassStruct32BytesHomogeneousDoublex5(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument too big to go into FPU registers in arm64.
 DART_EXPORT double PassStruct40BytesHomogeneousDouble(
     Struct40BytesHomogeneousDouble a0) {
@@ -2124,7 +2150,7 @@ DART_EXPORT double PassStruct40BytesHomogeneousDouble(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test 1kb struct.
 DART_EXPORT uint64_t
 PassStruct1024BytesHomogeneousUint64(Struct1024BytesHomogeneousUint64 a0) {
@@ -2304,7 +2330,7 @@ PassStruct1024BytesHomogeneousUint64(Struct1024BytesHomogeneousUint64 a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Tests the alignment of structs in FPU registers and backfilling.
 DART_EXPORT float PassFloatStruct16BytesHomogeneousFloatFloatStruct1(
     float a0,
@@ -2354,7 +2380,7 @@ DART_EXPORT float PassFloatStruct16BytesHomogeneousFloatFloatStruct1(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Tests the alignment of structs in FPU registers and backfilling.
 DART_EXPORT double PassFloatStruct32BytesHomogeneousDoubleFloatStruct(
     float a0,
@@ -2404,7 +2430,7 @@ DART_EXPORT double PassFloatStruct32BytesHomogeneousDoubleFloatStruct(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Tests the alignment of structs in integers registers and on the stack.
 // Arm32 aligns this struct at 8.
 // Also, arm32 allocates the second struct partially in registers, partially
@@ -2449,7 +2475,7 @@ DART_EXPORT double PassInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On Linux x64, it will exhaust xmm registers first, after 6 doubles and 2
 // structs. The rest of the structs will go on the stack.
 // The int will be backfilled into the int register.
@@ -2494,7 +2520,7 @@ DART_EXPORT double PassDoublex6Struct16BytesMixedx4Int32(double a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On Linux x64, it will exhaust int registers first.
 // The rest of the structs will go on the stack.
 // The double will be backfilled into the xmm register.
@@ -2535,7 +2561,7 @@ DART_EXPORT double PassInt32x4Struct16BytesMixedx4Double(int32_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On various architectures, first struct is allocated on stack.
 // Check that the other two arguments are allocated on registers.
 DART_EXPORT double PassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
@@ -2565,7 +2591,7 @@ DART_EXPORT double PassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 16 byte int within struct.
 DART_EXPORT double PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
     int32_t a0,
@@ -2690,7 +2716,7 @@ DART_EXPORT double PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 16 byte int within struct.
 DART_EXPORT int64_t PassStructAlignmentInt16(StructAlignmentInt16 a0) {
   std::cout << "PassStructAlignmentInt16"
@@ -2709,7 +2735,7 @@ DART_EXPORT int64_t PassStructAlignmentInt16(StructAlignmentInt16 a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 32 byte int within struct.
 DART_EXPORT int64_t PassStructAlignmentInt32(StructAlignmentInt32 a0) {
   std::cout << "PassStructAlignmentInt32"
@@ -2728,7 +2754,7 @@ DART_EXPORT int64_t PassStructAlignmentInt32(StructAlignmentInt32 a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 64 byte int within struct.
 DART_EXPORT int64_t PassStructAlignmentInt64(StructAlignmentInt64 a0) {
   std::cout << "PassStructAlignmentInt64"
@@ -2747,7 +2773,7 @@ DART_EXPORT int64_t PassStructAlignmentInt64(StructAlignmentInt64 a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust registers on all platforms.
 DART_EXPORT int64_t PassStruct8BytesNestedIntx10(Struct8BytesNestedInt a0,
@@ -2825,7 +2851,7 @@ DART_EXPORT int64_t PassStruct8BytesNestedIntx10(Struct8BytesNestedInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust fpu registers on all platforms.
 DART_EXPORT float PassStruct8BytesNestedFloatx10(Struct8BytesNestedFloat a0,
@@ -2877,7 +2903,7 @@ DART_EXPORT float PassStruct8BytesNestedFloatx10(Struct8BytesNestedFloat a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust fpu registers on all platforms.
 // The nesting is irregular, testing homogenous float rules on arm and arm64,
@@ -2930,7 +2956,7 @@ DART_EXPORT float PassStruct8BytesNestedFloat2x10(Struct8BytesNestedFloat2 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust all registers on all platforms.
 DART_EXPORT double PassStruct8BytesNestedMixedx10(Struct8BytesNestedMixed a0,
@@ -2995,7 +3021,7 @@ DART_EXPORT double PassStruct8BytesNestedMixedx10(Struct8BytesNestedMixed a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Deeper nested struct to test recursive member access.
 DART_EXPORT int64_t PassStruct16BytesNestedIntx2(Struct16BytesNestedInt a0,
                                                  Struct16BytesNestedInt a1) {
@@ -3033,7 +3059,7 @@ DART_EXPORT int64_t PassStruct16BytesNestedIntx2(Struct16BytesNestedInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Even deeper nested struct to test recursive member access.
 DART_EXPORT int64_t PassStruct32BytesNestedIntx2(Struct32BytesNestedInt a0,
                                                  Struct32BytesNestedInt a1) {
@@ -3096,7 +3122,7 @@ DART_EXPORT int64_t PassStruct32BytesNestedIntx2(Struct32BytesNestedInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 16 byte int.
 DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt16(
     StructNestedIntStructAlignmentInt16 a0) {
@@ -3121,7 +3147,7 @@ DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt16(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 32 byte int.
 DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt32(
     StructNestedIntStructAlignmentInt32 a0) {
@@ -3146,7 +3172,7 @@ DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt32(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 64 byte int.
 DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt64(
     StructNestedIntStructAlignmentInt64 a0) {
@@ -3171,7 +3197,7 @@ DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt64(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return big irregular struct as smoke test.
 DART_EXPORT double PassStructNestedIrregularEvenBiggerx4(
     StructNestedIrregularEvenBigger a0,
@@ -3380,7 +3406,7 @@ DART_EXPORT double PassStructNestedIrregularEvenBiggerx4(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple struct with inline array.
 DART_EXPORT int32_t
 PassStruct8BytesInlineArrayIntx4(Struct8BytesInlineArrayInt a0,
@@ -3453,7 +3479,7 @@ PassStruct8BytesInlineArrayIntx4(Struct8BytesInlineArrayInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Irregular struct with inline array.
 DART_EXPORT int32_t
 PassStructInlineArrayIrregularx4(StructInlineArrayIrregular a0,
@@ -3503,7 +3529,7 @@ PassStructInlineArrayIrregularx4(StructInlineArrayIrregular a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Regular larger struct with inline array.
 DART_EXPORT int32_t
 PassStructInlineArray100Bytes(StructInlineArray100Bytes a0) {
@@ -3686,7 +3712,7 @@ PassStructInlineArray100Bytes(StructInlineArray100Bytes a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm hardfp and arm64.
 // 5 struct arguments will exhaust available registers.
 DART_EXPORT float PassStructStruct16BytesHomogeneousFloat2x5(
@@ -3734,7 +3760,7 @@ DART_EXPORT float PassStructStruct16BytesHomogeneousFloat2x5(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm64.
 // 5 struct arguments will exhaust available registers.
 DART_EXPORT double PassStructStruct32BytesHomogeneousDouble2x5(
@@ -3782,7 +3808,7 @@ DART_EXPORT double PassStructStruct32BytesHomogeneousDouble2x5(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments are split over FP and int registers.
 // On x64, it will exhaust the integer registers with the 6th argument.
 // The rest goes on the stack.
@@ -3892,7 +3918,7 @@ DART_EXPORT float PassStructStruct16BytesMixed3x10(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test multi dimensional inline array struct as argument.
 DART_EXPORT uint32_t PassUint8Struct32BytesInlineArrayMultiDimensionalI(
     uint8_t a0,
@@ -4017,7 +4043,7 @@ DART_EXPORT uint32_t PassUint8Struct32BytesInlineArrayMultiDimensionalI(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test struct in multi dimensional inline array.
 DART_EXPORT uint32_t PassUint8Struct4BytesInlineArrayMultiDimensionalIn(
     uint8_t a0,
@@ -4046,7 +4072,7 @@ DART_EXPORT uint32_t PassUint8Struct4BytesInlineArrayMultiDimensionalIn(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Small struct with mis-aligned member.
 DART_EXPORT int64_t PassStruct3BytesPackedIntx10(Struct3BytesPackedInt a0,
                                                  Struct3BytesPackedInt a1,
@@ -4099,7 +4125,7 @@ DART_EXPORT int64_t PassStruct3BytesPackedIntx10(Struct3BytesPackedInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 DART_EXPORT int64_t PassStruct8BytesPackedIntx10(Struct8BytesPackedInt a0,
                                                  Struct8BytesPackedInt a1,
@@ -4202,7 +4228,7 @@ DART_EXPORT int64_t PassStruct8BytesPackedIntx10(Struct8BytesPackedInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
 DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
@@ -4262,7 +4288,7 @@ DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // This packed struct happens to have only aligned members.
 DART_EXPORT double PassStruct5BytesPackedMixed(Struct5BytesPackedMixed a0) {
   std::cout << "PassStruct5BytesPackedMixed"
@@ -4279,7 +4305,7 @@ DART_EXPORT double PassStruct5BytesPackedMixed(Struct5BytesPackedMixed a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Check alignment of packed struct in non-packed struct.
 DART_EXPORT double PassStructNestedAlignmentStruct5BytesPackedMixed(
     StructNestedAlignmentStruct5BytesPackedMixed a0) {
@@ -4299,7 +4325,7 @@ DART_EXPORT double PassStructNestedAlignmentStruct5BytesPackedMixed(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Check alignment of packed struct array in non-packed struct.
 DART_EXPORT double PassStruct6BytesInlineArrayInt(
     Struct6BytesInlineArrayInt a0) {
@@ -4321,7 +4347,7 @@ DART_EXPORT double PassStruct6BytesInlineArrayInt(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Check alignment of packed struct array in non-packed struct.
 DART_EXPORT double PassStruct15BytesInlineArrayMixed(
     Struct15BytesInlineArrayMixed a0) {
@@ -4346,7 +4372,377 @@ DART_EXPORT double PassStruct15BytesInlineArrayMixed(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
+// Check placement of mixed integer/float union.
+DART_EXPORT double PassUnion4BytesMixedx10(Union4BytesMixed a0,
+                                           Union4BytesMixed a1,
+                                           Union4BytesMixed a2,
+                                           Union4BytesMixed a3,
+                                           Union4BytesMixed a4,
+                                           Union4BytesMixed a5,
+                                           Union4BytesMixed a6,
+                                           Union4BytesMixed a7,
+                                           Union4BytesMixed a8,
+                                           Union4BytesMixed a9) {
+  std::cout << "PassUnion4BytesMixedx10"
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "), (" << a2.a0 << ", " << a2.a1 << "), (" << a3.a0
+            << ", " << a3.a1 << "), (" << a4.a0 << ", " << a4.a1 << "), ("
+            << a5.a0 << ", " << a5.a1 << "), (" << a6.a0 << ", " << a6.a1
+            << "), (" << a7.a0 << ", " << a7.a1 << "), (" << a8.a0 << ", "
+            << a8.a1 << "), (" << a9.a0 << ", " << a9.a1 << "))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0;
+  result += a1.a0;
+  result += a2.a0;
+  result += a3.a0;
+  result += a4.a0;
+  result += a5.a0;
+  result += a6.a0;
+  result += a7.a0;
+  result += a8.a0;
+  result += a9.a0;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Check placement of mixed floats union.
+DART_EXPORT double PassUnion8BytesNestedFloatx10(Union8BytesNestedFloat a0,
+                                                 Union8BytesNestedFloat a1,
+                                                 Union8BytesNestedFloat a2,
+                                                 Union8BytesNestedFloat a3,
+                                                 Union8BytesNestedFloat a4,
+                                                 Union8BytesNestedFloat a5,
+                                                 Union8BytesNestedFloat a6,
+                                                 Union8BytesNestedFloat a7,
+                                                 Union8BytesNestedFloat a8,
+                                                 Union8BytesNestedFloat a9) {
+  std::cout << "PassUnion8BytesNestedFloatx10"
+            << "((" << a0.a0 << ", (" << a0.a1.a0 << ", " << a0.a1.a1 << ")), ("
+            << a1.a0 << ", (" << a1.a1.a0 << ", " << a1.a1.a1 << ")), ("
+            << a2.a0 << ", (" << a2.a1.a0 << ", " << a2.a1.a1 << ")), ("
+            << a3.a0 << ", (" << a3.a1.a0 << ", " << a3.a1.a1 << ")), ("
+            << a4.a0 << ", (" << a4.a1.a0 << ", " << a4.a1.a1 << ")), ("
+            << a5.a0 << ", (" << a5.a1.a0 << ", " << a5.a1.a1 << ")), ("
+            << a6.a0 << ", (" << a6.a1.a0 << ", " << a6.a1.a1 << ")), ("
+            << a7.a0 << ", (" << a7.a1.a0 << ", " << a7.a1.a1 << ")), ("
+            << a8.a0 << ", (" << a8.a1.a0 << ", " << a8.a1.a1 << ")), ("
+            << a9.a0 << ", (" << a9.a1.a0 << ", " << a9.a1.a1 << ")))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0;
+  result += a1.a0;
+  result += a2.a0;
+  result += a3.a0;
+  result += a4.a0;
+  result += a5.a0;
+  result += a6.a0;
+  result += a7.a0;
+  result += a8.a0;
+  result += a9.a0;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Mixed-size union argument.
+DART_EXPORT double PassUnion9BytesNestedIntx10(Union9BytesNestedInt a0,
+                                               Union9BytesNestedInt a1,
+                                               Union9BytesNestedInt a2,
+                                               Union9BytesNestedInt a3,
+                                               Union9BytesNestedInt a4,
+                                               Union9BytesNestedInt a5,
+                                               Union9BytesNestedInt a6,
+                                               Union9BytesNestedInt a7,
+                                               Union9BytesNestedInt a8,
+                                               Union9BytesNestedInt a9) {
+  std::cout << "PassUnion9BytesNestedIntx10"
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ", " << a0.a0.a2
+            << "), (" << static_cast<int>(a0.a1.a0) << ", "
+            << static_cast<int>(a0.a1.a1) << ", " << static_cast<int>(a0.a1.a2)
+            << ", " << static_cast<int>(a0.a1.a3) << ", "
+            << static_cast<int>(a0.a1.a4) << ", " << static_cast<int>(a0.a1.a5)
+            << ", " << static_cast<int>(a0.a1.a6) << ", "
+            << static_cast<int>(a0.a1.a7) << ", " << static_cast<int>(a0.a1.a8)
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << ", " << a1.a0.a2
+            << "), (" << static_cast<int>(a1.a1.a0) << ", "
+            << static_cast<int>(a1.a1.a1) << ", " << static_cast<int>(a1.a1.a2)
+            << ", " << static_cast<int>(a1.a1.a3) << ", "
+            << static_cast<int>(a1.a1.a4) << ", " << static_cast<int>(a1.a1.a5)
+            << ", " << static_cast<int>(a1.a1.a6) << ", "
+            << static_cast<int>(a1.a1.a7) << ", " << static_cast<int>(a1.a1.a8)
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << ", " << a2.a0.a2
+            << "), (" << static_cast<int>(a2.a1.a0) << ", "
+            << static_cast<int>(a2.a1.a1) << ", " << static_cast<int>(a2.a1.a2)
+            << ", " << static_cast<int>(a2.a1.a3) << ", "
+            << static_cast<int>(a2.a1.a4) << ", " << static_cast<int>(a2.a1.a5)
+            << ", " << static_cast<int>(a2.a1.a6) << ", "
+            << static_cast<int>(a2.a1.a7) << ", " << static_cast<int>(a2.a1.a8)
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ", " << a3.a0.a2
+            << "), (" << static_cast<int>(a3.a1.a0) << ", "
+            << static_cast<int>(a3.a1.a1) << ", " << static_cast<int>(a3.a1.a2)
+            << ", " << static_cast<int>(a3.a1.a3) << ", "
+            << static_cast<int>(a3.a1.a4) << ", " << static_cast<int>(a3.a1.a5)
+            << ", " << static_cast<int>(a3.a1.a6) << ", "
+            << static_cast<int>(a3.a1.a7) << ", " << static_cast<int>(a3.a1.a8)
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << ", " << a4.a0.a2
+            << "), (" << static_cast<int>(a4.a1.a0) << ", "
+            << static_cast<int>(a4.a1.a1) << ", " << static_cast<int>(a4.a1.a2)
+            << ", " << static_cast<int>(a4.a1.a3) << ", "
+            << static_cast<int>(a4.a1.a4) << ", " << static_cast<int>(a4.a1.a5)
+            << ", " << static_cast<int>(a4.a1.a6) << ", "
+            << static_cast<int>(a4.a1.a7) << ", " << static_cast<int>(a4.a1.a8)
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << ", " << a5.a0.a2
+            << "), (" << static_cast<int>(a5.a1.a0) << ", "
+            << static_cast<int>(a5.a1.a1) << ", " << static_cast<int>(a5.a1.a2)
+            << ", " << static_cast<int>(a5.a1.a3) << ", "
+            << static_cast<int>(a5.a1.a4) << ", " << static_cast<int>(a5.a1.a5)
+            << ", " << static_cast<int>(a5.a1.a6) << ", "
+            << static_cast<int>(a5.a1.a7) << ", " << static_cast<int>(a5.a1.a8)
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ", " << a6.a0.a2
+            << "), (" << static_cast<int>(a6.a1.a0) << ", "
+            << static_cast<int>(a6.a1.a1) << ", " << static_cast<int>(a6.a1.a2)
+            << ", " << static_cast<int>(a6.a1.a3) << ", "
+            << static_cast<int>(a6.a1.a4) << ", " << static_cast<int>(a6.a1.a5)
+            << ", " << static_cast<int>(a6.a1.a6) << ", "
+            << static_cast<int>(a6.a1.a7) << ", " << static_cast<int>(a6.a1.a8)
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << ", " << a7.a0.a2
+            << "), (" << static_cast<int>(a7.a1.a0) << ", "
+            << static_cast<int>(a7.a1.a1) << ", " << static_cast<int>(a7.a1.a2)
+            << ", " << static_cast<int>(a7.a1.a3) << ", "
+            << static_cast<int>(a7.a1.a4) << ", " << static_cast<int>(a7.a1.a5)
+            << ", " << static_cast<int>(a7.a1.a6) << ", "
+            << static_cast<int>(a7.a1.a7) << ", " << static_cast<int>(a7.a1.a8)
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << ", " << a8.a0.a2
+            << "), (" << static_cast<int>(a8.a1.a0) << ", "
+            << static_cast<int>(a8.a1.a1) << ", " << static_cast<int>(a8.a1.a2)
+            << ", " << static_cast<int>(a8.a1.a3) << ", "
+            << static_cast<int>(a8.a1.a4) << ", " << static_cast<int>(a8.a1.a5)
+            << ", " << static_cast<int>(a8.a1.a6) << ", "
+            << static_cast<int>(a8.a1.a7) << ", " << static_cast<int>(a8.a1.a8)
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ", " << a9.a0.a2
+            << "), (" << static_cast<int>(a9.a1.a0) << ", "
+            << static_cast<int>(a9.a1.a1) << ", " << static_cast<int>(a9.a1.a2)
+            << ", " << static_cast<int>(a9.a1.a3) << ", "
+            << static_cast<int>(a9.a1.a4) << ", " << static_cast<int>(a9.a1.a5)
+            << ", " << static_cast<int>(a9.a1.a6) << ", "
+            << static_cast<int>(a9.a1.a7) << ", " << static_cast<int>(a9.a1.a8)
+            << ")))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a0.a1;
+  result += a0.a0.a2;
+  result += a1.a0.a0;
+  result += a1.a0.a1;
+  result += a1.a0.a2;
+  result += a2.a0.a0;
+  result += a2.a0.a1;
+  result += a2.a0.a2;
+  result += a3.a0.a0;
+  result += a3.a0.a1;
+  result += a3.a0.a2;
+  result += a4.a0.a0;
+  result += a4.a0.a1;
+  result += a4.a0.a2;
+  result += a5.a0.a0;
+  result += a5.a0.a1;
+  result += a5.a0.a2;
+  result += a6.a0.a0;
+  result += a6.a0.a1;
+  result += a6.a0.a2;
+  result += a7.a0.a0;
+  result += a7.a0.a1;
+  result += a7.a0.a2;
+  result += a8.a0.a0;
+  result += a8.a0.a1;
+  result += a8.a0.a2;
+  result += a9.a0.a0;
+  result += a9.a0.a1;
+  result += a9.a0.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Union with homogenous floats.
+DART_EXPORT double PassUnion16BytesNestedInlineArrayFloatx10(
+    Union16BytesNestedInlineArrayFloat a0,
+    Union16BytesNestedInlineArrayFloat a1,
+    Union16BytesNestedInlineArrayFloat a2,
+    Union16BytesNestedInlineArrayFloat a3,
+    Union16BytesNestedInlineArrayFloat a4,
+    Union16BytesNestedInlineArrayFloat a5,
+    Union16BytesNestedInlineArrayFloat a6,
+    Union16BytesNestedInlineArrayFloat a7,
+    Union16BytesNestedInlineArrayFloat a8,
+    Union16BytesNestedInlineArrayFloat a9) {
+  std::cout << "PassUnion16BytesNestedInlineArrayFloatx10"
+            << "(([" << a0.a0[0] << ", " << a0.a0[1] << ", " << a0.a0[2] << ", "
+            << a0.a0[3] << "], (" << a0.a1.a0 << ", " << a0.a1.a1 << ", "
+            << a0.a1.a2 << ", " << a0.a1.a3 << ")), ([" << a1.a0[0] << ", "
+            << a1.a0[1] << ", " << a1.a0[2] << ", " << a1.a0[3] << "], ("
+            << a1.a1.a0 << ", " << a1.a1.a1 << ", " << a1.a1.a2 << ", "
+            << a1.a1.a3 << ")), ([" << a2.a0[0] << ", " << a2.a0[1] << ", "
+            << a2.a0[2] << ", " << a2.a0[3] << "], (" << a2.a1.a0 << ", "
+            << a2.a1.a1 << ", " << a2.a1.a2 << ", " << a2.a1.a3 << ")), (["
+            << a3.a0[0] << ", " << a3.a0[1] << ", " << a3.a0[2] << ", "
+            << a3.a0[3] << "], (" << a3.a1.a0 << ", " << a3.a1.a1 << ", "
+            << a3.a1.a2 << ", " << a3.a1.a3 << ")), ([" << a4.a0[0] << ", "
+            << a4.a0[1] << ", " << a4.a0[2] << ", " << a4.a0[3] << "], ("
+            << a4.a1.a0 << ", " << a4.a1.a1 << ", " << a4.a1.a2 << ", "
+            << a4.a1.a3 << ")), ([" << a5.a0[0] << ", " << a5.a0[1] << ", "
+            << a5.a0[2] << ", " << a5.a0[3] << "], (" << a5.a1.a0 << ", "
+            << a5.a1.a1 << ", " << a5.a1.a2 << ", " << a5.a1.a3 << ")), (["
+            << a6.a0[0] << ", " << a6.a0[1] << ", " << a6.a0[2] << ", "
+            << a6.a0[3] << "], (" << a6.a1.a0 << ", " << a6.a1.a1 << ", "
+            << a6.a1.a2 << ", " << a6.a1.a3 << ")), ([" << a7.a0[0] << ", "
+            << a7.a0[1] << ", " << a7.a0[2] << ", " << a7.a0[3] << "], ("
+            << a7.a1.a0 << ", " << a7.a1.a1 << ", " << a7.a1.a2 << ", "
+            << a7.a1.a3 << ")), ([" << a8.a0[0] << ", " << a8.a0[1] << ", "
+            << a8.a0[2] << ", " << a8.a0[3] << "], (" << a8.a1.a0 << ", "
+            << a8.a1.a1 << ", " << a8.a1.a2 << ", " << a8.a1.a3 << ")), (["
+            << a9.a0[0] << ", " << a9.a0[1] << ", " << a9.a0[2] << ", "
+            << a9.a0[3] << "], (" << a9.a1.a0 << ", " << a9.a1.a1 << ", "
+            << a9.a1.a2 << ", " << a9.a1.a3 << ")))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0[0];
+  result += a0.a0[1];
+  result += a0.a0[2];
+  result += a0.a0[3];
+  result += a1.a0[0];
+  result += a1.a0[1];
+  result += a1.a0[2];
+  result += a1.a0[3];
+  result += a2.a0[0];
+  result += a2.a0[1];
+  result += a2.a0[2];
+  result += a2.a0[3];
+  result += a3.a0[0];
+  result += a3.a0[1];
+  result += a3.a0[2];
+  result += a3.a0[3];
+  result += a4.a0[0];
+  result += a4.a0[1];
+  result += a4.a0[2];
+  result += a4.a0[3];
+  result += a5.a0[0];
+  result += a5.a0[1];
+  result += a5.a0[2];
+  result += a5.a0[3];
+  result += a6.a0[0];
+  result += a6.a0[1];
+  result += a6.a0[2];
+  result += a6.a0[3];
+  result += a7.a0[0];
+  result += a7.a0[1];
+  result += a7.a0[2];
+  result += a7.a0[3];
+  result += a8.a0[0];
+  result += a8.a0[1];
+  result += a8.a0[2];
+  result += a8.a0[3];
+  result += a9.a0[0];
+  result += a9.a0[1];
+  result += a9.a0[2];
+  result += a9.a0[3];
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Union with homogenous floats.
+DART_EXPORT double PassUnion16BytesNestedFloatx10(Union16BytesNestedFloat a0,
+                                                  Union16BytesNestedFloat a1,
+                                                  Union16BytesNestedFloat a2,
+                                                  Union16BytesNestedFloat a3,
+                                                  Union16BytesNestedFloat a4,
+                                                  Union16BytesNestedFloat a5,
+                                                  Union16BytesNestedFloat a6,
+                                                  Union16BytesNestedFloat a7,
+                                                  Union16BytesNestedFloat a8,
+                                                  Union16BytesNestedFloat a9) {
+  std::cout << "PassUnion16BytesNestedFloatx10"
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ", " << a0.a1.a2 << "), (" << a0.a2.a0
+            << ", " << a0.a2.a1 << ", " << a0.a2.a2 << ", " << a0.a2.a3
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << "), (" << a1.a1.a0
+            << ", " << a1.a1.a1 << ", " << a1.a1.a2 << "), (" << a1.a2.a0
+            << ", " << a1.a2.a1 << ", " << a1.a2.a2 << ", " << a1.a2.a3
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << "), (" << a2.a1.a0
+            << ", " << a2.a1.a1 << ", " << a2.a1.a2 << "), (" << a2.a2.a0
+            << ", " << a2.a2.a1 << ", " << a2.a2.a2 << ", " << a2.a2.a3
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ", " << a3.a1.a1 << ", " << a3.a1.a2 << "), (" << a3.a2.a0
+            << ", " << a3.a2.a1 << ", " << a3.a2.a2 << ", " << a3.a2.a3
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << "), (" << a4.a1.a0
+            << ", " << a4.a1.a1 << ", " << a4.a1.a2 << "), (" << a4.a2.a0
+            << ", " << a4.a2.a1 << ", " << a4.a2.a2 << ", " << a4.a2.a3
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << "), (" << a5.a1.a0
+            << ", " << a5.a1.a1 << ", " << a5.a1.a2 << "), (" << a5.a2.a0
+            << ", " << a5.a2.a1 << ", " << a5.a2.a2 << ", " << a5.a2.a3
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ", " << a6.a1.a1 << ", " << a6.a1.a2 << "), (" << a6.a2.a0
+            << ", " << a6.a2.a1 << ", " << a6.a2.a2 << ", " << a6.a2.a3
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << "), (" << a7.a1.a0
+            << ", " << a7.a1.a1 << ", " << a7.a1.a2 << "), (" << a7.a2.a0
+            << ", " << a7.a2.a1 << ", " << a7.a2.a2 << ", " << a7.a2.a3
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << "), (" << a8.a1.a0
+            << ", " << a8.a1.a1 << ", " << a8.a1.a2 << "), (" << a8.a2.a0
+            << ", " << a8.a2.a1 << ", " << a8.a2.a2 << ", " << a8.a2.a3
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ", " << a9.a1.a1 << ", " << a9.a1.a2 << "), (" << a9.a2.a0
+            << ", " << a9.a2.a1 << ", " << a9.a2.a2 << ", " << a9.a2.a3 << ")))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a0.a1;
+  result += a1.a0.a0;
+  result += a1.a0.a1;
+  result += a2.a0.a0;
+  result += a2.a0.a1;
+  result += a3.a0.a0;
+  result += a3.a0.a1;
+  result += a4.a0.a0;
+  result += a4.a0.a1;
+  result += a5.a0.a0;
+  result += a5.a0.a1;
+  result += a6.a0.a0;
+  result += a6.a0.a1;
+  result += a7.a0.a0;
+  result += a7.a0.a1;
+  result += a8.a0.a0;
+  result += a8.a0.a1;
+  result += a9.a0.a0;
+  result += a9.a0.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
 // Smallest struct with data.
 DART_EXPORT Struct1ByteInt ReturnStruct1ByteInt(int8_t a0) {
   std::cout << "ReturnStruct1ByteInt"
@@ -4364,7 +4760,7 @@ DART_EXPORT Struct1ByteInt ReturnStruct1ByteInt(int8_t a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Smaller than word size return value on all architectures.
 DART_EXPORT Struct3BytesHomogeneousUint8
 ReturnStruct3BytesHomogeneousUint8(uint8_t a0, uint8_t a1, uint8_t a2) {
@@ -4388,7 +4784,7 @@ ReturnStruct3BytesHomogeneousUint8(uint8_t a0, uint8_t a1, uint8_t a2) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Smaller than word size return value on all architectures.
 // With alignment rules taken into account size is 4 bytes.
 DART_EXPORT Struct3BytesInt2ByteAligned
@@ -4409,7 +4805,7 @@ ReturnStruct3BytesInt2ByteAligned(int16_t a0, int8_t a1) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Word size return value on 32 bit architectures..
 DART_EXPORT Struct4BytesHomogeneousInt16
 ReturnStruct4BytesHomogeneousInt16(int16_t a0, int16_t a1) {
@@ -4429,7 +4825,7 @@ ReturnStruct4BytesHomogeneousInt16(int16_t a0, int16_t a1) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Non-wordsize return value.
 DART_EXPORT Struct7BytesHomogeneousUint8
 ReturnStruct7BytesHomogeneousUint8(uint8_t a0,
@@ -4469,7 +4865,7 @@ ReturnStruct7BytesHomogeneousUint8(uint8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Non-wordsize return value.
 // With alignment rules taken into account size is 8 bytes.
 DART_EXPORT Struct7BytesInt4ByteAligned
@@ -4492,7 +4888,7 @@ ReturnStruct7BytesInt4ByteAligned(int32_t a0, int16_t a1, int8_t a2) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in integer registers on many architectures.
 DART_EXPORT Struct8BytesInt ReturnStruct8BytesInt(int16_t a0,
                                                   int16_t a1,
@@ -4514,7 +4910,7 @@ DART_EXPORT Struct8BytesInt ReturnStruct8BytesInt(int16_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FP registers on many architectures.
 DART_EXPORT Struct8BytesHomogeneousFloat
 ReturnStruct8BytesHomogeneousFloat(float a0, float a1) {
@@ -4534,7 +4930,7 @@ ReturnStruct8BytesHomogeneousFloat(float a0, float a1) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value split over FP and integer register in x64.
 DART_EXPORT Struct8BytesMixed ReturnStruct8BytesMixed(float a0,
                                                       int16_t a1,
@@ -4556,7 +4952,7 @@ DART_EXPORT Struct8BytesMixed ReturnStruct8BytesMixed(float a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is the right size and that
 // dart:ffi trampolines do not write outside this size.
@@ -4605,7 +5001,7 @@ ReturnStruct9BytesHomogeneousUint8(uint8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in two integer registers on x64.
 // With alignment rules taken into account size is 12 or 16 bytes.
 DART_EXPORT Struct9BytesInt4Or8ByteAligned
@@ -4626,7 +5022,7 @@ ReturnStruct9BytesInt4Or8ByteAligned(int64_t a0, int8_t a1) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers, but does not use all registers on arm hardfp
 // and arm64.
 DART_EXPORT Struct12BytesHomogeneousFloat
@@ -4648,7 +5044,7 @@ ReturnStruct12BytesHomogeneousFloat(float a0, float a1, float a2) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm hardfp and arm64.
 DART_EXPORT Struct16BytesHomogeneousFloat
 ReturnStruct16BytesHomogeneousFloat(float a0, float a1, float a2, float a3) {
@@ -4671,7 +5067,7 @@ ReturnStruct16BytesHomogeneousFloat(float a0, float a1, float a2, float a3) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value split over FP and integer register in x64.
 DART_EXPORT Struct16BytesMixed ReturnStruct16BytesMixed(double a0, int64_t a1) {
   std::cout << "ReturnStruct16BytesMixed"
@@ -4690,7 +5086,7 @@ DART_EXPORT Struct16BytesMixed ReturnStruct16BytesMixed(double a0, int64_t a1) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value split over FP and integer register in x64.
 // The integer register contains half float half int.
 DART_EXPORT Struct16BytesMixed2 ReturnStruct16BytesMixed2(float a0,
@@ -4716,7 +5112,7 @@ DART_EXPORT Struct16BytesMixed2 ReturnStruct16BytesMixed2(float a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Rerturn value returned in preallocated space passed by pointer on most ABIs.
 // Is non word size on purpose, to test that structs are rounded up to word size
 // on all ABIs.
@@ -4741,7 +5137,7 @@ DART_EXPORT Struct17BytesInt ReturnStruct17BytesInt(int64_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is the right size and that
 // dart:ffi trampolines do not write outside this size.
@@ -4825,7 +5221,7 @@ ReturnStruct19BytesHomogeneousUint8(uint8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value too big to go in cpu registers on arm64.
 DART_EXPORT Struct20BytesHomogeneousInt32
 ReturnStruct20BytesHomogeneousInt32(int32_t a0,
@@ -4854,7 +5250,7 @@ ReturnStruct20BytesHomogeneousInt32(int32_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value too big to go in FPU registers on x64, arm hardfp and arm64.
 DART_EXPORT Struct20BytesHomogeneousFloat
 ReturnStruct20BytesHomogeneousFloat(float a0,
@@ -4883,7 +5279,7 @@ ReturnStruct20BytesHomogeneousFloat(float a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm64.
 DART_EXPORT Struct32BytesHomogeneousDouble
 ReturnStruct32BytesHomogeneousDouble(double a0,
@@ -4909,7 +5305,7 @@ ReturnStruct32BytesHomogeneousDouble(double a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value too big to go in FPU registers on arm64.
 DART_EXPORT Struct40BytesHomogeneousDouble
 ReturnStruct40BytesHomogeneousDouble(double a0,
@@ -4938,7 +5334,7 @@ ReturnStruct40BytesHomogeneousDouble(double a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test 1kb struct.
 DART_EXPORT Struct1024BytesHomogeneousUint64
 ReturnStruct1024BytesHomogeneousUint64(uint64_t a0,
@@ -5282,7 +5678,7 @@ ReturnStruct1024BytesHomogeneousUint64(uint64_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Small struct with mis-aligned member.
 DART_EXPORT Struct3BytesPackedInt ReturnStruct3BytesPackedInt(int8_t a0,
                                                               int16_t a1) {
@@ -5302,7 +5698,7 @@ DART_EXPORT Struct3BytesPackedInt ReturnStruct3BytesPackedInt(int8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 DART_EXPORT Struct8BytesPackedInt ReturnStruct8BytesPackedInt(uint8_t a0,
                                                               uint32_t a1,
@@ -5333,7 +5729,7 @@ DART_EXPORT Struct8BytesPackedInt ReturnStruct8BytesPackedInt(uint8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
 DART_EXPORT Struct9BytesPackedMixed ReturnStruct9BytesPackedMixed(uint8_t a0,
@@ -5354,7 +5750,97 @@ DART_EXPORT Struct9BytesPackedMixed ReturnStruct9BytesPackedMixed(uint8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
+// Returning a mixed integer/float union.
+DART_EXPORT Union4BytesMixed ReturnUnion4BytesMixed(uint32_t a0) {
+  std::cout << "ReturnUnion4BytesMixed"
+            << "(" << a0 << ")"
+            << "\n";
+
+  Union4BytesMixed result;
+
+  result.a0 = a0;
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", " << result.a1 << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Returning a floating point only union.
+DART_EXPORT Union8BytesNestedFloat ReturnUnion8BytesNestedFloat(double a0) {
+  std::cout << "ReturnUnion8BytesNestedFloat"
+            << "(" << a0 << ")"
+            << "\n";
+
+  Union8BytesNestedFloat result;
+
+  result.a0 = a0;
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", (" << result.a1.a0 << ", " << result.a1.a1
+            << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Returning a mixed-size union.
+DART_EXPORT Union9BytesNestedInt
+ReturnUnion9BytesNestedInt(Struct8BytesInt a0) {
+  std::cout << "ReturnUnion9BytesNestedInt"
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "))"
+            << "\n";
+
+  Union9BytesNestedInt result;
+
+  result.a0.a0 = a0.a0;
+  result.a0.a1 = a0.a1;
+  result.a0.a2 = a0.a2;
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << ", "
+            << result.a0.a2 << "), (" << static_cast<int>(result.a1.a0) << ", "
+            << static_cast<int>(result.a1.a1) << ", "
+            << static_cast<int>(result.a1.a2) << ", "
+            << static_cast<int>(result.a1.a3) << ", "
+            << static_cast<int>(result.a1.a4) << ", "
+            << static_cast<int>(result.a1.a5) << ", "
+            << static_cast<int>(result.a1.a6) << ", "
+            << static_cast<int>(result.a1.a7) << ", "
+            << static_cast<int>(result.a1.a8) << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Returning union with homogenous floats.
+DART_EXPORT Union16BytesNestedFloat
+ReturnUnion16BytesNestedFloat(Struct8BytesHomogeneousFloat a0) {
+  std::cout << "ReturnUnion16BytesNestedFloat"
+            << "((" << a0.a0 << ", " << a0.a1 << "))"
+            << "\n";
+
+  Union16BytesNestedFloat result;
+
+  result.a0.a0 = a0.a0;
+  result.a0.a1 = a0.a1;
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
+            << result.a1.a0 << ", " << result.a1.a1 << ", " << result.a1.a2
+            << "), (" << result.a2.a0 << ", " << result.a2.a1 << ", "
+            << result.a2.a2 << ", " << result.a2.a3 << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
 // Test that a struct passed in as argument can be returned.
 // Especially for ffi callbacks.
 // Struct is passed in int registers in most ABIs.
@@ -5373,7 +5859,7 @@ ReturnStructArgumentStruct1ByteInt(Struct1ByteInt a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test that a struct passed in as argument can be returned.
 // Especially for ffi callbacks.
 // Struct is passed on stack on all ABIs.
@@ -5402,7 +5888,7 @@ ReturnStructArgumentInt32x8Struct1ByteInt(int32_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test that a struct passed in as argument can be returned.
 // Especially for ffi callbacks.
 // Struct is passed in float registers in most ABIs.
@@ -5422,7 +5908,7 @@ ReturnStructArgumentStruct8BytesHomogeneousFloat(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On arm64, both argument and return value are passed in by pointer.
 DART_EXPORT Struct20BytesHomogeneousInt32
 ReturnStructArgumentStruct20BytesHomogeneousInt32(
@@ -5442,7 +5928,7 @@ ReturnStructArgumentStruct20BytesHomogeneousInt32(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On arm64, both argument and return value are passed in by pointer.
 // Ints exhaust registers, so that pointer is passed on stack.
 DART_EXPORT Struct20BytesHomogeneousInt32
@@ -5472,7 +5958,7 @@ ReturnStructArgumentInt32x8Struct20BytesHomogeneou(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test returning struct with inline array.
 DART_EXPORT Struct8BytesInlineArrayInt
 ReturnStructArgumentStruct8BytesInlineArrayInt(Struct8BytesInlineArrayInt a0) {
@@ -5501,7 +5987,7 @@ ReturnStructArgumentStruct8BytesInlineArrayInt(Struct8BytesInlineArrayInt a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm hardfp and arm64.
 DART_EXPORT StructStruct16BytesHomogeneousFloat2
 ReturnStructArgumentStructStruct16BytesHomogeneous(
@@ -5521,7 +6007,7 @@ ReturnStructArgumentStructStruct16BytesHomogeneous(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm64.
 DART_EXPORT StructStruct32BytesHomogeneousDouble2
 ReturnStructArgumentStructStruct32BytesHomogeneous(
@@ -5541,7 +6027,7 @@ ReturnStructArgumentStructStruct32BytesHomogeneous(
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64 Linux, return value is split over FP and int registers.
 DART_EXPORT StructStruct16BytesMixed3
 ReturnStructArgumentStructStruct16BytesMixed3(StructStruct16BytesMixed3 a0) {
@@ -5562,7 +6048,7 @@ ReturnStructArgumentStructStruct16BytesMixed3(StructStruct16BytesMixed3 a0) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 16 byte int within struct.
 DART_EXPORT StructAlignmentInt16 ReturnStructAlignmentInt16(int8_t a0,
                                                             int16_t a1,
@@ -5586,7 +6072,7 @@ DART_EXPORT StructAlignmentInt16 ReturnStructAlignmentInt16(int8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 32 byte int within struct.
 DART_EXPORT StructAlignmentInt32 ReturnStructAlignmentInt32(int8_t a0,
                                                             int32_t a1,
@@ -5610,7 +6096,7 @@ DART_EXPORT StructAlignmentInt32 ReturnStructAlignmentInt32(int8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 64 byte int within struct.
 DART_EXPORT StructAlignmentInt64 ReturnStructAlignmentInt64(int8_t a0,
                                                             int64_t a1,
@@ -5634,7 +6120,7 @@ DART_EXPORT StructAlignmentInt64 ReturnStructAlignmentInt64(int8_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct.
 DART_EXPORT Struct8BytesNestedInt
 ReturnStruct8BytesNestedInt(Struct4BytesHomogeneousInt16 a0,
@@ -5659,7 +6145,7 @@ ReturnStruct8BytesNestedInt(Struct4BytesHomogeneousInt16 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct with floats.
 DART_EXPORT Struct8BytesNestedFloat
 ReturnStruct8BytesNestedFloat(Struct4BytesFloat a0, Struct4BytesFloat a1) {
@@ -5679,7 +6165,7 @@ ReturnStruct8BytesNestedFloat(Struct4BytesFloat a0, Struct4BytesFloat a1) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The nesting is irregular, testing homogenous float rules on arm and arm64,
 // and the fpu register usage on x64.
 DART_EXPORT Struct8BytesNestedFloat2
@@ -5700,7 +6186,7 @@ ReturnStruct8BytesNestedFloat2(Struct4BytesFloat a0, float a1) {
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct with mixed members.
 DART_EXPORT Struct8BytesNestedMixed
 ReturnStruct8BytesNestedMixed(Struct4BytesHomogeneousInt16 a0,
@@ -5723,7 +6209,7 @@ ReturnStruct8BytesNestedMixed(Struct4BytesHomogeneousInt16 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Deeper nested struct to test recursive member access.
 DART_EXPORT Struct16BytesNestedInt
 ReturnStruct16BytesNestedInt(Struct8BytesNestedInt a0,
@@ -5755,7 +6241,7 @@ ReturnStruct16BytesNestedInt(Struct8BytesNestedInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Even deeper nested struct to test recursive member access.
 DART_EXPORT Struct32BytesNestedInt
 ReturnStruct32BytesNestedInt(Struct16BytesNestedInt a0,
@@ -5804,7 +6290,7 @@ ReturnStruct32BytesNestedInt(Struct16BytesNestedInt a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 16 byte int.
 DART_EXPORT StructNestedIntStructAlignmentInt16
 ReturnStructNestedIntStructAlignmentInt16(StructAlignmentInt16 a0,
@@ -5834,7 +6320,7 @@ ReturnStructNestedIntStructAlignmentInt16(StructAlignmentInt16 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 32 byte int.
 DART_EXPORT StructNestedIntStructAlignmentInt32
 ReturnStructNestedIntStructAlignmentInt32(StructAlignmentInt32 a0,
@@ -5864,7 +6350,7 @@ ReturnStructNestedIntStructAlignmentInt32(StructAlignmentInt32 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 64 byte int.
 DART_EXPORT StructNestedIntStructAlignmentInt64
 ReturnStructNestedIntStructAlignmentInt64(StructAlignmentInt64 a0,
@@ -5894,7 +6380,7 @@ ReturnStructNestedIntStructAlignmentInt64(StructAlignmentInt64 a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return big irregular struct as smoke test.
 DART_EXPORT StructNestedIrregularEvenBigger
 ReturnStructNestedIrregularEvenBigger(uint64_t a0,
@@ -5977,7 +6463,7 @@ ReturnStructNestedIrregularEvenBigger(uint64_t a0,
   return result;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Smallest struct with data.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct1ByteIntx10(
@@ -6047,7 +6533,7 @@ DART_EXPORT intptr_t TestPassStruct1ByteIntx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Not a multiple of word size, not a power of two.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct3BytesHomogeneousUint8x10(
@@ -6151,7 +6637,7 @@ DART_EXPORT intptr_t TestPassStruct3BytesHomogeneousUint8x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Not a multiple of word size, not a power of two.
 // With alignment rules taken into account size is 4 bytes.
 // 10 struct arguments will exhaust available registers.
@@ -6235,7 +6721,7 @@ DART_EXPORT intptr_t TestPassStruct3BytesInt2ByteAlignedx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Exactly word size on 32-bit architectures.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct4BytesHomogeneousInt16x10(
@@ -6314,7 +6800,7 @@ DART_EXPORT intptr_t TestPassStruct4BytesHomogeneousInt16x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Sub word size on 64 bit architectures.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct7BytesHomogeneousUint8x10(
@@ -6474,7 +6960,7 @@ DART_EXPORT intptr_t TestPassStruct7BytesHomogeneousUint8x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Sub word size on 64 bit architectures.
 // With alignment rules taken into account size is 8 bytes.
 // 10 struct arguments will exhaust available registers.
@@ -6570,7 +7056,7 @@ DART_EXPORT intptr_t TestPassStruct7BytesInt4ByteAlignedx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Exactly word size struct on 64bit architectures.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct8BytesIntx10(
@@ -6662,7 +7148,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesIntx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments passed in FP registers as long as they fit.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct8BytesHomogeneousFloatx10(
@@ -6741,7 +7227,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesHomogeneousFloatx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments go in int registers because it is not only float.
 // 10 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct8BytesMixedx10(
@@ -6833,7 +7319,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesMixedx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument is a single byte over a multiple of word size.
 // 10 struct arguments will exhaust available registers.
 // Struct only has 1-byte aligned fields to test struct alignment itself.
@@ -7026,7 +7512,7 @@ DART_EXPORT intptr_t TestPassStruct9BytesHomogeneousUint8x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument is a single byte over a multiple of word size.
 // With alignment rules taken into account size is 12 or 16 bytes.
 // 10 struct arguments will exhaust available registers.
@@ -7111,7 +7597,7 @@ DART_EXPORT intptr_t TestPassStruct9BytesInt4Or8ByteAlignedx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm hardfp and arm64.
 // Struct arguments will exhaust available registers, and leave some empty.
 // The last argument is to test whether arguments are backfilled.
@@ -7181,7 +7667,7 @@ DART_EXPORT intptr_t TestPassStruct12BytesHomogeneousFloatx6(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On Linux x64 argument is transferred on stack because it is over 16 bytes.
 // Arguments in FPU registers on arm hardfp and arm64.
 // 5 struct arguments will exhaust available registers.
@@ -7251,7 +7737,7 @@ DART_EXPORT intptr_t TestPassStruct16BytesHomogeneousFloatx5(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments are split over FP and int registers.
 // On x64, it will exhaust the integer registers with the 6th argument.
 // The rest goes on the stack.
@@ -7332,7 +7818,7 @@ DART_EXPORT intptr_t TestPassStruct16BytesMixedx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments are split over FP and int registers.
 // On x64, it will exhaust the integer registers with the 6th argument.
 // The rest goes on the stack.
@@ -7439,7 +7925,7 @@ DART_EXPORT intptr_t TestPassStruct16BytesMixed2x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments are passed as pointer to copy on arm64.
 // Tests that the memory allocated for copies are rounded up to word size.
 DART_EXPORT intptr_t TestPassStruct17BytesIntx10(
@@ -7534,7 +8020,7 @@ DART_EXPORT intptr_t TestPassStruct17BytesIntx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is extended to the right size.
 //
@@ -7875,7 +8361,7 @@ DART_EXPORT intptr_t TestPassStruct19BytesHomogeneousUint8x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument too big to go into integer registers on arm64.
 // The arguments are passed as pointers to copies.
 // The amount of arguments exhausts the number of integer registers, such that
@@ -7994,7 +8480,7 @@ DART_EXPORT intptr_t TestPassStruct20BytesHomogeneousInt32x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument too big to go into FPU registers in hardfp and arm64.
 DART_EXPORT intptr_t TestPassStruct20BytesHomogeneousFloat(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -8035,7 +8521,7 @@ DART_EXPORT intptr_t TestPassStruct20BytesHomogeneousFloat(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm64.
 // 5 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStruct32BytesHomogeneousDoublex5(
@@ -8104,7 +8590,7 @@ DART_EXPORT intptr_t TestPassStruct32BytesHomogeneousDoublex5(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Argument too big to go into FPU registers in arm64.
 DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDouble(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -8145,7 +8631,7 @@ DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDouble(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test 1kb struct.
 DART_EXPORT intptr_t TestPassStruct1024BytesHomogeneousUint64(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -8344,7 +8830,7 @@ DART_EXPORT intptr_t TestPassStruct1024BytesHomogeneousUint64(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Tests the alignment of structs in FPU registers and backfilling.
 DART_EXPORT intptr_t TestPassFloatStruct16BytesHomogeneousFloatFloatStruct1(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -8421,7 +8907,7 @@ DART_EXPORT intptr_t TestPassFloatStruct16BytesHomogeneousFloatFloatStruct1(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Tests the alignment of structs in FPU registers and backfilling.
 DART_EXPORT intptr_t TestPassFloatStruct32BytesHomogeneousDoubleFloatStruct(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -8498,7 +8984,7 @@ DART_EXPORT intptr_t TestPassFloatStruct32BytesHomogeneousDoubleFloatStruct(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Tests the alignment of structs in integers registers and on the stack.
 // Arm32 aligns this struct at 8.
 // Also, arm32 allocates the second struct partially in registers, partially
@@ -8570,7 +9056,7 @@ DART_EXPORT intptr_t TestPassInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On Linux x64, it will exhaust xmm registers first, after 6 doubles and 2
 // structs. The rest of the structs will go on the stack.
 // The int will be backfilled into the int register.
@@ -8645,7 +9131,7 @@ DART_EXPORT intptr_t TestPassDoublex6Struct16BytesMixedx4Int32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On Linux x64, it will exhaust int registers first.
 // The rest of the structs will go on the stack.
 // The double will be backfilled into the xmm register.
@@ -8714,7 +9200,7 @@ DART_EXPORT intptr_t TestPassInt32x4Struct16BytesMixedx4Double(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On various architectures, first struct is allocated on stack.
 // Check that the other two arguments are allocated on registers.
 DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
@@ -8765,7 +9251,7 @@ DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 16 byte int within struct.
 DART_EXPORT intptr_t TestPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -8955,7 +9441,7 @@ DART_EXPORT intptr_t TestPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 16 byte int within struct.
 DART_EXPORT intptr_t TestPassStructAlignmentInt16(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -8994,7 +9480,7 @@ DART_EXPORT intptr_t TestPassStructAlignmentInt16(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 32 byte int within struct.
 DART_EXPORT intptr_t TestPassStructAlignmentInt32(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9033,7 +9519,7 @@ DART_EXPORT intptr_t TestPassStructAlignmentInt32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 64 byte int within struct.
 DART_EXPORT intptr_t TestPassStructAlignmentInt64(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9072,7 +9558,7 @@ DART_EXPORT intptr_t TestPassStructAlignmentInt64(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust registers on all platforms.
 DART_EXPORT intptr_t TestPassStruct8BytesNestedIntx10(
@@ -9179,7 +9665,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedIntx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust fpu registers on all platforms.
 DART_EXPORT intptr_t TestPassStruct8BytesNestedFloatx10(
@@ -9260,7 +9746,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedFloatx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust fpu registers on all platforms.
 // The nesting is irregular, testing homogenous float rules on arm and arm64,
@@ -9342,7 +9828,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedFloat2x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct. No alignment gaps on any architectures.
 // 10 arguments exhaust all registers on all platforms.
 DART_EXPORT intptr_t TestPassStruct8BytesNestedMixedx10(
@@ -9436,7 +9922,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedMixedx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Deeper nested struct to test recursive member access.
 DART_EXPORT intptr_t TestPassStruct16BytesNestedIntx2(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9494,7 +9980,7 @@ DART_EXPORT intptr_t TestPassStruct16BytesNestedIntx2(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Even deeper nested struct to test recursive member access.
 DART_EXPORT intptr_t TestPassStruct32BytesNestedIntx2(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9577,7 +10063,7 @@ DART_EXPORT intptr_t TestPassStruct32BytesNestedIntx2(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 16 byte int.
 DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt16(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9621,7 +10107,7 @@ DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt16(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 32 byte int.
 DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt32(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9665,7 +10151,7 @@ DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 64 byte int.
 DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt64(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9709,7 +10195,7 @@ DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt64(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return big irregular struct as smoke test.
 DART_EXPORT intptr_t TestPassStructNestedIrregularEvenBiggerx4(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9940,7 +10426,7 @@ DART_EXPORT intptr_t TestPassStructNestedIrregularEvenBiggerx4(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple struct with inline array.
 DART_EXPORT intptr_t TestPassStruct8BytesInlineArrayIntx4(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -10035,7 +10521,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesInlineArrayIntx4(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Irregular struct with inline array.
 DART_EXPORT intptr_t TestPassStructInlineArrayIrregularx4(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -10107,7 +10593,7 @@ DART_EXPORT intptr_t TestPassStructInlineArrayIrregularx4(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Regular larger struct with inline array.
 DART_EXPORT intptr_t TestPassStructInlineArray100Bytes(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -10309,7 +10795,7 @@ DART_EXPORT intptr_t TestPassStructInlineArray100Bytes(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm hardfp and arm64.
 // 5 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStructStruct16BytesHomogeneousFloat2x5(
@@ -10380,7 +10866,7 @@ DART_EXPORT intptr_t TestPassStructStruct16BytesHomogeneousFloat2x5(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Arguments in FPU registers on arm64.
 // 5 struct arguments will exhaust available registers.
 DART_EXPORT intptr_t TestPassStructStruct32BytesHomogeneousDouble2x5(
@@ -10451,7 +10937,7 @@ DART_EXPORT intptr_t TestPassStructStruct32BytesHomogeneousDouble2x5(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64, arguments are split over FP and int registers.
 // On x64, it will exhaust the integer registers with the 6th argument.
 // The rest goes on the stack.
@@ -10589,7 +11075,7 @@ DART_EXPORT intptr_t TestPassStructStruct16BytesMixed3x10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test multi dimensional inline array struct as argument.
 DART_EXPORT intptr_t TestPassUint8Struct32BytesInlineArrayMultiDimensionalI(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -10739,7 +11225,7 @@ DART_EXPORT intptr_t TestPassUint8Struct32BytesInlineArrayMultiDimensionalI(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test struct in multi dimensional inline array.
 DART_EXPORT intptr_t TestPassUint8Struct4BytesInlineArrayMultiDimensionalIn(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -10789,7 +11275,7 @@ DART_EXPORT intptr_t TestPassUint8Struct4BytesInlineArrayMultiDimensionalIn(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Small struct with mis-aligned member.
 DART_EXPORT intptr_t TestPassStruct3BytesPackedIntx10(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -10871,7 +11357,7 @@ DART_EXPORT intptr_t TestPassStruct3BytesPackedIntx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 DART_EXPORT intptr_t TestPassStruct8BytesPackedIntx10(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11003,7 +11489,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesPackedIntx10(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
 DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
@@ -11093,7 +11579,7 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // This packed struct happens to have only aligned members.
 DART_EXPORT intptr_t TestPassStruct5BytesPackedMixed(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11130,7 +11616,7 @@ DART_EXPORT intptr_t TestPassStruct5BytesPackedMixed(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Check alignment of packed struct in non-packed struct.
 DART_EXPORT intptr_t TestPassStructNestedAlignmentStruct5BytesPackedMixed(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11169,7 +11655,7 @@ DART_EXPORT intptr_t TestPassStructNestedAlignmentStruct5BytesPackedMixed(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Check alignment of packed struct array in non-packed struct.
 DART_EXPORT intptr_t TestPassStruct6BytesInlineArrayInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11210,7 +11696,7 @@ DART_EXPORT intptr_t TestPassStruct6BytesInlineArrayInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Check alignment of packed struct array in non-packed struct.
 DART_EXPORT intptr_t TestPassStruct15BytesInlineArrayMixed(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11254,7 +11740,521 @@ DART_EXPORT intptr_t TestPassStruct15BytesInlineArrayMixed(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
+// Check placement of mixed integer/float union.
+DART_EXPORT intptr_t TestPassUnion4BytesMixedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Union4BytesMixed a0,
+                Union4BytesMixed a1,
+                Union4BytesMixed a2,
+                Union4BytesMixed a3,
+                Union4BytesMixed a4,
+                Union4BytesMixed a5,
+                Union4BytesMixed a6,
+                Union4BytesMixed a7,
+                Union4BytesMixed a8,
+                Union4BytesMixed a9)) {
+  Union4BytesMixed a0;
+  Union4BytesMixed a1;
+  Union4BytesMixed a2;
+  Union4BytesMixed a3;
+  Union4BytesMixed a4;
+  Union4BytesMixed a5;
+  Union4BytesMixed a6;
+  Union4BytesMixed a7;
+  Union4BytesMixed a8;
+  Union4BytesMixed a9;
+
+  a0.a0 = 1;
+  a1.a0 = 2;
+  a2.a0 = 3;
+  a3.a0 = 4;
+  a4.a0 = 5;
+  a5.a0 = 6;
+  a6.a0 = 7;
+  a7.a0 = 8;
+  a8.a0 = 9;
+  a9.a0 = 10;
+
+  std::cout << "Calling TestPassUnion4BytesMixedx10("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "), (" << a2.a0 << ", " << a2.a1 << "), (" << a3.a0
+            << ", " << a3.a1 << "), (" << a4.a0 << ", " << a4.a1 << "), ("
+            << a5.a0 << ", " << a5.a1 << "), (" << a6.a0 << ", " << a6.a1
+            << "), (" << a7.a0 << ", " << a7.a1 << "), (" << a8.a0 << ", "
+            << a8.a1 << "), (" << a9.a0 << ", " << a9.a1 << "))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(55.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Check placement of mixed floats union.
+DART_EXPORT intptr_t TestPassUnion8BytesNestedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Union8BytesNestedFloat a0,
+                Union8BytesNestedFloat a1,
+                Union8BytesNestedFloat a2,
+                Union8BytesNestedFloat a3,
+                Union8BytesNestedFloat a4,
+                Union8BytesNestedFloat a5,
+                Union8BytesNestedFloat a6,
+                Union8BytesNestedFloat a7,
+                Union8BytesNestedFloat a8,
+                Union8BytesNestedFloat a9)) {
+  Union8BytesNestedFloat a0;
+  Union8BytesNestedFloat a1;
+  Union8BytesNestedFloat a2;
+  Union8BytesNestedFloat a3;
+  Union8BytesNestedFloat a4;
+  Union8BytesNestedFloat a5;
+  Union8BytesNestedFloat a6;
+  Union8BytesNestedFloat a7;
+  Union8BytesNestedFloat a8;
+  Union8BytesNestedFloat a9;
+
+  a0.a0 = -1.0;
+  a1.a0 = 2.0;
+  a2.a0 = -3.0;
+  a3.a0 = 4.0;
+  a4.a0 = -5.0;
+  a5.a0 = 6.0;
+  a6.a0 = -7.0;
+  a7.a0 = 8.0;
+  a8.a0 = -9.0;
+  a9.a0 = 10.0;
+
+  std::cout << "Calling TestPassUnion8BytesNestedFloatx10("
+            << "((" << a0.a0 << ", (" << a0.a1.a0 << ", " << a0.a1.a1 << ")), ("
+            << a1.a0 << ", (" << a1.a1.a0 << ", " << a1.a1.a1 << ")), ("
+            << a2.a0 << ", (" << a2.a1.a0 << ", " << a2.a1.a1 << ")), ("
+            << a3.a0 << ", (" << a3.a1.a0 << ", " << a3.a1.a1 << ")), ("
+            << a4.a0 << ", (" << a4.a1.a0 << ", " << a4.a1.a1 << ")), ("
+            << a5.a0 << ", (" << a5.a1.a0 << ", " << a5.a1.a1 << ")), ("
+            << a6.a0 << ", (" << a6.a1.a0 << ", " << a6.a1.a1 << ")), ("
+            << a7.a0 << ", (" << a7.a1.a0 << ", " << a7.a1.a1 << ")), ("
+            << a8.a0 << ", (" << a8.a1.a0 << ", " << a8.a1.a1 << ")), ("
+            << a9.a0 << ", (" << a9.a1.a0 << ", " << a9.a1.a1 << ")))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(5.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Mixed-size union argument.
+DART_EXPORT intptr_t TestPassUnion9BytesNestedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Union9BytesNestedInt a0,
+                Union9BytesNestedInt a1,
+                Union9BytesNestedInt a2,
+                Union9BytesNestedInt a3,
+                Union9BytesNestedInt a4,
+                Union9BytesNestedInt a5,
+                Union9BytesNestedInt a6,
+                Union9BytesNestedInt a7,
+                Union9BytesNestedInt a8,
+                Union9BytesNestedInt a9)) {
+  Union9BytesNestedInt a0;
+  Union9BytesNestedInt a1;
+  Union9BytesNestedInt a2;
+  Union9BytesNestedInt a3;
+  Union9BytesNestedInt a4;
+  Union9BytesNestedInt a5;
+  Union9BytesNestedInt a6;
+  Union9BytesNestedInt a7;
+  Union9BytesNestedInt a8;
+  Union9BytesNestedInt a9;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a1.a0.a0 = 4;
+  a1.a0.a1 = -5;
+  a1.a0.a2 = 6;
+  a2.a0.a0 = -7;
+  a2.a0.a1 = 8;
+  a2.a0.a2 = -9;
+  a3.a0.a0 = 10;
+  a3.a0.a1 = -11;
+  a3.a0.a2 = 12;
+  a4.a0.a0 = -13;
+  a4.a0.a1 = 14;
+  a4.a0.a2 = -15;
+  a5.a0.a0 = 16;
+  a5.a0.a1 = -17;
+  a5.a0.a2 = 18;
+  a6.a0.a0 = -19;
+  a6.a0.a1 = 20;
+  a6.a0.a2 = -21;
+  a7.a0.a0 = 22;
+  a7.a0.a1 = -23;
+  a7.a0.a2 = 24;
+  a8.a0.a0 = -25;
+  a8.a0.a1 = 26;
+  a8.a0.a2 = -27;
+  a9.a0.a0 = 28;
+  a9.a0.a1 = -29;
+  a9.a0.a2 = 30;
+
+  std::cout << "Calling TestPassUnion9BytesNestedIntx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ", " << a0.a0.a2
+            << "), (" << static_cast<int>(a0.a1.a0) << ", "
+            << static_cast<int>(a0.a1.a1) << ", " << static_cast<int>(a0.a1.a2)
+            << ", " << static_cast<int>(a0.a1.a3) << ", "
+            << static_cast<int>(a0.a1.a4) << ", " << static_cast<int>(a0.a1.a5)
+            << ", " << static_cast<int>(a0.a1.a6) << ", "
+            << static_cast<int>(a0.a1.a7) << ", " << static_cast<int>(a0.a1.a8)
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << ", " << a1.a0.a2
+            << "), (" << static_cast<int>(a1.a1.a0) << ", "
+            << static_cast<int>(a1.a1.a1) << ", " << static_cast<int>(a1.a1.a2)
+            << ", " << static_cast<int>(a1.a1.a3) << ", "
+            << static_cast<int>(a1.a1.a4) << ", " << static_cast<int>(a1.a1.a5)
+            << ", " << static_cast<int>(a1.a1.a6) << ", "
+            << static_cast<int>(a1.a1.a7) << ", " << static_cast<int>(a1.a1.a8)
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << ", " << a2.a0.a2
+            << "), (" << static_cast<int>(a2.a1.a0) << ", "
+            << static_cast<int>(a2.a1.a1) << ", " << static_cast<int>(a2.a1.a2)
+            << ", " << static_cast<int>(a2.a1.a3) << ", "
+            << static_cast<int>(a2.a1.a4) << ", " << static_cast<int>(a2.a1.a5)
+            << ", " << static_cast<int>(a2.a1.a6) << ", "
+            << static_cast<int>(a2.a1.a7) << ", " << static_cast<int>(a2.a1.a8)
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ", " << a3.a0.a2
+            << "), (" << static_cast<int>(a3.a1.a0) << ", "
+            << static_cast<int>(a3.a1.a1) << ", " << static_cast<int>(a3.a1.a2)
+            << ", " << static_cast<int>(a3.a1.a3) << ", "
+            << static_cast<int>(a3.a1.a4) << ", " << static_cast<int>(a3.a1.a5)
+            << ", " << static_cast<int>(a3.a1.a6) << ", "
+            << static_cast<int>(a3.a1.a7) << ", " << static_cast<int>(a3.a1.a8)
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << ", " << a4.a0.a2
+            << "), (" << static_cast<int>(a4.a1.a0) << ", "
+            << static_cast<int>(a4.a1.a1) << ", " << static_cast<int>(a4.a1.a2)
+            << ", " << static_cast<int>(a4.a1.a3) << ", "
+            << static_cast<int>(a4.a1.a4) << ", " << static_cast<int>(a4.a1.a5)
+            << ", " << static_cast<int>(a4.a1.a6) << ", "
+            << static_cast<int>(a4.a1.a7) << ", " << static_cast<int>(a4.a1.a8)
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << ", " << a5.a0.a2
+            << "), (" << static_cast<int>(a5.a1.a0) << ", "
+            << static_cast<int>(a5.a1.a1) << ", " << static_cast<int>(a5.a1.a2)
+            << ", " << static_cast<int>(a5.a1.a3) << ", "
+            << static_cast<int>(a5.a1.a4) << ", " << static_cast<int>(a5.a1.a5)
+            << ", " << static_cast<int>(a5.a1.a6) << ", "
+            << static_cast<int>(a5.a1.a7) << ", " << static_cast<int>(a5.a1.a8)
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ", " << a6.a0.a2
+            << "), (" << static_cast<int>(a6.a1.a0) << ", "
+            << static_cast<int>(a6.a1.a1) << ", " << static_cast<int>(a6.a1.a2)
+            << ", " << static_cast<int>(a6.a1.a3) << ", "
+            << static_cast<int>(a6.a1.a4) << ", " << static_cast<int>(a6.a1.a5)
+            << ", " << static_cast<int>(a6.a1.a6) << ", "
+            << static_cast<int>(a6.a1.a7) << ", " << static_cast<int>(a6.a1.a8)
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << ", " << a7.a0.a2
+            << "), (" << static_cast<int>(a7.a1.a0) << ", "
+            << static_cast<int>(a7.a1.a1) << ", " << static_cast<int>(a7.a1.a2)
+            << ", " << static_cast<int>(a7.a1.a3) << ", "
+            << static_cast<int>(a7.a1.a4) << ", " << static_cast<int>(a7.a1.a5)
+            << ", " << static_cast<int>(a7.a1.a6) << ", "
+            << static_cast<int>(a7.a1.a7) << ", " << static_cast<int>(a7.a1.a8)
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << ", " << a8.a0.a2
+            << "), (" << static_cast<int>(a8.a1.a0) << ", "
+            << static_cast<int>(a8.a1.a1) << ", " << static_cast<int>(a8.a1.a2)
+            << ", " << static_cast<int>(a8.a1.a3) << ", "
+            << static_cast<int>(a8.a1.a4) << ", " << static_cast<int>(a8.a1.a5)
+            << ", " << static_cast<int>(a8.a1.a6) << ", "
+            << static_cast<int>(a8.a1.a7) << ", " << static_cast<int>(a8.a1.a8)
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ", " << a9.a0.a2
+            << "), (" << static_cast<int>(a9.a1.a0) << ", "
+            << static_cast<int>(a9.a1.a1) << ", " << static_cast<int>(a9.a1.a2)
+            << ", " << static_cast<int>(a9.a1.a3) << ", "
+            << static_cast<int>(a9.a1.a4) << ", " << static_cast<int>(a9.a1.a5)
+            << ", " << static_cast<int>(a9.a1.a6) << ", "
+            << static_cast<int>(a9.a1.a7) << ", " << static_cast<int>(a9.a1.a8)
+            << ")))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(15.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Union with homogenous floats.
+DART_EXPORT intptr_t TestPassUnion16BytesNestedInlineArrayFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Union16BytesNestedInlineArrayFloat a0,
+                Union16BytesNestedInlineArrayFloat a1,
+                Union16BytesNestedInlineArrayFloat a2,
+                Union16BytesNestedInlineArrayFloat a3,
+                Union16BytesNestedInlineArrayFloat a4,
+                Union16BytesNestedInlineArrayFloat a5,
+                Union16BytesNestedInlineArrayFloat a6,
+                Union16BytesNestedInlineArrayFloat a7,
+                Union16BytesNestedInlineArrayFloat a8,
+                Union16BytesNestedInlineArrayFloat a9)) {
+  Union16BytesNestedInlineArrayFloat a0;
+  Union16BytesNestedInlineArrayFloat a1;
+  Union16BytesNestedInlineArrayFloat a2;
+  Union16BytesNestedInlineArrayFloat a3;
+  Union16BytesNestedInlineArrayFloat a4;
+  Union16BytesNestedInlineArrayFloat a5;
+  Union16BytesNestedInlineArrayFloat a6;
+  Union16BytesNestedInlineArrayFloat a7;
+  Union16BytesNestedInlineArrayFloat a8;
+  Union16BytesNestedInlineArrayFloat a9;
+
+  a0.a0[0] = -1.0;
+  a0.a0[1] = 2.0;
+  a0.a0[2] = -3.0;
+  a0.a0[3] = 4.0;
+  a1.a0[0] = -5.0;
+  a1.a0[1] = 6.0;
+  a1.a0[2] = -7.0;
+  a1.a0[3] = 8.0;
+  a2.a0[0] = -9.0;
+  a2.a0[1] = 10.0;
+  a2.a0[2] = -11.0;
+  a2.a0[3] = 12.0;
+  a3.a0[0] = -13.0;
+  a3.a0[1] = 14.0;
+  a3.a0[2] = -15.0;
+  a3.a0[3] = 16.0;
+  a4.a0[0] = -17.0;
+  a4.a0[1] = 18.0;
+  a4.a0[2] = -19.0;
+  a4.a0[3] = 20.0;
+  a5.a0[0] = -21.0;
+  a5.a0[1] = 22.0;
+  a5.a0[2] = -23.0;
+  a5.a0[3] = 24.0;
+  a6.a0[0] = -25.0;
+  a6.a0[1] = 26.0;
+  a6.a0[2] = -27.0;
+  a6.a0[3] = 28.0;
+  a7.a0[0] = -29.0;
+  a7.a0[1] = 30.0;
+  a7.a0[2] = -31.0;
+  a7.a0[3] = 32.0;
+  a8.a0[0] = -33.0;
+  a8.a0[1] = 34.0;
+  a8.a0[2] = -35.0;
+  a8.a0[3] = 36.0;
+  a9.a0[0] = -37.0;
+  a9.a0[1] = 38.0;
+  a9.a0[2] = -39.0;
+  a9.a0[3] = 40.0;
+
+  std::cout << "Calling TestPassUnion16BytesNestedInlineArrayFloatx10("
+            << "(([" << a0.a0[0] << ", " << a0.a0[1] << ", " << a0.a0[2] << ", "
+            << a0.a0[3] << "], (" << a0.a1.a0 << ", " << a0.a1.a1 << ", "
+            << a0.a1.a2 << ", " << a0.a1.a3 << ")), ([" << a1.a0[0] << ", "
+            << a1.a0[1] << ", " << a1.a0[2] << ", " << a1.a0[3] << "], ("
+            << a1.a1.a0 << ", " << a1.a1.a1 << ", " << a1.a1.a2 << ", "
+            << a1.a1.a3 << ")), ([" << a2.a0[0] << ", " << a2.a0[1] << ", "
+            << a2.a0[2] << ", " << a2.a0[3] << "], (" << a2.a1.a0 << ", "
+            << a2.a1.a1 << ", " << a2.a1.a2 << ", " << a2.a1.a3 << ")), (["
+            << a3.a0[0] << ", " << a3.a0[1] << ", " << a3.a0[2] << ", "
+            << a3.a0[3] << "], (" << a3.a1.a0 << ", " << a3.a1.a1 << ", "
+            << a3.a1.a2 << ", " << a3.a1.a3 << ")), ([" << a4.a0[0] << ", "
+            << a4.a0[1] << ", " << a4.a0[2] << ", " << a4.a0[3] << "], ("
+            << a4.a1.a0 << ", " << a4.a1.a1 << ", " << a4.a1.a2 << ", "
+            << a4.a1.a3 << ")), ([" << a5.a0[0] << ", " << a5.a0[1] << ", "
+            << a5.a0[2] << ", " << a5.a0[3] << "], (" << a5.a1.a0 << ", "
+            << a5.a1.a1 << ", " << a5.a1.a2 << ", " << a5.a1.a3 << ")), (["
+            << a6.a0[0] << ", " << a6.a0[1] << ", " << a6.a0[2] << ", "
+            << a6.a0[3] << "], (" << a6.a1.a0 << ", " << a6.a1.a1 << ", "
+            << a6.a1.a2 << ", " << a6.a1.a3 << ")), ([" << a7.a0[0] << ", "
+            << a7.a0[1] << ", " << a7.a0[2] << ", " << a7.a0[3] << "], ("
+            << a7.a1.a0 << ", " << a7.a1.a1 << ", " << a7.a1.a2 << ", "
+            << a7.a1.a3 << ")), ([" << a8.a0[0] << ", " << a8.a0[1] << ", "
+            << a8.a0[2] << ", " << a8.a0[3] << "], (" << a8.a1.a0 << ", "
+            << a8.a1.a1 << ", " << a8.a1.a2 << ", " << a8.a1.a3 << ")), (["
+            << a9.a0[0] << ", " << a9.a0[1] << ", " << a9.a0[2] << ", "
+            << a9.a0[3] << "], (" << a9.a1.a0 << ", " << a9.a1.a1 << ", "
+            << a9.a1.a2 << ", " << a9.a1.a3 << ")))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(20.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0[0] = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0[0] = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Union with homogenous floats.
+DART_EXPORT intptr_t TestPassUnion16BytesNestedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Union16BytesNestedFloat a0,
+                Union16BytesNestedFloat a1,
+                Union16BytesNestedFloat a2,
+                Union16BytesNestedFloat a3,
+                Union16BytesNestedFloat a4,
+                Union16BytesNestedFloat a5,
+                Union16BytesNestedFloat a6,
+                Union16BytesNestedFloat a7,
+                Union16BytesNestedFloat a8,
+                Union16BytesNestedFloat a9)) {
+  Union16BytesNestedFloat a0;
+  Union16BytesNestedFloat a1;
+  Union16BytesNestedFloat a2;
+  Union16BytesNestedFloat a3;
+  Union16BytesNestedFloat a4;
+  Union16BytesNestedFloat a5;
+  Union16BytesNestedFloat a6;
+  Union16BytesNestedFloat a7;
+  Union16BytesNestedFloat a8;
+  Union16BytesNestedFloat a9;
+
+  a0.a0.a0 = -1.0;
+  a0.a0.a1 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a0.a1 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a0.a1 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a0.a1 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a0.a1 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a0.a1 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a0.a1 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a0.a1 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a0.a1 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a0.a1 = 20.0;
+
+  std::cout << "Calling TestPassUnion16BytesNestedFloatx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ", " << a0.a1.a2 << "), (" << a0.a2.a0
+            << ", " << a0.a2.a1 << ", " << a0.a2.a2 << ", " << a0.a2.a3
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << "), (" << a1.a1.a0
+            << ", " << a1.a1.a1 << ", " << a1.a1.a2 << "), (" << a1.a2.a0
+            << ", " << a1.a2.a1 << ", " << a1.a2.a2 << ", " << a1.a2.a3
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << "), (" << a2.a1.a0
+            << ", " << a2.a1.a1 << ", " << a2.a1.a2 << "), (" << a2.a2.a0
+            << ", " << a2.a2.a1 << ", " << a2.a2.a2 << ", " << a2.a2.a3
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ", " << a3.a1.a1 << ", " << a3.a1.a2 << "), (" << a3.a2.a0
+            << ", " << a3.a2.a1 << ", " << a3.a2.a2 << ", " << a3.a2.a3
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << "), (" << a4.a1.a0
+            << ", " << a4.a1.a1 << ", " << a4.a1.a2 << "), (" << a4.a2.a0
+            << ", " << a4.a2.a1 << ", " << a4.a2.a2 << ", " << a4.a2.a3
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << "), (" << a5.a1.a0
+            << ", " << a5.a1.a1 << ", " << a5.a1.a2 << "), (" << a5.a2.a0
+            << ", " << a5.a2.a1 << ", " << a5.a2.a2 << ", " << a5.a2.a3
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ", " << a6.a1.a1 << ", " << a6.a1.a2 << "), (" << a6.a2.a0
+            << ", " << a6.a2.a1 << ", " << a6.a2.a2 << ", " << a6.a2.a3
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << "), (" << a7.a1.a0
+            << ", " << a7.a1.a1 << ", " << a7.a1.a2 << "), (" << a7.a2.a0
+            << ", " << a7.a2.a1 << ", " << a7.a2.a2 << ", " << a7.a2.a3
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << "), (" << a8.a1.a0
+            << ", " << a8.a1.a1 << ", " << a8.a1.a2 << "), (" << a8.a2.a0
+            << ", " << a8.a2.a1 << ", " << a8.a2.a2 << ", " << a8.a2.a3
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ", " << a9.a1.a1 << ", " << a9.a1.a2 << "), (" << a9.a2.a0
+            << ", " << a9.a2.a1 << ", " << a9.a2.a2 << ", " << a9.a2.a3 << ")))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(10.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
 // Smallest struct with data.
 DART_EXPORT intptr_t TestReturnStruct1ByteInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11292,7 +12292,7 @@ DART_EXPORT intptr_t TestReturnStruct1ByteInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Smaller than word size return value on all architectures.
 DART_EXPORT intptr_t TestReturnStruct3BytesHomogeneousUint8(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11343,7 +12343,7 @@ DART_EXPORT intptr_t TestReturnStruct3BytesHomogeneousUint8(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Smaller than word size return value on all architectures.
 // With alignment rules taken into account size is 4 bytes.
 DART_EXPORT intptr_t TestReturnStruct3BytesInt2ByteAligned(
@@ -11387,7 +12387,7 @@ DART_EXPORT intptr_t TestReturnStruct3BytesInt2ByteAligned(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Word size return value on 32 bit architectures..
 DART_EXPORT intptr_t TestReturnStruct4BytesHomogeneousInt16(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11430,7 +12430,7 @@ DART_EXPORT intptr_t TestReturnStruct4BytesHomogeneousInt16(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Non-wordsize return value.
 DART_EXPORT intptr_t TestReturnStruct7BytesHomogeneousUint8(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11513,7 +12513,7 @@ DART_EXPORT intptr_t TestReturnStruct7BytesHomogeneousUint8(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Non-wordsize return value.
 // With alignment rules taken into account size is 8 bytes.
 DART_EXPORT intptr_t TestReturnStruct7BytesInt4ByteAligned(
@@ -11563,7 +12563,7 @@ DART_EXPORT intptr_t TestReturnStruct7BytesInt4ByteAligned(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in integer registers on many architectures.
 DART_EXPORT intptr_t TestReturnStruct8BytesInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11611,7 +12611,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FP registers on many architectures.
 DART_EXPORT intptr_t TestReturnStruct8BytesHomogeneousFloat(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11654,7 +12654,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesHomogeneousFloat(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value split over FP and integer register in x64.
 DART_EXPORT intptr_t TestReturnStruct8BytesMixed(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11702,7 +12702,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesMixed(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is the right size and that
 // dart:ffi trampolines do not write outside this size.
@@ -11802,7 +12802,7 @@ DART_EXPORT intptr_t TestReturnStruct9BytesHomogeneousUint8(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in two integer registers on x64.
 // With alignment rules taken into account size is 12 or 16 bytes.
 DART_EXPORT intptr_t TestReturnStruct9BytesInt4Or8ByteAligned(
@@ -11846,7 +12846,7 @@ DART_EXPORT intptr_t TestReturnStruct9BytesInt4Or8ByteAligned(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers, but does not use all registers on arm hardfp
 // and arm64.
 DART_EXPORT intptr_t TestReturnStruct12BytesHomogeneousFloat(
@@ -11895,7 +12895,7 @@ DART_EXPORT intptr_t TestReturnStruct12BytesHomogeneousFloat(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm hardfp and arm64.
 DART_EXPORT intptr_t TestReturnStruct16BytesHomogeneousFloat(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11950,7 +12950,7 @@ DART_EXPORT intptr_t TestReturnStruct16BytesHomogeneousFloat(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value split over FP and integer register in x64.
 DART_EXPORT intptr_t TestReturnStruct16BytesMixed(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -11993,7 +12993,7 @@ DART_EXPORT intptr_t TestReturnStruct16BytesMixed(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value split over FP and integer register in x64.
 // The integer register contains half float half int.
 DART_EXPORT intptr_t TestReturnStruct16BytesMixed2(
@@ -12048,7 +13048,7 @@ DART_EXPORT intptr_t TestReturnStruct16BytesMixed2(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Rerturn value returned in preallocated space passed by pointer on most ABIs.
 // Is non word size on purpose, to test that structs are rounded up to word size
 // on all ABIs.
@@ -12099,7 +13099,7 @@ DART_EXPORT intptr_t TestReturnStruct17BytesInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is the right size and that
 // dart:ffi trampolines do not write outside this size.
@@ -12278,7 +13278,7 @@ DART_EXPORT intptr_t TestReturnStruct19BytesHomogeneousUint8(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value too big to go in cpu registers on arm64.
 DART_EXPORT intptr_t TestReturnStruct20BytesHomogeneousInt32(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -12339,7 +13339,7 @@ DART_EXPORT intptr_t TestReturnStruct20BytesHomogeneousInt32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value too big to go in FPU registers on x64, arm hardfp and arm64.
 DART_EXPORT intptr_t TestReturnStruct20BytesHomogeneousFloat(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -12400,7 +13400,7 @@ DART_EXPORT intptr_t TestReturnStruct20BytesHomogeneousFloat(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm64.
 DART_EXPORT intptr_t TestReturnStruct32BytesHomogeneousDouble(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -12455,7 +13455,7 @@ DART_EXPORT intptr_t TestReturnStruct32BytesHomogeneousDouble(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value too big to go in FPU registers on arm64.
 DART_EXPORT intptr_t TestReturnStruct40BytesHomogeneousDouble(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -12516,7 +13516,7 @@ DART_EXPORT intptr_t TestReturnStruct40BytesHomogeneousDouble(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test 1kb struct.
 DART_EXPORT intptr_t TestReturnStruct1024BytesHomogeneousUint64(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -13414,7 +14414,7 @@ DART_EXPORT intptr_t TestReturnStruct1024BytesHomogeneousUint64(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Small struct with mis-aligned member.
 DART_EXPORT intptr_t TestReturnStruct3BytesPackedInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -13457,7 +14457,7 @@ DART_EXPORT intptr_t TestReturnStruct3BytesPackedInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 DART_EXPORT intptr_t TestReturnStruct8BytesPackedInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -13521,7 +14521,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesPackedInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
 DART_EXPORT intptr_t TestReturnStruct9BytesPackedMixed(
@@ -13565,7 +14565,184 @@ DART_EXPORT intptr_t TestReturnStruct9BytesPackedMixed(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
+// Returning a mixed integer/float union.
+DART_EXPORT intptr_t TestReturnUnion4BytesMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Union4BytesMixed (*f)(uint32_t a0)) {
+  uint32_t a0;
+
+  a0 = 1;
+
+  std::cout << "Calling TestReturnUnion4BytesMixed("
+            << "(" << a0 << ")"
+            << ")\n";
+
+  Union4BytesMixed result = f(a0);
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", " << result.a1 << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result.a0);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result.a0);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Returning a floating point only union.
+DART_EXPORT intptr_t TestReturnUnion8BytesNestedFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Union8BytesNestedFloat (*f)(double a0)) {
+  double a0;
+
+  a0 = -1.0;
+
+  std::cout << "Calling TestReturnUnion8BytesNestedFloat("
+            << "(" << a0 << ")"
+            << ")\n";
+
+  Union8BytesNestedFloat result = f(a0);
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", (" << result.a1.a0 << ", " << result.a1.a1
+            << "))"
+            << "\n";
+
+  CHECK_APPROX(a0, result.a0);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result.a0);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result.a0);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Returning a mixed-size union.
+DART_EXPORT intptr_t TestReturnUnion9BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Union9BytesNestedInt (*f)(Struct8BytesInt a0)) {
+  Struct8BytesInt a0;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+
+  std::cout << "Calling TestReturnUnion9BytesNestedInt("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "))"
+            << ")\n";
+
+  Union9BytesNestedInt result = f(a0);
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << ", "
+            << result.a0.a2 << "), (" << static_cast<int>(result.a1.a0) << ", "
+            << static_cast<int>(result.a1.a1) << ", "
+            << static_cast<int>(result.a1.a2) << ", "
+            << static_cast<int>(result.a1.a3) << ", "
+            << static_cast<int>(result.a1.a4) << ", "
+            << static_cast<int>(result.a1.a5) << ", "
+            << static_cast<int>(result.a1.a6) << ", "
+            << static_cast<int>(result.a1.a7) << ", "
+            << static_cast<int>(result.a1.a8) << "))"
+            << "\n";
+
+  CHECK_EQ(a0.a0, result.a0.a0);
+  CHECK_EQ(a0.a1, result.a0.a1);
+  CHECK_EQ(a0.a2, result.a0.a2);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Returning union with homogenous floats.
+DART_EXPORT intptr_t TestReturnUnion16BytesNestedFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Union16BytesNestedFloat (*f)(Struct8BytesHomogeneousFloat a0)) {
+  Struct8BytesHomogeneousFloat a0;
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+
+  std::cout << "Calling TestReturnUnion16BytesNestedFloat("
+            << "((" << a0.a0 << ", " << a0.a1 << "))"
+            << ")\n";
+
+  Union16BytesNestedFloat result = f(a0);
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
+            << result.a1.a0 << ", " << result.a1.a1 << ", " << result.a1.a2
+            << "), (" << result.a2.a0 << ", " << result.a2.a1 << ", "
+            << result.a2.a2 << ", " << result.a2.a3 << "))"
+            << "\n";
+
+  CHECK_APPROX(a0.a0, result.a0.a0);
+  CHECK_APPROX(a0.a1, result.a0.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result.a0.a0);
+  CHECK_APPROX(0.0, result.a0.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result.a0.a0);
+  CHECK_APPROX(0.0, result.a0.a1);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
 // Test that a struct passed in as argument can be returned.
 // Especially for ffi callbacks.
 // Struct is passed in int registers in most ABIs.
@@ -13605,7 +14782,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStruct1ByteInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test that a struct passed in as argument can be returned.
 // Especially for ffi callbacks.
 // Struct is passed on stack on all ABIs.
@@ -13671,7 +14848,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentInt32x8Struct1ByteInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test that a struct passed in as argument can be returned.
 // Especially for ffi callbacks.
 // Struct is passed in float registers in most ABIs.
@@ -13715,7 +14892,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStruct8BytesHomogeneousFloat(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On arm64, both argument and return value are passed in by pointer.
 DART_EXPORT intptr_t TestReturnStructArgumentStruct20BytesHomogeneousInt32(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -13771,7 +14948,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStruct20BytesHomogeneousInt32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On arm64, both argument and return value are passed in by pointer.
 // Ints exhaust registers, so that pointer is passed on stack.
 DART_EXPORT intptr_t TestReturnStructArgumentInt32x8Struct20BytesHomogeneou(
@@ -13853,7 +15030,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentInt32x8Struct20BytesHomogeneou(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test returning struct with inline array.
 DART_EXPORT intptr_t TestReturnStructArgumentStruct8BytesInlineArrayInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -13916,7 +15093,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStruct8BytesInlineArrayInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm hardfp and arm64.
 DART_EXPORT intptr_t TestReturnStructArgumentStructStruct16BytesHomogeneous(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -13972,7 +15149,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStructStruct16BytesHomogeneous(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return value in FPU registers on arm64.
 DART_EXPORT intptr_t TestReturnStructArgumentStructStruct32BytesHomogeneous(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14028,7 +15205,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStructStruct32BytesHomogeneous(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // On x64 Linux, return value is split over FP and int registers.
 DART_EXPORT intptr_t TestReturnStructArgumentStructStruct16BytesMixed3(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14099,7 +15276,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStructStruct16BytesMixed3(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 16 byte int within struct.
 DART_EXPORT intptr_t TestReturnStructAlignmentInt16(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14149,7 +15326,7 @@ DART_EXPORT intptr_t TestReturnStructAlignmentInt16(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 32 byte int within struct.
 DART_EXPORT intptr_t TestReturnStructAlignmentInt32(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14199,7 +15376,7 @@ DART_EXPORT intptr_t TestReturnStructAlignmentInt32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of 64 byte int within struct.
 DART_EXPORT intptr_t TestReturnStructAlignmentInt64(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14249,7 +15426,7 @@ DART_EXPORT intptr_t TestReturnStructAlignmentInt64(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct.
 DART_EXPORT intptr_t TestReturnStruct8BytesNestedInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14303,7 +15480,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct with floats.
 DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14346,7 +15523,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // The nesting is irregular, testing homogenous float rules on arm and arm64,
 // and the fpu register usage on x64.
 DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat2(
@@ -14390,7 +15567,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat2(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Simple nested struct with mixed members.
 DART_EXPORT intptr_t TestReturnStruct8BytesNestedMixed(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14439,7 +15616,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedMixed(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Deeper nested struct to test recursive member access.
 DART_EXPORT intptr_t TestReturnStruct16BytesNestedInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14512,7 +15689,7 @@ DART_EXPORT intptr_t TestReturnStruct16BytesNestedInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Even deeper nested struct to test recursive member access.
 DART_EXPORT intptr_t TestReturnStruct32BytesNestedInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14626,7 +15803,7 @@ DART_EXPORT intptr_t TestReturnStruct32BytesNestedInt(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 16 byte int.
 DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt16(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14691,7 +15868,7 @@ DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt16(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 32 byte int.
 DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt32(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14756,7 +15933,7 @@ DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt32(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Test alignment and padding of nested struct with 64 byte int.
 DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt64(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -14821,7 +15998,7 @@ DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt64(
   return 0;
 }
 
-// Used for testing structs by value.
+// Used for testing structs and unions by value.
 // Return big irregular struct as smoke test.
 DART_EXPORT intptr_t TestReturnStructNestedIrregularEvenBigger(
     // NOLINTNEXTLINE(whitespace/parens)

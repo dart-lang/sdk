@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -96,8 +96,8 @@ def GenerateFromDatabase(common_database,
                          update_dom_metadata=False,
                          logging_level=logging.WARNING,
                          dart_js_interop=False):
-    print '\n ----- Accessing DOM using %s -----\n' % (
-        'dart:js' if dart_js_interop else 'C++')
+    print('\n ----- Accessing DOM using %s -----\n' %
+          ('dart:js' if dart_js_interop else 'C++'))
 
     start_time = time.time()
 
@@ -130,8 +130,8 @@ def GenerateFromDatabase(common_database,
     renamer = HtmlRenamer(webkit_database, metadata)
     type_registry = TypeRegistry(webkit_database, renamer)
 
-    print 'GenerateFromDatabase %s seconds' % round(
-        (time.time() - start_time), 2)
+    print('GenerateFromDatabase %s seconds' % round(
+        (time.time() - start_time), 2))
 
     def RunGenerator(dart_libraries, dart_output_dir, template_loader,
                      backend_factory, dart_js_interop):
@@ -178,14 +178,14 @@ def GenerateFromDatabase(common_database,
             if file.endswith('darttemplate'):
                 dart_libraries._libraries['html'].AddFile(file)
 
-        print '\nGenerating dart2js:\n'
+        print('\nGenerating dart2js:\n')
         start_time = time.time()
 
         RunGenerator(dart_libraries, dart_output_dir, template_loader,
                      backend_factory, dart_js_interop)
 
-        print 'Generated dart2js in %s seconds' % round(
-            time.time() - start_time, 2)
+        print('Generated dart2js in %s seconds' %
+              round(time.time() - start_time, 2))
 
     emitters.Flush()
 
@@ -351,13 +351,13 @@ def main():
                 source, os.path.join('..', '..', '..', 'sdk', 'lib',
                                      library_name, 'dart2js'))
 
-    print '\nGenerating single file %s seconds' % round(
-        time.time() - file_generation_start_time, 2)
+    print('\nGenerating single file %s seconds' %
+          round(time.time() - file_generation_start_time, 2))
 
     end_time = time.time()
 
-    print '\nDone (dartdomgenerator) %s seconds' % round(
-        end_time - start_time, 2)
+    print('\nDone (dartdomgenerator) %s seconds' %
+          round(end_time - start_time, 2))
 
 
 if __name__ == '__main__':

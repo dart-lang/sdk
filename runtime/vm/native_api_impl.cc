@@ -263,7 +263,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     Thread::EnterIsolateAsHelper(args->isolate, Thread::TaskKind::kUnknownTask);
     Thread* const thread = Thread::Current();
     {
-      SafepointOperationScope scope(thread);
+      GcSafepointOperationScope scope(thread);
       args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();
       args->isolate->group()->heap()->WriteProtectCode(/*read_only=*/true);

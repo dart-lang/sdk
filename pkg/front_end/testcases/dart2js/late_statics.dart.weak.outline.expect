@@ -16,13 +16,10 @@ export "org-dartlang-testcase:///late_statics_lib.dart";
 class Statics extends core::Object {
   late static field core::int a;
   late static final [setter] field core::int b;
-  static field core::int? _#c;
-  static field core::int? _#d;
+  late static field core::int c;
+  late static final field core::int d;
   synthetic constructor •() → self::Statics
     ;
-  static get c() → core::int;
-  static set c(core::int #t1) → void;
-  static get d() → core::int;
 }
 static method main() → void
   ;
@@ -49,8 +46,5 @@ import "dart:core" as core;
 
 late static field core::int a;
 late static final [setter] field core::int b;
-static field core::int? _#c;
-static field core::int? _#d;
-static get c() → core::int;
-static set c(core::int #t2) → void;
-static get d() → core::int;
+late static field core::int c;
+late static final field core::int d;

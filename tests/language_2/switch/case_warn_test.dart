@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test switch statement.
 
+// @dart = 2.9
+
 // Tests some switch-case statements blocks that should and should not
 // cause static warnings.
 // This test is not testing runtime behavior, only static warnings.

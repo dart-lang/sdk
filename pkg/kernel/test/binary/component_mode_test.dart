@@ -38,7 +38,8 @@ main() {
       // Try individually.
       List<int> c1Serialized;
       {
-        Library lib1 = new Library(Uri.parse("foo://bar.dart"))
+        Uri uri = Uri.parse("foo://bar.dart");
+        Library lib1 = new Library(uri, fileUri: uri)
           ..nonNullableByDefaultCompiledMode = c1Mode;
         Component c1 = new Component(libraries: [lib1]);
         setCompileMode(c1, c1Mode);
@@ -49,7 +50,8 @@ main() {
 
       List<int> c2Serialized;
       {
-        Library lib2 = new Library(Uri.parse("foo://baz.dart"))
+        Uri uri = Uri.parse("foo://baz.dart");
+        Library lib2 = new Library(uri, fileUri: uri)
           ..nonNullableByDefaultCompiledMode = c2Mode;
         Component c2 = new Component(libraries: [lib2]);
         setCompileMode(c2, c2Mode);

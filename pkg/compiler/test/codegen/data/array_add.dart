@@ -7,7 +7,7 @@
 // TODO(sra): Lower when type of input does not need a generic covariant check.
 @pragma('dart2js:noInline')
 /*spec.member: test1:function() {
-  var t1 = H.setRuntimeTypeInfo([], type$.JSArray_int);
+  var t1 = H._setArrayType([], type$.JSArray_int);
   C.JSArray_methods.add$1(t1, 1);
   return t1;
 }*/

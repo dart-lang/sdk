@@ -135,6 +135,27 @@ export 'package:aaa/a.dart';
     ]);
   }
 
+  test_field_inDeprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  int x = 0;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  @deprecated
+  B() {
+    x;
+    x = 1;
+  }
+}
+''');
+  }
+
   test_fieldGet_implicitGetter() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 class A {
@@ -186,6 +207,26 @@ import 'package:aaa/a.dart';
       error(HintCode.DEPRECATED_MEMBER_USE, 24, 28,
           messageContains: 'package:aaa/a.dart'),
     ]);
+  }
+
+  test_method_inDeprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  @deprecated
+  B() {
+    foo();
+  }
+}
+''');
   }
 
   test_methodInvocation() async {
@@ -626,6 +667,36 @@ f(A a) {
     ]);
   }
 
+  test_field_inDeprecatedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  int x = 1;
+
+  @deprecated
+  A() {
+    x;
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_field_inDeprecatedFunction() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  int x = 1;
+}
+
+@deprecated
+void f(A a) {
+  a.x;
+  a.x = 2;
+}
+''');
+  }
+
   test_getter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -816,6 +887,20 @@ f() {
     ]);
   }
 
+  test_method_inDeprecatedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  A() {
+    foo();
+  }
+
+  @deprecated
+  void foo() {}
+}
+''');
+  }
+
   test_methodInvocation_constant() async {
     await assertErrorsInCode(r'''
 class A {
@@ -964,6 +1049,32 @@ void f(A a) {
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 70, 1),
     ]);
+  }
+
+  test_parameter_positionalOptional_inDeprecatedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  @deprecated
+  A() {
+    foo(0);
+  }
+
+  void foo([@deprecated int x]) {}
+}
+''');
+  }
+
+  test_parameter_positionalOptional_inDeprecatedFunction() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo([@deprecated int x]) {}
+}
+
+@deprecated
+void f(A a) {
+  a.foo(0);
+}
+''');
   }
 
   test_parameter_positionalRequired() async {

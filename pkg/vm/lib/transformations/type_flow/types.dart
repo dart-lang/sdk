@@ -843,8 +843,16 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (rhs is FutureOrType) {
       if (typeHierarchy.isSubtype(
           cls.classNode, typeHierarchy.coreTypes.futureClass)) {
+        Type typeArg;
+        if (typeArgs == null) {
+          typeArg = const UnknownType();
+        } else {
+          final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
+              cls.classNode, typeHierarchy.coreTypes.futureClass);
+          typeArg = typeArgs[interfaceOffset];
+        }
         final RuntimeType lhs =
-            typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];
+            typeArg is RuntimeType ? typeArg : RuntimeType(DynamicType(), null);
         return lhs.isSubtypeOfRuntimeType(
             typeHierarchy, runtimeType.typeArgs[0]);
       } else {

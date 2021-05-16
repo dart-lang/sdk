@@ -7,10 +7,10 @@ import 'dart:convert';
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
 
+import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 import 'package:status_file/expectation.dart';
 import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/static_error.dart';
-import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
@@ -1364,7 +1364,7 @@ class FastaCommandOutput extends CompilationCommandOutput
   /// The test runner only validates the first line of the message, and not the
   /// suggested fixes.
   static final _errorRegexp = RegExp(
-      r"^([^:]+):(\d+):(\d+): (Context|Error|Warning): (.*)$",
+      r"^(?:([^:]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
       multiLine: true);
 
   FastaCommandOutput(
@@ -1398,10 +1398,26 @@ mixin _StaticErrorOutput on CommandOutput {
       [List<StaticError> warnings]) {
     StaticError previousError;
     for (var match in regExp.allMatches(stdout)) {
-      var line = int.parse(match.group(2));
-      var column = int.parse(match.group(3));
+      var line = _parseNullableInt(match.group(2));
+      var column = _parseNullableInt(match.group(3));
       var severity = match.group(4);
       var message = match.group(5);
+
+      if (line == null) {
+        // No location information.
+        if (severity == 'Context' && previousError != null) {
+          // We can use the location information from the error message
+          line = previousError.line;
+          column = previousError.column;
+        } else {
+          // No good default location information, so disregard the error.
+          // TODO(45558): we should do something smarter here.
+          continue;
+        }
+      }
+      // Column information should have been present or it should have been
+      // filled in by the code above.
+      assert(column != null);
 
       var error = StaticError(
           severity == "Context" ? ErrorSource.context : errorSource, message,
@@ -1424,6 +1440,15 @@ mixin _StaticErrorOutput on CommandOutput {
         previousError = error;
       }
     }
+  }
+
+  /// Same as `int.parse`, but allows nulls to simply pass through.
+  static int _parseNullableInt(String s) {
+    if (s == null) {
+      // ignore: avoid_returning_null
+      return null;
+    }
+    return int.parse(s);
   }
 
   /// Reported static errors, parsed from [stderr].

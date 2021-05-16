@@ -1,0 +1,21 @@
+import "package:expect/expect.dart";
+
+List<int> constListAddExceptionFn() {}
+const constListAddException = constListAddExceptionFn();
+const firstException = firstExceptionFn();
+const getWithIndexException = getWithIndexExceptionFn();
+const getWithIndexException2 = getWithIndexExceptionFn2();
+const getWithIndexException3 = getWithIndexExceptionFn3();
+const invalidProperty = invalidPropertyFn();
+const lastException = lastExceptionFn();
+const singleException = singleExceptionFn();
+const singleExceptionMulti = singleExceptionMultiFn();
+int firstExceptionFn() {}
+int getWithIndexExceptionFn() {}
+int getWithIndexExceptionFn2() {}
+int getWithIndexExceptionFn3() {}
+int invalidPropertyFn() {}
+int lastExceptionFn() {}
+int singleExceptionFn() {}
+int singleExceptionMultiFn() {}
+void main() {}

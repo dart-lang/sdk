@@ -299,11 +299,16 @@ class Printer implements NodeVisitor {
     return false;
   }
 
+  /// Elide Blocks and DeferredStatements with Blocks as children.
   void blockOutWithoutBraces(Node node) {
     if (node is Block) {
       startNode(node);
       Block block = node;
       block.statements.forEach(blockOutWithoutBraces);
+      endNode(node);
+    } else if (node is DeferredStatement) {
+      startNode(node);
+      blockOutWithoutBraces(node.statement);
       endNode(node);
     } else {
       visit(node);
@@ -1101,6 +1106,13 @@ class Printer implements NodeVisitor {
     node.value.accept(this);
   }
 
+  @override
+  visitDeferredStatement(DeferredStatement node) {
+    startNode(node);
+    visit(node.statement);
+    endNode(node);
+  }
+
   outputNumberWithRequiredWhitespace(String number) {
     int charCode = number.codeUnitAt(0);
     if (charCode == charCodes.$MINUS && lastCharCode == charCodes.$MINUS) {
@@ -1414,6 +1426,10 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitBlock(Block node) => false;
   bool visitExpressionStatement(ExpressionStatement node) => false;
   bool visitEmptyStatement(EmptyStatement node) => false;
+  bool visitDeferredStatement(DeferredStatement node) {
+    return node.statement.accept(this);
+  }
+
   bool visitIf(If node) {
     if (!node.hasElse) return true;
     return node.otherwise.accept(this);

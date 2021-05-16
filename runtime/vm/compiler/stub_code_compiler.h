@@ -57,6 +57,8 @@ class StubCodeCompiler : public AllStatic {
       const Object& context_allocation_stub);
 #endif
 
+  static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                      bool preserve_registers = true);
   static ArrayPtr BuildStaticCallsTable(
       Zone* zone,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls);

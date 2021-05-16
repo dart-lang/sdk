@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -54,8 +54,8 @@ FILE_HEADER_FLAGS = FILE_HEADER_LNNO
 # } SCNHDR;
 SECTION_HEADER_FORMAT = '8sIIIIIIHHI'
 SECTION_HEADER_SIZE = calcsize(SECTION_HEADER_FORMAT)
-SECTION_NAME_RODATA = '.rodata'
-SECTION_NAME_TEXT = '.text'
+SECTION_NAME_RODATA = b'.rodata'
+SECTION_NAME_TEXT = b'.text'
 SECTION_PADDR = 0x0
 SECTION_VADDR = 0x0
 SECTION_RAW_DATA_PTR = (
@@ -130,13 +130,13 @@ def main():
     includes_size_name = (args.size_name != None)
 
     # Symbols on x86 are prefixed with '_'
-    symbol_prefix = '' if args.use_64_bit else '_'
+    symbol_prefix = b'' if args.use_64_bit else b'_'
     num_symbols = 2 if includes_size_name else 1
-    symbol_name = symbol_prefix + args.symbol_name
+    symbol_name = symbol_prefix + args.symbol_name.encode()
     size_symbol_name = None
     if (includes_size_name):
         size_symbol = args.size_name if args.size_name else args.symbol_name + "Size"
-        size_symbol_name = symbol_prefix + size_symbol
+        size_symbol_name = symbol_prefix + size_symbol.encode()
 
     size_symbol_format = SIZE_SYMBOL_FORMAT_X64 if args.use_64_bit else SIZE_FORMAT
     size_symbol_size = SIZE_SYMBOL_LENGTH_X64 if args.use_64_bit else SIZE_LENGTH
@@ -237,14 +237,14 @@ def main():
         symbol_len = len(symbol_name)
         buff[offset:offset + symbol_len] = symbol_name
         offset += symbol_len
-        buff[offset] = '\0'
+        buff[offset] = b'\0'
         offset += 1
 
     if includes_size_name and long_size_symbol_name:
         symbol_len = len(size_symbol_name)
         buff[offset:offset + symbol_len] = size_symbol_name
         offset += symbol_len
-        buff[offset] = '\0'
+        buff[offset] = b'\0'
         offset += 1
 
     with open(args.output, 'wb') as f:

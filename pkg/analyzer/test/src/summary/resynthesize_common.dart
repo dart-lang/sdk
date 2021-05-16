@@ -123,7 +123,7 @@ class G {}
 ''');
     checkElementText(library, r'''
 class alias C extends D with E, F, G {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -144,7 +144,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 abstract class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -168,7 +168,7 @@ class E {}
  * Docs
  */
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -192,7 +192,7 @@ class E {}
 /// b
 /// cc
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -216,7 +216,7 @@ class E {}''');
  * Docs
  */
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -234,7 +234,7 @@ class C<C1> {}
 ''');
     checkElementText(library, r'''
 class alias Z extends A with B<int>, C<double> {
-  synthetic Z() = A;
+  synthetic Z() : super();
 }
 class A {
 }
@@ -253,7 +253,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded class alias C<T extends C<dynamic>> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -272,7 +272,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 class alias C<T> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -291,7 +291,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -301,7 +301,8 @@ class E {
   }
 
   test_class_alias_with_const_constructors() async {
-    addLibrarySource('/a.dart', '''
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
 class Base {
   const Base._priv();
   const Base();
@@ -313,26 +314,44 @@ import "a.dart";
 class M {}
 class MixinApp = Base with M;
 ''');
-    checkElementText(library, r'''
-import 'a.dart';
+    checkElementText(
+        library,
+        r'''
+import 'package:test/a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
-  synthetic const MixinApp() = Base;
-  synthetic const MixinApp.named() = Base.named;
+  synthetic const MixinApp();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        staticElement: package:test/a.dart::@class::Base::@constructor::•
+  synthetic const MixinApp.named();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        constructorName: SimpleIdentifier
+          staticElement: package:test/a.dart::@class::Base::@constructor::named
+          staticType: null
+          token: named
+        staticElement: package:test/a.dart::@class::Base::@constructor::named
 }
-''');
+''',
+        withFullyResolvedAst: true);
   }
 
   test_class_alias_with_forwarding_constructors() async {
     addLibrarySource('/a.dart', '''
 class Base {
+  bool x = true;
   Base._priv();
   Base();
   Base.noArgs();
   Base.requiredArg(x);
   Base.positionalArg([bool x = true]);
+  Base.positionalArg2([this.x = true]);
   Base.namedArg({int x = 42});
+  Base.namedArg2({this.x = true});
   factory Base.fact() => Base();
   factory Base.fact2() = Base.noArgs;
 }
@@ -347,11 +366,24 @@ import 'a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
-  synthetic MixinApp() = Base;
-  synthetic MixinApp.noArgs() = Base.noArgs;
-  synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
-  synthetic MixinApp.positionalArg([bool x = true]) = Base.positionalArg;
-  synthetic MixinApp.namedArg({int x: 42}) = Base.namedArg;
+  synthetic MixinApp() : super();
+  synthetic MixinApp.noArgs() : super.
+        noArgs/*location: a.dart;Base;noArgs*/();
+  synthetic MixinApp.requiredArg(dynamic x) : super.
+        requiredArg/*location: a.dart;Base;requiredArg*/(
+        x/*location: test.dart;MixinApp;requiredArg;x*/);
+  synthetic MixinApp.positionalArg([bool x = true]) : super.
+        positionalArg/*location: a.dart;Base;positionalArg*/(
+        x/*location: test.dart;MixinApp;positionalArg;x*/);
+  synthetic MixinApp.positionalArg2([final bool x = true]) : super.
+        positionalArg2/*location: a.dart;Base;positionalArg2*/(
+        x/*location: test.dart;MixinApp;positionalArg2;x*/);
+  synthetic MixinApp.namedArg({int x: 42}) : super.
+        namedArg/*location: a.dart;Base;namedArg*/(
+        x/*location: test.dart;MixinApp;namedArg;x*/);
+  synthetic MixinApp.namedArg2({final bool x: true}) : super.
+        namedArg2/*location: a.dart;Base;namedArg2*/(
+        x/*location: test.dart;MixinApp;namedArg2;x*/);
 }
 ''');
   }
@@ -371,7 +403,10 @@ class Base<T> {
 class M {
 }
 class alias MixinApp extends Base<dynamic> with M {
-  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) = Base<T>.ctor;
+  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) : super.
+        ctor/*location: test.dart;Base;ctor*/(
+        t/*location: test.dart;MixinApp;ctor;t*/,
+        l/*location: test.dart;MixinApp;ctor;l*/);
 }
 ''');
   }
@@ -391,7 +426,10 @@ class Base<T> {
 class M {
 }
 class alias MixinApp<U> extends Base<List<U>> with M {
-  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) = Base<T>.ctor;
+  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) : super.
+        ctor/*location: test.dart;Base;ctor*/(
+        t/*location: test.dart;MixinApp;ctor;t*/,
+        l/*location: test.dart;MixinApp;ctor;l*/);
 }
 ''');
   }
@@ -408,7 +446,7 @@ class E {
 }''');
     checkElementText(library, r'''
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -490,7 +528,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -500,7 +538,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -510,7 +548,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -525,7 +563,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic Function(double) this.x/*(double b)*/);
+  C(final dynamic Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -540,7 +578,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int Function(double) this.x/*(double b)*/);
+  C(final int Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -555,7 +593,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic Function() f;
-  C(List<U> Function<T, U>(T) this.f/*(T t)*/);
+  C(final List<U> Function<T, U>(T) this.f/*<T, U>*//*(T t)*/);
 }
 ''');
   }
@@ -568,7 +606,7 @@ class C {
 class C {
   int x;
   String x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -579,7 +617,7 @@ class C {
         await checkLibrary('class C { C(this.x); }', allowErrors: true);
     checkElementText(library, r'''
 class C {
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -590,7 +628,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -600,7 +638,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -610,7 +648,7 @@ class C {
     checkElementText(library, r'''
 class C {
   num x;
-  C(num this.x);
+  C(final num this.x);
 }
 ''');
   }
@@ -620,7 +658,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -630,7 +668,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(int this.x);
+  C(final int this.x);
 }
 ''');
   }
@@ -640,7 +678,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C(dynamic this.x);
+  C(final dynamic this.x);
 }
 ''');
   }
@@ -650,7 +688,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x});
+  C({final int this.x});
 }
 ''');
   }
@@ -660,7 +698,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x: 42});
+  C({final int this.x: 42});
 }
 ''');
   }
@@ -670,7 +708,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x]);
+  C([final int this.x]);
 }
 ''');
   }
@@ -680,7 +718,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x = 42]);
+  C([final int this.x = 42]);
 }
 ''');
   }
@@ -946,6 +984,28 @@ class C {
   static late const int i = 0;
 }
 ''');
+  }
+
+  test_class_field_final_withSetter() async {
+    var library = await checkLibrary(r'''
+class A {
+  final int foo;
+  A(this.foo);
+  set foo(int newValue) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  final int foo;
+  synthetic int get foo {}
+  void set foo(int newValue) {}
+  A(final int this.foo);
+}
+''',
+        withSyntheticFields: true,
+        withSyntheticAccessors: true);
   }
 
   test_class_field_implicit_type() async {
@@ -2155,33 +2215,33 @@ class A/*codeOffset=0, codeLength=10*/ {
 class B/*codeOffset=12, codeLength=10*/ {
 }
 class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
-  synthetic const Raw() = Object;
+  synthetic const Raw() : super();
 }
 /// Comment 1.
 /// Comment 2.
 class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
-  synthetic const HasDocComment() = Object;
+  synthetic const HasDocComment() : super();
 }
 @Object()
 class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
-  synthetic const HasAnnotation() = Object;
+  synthetic const HasAnnotation() : super();
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
-  synthetic const AnnotationThenComment() = Object;
+  synthetic const AnnotationThenComment() : super();
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
-  synthetic const CommentThenAnnotation() = Object;
+  synthetic const CommentThenAnnotation() : super();
 }
 /// Comment 2.
 @Object()
 class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
-  synthetic const CommentAroundAnnotation() = Object;
+  synthetic const CommentAroundAnnotation() : super();
 }
 ''',
         withCodeRanges: true,
@@ -2954,8 +3014,8 @@ const Object y = const C.named(0);
     checkElementText(library, '''
 class C<T> {
   final T t;
-  const C(T this.t);
-  const C.named(T this.t);
+  const C(final T this.t);
+  const C.named(final T this.t);
 }
 const Object x = const
         C/*location: test.dart;C*/(0);
@@ -3833,7 +3893,7 @@ int foo() => 42;
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x:
+  const C({final dynamic this.x:
         foo/*location: test.dart;foo*/});
 }
 int foo() {}
@@ -3850,7 +3910,7 @@ class C {
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x: 1 + 2});
+  const C({final dynamic this.x: 1 + 2});
 }
 ''');
   }
@@ -3865,7 +3925,7 @@ class C {
     checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C([dynamic this.x = 1 + 2]);
+  const C([final dynamic this.x = 1 + 2]);
 }
 ''');
   }
@@ -3947,6 +4007,65 @@ const int b;
         token: a
       operator: !
       staticElement: <null>
+      staticType: int
+''',
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_prefixExpression_class_unaryMinus() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+const b = -a;
+''');
+    checkElementText(
+      library,
+      r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+const int b;
+  constantInitializer
+    PrefixExpression
+      operand: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: int
+        token: a
+      operator: -
+      staticElement: dart:core::@class::int::@method::unary-
+      staticType: int
+''',
+      withFullyResolvedAst: true,
+    );
+  }
+
+  test_const_prefixExpression_extension_unaryMinus() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
+extension E on Object {
+  int operator -() => 0;
+}
+const a = const Object();
+''');
+    var library = await checkLibrary('''
+import 'a.dart';
+const b = -a;
+''');
+    checkElementText(
+      library,
+      r'''
+import 'package:test/a.dart';
+const int b;
+  constantInitializer
+    PrefixExpression
+      operand: SimpleIdentifier
+        staticElement: package:test/a.dart::@getter::a
+        staticType: Object
+        token: a
+      operator: -
+      staticElement: package:test/a.dart::@extension::E::@method::unary-
       staticType: int
 ''',
       withFullyResolvedAst: true,
@@ -4953,7 +5072,7 @@ class A {
       ConstructorFieldInitializer
         equals: =
         expression: SimpleIdentifier
-          staticElement: f@41
+          staticElement: self::@class::A::@constructor::•::@parameter::f
           staticType: int
           token: f
         fieldName: SimpleIdentifier
@@ -5815,7 +5934,7 @@ class X {
 typedef F<T> = void Function(T v);
 class X {
   final void Function(dynamic) f;
-  const X({void Function(dynamic) this.f:
+  const X({final void Function(dynamic) this.f:
         defaultF/*location: test.dart;defaultF*/});
 }
 void defaultF<T>(T v) {}
@@ -6162,10 +6281,10 @@ class A {
 class B {
 }
 class alias X extends A with M {
-  synthetic X() = A;
+  synthetic X() : super();
 }
 class alias X extends B with M {
-  synthetic X() = B;
+  synthetic X() : super();
 }
 mixin M on Object {
 }
@@ -6438,7 +6557,7 @@ class C extends Object with M {
   dynamic foo() {}
 }
 class alias D extends Object with M {
-  synthetic const D() = Object;
+  synthetic const D() : super();
 }
 ''');
   }
@@ -6992,7 +7111,7 @@ class C {
     checkElementText(library, r'''
 class C extends D {
   int v;
-  C(int this.v);
+  C(final int this.v);
 }
 abstract class D {
   int get v;
@@ -7338,6 +7457,40 @@ f() => 0;
 ''');
     var f = library.definingCompilationUnit.functions.single;
     expect(f.hasImplicitReturnType, isTrue);
+  }
+
+  test_function_parameter_fieldFormal() async {
+    var library = await checkLibrary('''
+void f(int this.a) {}
+''');
+    checkElementText(library, r'''
+void f(final int this.a) {}
+''');
+  }
+
+  test_function_parameter_fieldFormal_default() async {
+    var library = await checkLibrary('''
+void f({int this.a: 42}) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f({final int this.a}) {}
+  a
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_function_parameter_fieldFormal_functionTyped() async {
+    var library = await checkLibrary('''
+void f(int this.a(int b)) {}
+''');
+    checkElementText(library, r'''
+void f(final int Function(int) this.a/*(int b)*/) {}
+''');
   }
 
   test_function_parameter_final() async {
@@ -7813,6 +7966,26 @@ notSimplyBounded typedef F<X extends dynamic Function()> = dynamic Function(dyna
 ''');
   }
 
+  test_getter_async() async {
+    var library = await checkLibrary(r'''
+Future<int> get foo async => 0;
+''');
+    checkElementText(library, r'''
+Future<int> get foo async {}
+''');
+  }
+
+  test_getter_asyncStar() async {
+    var library = await checkLibrary(r'''
+import 'dart:async';
+Stream<int> get foo async* {}
+''');
+    checkElementText(library, r'''
+import 'dart:async';
+Stream<int> get foo async* {}
+''');
+  }
+
   test_getter_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -7848,6 +8021,15 @@ abstract class D {
 ''');
   }
 
+  test_getter_syncStar() async {
+    var library = await checkLibrary(r'''
+Iterator<int> get foo sync* {}
+''');
+    checkElementText(library, r'''
+Iterator<int> get foo sync* {}
+''');
+  }
+
   test_getters() async {
     var library = await checkLibrary('int get x => null; get y => null;');
     checkElementText(library, r'''
@@ -7867,7 +8049,7 @@ const x = C.named(42);
     checkElementText(library, r'''
 class C {
   final Object x;
-  const C.named(Object this.x);
+  const C.named(final Object this.x);
 }
 const C x =
         C/*location: test.dart;C*/.
@@ -8010,6 +8192,16 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
+  test_import_dartCore_explicit() async {
+    var library = await checkLibrary('''
+import 'dart:core';
+import 'dart:math';
+''');
+    expect(library.imports, hasLength(2));
+    expect(library.imports[0].uri, 'dart:core');
+    expect(library.imports[1].uri, 'dart:math');
   }
 
   test_import_dartCore_implicit() async {
@@ -9257,7 +9449,7 @@ class C {
     checkElementText(library, r'''
 class C {
   int foo;
-  void set bar(dynamic this.foo) {}
+  void set bar(final dynamic this.foo) {}
 }
 ''');
   }
@@ -9270,7 +9462,7 @@ class C {
 ''');
     checkElementText(library, r'''
 class C {
-  void set x(dynamic this.x) {}
+  void set x(final dynamic this.x) {}
 }
 ''');
   }
@@ -9481,7 +9673,7 @@ class main {
         await checkLibrary('class main = C with D; class C {} class D {}');
     checkElementText(library, r'''
 class alias main extends C with D {
-  synthetic main() = C;
+  synthetic main() : super();
 }
 class C {
 }
@@ -9596,6 +9788,41 @@ class C {
 ''');
   }
 
+  test_metadata_class_field_first() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+class C {
+  @a
+  int x = 0;
+}
+''');
+    // Check metadata without asking any other properties.
+    var x = _elementOfDefiningUnit(library, ['@class', 'C', '@field', 'x'])
+        as FieldElement;
+    expect(x.metadata, hasLength(1));
+    // Check details.
+    checkElementText(
+        library,
+        r'''
+class C {
+  int x;
+    metadata
+      Annotation
+        element: self::@getter::a
+        name: SimpleIdentifier
+          staticElement: self::@getter::a
+          staticType: null
+          token: a
+}
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_metadata_class_scope() async {
     var library = await checkLibrary(r'''
 const foo = 0;
@@ -9678,7 +9905,7 @@ const dynamic b = null;
 @
         a/*location: test.dart;a?*/
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -10052,7 +10279,15 @@ class A {
   const A.named();
 }
 class alias C extends A with B {
-  synthetic const C.named() = A.named;
+  synthetic const C.named();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        constructorName: SimpleIdentifier
+          staticElement: self::@class::A::@constructor::named
+          staticType: null
+          token: named
+        staticElement: self::@class::A::@constructor::named
 }
   typeParameters
     T
@@ -10354,7 +10589,11 @@ class A {
   const A();
 }
 class alias C extends A with B {
-  synthetic const C() = A;
+  synthetic const C();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        staticElement: self::@class::A::@constructor::•
 }
   typeParameters
     T
@@ -10494,7 +10733,7 @@ enum E {
 }
 class A {
   final dynamic value;
-  const A(dynamic this.value);
+  const A(final dynamic this.value);
 }
 ''',
         withFullyResolvedAst: true);
@@ -10638,7 +10877,7 @@ class C {
 class C {
   dynamic x;
   C(@
-        a/*location: test.dart;a?*/ dynamic this.x);
+        a/*location: test.dart;a?*/ final dynamic this.x);
 }
 const dynamic a = null;
 ''');
@@ -10651,7 +10890,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x = null]);
+        a/*location: test.dart;a?*/ final dynamic this.x = null]);
 }
 const dynamic a = null;
 ''');
@@ -11036,6 +11275,19 @@ const dynamic a = null;
 ''');
   }
 
+  test_metadata_simpleFormalParameter_unit_setter() async {
+    var library = await checkLibrary('''
+const a = null;
+
+set foo(@a int x) {}
+''');
+    checkElementText(library, r'''
+const dynamic a = null;
+void set foo(@
+        a/*location: test.dart;a?*/ int x) {}
+''');
+  }
+
   test_metadata_simpleFormalParameter_withDefault() async {
     var library = await checkLibrary('const a = null; f([@a x = null]) {}');
     checkElementText(library, r'''
@@ -11076,7 +11328,7 @@ class E {}''');
 class alias C<@
         a/*location: test.dart;a?*/
 T> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -11104,6 +11356,37 @@ typedef F<@
 T> = dynamic Function();
 const dynamic a = null;
 ''');
+  }
+
+  test_metadata_unit_topLevelVariable_first() async {
+    var library = await checkLibrary(r'''
+const a = 0;
+@a
+int x = 0;
+''');
+    // Check metadata without asking any other properties.
+    var x = _elementOfDefiningUnit(library, ['@variable', 'x'])
+        as TopLevelVariableElement;
+    expect(x.metadata, hasLength(1));
+    // Check details.
+    checkElementText(
+        library,
+        r'''
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+int x;
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_value_class_staticField() async {
@@ -11683,6 +11966,218 @@ A v;
 ''');
   }
 
+  test_nameOffset_class_constructor() async {
+    var library = await checkLibrary(r'''
+class A {
+  A();
+  A.named();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  A[nameOffset: 12]();
+  A.named[periodOffset: 20][nameOffset: 21][nameEnd: 26]();
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_constructor_parameter() async {
+    var library = await checkLibrary(r'''
+class A {
+  A(int a);
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  A[nameOffset: 12](int a@18);
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_field() async {
+    var library = await checkLibrary(r'''
+class A {
+  int foo = 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  int foo@16;
+  synthetic int get foo@16 {}
+  synthetic void set foo@16(int _foo@16) {}
+}
+''',
+        withOffsets: true,
+        withSyntheticAccessors: true);
+  }
+
+  test_nameOffset_class_getter() async {
+    var library = await checkLibrary(r'''
+class A {
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  int get foo@20 {}
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_method() async {
+    var library = await checkLibrary(r'''
+class A {
+  void foo<T>(int a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  void foo@17<T@21>(int a@28) {}
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_setter() async {
+    var library = await checkLibrary(r'''
+class A {
+  set foo(int x) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6 {
+  void set foo@16(int x@24) {}
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_class_typeParameter() async {
+    var library = await checkLibrary(r'''
+class A<T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A@6<T@8> {
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_extension_typeParameter() async {
+    var library = await checkLibrary(r'''
+extension E<T> on int {}
+''');
+    checkElementText(
+        library,
+        r'''
+extension E@10<T@12> on int {
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_function_functionTypedFormal_parameter() async {
+    var library = await checkLibrary(r'''
+void f(void f<U>(int a)) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f@5(void Function<U>(int) f@12/*<U@14>*//*(int a@21)*/) {}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_function_functionTypedFormal_parameter2() async {
+    var library = await checkLibrary(r'''
+void f({required void f<U>(int a)}) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f@5({void Function<U>(int) f@22/*<U@24>*//*(int a@31)*/}) {}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_function_typeParameter() async {
+    var library = await checkLibrary(r'''
+void f<T>() {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f@5<T@7>() {}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_functionTypeAlias_typeParameter() async {
+    var library = await checkLibrary(r'''
+typedef void F<T>();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F@13<T@15> = void Function();
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_genericTypeAlias_typeParameter() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F@8<T@10> = void Function();
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_mixin_typeParameter() async {
+    var library = await checkLibrary(r'''
+mixin M<T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+mixin M@6<T@8> on Object {
+}
+''',
+        withOffsets: true);
+  }
+
+  test_nameOffset_unit_getter() async {
+    var library = await checkLibrary(r'''
+int get foo => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+int get foo@8 {}
+''',
+        withOffsets: true);
+  }
+
   test_nested_generic_functions_in_generic_class_with_function_typed_params() async {
     var library = await checkLibrary('''
 class C<T, U> {
@@ -12052,6 +12547,15 @@ class C {
 ''');
   }
 
+  test_parameter_typeParameters() async {
+    var library = await checkLibrary(r'''
+void f(T a<T, U>(U u)) {}
+''');
+    checkElementText(library, r'''
+void f(T Function<T, U>(U) a/*<T, U>*//*(U u)*/) {}
+''');
+  }
+
   test_parameterTypeNotInferred_constructor() async {
     // Strong mode doesn't do type inference on constructor parameters, so it's
     // ok that we don't store inferred type info for them in summaries.
@@ -12082,8 +12586,8 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C.positional([dynamic this.x = 1]);
-  C.named({dynamic this.x: 1});
+  C.positional([final dynamic this.x = 1]);
+  C.named({final dynamic this.x: 1});
 }
 ''');
   }
@@ -12490,7 +12994,7 @@ class B {
     checkElementText(library, r'''
 class A<T> {
   T value;
-  A(T this.value);
+  A(final T this.value);
 }
 class B {
   A<String> a;
@@ -12508,7 +13012,7 @@ class A<T> {
     checkElementText(library, r'''
 class A<T> {
   int f;
-  A(int this.f);
+  A(final int this.f);
 }
 ''');
   }
@@ -12595,7 +13099,7 @@ class B extends A {
 }
 class C<T extends A = A> {
   final T f;
-  const C(T this.f);
+  const C(final T this.f);
 }
 final B b;
 final C<B> c;
@@ -13024,6 +13528,18 @@ dynamic c;
 import 'dart:core' as core;
 dynamic c;
 ''');
+  }
+
+  test_typeAlias_parameter_typeParameters() async {
+    var library = await checkLibrary(r'''
+typedef void F(T a<T, U>(U u));
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(T Function<T, U>(U) a/*<covariant T, covariant U>*//*(U u)*/);
+''',
+        withTypeParameterVariance: true);
   }
 
   test_typeAlias_typeParameters_variance_function_contravariant() async {
@@ -14077,6 +14593,22 @@ dynamic g() {}
 ''');
   }
 
+  test_unit_variable_final_withSetter() async {
+    var library = await checkLibrary(r'''
+final int foo = 0;
+set foo(int newValue) {}
+''');
+    checkElementText(
+        library,
+        r'''
+final int foo;
+synthetic int get foo {}
+void set foo(int newValue) {}
+''',
+        withSyntheticFields: true,
+        withSyntheticAccessors: true);
+  }
+
   test_unresolved_annotation_instanceCreation_argument_super() async {
     var library = await checkLibrary('''
 class A {
@@ -14458,7 +14990,7 @@ void set x(int _) {}
     expect(variable.isFinal, isTrue);
     expect(variable.getter, same(getter));
     expect('${variable.type}', 'int');
-    expect(variable, same(_elementOfDefiningUnit(library, ['@field', 'x'])));
+    expect(variable, same(_elementOfDefiningUnit(library, ['@variable', 'x'])));
   }
 
   test_variable_implicit_type() async {
@@ -14723,8 +15255,7 @@ int j;
     var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
     var reference = unit.reference!;
     names.forEach((name) => reference = reference.getChild(name));
-
-    var elementFactory = unit.linkedContext!.elementFactory;
+    var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
   }
 }

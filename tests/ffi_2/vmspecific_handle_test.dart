@@ -5,6 +5,8 @@
 // SharedObjects=ffi_test_functions
 // VMOptions=--enable-testing-pragmas
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';

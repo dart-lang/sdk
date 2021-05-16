@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Check that cyclic reference of a typedef is a compile-time error.
 
 // To test various cyclic references the definition of the [:typedef A():] is

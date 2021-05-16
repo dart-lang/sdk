@@ -67,6 +67,13 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   ResultState get state => ResultState.VALID;
 }
 
+class LibraryElementResultImpl implements LibraryElementResult {
+  @override
+  final LibraryElement element;
+
+  LibraryElementResultImpl(this.element);
+}
+
 /// The implementation of [AnalysisResult] when not [ResultState.VALID].
 class NotValidAnalysisResultImpl implements AnalysisResult {
   @override
@@ -129,6 +136,11 @@ class NotValidResolvedUnitResultImpl extends NotValidFileResultImpl
 
   @override
   List<AnalysisError> get errors {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  bool get exists {
     throw StateError('This result is not valid');
   }
 
@@ -331,7 +343,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
 class ResolvedUnitResultImpl extends FileResultImpl
     implements ResolvedUnitResult {
-  /// Return `true` if the file exists.
+  @override
   final bool exists;
 
   @override
@@ -357,7 +369,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
 
   @override
   LibraryElement get libraryElement {
-    var unit = this.unit;
+    final unit = this.unit;
     if (unit == null) {
       throw StateError('The result has no unit');
     }

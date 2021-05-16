@@ -29,6 +29,11 @@ namespace dart {
   V(WriteBarrierWrappers)                                                      \
   V(ArrayWriteBarrier)                                                         \
   V(AllocateArray)                                                             \
+  V(AllocateMint)                                                              \
+  V(AllocateDouble)                                                            \
+  V(AllocateFloat32x4)                                                         \
+  V(AllocateFloat64x2)                                                         \
+  V(AllocateInt32x4)                                                           \
   V(AllocateInt8Array)                                                         \
   V(AllocateUint8Array)                                                        \
   V(AllocateUint8ClampedArray)                                                 \
@@ -45,6 +50,7 @@ namespace dart {
   V(AllocateFloat64x2Array)                                                    \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
+  V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateObjectParameterized)                                               \

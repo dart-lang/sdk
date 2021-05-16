@@ -10,13 +10,18 @@ void throwLateFieldADI(String fieldName) => throw LateError.fieldADI(fieldName);
 
 /// A boxed variable used for lowering uninitialized `late` variables when they
 /// are locals or statics.
-///
-/// The [LateError]s produced have empty variable names.
-// TODO(fishythefish): Support variable names depending on flags/compiler.
 class _Cell {
+  final String _name;
   Object? _value;
 
-  _Cell() {
+  @pragma('dart2js:noInline')
+  _Cell() : _name = '' {
+    // `this` is a unique sentinel.
+    _value = this;
+  }
+
+  @pragma('dart2js:noInline')
+  _Cell.named(this._name) {
     // `this` is a unique sentinel.
     _value = this;
   }
@@ -30,12 +35,12 @@ class _Cell {
   T readField<T>() => _readField() as T;
 
   Object? _readLocal() {
-    if (identical(_value, this)) throw LateError.localNI('');
+    if (identical(_value, this)) throw LateError.localNI(_name);
     return _value;
   }
 
   Object? _readField() {
-    if (identical(_value, this)) throw LateError.fieldNI('');
+    if (identical(_value, this)) throw LateError.fieldNI(_name);
     return _value;
   }
 
@@ -44,26 +49,31 @@ class _Cell {
   }
 
   void set finalLocalValue(Object? v) {
-    if (!identical(_value, this)) throw LateError.localAI('');
+    if (!identical(_value, this)) throw LateError.localAI(_name);
     _value = v;
   }
 
   void set finalFieldValue(Object? v) {
-    if (!identical(_value, this)) throw LateError.fieldAI('');
+    if (!identical(_value, this)) throw LateError.fieldAI(_name);
     _value = v;
   }
 }
 
 /// A boxed variable used for lowering `late` variables when they are
 /// initialized locals.
-///
-/// The [LateError]s produced have empty variable names.
-// TODO(fishythefish): Support variable names depending on flags/compiler.
 class _InitializedCell {
+  final String _name;
   Object? _value;
   Object? Function() _initializer;
 
-  _InitializedCell(this._initializer) {
+  @pragma('dart2js:noInline')
+  _InitializedCell(this._initializer) : _name = '' {
+    // `this` is a unique sentinel.
+    _value = this;
+  }
+
+  @pragma('dart2js:noInline')
+  _InitializedCell.named(this._name, this._initializer) {
     // `this` is a unique sentinel.
     _value = this;
   }
@@ -84,7 +94,7 @@ class _InitializedCell {
   Object? _readFinal() {
     if (identical(_value, this)) {
       final result = _initializer();
-      if (!identical(_value, this)) throw LateError.localADI('');
+      if (!identical(_value, this)) throw LateError.localADI(_name);
       _value = result;
     }
     return _value;
@@ -95,7 +105,7 @@ class _InitializedCell {
   }
 
   void set finalValue(Object? v) {
-    if (!identical(_value, this)) throw LateError.localAI('');
+    if (!identical(_value, this)) throw LateError.localAI(_name);
     _value = v;
   }
 }

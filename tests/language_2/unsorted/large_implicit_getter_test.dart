@@ -4,6 +4,8 @@
 // Dart test program for testing compilation of large implicit getters.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 List<List> panels = [
   [6853.940039224797, 6050.837897021371],
   [6953.240039224797, 6050.837897021371],

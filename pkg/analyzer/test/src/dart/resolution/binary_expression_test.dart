@@ -147,6 +147,25 @@ void f(int a) {
     );
   }
 
+  test_bangEqEq() async {
+    await assertErrorsInCode(r'''
+f(int a, int b) {
+  a !== b;
+}
+''', [
+      error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('a !== b'),
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertType(findNode.simple('a !=='), 'int');
+    assertType(findNode.simple('b;'), 'int');
+  }
+
   test_eqEq() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {

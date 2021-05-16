@@ -6,6 +6,8 @@
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
@@ -756,4 +758,30 @@ class TestStruct1606Packed extends Struct {
 
   @Array(2) //# 1606: compile-time error
   Array<TestStruct1604> nestedLooselyPacked; //# 1606: compile-time error
+}
+
+@Packed(0) //# 1607: compile-time error
+class TestStruct1607 extends Struct {
+  Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1800 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(-1) //# 1800: compile-time error
+  Array<Uint8> inlineArray; //# 1800: compile-time error
+}
+
+class TestStruct1801 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(1, -1) //# 1801: compile-time error
+  Array<Uint8> inlineArray; //# 1801: compile-time error
+}
+
+class TestStruct1802 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array.multi([2, 2, 2, 2, 2, 2, -1]) //# 1802: compile-time error
+  Array<Uint8> inlineArray; //# 1802: compile-time error
 }

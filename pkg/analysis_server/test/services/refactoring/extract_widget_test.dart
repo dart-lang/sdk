@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +18,7 @@ void main() {
 @reflectiveTest
 class ExtractWidgetTest extends RefactoringTest {
   @override
-  ExtractWidgetRefactoringImpl refactoring;
+  late ExtractWidgetRefactoringImpl refactoring;
 
   @override
   void setUp() {
@@ -54,12 +51,6 @@ class MyWidget extends StatelessWidget {
 }
 ''');
     _createRefactoringForStringOffset('new Text');
-
-    // null
-    refactoring.name = null;
-    assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Class name must not be null.');
 
     // empty
     refactoring.name = '';
@@ -1232,7 +1223,7 @@ void main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = ExtractWidgetRefactoring(
+    refactoring = ExtractWidgetRefactoringImpl(
         searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'Test';
   }

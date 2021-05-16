@@ -27,14 +27,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, precompiled_mode);
-
 namespace compiler {
 
 // Ensures that [R0] is a new object, if not it will be added to the remembered
@@ -42,8 +34,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -440,9 +432,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Resets CSP and SP, important for EnterSafepoint below.
   __ blr(R10);
 
-  // EnterSafepoint clobbers TMP, TMP2 and R9 -- all volatile and not holding
-  // return values.
-  __ EnterSafepoint(/*scratch=*/R9);
+  // Clobbers TMP, TMP2 and R9 -- all volatile and not holding return values.
+  __ EnterFullSafepoint(/*scratch=*/R9);
 
   // Pop LR and THR from the real stack (CSP).
   RESTORES_LR_FROM_FRAME(__ ldp(
@@ -482,7 +473,8 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ Bind(&no_type_args);
 
   // Push type arguments & extracted method.
-  __ PushPair(R3, R1);
+  __ Push(R3);
+  __ Push(R1);
 
   // Allocate context.
   {
@@ -513,32 +505,41 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ StoreIntoObject(R0, FieldAddress(R0, target::Context::variable_offset(0)),
                      R1);
 
+  // Pop function before pushing context.
+  __ Pop(AllocateClosureABI::kFunctionReg);
+
   // Push context.
   __ Push(R0);
 
-  // Allocate closure.
+  // Allocate closure. After this point, we only use the registers in
+  // AllocateClosureABI.
   __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
-                                        CodeEntryKind::kUnchecked)));
-  __ blr(R1);
+  __ ldr(AllocateClosureABI::kScratchReg,
+         FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ blr(AllocateClosureABI::kScratchReg);
 
   // Populate closure object.
-  __ Pop(R1);  // Pop context.
-  __ StoreIntoObject(R0, FieldAddress(R0, target::Closure::context_offset()),
-                     R1);
-  __ PopPair(R3, R1);  // Pop type arguments & extracted method.
+  __ Pop(AllocateClosureABI::kScratchReg);  // Pop context.
+  __ StoreIntoObject(AllocateClosureABI::kResultReg,
+                     FieldAddress(AllocateClosureABI::kResultReg,
+                                  target::Closure::context_offset()),
+                     AllocateClosureABI::kScratchReg);
+  __ Pop(AllocateClosureABI::kScratchReg);  // Pop type arguments.
   __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Closure::function_offset()), R1);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::instantiator_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
+  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
   __ StoreIntoObjectNoBarrier(
-      R0,
-      FieldAddress(R0, target::Closure::instantiator_type_arguments_offset()),
-      R3);
-  __ LoadObject(R1, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Closure::delayed_type_arguments_offset()),
-      R1);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::delayed_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
 
   __ LeaveStubFrame();
+  // No-op if the two are the same.
+  __ MoveRegister(R0, AllocateClosureABI::kResultReg);
   __ Ret();
 }
 
@@ -1266,7 +1267,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -1286,7 +1287,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -3459,8 +3460,9 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
     Assembler* assembler) {
   // Lookup cache before calling runtime.
-  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                         target::TypeArguments::instantiations_offset());
+  __ LoadCompressedFieldFromOffset(
+      R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
+      target::TypeArguments::instantiations_offset());
   __ AddImmediate(R0, Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
@@ -3513,10 +3515,12 @@ void StubCodeCompiler::
   // Return the instantiator type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
-  __ LoadFieldFromOffset(R4, InstantiationABI::kInstantiatorTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
+  __ LoadCompressedSmi(
+      R0, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      R4, FieldAddress(InstantiationABI::kInstantiatorTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
   __ and_(R4, R4, Operand(R0));
   __ cmp(R4, Operand(R0));
   __ b(&cache_lookup, NE);
@@ -3533,10 +3537,12 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   // Return the function type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
-  __ LoadFieldFromOffset(R4, InstantiationABI::kFunctionTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
+  __ LoadCompressedSmi(
+      R0, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      R4, FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
   __ and_(R4, R4, Operand(R0));
   __ cmp(R4, Operand(R0));
   __ b(&cache_lookup, NE);
@@ -3588,7 +3594,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ b(&call_runtime, HI);
     __ LslImmediate(R2, R2, scale_shift);
     const intptr_t fixed_size_plus_alignment_padding =
-        target::TypedData::InstanceSize() +
+        target::TypedData::HeaderSize() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ AddImmediate(R2, fixed_size_plus_alignment_padding);
     __ andi(R2, R2,
@@ -3642,7 +3648,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* R3: scratch register. */
     /* data area to be initialized. */
     __ mov(R3, ZR);
-    __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);
+    __ AddImmediate(R2, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
     Label init_loop, done;

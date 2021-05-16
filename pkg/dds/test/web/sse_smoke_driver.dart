@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 // This file must be compiled for changes to be picked up.
 //
 // Run the following command from the root of this package if this file is

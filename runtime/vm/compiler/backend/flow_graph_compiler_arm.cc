@@ -465,15 +465,6 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   }
 }
 
-void FlowGraphCompiler::GenerateRuntimeCall(const InstructionSource& source,
-                                            intptr_t deopt_id,
-                                            const RuntimeEntry& entry,
-                                            intptr_t argument_count,
-                                            LocationSummary* locs) {
-  __ CallRuntime(entry, argument_count);
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
-}
-
 void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
@@ -966,10 +957,12 @@ void FlowGraphCompiler::EmitMove(Location destination,
     if (destination.IsFpuRegister() || destination.IsDoubleStackSlot() ||
         destination.IsStackSlot()) {
       Register tmp = allocator->AllocateTemporary();
-      source.constant_instruction()->EmitMoveToLocation(this, destination, tmp);
+      source.constant_instruction()->EmitMoveToLocation(this, destination, tmp,
+                                                        source.pair_index());
       allocator->ReleaseTemporary();
     } else {
-      source.constant_instruction()->EmitMoveToLocation(this, destination);
+      source.constant_instruction()->EmitMoveToLocation(
+          this, destination, kNoRegister, source.pair_index());
     }
   }
 }

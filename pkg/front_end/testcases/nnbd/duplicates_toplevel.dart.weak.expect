@@ -176,7 +176,7 @@ late static final [setter] field core::int topLevelLateFinalFieldAndSetter2;
 static final field core::int topLevelDuplicateFieldAndSetter;
 static final field core::int topLevelFieldAndDuplicateSetter = 1;
 static final field core::int topLevelDuplicateFieldAndDuplicateSetter;
-static const field dynamic _exports# = #C1 /*isLegacy, from null */;
+static const field dynamic _exports# = #C1 /*isLegacy*/;
 static method topLevelMethod() → core::int
   return 1;
 static get topLevelGetter() → core::int

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+// @dart = 2.9
+
 library library3.dart;
 
 import "../library2.dart"; // defines "foo" and "foo1".

@@ -29,6 +29,7 @@ import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 import '../fasta_codes.dart'
     show
         LocatedMessage,
+        Message,
         templateBoundIssueViaCycleNonSimplicity,
         templateBoundIssueViaLoopNonSimplicity,
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
@@ -664,8 +665,9 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
 /// [TypeDeclarationBuilder] for the type variable from [variables] that has raw
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
-List<Object> getInboundReferenceIssues(List<TypeVariableBuilder> variables) {
-  List<Object> issues = <Object>[];
+List<NonSimplicityIssue> getInboundReferenceIssues(
+    List<TypeVariableBuilder> variables) {
+  List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   for (TypeVariableBuilder variable in variables) {
     if (variable.bound != null) {
       List<Object> rawTypesAndMutualDependencies =
@@ -678,23 +680,25 @@ List<Object> getInboundReferenceIssues(List<TypeVariableBuilder> variables) {
           TypeVariableBuilder dependent = variablesAndDependencies[j];
           List<NamedTypeBuilder> dependencies = variablesAndDependencies[j + 1];
           for (NamedTypeBuilder dependency in dependencies) {
-            issues.add(variable);
-            issues.add(templateBoundIssueViaRawTypeWithNonSimpleBounds
-                .withArguments(type.declaration.name));
-            issues.add(<LocatedMessage>[
-              templateNonSimpleBoundViaVariable
-                  .withArguments(dependency.declaration.name)
-                  .withLocation(dependent.fileUri, dependent.charOffset,
-                      dependent.name.length)
-            ]);
+            issues.add(new NonSimplicityIssue(
+                variable,
+                templateBoundIssueViaRawTypeWithNonSimpleBounds
+                    .withArguments(type.declaration.name),
+                <LocatedMessage>[
+                  templateNonSimpleBoundViaVariable
+                      .withArguments(dependency.declaration.name)
+                      .withLocation(dependent.fileUri, dependent.charOffset,
+                          dependent.name.length)
+                ]));
           }
         }
         if (variablesAndDependencies.length == 0) {
           // The inbound references are in a compiled declaration in a .dill.
-          issues.add(variable);
-          issues.add(templateBoundIssueViaRawTypeWithNonSimpleBounds
-              .withArguments(type.declaration.name));
-          issues.add(const <LocatedMessage>[]);
+          issues.add(new NonSimplicityIssue(
+              variable,
+              templateBoundIssueViaRawTypeWithNonSimpleBounds
+                  .withArguments(type.declaration.name),
+              const <LocatedMessage>[]));
         }
       }
     }
@@ -708,12 +712,13 @@ List<Object> getInboundReferenceIssues(List<TypeVariableBuilder> variables) {
 /// [TypeDeclarationBuilder] for the type variable from [variables] that has raw
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
-List<Object> getInboundReferenceIssuesInType(TypeBuilder typeBuilder) {
+List<NonSimplicityIssue> getInboundReferenceIssuesInType(
+    TypeBuilder typeBuilder) {
   List<FunctionTypeBuilder> genericFunctionTypeBuilders =
       <FunctionTypeBuilder>[];
   findUnaliasedGenericFunctionTypes(typeBuilder,
       result: genericFunctionTypeBuilders);
-  List<Object> issues = <Object>[];
+  List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   for (FunctionTypeBuilder genericFunctionTypeBuilder
       in genericFunctionTypeBuilders) {
     List<TypeVariableBuilder> typeVariables =
@@ -725,32 +730,34 @@ List<Object> getInboundReferenceIssuesInType(TypeBuilder typeBuilder) {
 
 /// Finds raw type paths starting from those in [start] and ending with [end].
 ///
-/// Returns list of found paths.  Each path is represented as a list of
-/// alternating builders of the raw generic types from the path and builders of
-/// type variables of the immediately preceding types that contain the reference
-/// to the next raw generic type in the path.  The list ends with the type
-/// builder for [end].
+/// Returns list of found paths consisting of [RawTypeCycleElement]s. The list
+/// ends with the type builder for [end].
 ///
 /// The reason for putting the type variables into the paths as well as for
 /// using type for [start], and not the corresponding type declaration,
 /// is better error reporting.
-List<List<Object>> findRawTypePathsToDeclaration(
+List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
     TypeBuilder start, TypeDeclarationBuilder end,
     [Set<TypeDeclarationBuilder> visited]) {
   visited ??= new Set<TypeDeclarationBuilder>.identity();
-  List<List<Object>> paths = <List<Object>>[];
+  List<List<RawTypeCycleElement>> paths = <List<RawTypeCycleElement>>[];
   if (start is NamedTypeBuilder) {
     TypeDeclarationBuilder declaration = start.declaration;
     if (start.arguments == null) {
       if (start.declaration == end) {
-        paths.add(<Object>[start]);
+        paths.add(<RawTypeCycleElement>[new RawTypeCycleElement(start, null)]);
       } else if (visited.add(start.declaration)) {
         if (declaration is ClassBuilder && declaration.typeVariables != null) {
           for (TypeVariableBuilder variable in declaration.typeVariables) {
             if (variable.bound != null) {
-              for (List<Object> path in findRawTypePathsToDeclaration(
-                  variable.bound, end, visited)) {
-                paths.add(<Object>[start, variable]..addAll(path));
+              for (List<RawTypeCycleElement> path
+                  in findRawTypePathsToDeclaration(
+                      variable.bound, end, visited)) {
+                if (path.isNotEmpty) {
+                  paths.add(<RawTypeCycleElement>[
+                    new RawTypeCycleElement(start, null)
+                  ]..addAll(path..first.typeVariable = variable));
+                }
               }
             }
           }
@@ -758,10 +765,14 @@ List<List<Object>> findRawTypePathsToDeclaration(
           if (declaration.typeVariables != null) {
             for (TypeVariableBuilder variable in declaration.typeVariables) {
               if (variable.bound != null) {
-                for (List<Object> dependencyPath
+                for (List<RawTypeCycleElement> dependencyPath
                     in findRawTypePathsToDeclaration(
                         variable.bound, end, visited)) {
-                  paths.add(<Object>[start, variable]..addAll(dependencyPath));
+                  if (dependencyPath.isNotEmpty) {
+                    paths.add(<RawTypeCycleElement>[
+                      new RawTypeCycleElement(start, null)
+                    ]..addAll(dependencyPath..first.typeVariable = variable));
+                  }
                 }
               }
             }
@@ -771,11 +782,14 @@ List<List<Object>> findRawTypePathsToDeclaration(
             if (type.typeVariables != null) {
               for (TypeVariableBuilder variable in type.typeVariables) {
                 if (variable.bound != null) {
-                  for (List<Object> dependencyPath
+                  for (List<RawTypeCycleElement> dependencyPath
                       in findRawTypePathsToDeclaration(
                           variable.bound, end, visited)) {
-                    paths
-                        .add(<Object>[start, variable]..addAll(dependencyPath));
+                    if (dependencyPath.isNotEmpty) {
+                      paths.add(<RawTypeCycleElement>[
+                        new RawTypeCycleElement(start, null)
+                      ]..addAll(dependencyPath..first.typeVariable = variable));
+                    }
                   }
                 }
               }
@@ -814,22 +828,24 @@ List<List<Object>> findRawTypePathsToDeclaration(
 
 /// Finds raw generic type cycles ending and starting with [declaration].
 ///
-/// Returns list of found cycles.  Each cycle is represented as a list of
-/// alternating raw generic types from the cycle and type variables of the
-/// immediately preceding type that reference the next type in the cycle.  The
+/// Returns list of found cycles consisting of [RawTypeCycleElement]s. The
 /// cycle starts with a type variable from [declaration] and ends with a type
 /// that has [declaration] as its declaration.
 ///
 /// The reason for putting the type variables into the cycles is better error
 /// reporting.
-List<List<Object>> findRawTypeCycles(TypeDeclarationBuilder declaration) {
-  List<List<Object>> cycles = <List<Object>>[];
+List<List<RawTypeCycleElement>> findRawTypeCycles(
+    TypeDeclarationBuilder declaration) {
+  List<List<RawTypeCycleElement>> cycles = <List<RawTypeCycleElement>>[];
   if (declaration is ClassBuilder && declaration.typeVariables != null) {
     for (TypeVariableBuilder variable in declaration.typeVariables) {
       if (variable.bound != null) {
-        for (List<Object> path
+        for (List<RawTypeCycleElement> path
             in findRawTypePathsToDeclaration(variable.bound, declaration)) {
-          cycles.add(<Object>[variable]..addAll(path));
+          if (path.isNotEmpty) {
+            path.first.typeVariable = variable;
+            cycles.add(path);
+          }
         }
       }
     }
@@ -837,9 +853,12 @@ List<List<Object>> findRawTypeCycles(TypeDeclarationBuilder declaration) {
     if (declaration.typeVariables != null) {
       for (TypeVariableBuilder variable in declaration.typeVariables) {
         if (variable.bound != null) {
-          for (List<Object> dependencyPath
+          for (List<RawTypeCycleElement> dependencyPath
               in findRawTypePathsToDeclaration(variable.bound, declaration)) {
-            cycles.add(<Object>[variable]..addAll(dependencyPath));
+            if (dependencyPath.isNotEmpty) {
+              dependencyPath.first.typeVariable = variable;
+              cycles.add(dependencyPath);
+            }
           }
         }
       }
@@ -849,9 +868,12 @@ List<List<Object>> findRawTypeCycles(TypeDeclarationBuilder declaration) {
       if (type.typeVariables != null) {
         for (TypeVariableBuilder variable in type.typeVariables) {
           if (variable.bound != null) {
-            for (List<Object> dependencyPath
+            for (List<RawTypeCycleElement> dependencyPath
                 in findRawTypePathsToDeclaration(variable.bound, declaration)) {
-              cycles.add(<Object>[variable]..addAll(dependencyPath));
+              if (dependencyPath.isNotEmpty) {
+                dependencyPath.first.typeVariable = variable;
+                cycles.add(dependencyPath);
+              }
             }
           }
         }
@@ -870,34 +892,35 @@ List<List<Object>> findRawTypeCycles(TypeDeclarationBuilder declaration) {
 /// [TypeDeclarationBuilder] for the type variable from [variables] that has raw
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
-List<Object> convertRawTypeCyclesIntoIssues(
-    TypeDeclarationBuilder declaration, List<List<Object>> cycles) {
-  List<Object> issues = <Object>[];
-  for (List<Object> cycle in cycles) {
-    if (cycle.length == 2) {
+List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
+    TypeDeclarationBuilder declaration,
+    List<List<RawTypeCycleElement>> cycles) {
+  List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
+  for (List<RawTypeCycleElement> cycle in cycles) {
+    if (cycle.length == 1) {
       // Loop.
-      TypeVariableBuilder variable = cycle[0];
-      NamedTypeBuilder type = cycle[1];
-      issues.add(variable);
-      issues.add(templateBoundIssueViaLoopNonSimplicity
-          .withArguments(type.declaration.name));
-      issues.add(null); // Context.
-    } else {
+      issues.add(new NonSimplicityIssue(
+          cycle.single.typeVariable,
+          templateBoundIssueViaLoopNonSimplicity
+              .withArguments(cycle.single.type.declaration.name),
+          null));
+    } else if (cycle.isNotEmpty) {
+      assert(cycle.length > 1);
       List<LocatedMessage> context = <LocatedMessage>[];
-      for (int i = 0; i < cycle.length; i += 2) {
-        TypeVariableBuilder variable = cycle[i];
-        NamedTypeBuilder type = cycle[i + 1];
+      for (RawTypeCycleElement cycleElement in cycle) {
         context.add(templateNonSimpleBoundViaReference
-            .withArguments(type.declaration.name)
+            .withArguments(cycleElement.type.declaration.name)
             .withLocation(
-                variable.fileUri, variable.charOffset, variable.name.length));
+                cycleElement.typeVariable.fileUri,
+                cycleElement.typeVariable.charOffset,
+                cycleElement.typeVariable.name.length));
       }
-      NamedTypeBuilder firstEncounteredType = cycle[1];
 
-      issues.add(declaration);
-      issues.add(templateBoundIssueViaCycleNonSimplicity.withArguments(
-          declaration.name, firstEncounteredType.declaration.name));
-      issues.add(context);
+      issues.add(new NonSimplicityIssue(
+          declaration,
+          templateBoundIssueViaCycleNonSimplicity.withArguments(
+              declaration.name, cycle.first.type.declaration.name),
+          context));
     }
   }
   return issues;
@@ -912,9 +935,9 @@ List<Object> convertRawTypeCyclesIntoIssues(
 /// first element in the triplet is the type declaration that has the issue.
 /// The second element in the triplet is the error message.  The third element
 /// in the triplet is the context.
-List<Object> getNonSimplicityIssuesForTypeVariables(
+List<NonSimplicityIssue> getNonSimplicityIssuesForTypeVariables(
     List<TypeVariableBuilder> variables) {
-  if (variables == null) return <Object>[];
+  if (variables == null) return <NonSimplicityIssue>[];
   return getInboundReferenceIssues(variables);
 }
 
@@ -928,31 +951,31 @@ List<Object> getNonSimplicityIssuesForTypeVariables(
 /// first element in the triplet is the type declaration that has the issue.
 /// The second element in the triplet is the error message.  The third element
 /// in the triplet is the context.
-List<Object> getNonSimplicityIssuesForDeclaration(
+List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
     TypeDeclarationBuilder declaration,
     {bool performErrorRecovery: true}) {
-  List<Object> issues = <Object>[];
+  List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   if (declaration is ClassBuilder && declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   } else if (declaration is TypeAliasBuilder &&
       declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   }
-  List<List<Object>> cyclesToReport = <List<Object>>[];
-  for (List<Object> cycle in findRawTypeCycles(declaration)) {
+  List<List<RawTypeCycleElement>> cyclesToReport =
+      <List<RawTypeCycleElement>>[];
+  for (List<RawTypeCycleElement> cycle in findRawTypeCycles(declaration)) {
     // To avoid reporting the same error for each element of the cycle, we only
     // do so if it comes the first in the lexicographical order.  Note that
     // one-element cycles shouldn't be checked, as they are loops.
-    if (cycle.length == 2) {
+    if (cycle.length == 1) {
       cyclesToReport.add(cycle);
     } else {
       String declarationPathAndName =
           "${declaration.fileUri}:${declaration.name}";
       String lexMinPathAndName = null;
-      for (int i = 1; i < cycle.length; i += 2) {
-        NamedTypeBuilder type = cycle[i];
-        String pathAndName =
-            "${type.declaration.fileUri}:${type.declaration.name}";
+      for (RawTypeCycleElement cycleElement in cycle) {
+        String pathAndName = "${cycleElement.type.declaration.fileUri}:"
+            "${cycleElement.type.declaration.name}";
         if (lexMinPathAndName == null ||
             lexMinPathAndName.compareTo(pathAndName) > 0) {
           lexMinPathAndName = pathAndName;
@@ -963,7 +986,7 @@ List<Object> getNonSimplicityIssuesForDeclaration(
       }
     }
   }
-  List<Object> rawTypeCyclesAsIssues =
+  List<NonSimplicityIssue> rawTypeCyclesAsIssues =
       convertRawTypeCyclesIntoIssues(declaration, cyclesToReport);
   issues.addAll(rawTypeCyclesAsIssues);
 
@@ -978,10 +1001,11 @@ List<Object> getNonSimplicityIssuesForDeclaration(
 ///
 /// The [cycles] are expected to be in the format specified for the return value
 /// of [findRawTypeCycles].
-void breakCycles(List<List<Object>> cycles) {
-  for (List<Object> cycle in cycles) {
-    TypeVariableBuilder variable = cycle[0];
-    variable.bound = null;
+void breakCycles(List<List<RawTypeCycleElement>> cycles) {
+  for (List<RawTypeCycleElement> cycle in cycles) {
+    if (cycle.isNotEmpty) {
+      cycle.first.typeVariable.bound = null;
+    }
   }
 }
 
@@ -1122,4 +1146,61 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitTypedefType(TypedefType node) {
     return anyTypeVariables(node.typeArguments);
   }
+}
+
+/// A representation of a found non-simplicity issue in bounds
+///
+/// The following are the examples of generic declarations with non-simple
+/// bounds:
+///
+///   // `A` has a non-simple bound.
+///   class A<X extends A<X>> {}
+///
+///   // Error: A type with non-simple bounds is used raw in another bound.
+///   class B<Y extends A> {}
+///
+///   // Error: Checking if a type has non-simple bounds leads back to the type,
+///   // so the process is infinite. In that case, the type is deemed as having
+///   // non-simple bounds.
+///   class C<U extends D> {} // `C` has a non-simple bound.
+///   class D<V extends C> {} // `D` has a non-simple bound.
+///
+/// See section 15.3.1 Auxiliary Concepts for Instantiation to Bound.
+class NonSimplicityIssue {
+  /// The generic declaration that has a non-simplicity issue.
+  final TypeDeclarationBuilder declaration;
+
+  /// The non-simplicity error message.
+  final Message message;
+
+  /// The context for the error message, containing the locations of all of the
+  /// elements from the cycle.
+  final List<LocatedMessage> context;
+
+  NonSimplicityIssue(this.declaration, this.message, this.context);
+}
+
+/// Represents an element of a non-simple raw type cycle
+///
+/// Such cycles appear when the process of checking if a type has a non-simple
+/// bound leads back to that type. The cycle that goes through other types and
+/// type variables in-between them is recorded for better error reporting. An
+/// example of such cycle is the following:
+///
+///   // Error: Checking if a type has non-simple bounds leads back to the type,
+///   // so the process is infinite. In that case, the type is deemed as having
+///   // non-simple bounds.
+///   class C<U extends D> {} // `C` has a non-simple bound.
+///   class D<V extends C> {} // `D` has a non-simple bound.
+///
+/// See section 15.3.1 Auxiliary Concepts for Instantiation to Bound.
+class RawTypeCycleElement {
+  /// The type that is on a non-simple raw type cycle.
+  final TypeBuilder type;
+
+  /// The type variable that connects [type] to the next element in the
+  /// non-simple raw type cycle.
+  TypeVariableBuilder typeVariable;
+
+  RawTypeCycleElement(this.type, this.typeVariable);
 }

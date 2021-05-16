@@ -6,7 +6,7 @@
 /// produced by `--write-v8-snapshot-profile-to` VM flag.
 library vm_snapshot_analysis.v8_profile;
 
-import 'package:meta/meta.dart';
+import 'package:collection/collection.dart';
 
 import 'package:vm_snapshot_analysis/src/dominators.dart' as dominators;
 import 'package:vm_snapshot_analysis/name.dart';
@@ -35,7 +35,7 @@ class Snapshot {
   /// for the given node index.
   final List<int> _edgesStartIndexForNode;
 
-  List<int> _dominators;
+  late final List<int> _dominators = _computeDominators(this);
 
   final List strings;
 
@@ -53,7 +53,6 @@ class Snapshot {
 
   /// Return dominator node for the given node [n].
   Node dominatorOf(Node n) {
-    _dominators ??= _computeDominators(this);
     return nodeAt(_dominators[n.index]);
   }
 
@@ -67,7 +66,7 @@ class Snapshot {
     // Extract meta information first.
     final meta = Meta._fromJson(m['snapshot']['meta']);
 
-    final nodes = m['nodes'];
+    final nodes = (m['nodes'] as List<dynamic>).cast<int>();
 
     // Build an array of starting indexes of edges for each node.
     final edgesStartIndexForNode = <int>[0];
@@ -130,18 +129,18 @@ class Meta {
   final List<String> edgeTypes;
 
   Meta._(
-      {this.nodeTypeIndex,
-      this.nodeNameIndex,
-      this.nodeIdIndex,
-      this.nodeSelfSizeIndex,
-      this.nodeEdgeCountIndex,
-      this.nodeFieldCount,
-      this.edgeTypeIndex,
-      this.edgeNameOrIndexIndex,
-      this.edgeToNodeIndex,
-      this.edgeFieldCount,
-      this.nodeTypes,
-      this.edgeTypes});
+      {required this.nodeTypeIndex,
+      required this.nodeNameIndex,
+      required this.nodeIdIndex,
+      required this.nodeSelfSizeIndex,
+      required this.nodeEdgeCountIndex,
+      required this.nodeFieldCount,
+      required this.edgeTypeIndex,
+      required this.edgeNameOrIndexIndex,
+      required this.edgeToNodeIndex,
+      required this.edgeFieldCount,
+      required this.nodeTypes,
+      required this.edgeTypes});
 
   factory Meta._fromJson(Map<String, dynamic> m) {
     final nodeFields = m['node_fields'];
@@ -171,7 +170,7 @@ class Edge {
   /// Index of this [Edge] within the [snapshot].
   final int index;
 
-  Edge._({this.snapshot, this.index});
+  Edge._({required this.snapshot, required this.index});
 
   String get type => snapshot
       .meta.edgeTypes[snapshot._edges[_offset + snapshot.meta.edgeTypeIndex]];
@@ -212,7 +211,7 @@ class Node {
   /// Index of this [Node] within the [snapshot].
   final int index;
 
-  Node._({this.snapshot, this.index});
+  Node._({required this.snapshot, required this.index});
 
   int get edgeCount =>
       snapshot._nodes[_offset + snapshot.meta.nodeEdgeCountIndex];
@@ -248,10 +247,8 @@ class Node {
   }
 
   /// Returns the target of an outgoing edge with the given name (if any).
-  Node operator [](String edgeName) => this
-      .edges
-      .firstWhere((e) => e.name == edgeName, orElse: () => null)
-      ?.target;
+  Node? operator [](String edgeName) =>
+      this.edges.firstWhereOrNull((e) => e.name == edgeName)?.target;
 
   @override
   bool operator ==(Object other) {
@@ -317,7 +314,7 @@ class _ProgramInfoBuilder {
   /// See [findCommonAncestor] method.
   final Map<int, int> commonAncestorCache = {};
 
-  _ProgramInfoBuilder({this.collapseAnonymousClosures});
+  _ProgramInfoBuilder({required this.collapseAnonymousClosures});
 
   /// Recover [ProgramInfo] structure from the snapshot profile.
   ///
@@ -372,7 +369,7 @@ class _ProgramInfoBuilder {
     return program;
   }
 
-  ProgramInfoNode getInfoNodeFor(Node node) {
+  ProgramInfoNode? getInfoNodeFor(Node node) {
     var info = infoNodeByIndex[node.index];
     if (info == null) {
       info = createInfoNodeFor(node);
@@ -390,7 +387,7 @@ class _ProgramInfoBuilder {
         switch (node.type) {
           case 'Code':
             // Freeze ownership of the Instructions object.
-            final instructions = node['<instructions>'];
+            final instructions = node['<instructions>']!;
             nodesWithFrozenOwner.add(instructions.index);
             ownerOf[instructions.index] =
                 findCommonAncestor(ownerOf[instructions.index], info.id);
@@ -403,7 +400,7 @@ class _ProgramInfoBuilder {
                 if (e.target.type == 'Script') {
                   nodesWithFrozenOwner.add(e.target.index);
                   ownerOf[e.target.index] =
-                      findCommonAncestor(ownerOf[e.target.index], info.id);
+                      findCommonAncestor(ownerOf[e.target.index]!, info.id);
                 }
               }
             }
@@ -414,13 +411,13 @@ class _ProgramInfoBuilder {
     return info;
   }
 
-  ProgramInfoNode createInfoNodeFor(Node node) {
+  ProgramInfoNode? createInfoNodeFor(Node node) {
     switch (node.type) {
       case 'Code':
-        var owner = node['owner_'];
+        final owner = node['owner_']!;
         if (owner.type != 'Type') {
           final ownerNode =
-              owner.type == 'Null' ? program.stubs : getInfoNodeFor(owner);
+              owner.type == 'Null' ? program.stubs : getInfoNodeFor(owner)!;
           if (owner.type == 'Function') {
             // For normal functions we just attribute Code object and all
             // objects dominated by it to the function itself.
@@ -436,29 +433,29 @@ class _ProgramInfoBuilder {
 
       case 'Function':
         if (node.name != '<anonymous signature>') {
-          var owner = node['owner_'];
+          var owner = node['owner_']!;
 
           // Artificial nodes may not have a data_ field.
           var data = node['data_'];
-          if (data?.type == 'ClosureData') {
-            owner = data['parent_function_'];
+          if (data != null && data.type == 'ClosureData') {
+            owner = data['parent_function_']!;
           }
           return makeInfoNode(node.index,
               name: node.name,
-              parent: getInfoNodeFor(owner),
+              parent: getInfoNodeFor(owner)!,
               type: NodeType.functionNode);
         }
         break;
 
       case 'PatchClass':
-        return getInfoNodeFor(node['patched_class_']);
+        return getInfoNodeFor(node['patched_class_']!);
 
       case 'Class':
         // Default to root node. Some builtin classes (void, dynamic) don't have
         // any information about their library written out.
         var ownerNode = program.root;
         if (node['library_'] != null) {
-          ownerNode = getInfoNodeFor(node['library_']) ?? ownerNode;
+          ownerNode = getInfoNodeFor(node['library_']!) ?? ownerNode;
         }
 
         return makeInfoNode(node.index,
@@ -477,20 +474,16 @@ class _ProgramInfoBuilder {
       case 'Field':
         return makeInfoNode(node.index,
             name: node.name,
-            parent: getInfoNodeFor(node['owner_']),
+            parent: getInfoNodeFor(node['owner_']!)!,
             type: NodeType.other);
     }
     return null;
   }
 
-  ProgramInfoNode makeInfoNode(int index,
-      {@required ProgramInfoNode parent,
-      @required String name,
-      @required NodeType type}) {
-    assert(parent != null,
-        'Trying to create node of type ${type} with ${name} and no parent.');
-    assert(name != null);
-
+  ProgramInfoNode makeInfoNode(int? index,
+      {required ProgramInfoNode parent,
+      required String name,
+      required NodeType type}) {
     name = Name(name).scrubbed;
     if (collapseAnonymousClosures) {
       name = Name.collapse(name);
@@ -527,10 +520,10 @@ class _ProgramInfoBuilder {
   }
 
   /// Returns id of a common ancestor between [ProgramInfoNode] with [idA] and
-  /// [idB].
-  int findCommonAncestor(int idA, int idB) {
+  /// [idB]. At least either [idA] or [idB] are expected to be not null.
+  int findCommonAncestor(int? idA, int? idB) {
     if (idA == null) {
-      return idB;
+      return idB!;
     }
     if (idB == null) {
       return idA;
@@ -558,9 +551,8 @@ class _ProgramInfoBuilder {
 
   static List<ProgramInfoNode> pathToRoot(ProgramInfoNode node) {
     final path = <ProgramInfoNode>[];
-    while (node != null) {
-      path.add(node);
-      node = node.parent;
+    for (ProgramInfoNode? n = node; n != null; n = n.parent) {
+      path.add(n);
     }
     return path;
   }
@@ -609,14 +601,15 @@ structure nodes (usually VM internal objects).
 /// The code for dominator tree computation is taken verbatim from the
 /// native compiler (see runtime/vm/compiler/backend/flow_graph.cc).
 List<int> _computeDominators(Snapshot snap) {
-  final predecessors = List<Object>.filled(snap.nodeCount, null);
+  final predecessors = List<Object?>.filled(snap.nodeCount, null);
   void addPred(int n, int p) {
-    if (predecessors[n] == null) {
+    final pred = predecessors[n];
+    if (pred == null) {
       predecessors[n] = p;
-    } else if (predecessors[n] is int) {
-      predecessors[n] = <int>[predecessors[n], p];
+    } else if (pred is int) {
+      predecessors[n] = <int>[pred, p];
     } else {
-      (predecessors[n] as List<int>).add(p);
+      (pred as List<int>).add(p);
     }
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -15,17 +13,17 @@ import '../analysis_abstract.dart';
 
 class AbstractSearchDomainTest extends AbstractAnalysisTest {
   final Map<String, _ResultSet> resultSets = {};
-  String searchId;
+  String? searchId;
   List<SearchResult> results = <SearchResult>[];
-  SearchResult result;
+  late SearchResult result;
 
-  void assertHasResult(SearchResultKind kind, String search, [int length]) {
+  void assertHasResult(SearchResultKind kind, String search, [int? length]) {
     var offset = findOffset(search);
     length ??= findIdentifierLength(search);
     findResult(kind, testFile, offset, length, true);
   }
 
-  void assertNoResult(SearchResultKind kind, String search, [int length]) {
+  void assertNoResult(SearchResultKind kind, String search, [int? length]) {
     var offset = findOffset(search);
     length ??= findIdentifierLength(search);
     findResult(kind, testFile, offset, length, false);

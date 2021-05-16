@@ -28,6 +28,8 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -86,6 +88,7 @@ class FileState {
   late bool _exists;
   late List<int> _apiSignature;
   late UnlinkedUnit2 unlinked2;
+  Uint8List? informativeBytes;
   LibraryCycle? _libraryCycle;
 
   /// id of the cache entry.
@@ -211,6 +214,7 @@ class FileState {
   }
 
   void refresh({
+    FileState? containingLibrary,
     required OperationPerformanceImpl performance,
   }) {
     _fsState.testView.refreshedFiles.add(path);
@@ -240,6 +244,8 @@ class FileState {
           performance.getDataInt('length').add(content.length);
           return parse(AnalysisErrorListener.NULL_LISTENER, content);
         });
+
+        informativeBytes = writeUnitInformative(unit);
 
         performance.run('unlinked', (performance) {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
@@ -282,6 +288,7 @@ class FileState {
     }
     for (var uri in unlinked2.parts) {
       var file = _fileForRelativeUri(
+        containingLibrary: this,
         relativeUri: uri,
         performance: performance,
       );
@@ -290,15 +297,24 @@ class FileState {
       }
     }
     if (unlinked2.hasPartOfDirective) {
-      var uri = unlinked2.partOfUri;
-      if (uri.isNotEmpty) {
-        partOfLibrary = _fileForRelativeUri(
-          relativeUri: uri,
-          performance: performance,
-        );
-        if (partOfLibrary != null) {
-          directReferencedFiles.add(partOfLibrary!);
+      if (containingLibrary == null) {
+        _fsState.testView.partsDiscoveredLibraries.add(path);
+        var libraryName = unlinked2.partOfName;
+        var libraryUri = unlinked2.partOfUri;
+        partOfLibrary = null;
+        if (libraryName.isNotEmpty) {
+          _findPartOfNameLibrary(performance: performance);
+        } else if (libraryUri.isNotEmpty) {
+          partOfLibrary = _fileForRelativeUri(
+            relativeUri: libraryUri,
+            performance: performance,
+          );
         }
+      } else {
+        partOfLibrary = containingLibrary;
+      }
+      if (partOfLibrary != null) {
+        directReferencedFiles.add(partOfLibrary!);
       }
     }
     libraryFiles.add(this);
@@ -318,6 +334,7 @@ class FileState {
   }
 
   FileState? _fileForRelativeUri({
+    FileState? containingLibrary,
     required String relativeUri,
     required OperationPerformanceImpl performance,
   }) {
@@ -333,6 +350,7 @@ class FileState {
     }
 
     var file = _fsState.getFileForUri(
+      containingLibrary: containingLibrary,
       uri: absoluteUri,
       performance: performance,
     );
@@ -342,6 +360,35 @@ class FileState {
 
     file.referencingFiles.add(this);
     return file;
+  }
+
+  /// This file has a `part of some.library;` directive. Because it does not
+  /// specify the URI of the library, we don't know the library for sure.
+  /// But usually the library is one of the sibling files.
+  void _findPartOfNameLibrary({
+    required OperationPerformanceImpl performance,
+  }) {
+    var resourceProvider = _fsState._resourceProvider;
+    var pathContext = resourceProvider.pathContext;
+
+    var children = <Resource>[];
+    try {
+      var parent = resourceProvider.getFile(path).parent2;
+      children = parent.getChildren();
+    } catch (_) {}
+
+    for (var siblingFile in children) {
+      if (file_paths.isDart(pathContext, siblingFile.path)) {
+        var childState = _fsState.getFileForPath(
+          path: siblingFile.path,
+          performance: performance,
+        );
+        if (childState.partedFiles.contains(this)) {
+          partOfLibrary = childState;
+          break;
+        }
+      }
+    }
   }
 
   void _prefetchDirectReferences(UnlinkedUnit2 unlinkedUnit2) {
@@ -388,6 +435,7 @@ class FileState {
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
     var partOfUriStr = '';
+    var partOfName = '';
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
@@ -405,8 +453,12 @@ class FileState {
         parts.add(uriStr ?? '');
       } else if (directive is PartOfDirective) {
         hasPartOfDirective = true;
-        if (directive.uri != null) {
-          partOfUriStr = directive.uri!.stringValue!;
+        var libraryName = directive.libraryName;
+        var uriStr = directive.uri?.stringValue;
+        if (libraryName != null) {
+          partOfName = libraryName.components.map((e) => e.name).join('.');
+        } else if (uriStr != null) {
+          partOfUriStr = uriStr;
         }
       }
     }
@@ -424,6 +476,7 @@ class FileState {
       parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
+      partOfName: partOfName,
       partOfUri: partOfUriStr,
       lineStarts: unit.lineInfo!.lineStarts,
     );
@@ -469,6 +522,10 @@ class FileSystemState {
   /// to batch file reads in systems where file fetches are expensive.
   final void Function(List<String> paths)? prefetchFiles;
 
+  /// A function that returns true if the given file path is likely to be that
+  /// of a file that is generated.
+  final bool Function(String path)? isGenerated;
+
   final FileSystemStateTimers timers2 = FileSystemStateTimers();
 
   final FileSystemStateTestView testView = FileSystemStateTestView();
@@ -484,6 +541,7 @@ class FileSystemState {
     this.featureSetProvider,
     this.getFileDigest,
     this.prefetchFiles,
+    this.isGenerated,
   );
 
   /// Update the state to reflect the fact that the file with the given [path]
@@ -583,6 +641,7 @@ class FileSystemState {
   }
 
   FileState? getFileForUri({
+    FileState? containingLibrary,
     required Uri uri,
     required OperationPerformanceImpl performance,
   }) {
@@ -605,10 +664,24 @@ class FileSystemState {
       _uriToFile[uri] = file;
 
       file.refresh(
+        containingLibrary: containingLibrary,
         performance: performance,
       );
     }
     return file;
+  }
+
+  /// Returns a list of files whose contents contains the given string.
+  /// Generated files are not included in the search.
+  List<String> getFilesContaining(String value) {
+    var result = <String>[];
+    _pathToFile.forEach((path, file) {
+      var genFile = isGenerated == null ? false : isGenerated!(path);
+      if (!genFile && file.getContent().contains(value)) {
+        result.add(path);
+      }
+    });
+    return result;
   }
 
   String? getPathForUri(Uri uri) {
@@ -646,6 +719,7 @@ class FileSystemState {
 
 class FileSystemStateTestView {
   final List<String> refreshedFiles = [];
+  final List<String> partsDiscoveredLibraries = [];
   Set<String> removedPaths = {};
 }
 
@@ -705,10 +779,6 @@ class LibraryCycle {
 
   /// The hash of all the paths of the files in this cycle.
   late String cyclePathsHash;
-
-  /// The ID of the ast cache entry.
-  /// It is `null` if we failed to load libraries of the cycle.
-  int? astId;
 
   /// The ID of the resolution cache entry.
   /// It is `null` if we failed to load libraries of the cycle.

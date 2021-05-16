@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
 
+// @dart = 2.9
+
 // VMOptions=--optimization_counter_threshold=5 --no-background_compilation
 
 import "package:expect/expect.dart";

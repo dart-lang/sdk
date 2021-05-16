@@ -16,3 +16,13 @@ int fn1() {
   var a;
   return a;
 }
+
+const var2 = fn2();
+//           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Constant evaluation error:
+int fn2() {
+  var x;
+  x = "string";
+  return x;
+}

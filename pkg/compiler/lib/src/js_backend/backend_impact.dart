@@ -108,7 +108,7 @@ class BackendImpacts {
 
   BackendImpact get computeSignature {
     return _computeSignature ??= new BackendImpact(globalUses: [
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
     ], otherImpacts: [
       listValues
     ]);
@@ -443,7 +443,7 @@ class BackendImpacts {
 
   BackendImpact get typeVariableExpression {
     return _typeVariableExpression ??= new BackendImpact(staticUses: [
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
       _commonElements.createRuntimeType
     ], otherImpacts: [
       listValues,
@@ -464,7 +464,7 @@ class BackendImpacts {
   BackendImpact get genericTypeCheck {
     return _genericTypeCheck ??= new BackendImpact(staticUses: [
       // TODO(johnniwinther): Investigate why this is needed.
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
     ], otherImpacts: [
       listValues,
       getRuntimeTypeArgument,
@@ -654,7 +654,7 @@ class BackendImpacts {
         // Literal lists can be translated into calls to these functions:
         globalUses: [
           _commonElements.jsArrayTypedConstructor,
-          _commonElements.setRuntimeTypeInfo,
+          _commonElements.setArrayType,
         ]);
   }
 
@@ -688,7 +688,7 @@ class BackendImpacts {
     return _runtimeTypeSupport ??= new BackendImpact(globalClasses: [
       _commonElements.listClass
     ], globalUses: [
-      _commonElements.setRuntimeTypeInfo,
+      _commonElements.setArrayType,
     ], otherImpacts: [
       getRuntimeTypeArgument,
       computeSignature

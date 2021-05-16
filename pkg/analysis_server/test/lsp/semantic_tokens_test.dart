@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
@@ -84,6 +82,46 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_class_constructors() async {
+    final content = '''
+    class MyClass {
+      MyClass();
+      MyClass.named();
+    }
+
+    final a = MyClass();
+    final b = MyClass.named();
+    ''';
+
+    final expected = [
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('named', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('b', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('named', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor])
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_class_fields() async {
     final content = '''
     class MyClass {
@@ -121,7 +159,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
       _Token('myField', SemanticTokenTypes.property),
@@ -199,7 +238,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
       _Token('myGetter', SemanticTokenTypes.property),
@@ -257,12 +297,58 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('a', SemanticTokenTypes.variable),
       _Token('myMethod', SemanticTokenTypes.method),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('myStaticMethod', SemanticTokenTypes.method,
           [SemanticTokenModifiers.static]),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
+  Future<void> test_dartdoc() async {
+    final content = '''
+    /// before [aaa] after
+    class MyClass {
+      String aaa;
+    }
+      
+    /// before [bbb] after
+    int double(int bbb) => bbb * 2;
+    ''';
+
+    final expected = [
+      _Token('/// before [', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('aaa', SemanticTokenTypes.property),
+      _Token('] after', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('aaa', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('/// before [', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('bbb', SemanticTokenTypes.parameter),
+      _Token('] after', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('double', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('bbb', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('bbb', SemanticTokenTypes.parameter),
+      _Token('2', SemanticTokenTypes.number)
     ];
 
     await initialize();
@@ -347,8 +433,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    // Expect toe correct tokens for the valid code before/after but don't
-    // check the the tokens for the invalid code as thre are no concrete
+    // Expect the correct tokens for the valid code before/after but don't
+    // check the the tokens for the invalid code as there are no concrete
     // expectations for them.
     final expected1 = [
       _Token('/// class docs', SemanticTokenTypes.comment,
@@ -400,7 +486,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token('new', SemanticTokenTypes.keyword),
-      _Token('Object', SemanticTokenTypes.class_),
+      _Token('Object', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('await', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
       _Token('null', SemanticTokenTypes.keyword),
@@ -770,6 +857,62 @@ multi
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_strings_escape() async {
+    // The 9's in these strings are not part of the escapes (they make the
+    // strings too long).
+    final content = r'''
+const string1 = 'it\'s escaped\\\n';
+const string2 = 'hex \x12\x1299';
+const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
+''';
+
+    final expected = [
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string1', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'it", SemanticTokenTypes.string),
+      _Token(r"\'", SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token('s escaped', SemanticTokenTypes.string),
+      _Token(r'\\', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\n', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r"'", SemanticTokenTypes.string),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string2', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'hex ", SemanticTokenTypes.string),
+      _Token(r'\x12', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\x12', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      // The 99 is not part of the escape
+      _Token("99'", SemanticTokenTypes.string),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string3', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'unicode ", SemanticTokenTypes.string),
+      _Token(r'\u1234', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\u1234', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      // The 99 is not part of the escape
+      _Token('99', SemanticTokenTypes.string),
+      _Token(r'\u{123456}', SemanticTokenTypes.string,
+          [CustomSemanticTokenModifiers.escape]),
+      // The 99 makes this invalid so i's not an escape
+      _Token(r"\u{12345699}'", SemanticTokenTypes.string),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_topLevel() async {
     final content = '''
     /// strings docs
@@ -837,10 +980,17 @@ class _Token {
       o.type == type &&
       listEqual(
           // Treat nulls the same as empty lists for convenience when comparing.
-          o.modifiers ?? <SemanticTokenModifiers>[],
-          modifiers ?? <SemanticTokenModifiers>[],
+          o.modifiers,
+          modifiers,
           (SemanticTokenModifiers a, SemanticTokenModifiers b) => a == b);
 
+  /// Outputs a text representation of the token in the form of constructor
+  /// args for easy copy/pasting into tests to update expectations.
   @override
-  String toString() => '$content (${[type, ...?modifiers]})';
+  String toString() {
+    final modifiersString = modifiers.isEmpty
+        ? ''
+        : ', [${modifiers.map((m) => 'SemanticTokenModifiers.$m').join(', ')}]';
+    return "('$content', SemanticTokenTypes.$type$modifiersString)";
+  }
 }

@@ -25,18 +25,18 @@ class ConvertToNullAware extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    var parent = node.parent;
+    var targetNode = node;
+    var parent = targetNode.parent;
     if (parent is BinaryExpression) {
       var grandParent = parent.parent;
       if (grandParent is ConditionalExpression) {
-        node = grandParent;
+        targetNode = grandParent;
       }
     }
-    if (node is! ConditionalExpression) {
+    if (targetNode is! ConditionalExpression) {
       return;
     }
-    var condition = node.condition.unParenthesized;
+    var condition = targetNode.condition.unParenthesized;
     SimpleIdentifier identifier;
     Expression nullExpression;
     Expression nonNullExpression;
@@ -67,11 +67,11 @@ class ConvertToNullAware extends CorrectionProducer {
       // is the save variable being compared to `null`.
       //
       if (condition.operator.type == TokenType.EQ_EQ) {
-        nullExpression = node.thenExpression;
-        nonNullExpression = node.elseExpression;
+        nullExpression = targetNode.thenExpression;
+        nonNullExpression = targetNode.elseExpression;
       } else if (condition.operator.type == TokenType.BANG_EQ) {
-        nonNullExpression = node.thenExpression;
-        nullExpression = node.elseExpression;
+        nonNullExpression = targetNode.thenExpression;
+        nullExpression = targetNode.elseExpression;
       } else {
         return;
       }
@@ -100,9 +100,9 @@ class ConvertToNullAware extends CorrectionProducer {
       periodOffset = operator.offset;
 
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startStart(node, nonNullExpression));
+        builder.addDeletion(range.startStart(targetNode, nonNullExpression));
         builder.addSimpleInsertion(periodOffset, '?');
-        builder.addDeletion(range.endEnd(nonNullExpression, node));
+        builder.addDeletion(range.endEnd(nonNullExpression, targetNode));
       });
     }
   }

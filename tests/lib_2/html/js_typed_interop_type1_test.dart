@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 @JS()
 library js_typed_interop_type1_test;
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -26,7 +24,7 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Send Workspace Edit';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 1 ||

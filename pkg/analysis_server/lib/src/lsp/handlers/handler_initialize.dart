@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -32,12 +30,15 @@ class InitializeMessageHandler
     );
 
     final openWorkspacePaths = <String>[];
+    final workspaceFolders = params.workspaceFolders;
+    final rootUri = params.rootUri;
+    final rootPath = params.rootPath;
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
     // without setting them as analysis roots. Instead, analysis roots will be
     // based only on the open files.
     if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
-      if (params.workspaceFolders != null) {
-        params.workspaceFolders.forEach((wf) {
+      if (workspaceFolders != null) {
+        workspaceFolders.forEach((wf) {
           final uri = Uri.parse(wf.uri);
           // Only file URIs are supported, but there's no way to signal this to
           // the LSP client (and certainly not before initialization).
@@ -46,13 +47,13 @@ class InitializeMessageHandler
           }
         });
       }
-      if (params.rootUri != null) {
-        final uri = Uri.parse(params.rootUri);
+      if (rootUri != null) {
+        final uri = Uri.parse(rootUri);
         if (uri.isScheme('file')) {
           openWorkspacePaths.add(uri.toFilePath());
         }
-      } else if (params.rootPath != null) {
-        openWorkspacePaths.add(params.rootPath);
+      } else if (rootPath != null) {
+        openWorkspacePaths.add(rootPath);
       }
     }
 
@@ -61,8 +62,9 @@ class InitializeMessageHandler
       openWorkspacePaths,
     );
 
-    server.capabilities = server.capabilitiesComputer
-        .computeServerCapabilities(server.clientCapabilities);
+    final capabilities = server.capabilitiesComputer
+        .computeServerCapabilities(server.clientCapabilities!);
+    server.capabilities = capabilities;
 
     var sdkVersion = Platform.version;
     if (sdkVersion.contains(' ')) {
@@ -70,7 +72,7 @@ class InitializeMessageHandler
     }
 
     return success(InitializeResult(
-      capabilities: server.capabilities,
+      capabilities: capabilities,
       serverInfo: InitializeResultServerInfo(
         name: 'Dart SDK LSP Analysis Server',
         version: sdkVersion,

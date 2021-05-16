@@ -6,6 +6,8 @@
 // eagerly during partial instantiation, rather than being delayed until the
 // partially instantiated closure is invoked.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C<T> {

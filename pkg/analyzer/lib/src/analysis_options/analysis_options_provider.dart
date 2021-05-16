@@ -63,7 +63,7 @@ class AnalysisOptionsProvider {
   YamlMap getOptionsFromSource(Source source) {
     YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
     var node = options.valueAt(AnalyzerOptions.include);
-    var sourceFactory = this.sourceFactory;
+    final sourceFactory = this.sourceFactory;
     if (sourceFactory != null && node is YamlScalar) {
       var path = node.value;
       if (path is String) {

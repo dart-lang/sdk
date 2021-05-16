@@ -16,7 +16,7 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
     show DillLibraryBuilder;
 
-import 'package:kernel/ast.dart' hide Combinator, MapEntry;
+import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -93,6 +93,7 @@ import '../kernel/kernel_builder.dart'
 
 import '../kernel/type_algorithms.dart'
     show
+        NonSimplicityIssue,
         calculateBounds,
         computeTypeVariableBuilderVariance,
         findGenericFunctionTypes,
@@ -1029,7 +1030,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
-          getterReference: getterReference));
+          getterReference: getterReference,
+          fileUri: library.fileUri));
     }
 
     return library;
@@ -1463,6 +1465,48 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
   }
 
+  void _checkBadFunctionParameter(List<TypeVariableBuilder> typeVariables) {
+    if (typeVariables == null || typeVariables.isEmpty) {
+      return;
+    }
+
+    for (TypeVariableBuilder type in typeVariables) {
+      if (type.name == "Function") {
+        addProblem(messageFunctionAsTypeParameter, type.charOffset,
+          type.name.length, type.fileUri);
+      }
+    }
+  }
+
+  void _checkBadFunctionDeclUse(String className, TypeParameterScopeKind kind,
+      int charOffset) {
+    String decType;
+    switch (kind) {
+      case TypeParameterScopeKind.classDeclaration:
+        decType = "class";
+        break;
+      case TypeParameterScopeKind.mixinDeclaration:
+        decType = "mixin";
+        break;
+      case TypeParameterScopeKind.extensionDeclaration:
+        decType = "extension";
+        break;
+      default:
+        break;
+    }
+    if (className != "Function") {
+      return;
+    }
+    if (decType == "class" && importUri.scheme == "dart") {
+      // Allow declaration of class Function in the sdk.
+      return;
+    }
+    if (decType != null) {
+      addProblem(templateFunctionUsedAsDec.withArguments(decType), charOffset,
+          className?.length, fileUri);
+    }
+  }
+
   /// Add a problem that might not be reported immediately.
   ///
   /// Problems will be issued after source information has been added.
@@ -1572,6 +1616,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset) {
+    _checkBadFunctionDeclUse(className, kind, nameOffset);
+    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -1804,6 +1850,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset) {
+    _checkBadFunctionDeclUse(
+        extensionName, TypeParameterScopeKind.extensionDeclaration, nameOffset);
+    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionDeclaration, extensionName)
@@ -1835,7 +1884,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nameOffset,
         endOffset,
         referenceFrom);
-
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
         checkTypeVariables(typeVariables, extensionBuilder);
@@ -2675,7 +2723,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else {
       unhandled("${declaration.runtimeType}", "buildBuilder",
           declaration.charOffset, declaration.fileUri);
-      return;
     }
   }
 
@@ -3078,24 +3125,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return variables.length;
     }
 
-    void reportIssues(List<Object> issues) {
-      for (int i = 0; i < issues.length; i += 3) {
-        TypeDeclarationBuilder declaration = issues[i];
-        Message message = issues[i + 1];
-        List<LocatedMessage> context = issues[i + 2];
-
-        addProblem(message, declaration.charOffset, declaration.name.length,
-            declaration.fileUri,
-            context: context);
+    void reportIssues(List<NonSimplicityIssue> issues) {
+      for (NonSimplicityIssue issue in issues) {
+        addProblem(issue.message, issue.declaration.charOffset,
+            issue.declaration.name.length, issue.declaration.fileUri,
+            context: issue.context);
       }
     }
 
     for (Builder declaration in libraryDeclaration.members.values) {
       if (declaration is ClassBuilder) {
         {
-          List<Object> issues = getNonSimplicityIssuesForDeclaration(
-              declaration,
-              performErrorRecovery: true);
+          List<NonSimplicityIssue> issues =
+              getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true);
           reportIssues(issues);
           count += computeDefaultTypesForVariables(declaration.typeVariables,
               inErrorRecovery: issues.isNotEmpty);
@@ -3417,7 +3460,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType superBoundedAttempt,
       DartType superBoundedAttemptInverted}) {
     List<LocatedMessage> context;
-    if (typeParameter != null && typeParameter.fileOffset != -1) {
+    // Skip reporting location for function-type type parameters as it's a
+    // limitation of Kernel.
+    if (typeParameter != null &&
+        typeParameter.fileOffset != -1 &&
+        typeParameter.parent != null) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       (context ??= <LocatedMessage>[]).add(

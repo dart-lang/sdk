@@ -6,6 +6,8 @@
 // method is called via function call syntax or method call syntax.
 // VMOptions=--optimization-counter-threshold=10
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 Validate(tag, a, b) {

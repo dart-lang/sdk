@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // dart2js was generating incorrect code for the [A] constructor, by
 // using a temporary variable for two instructions, even though they
 // are both live at the same time.

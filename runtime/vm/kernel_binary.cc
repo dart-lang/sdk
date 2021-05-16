@@ -171,17 +171,21 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->library_count_ = reader->ReadFromIndexNoReset(
       reader->size_, LibraryCountFieldCountFromEnd, 1, 0);
   intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset41Plus;
+      SourceTableFieldCountFromFirstLibraryOffset;
   program->source_table_offset_ = reader->ReadFromIndexNoReset(
       reader->size_,
       LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1 +
           count_from_first_library_offset,
       1, 0);
+  program->constant_table_offset_ = reader->ReadUInt32();
+  reader->ReadUInt32();  // offset for constant table index.
   program->name_table_offset_ = reader->ReadUInt32();
   program->metadata_payloads_offset_ = reader->ReadUInt32();
   program->metadata_mappings_offset_ = reader->ReadUInt32();
   program->string_table_offset_ = reader->ReadUInt32();
-  program->constant_table_offset_ = reader->ReadUInt32();
+  // The below includes any 8-bit alignment; denotes the end of the previous
+  // block.
+  program->component_index_offset_ = reader->ReadUInt32();
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
   NNBDCompiledMode compilation_mode =

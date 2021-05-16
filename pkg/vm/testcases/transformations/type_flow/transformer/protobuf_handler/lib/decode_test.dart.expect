@@ -1,8 +1,8 @@
 library #lib;
 import self as self;
 import "generated/foo.pb.dart" as pb;
-import "package:test_core/test_core.dart" as tes;
-import "package:test_api/src/frontend/expect.dart" as exp;
+import "package:test_core/scaffolding.dart" as sca;
+import "package:test_api/src/expect/expect.dart" as exp;
 import "dart:core" as core;
 
 import "package:test/test.dart";
@@ -11,7 +11,7 @@ import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_han
 [@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int*>]static field core::List<core::int*>* buffer = <core::int*>[10, 4, 8, 5, 16, 4, 26, 9, 10, 3, 102, 111, 111, 18, 2, 8, 42, 34, 9, 10, 3, 122, 111, 112, 18, 2, 8, 3, 40, 43, 50, 0, 58, 0];
 static method main() → dynamic {
   pb::FooKeep* foo = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int*>] self::buffer);
-  tes::test(() → Null {
+  sca::test(() → Null {
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=!] foo.{pb::FooKeep::mapKeep}.{core::Map::[]}("foo").{pb::BarKeep::aKeep}, 42);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] foo.{pb::FooKeep::barKeep}.{pb::BarKeep::aKeep}, 5);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=int] foo.{pb::FooKeep::aKeep}, 43);
@@ -111,4 +111,24 @@ class ClearKeep extends pro::GeneratedMessage {
   @#C8
   static method create() → self::ClearKeep
     return new self::ClearKeep::_();
+}
+constants  {
+  #C1 = false
+  #C2 = tearoff self::FooKeep::create
+  #C3 = tearoff self::BarKeep::create
+  #C4 = tearoff self::HasKeep::create
+  #C5 = tearoff self::ClearKeep::create
+  #C6 = "dart2js:noInline"
+  #C7 = null
+  #C8 = core::pragma {name:#C6, options:#C7}
+  #C9 = 1
+  #C10 = pro::TagNumber {tagNumber:#C9}
+  #C11 = 3
+  #C12 = pro::TagNumber {tagNumber:#C11}
+  #C13 = 5
+  #C14 = pro::TagNumber {tagNumber:#C13}
+  #C15 = 6
+  #C16 = pro::TagNumber {tagNumber:#C15}
+  #C17 = 7
+  #C18 = pro::TagNumber {tagNumber:#C17}
 }

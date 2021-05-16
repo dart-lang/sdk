@@ -68,7 +68,7 @@ staticInvocations() {
   MultipleArgs/*<dynamic,dynamic,dynamic>*/(dyn, dyn, dyn);
   MultipleArgs/*<int,String,bool>*/(0, true, "");
   MultipleArgs<int, bool, String>(0, true, "");
-  var multipleArgs1 = MultipleArgs();
+  var multipleArgs1 = MultipleArgs /*analyzer.<dynamic,dynamic,dynamic>*/ ();
   var multipleArgs2 = MultipleArgs/*<int,String,bool>*/(0, true, "");
   MultipleArgs multipleArgs3 =
       MultipleArgs/*<dynamic,dynamic,dynamic>*/(0, true, "");

@@ -127,9 +127,15 @@ abstract class YamlCompletionGenerator {
     for (var i = 0; i < path.length - 1; i++) {
       var node = path[i];
       if (node is YamlMap && producer is KeyValueProducer) {
+        // Value producers are based on keys, so try to locate the key for the
+        // value that was next in the path.
         var key = node.keyAtValue(path[i + 1]);
         if (key is YamlScalar) {
           producer = producer.producerForKey(key.value);
+          // Otherwise, if the item next in the path was a key itself, use the
+          // current producer to provide completion for the key.
+        } else if (node.nodes.containsKey(path[i + 1])) {
+          return producer;
         } else {
           return null;
         }

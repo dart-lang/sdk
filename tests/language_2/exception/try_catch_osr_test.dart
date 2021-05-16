@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 // Test OSR in different places of a try-catch.
 
 import "package:expect/expect.dart";

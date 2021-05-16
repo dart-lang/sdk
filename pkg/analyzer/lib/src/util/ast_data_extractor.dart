@@ -59,6 +59,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
+  void computeForFormalParameter(FormalParameter node, NodeId? id) {
+    if (id == null) return;
+    T? value = computeNodeValue(id, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
+  }
+
   void computeForLibrary(LibraryElement library, Id? id) {
     if (id == null) return;
     T? value = computeElementValue(id, library);
@@ -72,6 +78,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   void computeForStatement(Statement node, NodeId? id) {
+    if (id == null) return;
+    T? value = computeNodeValue(id, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
+  }
+
+  void computeForVariableDeclaration(VariableDeclaration node, NodeId? id) {
     if (id == null) return;
     T? value = computeNodeValue(id, node);
     registerValue(uri, _nodeOffset(node), id, value, node);
@@ -145,6 +157,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitFormalParameter(FormalParameter node) {
+    computeForFormalParameter(node, computeDefaultNodeId(node));
+    super.visitFormalParameter(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is CompilationUnit) {
       computeForMember(node, createMemberId(node));
@@ -174,6 +192,8 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
       computeForMember(node, createMemberId(node));
     } else if (node.parent!.parent is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
+    } else {
+      computeForVariableDeclaration(node, computeDefaultNodeId(node));
     }
     super.visitVariableDeclaration(node);
   }
@@ -184,6 +204,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
       offset = node.question.offset;
     } else if (node is BinaryExpression) {
       offset = node.operator.offset;
+    } else if (node is InstanceCreationExpression) {
+      offset = node.argumentList.leftParenthesis.offset;
+    } else if (node is InvocationExpression) {
+      offset = node.argumentList.leftParenthesis.offset;
+    } else if (node is PrefixedIdentifier) {
+      offset = node.identifier.offset;
     } else {
       offset = node.offset;
     }

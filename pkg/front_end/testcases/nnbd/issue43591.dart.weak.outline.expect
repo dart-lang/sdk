@@ -9,7 +9,7 @@ static method E|get#f<T extends core::Object? = dynamic>(lowered final self::E|g
   ;
 static method method1<S extends core::Object? = dynamic>(self::method1::S% s) → dynamic
   ;
-static method method2<S extends dynamic = dynamic>(self::method2::S% s) → dynamic
+static method method2<S extends dynamic>(self::method2::S% s) → dynamic
   ;
 static method main() → dynamic
   ;

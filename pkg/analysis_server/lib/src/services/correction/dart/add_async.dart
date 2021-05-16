@@ -46,7 +46,7 @@ class AddAsync extends CorrectionProducer {
     } else {
       var body = node.thisOrAncestorOfType<FunctionBody>();
       if (body != null && body.keyword == null) {
-        var typeProvider = this.typeProvider;
+        final typeProvider = this.typeProvider;
         await builder.addDartFileEdit(file, (builder) {
           builder.convertFunctionFromSyncToAsync(body, typeProvider);
         });

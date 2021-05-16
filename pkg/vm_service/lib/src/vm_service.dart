@@ -3318,7 +3318,7 @@ class Context extends Obj implements ContextRef {
 
   /// The enclosing context for this context.
   @optional
-  Context? parent;
+  ContextRef? parent;
 
   /// The variables in this context object.
   List<ContextElement>? variables;
@@ -3334,7 +3334,8 @@ class Context extends Obj implements ContextRef {
 
   Context._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'] ?? -1;
-    parent = createServiceObject(json['parent'], const ['Context']) as Context?;
+    parent = createServiceObject(json['parent'], const ['ContextRef'])
+        as ContextRef?;
     variables = List<ContextElement>.from(
         createServiceObject(json['variables'], const ['ContextElement'])
                 as List? ??

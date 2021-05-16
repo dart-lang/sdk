@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Ensure that classes handled specially by dart2js can be reflected on.
 
 library test.intercepted_class_test;

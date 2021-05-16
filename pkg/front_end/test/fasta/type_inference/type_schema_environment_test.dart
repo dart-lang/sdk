@@ -493,8 +493,10 @@ class TypeSchemaEnvironmentTest {
     // Solve(? <: T <: ?) => ?
     checkConstraintSolving("", "UNKNOWN", grounded: false);
 
-    // Solve(? <: T <: ?, grounded) => dynamic
-    checkConstraintSolving("", "dynamic", grounded: true);
+    // Solve(? <: T <: ?, grounded) => ?
+    // Fully unconstrained variables are inferred via instantiate-to-bounds
+    // rather than constraint solving.
+    checkConstraintSolving("", "UNKNOWN", grounded: true);
 
     // Solve(A <: T <: ?) => A
     checkConstraintSolving(":> A*", "A*", grounded: false);

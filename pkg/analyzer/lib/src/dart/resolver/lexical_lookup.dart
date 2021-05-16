@@ -30,7 +30,7 @@ class LexicalLookup {
             requested: _resolver.toLegacyElement(scopeSetter),
           );
         }
-        if (!scopeGetter!.isInstanceMember) {
+        if (scopeGetter != null && !scopeGetter.isInstanceMember) {
           return LexicalLookupResult(
             recovery: _resolver.toLegacyElement(scopeGetter),
           );
@@ -39,6 +39,11 @@ class LexicalLookup {
         if (scopeGetter != null) {
           return LexicalLookupResult(
             requested: _resolver.toLegacyElement(scopeGetter),
+          );
+        }
+        if (scopeSetter != null && !scopeSetter.isInstanceMember) {
+          return LexicalLookupResult(
+            recovery: _resolver.toLegacyElement(scopeSetter),
           );
         }
       }

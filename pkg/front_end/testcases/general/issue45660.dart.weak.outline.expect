@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field <T extends core::num* = dynamic>(T*) →* T* extendsNumReturnArg;
+static method functionInvocations() → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -10,8 +10,6 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/api_prototype/kernel_generator.dart';
-import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart';

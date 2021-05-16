@@ -8,6 +8,7 @@ import 'package:js_ast/js_ast.dart';
 import 'package:js_ast/src/characters.dart' as charCodes;
 import 'package:js_ast/src/precedence.dart';
 
+import '../js_backend/deferred_holder_expression.dart';
 import '../js_backend/string_reference.dart';
 import '../js_backend/type_reference.dart';
 import '../js_emitter/metadata_collector.dart';
@@ -63,6 +64,9 @@ class SizeEstimator implements NodeVisitor {
       // Worst case we have to inline the string so size of string + 2 bytes for
       // quotes.
       return "'${node.constant.toDartString()}'";
+    } else if (node is DeferredHolderExpression) {
+      // 1 byte holder + dot + nameSizeEstimate
+      return '#.$nameSizeEstimate';
     } else {
       throw UnsupportedError('$node type is not supported');
     }
@@ -823,6 +827,16 @@ class SizeEstimator implements NodeVisitor {
       node.value.accept(this);
     } else {
       out(sizeEstimate(node));
+    }
+  }
+
+  @override
+  visitDeferredStatement(DeferredStatement node) {
+    if (node.isFinalized) {
+      // Continue printing with the statement value.
+      node.statement.accept(this);
+    } else {
+      sizeEstimate(node);
     }
   }
 

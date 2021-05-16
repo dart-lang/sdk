@@ -5,6 +5,8 @@
 // SharedOptions=-Ddart.library.io.force_staggered_ipv6_lookup=true
 //
 
+// @dart = 2.9
+
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";

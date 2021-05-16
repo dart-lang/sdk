@@ -170,11 +170,17 @@ class Process {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
 };
 
+typedef void (*sa_handler_t)(int);
+
 class SignalInfo {
  public:
-  SignalInfo(intptr_t fd, intptr_t signal, SignalInfo* next)
+  SignalInfo(intptr_t fd,
+             intptr_t signal,
+             sa_handler_t oldact,
+             SignalInfo* next)
       : fd_(fd),
         signal_(signal),
+        oldact_(oldact),
         // SignalInfo is expected to be created when in a isolate.
         port_(Dart_GetMainPortId()),
         next_(next),
@@ -197,12 +203,14 @@ class SignalInfo {
 
   intptr_t fd() const { return fd_; }
   intptr_t signal() const { return signal_; }
+  sa_handler_t oldact() const { return oldact_; }
   Dart_Port port() const { return port_; }
   SignalInfo* next() const { return next_; }
 
  private:
   intptr_t fd_;
   intptr_t signal_;
+  sa_handler_t oldact_;
   // The port_ is used to identify what isolate the signal-info belongs to.
   Dart_Port port_;
   SignalInfo* next_;

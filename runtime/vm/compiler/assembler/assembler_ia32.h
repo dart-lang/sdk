@@ -272,6 +272,7 @@ class Assembler : public AssemblerBase {
   void movsxb(Register dst, ByteRegister src);
   void movsxb(Register dst, const Address& src);
   void movb(Register dst, const Address& src);
+  void movb(const Address& dst, Register src);
   void movb(const Address& dst, ByteRegister src);
   void movb(const Address& dst, const Immediate& imm);
 
@@ -590,20 +591,18 @@ class Assembler : public AssemblerBase {
   // Arch-specific LoadFromOffset to choose the right operation for [sz].
   void LoadFromOffset(Register dst,
                       const Address& address,
-                      OperandSize sz = kFourBytes);
+                      OperandSize sz = kFourBytes) override;
   void LoadFromOffset(Register dst,
                       Register base,
                       int32_t offset,
                       OperandSize sz = kFourBytes) {
     LoadFromOffset(dst, Address(base, offset), sz);
   }
-  void LoadField(Register dst,
-                 const FieldAddress& address,
-                 OperandSize sz = kFourBytes) {
-    LoadFromOffset(dst, address, sz);
+  void LoadField(Register dst, const FieldAddress& address) override {
+    LoadField(dst, address, kFourBytes);
   }
-  void LoadCompressedField(Register dst, const FieldAddress& address) {
-    LoadField(dst, address);
+  void LoadField(Register dst, const FieldAddress& address, OperandSize sz) {
+    LoadFromOffset(dst, address, sz);
   }
   void LoadFieldFromOffset(Register reg,
                            Register base,
@@ -623,6 +622,28 @@ class Assembler : public AssemblerBase {
                           ScaleFactor scale,
                           OperandSize sz = kFourBytes) {
     LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
+  }
+  void LoadIndexedCompressed(Register dst,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    LoadCompressedField(
+        dst, FieldAddress(base, index, TIMES_COMPRESSED_WORD_SIZE, offset));
+  }
+  void StoreToOffset(Register src,
+                     const Address& address,
+                     OperandSize sz = kFourBytes) override;
+  void StoreToOffset(Register src,
+                     Register base,
+                     int32_t offset,
+                     OperandSize sz = kFourBytes) {
+    StoreToOffset(src, Address(base, offset), sz);
+  }
+  void StoreFieldToOffset(Register src,
+                          Register base,
+                          int32_t offset,
+                          OperandSize sz = kFourBytes) {
+    StoreToOffset(src, FieldAddress(base, offset), sz);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
@@ -697,11 +718,6 @@ class Assembler : public AssemblerBase {
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);
 
-  enum CanBeSmi {
-    kValueIsNotSmi,
-    kValueCanBeSmi,
-  };
-
   // Store into a heap object and apply the generational write barrier. (Unlike
   // the other architectures, this does not apply the incremental write barrier,
   // and so concurrent marking is not enabled for now on IA32.) All stores into
@@ -711,15 +727,14 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
   void StoreIntoArray(Register object,  // Object we are storing into.
                       Register slot,    // Where we are storing into.
                       Register value,   // Value we are storing.
                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
-
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                Register value);
+                                Register value) override;
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
@@ -777,8 +792,8 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
-  void EnterSafepoint(Register scratch);
-  void ExitSafepoint(Register scratch);
+  void EnterFullSafepoint(Register scratch);
+  void ExitFullSafepoint(Register scratch);
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's RSP is guaranteed to be correctly aligned and
@@ -814,6 +829,9 @@ class Assembler : public AssemblerBase {
 
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+  void EnsureHasClassIdInDEBUG(intptr_t cid,
+                               Register src,
+                               Register scratch) override;
 
   void SmiUntagOrCheckClass(Register object,
                             intptr_t class_id,
@@ -944,15 +962,12 @@ class Assembler : public AssemblerBase {
                             Label* trace,
                             JumpDistance distance);
 
-  // Inlined allocation of an instance of class 'cls', code has no runtime
-  // calls. Jump to 'failure' if the instance cannot be allocated here.
-  // Allocated instance is returned in 'instance_reg'.
-  // Only the tags field of the object is initialized.
-  void TryAllocate(const Class& cls,
-                   Label* failure,
-                   JumpDistance distance,
-                   Register instance_reg,
-                   Register temp_reg);
+  void TryAllocateObject(intptr_t cid,
+                         intptr_t instance_size,
+                         Label* failure,
+                         JumpDistance distance,
+                         Register instance_reg,
+                         Register temp_reg) override;
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,

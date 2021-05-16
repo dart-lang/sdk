@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -41,24 +39,26 @@ mixin RequestHandlerMixin<T extends AbstractAnalysisServer> {
   /// waiting for plugins to respond.
   Future<List<plugin.Response>> waitForResponses(
       Map<PluginInfo, Future<plugin.Response>> futures,
-      {plugin.RequestParams requestParameters,
+      {plugin.RequestParams? requestParameters,
       int timeout = 500}) async {
     // TODO(brianwilkerson) requestParameters might need to be required.
     var endTime = DateTime.now().millisecondsSinceEpoch + timeout;
     var responses = <plugin.Response>[];
-    for (var pluginInfo in futures.keys) {
-      var future = futures[pluginInfo];
+    for (var entry in futures.entries) {
+      var pluginInfo = entry.key;
+      var future = entry.value;
       try {
         var startTime = DateTime.now().millisecondsSinceEpoch;
         var response = await future
             .timeout(Duration(milliseconds: math.max(endTime - startTime, 0)));
-        if (response.error != null) {
+        var error = response.error;
+        if (error != null) {
           // TODO(brianwilkerson) Report the error to the plugin manager.
           server.instrumentationService.logPluginError(
               pluginInfo.data,
-              response.error.code.name,
-              response.error.message,
-              response.error.stackTrace);
+              error.code.name,
+              error.message,
+              error.stackTrace ?? StackTrace.current.toString());
         } else {
           responses.add(response);
         }
@@ -67,7 +67,7 @@ mixin RequestHandlerMixin<T extends AbstractAnalysisServer> {
         server.instrumentationService.logPluginTimeout(
             pluginInfo.data,
             JsonEncoder()
-                .convert(requestParameters?.toRequest('-')?.toJson() ?? {}));
+                .convert(requestParameters?.toRequest('-').toJson() ?? {}));
       } catch (exception, stackTrace) {
         // TODO(brianwilkerson) Report the exception to the plugin manager.
         server.instrumentationService

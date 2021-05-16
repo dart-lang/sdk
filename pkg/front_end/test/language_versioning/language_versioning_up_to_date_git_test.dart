@@ -18,7 +18,7 @@ String get dartVm => Platform.executable;
 
 main(List<String> args) async {
   ProcessResult result = await Process.run(
-      "python", ["tools/make_version.py", "--no_git", "-q"],
+      "python3", ["tools/make_version.py", "--no_git", "-q"],
       workingDirectory: repoDir);
 
   String stdout = result.stdout.toString();

@@ -500,8 +500,7 @@ part of my_lib;
 ''');
 
     _assertHasClass(text: 'int');
-    // TODO(scheglov) would be nice to have it
-    _assertNoClass(text: 'A');
+    _assertHasClass(text: 'A');
   }
 
   Future<void> test_limitedResolution_inPart_partOfUri() async {

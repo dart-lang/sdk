@@ -72,3 +72,8 @@ static method main() → void {
   [@vm.direct-call.metadata=#lib::B.testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}();
   [@vm.direct-call.metadata=#lib::B.testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}();
 }
+constants  {
+  #C1 = 42
+  #C2 = null
+  #C3 = "hi"
+}

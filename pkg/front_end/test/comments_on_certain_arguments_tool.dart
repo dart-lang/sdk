@@ -8,18 +8,14 @@ import 'dart:convert' show utf8;
 import 'dart:io'
     show Directory, File, FileSystemEntity, exitCode, stdin, stdout;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show CommentToken, Token;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:front_end/src/api_unstable/ddc.dart'
     show CompilerContext, IncrementalCompiler, ProcessedOptions, Severity;
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler, IncrementalKernelTarget;

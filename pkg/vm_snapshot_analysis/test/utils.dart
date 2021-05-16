@@ -24,7 +24,7 @@ class AotSnapshot {
   final String outputBinary;
   final String sizesJson;
 
-  AotSnapshot({this.outputBinary, this.sizesJson});
+  AotSnapshot({required this.outputBinary, required this.sizesJson});
 }
 
 Future withFlag(
@@ -33,7 +33,7 @@ Future withFlag(
 }
 
 Future withFlagImpl(
-    Map<String, String> source, String flag, Future Function(AotSnapshot) f) {
+    Map<String, String> source, String? flag, Future Function(AotSnapshot) f) {
   return withTempDir((dir) async {
     final snapshot = AotSnapshot(
       outputBinary: path.join(dir, 'output.exe'),
@@ -90,7 +90,8 @@ stderr: ${result.stderr}
   });
 }
 
-const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';
+late final shouldKeepTemporaryDirectories =
+    Platform.environment['KEEP_TEMPORARY_DIRECTORIES']?.isNotEmpty == true;
 
 Future withTempDir(Future Function(String dir) f) async {
   final tempDir =
@@ -98,17 +99,16 @@ Future withTempDir(Future Function(String dir) f) async {
   try {
     await f(tempDir.path);
   } finally {
-    if (!Platform.environment.containsKey(keepTempKey) ||
-        Platform.environment[keepTempKey].isEmpty) {
+    if (shouldKeepTemporaryDirectories) {
       tempDir.deleteSync(recursive: true);
     }
   }
 }
 
 Future<Object> loadJson(File input) async {
-  return await input
+  return (await input
       .openRead()
       .transform(utf8.decoder)
       .transform(json.decoder)
-      .first;
+      .first)!;
 }

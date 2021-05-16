@@ -4,6 +4,8 @@
 //
 // Utility script to check that arguments are correctly passed from
 // one dart process to another using the dart:io process interface.
+
+// @dart = 2.9
 import "dart:io";
 import "dart:math";
 

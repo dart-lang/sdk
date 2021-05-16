@@ -21,8 +21,8 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/src/core.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/exceptions.dart';
@@ -137,8 +137,7 @@ class CommandLineOptions {
       @required this.webPreview});
 }
 
-// TODO(devoncarew): Refactor so this class extends DartdevCommand.
-class MigrateCommand extends Command<int> {
+class MigrateCommand extends DartdevCommand {
   static const String cmdName = 'migrate';
 
   static const String cmdDescription =
@@ -152,30 +151,15 @@ class MigrateCommand extends Command<int> {
 
   final bool verbose;
 
-  ArgParser _argParser;
-
-  MigrateCommand({this.verbose = false}) {
+  MigrateCommand({this.verbose = false})
+      : super(cmdName, '$cmdDescription\n\n$migrationGuideLink') {
     MigrationCli._defineOptions(argParser, !verbose);
   }
-
-  @override
-  ArgParser get argParser {
-    // We override this in order to configure the help text line wrapping.
-    return _argParser ??= ArgParser(
-      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : null,
-    );
-  }
-
-  @override
-  String get description => '$cmdDescription\n\n$migrationGuideLink';
 
   @override
   String get invocation {
     return '${super.invocation} [project or directory]';
   }
-
-  @override
-  String get name => cmdName;
 
   @override
   FutureOr<int> run() async {
@@ -950,7 +934,7 @@ get erroneous migration suggestions.
     _dartFixListener.reset();
     _fixCodeProcessor.prepareToRerun();
     var analysisResult = await _fixCodeProcessor.runFirstPhase();
-    if (analysisResult.hasErrors) {
+    if (analysisResult.hasErrors && !options.ignoreErrors) {
       _logErrors(analysisResult);
       return MigrationState(
           _fixCodeProcessor._task.migration,
@@ -1050,7 +1034,7 @@ class _FixCodeProcessor extends Object {
   bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
 
   LineInfo getLineInfo(String path) =>
-      context.currentSession.getFile(path).lineInfo;
+      (context.currentSession.getFile2(path) as FileResult).lineInfo;
 
   void prepareToRerun() {
     var driver = context.driver;
@@ -1065,34 +1049,24 @@ class _FixCodeProcessor extends Object {
     var pathsProcessed = <String>{};
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
-      switch (await driver.getSourceKind(path)) {
-        case SourceKind.PART:
-          // Parts will either be found in a library, below, or if the library
-          // isn't [isIncluded], will be picked up in the final loop.
-          continue;
-          break;
-        case SourceKind.LIBRARY:
-          var result = await driver.getResolvedLibrary(path);
-          if (result != null) {
-            for (var unit in result.units) {
-              if (!pathsProcessed.contains(unit.path)) {
-                await process(unit);
-                pathsProcessed.add(unit.path);
-              }
-            }
+      var result = await driver.getResolvedLibrary2(path);
+      // Parts will either be found in a library, below, or if the library
+      // isn't [isIncluded], will be picked up in the final loop.
+      if (result is ResolvedLibraryResult) {
+        for (var unit in result.units) {
+          if (!pathsProcessed.contains(unit.path)) {
+            await process(unit);
+            pathsProcessed.add(unit.path);
           }
-          break;
-        default:
-          break;
+        }
       }
     }
 
     for (var path in pathsToProcess.difference(pathsProcessed)) {
-      var result = await driver.getResolvedUnit(path);
-      if (result == null || result.unit == null) {
-        continue;
+      var result = await driver.getResolvedUnit2(path);
+      if (result is ResolvedUnitResult) {
+        await process(result);
       }
-      await process(result);
     }
   }
 

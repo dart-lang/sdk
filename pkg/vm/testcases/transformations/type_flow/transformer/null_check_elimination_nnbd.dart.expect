@@ -32,3 +32,6 @@ static method main() → void {
     }
   }
 }
+constants  {
+  #C1 = null
+}

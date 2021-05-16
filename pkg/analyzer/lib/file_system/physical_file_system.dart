@@ -23,7 +23,7 @@ const String _SERVER_DIR = ".dartServer";
 String? _getStandardStateLocation() {
   final Map<String, String> env = io.Platform.environment;
   if (env.containsKey('ANALYZER_STATE_LOCATION_OVERRIDE')) {
-    return env['ANALYZER_STATE_LOCATION_OVERRIDE']!;
+    return env['ANALYZER_STATE_LOCATION_OVERRIDE'];
   }
 
   final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
@@ -409,7 +409,7 @@ abstract class _PhysicalResource implements Resource {
   /// https://support.microsoft.com/en-us/kb/74496
   void _throwIfWindowsDeviceDriver() {
     if (io.Platform.isWindows) {
-      String shortName = this.shortName.toUpperCase();
+      final shortName = this.shortName.toUpperCase();
       if (shortName == r'CON' ||
           shortName == r'PRN' ||
           shortName == r'AUX' ||

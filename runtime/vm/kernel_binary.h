@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 61;
-static const uint32_t kMaxSupportedKernelFormatVersion = 61;
+static const uint32_t kMinSupportedKernelFormatVersion = 65;
+static const uint32_t kMaxSupportedKernelFormatVersion = 65;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -214,11 +214,18 @@ enum class NamedTypeFlags : uint8_t {
   kIsRequired = 1 << 0,
 };
 
+// Keep in sync with package:kernel/lib/ast.dart
+enum class FunctionAccessKind {
+  kFunction,
+  kFunctionType,
+  kInapplicable,
+  kNullable,
+};
+
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
 static const int KernelFormatVersionOffset = 4;
-static const int SourceTableFieldCountFromFirstLibraryOffsetPre41 = 6;
-static const int SourceTableFieldCountFromFirstLibraryOffset41Plus = 7;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 9;
 
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
 

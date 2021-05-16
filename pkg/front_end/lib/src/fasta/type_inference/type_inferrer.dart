@@ -4,18 +4,12 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-import 'dart:core' as core;
+import 'dart:core';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
-import 'package:front_end/src/fasta/kernel/internal_ast.dart';
-import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
-import 'package:front_end/src/testing/id_extractor.dart';
-import 'package:front_end/src/testing/id_testing_utils.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -35,16 +29,19 @@ import '../../base/instrumentation.dart'
 
 import '../../base/nnbd_mode.dart';
 
+import '../../testing/id_extractor.dart';
+import '../../testing/id_testing_utils.dart';
+
 import '../builder/constructor_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/inference_visitor.dart';
-
+import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
-
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart';
@@ -54,17 +51,11 @@ import '../problems.dart' show internalProblem, unexpected, unhandled;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'inference_helper.dart' show InferenceHelper;
-
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
-
+import 'type_demotion.dart';
 import 'type_inference_engine.dart';
-
-import 'type_promotion.dart' show TypePromoter;
-
 import 'type_schema.dart' show isKnown, UnknownType;
-
 import 'type_schema_elimination.dart' show greatestClosure;
-
 import 'type_schema_environment.dart'
     show
         getNamedParameterType,
@@ -123,10 +114,6 @@ enum MethodContravarianceCheckKind {
 abstract class TypeInferrer {
   SourceLibraryBuilder get library;
 
-  /// Gets the [TypePromoter] that can be used to perform type promotion within
-  /// this method body or initializer.
-  TypePromoter get typePromoter;
-
   /// Gets the [TypeSchemaEnvironment] being used for type inference.
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
@@ -183,9 +170,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final TypeInferenceEngine engine;
 
-  @override
-  final TypePromoter typePromoter;
-
   final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
       DartType> flowAnalysis;
 
@@ -227,10 +211,13 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
-        typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
-        flowAnalysis = new FlowAnalysis(
-            new TypeOperationsCfe(engine.typeSchemaEnvironment),
-            assignedVariables);
+        flowAnalysis = library.isNonNullableByDefault
+            ? new FlowAnalysis(
+                new TypeOperationsCfe(engine.typeSchemaEnvironment),
+                assignedVariables)
+            : new FlowAnalysis.legacy(
+                new TypeOperationsCfe(engine.typeSchemaEnvironment),
+                assignedVariables);
 
   CoreTypes get coreTypes => engine.coreTypes;
 
@@ -297,7 +284,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
           new _WhyNotPromotedVisitor(this);
-      for (core.MapEntry<DartType, NonPromotionReason> entry
+      for (MapEntry<DartType, NonPromotionReason> entry
           in whyNotPromoted.entries) {
         if (!typeFilter(entry.key)) continue;
         LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
@@ -2467,7 +2454,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new SuccessfulInferenceResult(inferredType, calleeType);
   }
 
-  DartType inferLocalFunction(FunctionNode function, DartType typeContext,
+  FunctionType inferLocalFunction(FunctionNode function, DartType typeContext,
       int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
@@ -2579,6 +2566,10 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
         formal.type = demoteTypeInLibrary(inferredType, library.library);
+        if (dataForTesting != null) {
+          dataForTesting.typeInferenceResult.inferredVariableTypes[formal] =
+              formal.type;
+        }
       }
 
       if (isNonNullableByDefault) {
@@ -3860,7 +3851,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
     flowAnalysis.thisOrSuperPropertyGet(
-        expression, expression.name.name, member, inferredType);
+        expression, expression.name.text, member, inferredType);
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
@@ -4047,10 +4038,26 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Member _getInterfaceMember(
       Class class_, Name name, bool setter, int charOffset) {
-    Member member = engine.hierarchyBuilder.getCombinedMemberSignatureKernel(
-        class_, name, setter, charOffset, library);
+    ClassMember classMember = engine.hierarchyBuilder
+        .getInterfaceClassMember(class_, name, setter: setter);
+    if (classMember != null) {
+      if (classMember.isStatic) {
+        classMember = null;
+      } else if (classMember.isDuplicate) {
+        if (!isTopLevel) {
+          library.addProblem(
+              templateDuplicatedDeclarationUse.withArguments(name.text),
+              charOffset,
+              name.text.length,
+              helper.uri);
+        }
+        classMember = null;
+      }
+    }
+    Member member = classMember?.getMember(engine.hierarchyBuilder);
     if (member == null && library.isPatch) {
-      // TODO(dmitryas): Hack for parts.
+      // TODO(johnniwinther): Injected members are currently not included
+      // in the class hierarchy builder.
       member ??=
           classHierarchy.getInterfaceMember(class_, name, setter: setter);
     }

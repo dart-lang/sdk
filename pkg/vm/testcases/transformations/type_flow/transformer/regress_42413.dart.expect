@@ -38,3 +38,8 @@ static method main() → void {
   [@vm.direct-call.metadata=#lib::A.forIn] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::forIn}();
   [@vm.direct-call.metadata=#lib::A.cLoop] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::cLoop}();
 }
+constants  {
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

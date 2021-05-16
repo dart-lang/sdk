@@ -4,6 +4,8 @@
 // Dart test to catch error reporting bugs in class fields declarations.
 // Should be an error because we have a function overriding a field name.
 
+// @dart = 2.9
+
 class A {
   var a;
   int a() {/*@compile-error=unspecified*/

@@ -21,7 +21,7 @@ class ConvertIntoIsNot extends CorrectionProducer {
     // Find the is expression
     var isExpression = node.thisOrAncestorOfType<IsExpression>();
     if (isExpression == null) {
-      var node = this.node;
+      final node = this.node;
       if (node is PrefixExpression) {
         var operand = node.operand;
         if (operand is ParenthesizedExpression) {

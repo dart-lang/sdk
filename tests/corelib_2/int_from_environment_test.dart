@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // SharedOptions=-Da=1 -Db=-12 -Dc=0x123 -Dd=-0x1234 -De=+0x112296 -Df=-9007199254740991 -Dg=9007199254740991 -Dh=-0x8000000000000000 -Di=0x8000000000000000 -Dj=0xDEADBEEFCAFE0000
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

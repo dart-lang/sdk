@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-04-13T13:32:11.977579",
+  "generated": "2021-05-13T13:57:59.578937",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -253,6 +253,12 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "devtools_shared",
+      "rootUri": "../third_party/devtools/devtools_shared",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "diagnostic",
       "rootUri": "../pkg/diagnostic",
       "packageUri": "lib/",
@@ -381,7 +387,7 @@
       "name": "json_rpc_2",
       "rootUri": "../third_party/pkg/json_rpc_2",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "kernel",
@@ -533,7 +539,7 @@
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.12"
     },
     {
       "name": "pub_semver",
@@ -623,7 +629,7 @@
       "name": "sse",
       "rootUri": "../third_party/pkg/sse",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "stack_trace",
@@ -749,7 +755,7 @@
       "name": "vm_snapshot_analysis",
       "rootUri": "../pkg/vm_snapshot_analysis",
       "packageUri": "lib/",
-      "languageVersion": "2.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "wasm",

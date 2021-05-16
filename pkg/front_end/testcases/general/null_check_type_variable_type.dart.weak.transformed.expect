@@ -8,7 +8,7 @@ class Element extends core::Object {
     : super core::Object::•()
     ;
 }
-class Class<E extends self::Element? = self::Element?> extends core::Object {
+class Class<E extends self::Element?> extends core::Object {
   generic-covariant-impl field self::Class::E? element;
   constructor •(self::Class::E? element) → self::Class<self::Class::E%>
     : self::Class::element = element, super core::Object::•()

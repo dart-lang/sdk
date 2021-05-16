@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class M {}
 class M0 extends Object with M0 { }
 //    ^^
-// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE_WITH
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M0' is a supertype of itself.
 //    ^
 // [cfe] 'Object with M0' is a supertype of itself.
@@ -13,7 +15,7 @@ class M0 extends Object with M0 { }
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 class M1 = Object with M1;
 //    ^^
-// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE_WITH
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M1' is a supertype of itself.
 
 class M2 = Object with M3;

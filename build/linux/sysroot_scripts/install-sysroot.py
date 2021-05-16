@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -17,14 +17,12 @@
 
 import hashlib
 import json
-import platform
 import optparse
 import os
-import re
 import shutil
 import subprocess
 import sys
-import urllib2
+from urllib.request import urlopen
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
@@ -87,7 +85,7 @@ def main(args):
         return 0
 
     if not options.arch:
-        print 'You much specify either --arch or --running-as-hook'
+        print('You much specify either --arch or --running-as-hook')
         return 1
     InstallDefaultSysrootForArch(options.arch)
 
@@ -134,18 +132,18 @@ def InstallSysroot(target_platform, target_arch):
             if s.read() == url:
                 return
 
-    print 'Installing Debian %s %s root image: %s' % \
-        (target_platform, target_arch, sysroot)
+    print('Installing Debian %s %s root image: %s' % \
+        (target_platform, target_arch, sysroot))
     if os.path.isdir(sysroot):
         shutil.rmtree(sysroot)
     os.mkdir(sysroot)
     tarball = os.path.join(sysroot, tarball_filename)
-    print 'Downloading %s' % url
+    print('Downloading %s' % url)
     sys.stdout.flush()
     sys.stderr.flush()
     for _ in range(3):
         try:
-            response = urllib2.urlopen(url)
+            response = urlopen(url)
             with open(tarball, "wb") as f:
                 f.write(response.read())
             break

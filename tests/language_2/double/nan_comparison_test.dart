@@ -4,6 +4,8 @@
 // Tests double comparisons with NaN in different contexts.
 // VMOptions=--optimization-counter-threshold=10
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 test_expr(a, b) => a != b;

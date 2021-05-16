@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--disable-exit
 
+// @dart = 2.9
+
 import "dart:io" as io;
 
 import "package:expect/expect.dart";

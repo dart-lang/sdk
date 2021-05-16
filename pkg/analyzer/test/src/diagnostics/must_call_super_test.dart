@@ -113,6 +113,39 @@ class B extends A {
     ]);
   }
 
+  test_fromExtendingClass_getter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  int get a => 1;
+}
+class B extends A {
+  @override
+  int get a => 2;
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 122, 1),
+    ]);
+  }
+
+  test_fromExtendingClass_getter_containsSuperCall() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  int get a => 1;
+}
+class B extends A {
+  @override
+  int get a {
+    super.a;
+    return 2;
+  }
+}
+''');
+  }
+
   test_fromExtendingClass_operator() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -139,6 +172,38 @@ class A {
 class B extends A {
   @override
   operator ==(Object o) => o is B && super == o;
+}
+''');
+  }
+
+  test_fromExtendingClass_setter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  set a(int value) {}
+}
+class B extends A {
+  @override
+  set a(int value) {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 122, 1),
+    ]);
+  }
+
+  test_fromExtendingClass_setter_containsSuperCall() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  set a(int value) {}
+}
+class B extends A {
+  @override
+  set a(int value) {
+    super.a = value;
+  }
 }
 ''');
   }
@@ -170,6 +235,22 @@ class C with Mixin {
 }
 ''', [
       error(HintCode.MUST_CALL_SUPER, 120, 1),
+    ]);
+  }
+
+  test_fromMixin_setter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class Mixin {
+  @mustCallSuper
+  void set a(int value) {}
+}
+class C with Mixin {
+  @override
+  void set a(int value) {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 137, 1),
     ]);
   }
 

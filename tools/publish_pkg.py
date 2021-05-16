@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -25,7 +25,7 @@ def Main(argv):
 
     pubspec = os.path.join(HOME, argv[1], 'pubspec.yaml')
     if not os.path.exists(pubspec):
-        print 'Error: did not find pubspec.yaml at ' + pubspec
+        print('Error: did not find pubspec.yaml at ' + pubspec)
         return -1
 
     with open(pubspec) as pubspecFile:
@@ -45,16 +45,17 @@ def Main(argv):
             version = line[len('version:'):].strip()
         if inDependencies:
             if line.endswith(': any'):
-                print 'Error in %s: should not use "any" version constraint: %s' % (
-                    pubspec, line)
+                print(
+                    'Error in %s: should not use "any" version constraint: %s' %
+                    (pubspec, line))
                 return -1
 
     if not version:
-        print 'Error in %s: did not find package version.' % pubspec
+        print('Error in %s: did not find package version.' % pubspec)
         return -1
 
     if not foundSdkConstraint:
-        print 'Error in %s: did not find SDK version constraint.' % pubspec
+        print('Error in %s: did not find SDK version constraint.' % pubspec)
         return -1
 
     tmpDir = tempfile.mkdtemp()
@@ -95,7 +96,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ''')
 
-    print 'publishing version ' + version + ' of ' + argv[1] + ' to pub.\n'
+    print('publishing version ' + version + ' of ' + argv[1] + ' to pub.\n')
 
     # TODO(jmesserly): this code puts things in the pub cache. Useful for testing
     # without actually uploading.

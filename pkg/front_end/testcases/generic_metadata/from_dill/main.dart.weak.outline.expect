@@ -16,27 +16,27 @@ typedef exp3 = <T extends core::Object? = dynamic>() → T%;
 typedef exp4 = <T extends core::Object? = dynamic>(T%) → void;
 typedef exp5 = <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T;
 typedef exp6 = <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%;
-class C1<X extends <T extends core::Object? = dynamic>(T%) → T% = <T extends core::Object? = dynamic>(T%) → T%> extends core::Object {
+class C1<X extends <T extends core::Object? = dynamic>(T%) → T%> extends core::Object {
   constructor •() → self2::C1<self2::C1::X>
     ;
 }
-class C2<X extends <T extends core::Object? = dynamic>() → void = <T extends core::Object? = dynamic>() → void> extends core::Object {
+class C2<X extends <T extends core::Object? = dynamic>() → void> extends core::Object {
   constructor •() → self2::C2<self2::C2::X>
     ;
 }
-class C3<X extends <T extends core::Object? = dynamic>() → T% = <T extends core::Object? = dynamic>() → T%> extends core::Object {
+class C3<X extends <T extends core::Object? = dynamic>() → T%> extends core::Object {
   constructor •() → self2::C3<self2::C3::X>
     ;
 }
-class C4<X extends <T extends core::Object? = dynamic>(T%) → void = <T extends core::Object? = dynamic>(T%) → void> extends core::Object {
+class C4<X extends <T extends core::Object? = dynamic>(T%) → void> extends core::Object {
   constructor •() → self2::C4<self2::C4::X>
     ;
 }
-class C5<X extends <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T = <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> extends core::Object {
+class C5<X extends <T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> extends core::Object {
   constructor •() → self2::C5<self2::C5::X>
     ;
 }
-class C6<X extends <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T% = <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> extends core::Object {
+class C6<X extends <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> extends core::Object {
   constructor •() → self2::C6<self2::C6::X>
     ;
 }

@@ -5,6 +5,8 @@
 //
 // Dart test program testing generic type allocations and generic type tests.
 
+// @dart = 2.9
+
 class A<E> {}
 
 class Pair<P, Q> extends A /* i.e. extends A<dynamic> */ {

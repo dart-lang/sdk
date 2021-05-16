@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to verify incompatible constructor types
 
+// @dart = 2.9
+
 abstract class Point {
   factory Point(int x, int y) = PointImplementation; //# 01: ok
   factory Point(x, y) = PointImplementation; //# 02: compile-time error

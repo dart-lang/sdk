@@ -122,11 +122,10 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.immutable(new Name('field'), type: const DynamicType());
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          fields: <Field>[field]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.immutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, fields: <Field>[field]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -140,11 +139,10 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          fields: <Field>[field]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, fields: <Field>[field]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -158,11 +156,10 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          fields: <Field>[field]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, fields: <Field>[field]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -178,16 +175,17 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Procedure topLevelProcedure = new Procedure(
           new Name('foo'),
           ProcedureKind.Method,
           new FunctionNode(null, positionalParameters: <VariableDeclaration>[
             new VariableDeclaration('x', type: const DynamicType())
           ]),
-          isStatic: true);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          procedures: <Procedure>[topLevelProcedure]);
+          isStatic: true,
+          fileUri: uri);
+      Library library = new Library(uri,
+          fileUri: uri, procedures: <Procedure>[topLevelProcedure]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -205,14 +203,13 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Procedure factoryConstructor = new Procedure(
           new Name('foo'), ProcedureKind.Factory, new FunctionNode(null),
-          isStatic: true, isConst: true);
-      Class klass =
-          new Class(name: 'A', procedures: <Procedure>[factoryConstructor]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+          isStatic: true, isConst: true, fileUri: uri);
+      Class klass = new Class(
+          name: 'A', procedures: <Procedure>[factoryConstructor], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -231,12 +228,11 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.immutable(new Name('field'), type: const DynamicType());
-      Class klass = new Class(name: 'A', fields: <Field>[field]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.immutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Class klass = new Class(name: 'A', fields: <Field>[field], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -260,12 +256,11 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Class klass = new Class(name: 'A', fields: <Field>[field]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Class klass = new Class(name: 'A', fields: <Field>[field], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -289,12 +284,11 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Field field =
-          new Field.mutable(new Name('field'), type: const DynamicType());
-      Class klass = new Class(name: 'A', fields: <Field>[field]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Field field = new Field.mutable(new Name('field'),
+          type: const DynamicType(), fileUri: uri);
+      Class klass = new Class(name: 'A', fields: <Field>[field], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -321,13 +315,13 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Procedure method = new Procedure(
           new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
-          isStatic: true, isConst: true);
-      Class klass = new Class(name: 'A', procedures: <Procedure>[method]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+          isStatic: true, isConst: true, fileUri: uri);
+      Class klass =
+          new Class(name: 'A', procedures: <Procedure>[method], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
 
@@ -355,13 +349,12 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
-      Constructor constructor =
-          new Constructor(new FunctionNode(null), name: new Name('foo'));
-      Class klass =
-          new Class(name: 'A', constructors: <Constructor>[constructor]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
+      Constructor constructor = new Constructor(new FunctionNode(null),
+          name: new Name('foo'), fileUri: uri);
+      Class klass = new Class(
+          name: 'A', constructors: <Constructor>[constructor], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -378,13 +371,12 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = new Uri(scheme: 'package', path: 'foo/bar.dart');
       Constructor constructor = new Constructor(new FunctionNode(null),
-          name: new Name('foo'), isConst: true);
-      Class klass =
-          new Class(name: 'A', constructors: <Constructor>[constructor]);
-      Library library = new Library(
-          new Uri(scheme: 'package', path: 'foo/bar.dart'),
-          classes: <Class>[klass]);
+          name: new Name('foo'), isConst: true, fileUri: uri);
+      Class klass = new Class(
+          name: 'A', constructors: <Constructor>[constructor], fileUri: uri);
+      Library library = new Library(uri, fileUri: uri, classes: <Class>[klass]);
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase<Statement>(
@@ -456,15 +448,16 @@ void test() {
           serializer: statementSerializer);
     }(),
     () {
+      Uri uri = Uri(scheme: 'package', path: 'foo/bar.dart');
       VariableDeclaration x = VariableDeclaration('x', type: DynamicType());
       Procedure foo = Procedure(
           Name('foo'),
           ProcedureKind.Method,
           FunctionNode(ReturnStatement(VariableGet(x)),
               positionalParameters: [x]),
-          isStatic: true);
-      Library library = Library(Uri(scheme: 'package', path: 'foo/bar.dart'),
-          procedures: [foo]);
+          isStatic: true,
+          fileUri: uri);
+      Library library = Library(uri, fileUri: uri, procedures: [foo]);
       Component component = Component(libraries: [library]);
       component.computeCanonicalNames();
       return new TestCase<Member>(
@@ -473,7 +466,8 @@ void test() {
           expectation: ''
               '(method (public "foo") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () ()'
-              ' (dynamic) _ (ret (get-var "x^0" _)))',
+              ' (dynamic) _ (ret (get-var "x^0" _))'
+              ' "package:foo/bar.dart")',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -481,6 +475,7 @@ void test() {
           serializer: memberSerializer);
     }(),
     () {
+      Uri uri = Uri(scheme: 'package', path: 'foo/bar.dart');
       VariableDeclaration x1 = VariableDeclaration('x', type: DynamicType());
       VariableDeclaration x2 = VariableDeclaration('x', type: DynamicType());
       Procedure foo = Procedure(
@@ -488,7 +483,8 @@ void test() {
           ProcedureKind.Method,
           FunctionNode(ReturnStatement(VariableGet(x1)),
               positionalParameters: [x1]),
-          isStatic: true);
+          isStatic: true,
+          fileUri: uri);
       Procedure bar = Procedure(
           Name('bar'),
           ProcedureKind.Method,
@@ -496,9 +492,9 @@ void test() {
               ReturnStatement(
                   StaticInvocation(foo, Arguments([VariableGet(x2)]))),
               positionalParameters: [x2]),
-          isStatic: true);
-      Library library = Library(Uri(scheme: 'package', path: 'foo/bar.dart'),
-          procedures: [foo, bar]);
+          isStatic: true,
+          fileUri: uri);
+      Library library = Library(uri, fileUri: uri, procedures: [foo, bar]);
       Component component = Component(libraries: [library]);
       component.computeCanonicalNames();
       return new TestCase<Library>(
@@ -509,19 +505,23 @@ void test() {
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
-              ' _ (ret (get-var "x^0" _)))'
+              ' _ (ret (get-var "x^0" _))'
+              ' "package:foo/bar.dart")'
               ''
               ' (method (public "bar") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
               ' _ (ret'
               ' (invoke-static "package:foo/bar.dart::@methods::foo"'
-              ' () ((get-var "x^0" _)) ()))))'
+              ' () ((get-var "x^0" _)) ()))'
+              ' "package:foo/bar.dart"))'
               ''
               ' ()'
               ''
               ' ()'
               ''
-              ' ()',
+              ' ()'
+              ''
+              ' "package:foo/bar.dart"',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -529,15 +529,17 @@ void test() {
           serializer: librarySerializer);
     }(),
     () {
-      Class a = Class(name: "A");
+      Uri uri = Uri(scheme: "package", path: "foo/bar.dart");
+      Class a = Class(name: "A", fileUri: uri);
       Procedure foo = Procedure(
           Name("foo"),
           ProcedureKind.Method,
           FunctionNode(ReturnStatement(NullLiteral()),
               returnType: InterfaceType(a, Nullability.legacy)),
-          isStatic: true);
-      Library library = Library(Uri(scheme: "package", path: "foo/bar.dart"),
-          classes: [a], procedures: [foo]);
+          isStatic: true,
+          fileUri: uri);
+      Library library =
+          Library(uri, fileUri: uri, classes: [a], procedures: [foo]);
       Component component = Component(libraries: [library]);
       component.computeCanonicalNames();
       return new TestCase<Library>(
@@ -548,13 +550,16 @@ void test() {
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () () () () (interface "package:foo/bar.dart::A" ())'
-              ' _ (ret (null))))'
+              ' _ (ret (null))'
+              ' "package:foo/bar.dart"))'
               ''
-              ' ("A" () () () () _ _ () ())'
+              ' ("A" () "package:foo/bar.dart" () () () _ _ () ())'
               ''
               ' ()'
               ''
-              ' ()',
+              ' ()'
+              ''
+              ' "package:foo/bar.dart"',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -579,8 +584,8 @@ void test() {
     if (roundTripInput != testCase.expectation) {
       failures.add(''
           "* initial serialization for test '${testCase.name}'"
-          " gave output '${roundTripInput}'"
-          " but expected '${testCase.expectation}'");
+          " gave output:\n    ${roundTripInput}\n"
+          "  but expected:\n    ${testCase.expectation}");
     }
 
     TreeNode deserialized =

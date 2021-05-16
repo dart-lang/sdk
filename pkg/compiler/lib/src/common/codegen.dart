@@ -18,6 +18,8 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart';
 import '../js_backend/namer.dart';
+import '../js_backend/deferred_holder_expression.dart'
+    show DeferredHolderExpression;
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
@@ -531,9 +533,6 @@ class CodegenResult {
         case ModularNameKind.rtiField:
           name.value = namer.rtiFieldJsName;
           break;
-        case ModularNameKind.runtimeTypeName:
-          name.value = namer.runtimeTypeName(name.data);
-          break;
         case ModularNameKind.className:
           name.value = namer.className(name.data);
           break;
@@ -549,12 +548,6 @@ class CodegenResult {
         case ModularNameKind.operatorIs:
           name.value = namer.operatorIs(name.data);
           break;
-        case ModularNameKind.operatorIsType:
-          name.value = namer.operatorIsType(name.data);
-          break;
-        case ModularNameKind.substitution:
-          name.value = namer.substitutionName(name.data);
-          break;
         case ModularNameKind.instanceMethod:
           name.value = namer.instanceMethodName(name.data);
           break;
@@ -569,9 +562,6 @@ class CodegenResult {
           break;
         case ModularNameKind.globalPropertyNameForClass:
           name.value = namer.globalPropertyNameForClass(name.data);
-          break;
-        case ModularNameKind.globalPropertyNameForType:
-          name.value = namer.globalPropertyNameForType(name.data);
           break;
         case ModularNameKind.globalPropertyNameForMember:
           name.value = namer.globalPropertyNameForMember(name.data);
@@ -592,26 +582,6 @@ class CodegenResult {
     }
     for (ModularExpression expression in modularExpressions) {
       switch (expression.kind) {
-        case ModularExpressionKind.globalObjectForLibrary:
-          expression.value = namer
-              .readGlobalObjectForLibrary(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
-        case ModularExpressionKind.globalObjectForClass:
-          expression.value = namer
-              .readGlobalObjectForClass(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
-        case ModularExpressionKind.globalObjectForType:
-          expression.value = namer
-              .readGlobalObjectForType(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
-        case ModularExpressionKind.globalObjectForMember:
-          expression.value = namer
-              .readGlobalObjectForMember(expression.data)
-              .withSourceInformation(expression.sourceInformation);
-          break;
         case ModularExpressionKind.constant:
           expression.value = emitter
               .constantReference(expression.data)
@@ -641,20 +611,16 @@ class CodegenResult {
 
 enum ModularNameKind {
   rtiField,
-  runtimeTypeName,
   className,
   aliasedSuperMember,
   staticClosure,
   methodProperty,
   operatorIs,
-  operatorIsType,
-  substitution,
   instanceMethod,
   instanceField,
   invocation,
   lazyInitializer,
   globalPropertyNameForClass,
-  globalPropertyNameForType,
   globalPropertyNameForMember,
   globalNameForInterfaceTypeVariable,
   nameForGetInterceptor,
@@ -680,11 +646,8 @@ class ModularName extends js.Name implements js.AstContainer {
     switch (kind) {
       case ModularNameKind.rtiField:
         break;
-      case ModularNameKind.globalPropertyNameForType:
-      case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
-      case ModularNameKind.substitution:
       case ModularNameKind.globalPropertyNameForClass:
         data = source.readClass();
         break;
@@ -696,9 +659,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.lazyInitializer:
       case ModularNameKind.globalPropertyNameForMember:
         data = source.readMember();
-        break;
-      case ModularNameKind.operatorIsType:
-        data = source.readDartType();
         break;
       case ModularNameKind.invocation:
         data = Selector.readFromDataSource(source);
@@ -727,11 +687,8 @@ class ModularName extends js.Name implements js.AstContainer {
     switch (kind) {
       case ModularNameKind.rtiField:
         break;
-      case ModularNameKind.globalPropertyNameForType:
-      case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
-      case ModularNameKind.substitution:
       case ModularNameKind.globalPropertyNameForClass:
         sink.writeClass(data);
         break;
@@ -743,9 +700,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.lazyInitializer:
       case ModularNameKind.globalPropertyNameForMember:
         sink.writeMember(data);
-        break;
-      case ModularNameKind.operatorIsType:
-        sink.writeDartType(data);
         break;
       case ModularNameKind.invocation:
         Selector selector = data;
@@ -800,12 +754,6 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   @override
-  int compareTo(js.Name other) {
-    assert(_value != null, 'value not set for $this');
-    return _value.compareTo(other);
-  }
-
-  @override
   Iterable<js.Node> get containedNodes {
     return _value != null ? [_value] : const [];
   }
@@ -830,10 +778,6 @@ class ModularName extends js.Name implements js.AstContainer {
 }
 
 enum ModularExpressionKind {
-  globalObjectForLibrary,
-  globalObjectForClass,
-  globalObjectForType,
-  globalObjectForMember,
   constant,
   embeddedGlobalAccess,
 }
@@ -853,18 +797,6 @@ class ModularExpression extends js.DeferredExpression
     ModularExpressionKind kind = source.readEnum(ModularExpressionKind.values);
     Object data;
     switch (kind) {
-      case ModularExpressionKind.globalObjectForLibrary:
-        data = source.readLibrary();
-        break;
-      case ModularExpressionKind.globalObjectForClass:
-        data = source.readClass();
-        break;
-      case ModularExpressionKind.globalObjectForType:
-        data = source.readClass();
-        break;
-      case ModularExpressionKind.globalObjectForMember:
-        data = source.readMember();
-        break;
       case ModularExpressionKind.constant:
         data = source.readConstant();
         break;
@@ -880,18 +812,6 @@ class ModularExpression extends js.DeferredExpression
     sink.begin(tag);
     sink.writeEnum(kind);
     switch (kind) {
-      case ModularExpressionKind.globalObjectForLibrary:
-        sink.writeLibrary(data);
-        break;
-      case ModularExpressionKind.globalObjectForClass:
-        sink.writeClass(data);
-        break;
-      case ModularExpressionKind.globalObjectForType:
-        sink.writeClass(data);
-        break;
-      case ModularExpressionKind.globalObjectForMember:
-        sink.writeMember(data);
-        break;
       case ModularExpressionKind.constant:
         sink.writeConstant(data);
         break;
@@ -1009,6 +929,7 @@ enum JsNodeKind {
   program,
   stringReference,
   typeReference,
+  deferredHolderExpression,
 }
 
 /// Tags used for debugging serialization/deserialization boundary mismatches.
@@ -1073,6 +994,7 @@ class JsNodeTags {
   static const String program = 'js-program';
   static const String stringReference = 'js-stringReference';
   static const String typeReference = 'js-typeReference';
+  static const String deferredHolderExpression = 'js-deferredHolderExpression';
 }
 
 /// Visitor that serializes a [js.Node] into a [DataSink].
@@ -1297,6 +1219,11 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 
   @override
+  void visitDeferredStatement(js.DeferredStatement node) {
+    throw new UnsupportedError('JsNodeSerializer.visitDeferredStatement');
+  }
+
+  @override
   void visitDeferredNumber(js.DeferredNumber node) {
     throw new UnsupportedError('JsNodeSerializer.visitDeferredNumber');
   }
@@ -1320,6 +1247,12 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       sink.begin(JsNodeTags.stringReference);
       node.writeToDataSink(sink);
       sink.end(JsNodeTags.stringReference);
+      _writeInfo(node);
+    } else if (node is DeferredHolderExpression) {
+      sink.writeEnum(JsNodeKind.deferredHolderExpression);
+      sink.begin(JsNodeTags.deferredHolderExpression);
+      node.writeToDataSink(sink);
+      sink.end(JsNodeTags.deferredHolderExpression);
       _writeInfo(node);
     } else {
       throw new UnsupportedError(
@@ -2118,6 +2051,11 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.typeReference);
         node = TypeReference.readFromDataSource(source);
         source.end(JsNodeTags.typeReference);
+        break;
+      case JsNodeKind.deferredHolderExpression:
+        source.begin(JsNodeTags.deferredHolderExpression);
+        node = DeferredHolderExpression.readFromDataSource(source);
+        source.end(JsNodeTags.deferredHolderExpression);
         break;
     }
     SourceInformation sourceInformation =

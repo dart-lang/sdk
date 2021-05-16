@@ -10,6 +10,8 @@
 #include "vm/program_visitor.h"
 #include "vm/zone_text_buffer.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 class CompilationTraceSaver : public FunctionVisitor {
@@ -133,5 +135,7 @@ class TypeFeedbackLoader : public ValueObject {
 };
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_COMPILATION_TRACE_H_

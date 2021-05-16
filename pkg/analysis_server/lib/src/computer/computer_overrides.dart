@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -57,10 +58,12 @@ class DartUnitOverridesComputer {
       var interfaceElements = overridesResult.interfaceElements;
       if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
         var superMember = superElements.isNotEmpty
-            ? proto.newOverriddenMember_fromEngine(superElements.first)
+            ? proto.newOverriddenMember_fromEngine(superElements.first,
+                withNullability: _unit.isNonNullableByDefault)
             : null;
         var interfaceMembers = interfaceElements
-            .map((member) => proto.newOverriddenMember_fromEngine(member))
+            .map((member) => proto.newOverriddenMember_fromEngine(member,
+                withNullability: _unit.isNonNullableByDefault))
             .toList();
         _overrides.add(proto.Override(node.offset, node.length,
             superclassMember: superMember,

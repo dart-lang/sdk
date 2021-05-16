@@ -1832,7 +1832,7 @@ class Context extends Object {
   int length;
 
   // The enclosing context for this context.
-  Context parent [optional];
+  @Context parent [optional];
 
   // The variables in this context object.
   ContextElement[] variables;

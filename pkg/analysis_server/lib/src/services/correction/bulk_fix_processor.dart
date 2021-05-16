@@ -22,7 +22,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -172,12 +171,10 @@ class BulkFixProcessor {
         if (!file_paths.isDart(pathContext, path)) {
           continue;
         }
-        var kind = await context.currentSession.getSourceKind(path);
-        if (kind != SourceKind.LIBRARY) {
-          continue;
+        var library = await context.currentSession.getResolvedLibrary2(path);
+        if (library is ResolvedLibraryResult) {
+          await _fixErrorsInLibrary(library);
         }
-        var library = await context.currentSession.getResolvedLibrary(path);
-        await _fixErrorsInLibrary(library);
       }
     }
 
@@ -238,7 +235,7 @@ class BulkFixProcessor {
       return;
     }
 
-    var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+    var fixes = FixProcessor.nonLintProducerMap[errorCode] ?? [];
     for (var fix in fixes) {
       if (fix.canBeBulkApplied) {
         final generators = fix.generators;
@@ -370,7 +367,7 @@ class BulkFixProcessor {
         var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
         await bulkApply(fixes, codeName);
       } else {
-        var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+        var fixes = FixProcessor.nonLintProducerMap[errorCode] ?? [];
         await bulkApply(fixes, codeName);
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {

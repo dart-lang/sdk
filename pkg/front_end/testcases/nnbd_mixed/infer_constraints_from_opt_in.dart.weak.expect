@@ -143,7 +143,7 @@ abstract class B extends core::Object {
   synthetic constructor •() → inf::B
     : super core::Object::•()
     ;
-  abstract method bar<X extends core::List<core::int?>? = core::List<core::int?>?>() → inf::B::bar::X%;
+  abstract method bar<X extends core::List<core::int?>?>() → inf::B::bar::X%;
   abstract method foo(core::List<core::int> list) → dynamic;
 }
 static field inf::C<dynamic> field1 = new inf::C::•<dynamic>();

@@ -336,6 +336,41 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   array.SetTypeArguments(element_type);  // May be null.
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Double::New(0.0)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Integer::New(kMaxInt64)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat32x4, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Float32x4::New(0.0, 0.0, 0.0, 0.0)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateFloat64x2, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Float64x2::New(0.0, 0.0)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateInt32x4, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->group()->heap()->CollectAllGarbage();
+  }
+  arguments.SetReturn(Object::Handle(zone, Int32x4::New(0, 0, 0, 0)));
+}
+
 // Allocate typed data array of given class id and length.
 // Arg0: class id.
 // Arg1: number of elements.
@@ -514,6 +549,33 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   arguments.SetReturn(type_arguments);
 }
 
+// Helper routine for tracing a subtype check.
+static void PrintSubtypeCheck(const AbstractType& subtype,
+                              const AbstractType& supertype,
+                              const bool result) {
+  DartFrameIterator iterator(Thread::Current(),
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+
+  OS::PrintErr("SubtypeCheck: '%s' %d %s '%s' %d (pc: %#" Px ").\n",
+               String::Handle(subtype.Name()).ToCString(),
+               subtype.type_class_id(), result ? "is" : "is !",
+               String::Handle(supertype.Name()).ToCString(),
+               supertype.type_class_id(), caller_frame->pc());
+
+  const Function& function =
+      Function::Handle(caller_frame->LookupDartFunction());
+  if (function.HasSavedArgumentsDescriptor()) {
+    const auto& args_desc_array = Array::Handle(function.saved_args_desc());
+    const ArgumentsDescriptor args_desc(args_desc_array);
+    OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
+                 args_desc.ToCString());
+  } else {
+    OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
+  }
+}
+
 // Instantiate type.
 // Arg0: instantiator type arguments
 // Arg1: function type arguments
@@ -531,26 +593,51 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
       AbstractType::CheckedHandle(zone, arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
 
-  ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
+  if (supertype.IsTypeRef()) {
+    supertype = TypeRef::Cast(supertype).type();
+  }
   ASSERT(!supertype.IsNull() && !supertype.IsTypeRef());
 
   // Now that AssertSubtype may be checking types only available at runtime,
   // we can't guarantee the supertype isn't the top type.
   if (supertype.IsTopTypeForSubtyping()) return;
 
-  // TODO(regis): Support for FLAG_trace_type_checks is missing here. Is it
-  // still useful or should we remove it everywhere?
+  if (subtype.IsTypeRef()) {
+    subtype = TypeRef::Cast(subtype).type();
+  }
+  ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
 
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(
           &subtype, &supertype, instantiator_type_args, function_type_args)) {
+    if (FLAG_trace_type_checks) {
+      // The supertype and subtype are now instantiated. Subtype check passed.
+      PrintSubtypeCheck(subtype, supertype, true);
+    }
     return;
+  }
+  if (FLAG_trace_type_checks) {
+    // The supertype and subtype are now instantiated. Subtype check failed.
+    PrintSubtypeCheck(subtype, supertype, false);
   }
 
   // Throw a dynamic type error.
   const TokenPosition location = GetCallerLocation();
   Exceptions::CreateAndThrowTypeError(location, subtype, supertype, dst_name);
   UNREACHABLE();
+}
+
+// Allocate a new closure and initializes its function field with the argument
+// and all other fields to null.
+// Return value: newly allocated closure.
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 1) {
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const Closure& closure = Closure::Handle(
+      zone, Closure::New(
+                Object::null_type_arguments(), Object::null_type_arguments(),
+                Object::null_type_arguments(), function,
+                Context::Handle(Context::null()), SpaceForRuntimeAllocation()));
+  arguments.SetReturn(closure);
 }
 
 // Allocate a new context large enough to hold the given number of variables.
@@ -1109,7 +1196,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
                                   caller_frame->pc(), caller_code));
   if (target_code.ptr() !=
       CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
-    SafepointOperationScope safepoint(thread);
+    GcSafepointOperationScope safepoint(thread);
     if (target_code.ptr() !=
         CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
       CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
@@ -2706,16 +2793,6 @@ static void HandleOSRRequest(Thread* thread) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
-  if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage();
-  }
-  constexpr uint64_t val = 0x7fffffff7fffffff;
-  ASSERT(!Smi::IsValid(static_cast<int64_t>(val)));
-  const auto& integer_box = Integer::Handle(zone, Integer::NewFromUint64(val));
-  arguments.SetReturn(integer_box);
-};
-
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
@@ -3085,9 +3162,12 @@ static void DeoptimizeLastDartFrameIfOptimized() {
     DartFrameIterator iterator(mutator_thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
-    const auto& optimized_code = Code::Handle(frame->LookupDartCode());
-    if (optimized_code.is_optimized() && !optimized_code.is_force_optimized()) {
-      DeoptimizeAt(mutator_thread, optimized_code, frame);
+    if (frame != nullptr) {
+      const auto& optimized_code = Code::Handle(frame->LookupDartCode());
+      if (optimized_code.is_optimized() &&
+          !optimized_code.is_force_optimized()) {
+        DeoptimizeAt(mutator_thread, optimized_code, frame);
+      }
     }
   });
 }
@@ -3287,7 +3367,9 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
   UNREACHABLE();
 }
 
-void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
+void OnEveryRuntimeEntryCall(Thread* thread,
+                             const char* runtime_call_name,
+                             bool can_lazy_deopt) {
   ASSERT(FLAG_deoptimize_on_runtime_call_every > 0);
   if (FLAG_precompiled_mode) {
     return;
@@ -3299,16 +3381,20 @@ void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
   if (is_deopt_related) {
     return;
   }
-  if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
-      (strlen(runtime_call_name) !=
-           strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
-       strstr(runtime_call_name, FLAG_deoptimize_on_runtime_call_name_filter) ==
-           0)) {
-    return;
-  }
-  const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
-  if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
-    DeoptimizeLastDartFrameIfOptimized();
+  // For --deoptimize-on-every-runtime-call we only consider runtime calls that
+  // can lazy-deopt.
+  if (can_lazy_deopt) {
+    if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
+        (strlen(runtime_call_name) !=
+             strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
+         strstr(runtime_call_name,
+                FLAG_deoptimize_on_runtime_call_name_filter) == 0)) {
+      return;
+    }
+    const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
+    if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
+      DeoptimizeLastDartFrameIfOptimized();
+    }
   }
 }
 

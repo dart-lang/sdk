@@ -5,6 +5,8 @@
 //
 // Dart test program testing assert statements.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class S {

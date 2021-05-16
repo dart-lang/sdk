@@ -448,7 +448,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 }
 
 class _HashMapKeyIterable<E> extends EfficientLengthIterable<E> {
-  final _map;
+  final _HashMap _map;
   _HashMapKeyIterable(this._map);
 
   int get length => _map._length;
@@ -474,7 +474,7 @@ class _HashMapKeyIterable<E> extends EfficientLengthIterable<E> {
 }
 
 class _HashMapKeyIterator<E> implements Iterator<E> {
-  final _map;
+  final _HashMap _map;
   final List _keys;
   int _offset = 0;
   E? _current;
@@ -682,7 +682,7 @@ class _Es6LinkedIdentityHashMap<K, V> extends _LinkedIdentityHashMap<K, V>
 }
 
 class _Es6MapIterable<E> extends EfficientLengthIterable<E> {
-  final _map;
+  final _Es6LinkedIdentityHashMap _map;
   final bool _isKeys;
 
   _Es6MapIterable(this._map, this._isKeys);
@@ -717,7 +717,7 @@ class _Es6MapIterable<E> extends EfficientLengthIterable<E> {
 }
 
 class _Es6MapIterator<E> implements Iterator<E> {
-  final _map;
+  final _Es6LinkedIdentityHashMap _map;
   final int _modifications;
   final bool _isKeys;
   var _jsIterator;
@@ -1187,7 +1187,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
 
 // TODO(kasperl): Share this code with _HashMapKeyIterator<E>?
 class _HashSetIterator<E> implements Iterator<E> {
-  final _set;
+  final _HashSet<E> _set;
   final List _elements;
   int _offset = 0;
   E? _current;
@@ -1689,7 +1689,7 @@ class _LinkedHashSetCell {
 
 // TODO(kasperl): Share this code with LinkedHashMapKeyIterator<E>?
 class _LinkedHashSetIterator<E> implements Iterator<E> {
-  final _set;
+  final _LinkedHashSet<E> _set;
   final int _modifications;
   _LinkedHashSetCell? _cell;
   E? _current;

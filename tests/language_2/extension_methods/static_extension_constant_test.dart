@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 import 'static_extension_constant_lib.dart' hide b, i, d, s;
 import 'static_extension_constant_lib.dart' as lib show b, i, d, s;
@@ -24,7 +26,6 @@ var dynamicInstanceCalls = <Object>[
   b ^ b,
   i ~/ i,
   i >> i,
-  // i >>> i, // Requries triple-shift.
   i << i,
   i + i,
   -i,

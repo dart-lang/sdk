@@ -96,6 +96,56 @@ f() {
     assertTypeDynamic(access);
   }
 
+  test_method_conflict_conflict_notSpecific() async {
+    await assertErrorsInCode('''
+extension E1 on int { void foo() {} }
+extension E2 on int { void foo() {} }
+extension E on int? { void foo() {} }
+void f() {
+  0.foo();
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
+          messageContains: "'E1' and 'E2'"),
+    ]);
+  }
+
+  test_method_conflict_conflict_specific() async {
+    await assertNoErrorsInCode('''
+extension E1 on int? { void foo() {} }
+extension E2 on int? { void foo() {} }
+extension E on int { void foo() {} }
+void f() {
+  0.foo();
+}
+''');
+  }
+
+  test_method_conflict_notSpecific_conflict() async {
+    await assertErrorsInCode('''
+extension E1 on int { void foo() {} }
+extension E on int? { void foo() {} }
+extension E2 on int { void foo() {} }
+void f() {
+  0.foo();
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
+          messageContains: "'E1' and 'E2'"),
+    ]);
+  }
+
+  test_method_conflict_specific_conflict() async {
+    await assertNoErrorsInCode('''
+extension E1 on int? { void foo() {} }
+extension E on int { void foo() {} }
+extension E2 on int? { void foo() {} }
+void f() {
+  0.foo();
+}
+''');
+  }
+
   test_method_method() async {
     await assertErrorsInCode('''
 extension E1 on int {
@@ -115,6 +165,46 @@ f() {
     var invocation = findNode.methodInvocation('0.a()');
     assertElementNull(invocation);
     assertTypeDynamic(invocation);
+  }
+
+  test_method_notSpecific_conflict_conflict() async {
+    await assertErrorsInCode('''
+extension E on int? { void foo() {} }
+extension E1 on int { void foo() {} }
+extension E2 on int { void foo() {} }
+void f() {
+  0.foo();
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
+          messageContains: "'E1' and 'E2'"),
+    ]);
+  }
+
+  test_method_notSpecific_conflict_conflict_conflict() async {
+    await assertErrorsInCode('''
+extension E on int? { void foo() {} }
+extension E1 on int { void foo() {} }
+extension E2 on int { void foo() {} }
+extension E3 on int { void foo() {} }
+void f() {
+  0.foo();
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 167, 3,
+          messageContains: "'E1', 'E2', and 'E3'"),
+    ]);
+  }
+
+  test_method_specific_conflict_conflict() async {
+    await assertNoErrorsInCode('''
+extension E on int { void foo() {} }
+extension E1 on int? { void foo() {} }
+extension E2 on int? { void foo() {} }
+void f() {
+  0.foo();
+}
+''');
   }
 
   test_noMoreSpecificExtension() async {

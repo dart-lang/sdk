@@ -991,17 +991,17 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
   obj1_ref->set_ptr(obj2_ref);
 }
 
-// TODO(https://dartbug.com/38491): Reject Unions here as well.
-static bool IsFfiStruct(Thread* T, const Object& obj) {
+static bool IsFfiCompound(Thread* T, const Object& obj) {
   if (obj.IsNull()) {
     return false;
   }
 
-  // CFE guarantees we can only have direct subclasses of `Struct`
+  // CFE guarantees we can only have direct subclasses of `Struct` and `Union`
   // (no implementations or indirect subclasses are allowed).
   const auto& klass = Class::Handle(Z, obj.clazz());
   const auto& super_klass = Class::Handle(Z, klass.SuperClass());
-  if (super_klass.Name() != Symbols::Struct().ptr()) {
+  if (super_klass.Name() != Symbols::Struct().ptr() &&
+      super_klass.Name() != Symbols::Union().ptr()) {
     return false;
   }
   const auto& library = Library::Handle(Z, super_klass.library());
@@ -1020,7 +1020,7 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
   if (ref.IsPointer()) {
     return NULL;
   }
-  if (IsFfiStruct(thread, ref)) {
+  if (IsFfiCompound(thread, ref)) {
     return NULL;
   }
 
@@ -1054,7 +1054,7 @@ static Dart_FinalizableHandle AllocateFinalizableHandle(
   if (ref.IsPointer()) {
     return NULL;
   }
-  if (IsFfiStruct(thread, ref)) {
+  if (IsFfiCompound(thread, ref)) {
     return NULL;
   }
 
@@ -1499,7 +1499,9 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     StackZone zone(T);
     HandleScope handle_scope(T);
 #if defined(DEBUG)
-    T->isolate_group()->ValidateConstants();
+    if (T->isolate()->origin_id() == 0) {
+      T->isolate_group()->ValidateConstants();
+    }
 #endif
     Dart::RunShutdownCallback();
   }
@@ -6987,7 +6989,7 @@ static void KillNonMainIsolatesSlow(Thread* thread, Isolate* main_isolate) {
   while (true) {
     bool non_main_isolates_alive = false;
     {
-      SafepointOperationScope safepoint(thread);
+      DeoptSafepointOperationScope safepoint(thread);
       group->ForEachIsolate(
           [&](Isolate* isolate) {
             if (isolate != main_isolate) {

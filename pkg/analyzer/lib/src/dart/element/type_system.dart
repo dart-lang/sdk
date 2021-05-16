@@ -1506,7 +1506,10 @@ class TypeSystemImpl implements TypeSystem {
         var declaration = from.element.declaration;
         return TypeParameterTypeImpl(
           element: declaration,
-          nullabilitySuffix: from.nullabilitySuffix,
+          nullabilitySuffix: _promotedTypeParameterTypeNullability(
+            from.nullabilitySuffix,
+            to.nullabilitySuffix,
+          ),
           promotedBound: to,
         );
       }
@@ -1865,6 +1868,35 @@ class TypeSystemImpl implements TypeSystem {
 
     recurse(type);
     return result;
+  }
+
+  static NullabilitySuffix _promotedTypeParameterTypeNullability(
+    NullabilitySuffix nullabilityOfType,
+    NullabilitySuffix nullabilityOfBound,
+  ) {
+    if (nullabilityOfType == NullabilitySuffix.question &&
+        nullabilityOfBound == NullabilitySuffix.none) {
+      return NullabilitySuffix.none;
+    }
+
+    if (nullabilityOfType == NullabilitySuffix.question &&
+        nullabilityOfBound == NullabilitySuffix.question) {
+      return NullabilitySuffix.question;
+    }
+
+    if (nullabilityOfType == NullabilitySuffix.star &&
+        nullabilityOfBound == NullabilitySuffix.none) {
+      return NullabilitySuffix.star;
+    }
+
+    // Intersection with a non-nullable type always yields a non-nullable type,
+    // as it's the most restrictive kind of types.
+    if (nullabilityOfType == NullabilitySuffix.none ||
+        nullabilityOfBound == NullabilitySuffix.none) {
+      return NullabilitySuffix.none;
+    }
+
+    return NullabilitySuffix.star;
   }
 }
 

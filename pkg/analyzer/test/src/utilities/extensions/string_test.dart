@@ -8,12 +8,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ListOfStringExtensionTest);
+    defineReflectiveTests(IterableOfStringExtensionTest);
   });
 }
 
 @reflectiveTest
-class ListOfStringExtensionTest {
+class IterableOfStringExtensionTest {
   void test_commaSeparatedWithAnd_five() {
     expect(<String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithAnd,
         'a, b, c, d, and e');
@@ -25,6 +25,13 @@ class ListOfStringExtensionTest {
 
   void test_commaSeparatedWithAnd_three() {
     expect(<String>['a', 'b', 'c'].commaSeparatedWithAnd, 'a, b, and c');
+  }
+
+  void test_commaSeparatedWithAnd_three_iterable() {
+    expect(
+      <String>['a', 'b', 'c'].reversed.commaSeparatedWithAnd,
+      'c, b, and a',
+    );
   }
 
   void test_commaSeparatedWithAnd_two() {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -42,11 +40,6 @@ class A {
 ''');
     createRenameRefactoringAtString('test() {}');
     expect(refactoring.oldName, 'test');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Constructor name must not be null.');
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
@@ -239,7 +232,8 @@ main() {
   Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
-    var refactoring = RenameRefactoring(workspace, testAnalysisResult, null);
+    var refactoring =
+        RenameRefactoring.create(workspace, testAnalysisResult, null);
     expect(refactoring, isNull);
   }
 

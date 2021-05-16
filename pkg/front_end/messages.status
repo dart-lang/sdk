@@ -137,6 +137,8 @@ ConstEvalTruncateError/analyzerCode: Fail
 ConstEvalTruncateError/example: Fail
 ConstEvalUnevaluated/analyzerCode: Fail
 ConstEvalUnevaluated/example: Fail
+ConstEvalUnhandledCoreException/analyzerCode: Fail
+ConstEvalUnhandledCoreException/example: Fail
 ConstEvalUnhandledException/analyzerCode: Fail
 ConstEvalUnhandledException/example: Fail
 ConstEvalZeroDivisor/example: Fail
@@ -367,9 +369,11 @@ ForInLoopNotAssignable/part_wrapped_statement: Fail
 ForInLoopNotAssignable/statement: Fail
 ForInLoopTypeNotIterablePartNullability/example: Fail # Cannot occur but needed for symmetry with ForInLoopTypeNotIterableNullability
 ForInLoopWithConstVariable/example: Fail
+FunctionAsTypeParameter/analyzerCode: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/part_wrapped_script1: Fail
 FunctionTypedParameterVar/script1: Fail
+FunctionUsedAsDec/analyzerCode: Fail
 GeneratorReturnsValue/example: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
@@ -602,6 +606,7 @@ NonNullableOptOutImplicit/analyzerCode: Fail
 NonNullableOptOutImplicit/example: Fail
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
+NonPositiveArrayDimensions/analyzerCode: Fail
 NotAConstantExpression/example: Fail
 NotAType/example: Fail
 NotAnLvalue/example: Fail

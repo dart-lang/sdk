@@ -6,6 +6,8 @@
 // In this test, the function myFunc contains malformed types because
 // lib12.Library13 is not resolved.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "../library12.dart" as lib12;
 

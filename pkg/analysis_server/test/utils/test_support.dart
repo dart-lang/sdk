@@ -33,7 +33,7 @@ class ExpectedContextMessage {
     return message.filePath == filePath &&
         message.offset == offset &&
         message.length == length &&
-        (text == null || message.message == text);
+        (text == null || message.messageText(includeUrl: true) == text);
   }
 }
 
@@ -80,7 +80,7 @@ class ExpectedError {
     if (message != null && error.message != message) {
       return false;
     }
-    var messageContains = this.messageContains;
+    final messageContains = this.messageContains;
     if (messageContains != null &&
         error.message.contains(messageContains) != true) {
       return false;

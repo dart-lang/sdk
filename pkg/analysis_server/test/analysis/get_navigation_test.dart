@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -94,9 +92,10 @@ class Bar {
     var request = _createGetNavigationRequest(file, 0, 100);
     var response = await serverChannel.sendRequest(request);
     expect(response.error, isNull);
-    expect(response.result['files'], isEmpty);
-    expect(response.result['targets'], isEmpty);
-    expect(response.result['regions'], isEmpty);
+    var result = response.result!;
+    expect(result['files'], isEmpty);
+    expect(result['targets'], isEmpty);
+    expect(result['regions'], isEmpty);
   }
 
   Future<void> test_fileOutsideOfRoot() async {

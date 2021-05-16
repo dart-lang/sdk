@@ -338,7 +338,7 @@ class NativeTypedData implements TypedData {
 
   void _checkPosition(int position, int length, String name) {
     if (JS('bool', '(# >>> 0) !== #', position, position) ||
-        JS('int', '#', position) > length) {
+        JS<int>('int', '#', position) > length) {
       // 'int' guaranteed by above test.
       _invalidPosition(position, length, name);
     }
@@ -1825,7 +1825,7 @@ bool _isInvalidArrayIndex(int index) {
 ///
 /// That is, [index] is an integer in the range `0..length - 1`.
 void _checkValidIndex(int index, List list, int length) {
-  if (_isInvalidArrayIndex(index) || JS('int', '#', index) >= length) {
+  if (_isInvalidArrayIndex(index) || JS<int>('int', '#', index) >= length) {
     throw diagnoseIndexError(list, index);
   }
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' as io;
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
@@ -62,7 +63,7 @@ Future<void> main(List<String> args) async {
   var result = parser.parse(args);
 
   if (!validArguments(parser, result)) {
-    io.exit(1);
+    return;
   }
 
   var options = CompletionMetricsOptions(result);
@@ -98,7 +99,7 @@ Future<void> main(List<String> args) async {
   print('Analyzing root: "$rootPath"');
   var stopwatch = Stopwatch()..start();
   var computer = CompletionMetricsComputer(rootPath, options);
-  var code = await computer.computeMetrics();
+  await computer.computeMetrics();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -113,7 +114,6 @@ Future<void> main(List<String> args) async {
   } else {
     computer.printResults();
   }
-  io.exit(code);
 }
 
 /// A [Counter] to track the performance of each of the completion strategies
@@ -123,16 +123,6 @@ Counter rankComparison = Counter('relevance rank comparison');
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   return ArgParser()
-    ..addFlag(CompletionMetricsOptions.AVAILABLE_SUGGESTIONS,
-        abbr: 'a',
-        help:
-            'Use the available suggestions feature in the Analysis Server when '
-            'computing the set of code completions. With this feature enabled, '
-            'completion will match the support in the Dart Plugin for '
-            'IntelliJ, without this enabled the completion support matches the '
-            'support in LSP.',
-        defaultsTo: false,
-        negatable: false)
     ..addOption(
       'help',
       abbr: 'h',
@@ -282,11 +272,18 @@ class CompletionMetrics {
   /// The name associated with this set of metrics.
   final String name;
 
+  /// A flag indicating whether available suggestions should be enabled for this
+  /// run.
+  final bool availableSuggestions;
+
   /// The function to be executed when this metrics collector is enabled.
   final void Function()? enableFunction;
 
   /// The function to be executed when this metrics collector is disabled.
   final void Function()? disableFunction;
+
+  /// The tag used to profile performance of completions for this set of metrics.
+  final UserTag userTag;
 
   final Counter completionCounter = Counter('all completions');
 
@@ -301,6 +298,8 @@ class CompletionMetrics {
 
   final ArithmeticMeanComputer meanCompletionMS =
       ArithmeticMeanComputer('ms per completion');
+
+  final DistributionComputer distributionCompletionMS = DistributionComputer();
 
   final MeanReciprocalRankComputer mrrComputer =
       MeanReciprocalRankComputer('all completions');
@@ -336,11 +335,16 @@ class CompletionMetrics {
 
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
-  CompletionMetrics(this.name, {this.enableFunction, this.disableFunction});
+  CompletionMetrics(this.name,
+      {required this.availableSuggestions,
+      this.enableFunction,
+      this.disableFunction})
+      : userTag = UserTag(name);
 
   /// Return an instance extracted from the decoded JSON [map].
   factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
-    var metrics = CompletionMetrics(map['name'] as String);
+    var metrics = CompletionMetrics(map['name'] as String,
+        availableSuggestions: map['availableSuggestions'] as bool);
     metrics.completionCounter
         .fromJson(map['completionCounter'] as Map<String, dynamic>);
     metrics.completionMissedTokenCounter
@@ -351,6 +355,8 @@ class CompletionMetrics {
         .fromJson(map['completionElementKindCounter'] as Map<String, dynamic>);
     metrics.meanCompletionMS
         .fromJson(map['meanCompletionMS'] as Map<String, dynamic>);
+    metrics.distributionCompletionMS
+        .fromJson(map['distributionCompletionMS'] as Map<String, dynamic>);
     metrics.mrrComputer.fromJson(map['mrrComputer'] as Map<String, dynamic>);
     metrics.successfulMrrComputer
         .fromJson(map['successfulMrrComputer'] as Map<String, dynamic>);
@@ -403,6 +409,7 @@ class CompletionMetrics {
     completionKindCounter.addData(metrics.completionKindCounter);
     completionElementKindCounter.addData(metrics.completionElementKindCounter);
     meanCompletionMS.addData(metrics.meanCompletionMS);
+    distributionCompletionMS.addData(metrics.distributionCompletionMS);
     mrrComputer.addData(metrics.mrrComputer);
     successfulMrrComputer.addData(metrics.successfulMrrComputer);
     for (var entry in metrics.groupMrrComputers.entries) {
@@ -438,7 +445,7 @@ class CompletionMetrics {
   /// Perform any operations required in order to revert computing the kind of
   /// completions represented by this metrics collector.
   void disable() {
-    var disableFunction = this.disableFunction;
+    final disableFunction = this.disableFunction;
     if (disableFunction != null) {
       disableFunction();
     }
@@ -447,7 +454,7 @@ class CompletionMetrics {
   /// Perform any initialization required in order to compute the kind of
   /// completions represented by this metrics collector.
   void enable() {
-    var enableFunction = this.enableFunction;
+    final enableFunction = this.enableFunction;
     if (enableFunction != null) {
       enableFunction();
     }
@@ -467,11 +474,13 @@ class CompletionMetrics {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'availableSuggestions': availableSuggestions,
       'completionCounter': completionCounter.toJson(),
       'completionMissedTokenCounter': completionMissedTokenCounter.toJson(),
       'completionKindCounter': completionKindCounter.toJson(),
       'completionElementKindCounter': completionElementKindCounter.toJson(),
       'meanCompletionMS': meanCompletionMS.toJson(),
+      'distributionCompletionMS': distributionCompletionMS.toJson(),
       'mrrComputer': mrrComputer.toJson(),
       'successfulMrrComputer': successfulMrrComputer.toJson(),
       'groupMrrComputers': groupMrrComputers
@@ -543,6 +552,7 @@ class CompletionMetrics {
   /// Record this elapsed ms count for the average ms count.
   void _recordTime(CompletionResult result) {
     meanCompletionMS.addValue(result.elapsedMS);
+    distributionCompletionMS.addValue(result.elapsedMS);
   }
 
   /// If the [result] is worse than any previously recorded results, record it.
@@ -569,9 +579,6 @@ class CompletionMetricsComputer {
 
   late ResolvedUnitResult _resolvedUnitResult;
 
-  /// The int to be returned from the [computeMetrics] call.
-  int resultCode = 0;
-
   /// A list of the metrics to be computed.
   final List<CompletionMetrics> targetMetrics = [];
 
@@ -583,49 +590,62 @@ class CompletionMetricsComputer {
   CompletionMetricsComputer(this.rootPath, this.options);
 
   /// Compare the metrics when each feature is used in isolation.
-  void compareIndividualFeatures() {
+  void compareIndividualFeatures({bool availableSuggestions = false}) {
     var featureNames = FeatureComputer.featureNames;
     var featureCount = featureNames.length;
     for (var i = 0; i < featureCount; i++) {
       var weights = List.filled(featureCount, 0.00);
       weights[i] = 1.00;
-      targetMetrics.add(CompletionMetrics(featureNames[i], enableFunction: () {
-        FeatureComputer.featureWeights = weights;
-      }, disableFunction: () {
-        FeatureComputer.featureWeights = FeatureComputer.defaultFeatureWeights;
-      }));
+      targetMetrics.add(CompletionMetrics(
+        featureNames[i],
+        availableSuggestions: availableSuggestions,
+        enableFunction: () {
+          FeatureComputer.featureWeights = weights;
+        },
+        disableFunction: () {
+          FeatureComputer.featureWeights =
+              FeatureComputer.defaultFeatureWeights;
+        },
+      ));
     }
   }
 
   /// Compare the relevance [tables] to the default relevance tables.
-  void compareRelevanceTables(List<RelevanceTables> tables) {
+  void compareRelevanceTables(List<RelevanceTables> tables,
+      {bool availableSuggestions = false}) {
     assert(tables.isNotEmpty);
     for (var tablePair in tables) {
-      targetMetrics.add(CompletionMetrics(tablePair.name, enableFunction: () {
-        elementKindRelevance = tablePair.elementKindRelevance;
-        keywordRelevance = tablePair.keywordRelevance;
-      }, disableFunction: () {
-        elementKindRelevance = defaultElementKindRelevance;
-        keywordRelevance = defaultKeywordRelevance;
-      }));
+      targetMetrics.add(CompletionMetrics(
+        tablePair.name,
+        availableSuggestions: availableSuggestions,
+        enableFunction: () {
+          elementKindRelevance = tablePair.elementKindRelevance;
+          keywordRelevance = tablePair.keywordRelevance;
+        },
+        disableFunction: () {
+          elementKindRelevance = defaultElementKindRelevance;
+          keywordRelevance = defaultKeywordRelevance;
+        },
+      ));
     }
   }
 
-  Future<int> computeMetrics() async {
-    resultCode = 0;
+  Future<void> computeMetrics() async {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping',
-        enableFunction: null, disableFunction: null));
+        availableSuggestions: false,
+        enableFunction: null,
+        disableFunction: null));
 
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
     // should not be included in the list.
-//     compareRelevanceTables([]);
+//     compareRelevanceTables([], availableSuggestions: false);
 
     // To compare the relative benefit from each of the features, uncomment the
     // line below.
-//    compareIndividualFeatures();
+//    compareIndividualFeatures(availableSuggestions: false);
 
     final collection = AnalysisContextCollectionImpl(
       includedPaths: [rootPath],
@@ -634,7 +654,6 @@ class CompletionMetricsComputer {
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot);
     }
-    return resultCode;
   }
 
   int forEachExpectedCompletion(
@@ -654,15 +673,17 @@ class CompletionMetricsComputer {
 
       var rank = place.rank;
       var suggestion = suggestions[rank - 1];
-      var actualSuggestion =
-          SuggestionData(suggestion, listener.featureMap[suggestion]!);
+      var features = listener.featureMap[suggestion] ??
+          MetricsSuggestionListener.noFeatures;
+      var actualSuggestion = SuggestionData(suggestion, features);
       List<SuggestionData>? topSuggestions;
       Map<int, int>? precedingRelevanceCounts;
       if (options.printWorstResults) {
+        var features = listener.featureMap[suggestion] ??
+            MetricsSuggestionListener.noFeatures;
         topSuggestions = suggestions
             .sublist(0, math.min(10, suggestions.length))
-            .map((suggestion) =>
-                SuggestionData(suggestion, listener.featureMap[suggestion]!))
+            .map((suggestion) => SuggestionData(suggestion, features))
             .toList();
         precedingRelevanceCounts = <int, int>{};
         for (var i = 0; i < rank - 1; i++) {
@@ -775,6 +796,9 @@ class CompletionMetricsComputer {
       printCounter(metrics.completionKindCounter);
       printCounter(metrics.completionElementKindCounter);
     }
+
+    var distribution = metrics.distributionCompletionMS.displayString();
+    print('${metrics.name}: $distribution');
 
     List<String> toRow(MeanReciprocalRankComputer computer) {
       return [
@@ -914,7 +938,10 @@ class CompletionMetricsComputer {
       var computers = sources.toList();
       var row = [computers.first.name];
       for (var computer in computers) {
-        row.add(computer.mean.toStringAsFixed(6));
+        var min = computer.min;
+        var mean = computer.mean.toStringAsFixed(6);
+        var max = computer.max;
+        row.add('$min, $mean, $max');
       }
       return row;
     }
@@ -930,6 +957,11 @@ class CompletionMetricsComputer {
 
     printHeading(2, 'Comparison of other metrics');
     printTable(table);
+
+    for (var metrics in targetMetrics) {
+      var distribution = metrics.distributionCompletionMS.displayString();
+      print('${metrics.name}: $distribution');
+    }
   }
 
   void printResults() {
@@ -1003,6 +1035,8 @@ class CompletionMetricsComputer {
       MetricsSuggestionListener listener,
       OperationPerformanceImpl performance,
       CompletionRequestImpl request,
+      DartdocDirectiveInfo dartdocDirectiveInfo,
+      DocumentationCache? documentationCache,
       [DeclarationsTracker? declarationsTracker,
       protocol.CompletionAvailableSuggestionsParams?
           availableSuggestionsParams]) async {
@@ -1011,9 +1045,10 @@ class CompletionMetricsComputer {
     if (declarationsTracker == null) {
       // available suggestions == false
       suggestions = await DartCompletionManager(
-        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        dartdocDirectiveInfo: dartdocDirectiveInfo,
         listener: listener,
-      ).computeSuggestions(performance, request);
+      ).computeSuggestions(performance, request,
+          documentationCache: documentationCache);
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -1022,12 +1057,13 @@ class CompletionMetricsComputer {
           <protocol.IncludedSuggestionRelevanceTag>[];
       var includedSuggestionSetList = <protocol.IncludedSuggestionSet>[];
       suggestions = await DartCompletionManager(
-        dartdocDirectiveInfo: DartdocDirectiveInfo(),
+        dartdocDirectiveInfo: dartdocDirectiveInfo,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(performance, request);
+      ).computeSuggestions(performance, request,
+          documentationCache: documentationCache);
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);
@@ -1095,7 +1131,7 @@ class CompletionMetricsComputer {
     // suggestions if doComputeCompletionsFromAnalysisServer is true.
     DeclarationsTracker? declarationsTracker;
     protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams;
-    if (options.availableSuggestions) {
+    if (targetMetrics.any((metrics) => metrics.availableSuggestions)) {
       declarationsTracker = DeclarationsTracker(
           MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
       declarationsTracker.addContext(context);
@@ -1110,120 +1146,129 @@ class CompletionMetricsComputer {
 
     // Loop through each file, resolve the file and call
     // forEachExpectedCompletion
+
+    var dartdocDirectiveInfo = DartdocDirectiveInfo();
+    var documentationCache = DocumentationCache(dartdocDirectiveInfo);
+    var results = <ResolvedUnitResult>[];
     var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          _resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+          var result = await context.currentSession.getResolvedUnit2(filePath)
+              as ResolvedUnitResult;
 
-          var analysisError = getFirstErrorOrNull(_resolvedUnitResult);
+          var analysisError = getFirstErrorOrNull(result);
           if (analysisError != null) {
             print('File $filePath skipped due to errors such as:');
             print('  ${analysisError.toString()}');
             print('');
-            resultCode = 1;
             continue;
-          }
-
-          // Use the ExpectedCompletionsVisitor to compute the set of expected
-          // completions for this CompilationUnit.
-          final visitor = ExpectedCompletionsVisitor(filePath);
-          _resolvedUnitResult.unit!.accept(visitor);
-
-          for (var expectedCompletion in visitor.expectedCompletions) {
-            var resolvedUnitResult = _resolvedUnitResult;
-
-            // If an overlay option is being used, compute the overlay file, and
-            // have the context reanalyze the file
-            if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
-              var overlayContents = _getOverlayContents(
-                  _resolvedUnitResult.content!, expectedCompletion);
-
-              _provider.setOverlay(filePath,
-                  content: overlayContents,
-                  modificationStamp: overlayModificationStamp++);
-              context.driver.changeFile(filePath);
-              resolvedUnitResult =
-                  await context.currentSession.getResolvedUnit(filePath);
-            }
-
-            // As this point the completion suggestions are computed,
-            // and results are collected with varying settings for
-            // comparison:
-
-            Future<int> handleExpectedCompletion(
-                {required MetricsSuggestionListener listener,
-                required CompletionMetrics metrics}) async {
-              var stopwatch = Stopwatch()..start();
-              var request = CompletionRequestImpl(
-                resolvedUnitResult,
-                expectedCompletion.offset,
-                CompletionPerformance(),
-              );
-              var directiveInfo = DartdocDirectiveInfo();
-
-              late OpType opType;
-              late List<protocol.CompletionSuggestion> suggestions;
-              await request.performance.runRequestOperation(
-                (performance) async {
-                  var dartRequest = await DartCompletionRequestImpl.from(
-                      performance, request, directiveInfo);
-                  opType =
-                      OpType.forCompletion(dartRequest.target, request.offset);
-                  suggestions = await _computeCompletionSuggestions(
-                    listener,
-                    performance,
-                    request,
-                    declarationsTracker,
-                    availableSuggestionsParams,
-                  );
-                },
-              );
-              stopwatch.stop();
-
-              return forEachExpectedCompletion(
-                  request,
-                  listener,
-                  expectedCompletion,
-                  opType.completionLocation,
-                  suggestions,
-                  metrics,
-                  stopwatch.elapsedMilliseconds);
-            }
-
-            var bestRank = -1;
-            var bestName = '';
-            for (var metrics in targetMetrics) {
-              // Compute the completions.
-              metrics.enable();
-              // if (FeatureComputer.noDisabledFeatures) {
-              //   var line = expectedCompletion.lineNumber;
-              //   var column = expectedCompletion.columnNumber;
-              //   print('$filePath:$line:$column');
-              // }
-              var listener = MetricsSuggestionListener();
-              var rank = await handleExpectedCompletion(
-                  listener: listener, metrics: metrics);
-              if (bestRank < 0 || rank < bestRank) {
-                bestRank = rank;
-                bestName = metrics.name;
-              }
-              metrics.disable();
-            }
-            rankComparison.count(bestName);
-
-            // If an overlay option is being used, remove the overlay applied
-            // earlier
-            if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
-              _provider.removeOverlay(filePath);
-            }
+          } else {
+            results.add(result);
+            documentationCache.cacheFromResult(result);
           }
         } catch (exception, stackTrace) {
           print('Exception caught analyzing: $filePath');
           print(exception.toString());
           print(stackTrace);
-          resultCode = 1;
+        }
+      }
+    }
+    for (var result in results) {
+      _resolvedUnitResult = result;
+      var filePath = result.path!;
+      // Use the ExpectedCompletionsVisitor to compute the set of expected
+      // completions for this CompilationUnit.
+      final visitor = ExpectedCompletionsVisitor(filePath);
+      _resolvedUnitResult.unit!.accept(visitor);
+
+      for (var expectedCompletion in visitor.expectedCompletions) {
+        var resolvedUnitResult = _resolvedUnitResult;
+
+        // If an overlay option is being used, compute the overlay file, and
+        // have the context reanalyze the file
+        if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
+          var overlayContents = _getOverlayContents(
+              _resolvedUnitResult.content!, expectedCompletion);
+
+          _provider.setOverlay(filePath,
+              content: overlayContents,
+              modificationStamp: overlayModificationStamp++);
+          context.driver.changeFile(filePath);
+          resolvedUnitResult = await context.currentSession
+              .getResolvedUnit2(filePath) as ResolvedUnitResult;
+        }
+
+        // As this point the completion suggestions are computed,
+        // and results are collected with varying settings for
+        // comparison:
+
+        Future<int> handleExpectedCompletion(
+            {required MetricsSuggestionListener listener,
+            required CompletionMetrics metrics}) async {
+          var stopwatch = Stopwatch()..start();
+          var request = CompletionRequestImpl(
+            resolvedUnitResult,
+            expectedCompletion.offset,
+            CompletionPerformance(),
+          );
+          var directiveInfo = DartdocDirectiveInfo();
+
+          late OpType opType;
+          late List<protocol.CompletionSuggestion> suggestions;
+          await request.performance.runRequestOperation(
+            (performance) async {
+              var dartRequest = await DartCompletionRequestImpl.from(
+                  performance, request, directiveInfo);
+              opType = OpType.forCompletion(dartRequest.target, request.offset);
+              suggestions = await _computeCompletionSuggestions(
+                listener,
+                performance,
+                request,
+                dartdocDirectiveInfo,
+                documentationCache,
+                metrics.availableSuggestions ? declarationsTracker : null,
+                metrics.availableSuggestions
+                    ? availableSuggestionsParams
+                    : null,
+              );
+            },
+          );
+          stopwatch.stop();
+
+          return forEachExpectedCompletion(
+              request,
+              listener,
+              expectedCompletion,
+              opType.completionLocation,
+              suggestions,
+              metrics,
+              stopwatch.elapsedMilliseconds);
+        }
+
+        var bestRank = -1;
+        var bestName = '';
+        var defaultTag = getCurrentTag();
+        for (var metrics in targetMetrics) {
+          // Compute the completions.
+          metrics.enable();
+          metrics.userTag.makeCurrent();
+          var listener = MetricsSuggestionListener();
+          var rank = await handleExpectedCompletion(
+              listener: listener, metrics: metrics);
+          if (bestRank < 0 || rank < bestRank) {
+            bestRank = rank;
+            bestName = metrics.name;
+          }
+          defaultTag.makeCurrent();
+          metrics.disable();
+        }
+        rankComparison.count(bestName);
+
+        // If an overlay option is being used, remove the overlay applied
+        // earlier.
+        if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
+          _provider.removeOverlay(filePath);
         }
       }
     }
@@ -1389,10 +1434,6 @@ class CompletionMetricsComputer {
 
 /// The options specified on the command-line.
 class CompletionMetricsOptions {
-  /// A flag that causes the available suggestion sets to be used while
-  /// computing suggestions.
-  static const String AVAILABLE_SUGGESTIONS = 'available-suggestions';
-
   /// An option to control whether and how overlays should be produced.
   static const String OVERLAY = 'overlay';
 
@@ -1436,10 +1477,6 @@ class CompletionMetricsOptions {
   /// that had the worst mrr scores.
   static const String PRINT_WORST_RESULTS = 'print-worst-results';
 
-  /// A flag indicating whether available suggestions should be enabled for this
-  /// run.
-  final bool availableSuggestions;
-
   /// The overlay mode that should be used.
   final String overlay;
 
@@ -1472,7 +1509,6 @@ class CompletionMetricsOptions {
 
   factory CompletionMetricsOptions(results) {
     return CompletionMetricsOptions._(
-        availableSuggestions: results[AVAILABLE_SUGGESTIONS],
         overlay: results[OVERLAY],
         printMissedCompletionDetails: results[PRINT_MISSED_COMPLETION_DETAILS],
         printMissedCompletionSummary: results[PRINT_MISSED_COMPLETION_SUMMARY],
@@ -1483,8 +1519,7 @@ class CompletionMetricsOptions {
   }
 
   CompletionMetricsOptions._(
-      {required this.availableSuggestions,
-      required this.overlay,
+      {required this.overlay,
       required this.printMissedCompletionDetails,
       required this.printMissedCompletionSummary,
       required this.printMissingInformation,
@@ -1687,9 +1722,9 @@ class LocationTableLine {
 }
 
 class MetricsSuggestionListener implements SuggestionListener {
-  Map<protocol.CompletionSuggestion, List<double>> featureMap = {};
-
-  List<double> cachedFeatures = const [
+  /// The feature values to use when there are no features for a suggestion.
+  static const List<double> noFeatures = [
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -1701,6 +1736,10 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0
   ];
 
+  Map<protocol.CompletionSuggestion, List<double>> featureMap = {};
+
+  List<double> cachedFeatures = noFeatures;
+
   String? missingCompletionLocation;
 
   String? missingCompletionLocationTable;
@@ -1708,7 +1747,7 @@ class MetricsSuggestionListener implements SuggestionListener {
   @override
   void builtSuggestion(protocol.CompletionSuggestion suggestion) {
     featureMap[suggestion] = cachedFeatures;
-    cachedFeatures = const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    cachedFeatures = noFeatures;
   }
 
   @override

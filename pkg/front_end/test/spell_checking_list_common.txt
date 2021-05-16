@@ -415,6 +415,7 @@ caused
 causes
 causing
 caveats
+cell
 certain
 chain
 chained
@@ -561,6 +562,7 @@ computes
 computing
 concatenated
 concatenation
+concepts
 conclude
 conclusion
 concrete
@@ -587,6 +589,7 @@ conjunction
 connect
 connected
 connection
+connects
 consequence
 consequently
 conservative
@@ -1723,6 +1726,7 @@ lightweight
 like
 likely
 limit
+limitation
 limited
 line
 linear
@@ -3181,6 +3185,7 @@ unimplemented
 uninitialized
 union
 unioned
+unions
 unique
 unit
 unite

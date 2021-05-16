@@ -19,7 +19,7 @@ class VarianceBuilder {
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
       for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit!.declarations) {
+        for (var node in unitContext.unit.declarations) {
           if (node is FunctionTypeAlias) {
             _pending.add(node);
           } else if (node is GenericTypeAlias) {
@@ -31,7 +31,7 @@ class VarianceBuilder {
 
     for (var builder in linker.builders.values) {
       for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit!.declarations) {
+        for (var node in unitContext.unit.declarations) {
           if (node is ClassTypeAlias) {
             _typeParameters(node.typeParameters);
           } else if (node is ClassDeclaration) {
@@ -218,7 +218,9 @@ class VarianceBuilder {
 
   void _typeAliasElement(TypeAliasElementImpl element) {
     var node = element.linkedNode;
-    if (node is GenericTypeAlias) {
+    if (node == null) {
+      // Not linking.
+    } else if (node is GenericTypeAlias) {
       _genericTypeAlias(node);
     } else if (node is FunctionTypeAlias) {
       _functionTypeAlias(node);

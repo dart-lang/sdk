@@ -4,6 +4,8 @@
 //
 // Test verifying that generic extends are processed correctly.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A<T> {}

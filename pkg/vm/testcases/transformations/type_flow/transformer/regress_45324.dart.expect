@@ -17,3 +17,7 @@ static method main() → void {
   core::print([@vm.direct-call.metadata=#lib::X.targetPlatform??] [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] [@vm.inferred-type.metadata=#lib::X?] self::a.{self::A::targetPlatform});
   core::print(#C2);
 }
+constants  {
+  #C1 = 1
+  #C2 = self::A {targetPlatform:#C1}
+}

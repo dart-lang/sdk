@@ -6,7 +6,7 @@
 
 /// NOTE: this code has been generated automatically.
 
-import "dartfuzz_type_table.dart";
+import 'dartfuzz_type_table.dart';
 
 /// Enum for different restrictions on parameters for library methods.
 /// none - No restriction on the corresponding parameter.
@@ -77,6 +77,7 @@ class DartLib {
         'SecurityContext.alpnSupported', [DartType.VOID, DartType.VOID], false),
     DartLib('add', [DartType.SET_INT, DartType.INT], true),
     DartLib('bool.fromEnvironment', [DartType.VOID, DartType.STRING], true),
+    DartLib('bool.hasEnvironment', [DartType.VOID, DartType.STRING], true),
     DartLib('endsWith', [DartType.STRING, DartType.STRING], true),
     DartLib('flagW', [DartType.INT32X4, DartType.VOID], false),
     DartLib('flagX', [DartType.INT32X4, DartType.VOID], false),
@@ -798,6 +799,8 @@ class DartLib {
     DartLib('JsonUtf8Encoder.DEFAULT_BUFFER_SIZE',
         [DartType.VOID, DartType.VOID], false),
     DartLib('OSError.noErrorCode', [DartType.VOID, DartType.VOID], false),
+    DartLib('RangeError.checkNotNegative',
+        [DartType.VOID, DartType.INT, DartType.STRING, DartType.STRING], true),
     DartLib(
         'RangeError.checkValidRange',
         [
@@ -806,6 +809,17 @@ class DartLib {
           DartType.INT,
           DartType.INT,
           DartType.STRING,
+          DartType.STRING,
+          DartType.STRING
+        ],
+        true),
+    DartLib(
+        'RangeError.checkValueInInterval',
+        [
+          DartType.VOID,
+          DartType.INT,
+          DartType.INT,
+          DartType.INT,
           DartType.STRING,
           DartType.STRING
         ],
@@ -977,6 +991,7 @@ class DartLib {
     DartLib('sublist', [DartType.INT8LIST, DartType.INT, DartType.INT], true),
   ];
   static const listLibs = [
+    DartLib('List<int>.empty', [DartType.VOID, DartType.VOID], true),
     DartLib(
         'List<int>.filled', [DartType.VOID, DartType.INT, DartType.INT], true,
         restrictions: [Restriction.none, Restriction.small, Restriction.none]),
@@ -997,6 +1012,7 @@ class DartLib {
   ];
   static const nullLibs = [
     DartLib('provisional', [DartType.VOID, DartType.VOID], false),
+    DartLib('proxy', [DartType.VOID, DartType.VOID], false),
   ];
   static const runeIteratorLibs = [
     DartLib('iterator', [DartType.RUNES, DartType.VOID], false),
@@ -1013,8 +1029,6 @@ class DartLib {
   ];
   static const stringLibs = [
     DartLib('ListBase.listToString', [DartType.VOID, DartType.LIST_INT], true),
-    DartLib(
-        'MapBase.mapToString', [DartType.VOID, DartType.MAP_INT_STRING], true),
     DartLib('RegExp.escape', [DartType.VOID, DartType.STRING], true),
     DartLib('SetBase.setToString', [DartType.VOID, DartType.SET_INT], true),
     DartLib('String.fromCharCode', [DartType.VOID, DartType.INT], true),
@@ -1112,19 +1126,6 @@ class DartLib {
     DartLib('sublist', [DartType.UINT8LIST, DartType.INT, DartType.INT], true),
   ];
   static const voidLibs = [
-    DartLib('RangeError.checkNotNegative',
-        [DartType.VOID, DartType.INT, DartType.STRING, DartType.STRING], true),
-    DartLib(
-        'RangeError.checkValueInInterval',
-        [
-          DartType.VOID,
-          DartType.INT,
-          DartType.INT,
-          DartType.INT,
-          DartType.STRING,
-          DartType.STRING
-        ],
-        true),
     DartLib('add', [DartType.LIST_INT, DartType.INT], true),
     DartLib('addAll', [DartType.MAP_INT_STRING, DartType.MAP_INT_STRING], true),
     DartLib('clear', [DartType.LIST_INT, DartType.VOID], true),

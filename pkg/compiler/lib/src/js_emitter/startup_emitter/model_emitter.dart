@@ -5,7 +5,6 @@
 library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
-import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
@@ -14,7 +13,6 @@ import 'package:js_runtime/shared/embedded_names.dart'
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
-        GET_TYPE_FROM_NAME,
         INITIALIZE_LOADED_HUNK,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
@@ -61,6 +59,13 @@ import '../../js_backend/runtime_types_codegen.dart';
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoderImpl, Ruleset, RulesetEncoder;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
+import '../../js_backend/deferred_holder_expression.dart'
+    show
+        DeferredHolderExpressionFinalizer,
+        DeferredHolderExpressionFinalizerImpl,
+        DeferredHolderParameter,
+        DeferredHolderResource,
+        DeferredHolderResourceKind;
 import '../../js_backend/type_reference.dart'
     show
         TypeReferenceFinalizer,
@@ -213,8 +218,8 @@ class ModelEmitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value);
     }
-    return js.js('#.#',
-        [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
+    return js.js(
+        '#.#', [_namer.globalObjectForConstants(), _namer.constantName(value)]);
   }
 
   bool get shouldMergeFragments => _options.mergeFragmentsThreshold != null;
@@ -277,7 +282,7 @@ class ModelEmitter {
           preDeferredFragment.finalize(program, outputUnitMap, codeFragmentMap);
       for (var codeFragment in finalizedFragment.codeFragments) {
         js.Expression fragmentCode =
-            fragmentEmitter.emitCodeFragment(codeFragment, program.holders);
+            fragmentEmitter.emitCodeFragment(codeFragment);
         if (fragmentCode != null) {
           (deferredFragmentsCode[finalizedFragment] ??= [])
               .add(EmittedCodeFragment(codeFragment, fragmentCode));
@@ -330,7 +335,6 @@ class ModelEmitter {
     _task.measureSubtask('write fragments', () {
       writeMainFragment(mainFragment, mainCode,
           isSplit: program.deferredFragments.isNotEmpty ||
-              program.hasSoftDeferredClasses ||
               _options.experimentalTrackAllocations);
     });
 

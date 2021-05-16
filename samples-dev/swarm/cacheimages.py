@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -28,9 +28,9 @@ def convertImgs(infile):
             infile,
             verbose=options.verbose,
             encode_images=options.inline_images)
-        print 'Converted ' + infile
-    except BaseException, e:
-        print 'Caught error: %s' % e
+        print('Converted ' + infile)
+    except BaseException as e:
+        print('Caught error: %s' % e)
 
 
 def Flags():
@@ -53,13 +53,13 @@ def main():
     global options
     parser = Flags()
     options, args = parser.parse_args()
-    print "args: %s" % args
+    print("args: %s" % args)
     if len(args) < 1 or 'help' in args[0]:
-        print 'Usage: %s DIRECTORY' % basename(sys.argv[0])
+        print('Usage: %s DIRECTORY' % basename(sys.argv[0]))
         return 1
 
     dirname = args[0]
-    print 'Searching directory ' + dirname
+    print('Searching directory ' + dirname)
 
     files = []
     for root, dirs, fnames in os.walk(dirname):

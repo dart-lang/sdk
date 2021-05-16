@@ -64,7 +64,6 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
-import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
@@ -233,9 +232,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// Otherwise `null`.
   DartType? _thisType;
 
-  /// The object keeping track of which elements have had their types promoted.
-  late final TypePromotionManager _promoteManager;
-
   final FlowAnalysisHelper? flowAnalysis;
 
   /// A comment before a function should be resolved in the context of the
@@ -314,8 +310,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         super(definingLibrary, source, typeProvider as TypeProviderImpl,
             errorListener,
             nameScope: nameScope) {
-    _promoteManager = TypePromotionManager(typeSystem);
-
     var analysisOptions =
         definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
 
@@ -345,7 +339,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     );
     _binaryExpressionResolver = BinaryExpressionResolver(
       resolver: this,
-      promoteManager: _promoteManager,
     );
     _functionExpressionInvocationResolver =
         FunctionExpressionInvocationResolver(
@@ -354,7 +347,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     _functionExpressionResolver = FunctionExpressionResolver(
       resolver: this,
       migrationResolutionHooks: migrationResolutionHooks,
-      promoteManager: _promoteManager,
     );
     _forResolver = ForResolver(
       resolver: this,
@@ -396,7 +388,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     if (flowAnalysis != null) {
       return flowAnalysis!.localVariableTypeProvider;
     } else {
-      return _promoteManager.localVariableTypeProvider;
+      return const NonPromotingLocalVariableTypeProvider();
     }
   }
 
@@ -442,6 +434,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     required FunctionBody body,
     required AstNode errorNode,
   }) {
+    if (!_isNonNullableByDefault) return;
     if (!flowAnalysis!.flow!.isReachable) {
       return;
     }
@@ -630,11 +623,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     // TODO(brianwilkerson) Remove this method.
   }
 
-  /// Set the enclosing function body when partial AST is resolved.
-  void prepareCurrentFunctionBody(FunctionBody body) {
-    _promoteManager.enterFunctionBody(body);
-  }
-
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
     ClassElement? enclosingClassElement,
@@ -775,7 +763,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       if (element is PropertyAccessorElement && element.isGetter) {
         readType = element.returnType;
       } else if (element is VariableElement) {
-        readType = localVariableTypeProvider.getType(node as SimpleIdentifier);
+        readType = localVariableTypeProvider.getType(node as SimpleIdentifier,
+            isRead: true);
       }
     }
 
@@ -1199,22 +1188,12 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     Expression thenExpression = node.thenExpression;
     InferenceContext.setTypeFromNode(thenExpression, node);
 
-    if (flowAnalysis != null) {
-      if (flow != null) {
-        flow.conditional_thenBegin(condition, node);
-        checkUnreachableNode(thenExpression);
-      }
-      thenExpression.accept(this);
-      nullSafetyDeadCodeVerifier.flowEnd(thenExpression);
-    } else {
-      _promoteManager.visitConditionalExpression_then(
-        condition,
-        thenExpression,
-        () {
-          thenExpression.accept(this);
-        },
-      );
+    if (flow != null) {
+      flow.conditional_thenBegin(condition, node);
+      checkUnreachableNode(thenExpression);
     }
+    thenExpression.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(thenExpression);
 
     Expression elseExpression = node.elseExpression;
     InferenceContext.setTypeFromNode(elseExpression, node);
@@ -1242,35 +1221,27 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement!;
+    _enclosingFunction = node.declaredElement;
 
-    if (flowAnalysis != null) {
-      flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
-      flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
-    } else {
-      _promoteManager.enterFunctionBody(node.body);
-    }
+    flowAnalysis!.topLevelDeclaration_enter(node, node.parameters);
+    flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
 
     var returnType = _enclosingFunction!.type.returnType;
     InferenceContext.setType(node.body, returnType);
 
     super.visitConstructorDeclaration(node);
 
-    if (flowAnalysis != null) {
-      if (node.factoryKeyword != null) {
-        var bodyContext = BodyInferenceContext.of(node.body);
-        checkForBodyMayCompleteNormally(
-          returnType: bodyContext?.contextType,
-          body: node.body,
-          errorNode: node,
-        );
-      }
-      flowAnalysis!.executableDeclaration_exit(node.body, false);
-      flowAnalysis!.topLevelDeclaration_exit();
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } else {
-      _promoteManager.exitFunctionBody();
+    if (node.factoryKeyword != null) {
+      var bodyContext = BodyInferenceContext.of(node.body);
+      checkForBodyMayCompleteNormally(
+        returnType: bodyContext?.contextType,
+        body: node.body,
+        errorNode: node,
+      );
     }
+    flowAnalysis!.executableDeclaration_exit(node.body, false);
+    flowAnalysis!.topLevelDeclaration_exit();
+    nullSafetyDeadCodeVerifier.flowEnd(node);
 
     var constructor = node.declaredElement as ConstructorElementImpl;
     constructor.constantInitializers =
@@ -1456,7 +1427,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         whyNotPromotedList: whyNotPromotedList);
 
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+    extensionResolver.resolveOverride(node, whyNotPromotedList);
   }
 
   @override
@@ -1487,53 +1458,42 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
     bool isLocal = node.parent is FunctionDeclarationStatement;
 
-    if (flowAnalysis != null) {
-      if (isLocal) {
-        flowAnalysis!.flow!.functionExpression_begin(node);
-      } else {
-        flowAnalysis!.topLevelDeclaration_enter(
-          node,
-          node.functionExpression.parameters,
-          node.functionExpression.body,
-        );
-      }
-      flowAnalysis!.executableDeclaration_enter(
-        node,
-        node.functionExpression.parameters,
-        isLocal,
-      );
+    if (isLocal) {
+      flowAnalysis!.flow!.functionExpression_begin(node);
     } else {
-      _promoteManager.enterFunctionBody(node.functionExpression.body);
+      flowAnalysis!
+          .topLevelDeclaration_enter(node, node.functionExpression.parameters);
     }
+    flowAnalysis!.executableDeclaration_enter(
+      node,
+      node.functionExpression.parameters,
+      isLocal,
+    );
 
     var functionType = _enclosingFunction!.type;
     InferenceContext.setType(node.functionExpression, functionType);
 
     super.visitFunctionDeclaration(node);
 
-    if (flowAnalysis != null) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(
-        node.functionExpression.body,
-      );
-      checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
-        body: node.functionExpression.body,
-        errorNode: node.name,
-      );
-      flowAnalysis!.executableDeclaration_exit(
-        node.functionExpression.body,
-        isLocal,
-      );
-      if (isLocal) {
-        flowAnalysis!.flow!.functionExpression_end();
-      } else {
-        flowAnalysis!.topLevelDeclaration_exit();
-      }
-      nullSafetyDeadCodeVerifier.flowEnd(node);
+    // TODO(scheglov) encapsulate
+    var bodyContext = BodyInferenceContext.of(
+      node.functionExpression.body,
+    );
+    checkForBodyMayCompleteNormally(
+      returnType: bodyContext?.contextType,
+      body: node.functionExpression.body,
+      errorNode: node.name,
+    );
+    flowAnalysis!.executableDeclaration_exit(
+      node.functionExpression.body,
+      isLocal,
+    );
+    if (isLocal) {
+      flowAnalysis!.flow!.functionExpression_end();
     } else {
-      _promoteManager.exitFunctionBody();
+      flowAnalysis!.topLevelDeclaration_exit();
     }
+    nullSafetyDeadCodeVerifier.flowEnd(node);
 
     _enclosingFunction = outerFunction;
   }
@@ -1547,7 +1507,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement!;
+    _enclosingFunction = node.declaredElement;
 
     if (node.parent is FunctionDeclaration) {
       _functionExpressionResolver.resolve(node);
@@ -1620,18 +1580,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         whyNotPromoted: whyNotPromoted);
 
     CollectionElement thenElement = node.thenElement;
-    if (flowAnalysis != null) {
-      flowAnalysis!.flow?.ifStatement_thenBegin(condition, node);
-      thenElement.accept(this);
-    } else {
-      _promoteManager.visitIfElement_thenElement(
-        condition,
-        thenElement,
-        () {
-          thenElement.accept(this);
-        },
-      );
-    }
+    flowAnalysis!.flow?.ifStatement_thenBegin(condition, node);
+    thenElement.accept(this);
 
     var elseElement = node.elseElement;
     if (elseElement != null) {
@@ -1661,19 +1611,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         whyNotPromoted: whyNotPromoted);
 
     Statement thenStatement = node.thenStatement;
-    if (flowAnalysis != null) {
-      flowAnalysis!.flow?.ifStatement_thenBegin(condition, node);
-      visitStatementInScope(thenStatement);
-      nullSafetyDeadCodeVerifier.flowEnd(thenStatement);
-    } else {
-      _promoteManager.visitIfStatement_thenStatement(
-        condition,
-        thenStatement,
-        () {
-          visitStatementInScope(thenStatement);
-        },
-      );
-    }
+    flowAnalysis!.flow?.ifStatement_thenBegin(condition, node);
+    visitStatementInScope(thenStatement);
+    nullSafetyDeadCodeVerifier.flowEnd(thenStatement);
 
     var elseStatement = node.elseStatement;
     if (elseStatement != null) {
@@ -1768,34 +1708,26 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement!;
+    _enclosingFunction = node.declaredElement;
 
-    if (flowAnalysis != null) {
-      flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
-      flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
-    } else {
-      _promoteManager.enterFunctionBody(node.body);
-    }
+    flowAnalysis!.topLevelDeclaration_enter(node, node.parameters);
+    flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
 
     DartType returnType = _enclosingFunction!.returnType;
     InferenceContext.setType(node.body, returnType);
 
     super.visitMethodDeclaration(node);
 
-    if (flowAnalysis != null) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(node.body);
-      checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
-        body: node.body,
-        errorNode: node.name,
-      );
-      flowAnalysis!.executableDeclaration_exit(node.body, false);
-      flowAnalysis!.topLevelDeclaration_exit();
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } else {
-      _promoteManager.exitFunctionBody();
-    }
+    // TODO(scheglov) encapsulate
+    var bodyContext = BodyInferenceContext.of(node.body);
+    checkForBodyMayCompleteNormally(
+      returnType: bodyContext?.contextType,
+      body: node.body,
+      errorNode: node.name,
+    );
+    flowAnalysis!.executableDeclaration_exit(node.body, false);
+    flowAnalysis!.topLevelDeclaration_exit();
+    nullSafetyDeadCodeVerifier.flowEnd(node);
 
     _enclosingFunction = outerFunction;
   }
@@ -2030,7 +1962,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     super.visitSwitchCase(node);
 
     var flow = flowAnalysis?.flow;
-    if (flow != null && flow.isReachable) {
+    if (flow != null && flow.isReachable && _isNonNullableByDefault) {
       var switchStatement = node.parent as SwitchStatement;
       if (switchStatement.members.last != node && node.statements.isNotEmpty) {
         errorReporter.reportErrorForToken(
@@ -2162,7 +2094,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     if (initializer != null) {
       var initializerStaticType = initializer.typeOrThrow;
       if (declaredType == null) {
-        if (initializerStaticType is TypeParameterType) {
+        if (_isNonNullableByDefault &&
+            initializerStaticType is TypeParameterType) {
           flowAnalysis?.flow?.promote(
               declaredElement as PromotableElement, initializerStaticType);
         }
@@ -2482,7 +2415,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             null,
             true,
             FlowAnalysisHelperForMigration(
-                typeSystem, migrationResolutionHooks),
+                typeSystem, migrationResolutionHooks, true),
             migrationResolutionHooks,
             migrationResolutionHooks);
 
@@ -3488,9 +3421,10 @@ class _WhyNotPromotedVisitor
   DiagnosticMessage? visitThisNotPromoted(ThisNotPromoted reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
-        message: "'this' can't be promoted.  See ${reason.documentationLink}",
+        message: "'this' can't be promoted",
         offset: _errorEntity.offset,
-        length: _errorEntity.length);
+        length: _errorEntity.length,
+        url: reason.documentationLink);
   }
 
   DiagnosticMessageImpl _contextMessageForProperty(
@@ -3499,10 +3433,11 @@ class _WhyNotPromotedVisitor
       NonPromotionReason reason) {
     return DiagnosticMessageImpl(
         filePath: property.source.fullName,
-        message: "'$propertyName' refers to a property so it couldn't be "
-            "promoted.  See ${reason.documentationLink}",
+        message:
+            "'$propertyName' refers to a property so it couldn't be promoted",
         offset: property.nameOffset,
-        length: property.nameLength);
+        length: property.nameLength,
+        url: reason.documentationLink);
   }
 
   DiagnosticMessageImpl _contextMessageForWrite(
@@ -3510,8 +3445,9 @@ class _WhyNotPromotedVisitor
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "Variable '$variableName' could not be promoted due to an "
-            "assignment.  See ${reason.documentationLink}",
+            "assignment",
         offset: node.offset,
-        length: node.length);
+        length: node.length,
+        url: reason.documentationLink);
   }
 }

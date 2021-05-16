@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -17,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as pathos;
 
 /// [MoveFileRefactoring] implementation.
@@ -26,10 +25,10 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   final pathos.Context pathContext;
   final RefactoringWorkspace refactoringWorkspace;
   final ResolvedUnitResult resolvedUnit;
-  AnalysisDriver driver;
+  late AnalysisDriver driver;
 
-  String oldFile;
-  String newFile;
+  late String oldFile;
+  late String newFile;
 
   final packagePrefixedStringPattern = RegExp(r'''^r?['"]+package:''');
 
@@ -43,7 +42,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     for (var driver in refactoringWorkspace.drivers) {
-      var rootPath = driver.analysisContext.contextRoot.root.path;
+      var rootPath = driver.analysisContext!.contextRoot.root.path;
       if (pathContext.equals(rootPath, oldFile)) {
         return RefactoringStatus.fatal(
             'Renaming an analysis root is not supported ($oldFile)');
@@ -72,13 +71,12 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange() async {
     var changeBuilder = ChangeBuilder(session: resolvedUnit.session);
-    var element = resolvedUnit.unit.declaredElement;
+    var element = resolvedUnit.unit!.declaredElement;
     if (element == null) {
       return changeBuilder.sourceChange;
     }
 
     var libraryElement = element.library;
-    var libraryPath = libraryElement.source.fullName;
 
     final oldDir = pathContext.dirname(oldFile);
     final newDir = pathContext.dirname(newFile);
@@ -87,35 +85,37 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     if (element == libraryElement.definingCompilationUnit) {
       // Handle part-of directives in this library
       var libraryResult = await driver.currentSession
-          .getResolvedLibraryByElement(libraryElement);
-      ResolvedUnitResult definingUnitResult;
-      for (var result in libraryResult.units) {
+          .getResolvedLibraryByElement2(libraryElement);
+      if (libraryResult is! ResolvedLibraryResult) {
+        return changeBuilder.sourceChange;
+      }
+      var definingUnitResult = libraryResult.units!.first;
+      for (var result in libraryResult.units!) {
         if (result.isPart) {
-          var partOfs = result.unit.directives
+          var partOfs = result.unit!.directives
               .whereType<PartOfDirective>()
-              .where(
-                  (po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
+              .map((e) => e.uri)
+              .whereNotNull()
+              .where((uri) => _isRelativeUri(uri.stringValue));
           if (partOfs.isNotEmpty) {
             await changeBuilder.addDartFileEdit(
-                result.unit.declaredElement.source.fullName, (builder) {
-              partOfs.forEach((po) {
+                result.unit!.declaredElement!.source.fullName, (builder) {
+              partOfs.forEach((uri) {
                 var newLocation =
                     pathContext.join(newDir, pathos.basename(newFile));
                 var newUri = _getRelativeUri(newLocation, oldDir);
                 builder.addSimpleReplacement(
-                    SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
+                    SourceRange(uri.offset, uri.length), "'$newUri'");
               });
             });
           }
         }
-        if (result.path == libraryPath) {
-          definingUnitResult = result;
-        }
       }
 
       if (newDir != oldDir) {
-        await changeBuilder.addDartFileEdit(definingUnitResult.path, (builder) {
-          for (var directive in definingUnitResult.unit.directives) {
+        await changeBuilder.addDartFileEdit(definingUnitResult.path!,
+            (builder) {
+          for (var directive in definingUnitResult.unit!.directives) {
             if (directive is UriBasedDirective) {
               _updateUriReference(builder, directive, oldDir, newDir);
             }
@@ -124,17 +124,19 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       }
     } else if (newDir != oldDir) {
       // Otherwise, we need to update any relative part-of references.
-      var partOfs = resolvedUnit.unit.directives
+      var partOfs = resolvedUnit.unit!.directives
           .whereType<PartOfDirective>()
-          .where((po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
+          .map((e) => e.uri)
+          .whereNotNull()
+          .where((uri) => _isRelativeUri(uri.stringValue));
 
       if (partOfs.isNotEmpty) {
         await changeBuilder.addDartFileEdit(element.source.fullName, (builder) {
-          partOfs.forEach((po) {
-            var oldLocation = pathContext.join(oldDir, po.uri.stringValue);
+          partOfs.forEach((uri) {
+            var oldLocation = pathContext.join(oldDir, uri.stringValue);
             var newUri = _getRelativeUri(oldLocation, newDir);
             builder.addSimpleReplacement(
-                SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
+                SourceRange(uri.offset, uri.length), "'$newUri'");
           });
         });
       }
@@ -178,7 +180,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   }
 
   bool _isPackageReference(SourceReference reference) {
-    var source = reference.element.source;
+    var source = reference.element.source!;
     var quotedImportUri = source.contents.data.substring(reference.range.offset,
         reference.range.offset + reference.range.length);
     return packagePrefixedStringPattern.hasMatch(quotedImportUri);
@@ -189,7 +191,10 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   /// The following URI's are not relative:
   ///    `/absolute/path/file.dart`
   ///    `dart:math`
-  bool _isRelativeUri(String path) {
+  bool _isRelativeUri(String? path) {
+    if (path == null) {
+      return false;
+    }
     // absolute URI
     if (Uri.parse(path).isAbsolute) {
       return false;

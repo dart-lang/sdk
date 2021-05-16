@@ -219,13 +219,7 @@ class ConstructorFieldsVerifier {
             );
           }
         } else if (state == _InitState.initInFieldFormal) {
-          if (fieldElement.isFinal || fieldElement.isConst) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
-              parameter.identifier,
-              [fieldElement.displayName],
-            );
-          }
+          // Reported in DuplicateDefinitionVerifier._checkDuplicateIdentifier
         }
       }
     }

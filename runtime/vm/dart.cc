@@ -103,7 +103,8 @@ static void CheckOffsets() {
     ok = false;                                                                \
   }
 
-// No consistency checks needed for this construct.
+// No consistency checks needed for these constructs.
+#define CHECK_ARRAY_SIZEOF(Class, Name, ElementOffset)
 #define CHECK_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -131,8 +132,16 @@ static void CheckOffsets() {
   CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
                Class##_elements_start_offset);                                 \
   CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size);
+#if defined(DART_PRECOMPILER)
+// Objects in precompiler may have extra fields only used during
+// precompilation (such as Class::target_instance_size_in_words_),
+// so size of objects in precompiler doesn't necessarily match
+// size of objects at run time.
+#define CHECK_SIZEOF(Class, Name, What)
+#else
 #define CHECK_SIZEOF(Class, Name, What)                                        \
   CHECK_OFFSET(sizeof(What), Class##_##Name);
+#endif  // defined(DART_PRECOMPILER)
 #define CHECK_RANGE(Class, Getter, Type, First, Last, Filter)                  \
   for (intptr_t i = static_cast<intptr_t>(First);                              \
        i <= static_cast<intptr_t>(Last); i++) {                                \
@@ -144,11 +153,12 @@ static void CheckOffsets() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
-                      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT)
+                      CHECK_ARRAY_SIZEOF, CHECK_PAYLOAD_SIZEOF, CHECK_RANGE,
+                      CHECK_CONSTANT)
 
-  NOT_IN_PRECOMPILED_RUNTIME(
-      JIT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
-                       CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
+      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_ARRAY_SIZEOF,
+      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(
@@ -851,7 +861,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   Object::VerifyBuiltinVtables();
-  DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+  if (T->isolate()->origin_id() == 0) {
+    DEBUG_ONLY(IG->heap()->Verify(kForbidMarked));
+  }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool kIsAotRuntime = true;
@@ -966,10 +978,6 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
                              FLAG_use_field_guards);
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
-#if !defined(PRODUCT)
-    buffer.AddString(FLAG_code_comments ? " code-comments"
-                                        : " no-code-comments");
-#endif
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)

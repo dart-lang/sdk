@@ -451,8 +451,21 @@ struct RangeErrorABI {
   static const Register kIndexReg = R1;
 };
 
-// ABI for AllocateMint*Stub.
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = R0;
+  static const Register kFunctionReg = R1;
+  static const Register kScratchReg = R4;
+};
+
+// ABI for AllocateMintShared*Stub.
 struct AllocateMintABI {
+  static const Register kResultReg = R0;
+  static const Register kTempReg = R1;
+};
+
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
   static const Register kResultReg = R0;
   static const Register kTempReg = R1;
 };
@@ -547,7 +560,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSizeBut8AlignedTo8;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
 #if defined(TARGET_OS_MACOS_IOS)
   static constexpr AlignmentStrategy kFieldAlignment =
       kAlignedToValueSizeBut8AlignedTo4;
@@ -759,6 +772,11 @@ enum ScaleFactor {
   TIMES_WORD_SIZE = kInt32SizeLog2,
 #else
 #error "Unexpected word size"
+#endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+#error Cannot compress ARM32
 #endif
 };
 

@@ -4,8 +4,9 @@
 
 import 'dart:collection';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+
 import 'common/test_helper.dart';
 
 class Foo {}

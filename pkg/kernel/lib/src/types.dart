@@ -112,6 +112,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is FunctionType) {
       const IsFunctionSubtypeOf relation = const IsFunctionSubtypeOf();
@@ -131,6 +133,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is TypeParameterType) {
       if (t.promotedBound == null) {
@@ -152,6 +156,8 @@ class Types with StandardBounds {
           return relation.isTypedefRelated(s, t, this);
         } else if (s is FutureOrType) {
           return relation.isFutureOrRelated(s, t, this);
+        } else if (s is ExtensionType) {
+          return relation.isExtensionRelated(s, t, this);
         }
       } else {
         const IsIntersectionSubtypeOf relation =
@@ -172,6 +178,8 @@ class Types with StandardBounds {
           return relation.isTypedefRelated(s, t, this);
         } else if (s is FutureOrType) {
           return relation.isFutureOrRelated(s, t, this);
+        } else if (s is ExtensionType) {
+          return relation.isExtensionRelated(s, t, this);
         }
       }
     } else if (t is TypedefType) {
@@ -192,6 +200,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is FutureOrType) {
       const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
@@ -211,6 +221,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is NullType) {
       const IsNullTypeSubtypeOf relation = const IsNullTypeSubtypeOf();
@@ -230,6 +242,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is NeverType) {
       const IsNeverTypeSubtypeOf relation = const IsNeverTypeSubtypeOf();
@@ -249,6 +263,30 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
+      }
+    } else if (t is ExtensionType) {
+      const IsExtensionTypeSubtypeOf relation =
+          const IsExtensionTypeSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return s.promotedBound == null
+            ? relation.isTypeParameterRelated(s, t, this)
+            : relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else {
       throw "Unhandled type: ${t.runtimeType}";
@@ -357,7 +395,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, InterfaceType t, Types types) {
     return types
-        .performNullabilityAwareSubtypeCheck(s.parameter.bound!, t)
+        .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 
@@ -409,7 +447,6 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   IsSubtypeOf isExtensionRelated(
       ExtensionType s, InterfaceType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     return const IsSubtypeOf.never();
   }
 }
@@ -437,7 +474,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         TypeParameter sTypeVariable = sTypeVariables[i];
         TypeParameter tTypeVariable = tTypeVariables[i];
         result = result.and(types.performNullabilityAwareMutualSubtypesCheck(
-            sTypeVariable.bound!, tTypeVariable.bound!));
+            sTypeVariable.bound, tTypeVariable.bound));
         typeVariableSubstitution.add(new TypeParameterType.forAlphaRenaming(
             sTypeVariable, tTypeVariable));
       }
@@ -451,8 +488,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
           TypeParameter sTypeVariable = sTypeVariables[i];
           TypeParameter tTypeVariable = tTypeVariables[i];
           result = result.and(types.performNullabilityAwareMutualSubtypesCheck(
-              substitution.substituteType(sTypeVariable.bound!),
-              tTypeVariable.bound!));
+              substitution.substituteType(sTypeVariable.bound),
+              tTypeVariable.bound));
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
             return const IsSubtypeOf.never();
           }
@@ -573,7 +610,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       TypeParameterType s, FunctionType t, Types types) {
     // Rule 13.
     return types
-        .performNullabilityAwareSubtypeCheck(s.parameter.bound!, t)
+        .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 
@@ -590,7 +627,6 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
 
   @override
   IsSubtypeOf isExtensionRelated(ExtensionType s, FunctionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     return const IsSubtypeOf.never();
   }
 }
@@ -677,7 +713,6 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   IsSubtypeOf isExtensionRelated(
       ExtensionType s, TypeParameterType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     return const IsSubtypeOf.never();
   }
 }
@@ -729,8 +764,7 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
 
   @override
   IsSubtypeOf isExtensionRelated(ExtensionType s, TypedefType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 }
 
@@ -828,9 +862,9 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
             s, t.typeArgument.withDeclaredNullability(t.nullability))
         // Rule 13.
         .orSubtypeCheckFor(
-            s.parameter.bound!.withDeclaredNullability(
+            s.parameter.bound.withDeclaredNullability(
                 combineNullabilitiesForSubstitution(
-                    s.parameter.bound!.nullability, s.nullability)),
+                    s.parameter.bound.nullability, s.nullability)),
             t,
             types)
         // Rule 10.
@@ -862,8 +896,9 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
 
   @override
   IsSubtypeOf isExtensionRelated(ExtensionType s, FutureOrType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    // Rule 11.
+    return types.performNullabilityAwareSubtypeCheck(
+        s, t.typeArgument.withDeclaredNullability(t.nullability));
   }
 }
 
@@ -928,7 +963,6 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   IsSubtypeOf isExtensionRelated(
       ExtensionType s, TypeParameterType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     return const IsSubtypeOf.never();
   }
 }
@@ -984,7 +1018,6 @@ class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
 
   @override
   IsSubtypeOf isExtensionRelated(ExtensionType s, NullType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     return const IsSubtypeOf.never();
   }
 }
@@ -1039,7 +1072,6 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
 
   @override
   IsSubtypeOf isExtensionRelated(ExtensionType s, NeverType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     return const IsSubtypeOf.never();
   }
 }
@@ -1049,62 +1081,54 @@ class IsExtensionTypeSubtypeOf implements TypeRelation<ExtensionType> {
 
   @override
   IsSubtypeOf isDynamicRelated(DynamicType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.onType);
   }
 
   @override
   IsSubtypeOf isVoidRelated(VoidType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.onType);
   }
 
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.onType);
   }
 
   @override
   IsSubtypeOf isIntersectionRelated(
       TypeParameterType intersection, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(intersection, t.onType);
   }
 
   @override
   IsSubtypeOf isFunctionRelated(FunctionType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.onType);
   }
 
   @override
   IsSubtypeOf isFutureOrRelated(FutureOrType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.onType);
   }
 
   @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.onType);
   }
 
   @override
   IsSubtypeOf isTypedefRelated(TypedefType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
-    return const IsSubtypeOf.never();
+    return types.performNullabilityAwareSubtypeCheck(s, t.onType);
   }
 
   @override
   IsSubtypeOf isExtensionRelated(
       ExtensionType s, ExtensionType t, Types types) {
-    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     if (s.extension != t.extension) {
       return const IsSubtypeOf.never();
     }
+    // TODO(dmitryas): Check if subtyping or mutual subtyping should be used.
     return types
         .areTypeArgumentsOfSubtypeKernel(
             s.typeArguments, t.typeArguments, t.extension.typeParameters)

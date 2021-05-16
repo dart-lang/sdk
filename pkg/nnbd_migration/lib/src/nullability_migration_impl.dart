@@ -121,7 +121,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     _queriedUnmigratedDependencies = true;
     var unmigratedDependencies = <Source>[];
     for (var entry in _libraryOptInStatus.entries) {
-      if (_graph.isBeingMigrated(entry.key)) continue;
+      if (_graph.isPathBeingMigrated(entry.key.fullName)) continue;
       if (!entry.value) {
         unmigratedDependencies.add(entry.key);
       }

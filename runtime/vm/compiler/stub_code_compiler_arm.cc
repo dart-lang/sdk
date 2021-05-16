@@ -28,14 +28,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, precompiled_mode);
-
 namespace compiler {
 
 // Ensures that [R0] is a new object, if not it will be added to the remembered
@@ -43,8 +35,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -244,7 +236,8 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ ldr(R3, Address(R0, R4), NE);
 
   // Push type arguments & extracted method.
-  __ PushList(1 << R3 | 1 << R1);
+  __ Push(R3);
+  __ Push(R1);
 
   // Allocate context.
   {
@@ -275,32 +268,41 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ StoreIntoObject(R0, FieldAddress(R0, target::Context::variable_offset(0)),
                      R1);
 
+  // Pop function before pushing context.
+  __ Pop(AllocateClosureABI::kFunctionReg);
+
   // Push context.
   __ Push(R0);
 
-  // Allocate closure.
+  // Allocate closure. After this point, we only use the registers in
+  // AllocateClosureABI.
   __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
-                                        CodeEntryKind::kUnchecked)));
-  __ blx(R1);
+  __ ldr(AllocateClosureABI::kScratchReg,
+         FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ blx(AllocateClosureABI::kScratchReg);
 
   // Populate closure object.
-  __ Pop(R1);  // Pop context.
-  __ StoreIntoObject(R0, FieldAddress(R0, target::Closure::context_offset()),
-                     R1);
-  __ PopList(1 << R3 | 1 << R1);  // Pop type arguments & extracted method.
+  __ Pop(AllocateClosureABI::kScratchReg);  // Pop context.
+  __ StoreIntoObject(AllocateClosureABI::kResultReg,
+                     FieldAddress(AllocateClosureABI::kResultReg,
+                                  target::Closure::context_offset()),
+                     AllocateClosureABI::kScratchReg);
+  __ Pop(AllocateClosureABI::kScratchReg);  // Pop type arguments.
   __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Closure::function_offset()), R1);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::instantiator_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
+  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
   __ StoreIntoObjectNoBarrier(
-      R0,
-      FieldAddress(R0, target::Closure::instantiator_type_arguments_offset()),
-      R3);
-  __ LoadObject(R1, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Closure::delayed_type_arguments_offset()),
-      R1);
+      AllocateClosureABI::kResultReg,
+      FieldAddress(AllocateClosureABI::kResultReg,
+                   target::Closure::delayed_type_arguments_offset()),
+      AllocateClosureABI::kScratchReg);
 
   __ LeaveStubFrame();
+  // No-op if the two are the same.
+  __ MoveRegister(R0, AllocateClosureABI::kResultReg);
   __ Ret();
 }
 
@@ -466,8 +468,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // them.
   __ blx(R5);
 
-  // EnterSafepoint clobbers R4, R5 and TMP, all saved or volatile.
-  __ EnterSafepoint(R4, R5);
+  // Clobbers R4, R5 and TMP, all saved or volatile.
+  __ EnterFullSafepoint(R4, R5);
 
   // Returns.
   __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5));
@@ -1129,7 +1131,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -1150,7 +1152,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -3443,7 +3445,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ b(&call_runtime, HI);
     __ mov(R2, Operand(R2, LSL, scale_shift));
     const intptr_t fixed_size_plus_alignment_padding =
-        target::TypedData::InstanceSize() +
+        target::TypedData::HeaderSize() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ AddImmediate(R2, fixed_size_plus_alignment_padding);
     __ bic(R2, R2, Operand(target::ObjectAlignment::kObjectAlignment - 1));
@@ -3500,7 +3502,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* data area to be initialized. */
     __ LoadImmediate(R8, 0);
     __ mov(R9, Operand(R8));
-    __ AddImmediate(R3, R0, target::TypedData::InstanceSize() - 1);
+    __ AddImmediate(R3, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R3);
     Label init_loop;

@@ -184,6 +184,8 @@ import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
+import 'ffi_array_multi_non_positive_input_test.dart'
+    as ffi_array_multi_non_positive_input_test;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
@@ -205,8 +207,6 @@ import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
 import 'final_initialized_in_delcaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
-import 'final_initialized_multiple_times_test.dart'
-    as final_initialized_multiple_times;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -265,8 +265,6 @@ import 'initializer_for_non_existent_field_test.dart'
 import 'initializer_for_static_field_test.dart' as initializer_for_static_field;
 import 'initializing_formal_for_non_existent_field_test.dart'
     as initializing_formal_for_non_existent_field;
-import 'initializing_formal_for_static_field_test.dart'
-    as initializing_formal_for_static_field;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
 import 'instance_member_access_from_factory_test.dart'
@@ -472,6 +470,7 @@ import 'non_void_return_for_setter_test.dart' as non_void_return_for_setter;
 import 'not_a_type_test.dart' as not_a_type;
 import 'not_assigned_potentially_non_nullable_local_variable_test.dart'
     as not_assigned_potentially_non_nullable_local_variable;
+import 'not_binary_operator_test.dart' as not_binary_operator;
 import 'not_enough_positional_arguments_test.dart'
     as not_enough_positional_arguments;
 import 'not_initialized_non_nullable_instance_field_test.dart'
@@ -811,12 +810,12 @@ main() {
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
+    ffi_array_multi_non_positive_input_test.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();
     field_initialized_in_initializer_and_declaration.main();
     field_initialized_in_parameter_and_initializer.main();
-    final_initialized_multiple_times.main();
     field_initializer_factory_constructor.main();
     field_initializer_in_struct.main();
     field_initializer_not_assignable.main();
@@ -859,7 +858,6 @@ main() {
     initializer_for_non_existent_field.main();
     initializer_for_static_field.main();
     initializing_formal_for_non_existent_field.main();
-    initializing_formal_for_static_field.main();
     instance_access_to_static_member.main();
     instance_member_access_from_factory.main();
     instance_member_access_from_static.main();
@@ -970,6 +968,8 @@ main() {
     non_bool_expression.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
+    non_const_call_to_literal_constructor.main();
+    non_const_map_as_expression_statement.main();
     non_constant_annotation_constructor.main();
     non_constant_list_element.main();
     non_constant_case_expression_from_deferred_library.main();
@@ -995,8 +995,7 @@ main() {
     non_void_return_for_setter.main();
     not_a_type.main();
     not_assigned_potentially_non_nullable_local_variable.main();
-    non_const_call_to_literal_constructor.main();
-    non_const_map_as_expression_statement.main();
+    not_binary_operator.main();
     not_enough_positional_arguments.main();
     not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_variable.main();

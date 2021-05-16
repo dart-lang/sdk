@@ -13,23 +13,19 @@ import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:collection/collection.dart';
 
 class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
   final MigrationResolutionHooks? _migrationResolutionHooks;
   final InvocationInferenceHelper _inferenceHelper;
-  final TypePromotionManager _promoteManager;
 
   FunctionExpressionResolver({
     required ResolverVisitor resolver,
     required MigrationResolutionHooks? migrationResolutionHooks,
-    required TypePromotionManager promoteManager,
   })   : _resolver = resolver,
         _migrationResolutionHooks = migrationResolutionHooks,
-        _inferenceHelper = resolver.inferenceHelper,
-        _promoteManager = promoteManager;
+        _inferenceHelper = resolver.inferenceHelper;
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
 
@@ -39,13 +35,9 @@ class FunctionExpressionResolver {
     var isFunctionDeclaration = node.parent is FunctionDeclaration;
     var body = node.body;
 
-    if (_resolver.flowAnalysis != null) {
-      if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
-        _resolver.flowAnalysis!
-            .executableDeclaration_enter(node, node.parameters, true);
-      }
-    } else {
-      _promoteManager.enterFunctionBody(body);
+    if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
+      _resolver.flowAnalysis!
+          .executableDeclaration_enter(node, node.parameters, true);
     }
 
     var contextType = InferenceContext.getContext(node);
@@ -63,19 +55,15 @@ class FunctionExpressionResolver {
     node.visitChildren(_resolver);
     _resolve2(node);
 
-    if (_resolver.flowAnalysis != null) {
-      if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
-        var bodyContext = BodyInferenceContext.of(node.body);
-        _resolver.checkForBodyMayCompleteNormally(
-          returnType: bodyContext?.contextType,
-          body: body,
-          errorNode: body,
-        );
-        _resolver.flowAnalysis!.flow?.functionExpression_end();
-        _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
-      }
-    } else {
-      _promoteManager.exitFunctionBody();
+    if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
+      var bodyContext = BodyInferenceContext.of(node.body);
+      _resolver.checkForBodyMayCompleteNormally(
+        returnType: bodyContext?.contextType,
+        body: body,
+        errorNode: body,
+      );
+      _resolver.flowAnalysis!.flow?.functionExpression_end();
+      _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     }
   }
 

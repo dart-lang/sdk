@@ -194,7 +194,7 @@ ConstEvalDeferredLibrary:
   tip: >
     Try moving the constant from the deferred library, or removing 'deferred'
     from the import.
-  analyzerCode: NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY
+  analyzerCode: INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
 
 ConstEvalFreeTypeParameter:
   template: "The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed."
@@ -221,6 +221,9 @@ ConstEvalExtension:
 
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
+
+ConstEvalUnhandledCoreException:
+  template: "Unhandled core exception: #stringOKEmpty"
 
 ConstEvalUnhandledException:
   template: "Unhandled exception: #constant"
@@ -1794,6 +1797,20 @@ NotAPrefixInTypeAnnotation:
           T.String field;
         }
 
+FunctionUsedAsDec:
+  template: "'Function' is a built-in identifier, could not used as a #name name."
+  script:
+    - class Function {}
+    - extension Function on int {}
+    - mixin Function {}
+
+FunctionAsTypeParameter:
+  template: "'Function' is a built-in identifier, could not used as a type identifier."
+  script:
+    - class C<Function> {}
+    - mixin A<Function> {}
+    - extension A<Function> on List<Function> {}
+
 UnresolvedPrefixInTypeAnnotation:
   template: "'#name.#name2' can't be used as a type because '#name' isn't defined."
   analyzerCode: NOT_A_TYPE
@@ -2539,8 +2556,9 @@ AnnotationOnTypeArgument:
 
 AnnotationOnFunctionTypeTypeVariable:
   template: "A type variable on a function type can't have annotations."
-  script:
-    - "main() { Function<@Object() T>() x; }"
+  script: |
+     // @dart=2.13
+     main() { Function<@Object() T>() x; }
 
 ExpectedEnumBody:
   template: "Expected a enum body, but got '#lexeme'."
@@ -2899,6 +2917,7 @@ DuplicatedDeclarationSyntheticCause:
 # Use this message when a duplicated declaration is used.
 DuplicatedDeclarationUse:
   template: "Can't use '#name' because it is declared more than once."
+  exampleAllowMoreCodes: true
   script:
     - main.dart: |
         // This test can't pass as tests must produce only one error message.
@@ -2918,6 +2937,18 @@ DuplicatedDeclarationUse:
         class C {}
       lib2.dart: |
         class C {}
+    - main.dart: |
+        class C {
+          method() {}
+          method() {}
+        }
+        main() => new C().method();
+    - main.dart: |
+        class C {
+          method() {}
+          method() {}
+        }
+        var f = new C().method();
 
 DuplicatedNamePreviouslyUsed:
   template: "Can't declare '#name' because it was already used in this scope."
@@ -3005,6 +3036,8 @@ SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
   script: |
+
+
     class C extends dynamic {}
 
 SupertypeIsIllegalAliased:
@@ -3996,6 +4029,7 @@ GenericFunctionTypeInBound:
   template: "Type variables can't have generic function types in their bounds."
   analyzerCode: GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND
   script: |
+    // @dart=2.13
     class Hest<X extends Y Function<Y>(Y)> {}
 
 VoidExpression:
@@ -4288,13 +4322,15 @@ GenericFunctionTypeUsedAsActualTypeArgument:
   tip: "Try using a non-generic function type."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
   script:
-    - >-
+    - |
+      // @dart=2.13
       typedef F = Class<T> Function<T>(T);
       class Class<T> {}
       main() {
         Class<F> class1;
       }
-    - >-
+    - |
+      // @dart=2.13
       typedef F = Class<T> Function<T>(T);
       class Class<T> {}
       main() {
@@ -4305,7 +4341,8 @@ GenericFunctionTypeInferredAsActualTypeArgument:
   template: "Generic function type '#type' inferred as a type argument."
   tip: "Try providing a non-generic function type explicitly."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
-  script:
+  script: |
+    // @dart=2.13
     foo<X>(X x) => null;
     bar<Y>(Y y) => null;
     main() { foo(bar); }
@@ -4363,7 +4400,7 @@ FfiTypeMismatch:
 
 FfiEmptyStruct:
   # Used by dart:ffi
-  template: "Struct '#name' is empty. Empty structs are undefined behavior."
+  template: "#string '#name' is empty. Empty structs and unions are undefined behavior."
   external: test/ffi_test.dart
 
 FfiTypeInvalid:
@@ -4373,12 +4410,12 @@ FfiTypeInvalid:
 
 FfiFieldNull:
   # Used by dart:ffi
-  template: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`."
+  template: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
   external: test/ffi_test.dart
 
 FfiFieldAnnotation:
   # Used by dart:ffi
-  template: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
+  template: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields."
   external: test/ffi_test.dart
 
 FfiFieldNoAnnotation:
@@ -4389,7 +4426,7 @@ FfiFieldNoAnnotation:
 FfiFieldCyclic:
   # Used by dart:ffi
   template: |
-    Struct '#name' contains itself. Cycle elements:
+    #string '#name' contains itself. Cycle elements:
     #names
   external: test/ffi_test.dart
 
@@ -4436,7 +4473,7 @@ FfiSizeAnnotationDimensions:
 
 FfiStructGeneric:
   # Used by dart:ffi
-  template: "Struct '#name' should not be generic."
+  template: "#string '#name' should not be generic."
   external: test/ffi_test.dart
 
 FfiDartTypeMismatch:
@@ -4608,6 +4645,11 @@ NonNullAwareSpreadIsNull:
     main() {
       <int>[...null];
     }
+
+NonPositiveArrayDimensions:
+  # Used by dart:ffi
+  template: "Array dimensions must be positive numbers."
+  external: test/ffi_test.dart
 
 InvalidTypeVariableInSupertype:
   template: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."

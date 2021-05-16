@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--stacktrace-every=3 --optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 // Test generating stacktraces with inlining and deferred code.
 // Regression test for issue dartbug.com/22331
 

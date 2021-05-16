@@ -14,10 +14,8 @@ fragmentation_typed_data_test: Skip # This test crashes on the bot, but not loca
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
-io/http_ban_http_allowed_cases_test: Skip # Depends on grabbing local hostname which isn't supported.
-io/network_policy_configuration_test: Skip # Can't pass -D params containing quotes to adb.
-io/network_policy_invalid_domain_test: Skip # Can't pass -D params containing quotes to adb.
-io/network_policy_tie_breaker_test: Skip # Can't pass -D params containing quotes to adb.
+io/http_ban_http_embedder_test: Skip # Requires http server bound to non-loopback; not provided by system.
+io/http_ban_http_normal_test: Skip # Requires http server bound to non-loopback; not provided by system.
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout

@@ -107,11 +107,6 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
     } else if (node is ir.EqualsCall) {
       return '[${typeToText(node.left.accept(staticTypeCache))}]->'
           '${typeToText(node.accept(staticTypeCache))}';
-    } else if (node is ir.EqualsNull) {
-      // TODO(johnniwinther): Remove this after the new method invocation has
-      // landed stably. This is only included to make the transition a no-op.
-      return '[${typeToText(node.expression.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
     }
     return null;
   }

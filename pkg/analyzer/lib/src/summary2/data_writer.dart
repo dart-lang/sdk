@@ -11,7 +11,7 @@ class BufferedSink {
   static const int SAFE_SIZE = SIZE - 5;
   static const int SMALL = 10000;
 
-  final Sink<List<int>> _sink;
+  final ByteSink _sink;
 
   int flushedLength = 0;
 
@@ -105,8 +105,14 @@ class BufferedSink {
     length = 0;
   }
 
-  void flushAndDestroy() {
+  Uint8List flushAndTake() {
     _sink.add(_buffer.sublist(0, length));
+    return _sink.builder.takeBytes();
+  }
+
+  @pragma("vm:prefer-inline")
+  void writeBool(bool value) {
+    writeByte(value ? 1 : 0);
   }
 
   @pragma("vm:prefer-inline")
@@ -119,6 +125,24 @@ class BufferedSink {
     writeUInt30(items.length);
     for (var i = 0; i < items.length; i++) {
       writeItem(items[i]);
+    }
+  }
+
+  /// Write [items] filtering them by [T].
+  void writeList2<T>(List<Object> items, void Function(T x) writeItem) {
+    var typedItems = items.whereType<T>().toList();
+    writeUInt30(typedItems.length);
+    for (var i = 0; i < typedItems.length; i++) {
+      writeItem(typedItems[i]);
+    }
+  }
+
+  void writeOptionalUInt30(int? value) {
+    if (value != null) {
+      writeBool(true);
+      writeUInt30(value);
+    } else {
+      writeBool(false);
     }
   }
 

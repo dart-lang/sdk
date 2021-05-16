@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.modifier;
 
 import 'problems.dart' show unhandled;
@@ -92,7 +90,7 @@ class Modifier {
 
   toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";
 
-  static int toMask(List<Modifier> modifiers) {
+  static int toMask(List<Modifier>? modifiers) {
     int result = 0;
     if (modifiers == null) return result;
     for (Modifier modifier in modifiers) {
@@ -101,7 +99,7 @@ class Modifier {
     return result;
   }
 
-  static int validateVarFinalOrConst(String lexeme) {
+  static int validateVarFinalOrConst(String? lexeme) {
     if (lexeme == null) return 0;
     if (identical('const', lexeme)) return Const.mask;
     if (identical('final', lexeme)) return Final.mask;

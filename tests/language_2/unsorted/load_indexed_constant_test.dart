@@ -4,6 +4,8 @@
 // Test constant propagation of load-indexed operations
 // VMOptions=--optimization-counter-threshold=10
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

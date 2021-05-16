@@ -4,6 +4,8 @@
 //
 // VMOptions=--stacktrace_every=100
 
+// @dart = 2.9
+
 import 'dart:ffi' as ffi;
 
 typedef fooFfi1Type = ffi.Int32 Function();

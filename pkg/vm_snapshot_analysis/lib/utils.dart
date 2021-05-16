@@ -13,10 +13,11 @@ import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 ProgramInfo loadProgramInfoFromJson(Object json,
     {bool collapseAnonymousClosures = false}) {
   if (v8_profile.Snapshot.isV8HeapSnapshot(json)) {
-    return v8_profile.toProgramInfo(v8_profile.Snapshot.fromJson(json),
+    return v8_profile.toProgramInfo(
+        v8_profile.Snapshot.fromJson(json as Map<String, dynamic>),
         collapseAnonymousClosures: collapseAnonymousClosures);
   } else {
-    return instruction_sizes.loadProgramInfo(json,
+    return instruction_sizes.loadProgramInfo(json as List<dynamic>,
         collapseAnonymousClosures: collapseAnonymousClosures);
   }
 }
@@ -62,7 +63,7 @@ void printHistogram(ProgramInfo info, Histogram histogram,
 
   final visibleRows = [prefix, suffix].expand((l) => l).toList();
   final visibleSize =
-      visibleRows.fold(0, (sum, key) => sum + histogram.buckets[key]);
+      visibleRows.fold<int>(0, (sum, key) => sum + histogram.buckets[key]!);
   final numRestRows = histogram.length - (suffix.length + prefix.length);
   final hiddenRows = Set<String>.from(histogram.bySize)
       .difference(Set<String>.from(visibleRows));
@@ -71,7 +72,7 @@ void printHistogram(ProgramInfo info, Histogram histogram,
 
   if (prefix.isNotEmpty) {
     for (var key in prefix) {
-      final size = histogram.buckets[key];
+      final size = histogram.buckets[key]!;
       table.addRow([
         ...histogram.bucketInfo.namesFromBucket(key),
         size.toString(),
@@ -99,7 +100,7 @@ void printHistogram(ProgramInfo info, Histogram histogram,
       table.addRow([
         ...histogram.bucketInfo.namesFromBucket(key),
         histogram.buckets[key].toString(),
-        formatPercent(histogram.buckets[key], histogram.totalSize),
+        formatPercent(histogram.buckets[key]!, histogram.totalSize),
       ]);
     }
     table.addSeparator(Separator.Line);

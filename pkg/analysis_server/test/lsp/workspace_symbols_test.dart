@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
@@ -93,17 +91,18 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
 
     // Create a request that doesn't supply the query param.
     final request = RequestMessage(
-      id: Either2<num, String>.t1(1),
+      id: Either2<int, String>.t1(1),
       method: Method.workspace_symbol,
       params: <String, dynamic>{},
       jsonrpc: jsonRpcVersion,
     );
 
     final response = await sendRequestToServer(request);
-    expect(response.error.code, equals(ErrorCodes.InvalidParams));
+    final error = response.error!;
+    expect(error.code, equals(ErrorCodes.InvalidParams));
     // Ensure the error is useful to the client.
     expect(
-      response.error.message,
+      error.message,
       equals('Invalid params for workspace/symbol:\n'
           'params.query must not be undefined'),
     );

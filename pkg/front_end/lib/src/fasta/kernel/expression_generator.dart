@@ -927,13 +927,12 @@ class SuperPropertyAccessGenerator extends Generator {
 
   @override
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", name: ");
     sink.write(name.text);
     sink.write(", getter: ");
-    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(getter, sink);
     sink.write(", setter: ");
-    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(setter, sink);
   }
 }
 
@@ -1303,9 +1302,9 @@ class SuperIndexedAccessGenerator extends Generator {
     sink.write(", index: ");
     printNodeOn(index, sink, syntheticNames: syntheticNames);
     sink.write(", getter: ");
-    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(getter, sink);
     sink.write(", setter: ");
-    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(setter, sink);
   }
 }
 
@@ -1503,13 +1502,12 @@ class StaticAccessGenerator extends Generator {
 
   @override
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", targetName: ");
     sink.write(targetName);
     sink.write(", readTarget: ");
-    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(readTarget, sink);
     sink.write(", writeTarget: ");
-    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(writeTarget, sink);
   }
 }
 
@@ -1777,13 +1775,12 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", targetName: ");
     sink.write(targetName);
     sink.write(", readTarget: ");
-    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(readTarget, sink);
     sink.write(", writeTarget: ");
-    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(writeTarget, sink);
   }
 }
 
@@ -2192,13 +2189,12 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", targetName: ");
     sink.write(targetName);
     sink.write(", readTarget: ");
-    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(readTarget, sink);
     sink.write(", writeTarget: ");
-    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(writeTarget, sink);
   }
 }
 
@@ -2475,9 +2471,9 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     sink.write(", index: ");
     printNodeOn(index, sink, syntheticNames: syntheticNames);
     sink.write(", readTarget: ");
-    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(readTarget, sink);
     sink.write(", writeTarget: ");
-    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+    printQualifiedNameOn(writeTarget, sink);
   }
 }
 

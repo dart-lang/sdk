@@ -5,6 +5,8 @@
 // alive.
 // VMOptions=--optimization-counter-threshold=5 --no-inline_alloc --no-background-compilation
 
+// @dart = 2.9
+
 class C {
   final next;
   C(this.next);

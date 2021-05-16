@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -81,7 +81,7 @@ class IDLNode(object):
                                          ('%s %s' % (self.id, extras)).strip(),
                                          hash(self))
             return '<%s %s 0x%x>' % (type(self).__name__, extras, hash(self))
-        except Exception, e:
+        except Exception as e:
             return "can't convert to string: %s" % e
 
     def _extra_repr(self):
@@ -264,7 +264,7 @@ class IDLNode(object):
         }
         result = label_field.get(label)
         if result != '' and not (result):
-            print 'FATAL ERROR: AST mapping name not found %s.' % label
+            print('FATAL ERROR: AST mapping name not found %s.' % label)
         return result if result else ''
 
     def _convert_all(self, ast, label, idlnode_ctor):
@@ -708,7 +708,7 @@ class IDLType(IDLNode):
                     # should consider synthesizing a new interface (e.g., UnionType) that's
                     # both Type1 and Type2.
         if not self.id:
-            print '>>>> __module__ %s' % ast.__module__
+            print('>>>> __module__ %s' % ast.__module__)
             raise SyntaxError('Could not parse type %s' % (ast))
 
     def _label_to_type(self, label, ast):

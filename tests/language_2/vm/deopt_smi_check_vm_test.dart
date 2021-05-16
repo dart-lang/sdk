@@ -4,6 +4,8 @@
 // Test deoptimization on a smi check.
 // VMOptions=--optimization-counter-threshold=10  --no-background-compilation
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 hc(a) {

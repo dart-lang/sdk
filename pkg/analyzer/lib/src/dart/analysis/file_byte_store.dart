@@ -184,22 +184,21 @@ class FileByteStore implements ByteStore {
     final List<int> wrappedBytes = _validator.wrapData(bytes);
 
     // We don't wait for the write and rename to complete.
-    _pool.execute(() {
+    _pool.execute(() async {
       var tempPath = join(_cachePath, '$key$_tempSuffix');
       var tempFile = File(tempPath);
-      return tempFile.writeAsBytes(wrappedBytes).then((_) {
+      try {
+        await tempFile.writeAsBytes(wrappedBytes);
         var shardPath = _getShardPath(key);
-        return Directory(shardPath).create(recursive: true).then((_) {
-          var path = join(shardPath, key);
-          return tempFile.rename(path);
-        });
-      }).catchError((_) {
-        // ignore exceptions
-      }).whenComplete(() {
+        await Directory(shardPath).create(recursive: true);
+        var path = join(shardPath, key);
+        await tempFile.rename(path);
         if (_writeInProgress[key] == bytes) {
           _writeInProgress.remove(key);
         }
-      });
+      } catch (_) {
+        // ignore exceptions
+      }
     });
   }
 

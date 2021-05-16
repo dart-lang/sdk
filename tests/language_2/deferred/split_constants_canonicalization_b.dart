@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "split_constants_canonicalization_b_1.dart" deferred as b_1;
 import "split_constants_canonicalization_b_2.dart" deferred as b_2;
 

@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
+import 'dart:math' as math;
+
 import 'utils.dart';
 
 const int8 = FundamentalType(PrimitiveType.int8);
@@ -152,10 +156,8 @@ List<Member> generateMemberNames(List<CType> memberTypes) {
   return result;
 }
 
-class StructType extends CType {
+abstract class CompositeType extends CType {
   final List<Member> members;
-
-  final int? packing;
 
   /// To disambiguate same size structs.
   final String suffix;
@@ -163,25 +165,61 @@ class StructType extends CType {
   /// To override names.
   final String overrideName;
 
-  StructType(List<CType> memberTypes, {int? this.packing})
+  CompositeType(List<CType> memberTypes)
       : this.members = generateMemberNames(memberTypes),
         this.suffix = "",
         this.overrideName = "";
-  StructType.disambiguate(List<CType> memberTypes, this.suffix,
-      {int? this.packing})
+  CompositeType.disambiguate(List<CType> memberTypes, this.suffix)
       : this.members = generateMemberNames(memberTypes),
         this.overrideName = "";
-  StructType.override(List<CType> memberTypes, this.overrideName,
-      {int? this.packing})
+  CompositeType.override(List<CType> memberTypes, this.overrideName)
       : this.members = generateMemberNames(memberTypes),
         this.suffix = "";
 
   List<CType> get memberTypes => members.map((a) => a.type).toList();
 
+  String get name;
+
   String get cType => name;
   String get dartCType => name;
   String get dartType => name;
   String get dartStructFieldAnnotation => "";
+  String get cKeyword;
+  String get dartSuperClass;
+
+  bool get isOnlyFloatingPoint =>
+      !memberTypes.map((e) => e.isOnlyFloatingPoint).contains(false);
+  bool get isOnlyInteger =>
+      !memberTypes.map((e) => e.isOnlyInteger).contains(false);
+
+  bool get isMixed => !isOnlyInteger && !isOnlyFloatingPoint;
+
+  bool get hasNestedStructs =>
+      members.map((e) => e.type is StructType).contains(true);
+
+  bool get hasInlineArrays =>
+      members.map((e) => e.type is FixedLengthArrayType).contains(true);
+
+  bool get hasMultiDimensionalInlineArrays => members
+      .map((e) => e.type)
+      .whereType<FixedLengthArrayType>()
+      .where((e) => e.isMulti)
+      .isNotEmpty;
+}
+
+class StructType extends CompositeType {
+  final int? packing;
+
+  StructType(List<CType> memberTypes, {int? this.packing}) : super(memberTypes);
+  StructType.disambiguate(List<CType> memberTypes, String suffix,
+      {int? this.packing})
+      : super.disambiguate(memberTypes, suffix);
+  StructType.override(List<CType> memberTypes, String overrideName,
+      {int? this.packing})
+      : super.override(memberTypes, overrideName);
+
+  String get cKeyword => "struct";
+  String get dartSuperClass => "Struct";
 
   bool get hasSize =>
       !memberTypes.map((e) => e.hasSize).contains(false) && !hasPadding;
@@ -201,30 +239,11 @@ class StructType extends CType {
     return members[0].type.size < members[1].type.size;
   }
 
-  bool get hasNestedStructs =>
-      members.map((e) => e.type is StructType).contains(true);
-
-  bool get hasInlineArrays =>
-      members.map((e) => e.type is FixedLengthArrayType).contains(true);
-
-  bool get hasMultiDimensionalInlineArrays => members
-      .map((e) => e.type)
-      .whereType<FixedLengthArrayType>()
-      .where((e) => e.isMulti)
-      .isNotEmpty;
-
   /// All members have the same type.
   bool get isHomogeneous => memberTypes.toSet().length == 1;
 
-  bool get isOnlyFloatingPoint =>
-      !memberTypes.map((e) => e.isOnlyFloatingPoint).contains(false);
-  bool get isOnlyInteger =>
-      !memberTypes.map((e) => e.isOnlyInteger).contains(false);
-
-  bool get isMixed => !isOnlyInteger && !isOnlyFloatingPoint;
-
   String get name {
-    String result = "Struct";
+    String result = dartSuperClass;
     if (overrideName != "") {
       return result + overrideName;
     }
@@ -252,6 +271,46 @@ class StructType extends CType {
       result += "Alignment${memberTypes[1].dartCType}";
     } else if (isHomogeneous && members.length > 1 && !hasNestedStructs) {
       result += "Homogeneous${memberTypes.first.dartCType}";
+    } else if (isOnlyFloatingPoint) {
+      result += "Float";
+    } else if (isOnlyInteger) {
+      result += "Int";
+    } else {
+      result += "Mixed";
+    }
+    result += suffix;
+    return result;
+  }
+}
+
+class UnionType extends CompositeType {
+  UnionType(List<CType> memberTypes) : super(memberTypes);
+
+  String get cKeyword => "union";
+  String get dartSuperClass => "Union";
+
+  bool get hasSize => !memberTypes.map((e) => e.hasSize).contains(false);
+  int get size => memberTypes.fold(0, (int acc, e) => math.max(acc, e.size));
+
+  String get name {
+    String result = dartSuperClass;
+    if (overrideName != "") {
+      return result + overrideName;
+    }
+    if (hasSize) {
+      result += "${size}Byte" + (size != 1 ? "s" : "");
+    }
+    if (hasNestedStructs) {
+      result += "Nested";
+    }
+    if (hasInlineArrays) {
+      result += "InlineArray";
+      if (hasMultiDimensionalInlineArrays) {
+        result += "MultiDimensional";
+      }
+    }
+    if (members.length == 0) {
+      // No suffix.
     } else if (isOnlyFloatingPoint) {
       result += "Float";
     } else if (isOnlyInteger) {
@@ -360,15 +419,20 @@ class FunctionType extends CType {
   /// A suitable name based on the signature.
   String get cName {
     String result = "";
-    if (arguments.containsStructs && returnValue is FundamentalType) {
+    if (arguments.containsComposites && returnValue is FundamentalType) {
       result = "Pass";
     } else if (returnValue is StructType &&
         argumentTypes.contains(returnValue)) {
       result = "ReturnStructArgument";
+    } else if (returnValue is UnionType &&
+        argumentTypes.contains(returnValue)) {
+      result = "ReturnUnionArgument";
     } else if (returnValue is StructType) {
       if (arguments.length == (returnValue as StructType).members.length) {
         return "Return${returnValue.dartCType}";
       }
+    } else if (returnValue is UnionType && arguments.length == 1) {
+      return "Return${returnValue.dartCType}";
     } else {
       result = "Uncategorized";
     }
@@ -392,5 +456,6 @@ class FunctionType extends CType {
 }
 
 extension MemberList on List<Member> {
-  bool get containsStructs => map((m) => m.type is StructType).contains(true);
+  bool get containsComposites =>
+      map((m) => m.type is CompositeType).contains(true);
 }

@@ -241,19 +241,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   print(E2(s).charCount);
   // }
   // ```
-  /*
-   * TODO(brianwilkerson) This message doesn't handle the possible case where
-   *  there are more than 2 extensions, nor does it handle well the case where
-   *  one or more of the extensions is unnamed.
-   */
   static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
       CompileTimeErrorCode(
           'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-          "A member named '{0}' is defined in extensions '{1}' and '{2}' and "
-              "neither is more specific.",
+          "A member named '{0}' is defined in extensions {1}, and "
+              "none are more specific.",
           correction:
               "Try using an extension override to specify the extension "
-              "you want to to be chosen.",
+              "you want to be chosen.",
           hasPublishedDocs: true);
 
   /**
@@ -1188,6 +1183,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Common fixes
   //
   // Choose a different name for the extension.
+  // TODO(brianwilkerson) When the documentation for
+  //  'BUILT_IN_IDENTIFIER_IN_DECLARATION' is committed it should replace the
+  //  text above and the name of this code should be changed to match it. We
+  //  also need to add a forward for this code at the same time.
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME =
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
           "The built-in identifier '{0}' can't be used as an extension name.",
@@ -1203,9 +1202,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the built-in identifier that is being used
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_PREFIX_NAME =
-      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
+      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a prefix name.",
-          correction: "Try choosing a different name for the prefix.");
+          correction: "Try choosing a different name for the prefix.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME');
 
   /**
    * Parameters:
@@ -1247,9 +1247,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the built-in identifier that is being used
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_NAME =
-      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
+      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a type name.",
-          correction: "Try choosing a different name for the type.");
+          correction: "Try choosing a different name for the type.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME');
 
   /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
@@ -1261,10 +1262,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME =
       CompileTimeErrorCode(
-          'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
+          'BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a type parameter "
               "name.",
-          correction: "Try choosing a different name for the type parameter.");
+          correction: "Try choosing a different name for the type parameter.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME');
 
   /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
@@ -1275,9 +1277,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the built-in identifier that is being used
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME =
-      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
+      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a typedef name.",
-          correction: "Try choosing a different name for the typedef.");
+          correction: "Try choosing a different name for the typedef.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME');
 
   /**
    * No parameters.
@@ -1578,14 +1581,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * basename `n`.
    *
    * Parameters:
-   * 0: the name of the constructor
+   * 0: the name of the field
    */
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD =
       CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
           "'{0}' can't be used to name both a constructor and a static field "
               "in this class.",
-          correction: "Try renaming either the constructor or the field.");
+          correction: "Try renaming either the constructor or the field.",
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD');
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -1597,10 +1601,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD =
       CompileTimeErrorCode(
-          'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
           "'{0}' can't be used to name both a constructor and a static method "
               "in this class.",
-          correction: "Try renaming either the constructor or the method.");
+          correction: "Try renaming either the constructor or the method.",
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD');
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -1669,7 +1674,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'CONFLICTING_GENERIC_INTERFACES',
           "The class '{0}' can't implement both '{1}' and '{2}' because the "
-              "type arguments are different.");
+              "type arguments are different.",
+          hasPublishedDocs: true);
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -2026,7 +2032,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "A constant constructor can't call a non-constant super constructor "
               "of '{0}'.",
           correction: "Try calling a constant constructor in the superclass, "
-              "or removing the keyword 'const' from the constructor.");
+              "or removing the keyword 'const' from the constructor.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2125,7 +2132,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONST_DEFERRED_CLASS = CompileTimeErrorCode(
       'CONST_DEFERRED_CLASS', "Deferred classes can't be created with 'const'.",
       correction: "Try using 'new' to create the instance, or "
-          "changing the import to not be deferred.");
+          "changing the import to not be deferred.",
+      hasPublishedDocs: true);
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -2312,7 +2320,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try initializing the variable without referencing members of "
               "the deferred library, or changing the import to not be "
-              "deferred.");
+              "deferred.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2415,7 +2424,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The type of a key in a constant map can't override the '==' "
               "operator, but the class '{0}' does.",
           correction: "Try using a different value for the key, or "
-              "removing the keyword 'const' from the map.");
+              "removing the keyword 'const' from the map.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2505,7 +2515,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The type of an element in a constant set can't override the '==' "
               "operator, but the type '{0}' does.",
           correction: "Try using a different value for the element, or "
-              "removing the keyword 'const' from the set.");
+              "removing the keyword 'const' from the set.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2985,7 +2996,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try adding either a show combinator listing the names you need "
               "to reference or a hide combinator listing all of the "
-              "extensions.");
+              "extensions.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3160,8 +3172,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode DUPLICATE_FIELD_FORMAL_PARAMETER =
       CompileTimeErrorCode(
           'DUPLICATE_FIELD_FORMAL_PARAMETER',
-          "The field '{0}' can't be referenced in multiple initializing "
-              "parameters in the same constructor.",
+          "The field '{0}' can't be initialized by multiple parameters in the "
+              "same constructor.",
           correction: "Try removing one of the parameters, or "
               "using different fields.");
 
@@ -3627,6 +3639,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.",
+          hasPublishedDocs: true,
           uniqueName: 'EXTENDS_DEFERRED_CLASS');
 
   /**
@@ -3747,12 +3760,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode
       EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "Type aliases that expand to a type parameter can't be used as "
               "superclasses.",
           correction:
               "Try specifying a different superclass, or removing the extends "
-              "clause.");
+              "clause.",
+          uniqueName: 'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
    * Parameters:
@@ -4646,19 +4660,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 5 Variables: It is a compile-time error if a final instance variable that
-   * has is initialized by means of an initializing formal of a constructor is
-   * also initialized elsewhere in the same constructor.
-   *
-   * Parameters:
-   * 0: the name of the field in question
-   */
-  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES =
-      CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
-          "'{0}' is a final field and so can only be set once.",
-          correction: "Try removing all but one of the initializations.");
-
-  /**
    * Parameters:
    * 0: the name of the uninitialized final variable
    */
@@ -4891,7 +4892,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'FOR_IN_OF_INVALID_ELEMENT_TYPE',
           "The type '{0}' used in the 'for' loop must implement '{1}' with a "
-              "type argument that can be assigned to '{2}'.");
+              "type argument that can be assigned to '{2}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4973,7 +4975,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
           "A for-in loop variable can't be a 'const'.",
           correction: "Try removing the 'const' modifier from the variable, or "
-              "use a different variable.");
+              "use a different variable.",
+          hasPublishedDocs: true);
 
   /**
    * It is a compile-time error if a generic function type is used as a bound
@@ -5220,6 +5223,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try specifying a different interface, "
               "removing the class from the list, or "
               "changing the import to not be deferred.",
+          hasPublishedDocs: true,
           uniqueName: 'IMPLEMENTS_DEFERRED_CLASS');
 
   /**
@@ -5357,9 +5361,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode
       IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "Type aliases that expand to a type parameter can't be implemented.",
-          correction: "Try specifying a class or mixin, or removing the list.");
+          correction: "Try specifying a class or mixin, or removing the list.",
+          uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
    * Parameters:
@@ -5630,8 +5635,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the initializing formal that is a static variable in the
    *    immediately enclosing class
-   *
-   * See [INITIALIZING_FORMAL_FOR_STATIC_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZER_FOR_STATIC_FIELD =
       CompileTimeErrorCode(
@@ -5721,24 +5724,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try correcting the name to match an existing field, or "
               "defining a field named '{0}'.",
           hasPublishedDocs: true);
-
-  /**
-   * 7.6.1 Generative Constructors: An initializing formal has the form
-   * <i>this.id</i>. It is a compile-time error if <i>id</i> is not the name of
-   * an instance variable of the immediately enclosing class.
-   *
-   * Parameters:
-   * 0: the name of the initializing formal that is a static variable in the
-   *    immediately enclosing class
-   *
-   * See [INITIALIZER_FOR_STATIC_FIELD].
-   */
-  static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_STATIC_FIELD =
-      CompileTimeErrorCode(
-          'INITIALIZING_FORMAL_FOR_STATIC_FIELD',
-          "'{0}' is a static field in the enclosing class. Fields initialized "
-              "in a constructor can't be static.",
-          correction: "Try removing the initialization.");
 
   /**
    * Parameters:
@@ -5957,7 +5942,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If you intend to use an instance of a class, then use the name of that class in place of the name of the enum.
   static const CompileTimeErrorCode INSTANTIATE_ENUM = CompileTimeErrorCode(
       'INSTANTIATE_ENUM', "Enums can't be instantiated.",
-      correction: "Try using one of the defined constants.");
+      correction: "Try using one of the defined constants.",
+      hasPublishedDocs: true);
 
   /**
    * It is a compile-time error for an instance creation `C<T1, .. Tk>(...)` or
@@ -6097,6 +6083,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "constructor invocation.",
       hasPublishedDocs: true);
 
+
+  static const CompileTimeErrorCode INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY =
+      CompileTimeErrorCode(
+          'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be used in annotations.",
+          correction: "Try moving the constant from the deferred library,"
+              " or removing 'deferred' from the import.");
+
   /**
    * No parameters.
    */
@@ -6148,7 +6142,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Constant values from a deferred library can't be used as "
               "annotations.",
           correction: "Try removing the annotation, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6523,7 +6518,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'INVALID_IMPLEMENTATION_OVERRIDE',
           "'{1}.{0}' ('{2}') isn't a valid concrete implementation of "
-              "'{3}.{0}' ('{4}').");
+              "'{3}.{0}' ('{4}').",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -7621,7 +7617,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Reinstall the Dart or Flutter SDK.
   static const CompileTimeErrorCode MISSING_DART_LIBRARY = CompileTimeErrorCode(
       'MISSING_DART_LIBRARY', "Required library '{0}' is missing.",
-      correction: "Re-install the Dart or Flutter SDK.");
+      correction: "Re-install the Dart or Flutter SDK.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -7819,7 +7816,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER = CompileTimeErrorCode(
           'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
           "The class doesn't have a concrete implementation of the "
-              "super-invoked member '{0}'.");
+              "super-invoked member '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * It's a compile-time error to apply a mixin to a class that doesn't
@@ -7864,6 +7862,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = CompileTimeErrorCode(
       'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
       correction: "Try changing the import to not be deferred.",
+      hasPublishedDocs: true,
       uniqueName: 'MIXIN_DEFERRED_CLASS');
 
   static const CompileTimeErrorCode
@@ -7923,7 +7922,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If you intend to use an instance of a class, then use the name of that
   // class in place of the name of the mixin.
   static const CompileTimeErrorCode MIXIN_INSTANTIATE = CompileTimeErrorCode(
-      'MIXIN_INSTANTIATE', "Mixins can't be instantiated.");
+      'MIXIN_INSTANTIATE', "Mixins can't be instantiated.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7974,14 +7974,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode
       MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-          "Type aliases that expand to a type parameter can't be mixed in.");
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+          "Type aliases that expand to a type parameter can't be mixed in.",
+          uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   static const CompileTimeErrorCode
       MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "Type aliases that expand to a type parameter can't be used as"
-              "superclass constraints.");
+              "superclass constraints.",
+          uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
    * No parameters.
@@ -8813,7 +8815,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "expression.",
           correction:
               "Try re-writing the switch as a series of if statements, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -8917,7 +8920,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "parameter value.",
           correction:
               "Try leaving the default as null and initializing the parameter "
-              "inside the function body.");
+              "inside the function body.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -9031,6 +9035,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "a 'const' list literal.",
           correction: "Try removing the keyword 'const' from the list literal "
               "or removing the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -9133,6 +9138,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try removing the keyword 'const' from the map literal or removing "
               "the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -9185,6 +9191,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try removing the keyword 'const' from the map literal or removing "
               "the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -9570,6 +9577,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try giving it an initializer expression, or ensure that "
               "it's assigned on every execution path.",
           hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the operator that is not a binary operator.
+   */
+  static const CompileTimeErrorCode NOT_BINARY_OPERATOR = CompileTimeErrorCode(
+      'NOT_BINARY_OPERATOR', "'{0}' isn't a binary operator.");
 
   /**
    * Parameters:
@@ -10518,7 +10532,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
-          "'{0}' can't be a superinterface of itself: {1}.");
+          "'{0}' can't be a superinterface of itself: {1}.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -10534,8 +10549,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_EXTENDS =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
-          "'{0}' can't extend itself.");
+      CompileTimeErrorCode(
+          'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't extend itself.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -10551,16 +10567,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
-          "'{0}' can't implement itself.");
+      CompileTimeErrorCode(
+          'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't implement itself.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS');
 
   /**
    * Parameters:
    * 0: the name of the mixin that constraints itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_ON =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_ON',
-          "'{0}' can't use itself as a superclass constraint.");
+      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
+          "'{0}' can't use itself as a superclass constraint.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -10576,8 +10594,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the class that implements itself recursively
    */
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_WITH =
-      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE_WITH',
-          "'{0}' can't use itself as a mixin.");
+      CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
+          "'{0}' can't use itself as a mixin.",
+          uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH');
 
   /**
    * No parameters.
@@ -11275,6 +11294,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try removing the keyword 'const' from the set literal or removing "
               "the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'SET_ELEMENT_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -11686,7 +11706,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The deferred type '{0}' can't be used in a declaration, cast, or "
               "type test.",
           correction: "Try using a different type, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14179,71 +14200,4 @@ class StaticWarningCode extends AnalyzerErrorCode {
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
-}
-
-/**
- * This class has Strong Mode specific error codes.
- *
- * "Strong Mode" was the prototype for Dart 2's sound type system. Many of these
- * errors became part of Dart 2. Some of them are optional flags, used for
- * stricter checking.
- *
- * These error codes tend to use the same message across different severity
- * levels, so they are grouped for clarity.
- */
-class StrongModeCode extends ErrorCode {
-  /*
-   * TODO(brianwilkerson) Make the TOP_LEVEL_ error codes be errors rather than
-   * hints and then clean up the function _errorSeverity in
-   * test/src/task/strong/strong_test_helper.dart.
-   */
-  /* TODO(leafp) Delete most of these.
-   */
-
-  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_BLOCK = StrongModeCode(
-      ErrorType.HINT,
-      'TOP_LEVEL_FUNCTION_LITERAL_BLOCK',
-      "The type of the function literal can't be inferred because the "
-          "literal has a block as its body.",
-      correction: "Try adding an explicit type to the variable.");
-
-  static const StrongModeCode TOP_LEVEL_IDENTIFIER_NO_TYPE = StrongModeCode(
-      ErrorType.HINT,
-      'TOP_LEVEL_IDENTIFIER_NO_TYPE',
-      "The type of '{0}' can't be inferred because the type of '{1}' "
-          "couldn't be inferred.",
-      correction:
-          "Try adding an explicit type to either the variable '{0}' or the "
-          "variable '{1}'.");
-
-  static const StrongModeCode TOP_LEVEL_INSTANCE_GETTER = StrongModeCode(
-      ErrorType.STATIC_WARNING,
-      'TOP_LEVEL_INSTANCE_GETTER',
-      "The type of '{0}' can't be inferred because it refers to an instance "
-          "getter, '{1}', which has an implicit type.",
-      correction: "Add an explicit type for either '{0}' or '{1}'.");
-
-  @override
-  final ErrorType type;
-
-  /**
-   * Initialize a newly created error code to have the given [type] and [name].
-   *
-   * The message associated with the error will be created from the given
-   * [message] template. The correction associated with the error will be
-   * created from the optional [correction] template.
-   */
-  const StrongModeCode(ErrorType type, String name, String message,
-      {String? correction, bool hasPublishedDocs = false})
-      : type = type,
-        super(
-          correction: correction,
-          hasPublishedDocs: hasPublishedDocs,
-          message: message,
-          name: name,
-          uniqueName: 'StrongModeCode.$name',
-        );
-
-  @override
-  ErrorSeverity get errorSeverity => type.severity;
 }

@@ -324,7 +324,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     assertElement(node, element);
     assertType(node.extendedType, extendedType);
-    assertElementTypeStrings(node.typeArgumentTypes!, typeArgumentTypes);
+    assertElementTypeStrings(node.typeArgumentTypes, typeArgumentTypes);
   }
 
   void assertFunctionExpressionInvocation(

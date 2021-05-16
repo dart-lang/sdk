@@ -6,6 +6,8 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
+extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.

@@ -21,7 +21,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::Object? = core::Object?> extends core::Object {
+class A<T extends core::Object?> extends core::Object {
   static field core::int x = null;
   static field core::int? y = null;
   late static field core::int z;

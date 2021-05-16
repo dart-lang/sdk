@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // In non strong-mode, `FutureOr<T>` is dynamic, even if `T` doesn't exist.
 // `FutureOr<T>` can not be used as superclass, mixin, nor can it be
 // implemented (as interface).

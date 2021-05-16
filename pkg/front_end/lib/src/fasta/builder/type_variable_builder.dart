@@ -101,7 +101,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     bool needsPostUpdate = false;
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
-      if (parameter.bound != null) {
+      if (!identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
         nullability = library.isNonNullableByDefault
             ? TypeParameterType.computeNullabilityFromBound(parameter)
             : Nullability.legacy;
@@ -154,15 +154,20 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // TODO(jensj): Provide correct notInstanceContext.
     DartType objectType =
         object.buildType(library, library.nullableBuilder, null, null);
-    parameter.bound ??= bound?.build(library) ?? objectType;
+    if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
+      parameter.bound = bound?.build(library) ?? objectType;
+    }
     // If defaultType is not set, initialize it to dynamic, unless the bound is
     // explicitly specified as Object, in which case defaultType should also be
     // Object. This makes sure instantiation of generic function types with an
     // explicit Object bound results in Object as the instantiated type.
-    parameter.defaultType ??= defaultType?.build(library) ??
-        (bound != null && parameter.bound == objectType
-            ? objectType
-            : dynamicType.build(library));
+    if (identical(
+        parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
+      parameter.defaultType = defaultType?.build(library) ??
+          (bound != null && parameter.bound == objectType
+              ? objectType
+              : dynamicType.build(library));
+    }
   }
 
   void applyPatch(covariant TypeVariableBuilder patch) {

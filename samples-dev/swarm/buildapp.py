@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 
 # This script builds a Chrome App file (.crx) for Swarm
@@ -65,14 +65,14 @@ def main():
     dartiumResult = createChromeApp(buildRoot, 'build_dart_app', 'swarm.crx')
     dartCResult = createChromeApp(buildRoot, 'build_js_app', 'swarm-js.crx')
 
-    print '''
+    print('''
 Successfully created Chrome apps!
   Dartium:  file://%s
 
   DartC/JS: file://%s
 
 To install, open this URL in Chrome and select Continue at the bottom.
-''' % (dartiumResult, dartCResult)
+''' % (dartiumResult, dartCResult))
     return 0
 
 

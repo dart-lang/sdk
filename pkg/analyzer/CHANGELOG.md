@@ -1,3 +1,32 @@
+## 1.6.0-dev
+* Deprecated `AnalysisDriver` default constructor.  Added `tmp1`. The goal
+  is to allow deprecating and removing unused  parameters.
+
+## 1.5.0
+* Support for the language version `2.14`.
+* Deprecated `AnalysisSession.getUnitElement()`.
+  Use `AnalysisSession.getUnitElement2()` instead.
+* Deprecated `AnalysisSession.getResolvedUnit()`.
+  Use `AnalysisSession.getResolvedUnit2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibrary()`.
+  Use `AnalysisSession.getResolvedLibrary2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibraryByElement()`.
+  Use `AnalysisSession.getResolvedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getLibraryByUri()`.
+  Use `AnalysisSession.getLibraryByUri2()` instead.
+* Deprecated `AnalysisSession.getErrors()`.
+  Use `AnalysisSession.getErrors2()` instead.
+* Deprecated `AnalysisSession.getParsedLibrary()`.
+  Use `AnalysisSession.getParsedLibrary2()` instead.
+* Deprecated `AnalysisSession.getParsedLibraryByElement()`.
+  Use `AnalysisSession.getParsedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getParsedUnit()`.
+  Use `AnalysisSession.getParsedUnit2()` instead.
+* Deprecated `AnalysisSession.getFile()` and `getSourceKind()`.
+  Use `AnalysisSession.getFile2()` instead.
+* Deprecated `AnalysisSession.getUnitElementSignature()`.
+  This method is not used by any known client, and will be removed.
+
 ## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.
   Use `TypeProvider.isNonSubtypableClass` instead.

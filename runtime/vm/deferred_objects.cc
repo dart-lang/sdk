@@ -440,7 +440,9 @@ void DeferredObject::Fill() {
           offset ^= GetFieldOffset(i);
           field ^= offset_map.At(offset.Value() / kWordSize);
           value = GetValue(i);
-          if (!field.IsNull()) {
+          ASSERT((value.ptr() != Object::sentinel().ptr()) ||
+                 (!field.IsNull() && field.is_late()));
+          if (!field.IsNull() && (value.ptr() != Object::sentinel().ptr())) {
             obj.SetField(field, value);
             if (FLAG_trace_deoptimization_verbose) {
               OS::PrintErr("    %s <- %s\n",
@@ -455,8 +457,11 @@ void DeferredObject::Fill() {
             ASSERT(offset.Value() < cls.host_instance_size());
             obj.SetFieldAtOffset(offset.Value(), value);
             if (FLAG_trace_deoptimization_verbose) {
-              OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
-                           offset.Value(), value.ToCString());
+              OS::PrintErr(
+                  "    %s @ offset(%" Pd ") <- %s\n",
+                  (field.IsNull() ? "null Field"
+                                  : String::Handle(field.name()).ToCString()),
+                  offset.Value(), value.ToCString());
             }
           }
         }

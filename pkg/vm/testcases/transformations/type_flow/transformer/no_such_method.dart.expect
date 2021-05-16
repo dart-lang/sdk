@@ -134,3 +134,12 @@ static method main(core::List<core::String*>* args) → dynamic {
   core::print([@vm.direct-call.metadata=#lib::H.foo] [@vm.inferred-type.metadata=#lib::T6 (receiver not int)] hh.foo(right: 2, left: 1));
   core::print([@vm.inferred-type.metadata=#lib::T7 (receiver not int)] hh.foo(left: 1, top: 2));
 }
+constants  {
+  #C1 = #bar
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C5 = #foo
+  #C6 = #bazz
+  #C7 = null
+}

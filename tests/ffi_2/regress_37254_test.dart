@@ -60,6 +60,8 @@
 //
 // These are the normal Dart assignment rules.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";

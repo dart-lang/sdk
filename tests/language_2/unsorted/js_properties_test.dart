@@ -4,6 +4,8 @@
 // Test that JavaScript properties on Object can still be classes in
 // Dart.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 void main() {

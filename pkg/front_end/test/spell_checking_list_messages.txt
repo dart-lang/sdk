@@ -19,6 +19,7 @@ c
 compilercontext.runincontext
 compilesdk
 constructor(s)
+core
 count.#count
 d
 dart.dev

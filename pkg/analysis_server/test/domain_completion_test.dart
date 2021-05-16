@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -15,6 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
 import 'mocks.dart';
+import 'src/plugin/plugin_manager_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -485,10 +485,16 @@ class A {
     expect(suggestions, isEmpty);
   }
 
-  Future<void> test_inComment_endOfFile() async {
+  Future<void> test_inComment_endOfFile_withNewline() async {
     addTestFile('''
     // text ^
   ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  Future<void> test_inComment_endOfFile_withoutNewline() async {
+    addTestFile('// text ^');
     await getSuggestions();
     expect(suggestions, isEmpty);
   }
@@ -729,7 +735,7 @@ main() {
         .toRequest('0');
     var response = await waitResponse(request);
     expect(response.id, '0');
-    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
+    expect(response.error!.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
   Future<void> test_overrides() {
@@ -797,7 +803,8 @@ class B extends A {m() {^}}
         ^
       }
     ''');
-    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',
+        TestNotificationManager(), InstrumentationService.NULL_SERVICE);
     var result = plugin.CompletionGetSuggestionsResult(
         testFile.indexOf('^'), 0, <CompletionSuggestion>[
       CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,

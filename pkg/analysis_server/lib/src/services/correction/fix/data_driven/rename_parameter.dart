@@ -114,7 +114,7 @@ extension on MethodDeclaration {
   /// Return the parameter of this method whose name matches the given [name],
   /// or `null` if there is no such parameter.
   FormalParameter? parameterNamed(String name) {
-    var parameters = this.parameters;
+    final parameters = this.parameters;
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         if (parameter.declaredElement?.name == name) {

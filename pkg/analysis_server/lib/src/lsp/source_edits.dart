@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -12,6 +10,7 @@ import 'package:analysis_server/src/protocol_server.dart' as server
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -71,17 +70,17 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
       },
     );
     // If any change fails, immediately return the error.
-    if (result?.isError ?? false) {
+    if (result != null && result.isError) {
       return ErrorOr.error(result.error);
     }
   }
   return ErrorOr.success(Pair(newContent, serverEdits));
 }
 
-ErrorOr<List<TextEdit>> generateEditsForFormatting(
+ErrorOr<List<TextEdit>?> generateEditsForFormatting(
   ParsedUnitResult result,
-  int lineLength, {
-  Range range,
+  int? lineLength, {
+  Range? range,
 }) {
   final unformattedSource = result.content;
 
@@ -99,12 +98,12 @@ ErrorOr<List<TextEdit>> generateEditsForFormatting(
     // use seeing edits on every save with invalid code (if LSP gains the
     // ability to pass a context to know if the format was manually invoked
     // we may wish to change this to return an error for that case).
-    return success();
+    return success(null);
   }
   final formattedSource = formattedResult.text;
 
   if (formattedSource == unformattedSource) {
-    return success();
+    return success(null);
   }
 
   return _generateMinimalEdits(result, formattedSource, range: range);
@@ -112,7 +111,8 @@ ErrorOr<List<TextEdit>> generateEditsForFormatting(
 
 List<TextEdit> _generateFullEdit(
     LineInfo lineInfo, String unformattedSource, String formattedSource) {
-  final end = lineInfo.getLocation(unformattedSource.length);
+  final end =
+      lineInfo.getLocation(unformattedSource.length) as CharacterLocation;
   return [
     TextEdit(
       range:
@@ -133,17 +133,17 @@ List<TextEdit> _generateFullEdit(
 ErrorOr<List<TextEdit>> _generateMinimalEdits(
   ParsedUnitResult result,
   String formatted, {
-  Range range,
+  Range? range,
 }) {
   final unformatted = result.content;
   final lineInfo = result.lineInfo;
   final rangeStart = range != null ? toOffset(lineInfo, range.start) : null;
   final rangeEnd = range != null ? toOffset(lineInfo, range.end) : null;
 
-  if (rangeStart?.isError ?? false) {
+  if (rangeStart != null && rangeStart.isError) {
     return failure(rangeStart);
   }
-  if (rangeEnd?.isError ?? false) {
+  if (rangeEnd != null && rangeEnd.isError) {
     return failure(rangeEnd);
   }
 
@@ -217,8 +217,9 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     // edits in the same set.
     edits.add(TextEdit(
       range: Range(
-        start: toPosition(lineInfo.getLocation(startOffset)),
-        end: toPosition(lineInfo.getLocation(endOffset)),
+        start:
+            toPosition(lineInfo.getLocation(startOffset) as CharacterLocation),
+        end: toPosition(lineInfo.getLocation(endOffset) as CharacterLocation),
       ),
       newText: newText,
     ));
@@ -276,21 +277,22 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
 /// Iterates over a token stream returning all tokens including comments.
 Iterable<Token> _iterateAllTokens(Token token) sync* {
   while (token.type != TokenType.EOF) {
-    var commentToken = token.precedingComments;
+    Token? commentToken = token.precedingComments;
     while (commentToken != null) {
       yield commentToken;
       commentToken = commentToken.next;
     }
     yield token;
-    token = token.next;
+    token = token.next!;
   }
 }
 
 /// Parse and return the first of the given Dart source, `null` if code cannot
 /// be parsed.
-Token _parse(String s, FeatureSet featureSet) {
+Token? _parse(String s, FeatureSet featureSet) {
   try {
-    var scanner = Scanner(null, CharSequenceReader(s), null)
+    var scanner = Scanner(_SourceMock.instance, CharSequenceReader(s),
+        AnalysisErrorListener.NULL_LISTENER)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,
@@ -310,11 +312,18 @@ class FileEditInformation {
   final bool newFile;
 
   /// The selection offset, relative to the edit.
-  final int selectionOffsetRelative;
-  final int selectionLength;
+  final int? selectionOffsetRelative;
+  final int? selectionLength;
 
   FileEditInformation(this.doc, this.lineInfo, this.edits,
       {this.newFile = false,
       this.selectionOffsetRelative,
       this.selectionLength});
+}
+
+class _SourceMock implements Source {
+  static final Source instance = _SourceMock();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

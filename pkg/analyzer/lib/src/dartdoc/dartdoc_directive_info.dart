@@ -60,82 +60,143 @@ class DartdocDirectiveInfo {
   /// Macro directives are replaced with the body of the corresponding template.
   ///
   /// Youtube and animation directives are replaced with markdown hyperlinks.
-  String processDartdoc(String comment) {
+  Documentation processDartdoc(String comment, {bool includeSummary = false}) {
     List<String> lines = _stripDelimiters(comment);
+    var firstBlankLine = lines.length;
     for (int i = lines.length - 1; i >= 0; i--) {
       String line = lines[i];
-      var match = macroRegExp.firstMatch(line);
-      if (match != null) {
-        var name = match.group(1)!;
-        var value = templateMap[name];
-        if (value != null) {
-          lines[i] = value;
-        }
-        continue;
-      }
-
-      match = videoRegExp.firstMatch(line);
-      if (match != null) {
-        var uri = match.group(2);
-        if (uri != null && uri.isNotEmpty) {
-          String label = uri;
-          if (label.startsWith('https://')) {
-            label = label.substring('https://'.length);
+      if (line.isEmpty) {
+        // Because we're iterating from the last line to the first, the last
+        // blank line we find is the first.
+        firstBlankLine = i;
+      } else {
+        var match = macroRegExp.firstMatch(line);
+        if (match != null) {
+          var name = match.group(1)!;
+          var value = templateMap[name];
+          if (value != null) {
+            lines[i] = value;
           }
-          lines[i] = '[$label]($uri)';
+          continue;
         }
-        continue;
+
+        match = videoRegExp.firstMatch(line);
+        if (match != null) {
+          var uri = match.group(2);
+          if (uri != null && uri.isNotEmpty) {
+            String label = uri;
+            if (label.startsWith('https://')) {
+              label = label.substring('https://'.length);
+            }
+            lines[i] = '[$label]($uri)';
+          }
+          continue;
+        }
       }
     }
-    return lines.join('\n');
+    if (includeSummary) {
+      var full = lines.join('\n');
+      var summary = firstBlankLine == lines.length
+          ? full
+          : lines.getRange(0, firstBlankLine).join('\n').trim();
+      return DocumentationWithSummary(full: full, summary: summary);
+    }
+    return Documentation(full: lines.join('\n'));
+  }
+
+  bool _isWhitespace(String comment, int index, bool includeEol) {
+    if (comment.startsWith(' ', index) ||
+        comment.startsWith('\t', index) ||
+        (includeEol && comment.startsWith('\n', index))) {
+      return true;
+    }
+    return false;
+  }
+
+  int _skipWhitespaceBackward(String comment, int start, int end,
+      [bool skipEol = false]) {
+    while (start < end && _isWhitespace(comment, end, skipEol)) {
+      end--;
+    }
+    return end;
+  }
+
+  int _skipWhitespaceForward(String comment, int start, int end,
+      [bool skipEol = false]) {
+    while (start < end && _isWhitespace(comment, start, skipEol)) {
+      start++;
+    }
+    return start;
   }
 
   /// Remove the delimiters from the given [comment].
   List<String> _stripDelimiters(String comment) {
-    //
-    // Remove /** */.
-    //
+    var start = 0;
+    var end = comment.length;
     if (comment.startsWith('/**')) {
-      comment = comment.substring(3);
+      start = _skipWhitespaceForward(comment, 3, end, true);
+      if (comment.endsWith('*/')) {
+        end = _skipWhitespaceBackward(comment, start, end - 2, true);
+      }
     }
-    if (comment.endsWith('*/')) {
-      comment = comment.substring(0, comment.length - 2);
-    }
-    comment = comment.trim();
-    //
-    // Remove leading '* ' and '/// '.
-    //
-    List<String> lines = comment.split('\n');
-    int firstNonEmpty = lines.length + 1;
-    int lastNonEmpty = -1;
-    for (var i = 0; i < lines.length; i++) {
-      String line = lines[i];
-      line = line.trim();
-      if (line.startsWith('*')) {
-        line = line.substring(1);
-        if (line.startsWith(' ')) {
-          line = line.substring(1);
+    var line = -1;
+    var firstNonEmpty = -1;
+    var lastNonEmpty = -1;
+    var lines = <String>[];
+    while (start < end) {
+      line++;
+      var eolIndex = comment.indexOf('\n', start);
+      if (eolIndex < 0) {
+        eolIndex = end;
+      }
+      var lineStart = _skipWhitespaceForward(comment, start, eolIndex);
+      if (comment.startsWith('///', lineStart)) {
+        lineStart += 3;
+        if (_isWhitespace(comment, lineStart, false)) {
+          lineStart++;
         }
-      } else if (line.startsWith('///')) {
-        line = line.substring(3);
-        if (line.startsWith(' ')) {
-          line = line.substring(1);
+      } else if (comment.startsWith('*', lineStart)) {
+        lineStart += 1;
+        if (_isWhitespace(comment, lineStart, false)) {
+          lineStart++;
         }
       }
-      if (line.isNotEmpty) {
-        if (i < firstNonEmpty) {
-          firstNonEmpty = i;
+      var lineEnd =
+          _skipWhitespaceBackward(comment, lineStart, eolIndex - 1) + 1;
+      if (lineStart < lineEnd) {
+        // If the line is not empty, update the line range.
+        if (firstNonEmpty < 0) {
+          firstNonEmpty = line;
         }
-        if (i > lastNonEmpty) {
-          lastNonEmpty = i;
+        if (line > lastNonEmpty) {
+          lastNonEmpty = line;
         }
+        lines.add(comment.substring(lineStart, lineEnd));
+      } else {
+        lines.add('');
       }
-      lines[i] = line;
+      start = eolIndex + 1;
     }
-    if (lastNonEmpty < firstNonEmpty) {
+    if (firstNonEmpty < 0 || lastNonEmpty < firstNonEmpty) {
       // All of the lines are empty.
-      return <String>[];
+      return const <String>[];
     }
     return lines.sublist(firstNonEmpty, lastNonEmpty + 1);
   }
+}
+
+/// A representation of the documentation for an element.
+class Documentation {
+  String full;
+
+  Documentation({required this.full});
+}
+
+/// A representation of the documentation for an element that includes a
+/// summary.
+class DocumentationWithSummary extends Documentation {
+  final String summary;
+
+  DocumentationWithSummary({required String full, required this.summary})
+      : super(full: full);
 }

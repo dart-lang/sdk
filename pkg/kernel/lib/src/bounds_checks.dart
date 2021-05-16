@@ -4,15 +4,13 @@
 
 import 'package:kernel/src/replacement_visitor.dart';
 
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 
 import '../type_algebra.dart' show Substitution, substitute;
 
 import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
 
 import '../util/graph.dart' show Graph, computeStrongComponents;
-
-import '../visitor.dart' show DartTypeVisitor, DartTypeVisitor1;
 
 import 'legacy_erasure.dart';
 
@@ -87,8 +85,8 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
 
   void visitFunctionType(FunctionType node) {
     for (TypeParameter typeParameter in node.typeParameters) {
-      typeParameter.bound!.accept(this);
-      typeParameter.defaultType?.accept(this);
+      typeParameter.bound.accept(this);
+      typeParameter.defaultType.accept(this);
     }
     for (DartType parameter in node.positionalParameters) {
       parameter.accept(this);
@@ -164,14 +162,19 @@ List<DartType> calculateBoundsInternal(
   List<DartType> bounds =
       new List<DartType>.filled(typeParameters.length, dummyDartType);
   for (int i = 0; i < typeParameters.length; i++) {
-    DartType? bound = typeParameters[i].bound;
-    if (bound == null) {
-      bound = const DynamicType();
+    DartType bound = typeParameters[i].bound;
+    bool isContravariant = typeParameters[i].variance == Variance.contravariant;
+    if (identical(bound, TypeParameter.unsetBoundSentinel)) {
+      bound = isNonNullableByDefault && isContravariant
+          ? const NeverType.nonNullable()
+          : const DynamicType();
     } else if (bound is InterfaceType && bound.classNode == objectClass) {
-      DartType defaultType = typeParameters[i].defaultType!;
+      DartType defaultType = typeParameters[i].defaultType;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {
-        bound = const DynamicType();
+        bound = isNonNullableByDefault && isContravariant
+            ? const NeverType.nonNullable()
+            : const DynamicType();
       }
     }
     bounds[i] = bound;
@@ -193,8 +196,10 @@ List<DartType> calculateBoundsInternal(
     Substitution substitution =
         Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
     for (int typeParameterIndex in component) {
-      bounds[typeParameterIndex] =
-          substitution.substituteType(bounds[typeParameterIndex]);
+      bounds[typeParameterIndex] = substitution.substituteType(
+          bounds[typeParameterIndex],
+          contravariant: typeParameters[typeParameterIndex].variance ==
+              Variance.contravariant);
     }
   }
 
@@ -206,7 +211,8 @@ List<DartType> calculateBoundsInternal(
     Substitution substitution =
         Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
     for (int j = 0; j < typeParameters.length; j++) {
-      bounds[j] = substitution.substituteType(bounds[j]);
+      bounds[j] = substitution.substituteType(bounds[j],
+          contravariant: typeParameters[j].variance == Variance.contravariant);
     }
   }
 
@@ -318,7 +324,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
 
     for (TypeParameter parameter in type.typeParameters) {
       result.addAll(findTypeArgumentIssues(
-          parameter.bound!, typeEnvironment, subtypeCheckMode,
+          parameter.bound, typeEnvironment, subtypeCheckMode,
           allowSuperBounded: true,
           isNonNullableByDefault: isNonNullableByDefault,
           areGenericArgumentsAllowed: areGenericArgumentsAllowed));
@@ -372,7 +378,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       result.add(new TypeArgumentIssue(i, argument, variables[i], type,
           isGenericTypeAsArgumentIssue: true));
     } else if (variables[i].bound is! InvalidType) {
-      DartType bound = substitute(variables[i].bound!, substitutionMap);
+      DartType bound = substitute(variables[i].bound, substitutionMap);
       if (!isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
@@ -426,7 +432,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       // Generic function types aren't allowed as type arguments either.
       isCorrectSuperBounded = false;
     } else if (!typeEnvironment.isSubtypeOf(argument,
-        substitute(variables[i].bound!, substitutionMap), subtypeCheckMode)) {
+        substitute(variables[i].bound, substitutionMap), subtypeCheckMode)) {
       isCorrectSuperBounded = false;
     }
   }
@@ -491,7 +497,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null,
           isGenericTypeAsArgumentIssue: true));
     } else if (parameters[i].bound is! InvalidType) {
-      DartType bound = substitute(parameters[i].bound!, substitutionMap);
+      DartType bound = substitute(parameters[i].bound, substitutionMap);
       if (!isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
@@ -809,7 +815,7 @@ class VarianceCalculator
       // variance of [typeParameter] in the entire type invariant.  The
       // invocation of the visitor below is made to simply figure out if
       // [typeParameter] occurs in the bound.
-      if (computeVariance(typeParameter, functionTypeParameter.bound!,
+      if (computeVariance(typeParameter, functionTypeParameter.bound,
               computedVariances: computedVariances) !=
           Variance.unrelated) {
         result = Variance.invariant;

@@ -30,18 +30,20 @@ class Coordinate extends ffi::Struct {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  @#C11
   get x() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()));
   set x(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()), #v);
+  @#C11
   get y() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()));
   set y(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()), #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
 }
 static method main() → dynamic {}
 
@@ -56,12 +58,13 @@ constants  {
   #C8 = 24
   #C9 = 20
   #C10 = <core::int*>[#C8, #C9, #C8]
-  #C11 = 0
-  #C12 = <core::int*>[#C11, #C11, #C11]
-  #C13 = 8
-  #C14 = <core::int*>[#C13, #C13, #C13]
-  #C15 = 16
-  #C16 = <core::int*>[#C15, #C15, #C15]
+  #C11 = ffi::Double {}
+  #C12 = 0
+  #C13 = <core::int*>[#C12, #C12, #C12]
+  #C14 = 8
+  #C15 = <core::int*>[#C14, #C14, #C14]
+  #C16 = 16
+  #C17 = <core::int*>[#C16, #C16, #C16]
 }
 
 

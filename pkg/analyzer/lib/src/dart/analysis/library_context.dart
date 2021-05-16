@@ -63,8 +63,7 @@ class LibraryContext {
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     required this.externalSummaries,
-    required FileState targetLibrary,
-  })   : logger = logger,
+  })  : logger = logger,
         byteStore = byteStore,
         analysisSession = session {
     var synchronousSession =
@@ -72,7 +71,6 @@ class LibraryContext {
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
 
     _createElementFactory();
-    load2(targetLibrary);
   }
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
@@ -86,14 +84,9 @@ class LibraryContext {
   }
 
   /// Get the [LibraryElement] for the given library.
-  LibraryElement getLibraryElement(FileState library) {
-    return elementFactory.libraryOfUri2(library.uriStr);
-  }
-
-  /// Return `true` if the given [uri] is known to be a library.
-  bool isLibraryUri(Uri uri) {
-    String uriStr = uri.toString();
-    return elementFactory.isLibraryUri(uriStr);
+  LibraryElement getLibraryElement(Uri uri) {
+    _createElementFactoryTypeProvider();
+    return elementFactory.libraryOfUri2('$uri');
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -123,12 +116,10 @@ class LibraryContext {
         (e) => loadBundle(e, '$debugPrefix  '),
       );
 
-      var uriToLibrary_uriToUnitAstBytes = <String, Map<String, Uint8List>>{};
+      var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
-        var uriToUnitAstBytes = <String, Uint8List>{};
-        uriToLibrary_uriToUnitAstBytes[library.uriStr] = uriToUnitAstBytes;
         for (var file in library.libraryFiles) {
-          uriToUnitAstBytes[file.uriStr] = file.getAstBytes();
+          unitsInformativeBytes[file.uri] = file.getAstBytes();
         }
       }
 
@@ -139,7 +130,7 @@ class LibraryContext {
         librariesLinkedTimer.start();
 
         testView.linkedCycles.add(
-          cycle.libraries.map((e) => e.path!).toSet(),
+          cycle.libraries.map((e) => e.path).toSet(),
         );
 
         timerInputLibraries.start();
@@ -147,7 +138,6 @@ class LibraryContext {
         var inputLibraries = <link2.LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
-          if (librarySource == null) continue;
 
           var inputUnits = <link2.LinkInputUnit>[];
           var partIndex = -1;
@@ -164,7 +154,7 @@ class LibraryContext {
             inputUnits.add(
               link2.LinkInputUnit(
                 partUriStr,
-                file.source!,
+                file.source,
                 isSynthetic,
                 unit,
               ),
@@ -239,11 +229,11 @@ class LibraryContext {
         librariesLoaded += cycle.libraries.length;
       }
 
-      elementFactory.addLibraries(
-        createLibraryReadersWithAstBytes(
+      elementFactory.addBundle(
+        BundleReader(
           elementFactory: elementFactory,
+          unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: resolutionBytes,
-          uriToLibrary_uriToUnitAstBytes: uriToLibrary_uriToUnitAstBytes,
         ),
       );
     }
@@ -289,8 +279,8 @@ class LibraryContext {
         elementFactory.addBundle(
           BundleReader(
             elementFactory: elementFactory,
-            astBytes: bundle.astBytes,
             resolutionBytes: bundle.resolutionBytes,
+            unitsInformativeBytes: {},
           ),
         );
       }
@@ -317,7 +307,7 @@ class LibraryContext {
     var fileContentMap = <String, String>{};
     for (var libraryFile in cycle.libraries) {
       for (var file in libraryFile.libraryFiles) {
-        fileContentMap[file.path!] = file.content;
+        fileContentMap[file.path] = file.content;
       }
     }
     throw CaughtExceptionWithFiles(exception, stackTrace, fileContentMap);

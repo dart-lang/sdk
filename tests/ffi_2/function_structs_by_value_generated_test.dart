@@ -10,6 +10,8 @@
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
@@ -77,6 +79,11 @@ void main() {
     testPassStructNestedAlignmentStruct5BytesPackedMixed();
     testPassStruct6BytesInlineArrayInt();
     testPassStruct15BytesInlineArrayMixed();
+    testPassUnion4BytesMixedx10();
+    testPassUnion8BytesNestedFloatx10();
+    testPassUnion9BytesNestedIntx10();
+    testPassUnion16BytesNestedInlineArrayFloatx10();
+    testPassUnion16BytesNestedFloatx10();
     testReturnStruct1ByteInt();
     testReturnStruct3BytesHomogeneousUint8();
     testReturnStruct3BytesInt2ByteAligned();
@@ -102,6 +109,10 @@ void main() {
     testReturnStruct3BytesPackedInt();
     testReturnStruct8BytesPackedInt();
     testReturnStruct9BytesPackedMixed();
+    testReturnUnion4BytesMixed();
+    testReturnUnion8BytesNestedFloat();
+    testReturnUnion9BytesNestedInt();
+    testReturnUnion16BytesNestedFloat();
     testReturnStructArgumentStruct1ByteInt();
     testReturnStructArgumentInt32x8Struct1ByteInt();
     testReturnStructArgumentStruct8BytesHomogeneousFloat();
@@ -1281,6 +1292,52 @@ class Struct15BytesInlineArrayMixed extends Struct {
   Array<Struct5BytesPackedMixed> a0;
 
   String toString() => "(${[for (var i0 = 0; i0 < 3; i0 += 1) a0[i0]]})";
+}
+
+class Union4BytesMixed extends Union {
+  @Uint32()
+  int a0;
+
+  @Float()
+  double a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Union8BytesNestedFloat extends Union {
+  @Double()
+  double a0;
+
+  Struct8BytesHomogeneousFloat a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Union9BytesNestedInt extends Union {
+  Struct8BytesInt a0;
+
+  Struct9BytesHomogeneousUint8 a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Union16BytesNestedInlineArrayFloat extends Union {
+  @Array(4)
+  Array<Float> a0;
+
+  Struct16BytesHomogeneousFloat a1;
+
+  String toString() => "(${[for (var i0 = 0; i0 < 4; i0 += 1) a0[i0]]}, ${a1})";
+}
+
+class Union16BytesNestedFloat extends Union {
+  Struct8BytesHomogeneousFloat a0;
+
+  Struct12BytesHomogeneousFloat a1;
+
+  Struct16BytesHomogeneousFloat a2;
+
+  String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
 final passStruct1ByteIntx10 = ffiTestFunctions.lookupFunction<
@@ -5916,6 +5973,453 @@ void testPassStruct15BytesInlineArrayMixed() {
   calloc.free(a0Pointer);
 }
 
+final passUnion4BytesMixedx10 = ffiTestFunctions.lookupFunction<
+    Double Function(
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed),
+    double Function(
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed,
+        Union4BytesMixed)>("PassUnion4BytesMixedx10");
+
+/// Check placement of mixed integer/float union.
+void testPassUnion4BytesMixedx10() {
+  final a0Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Union4BytesMixed>();
+  final Union4BytesMixed a9 = a9Pointer.ref;
+
+  a0.a0 = 1;
+  a1.a0 = 2;
+  a2.a0 = 3;
+  a3.a0 = 4;
+  a4.a0 = 5;
+  a5.a0 = 6;
+  a6.a0 = 7;
+  a7.a0 = 8;
+  a8.a0 = 9;
+  a9.a0 = 10;
+
+  final result =
+      passUnion4BytesMixedx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(55.0, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
+final passUnion8BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
+    Double Function(
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat),
+    double Function(
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat,
+        Union8BytesNestedFloat)>("PassUnion8BytesNestedFloatx10");
+
+/// Check placement of mixed floats union.
+void testPassUnion8BytesNestedFloatx10() {
+  final a0Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Union8BytesNestedFloat>();
+  final Union8BytesNestedFloat a9 = a9Pointer.ref;
+
+  a0.a0 = -1.0;
+  a1.a0 = 2.0;
+  a2.a0 = -3.0;
+  a3.a0 = 4.0;
+  a4.a0 = -5.0;
+  a5.a0 = 6.0;
+  a6.a0 = -7.0;
+  a7.a0 = 8.0;
+  a8.a0 = -9.0;
+  a9.a0 = 10.0;
+
+  final result =
+      passUnion8BytesNestedFloatx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(5.0, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
+final passUnion9BytesNestedIntx10 = ffiTestFunctions.lookupFunction<
+    Double Function(
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt),
+    double Function(
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt,
+        Union9BytesNestedInt)>("PassUnion9BytesNestedIntx10");
+
+/// Mixed-size union argument.
+void testPassUnion9BytesNestedIntx10() {
+  final a0Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Union9BytesNestedInt>();
+  final Union9BytesNestedInt a9 = a9Pointer.ref;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a1.a0.a0 = 4;
+  a1.a0.a1 = -5;
+  a1.a0.a2 = 6;
+  a2.a0.a0 = -7;
+  a2.a0.a1 = 8;
+  a2.a0.a2 = -9;
+  a3.a0.a0 = 10;
+  a3.a0.a1 = -11;
+  a3.a0.a2 = 12;
+  a4.a0.a0 = -13;
+  a4.a0.a1 = 14;
+  a4.a0.a2 = -15;
+  a5.a0.a0 = 16;
+  a5.a0.a1 = -17;
+  a5.a0.a2 = 18;
+  a6.a0.a0 = -19;
+  a6.a0.a1 = 20;
+  a6.a0.a2 = -21;
+  a7.a0.a0 = 22;
+  a7.a0.a1 = -23;
+  a7.a0.a2 = 24;
+  a8.a0.a0 = -25;
+  a8.a0.a1 = 26;
+  a8.a0.a2 = -27;
+  a9.a0.a0 = 28;
+  a9.a0.a1 = -29;
+  a9.a0.a2 = 30;
+
+  final result =
+      passUnion9BytesNestedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(15.0, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
+final passUnion16BytesNestedInlineArrayFloatx10 =
+    ffiTestFunctions.lookupFunction<
+            Double Function(
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat),
+            double Function(
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat,
+                Union16BytesNestedInlineArrayFloat)>(
+        "PassUnion16BytesNestedInlineArrayFloatx10");
+
+/// Union with homogenous floats.
+void testPassUnion16BytesNestedInlineArrayFloatx10() {
+  final a0Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Union16BytesNestedInlineArrayFloat>();
+  final Union16BytesNestedInlineArrayFloat a9 = a9Pointer.ref;
+
+  a0.a0[0] = -1.0;
+  a0.a0[1] = 2.0;
+  a0.a0[2] = -3.0;
+  a0.a0[3] = 4.0;
+  a1.a0[0] = -5.0;
+  a1.a0[1] = 6.0;
+  a1.a0[2] = -7.0;
+  a1.a0[3] = 8.0;
+  a2.a0[0] = -9.0;
+  a2.a0[1] = 10.0;
+  a2.a0[2] = -11.0;
+  a2.a0[3] = 12.0;
+  a3.a0[0] = -13.0;
+  a3.a0[1] = 14.0;
+  a3.a0[2] = -15.0;
+  a3.a0[3] = 16.0;
+  a4.a0[0] = -17.0;
+  a4.a0[1] = 18.0;
+  a4.a0[2] = -19.0;
+  a4.a0[3] = 20.0;
+  a5.a0[0] = -21.0;
+  a5.a0[1] = 22.0;
+  a5.a0[2] = -23.0;
+  a5.a0[3] = 24.0;
+  a6.a0[0] = -25.0;
+  a6.a0[1] = 26.0;
+  a6.a0[2] = -27.0;
+  a6.a0[3] = 28.0;
+  a7.a0[0] = -29.0;
+  a7.a0[1] = 30.0;
+  a7.a0[2] = -31.0;
+  a7.a0[3] = 32.0;
+  a8.a0[0] = -33.0;
+  a8.a0[1] = 34.0;
+  a8.a0[2] = -35.0;
+  a8.a0[3] = 36.0;
+  a9.a0[0] = -37.0;
+  a9.a0[1] = 38.0;
+  a9.a0[2] = -39.0;
+  a9.a0[3] = 40.0;
+
+  final result = passUnion16BytesNestedInlineArrayFloatx10(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(20.0, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
+final passUnion16BytesNestedFloatx10 = ffiTestFunctions.lookupFunction<
+    Double Function(
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat),
+    double Function(
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat,
+        Union16BytesNestedFloat)>("PassUnion16BytesNestedFloatx10");
+
+/// Union with homogenous floats.
+void testPassUnion16BytesNestedFloatx10() {
+  final a0Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Union16BytesNestedFloat>();
+  final Union16BytesNestedFloat a9 = a9Pointer.ref;
+
+  a0.a0.a0 = -1.0;
+  a0.a0.a1 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a0.a1 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a0.a1 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a0.a1 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a0.a1 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a0.a1 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a0.a1 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a0.a1 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a0.a1 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a0.a1 = 20.0;
+
+  final result =
+      passUnion16BytesNestedFloatx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.approxEquals(10.0, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
 final returnStruct1ByteInt = ffiTestFunctions.lookupFunction<
     Struct1ByteInt Function(Int8),
     Struct1ByteInt Function(int)>("ReturnStruct1ByteInt");
@@ -7404,6 +7908,88 @@ void testReturnStruct9BytesPackedMixed() {
 
   Expect.equals(a0, result.a0);
   Expect.approxEquals(a1, result.a1);
+}
+
+final returnUnion4BytesMixed = ffiTestFunctions.lookupFunction<
+    Union4BytesMixed Function(Uint32),
+    Union4BytesMixed Function(int)>("ReturnUnion4BytesMixed");
+
+/// Returning a mixed integer/float union.
+void testReturnUnion4BytesMixed() {
+  int a0;
+
+  a0 = 1;
+
+  final result = returnUnion4BytesMixed(a0);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+}
+
+final returnUnion8BytesNestedFloat = ffiTestFunctions.lookupFunction<
+    Union8BytesNestedFloat Function(Double),
+    Union8BytesNestedFloat Function(double)>("ReturnUnion8BytesNestedFloat");
+
+/// Returning a floating point only union.
+void testReturnUnion8BytesNestedFloat() {
+  double a0;
+
+  a0 = -1.0;
+
+  final result = returnUnion8BytesNestedFloat(a0);
+
+  print("result = $result");
+
+  Expect.approxEquals(a0, result.a0);
+}
+
+final returnUnion9BytesNestedInt = ffiTestFunctions.lookupFunction<
+    Union9BytesNestedInt Function(Struct8BytesInt),
+    Union9BytesNestedInt Function(
+        Struct8BytesInt)>("ReturnUnion9BytesNestedInt");
+
+/// Returning a mixed-size union.
+void testReturnUnion9BytesNestedInt() {
+  final a0Pointer = calloc<Struct8BytesInt>();
+  final Struct8BytesInt a0 = a0Pointer.ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+
+  final result = returnUnion9BytesNestedInt(a0);
+
+  print("result = $result");
+
+  Expect.equals(a0.a0, result.a0.a0);
+  Expect.equals(a0.a1, result.a0.a1);
+  Expect.equals(a0.a2, result.a0.a2);
+
+  calloc.free(a0Pointer);
+}
+
+final returnUnion16BytesNestedFloat = ffiTestFunctions.lookupFunction<
+    Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat),
+    Union16BytesNestedFloat Function(
+        Struct8BytesHomogeneousFloat)>("ReturnUnion16BytesNestedFloat");
+
+/// Returning union with homogenous floats.
+void testReturnUnion16BytesNestedFloat() {
+  final a0Pointer = calloc<Struct8BytesHomogeneousFloat>();
+  final Struct8BytesHomogeneousFloat a0 = a0Pointer.ref;
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+
+  final result = returnUnion16BytesNestedFloat(a0);
+
+  print("result = $result");
+
+  Expect.approxEquals(a0.a0, result.a0.a0);
+  Expect.approxEquals(a0.a1, result.a0.a1);
+
+  calloc.free(a0Pointer);
 }
 
 final returnStructArgumentStruct1ByteInt = ffiTestFunctions.lookupFunction<

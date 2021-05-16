@@ -47,7 +47,7 @@ export 'package:kernel/ast.dart'
         ListLiteral,
         LocalInitializer,
         Location,
-        MapEntry,
+        MapLiteralEntry,
         MapLiteral,
         Member,
         MethodInvocation,

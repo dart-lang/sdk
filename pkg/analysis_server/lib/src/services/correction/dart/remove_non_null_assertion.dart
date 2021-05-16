@@ -15,6 +15,9 @@ class RemoveNonNullAssertion extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_NON_NULL_ASSERTION;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_NON_NULL_ASSERTION_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     final expression = node;
 

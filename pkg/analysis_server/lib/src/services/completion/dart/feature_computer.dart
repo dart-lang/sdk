@@ -1015,7 +1015,7 @@ extension on AstNode {
 extension on ArgumentList {
   /// Return the [FunctionType], if there is one, for this [ArgumentList].
   FunctionType? get functionType {
-    var parent = this.parent;
+    final parent = this.parent;
     if (parent is InstanceCreationExpression) {
       return parent.constructorName.staticElement?.type;
     } else if (parent is MethodInvocation) {

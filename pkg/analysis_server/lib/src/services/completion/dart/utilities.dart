@@ -114,6 +114,7 @@ String buildClosureParameters(FunctionType type) {
   var hasNamed = false;
   var hasOptionalPositional = false;
   var parameters = type.parameters;
+  var existingNames = parameters.map((p) => p.name).toSet();
   for (var i = 0; i < parameters.length; ++i) {
     var parameter = parameters[i];
     if (i != 0) {
@@ -126,8 +127,16 @@ String buildClosureParameters(FunctionType type) {
       hasOptionalPositional = true;
       buffer.write('[');
     }
-    // todo (pq): consider abbreviating names
-    buffer.write(parameter.name);
+    var name = parameter.name;
+    if (name.isEmpty) {
+      name = 'p$i';
+      var index = 1;
+      while (existingNames.contains(name)) {
+        name = 'p${i}_$index';
+        index++;
+      }
+    }
+    buffer.write(name);
   }
 
   if (hasNamed) {

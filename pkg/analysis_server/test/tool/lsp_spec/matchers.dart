@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:matcher/matcher.dart';
 
@@ -11,7 +9,7 @@ import '../../../tool/lsp_spec/typescript_parser.dart';
 
 Matcher isArrayOf(Matcher matcher) => ArrayTypeMatcher(wrapMatcher(matcher));
 
-Matcher isLiteralOf(Matcher typeMatcher, Object value) =>
+Matcher isLiteralOf(Matcher typeMatcher, String value) =>
     LiteralTypeMatcher(typeMatcher, value);
 
 Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>

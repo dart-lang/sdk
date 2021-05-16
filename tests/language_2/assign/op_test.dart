@@ -4,6 +4,8 @@
 // Dart test program for testing assign operators.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class AssignOpTest {

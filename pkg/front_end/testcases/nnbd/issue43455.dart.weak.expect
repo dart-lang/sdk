@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
-class C<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   synthetic constructor •() → self::C<self::C::X%, self::C::Y>
     : super core::Object::•()
     ;

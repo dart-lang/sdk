@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing named parameters.
 
+// @dart = 2.9
+
 class TypeTester<T> {}
 
 // Expect compile-time error as no default values are allowed

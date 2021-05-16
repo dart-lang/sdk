@@ -4,6 +4,8 @@
 // Dart test program for testing named parameters.
 // You may not provide the same parameter as both a positional and a named argument.
 
+// @dart = 2.9
+
 int test(int a, [int b]) {
   return a;
 }

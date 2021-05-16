@@ -5,6 +5,8 @@
 // part of the instance field increment never completes.
 // VMOptions=--optimization-counter-threshold=10
 
+// @dart = 2.9
+
 main() {
   var a = new A();
   a.field = new A();

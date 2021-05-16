@@ -106,34 +106,30 @@
 current-version: '2.14.0'
 
 features:
-  triple-shift:
-    help: "Triple-shift operator"
-    validation: |
-      class A {
-        operator>>>(int k) => 42;
-      }
-      void main() {
-        if ((A() >>> 1) == 42) print('feature enabled');
-      }
-
   variance:
     help: "Sound variance"
 
   alternative-invalidation-strategy:
-    help: "Alternative invalidation strategy for incremental compilation"
+    help: "Alternative invalidation strategy for incremental compilation."
     category: "CFE"
 
   value-class:
     help: "Value class"
-
-  generic-metadata:
-    help: "Allow annotations to accept type arguments; also allow generic function types as type arguments"
 
   extension-types:
     help: "Extension Types"
 
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
+
+  constructor-tearoffs:
+    help: "Allow constructor tear-offs and explicit generic instantiations."
+
+# Experiment flag only used for testing.
+  test-experiment:
+    help: >-
+      Has no effect. Can be used for testing the --enable-experiment
+      command line functionality.
 
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
@@ -174,6 +170,12 @@ features:
     enabledIn: '2.0.0'
     expired: true
 
+  generic-metadata:
+    help: >-
+      Allow annotations to accept type arguments;
+      also allow generic function types as type arguments.
+    enabledIn: '2.14.0'
+
   set-literals:
     help: "Set Literals"
     enabledIn: '2.0.0'
@@ -183,3 +185,14 @@ features:
     help: "Spread Collections"
     enabledIn: '2.0.0'
     expired: true
+
+  triple-shift:
+    help: "Triple-shift operator"
+    enabledIn: '2.14.0'
+    validation: |
+      class A {
+        operator>>>(int k) => 42;
+      }
+      void main() {
+        if ((A() >>> 1) == 42) print('feature enabled');
+      }

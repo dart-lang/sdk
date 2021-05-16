@@ -434,8 +434,8 @@ class Place : public ValueObject {
         kBitsPerInt32 - 1);
   }
 
-  bool Equals(const Place* other) const {
-    return (flags_ == other->flags_) && (instance_ == other->instance_) &&
+  bool Equals(const Place& other) const {
+    return (flags_ == other.flags_) && (instance_ == other.instance_) &&
            SameField(other);
   }
 
@@ -444,8 +444,8 @@ class Place : public ValueObject {
 
   static bool IsAllocation(Definition* defn) {
     return (defn != NULL) &&
-           (defn->IsAllocateObject() || defn->IsCreateArray() ||
-            defn->IsAllocateTypedData() ||
+           (defn->IsAllocateObject() || defn->IsAllocateClosure() ||
+            defn->IsCreateArray() || defn->IsAllocateTypedData() ||
             defn->IsAllocateUninitializedContext() ||
             (defn->IsStaticCall() &&
              defn->AsStaticCall()->IsRecognizedFactory()));
@@ -455,10 +455,10 @@ class Place : public ValueObject {
   Place(uword flags, Definition* instance, intptr_t selector)
       : flags_(flags), instance_(instance), raw_selector_(selector), id_(0) {}
 
-  bool SameField(const Place* other) const {
+  bool SameField(const Place& other) const {
     return (kind() == kStaticField)
-               ? (static_field().Original() == other->static_field().Original())
-               : (raw_selector_ == other->raw_selector_);
+               ? (static_field().Original() == other.static_field().Original())
+               : (raw_selector_ == other.raw_selector_);
   }
 
   uword FieldHash() const {
@@ -1027,7 +1027,7 @@ class AliasedSet : public ZoneAllocated {
       bool is_load = false, is_store;
       Place load_place(instr, &is_load, &is_store);
 
-      if (is_load && load_place.Equals(place)) {
+      if (is_load && load_place.Equals(*place)) {
         return true;
       }
     }
@@ -1452,7 +1452,6 @@ static bool MayHaveVisibleEffect(Instruction* instr) {
     case Instruction::kStoreStaticField:
     case Instruction::kStoreIndexed:
     case Instruction::kStoreIndexedUnsafe:
-    case Instruction::kStoreUntagged:
       return true;
     default:
       return instr->HasUnknownSideEffects() || instr->MayThrow();
@@ -1555,7 +1554,9 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
     for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
          instr_it.Advance()) {
       Definition* def = instr_it.Current()->AsDefinition();
-      if (def != nullptr && (def->IsAllocateObject() || def->IsCreateArray()) &&
+      if (def != nullptr &&
+          (def->IsAllocateObject() || def->IsAllocateClosure() ||
+           def->IsCreateArray()) &&
           def->env() == nullptr && !moved.HasKey(def)) {
         Instruction* use = DominantUse(def);
         if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
@@ -2010,15 +2011,6 @@ class LoadOptimizer : public ValueObject {
           continue;
         }
 
-        // For object allocation forward initial values of the fields to
-        // subsequent loads (and potential dead stores) except for final
-        // fields of escaping objects. Final fields are initialized in
-        // constructor which potentially was not inlined into the function
-        // that we are currently optimizing. However at the same time we
-        // assume that values of the final fields can be forwarded across
-        // side-effects. If we add 'null' as known values for these fields
-        // here we will incorrectly propagate this null across constructor
-        // invocation.
         if (auto alloc = instr->AsAllocateObject()) {
           for (Value* use = alloc->input_use_list(); use != NULL;
                use = use->next_use()) {
@@ -2038,11 +2030,19 @@ class LoadOptimizer : public ValueObject {
             }
 
             if (slot != nullptr) {
-              // Found a load/store. Initialize current value of the field
-              // to null for normal fields, or with type arguments.
-
-              // If the object escapes then don't forward final fields - see
-              // the comment above for explanation.
+              // Found a load/store. For object allocation, forward initial
+              // values of the fields to subsequent loads (and potential dead
+              // stores). For most fields, this is null, except for the type
+              // arguments slot. However, we do not forward an initial null
+              // value for final fields of escaping objects.
+              //
+              // Final fields are initialized in constructors. However, at the
+              // same time we assume that known values of final fields can be
+              // forwarded across side-effects. For an escaping object, one such
+              // side effect can be an uninlined constructor invocation. Thus,
+              // if we add 'null' as known initial values for these fields,
+              // this null will be incorrectly propagated across any uninlined
+              // constructor invocation and used instead of the real value.
               if (aliased_set_->CanBeAliased(alloc) && slot->IsDartField() &&
                   slot->is_immutable()) {
                 continue;
@@ -2055,6 +2055,43 @@ class LoadOptimizer : public ValueObject {
                 if (slot->IsIdentical(type_args_slot)) {
                   forward_def = alloc->type_arguments()->definition();
                 }
+              }
+              gen->Add(place_id);
+              if (out_values == nullptr) out_values = CreateBlockOutValues();
+              (*out_values)[place_id] = forward_def;
+            }
+          }
+          continue;
+        } else if (auto alloc = instr->AsAllocateClosure()) {
+          for (Value* use = alloc->input_use_list(); use != nullptr;
+               use = use->next_use()) {
+            // Look for all immediate loads/stores from this object.
+            if (use->use_index() != 0) {
+              continue;
+            }
+            const Slot* slot = nullptr;
+            intptr_t place_id = 0;
+            if (auto load = use->instruction()->AsLoadField()) {
+              slot = &load->slot();
+              place_id = GetPlaceId(load);
+            } else if (auto store =
+                           use->instruction()->AsStoreInstanceField()) {
+              slot = &store->slot();
+              place_id = GetPlaceId(store);
+            }
+
+            if (slot != nullptr) {
+              // Found a load/store. Initialize current value of the field
+              // to null.
+              //
+              // Note that unlike objects in general, there is no _Closure
+              // constructor in Dart code, but instead the FlowGraphBuilder
+              // explicitly initializes each non-null closure field in the flow
+              // graph with StoreInstanceField instructions post-allocation.
+              Definition* forward_def = graph_->constant_null();
+              // Forward values passed as AllocateClosureInstr inputs.
+              if (slot->IsIdentical(Slot::Closure_function())) {
+                forward_def = alloc->closure_function()->definition();
               }
               gen->Add(place_id);
               if (out_values == nullptr) out_values = CreateBlockOutValues();
@@ -2554,7 +2591,7 @@ class LoadOptimizer : public ValueObject {
   bool CanBeCongruent(Definition* a, Definition* b) {
     return (a->tag() == b->tag()) &&
            ((a->IsPhi() && (a->GetBlock() == b->GetBlock())) ||
-            (a->AllowsCSE() && a->AttributesEqual(b)));
+            (a->AllowsCSE() && a->AttributesEqual(*b)));
   }
 
   // Given two definitions check if they are congruent under assumption that
@@ -3050,6 +3087,7 @@ static bool IsValidLengthForAllocationSinking(
 // can be sunk by the Allocation Sinking pass.
 static bool IsSupportedAllocation(Instruction* instr) {
   return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext() ||
+         instr->IsAllocateClosure() ||
          (instr->IsArrayAllocation() &&
           IsValidLengthForAllocationSinking(instr->AsArrayAllocation()));
 }
@@ -3567,6 +3605,9 @@ void AllocationSinking::CreateMaterializationAt(
   intptr_t num_elements = -1;
   if (auto instr = alloc->AsAllocateObject()) {
     cls = &(instr->cls());
+  } else if (auto instr = alloc->AsAllocateClosure()) {
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->object_store()->closure_class());
   } else if (auto instr = alloc->AsAllocateUninitializedContext()) {
     cls = &Class::ZoneHandle(Object::context_class());
     num_elements = instr->num_context_variables();
@@ -3690,6 +3731,12 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
       AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
                                                    alloc_object->cls()));
     }
+  }
+  if (auto alloc_closure = alloc->AsAllocateClosure()) {
+    // Add slots for any instruction inputs. Any closure slots not listed below
+    // that are non-null are explicitly initialized post-allocation using
+    // StoreInstanceField instructions.
+    AddSlot(slots, Slot::Closure_function());
   }
   if (alloc->IsCreateArray()) {
     AddSlot(

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -20,7 +21,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -195,6 +196,9 @@ class SuggestionBuilder {
     }
     return _cachedContainingMemberName;
   }
+
+  bool get _isNonNullableByDefault =>
+      request.libraryElement?.isNonNullableByDefault ?? false;
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
@@ -633,9 +637,8 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     var name = parameter.name;
-    var type = parameter.type.getDisplayString(
-        withNullability:
-            request.libraryElement?.isNonNullableByDefault ?? false);
+    var type = parameter.type
+        .getDisplayString(withNullability: _isNonNullableByDefault);
 
     var completion = name;
     if (appendColon) {
@@ -688,7 +691,8 @@ class SuggestionBuilder {
         replacementLength: replacementLength);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element = convertElement(parameter);
+      suggestion.element =
+          convertElement(parameter, withNullability: _isNonNullableByDefault);
     }
     _add(suggestion);
   }
@@ -747,7 +751,8 @@ class SuggestionBuilder {
         element.hasDeprecated,
         false,
         displayText: displayText);
-    suggestion.element = protocol.convertElement(element);
+    suggestion.element = protocol.convertElement(element,
+        withNullability: _isNonNullableByDefault);
     _add(suggestion);
   }
 
@@ -1016,9 +1021,8 @@ class SuggestionBuilder {
         completion.length, 0, element.hasOrInheritsDeprecated, false);
 
     _setDocumentation(suggestion, element);
-
-    var suggestedElement =
-        suggestion.element = protocol.convertElement(element);
+    var suggestedElement = suggestion.element = protocol.convertElement(element,
+        withNullability: _isNonNullableByDefault);
     if (elementKind != null) {
       suggestedElement.kind = elementKind;
     }
@@ -1026,7 +1030,8 @@ class SuggestionBuilder {
     if (enclosingElement is ClassElement) {
       suggestion.declaringType = enclosingElement.displayName;
     }
-    suggestion.returnType = getReturnTypeString(element);
+    suggestion.returnType =
+        getReturnTypeString(element, withNullability: _isNonNullableByDefault);
     if (element is ExecutableElement && element is! PropertyAccessorElement) {
       suggestion.parameterNames = element.parameters
           .map((ParameterElement parameter) => parameter.name)
@@ -1035,8 +1040,7 @@ class SuggestionBuilder {
           element.parameters.map((ParameterElement parameter) {
         var paramType = parameter.type;
         return paramType.getDisplayString(
-            withNullability:
-                request.libraryElement?.isNonNullableByDefault ?? false);
+            withNullability: _isNonNullableByDefault);
       }).toList();
 
       var requiredParameters = element.parameters
@@ -1107,11 +1111,22 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
+    final request = this.request;
+    if (request is DartCompletionRequestImpl) {
+      var documentationCache = request.documentationCache;
+      var data = documentationCache?.dataFor(element);
+      if (data != null) {
+        suggestion.docComplete = data.full;
+        suggestion.docSummary = data.summary;
+        return;
+      }
+    }
     var doc = DartUnitHoverComputer.computeDocumentation(
-        request.dartdocDirectiveInfo, element);
-    if (doc != null) {
-      suggestion.docComplete = doc;
-      suggestion.docSummary = getDartDocSummary(doc);
+        request.dartdocDirectiveInfo, element,
+        includeSummary: true);
+    if (doc is DocumentationWithSummary) {
+      suggestion.docComplete = doc.full;
+      suggestion.docSummary = doc.summary;
     }
   }
 }

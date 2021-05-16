@@ -4,6 +4,8 @@
 //
 // Check proper canonicalization (fields must be canonicalized as well).
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

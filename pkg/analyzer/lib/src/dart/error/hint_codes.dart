@@ -75,7 +75,8 @@ class HintCode extends AnalyzerErrorCode {
       HintCode(
           'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
           "The argument type '{0}' can't be assigned to the parameter type "
-              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.");
+              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.",
+          hasPublishedDocs: true);
 
   /**
    * Users should not assign values marked `@doNotStore`.
@@ -1869,6 +1870,7 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
       "A value of type '{0}' can't be returned by the 'onError' handler "
           "because it must be assignable to '{1}'.",
+      hasPublishedDocs: true,
       uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR');
 
   /**
@@ -1880,6 +1882,7 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
       "The return type '{0}' isn't assignable to '{1}', as required by "
           "'Future.catchError'.",
+      hasPublishedDocs: true,
       uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR');
 
   /**

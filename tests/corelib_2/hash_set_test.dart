@@ -4,6 +4,8 @@
 //
 // VMOptions=
 
+// @dart = 2.9
+
 // Tests of hash set behavior, with focus in iteration and concurrent
 // modification errors.
 

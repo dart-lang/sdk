@@ -263,8 +263,21 @@ struct RangeErrorABI {
   static const Register kIndexReg = RBX;
 };
 
-// ABI for AllocateMint*Stub.
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = RAX;
+  static const Register kFunctionReg = RBX;
+  static const Register kScratchReg = R13;
+};
+
+// ABI for AllocateMintShared*Stub.
 struct AllocateMintABI {
+  static const Register kResultReg = RAX;
+  static const Register kTempReg = RBX;
+};
+
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
   static const Register kResultReg = RAX;
   static const Register kTempReg = RBX;
 };
@@ -317,6 +330,11 @@ enum ScaleFactor {
   TIMES_WORD_SIZE = kInt64SizeLog2,
 #else
 #error "Unexpected word size"
+#endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
 };
 
@@ -388,7 +406,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 
   // Whether 1 or 2 byte-sized arguments or return values are passed extended
@@ -453,7 +471,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 
   // Whether 1 or 2 byte-sized arguments or return values are passed extended

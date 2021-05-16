@@ -183,6 +183,7 @@ claim
 claimed
 claims
 clamp
+clamped
 clarification
 clashes
 class's
@@ -365,6 +366,7 @@ ef
 effects
 efficient
 efficiently
+eighth
 elem
 eliminating
 elt
@@ -445,7 +447,12 @@ fishy
 fishythefish
 fixnum
 fleshed
+float32
+float32x
+float32x4
 float64
+float64x
+float64x2
 floitsch
 flowed
 flushed
@@ -572,6 +579,7 @@ infos
 init
 initializations
 initializer's
+inlines
 insertion
 inspect
 inspecting
@@ -581,6 +589,12 @@ inspired
 inst
 instanceof
 instantiator
+int16
+int32
+int32x
+int32x4
+int64
+int8
 integrate
 intentionally
 interim
@@ -939,6 +953,7 @@ rarely
 ratio
 rb
 rc
+rd
 re
 reach
 reachabilities
@@ -960,6 +975,7 @@ received
 receivers
 recheck
 recognizing
+recompile
 recompiled
 recompiling
 recompute
@@ -1143,6 +1159,7 @@ streaming
 strict
 stringified
 stringify
+structs
 structures
 stub
 stubs
@@ -1254,6 +1271,7 @@ tuple4
 tuple5
 tuple6
 tuple7
+tuple8
 type1
 type2
 typeref
@@ -1264,6 +1282,7 @@ ui
 uint
 uint16
 uint32
+uint64
 uint8
 umbrella
 un
@@ -1303,6 +1322,7 @@ universally
 unlinked
 unlower
 unmark
+unmodifiable
 unneeded
 unordered
 unpaired

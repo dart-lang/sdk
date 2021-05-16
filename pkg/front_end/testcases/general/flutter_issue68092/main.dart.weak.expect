@@ -15,7 +15,7 @@ library;
 import self as mai;
 import "dart:core" as core;
 
-class DynamicDispatchRegistry<T extends core::Function* = core::Function*> extends core::Object {
+class DynamicDispatchRegistry<T extends core::Function*> extends core::Object {
   synthetic constructor •() → mai::DynamicDispatchRegistry<mai::DynamicDispatchRegistry::T*>*
     : super core::Object::•()
     ;

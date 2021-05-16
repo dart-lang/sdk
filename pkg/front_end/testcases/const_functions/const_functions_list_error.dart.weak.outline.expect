@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int firstException = self::firstExceptionFn();
+static const field core::int lastException = self::lastExceptionFn();
+static const field core::int singleException = self::singleExceptionFn();
+static const field core::int singleExceptionMulti = self::singleExceptionMultiFn();
+static const field core::int invalidProperty = self::invalidPropertyFn();
+static const field core::int getWithIndexException = self::getWithIndexExceptionFn();
+static const field core::int getWithIndexException2 = self::getWithIndexExceptionFn2();
+static const field core::int getWithIndexException3 = self::getWithIndexExceptionFn3();
+static const field core::List<core::int> constListAddException = self::constListAddExceptionFn();
+static method firstExceptionFn() → core::int
+  ;
+static method lastExceptionFn() → core::int
+  ;
+static method singleExceptionFn() → core::int
+  ;
+static method singleExceptionMultiFn() → core::int
+  ;
+static method invalidPropertyFn() → core::int
+  ;
+static method getWithIndexExceptionFn() → core::int
+  ;
+static method getWithIndexExceptionFn2() → core::int
+  ;
+static method getWithIndexExceptionFn3() → core::int
+  ;
+static method constListAddExceptionFn() → core::List<core::int>
+  ;
+static method main() → void
+  ;

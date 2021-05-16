@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,11 +21,11 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     String expectedLabel,
     String expectedDoc,
     List<ParameterInformation> expectedParams, {
-    MarkupKind expectedFormat = MarkupKind.Markdown,
-    SignatureHelpContext context,
+    MarkupKind? expectedFormat = MarkupKind.Markdown,
+    SignatureHelpContext? context,
   }) async {
-    final res = await getSignatureHelp(
-        mainFileUri, positionFromMarker(fileContent), context);
+    final res = (await getSignatureHelp(
+        mainFileUri, positionFromMarker(fileContent), context))!;
 
     // TODO(dantup): Update this when there is clarification on how to handle
     // no valid selected parameter.
@@ -41,7 +39,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     // Test the format matches the tests expectation.
     // For clients that don't support MarkupContent it'll be a plain string,
     // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
-    final doc = sig.documentation;
+    final doc = sig.documentation!;
     if (expectedFormat == null) {
       // Plain string.
       expect(doc.valueEquals(expectedDoc), isTrue);
@@ -481,12 +479,12 @@ class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
     // This test requires support for the "required" keyword.
     final content = '''
     /// Does foo.
-    foo(String s, {bool b = true, required bool a}) {
+    foo(String s, {bool? b = true, required bool a}) {
       foo(^);
     }
     ''';
 
-    final expectedLabel = 'foo(String s, {bool b = true, required bool a})';
+    final expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
     final expectedDoc = 'Does foo.';
 
     await initialize(
@@ -499,7 +497,7 @@ class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
       expectedDoc,
       [
         ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool? b = true'),
         ParameterInformation(label: 'required bool a'),
       ],
     );

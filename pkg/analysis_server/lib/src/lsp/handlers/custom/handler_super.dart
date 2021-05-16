@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -11,9 +9,10 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
+import 'package:collection/collection.dart';
 
 class SuperHandler
-    extends MessageHandler<TextDocumentPositionParams, Location> {
+    extends MessageHandler<TextDocumentPositionParams, Location?> {
   SuperHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => CustomMethods.super_;
@@ -23,7 +22,7 @@ class SuperHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Location>> handle(
+  Future<ErrorOr<Location?>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
@@ -44,8 +43,8 @@ class SuperHandler
       // finding supers even if the cursor location was inside a method or on its
       // return type.
       var element = server.getElementOfNode(node);
-      while (element == null && node.parent != null) {
-        node = node.parent;
+      while (element == null && node?.parent != null) {
+        node = node?.parent;
         element = server.getElementOfNode(node);
       }
       if (element == null) {
@@ -64,21 +63,22 @@ class SuperHandler
       // The class will have a memberElement if we were searching for an element
       // otherwise we're looking for a class.
       final isMember = items.first.memberElement != null;
-      final superItem = items.skip(1).firstWhere(
-            (elm) =>
-                isMember ? elm.memberElement != null : elm.classElement != null,
-            orElse: () => null,
-          );
+      final superItem = items.skip(1).firstWhereOrNull(
+          (elm) => isMember ? elm.memberElement != null : true);
 
-      if (superItem == null) {
+      final location = superItem?.memberElement?.location ??
+          superItem?.classElement.location;
+
+      if (location == null) {
         return success(null);
       }
 
-      final location = isMember
-          ? superItem.memberElement.location
-          : superItem.classElement.location;
+      final locationLineInfo = server.getLineInfo(location.file);
+      if (locationLineInfo == null) {
+        return success(null);
+      }
 
-      return success(toLocation(location, server.getLineInfo(location.file)));
+      return success(toLocation(location, locationLineInfo));
     });
   }
 }

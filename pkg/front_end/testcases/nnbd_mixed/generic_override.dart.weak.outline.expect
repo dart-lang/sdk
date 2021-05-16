@@ -46,56 +46,56 @@ abstract class Class1 extends core::Object {
   abstract method method1a<T extends core::Object? = dynamic>() → void;
   abstract method method1b<T extends core::Object? = dynamic>() → void;
   abstract method method1c<T extends core::Object? = dynamic>() → void;
-  abstract method method2a<T extends core::Object? = core::Object?>() → void;
-  abstract method method2b<T extends core::Object? = core::Object?>() → void;
-  abstract method method2c<T extends core::Object? = core::Object?>() → void;
-  abstract method method3a<T extends dynamic = dynamic>() → void;
-  abstract method method3b<T extends dynamic = dynamic>() → void;
-  abstract method method3c<T extends dynamic = dynamic>() → void;
-  abstract method method4a<T extends core::Object = core::Object>() → void;
-  abstract method method4b<T extends core::Object = core::Object>() → void;
-  abstract method method4c<T extends core::Object? = core::Object?>() → void;
-  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
-  abstract method method5b<T extends self::Class1 = self::Class1>() → void;
-  abstract method method5c<T extends self::Class1? = self::Class1?>() → void;
+  abstract method method2a<T extends core::Object?>() → void;
+  abstract method method2b<T extends core::Object?>() → void;
+  abstract method method2c<T extends core::Object?>() → void;
+  abstract method method3a<T extends dynamic>() → void;
+  abstract method method3b<T extends dynamic>() → void;
+  abstract method method3c<T extends dynamic>() → void;
+  abstract method method4a<T extends core::Object>() → void;
+  abstract method method4b<T extends core::Object>() → void;
+  abstract method method4c<T extends core::Object?>() → void;
+  abstract method method5a<T extends self::Class1>() → void;
+  abstract method method5b<T extends self::Class1>() → void;
+  abstract method method5c<T extends self::Class1?>() → void;
 }
 abstract class Class2 extends self::Class1 {
   synthetic constructor •() → self::Class2
     ;
   abstract method method1a<T extends core::Object? = dynamic>() → void;
-  abstract method method1b<T extends core::Object? = core::Object?>() → void;
-  abstract method method1c<T extends dynamic = dynamic>() → void;
+  abstract method method1b<T extends core::Object?>() → void;
+  abstract method method1c<T extends dynamic>() → void;
   abstract method method2a<T extends core::Object? = dynamic>() → void;
-  abstract method method2b<T extends core::Object? = core::Object?>() → void;
-  abstract method method2c<T extends dynamic = dynamic>() → void;
+  abstract method method2b<T extends core::Object?>() → void;
+  abstract method method2c<T extends dynamic>() → void;
   abstract method method3a<T extends core::Object? = dynamic>() → void;
-  abstract method method3b<T extends core::Object? = core::Object?>() → void;
-  abstract method method3c<T extends dynamic = dynamic>() → void;
-  abstract method method4a<T extends core::Object = core::Object>() → void;
-  abstract method method4b<T extends core::Object? = core::Object?>() → void;
-  abstract method method4c<T extends core::Object = core::Object>() → void;
-  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
-  abstract method method5b<T extends self::Class1? = self::Class1?>() → void;
-  abstract method method5c<T extends self::Class1 = self::Class1>() → void;
+  abstract method method3b<T extends core::Object?>() → void;
+  abstract method method3c<T extends dynamic>() → void;
+  abstract method method4a<T extends core::Object>() → void;
+  abstract method method4b<T extends core::Object?>() → void;
+  abstract method method4c<T extends core::Object>() → void;
+  abstract method method5a<T extends self::Class1>() → void;
+  abstract method method5b<T extends self::Class1?>() → void;
+  abstract method method5c<T extends self::Class1>() → void;
 }
 abstract class Class3 extends gen::LegacyClass1 {
   synthetic constructor •() → self::Class3
     ;
   abstract method method1a<T extends core::Object? = dynamic>() → void;
-  abstract method method1b<T extends core::Object? = core::Object?>() → void;
-  abstract method method1c<T extends dynamic = dynamic>() → void;
+  abstract method method1b<T extends core::Object?>() → void;
+  abstract method method1c<T extends dynamic>() → void;
   abstract method method2a<T extends core::Object? = dynamic>() → void;
-  abstract method method2b<T extends core::Object? = core::Object?>() → void;
-  abstract method method2c<T extends dynamic = dynamic>() → void;
+  abstract method method2b<T extends core::Object?>() → void;
+  abstract method method2c<T extends dynamic>() → void;
   abstract method method3a<T extends core::Object? = dynamic>() → void;
-  abstract method method3b<T extends core::Object? = core::Object?>() → void;
-  abstract method method3c<T extends dynamic = dynamic>() → void;
-  abstract method method4a<T extends core::Object = core::Object>() → void;
-  abstract method method4b<T extends core::Object? = core::Object?>() → void;
-  abstract method method4c<T extends core::Object = core::Object>() → void;
-  abstract method method5a<T extends self::Class1 = self::Class1>() → void;
-  abstract method method5b<T extends self::Class1? = self::Class1?>() → void;
-  abstract method method5c<T extends self::Class1 = self::Class1>() → void;
+  abstract method method3b<T extends core::Object?>() → void;
+  abstract method method3c<T extends dynamic>() → void;
+  abstract method method4a<T extends core::Object>() → void;
+  abstract method method4b<T extends core::Object?>() → void;
+  abstract method method4c<T extends core::Object>() → void;
+  abstract method method5a<T extends self::Class1>() → void;
+  abstract method method5b<T extends self::Class1?>() → void;
+  abstract method method5c<T extends self::Class1>() → void;
 }
 static method main() → dynamic
   ;
@@ -113,18 +113,18 @@ abstract class LegacyClass1 extends core::Object {
   abstract method method1a<T extends core::Object* = dynamic>() → void;
   abstract method method1b<T extends core::Object* = dynamic>() → void;
   abstract method method1c<T extends core::Object* = dynamic>() → void;
-  abstract method method2a<T extends core::Object* = core::Object*>() → void;
-  abstract method method2b<T extends core::Object* = core::Object*>() → void;
-  abstract method method2c<T extends core::Object* = core::Object*>() → void;
-  abstract method method3a<T extends dynamic = dynamic>() → void;
-  abstract method method3b<T extends dynamic = dynamic>() → void;
-  abstract method method3c<T extends dynamic = dynamic>() → void;
-  abstract method method4a<T extends core::Object* = core::Object*>() → void;
-  abstract method method4b<T extends core::Object* = core::Object*>() → void;
-  abstract method method4c<T extends core::Object* = core::Object*>() → void;
-  abstract method method5a<T extends self::Class1* = self::Class1*>() → void;
-  abstract method method5b<T extends self::Class1* = self::Class1*>() → void;
-  abstract method method5c<T extends self::Class1* = self::Class1*>() → void;
+  abstract method method2a<T extends core::Object*>() → void;
+  abstract method method2b<T extends core::Object*>() → void;
+  abstract method method2c<T extends core::Object*>() → void;
+  abstract method method3a<T extends dynamic>() → void;
+  abstract method method3b<T extends dynamic>() → void;
+  abstract method method3c<T extends dynamic>() → void;
+  abstract method method4a<T extends core::Object*>() → void;
+  abstract method method4b<T extends core::Object*>() → void;
+  abstract method method4c<T extends core::Object*>() → void;
+  abstract method method5a<T extends self::Class1*>() → void;
+  abstract method method5b<T extends self::Class1*>() → void;
+  abstract method method5c<T extends self::Class1*>() → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -140,20 +140,20 @@ abstract class LegacyClass2 extends self::Class1 {
   synthetic constructor •() → gen::LegacyClass2*
     ;
   abstract method method1a<T extends core::Object* = dynamic>() → void;
-  abstract method method1b<T extends core::Object* = core::Object*>() → void;
-  abstract method method1c<T extends dynamic = dynamic>() → void;
+  abstract method method1b<T extends core::Object*>() → void;
+  abstract method method1c<T extends dynamic>() → void;
   abstract method method2a<T extends core::Object* = dynamic>() → void;
-  abstract method method2b<T extends core::Object* = core::Object*>() → void;
-  abstract method method2c<T extends dynamic = dynamic>() → void;
+  abstract method method2b<T extends core::Object*>() → void;
+  abstract method method2c<T extends dynamic>() → void;
   abstract method method3a<T extends core::Object* = dynamic>() → void;
-  abstract method method3b<T extends core::Object* = core::Object*>() → void;
-  abstract method method3c<T extends dynamic = dynamic>() → void;
-  abstract method method4a<T extends core::Object* = core::Object*>() → void;
-  abstract method method4b<T extends core::Object* = core::Object*>() → void;
-  abstract method method4c<T extends core::Object* = core::Object*>() → void;
-  abstract method method5a<T extends self::Class1* = self::Class1*>() → void;
-  abstract method method5b<T extends self::Class1* = self::Class1*>() → void;
-  abstract method method5c<T extends self::Class1* = self::Class1*>() → void;
+  abstract method method3b<T extends core::Object*>() → void;
+  abstract method method3c<T extends dynamic>() → void;
+  abstract method method4a<T extends core::Object*>() → void;
+  abstract method method4b<T extends core::Object*>() → void;
+  abstract method method4c<T extends core::Object*>() → void;
+  abstract method method5a<T extends self::Class1*>() → void;
+  abstract method method5b<T extends self::Class1*>() → void;
+  abstract method method5c<T extends self::Class1*>() → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -181,15 +181,15 @@ abstract class LegacyClass3 extends self::Class1 {
   abstract member-signature method method1a<T extends core::Object* = dynamic>() → void; -> self::Class1::method1a
   abstract member-signature method method1b<T extends core::Object* = dynamic>() → void; -> self::Class1::method1b
   abstract member-signature method method1c<T extends core::Object* = dynamic>() → void; -> self::Class1::method1c
-  abstract member-signature method method2a<T extends core::Object* = core::Object*>() → void; -> self::Class1::method2a
-  abstract member-signature method method2b<T extends core::Object* = core::Object*>() → void; -> self::Class1::method2b
-  abstract member-signature method method2c<T extends core::Object* = core::Object*>() → void; -> self::Class1::method2c
-  abstract member-signature method method4a<T extends core::Object* = core::Object*>() → void; -> self::Class1::method4a
-  abstract member-signature method method4b<T extends core::Object* = core::Object*>() → void; -> self::Class1::method4b
-  abstract member-signature method method4c<T extends core::Object* = core::Object*>() → void; -> self::Class1::method4c
-  abstract member-signature method method5a<T extends self::Class1* = self::Class1*>() → void; -> self::Class1::method5a
-  abstract member-signature method method5b<T extends self::Class1* = self::Class1*>() → void; -> self::Class1::method5b
-  abstract member-signature method method5c<T extends self::Class1* = self::Class1*>() → void; -> self::Class1::method5c
+  abstract member-signature method method2a<T extends core::Object*>() → void; -> self::Class1::method2a
+  abstract member-signature method method2b<T extends core::Object*>() → void; -> self::Class1::method2b
+  abstract member-signature method method2c<T extends core::Object*>() → void; -> self::Class1::method2c
+  abstract member-signature method method4a<T extends core::Object*>() → void; -> self::Class1::method4a
+  abstract member-signature method method4b<T extends core::Object*>() → void; -> self::Class1::method4b
+  abstract member-signature method method4c<T extends core::Object*>() → void; -> self::Class1::method4c
+  abstract member-signature method method5a<T extends self::Class1*>() → void; -> self::Class1::method5a
+  abstract member-signature method method5b<T extends self::Class1*>() → void; -> self::Class1::method5b
+  abstract member-signature method method5c<T extends self::Class1*>() → void; -> self::Class1::method5c
 }
 static method main() → dynamic
   ;

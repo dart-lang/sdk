@@ -156,7 +156,7 @@ For additional details, see the
 
 [definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
 
-### Mixin Application
+### Mixin application
 
 A _mixin application_ is the class created when a mixin is applied to a class.
 For example, consider the following declarations:
@@ -398,8 +398,7 @@ export 'b.dart' hide C;
 
 ### ambiguous_extension_member_access
 
-_A member named '{0}' is defined in extensions '{1}' and '{2}' and neither is
-more specific._
+_A member named '{0}' is defined in extensions {1}, and none are more specific._
 
 #### Description
 

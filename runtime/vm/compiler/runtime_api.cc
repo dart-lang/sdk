@@ -29,6 +29,11 @@ bool IsSmi(int64_t v) {
   return Utils::IsInt(kSmiBits + 1, v);
 }
 
+bool WillAllocateNewOrRememberedObject(intptr_t instance_size) {
+  ASSERT(Utils::IsAligned(instance_size, ObjectAlignment::kObjectAlignment));
+  return dart::Heap::IsAllocatableInNewSpace(instance_size);
+}
+
 bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables) {
   if (!dart::Context::IsValidLength(num_context_variables)) return false;
   return dart::Heap::IsAllocatableInNewSpace(
@@ -176,6 +181,26 @@ const Class& DoubleClass() {
   return Class::Handle(object_store->double_class());
 }
 
+const Class& Float32x4Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->float32x4_class());
+}
+
+const Class& Float64x2Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->float64x2_class());
+}
+
+const Class& Int32x4Class() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->int32x4_class());
+}
+
+const Class& ClosureClass() {
+  auto object_store = IsolateGroup::Current()->object_store();
+  return Class::Handle(object_store->closure_class());
+}
+
 const Array& OneArgArgumentsDescriptor() {
   return Array::ZoneHandle(
       ArgumentsDescriptor::NewBoxed(/*type_args_len=*/0, /*num_arguments=*/1));
@@ -211,7 +236,7 @@ word TypedDataElementSizeInBytes(classid_t cid) {
 }
 
 word TypedDataMaxNewSpaceElements(classid_t cid) {
-  return (dart::Heap::kNewAllocatableSize - target::TypedData::InstanceSize()) /
+  return (dart::Heap::kNewAllocatableSize - target::TypedData::HeaderSize()) /
          TypedDataElementSizeInBytes(cid);
 }
 
@@ -419,6 +444,16 @@ uword Class::GetInstanceSize(const dart::Class& handle) {
                         ObjectAlignment::kObjectAlignment);
 }
 
+// Currently, we only have compressed pointers on the target if we also have
+// compressed pointers on the host, since only 64-bit architectures can have
+// compressed pointers and there is no 32-bit host/64-bit target combination.
+// Thus, we cheat a little here and use the host information about compressed
+// pointers for the target, instead of storing this information in the extracted
+// offsets information.
+bool Class::HasCompressedPointers(const dart::Class& handle) {
+  return handle.HasCompressedPointers();
+}
+
 intptr_t Class::NumTypeArguments(const dart::Class& klass) {
   return klass.NumTypeArguments();
 }
@@ -473,8 +508,9 @@ word Instance::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypeArgumentsCid:
       return kWordSize;
+    case kTypeArgumentsCid:
+      return kCompressedWordSize;
     case kOneByteStringCid:
       return dart::OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
@@ -516,14 +552,6 @@ word ICData::EntryPointIndexFor(word num_args) {
 const word MegamorphicCache::kSpreadFactor =
     dart::MegamorphicCache::kSpreadFactor;
 
-word Context::InstanceSize(word n) {
-  return TranslateOffsetInWords(dart::Context::InstanceSize(n));
-}
-
-word Context::variable_offset(word n) {
-  return TranslateOffsetInWords(dart::Context::variable_offset(n));
-}
-
 // Currently we have two different axes for offset generation:
 //
 //  * Target architecture
@@ -532,6 +560,12 @@ word Context::variable_offset(word n) {
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
 #define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+
+#define DEFINE_ARRAY_SIZEOF(clazz, name, ElementOffset)                        \
+  word clazz::name() { return 0; }                                             \
+  word clazz::name(intptr_t length) {                                          \
+    return RoundedAllocationSize(clazz::ElementOffset(length));                \
+  }
 
 #define DEFINE_PAYLOAD_SIZEOF(clazz, name, header)                             \
   word clazz::name() { return 0; }                                             \
@@ -561,6 +595,7 @@ word Context::variable_offset(word n) {
 JIT_OFFSETS_LIST(DEFINE_FIELD,
                  DEFINE_ARRAY,
                  DEFINE_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_RANGE,
                  DEFINE_CONSTANT)
@@ -568,6 +603,7 @@ JIT_OFFSETS_LIST(DEFINE_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
@@ -613,6 +649,7 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
                  DEFINE_JIT_ARRAY,
                  DEFINE_JIT_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_JIT_RANGE,
                  DEFINE_CONSTANT)
@@ -656,6 +693,7 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
@@ -711,17 +749,12 @@ word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
                   : stack_overflow_shared_without_fpu_regs_entry_point_offset();
 }
 
-uword Thread::safepoint_state_unacquired() {
-  return dart::Thread::safepoint_state_unacquired();
+uword Thread::full_safepoint_state_unacquired() {
+  return dart::Thread::full_safepoint_state_unacquired();
 }
 
-uword Thread::safepoint_state_acquired() {
-  return dart::Thread::safepoint_state_acquired();
-}
-
-intptr_t Thread::safepoint_state_inside_bit() {
-  COMPILE_ASSERT(dart::Thread::AtSafepointField::bitsize() == 1);
-  return dart::Thread::AtSafepointField::shift();
+uword Thread::full_safepoint_state_acquired() {
+  return dart::Thread::full_safepoint_state_acquired();
 }
 
 uword Thread::generated_execution_state() {
@@ -876,10 +909,6 @@ word ObjectPool::NextFieldOffset() {
   return -kWordSize;
 }
 
-word ObjectPool::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(ObjectPool::element_offset(length));
-}
-
 word Class::NextFieldOffset() {
   return -kWordSize;
 }
@@ -909,10 +938,6 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
-word Array::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(Array::element_offset(length));
-}
-
 word GrowableObjectArray::NextFieldOffset() {
   return -kWordSize;
 }
@@ -923,10 +948,6 @@ word TypedDataBase::NextFieldOffset() {
 
 word TypedData::NextFieldOffset() {
   return -kWordSize;
-}
-
-word TypedData::InstanceSize(intptr_t lengthInBytes) {
-  return RoundedAllocationSize(TypedData::InstanceSize() + lengthInBytes);
 }
 
 word ExternalTypedData::NextFieldOffset() {
@@ -977,18 +998,8 @@ word OneByteString::NextFieldOffset() {
   return -kWordSize;
 }
 
-word OneByteString::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(OneByteString::InstanceSize() +
-                               length * dart::OneByteString::kBytesPerElement);
-}
-
 word TwoByteString::NextFieldOffset() {
   return -kWordSize;
-}
-
-word TwoByteString::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(TwoByteString::InstanceSize() +
-                               length * dart::TwoByteString::kBytesPerElement);
 }
 
 word ExternalOneByteString::NextFieldOffset() {
@@ -1051,6 +1062,10 @@ word CompressedStackMaps::NextFieldOffset() {
   return -kWordSize;
 }
 
+word LocalVarDescriptors::InstanceSize() {
+  return 0;
+}
+
 word LocalVarDescriptors::NextFieldOffset() {
   return -kWordSize;
 }
@@ -1059,16 +1074,8 @@ word ExceptionHandlers::NextFieldOffset() {
   return -kWordSize;
 }
 
-word ExceptionHandlers::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(ExceptionHandlers::element_offset(length));
-}
-
 word ContextScope::NextFieldOffset() {
   return -kWordSize;
-}
-
-word ContextScope::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(ContextScope::element_offset(length));
 }
 
 word UnlinkedCall::NextFieldOffset() {
@@ -1124,7 +1131,11 @@ word StackTrace::NextFieldOffset() {
 }
 
 word Integer::NextFieldOffset() {
-  return -kWordSize;
+  return TranslateOffsetInWords(dart::Integer::NextFieldOffset());
+}
+
+word Smi::InstanceSize() {
+  return 0;
 }
 
 word Smi::NextFieldOffset() {
@@ -1140,7 +1151,7 @@ word MirrorReference::NextFieldOffset() {
 }
 
 word Number::NextFieldOffset() {
-  return -kWordSize;
+  return TranslateOffsetInWords(dart::Number::NextFieldOffset());
 }
 
 word MonomorphicSmiableCall::NextFieldOffset() {
@@ -1149,12 +1160,6 @@ word MonomorphicSmiableCall::NextFieldOffset() {
 
 word InstructionsSection::NextFieldOffset() {
   return -kWordSize;
-}
-
-word InstructionsTable::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(InstructionsTable::InstanceSize() +
-                               length *
-                                   dart::InstructionsTable::kBytesPerElement);
 }
 
 word InstructionsTable::NextFieldOffset() {
@@ -1205,12 +1210,12 @@ word Field::NextFieldOffset() {
   return -kWordSize;
 }
 
-word TypeArguments::NextFieldOffset() {
+word TypeParameters::NextFieldOffset() {
   return -kWordSize;
 }
 
-word TypeArguments::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(TypeArguments::type_at_offset(length));
+word TypeArguments::NextFieldOffset() {
+  return -kWordSize;
 }
 
 word FreeListElement::FakeInstance::NextFieldOffset() {

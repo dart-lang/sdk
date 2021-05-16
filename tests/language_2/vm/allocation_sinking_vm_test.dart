@@ -4,6 +4,8 @@
 // Test allocation sinking optimization.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 

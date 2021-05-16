@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 void main() {
   // Use await for in non-async function.
   var _ = [await for (var i in Stream<int>.empty()) i]; //# 01: compile-time error

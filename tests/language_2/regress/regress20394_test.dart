@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 import 'regress20394_lib.dart';
 
 class M {}

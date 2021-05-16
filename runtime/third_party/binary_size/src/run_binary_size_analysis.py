@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -9,7 +9,6 @@ in the location of the library to be analyzed along with any other options
 you desire.
 """
 
-import collections
 import json
 import logging
 import multiprocessing
@@ -61,16 +60,16 @@ def SplitNoPathBucket(node):
         no_path_bucket = root_children[NAME_NO_PATH_BUCKET]
         old_children = no_path_bucket[NODE_CHILDREN_KEY]
         count = 0
-        for symbol_type, symbol_bucket in old_children.iteritems():
+        for symbol_type, symbol_bucket in old_children.items():
             count += len(symbol_bucket[NODE_CHILDREN_KEY])
         if count > BIG_BUCKET_LIMIT:
             new_children = {}
             no_path_bucket[NODE_CHILDREN_KEY] = new_children
             current_bucket = None
             index = 0
-            for symbol_type, symbol_bucket in old_children.iteritems():
+            for symbol_type, symbol_bucket in old_children.items():
                 for symbol_name, value in symbol_bucket[
-                        NODE_CHILDREN_KEY].iteritems():
+                        NODE_CHILDREN_KEY].items():
                     if index % BIG_BUCKET_LIMIT == 0:
                         group_no = (index / BIG_BUCKET_LIMIT) + 1
                         current_bucket = _MkChild(
@@ -90,7 +89,7 @@ def MakeChildrenDictsIntoLists(node):
     if NODE_CHILDREN_KEY in node:
         largest_list_len = len(node[NODE_CHILDREN_KEY])
         child_list = []
-        for child in node[NODE_CHILDREN_KEY].itervalues():
+        for child in node[NODE_CHILDREN_KEY].values():
             child_largest_list_len = MakeChildrenDictsIntoLists(child)
             if child_largest_list_len > largest_list_len:
                 largest_list_len = child_largest_list_len
@@ -306,7 +305,8 @@ def RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
         source_root_path=src_path)
     user_interrupted = False
     try:
-        for line in nm_output_lines:
+        for binary_line in nm_output_lines:
+            line = binary_line.decode()
             match = sNmPattern.match(line)
             if match:
                 location = match.group(5)
@@ -336,7 +336,7 @@ def RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
         user_interrupted = True
         print('Patience you must have my young padawan.')
 
-    print ''
+    print('')
 
     if user_interrupted:
         print('Skipping the rest of the file mapping. '
@@ -345,7 +345,8 @@ def RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
     symbol_path_origin_dir = os.path.dirname(os.path.abspath(library))
 
     with open(outfile, 'w') as out:
-        for line in nm_output_lines:
+        for binary_line in nm_output_lines:
+            line = binary_line.decode()
             match = sNmPattern.match(line)
             if match:
                 location = match.group(5)
@@ -379,9 +380,9 @@ def RunNm(binary, nm_binary):
 
     if nm_process.returncode != 0:
         if err_output:
-            raise Exception, err_output
+            raise Exception(err_output)
         else:
-            raise Exception, process_output
+            raise Exception(process_output)
 
     return process_output
 
@@ -393,15 +394,15 @@ def GetNmSymbols(nm_infile, outfile, library, jobs, verbose, addr2line_binary,
             outfile = tempfile.NamedTemporaryFile(delete=False).name
 
         if verbose:
-            print 'Running parallel addr2line, dumping symbols to ' + outfile
+            print('Running parallel addr2line, dumping symbols to ' + outfile)
         RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
                          disambiguate, src_path)
 
         nm_infile = outfile
 
     elif verbose:
-        print 'Using nm input from ' + nm_infile
-    with file(nm_infile, 'r') as infile:
+        print('Using nm input from ' + nm_infile)
+    with open(nm_infile, 'r') as infile:
         return list(binary_size_utils.ParseNm(infile))
 
 
@@ -497,7 +498,8 @@ def CheckDebugFormatSupport(library, addr2line_binary):
   since we are right now transitioning from DWARF2 to newer formats,
   it's possible to have a mix of tools that are not compatible. Detect
   that and abort rather than produce meaningless output."""
-    tool_output = subprocess.check_output([addr2line_binary, '--version'])
+    tool_output = subprocess.check_output([addr2line_binary,
+                                           '--version']).decode()
     version_re = re.compile(r'^GNU [^ ]+ .* (\d+).(\d+).*?$', re.M)
     parsed_output = version_re.match(tool_output)
     major = int(parsed_output.group(1))
@@ -624,12 +626,12 @@ def main():
         (not opts.nm_in)) or (opts.library and opts.nm_in):
         parser.error('exactly one of --library or --nm-in is required')
     if opts.nm_out:
-        print >> sys.stderr, (
-            'WARNING: --nm-out is deprecated and has no effect.')
+        print('WARNING: --nm-out is deprecated and has no effect.',
+              file=sys.stderr)
     if (opts.nm_in):
         if opts.jobs:
-            print >> sys.stderr, ('WARNING: --jobs has no effect '
-                                  'when used with --nm-in')
+            print('WARNING: --jobs has no effect when used with --nm-in',
+                  file=sys.stderr)
     if not opts.destdir:
         parser.error('--destdir is a required argument')
     if not opts.jobs:
@@ -637,7 +639,7 @@ def main():
         # CPU power isn't the limiting factor. It's I/O limited, memory
         # bus limited and available-memory-limited. Too many processes and
         # the computer will run out of memory and it will be slow.
-        opts.jobs = max(2, min(4, str(multiprocessing.cpu_count())))
+        opts.jobs = max(2, min(4, multiprocessing.cpu_count()))
 
     if opts.addr2line_binary:
         assert os.path.isfile(opts.addr2line_binary)
@@ -666,7 +668,7 @@ def main():
 
     # Prepare output directory and report guts
     if not os.path.exists(opts.destdir):
-        os.makedirs(opts.destdir, 0755)
+        os.makedirs(opts.destdir, 0o755)
     nm_out = os.path.join(opts.destdir, 'nm.out')
     if opts.no_nm_out:
         nm_out = None
@@ -677,7 +679,7 @@ def main():
     data_js_file_name = os.path.join(opts.destdir, 'data.js')
     d3_out = os.path.join(opts.destdir, 'd3')
     if not os.path.exists(d3_out):
-        os.makedirs(d3_out, 0755)
+        os.makedirs(d3_out, 0o755)
     d3_src = os.path.join(os.path.dirname(__file__), '..', '..', 'd3', 'src')
     template_src = os.path.join(os.path.dirname(__file__), 'template')
     shutil.copy(os.path.join(d3_src, 'LICENSE'), d3_out)
@@ -701,7 +703,7 @@ def main():
         symbol_path_origin_dir = os.path.abspath(os.getcwd())
     # Dump JSON for the HTML report.
     DumpCompactTree(symbols, symbol_path_origin_dir, data_js_file_name)
-    print 'Report saved to ' + opts.destdir + '/index.html'
+    print('Report saved to ' + opts.destdir + '/index.html')
 
 
 if __name__ == '__main__':

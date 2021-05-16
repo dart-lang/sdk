@@ -26,13 +26,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
-DEFINE_FLAG(bool,
-            use_slow_path,
-            false,
-            "Set to true for debugging & verifying the slow paths.");
-
 namespace compiler {
 
 // Ensures that [EAX] is a new object, if not it will be added to the remembered
@@ -40,8 +33,8 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
 // The caller should simply call LeaveFrame() and return.
-static void EnsureIsNewOrRemembered(Assembler* assembler,
-                                    bool preserve_registers = true) {
+void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
+                                               bool preserve_registers) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -315,8 +308,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ Bind(&check_done);
 #endif
 
-  // EnterSafepoint takes care to not clobber *any* registers (besides scratch).
-  __ EnterSafepoint(/*scratch=*/ECX);
+  // Takes care to not clobber *any* registers (besides scratch).
+  __ EnterFullSafepoint(/*scratch=*/ECX);
 
   // Restore callee-saved registers.
   __ movl(ECX, EBX);
@@ -2944,7 +2937,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     }
 
     const intptr_t fixed_size_plus_alignment_padding =
-        target::TypedData::InstanceSize() +
+        target::TypedData::HeaderSize() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding));
     __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
@@ -3002,7 +2995,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* ECX: scratch register. */
     /* data area to be initialized. */
     __ xorl(ECX, ECX); /* Zero. */
-    __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));
+    __ leal(EDI, FieldAddress(EAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),
         EDI);

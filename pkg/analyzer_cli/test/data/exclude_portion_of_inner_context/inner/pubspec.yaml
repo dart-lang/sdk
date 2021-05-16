@@ -1,0 +1,2 @@
+# Note `.dart_tool/package_config.json` - it, not this file, makes a new analysis context.
+name: inner

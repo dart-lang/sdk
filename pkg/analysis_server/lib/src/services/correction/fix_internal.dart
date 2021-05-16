@@ -43,6 +43,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_map_from_it
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
@@ -298,7 +299,7 @@ class FixInFileProcessor {
         }
       }
     } else {
-      var fixInfos = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+      var fixInfos = FixProcessor.nonLintProducerMap[errorCode] ?? [];
       for (var fixInfo in fixInfos) {
         if (fixInfo.canBeAppliedToFile) {
           producers.addAll(fixInfo.generators);
@@ -312,85 +313,24 @@ class FixInFileProcessor {
 
 class FixInfo {
   final bool canBeAppliedToFile;
+
   final bool canBeBulkApplied;
+
   final List<ProducerGenerator> generators;
+
   const FixInfo({
     required this.canBeAppliedToFile,
     required this.canBeBulkApplied,
     required this.generators,
   });
+
+  const FixInfo.single(this.generators)
+      : canBeAppliedToFile = false,
+        canBeBulkApplied = false;
 }
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
-  /// todo (pq): to replace nonLintProducerMap.
-  static const Map<ErrorCode, List<FixInfo>> nonLintProducerMap2 = {
-    CompileTimeErrorCode.NON_BOOL_CONDITION: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          AddNeNull.newInstance,
-        ],
-      ),
-    ],
-    HintCode.TYPE_CHECK_IS_NOT_NULL: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          UseNotEqNull.newInstance,
-        ],
-      ),
-    ],
-    HintCode.TYPE_CHECK_IS_NULL: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          UseEqEqNull.newInstance,
-        ],
-      ),
-    ],
-    CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          ReplaceBooleanWithBool.newInstance,
-        ],
-      ),
-    ],
-    HintCode.UNNECESSARY_CAST: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnnecessaryCast.newInstance,
-        ],
-      ),
-    ],
-    HintCode.UNUSED_IMPORT: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnusedImport.newInstance,
-        ],
-      ),
-    ],
-    StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
-      FixInfo(
-        // todo (pq): consider adding
-        canBeAppliedToFile: false,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveNonNullAssertion.newInstance,
-        ],
-      ),
-    ],
-  };
-
   /// A map from the names of lint rules to a list of generators used to create
   /// the correction producers used to build fixes for those diagnostics. The
   /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
@@ -450,6 +390,15 @@ class FixProcessor extends BaseProcessor {
         canBeBulkApplied: true,
         generators: [
           RemoveEmptyElse.newInstance,
+        ],
+      )
+    ],
+    LintNames.avoid_function_literals_in_foreach_calls: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          ConvertForEachToForLoop.newInstance,
         ],
       )
     ],
@@ -579,7 +528,7 @@ class FixProcessor extends BaseProcessor {
     LintNames.directives_ordering: [
       FixInfo(
         canBeAppliedToFile: false, // Fix will sort all directives.
-        canBeBulkApplied: false,
+        canBeBulkApplied: true,
         generators: [
           OrganizeImports.newInstance,
         ],
@@ -1226,438 +1175,468 @@ class FixProcessor extends BaseProcessor {
   /// A map from error codes to a list of generators used to create the
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintProducerMap].
-  static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
+  static const Map<ErrorCode, List<FixInfo>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
-      MakeFieldNotFinal.newInstance,
-      AddLate.newInstance,
+      FixInfo.single([MakeFieldNotFinal.newInstance]),
+      FixInfo.single([AddLate.newInstance]),
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
-      MakeVariableNotFinal.newInstance,
+      FixInfo.single([MakeVariableNotFinal.newInstance]),
     ],
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
-      AddNullCheck.newInstance,
-      WrapInText.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
+      FixInfo.single([WrapInText.newInstance]),
     ],
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
-      AddAsync.newInstance,
+      FixInfo.single([AddAsync.newInstance]),
     ],
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
-      AddAsync.newInstance,
+      FixInfo.single([AddAsync.newInstance]),
     ],
     CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY: [
-      AddAsync.missingReturn,
+      FixInfo.single([AddAsync.missingReturn]),
     ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      FixInfo.single([ChangeTo.classOrMixin]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateMixin.newInstance]),
     ],
     CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      FixInfo.single([CreateMissingOverrides.newInstance]),
+      FixInfo.single([CreateNoSuchMethod.newInstance]),
+      FixInfo.single([MakeClassAbstract.newInstance]),
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
-      UseConst.newInstance,
+      FixInfo.single([UseConst.newInstance]),
     ],
     CompileTimeErrorCode.CONST_INSTANCE_FIELD: [
-      AddStatic.newInstance,
+      FixInfo.single([AddStatic.newInstance]),
     ],
     CompileTimeErrorCode.CONST_WITH_NON_CONST: [
-      RemoveConst.newInstance,
+      FixInfo.single([RemoveConst.newInstance]),
     ],
     CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
-      ReplaceWithFilled.newInstance,
+      FixInfo.single([ReplaceWithFilled.newInstance]),
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
-      ChangeTo.classOrMixin,
+      FixInfo.single([ChangeTo.classOrMixin]),
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
+      FixInfo.single([ChangeTo.classOrMixin]),
+      FixInfo.single([CreateClass.newInstance]),
     ],
     CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
-      ReplaceWithExtensionName.newInstance,
+      FixInfo.single([ReplaceWithExtensionName.newInstance]),
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
-      CreateConstructor.newInstance,
+      FixInfo.single([CreateConstructor.newInstance]),
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
-      CreateConstructor.newInstance,
-      ConvertToNamedArguments.newInstance,
+      FixInfo.single([CreateConstructor.newInstance]),
+      FixInfo.single([ConvertToNamedArguments.newInstance]),
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
-      AddLate.newInstance,
-      CreateConstructorForFinalFields.newInstance,
+      FixInfo.single([AddLate.newInstance]),
+      FixInfo.single([CreateConstructorForFinalFields.newInstance]),
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
-      AddFieldFormalParameters.newInstance,
+      FixInfo.single([AddFieldFormalParameters.newInstance]),
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
-      AddFieldFormalParameters.newInstance,
+      FixInfo.single([AddFieldFormalParameters.newInstance]),
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
-      AddFieldFormalParameters.newInstance,
+      FixInfo.single([AddFieldFormalParameters.newInstance]),
     ],
     CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
-      ReplaceReturnTypeFuture.newInstance,
+      FixInfo.single([ReplaceReturnTypeFuture.newInstance]),
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
+      FixInfo.single([ChangeTo.classOrMixin]),
+      FixInfo.single([CreateClass.newInstance]),
     ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
-      CreateField.newInstance,
+      FixInfo.single([CreateField.newInstance]),
     ],
     CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
-      ChangeToStaticAccess.newInstance,
+      FixInfo.single([ChangeToStaticAccess.newInstance]),
     ],
     CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
-      ChangeToNearestPreciseValue.newInstance,
+      FixInfo.single([ChangeToNearestPreciseValue.newInstance]),
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
-      ChangeTo.annotation,
-      CreateClass.newInstance,
+      FixInfo.single([ChangeTo.annotation]),
+      FixInfo.single([CreateClass.newInstance]),
     ],
     CompileTimeErrorCode.INVALID_ASSIGNMENT: [
-      AddExplicitCast.newInstance,
-      AddNullCheck.newInstance,
-      ChangeTypeAnnotation.newInstance,
-      MakeVariableNullable.newInstance,
+      FixInfo.single([AddExplicitCast.newInstance]),
+      FixInfo.single([AddNullCheck.newInstance]),
+      FixInfo.single([ChangeTypeAnnotation.newInstance]),
+      FixInfo.single([MakeVariableNullable.newInstance]),
     ],
     CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
-      RemoveParenthesesInGetterInvocation.newInstance,
+      FixInfo.single([RemoveParenthesesInGetterInvocation.newInstance]),
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
-      AddRequiredKeyword.newInstance,
-      MakeVariableNullable.newInstance,
+      FixInfo.single([AddRequiredKeyword.newInstance]),
+      FixInfo.single([MakeVariableNullable.newInstance]),
     ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
-      AddMissingRequiredArgument.newInstance,
+      FixInfo.single([AddMissingRequiredArgument.newInstance]),
     ],
     CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
-      ExtendClassForMixin.newInstance,
+      FixInfo.single([ExtendClassForMixin.newInstance]),
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
+      FixInfo.single([ChangeTo.classOrMixin]),
+      FixInfo.single([CreateClass.newInstance]),
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
-      ChangeTo.classOrMixin,
+      FixInfo.single([ChangeTo.classOrMixin]),
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
-      CreateConstructor.newInstance,
+      FixInfo.single([CreateConstructor.newInstance]),
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
         [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      FixInfo.single([CreateMissingOverrides.newInstance]),
+      FixInfo.single([CreateNoSuchMethod.newInstance]),
+      FixInfo.single([MakeClassAbstract.newInstance]),
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      FixInfo.single([CreateMissingOverrides.newInstance]),
+      FixInfo.single([CreateNoSuchMethod.newInstance]),
+      FixInfo.single([MakeClassAbstract.newInstance]),
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      FixInfo.single([CreateMissingOverrides.newInstance]),
+      FixInfo.single([CreateNoSuchMethod.newInstance]),
+      FixInfo.single([MakeClassAbstract.newInstance]),
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      FixInfo.single([CreateMissingOverrides.newInstance]),
+      FixInfo.single([CreateNoSuchMethod.newInstance]),
+      FixInfo.single([MakeClassAbstract.newInstance]),
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      FixInfo.single([CreateMissingOverrides.newInstance]),
+      FixInfo.single([CreateNoSuchMethod.newInstance]),
+      FixInfo.single([MakeClassAbstract.newInstance]),
     ],
     CompileTimeErrorCode.NON_BOOL_CONDITION: [
-      AddNeNull.newInstance,
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          AddNeNull.newInstance,
+        ],
+      ),
     ],
     CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateMixin.newInstance]),
     ],
     CompileTimeErrorCode.NOT_A_TYPE: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      FixInfo.single([ChangeTo.classOrMixin]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateMixin.newInstance]),
     ],
     CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
-      AddLate.newInstance,
+      FixInfo.single([AddLate.newInstance]),
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      FixInfo.single([RemoveQuestionMark.newInstance]),
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      FixInfo.single([RemoveQuestionMark.newInstance]),
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      FixInfo.single([RemoveQuestionMark.newInstance]),
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      FixInfo.single([RemoveQuestionMark.newInstance]),
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
-      MakeReturnTypeNullable.newInstance,
+      FixInfo.single([MakeReturnTypeNullable.newInstance]),
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
-      MakeReturnTypeNullable.newInstance,
+      FixInfo.single([MakeReturnTypeNullable.newInstance]),
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      FixInfo.single([ChangeTo.classOrMixin]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateMixin.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD: [
-      AddNullCheck.newInstance,
-      ConvertToNullAwareSpread.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
+      FixInfo.single([ConvertToNullAwareSpread.newInstance]),
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH: [
-      AddNullCheck.newInstance,
+      FixInfo.single([AddNullCheck.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
-      ChangeTo.annotation,
-      CreateClass.newInstance,
+      FixInfo.single([ChangeTo.annotation]),
+      FixInfo.single([CreateClass.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      FixInfo.single([ChangeTo.classOrMixin]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateMixin.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
-      ReplaceBooleanWithBool.newInstance,
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          ReplaceBooleanWithBool.newInstance,
+        ],
+      ),
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
-      ChangeTo.getterOrSetter,
-      CreateGetter.newInstance,
+      FixInfo.single([ChangeTo.getterOrSetter]),
+      FixInfo.single([CreateGetter.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
-      ChangeTo.method,
-      CreateMethod.method,
+      FixInfo.single([ChangeTo.method]),
+      FixInfo.single([CreateMethod.method]),
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
-      ChangeTo.getterOrSetter,
-      CreateSetter.newInstance,
+      FixInfo.single([ChangeTo.getterOrSetter]),
+      FixInfo.single([CreateSetter.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
-      ChangeTo.function,
-      CreateClass.newInstance,
-      CreateFunction.newInstance,
+      FixInfo.single([ChangeTo.function]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateFunction.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
-      ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMethodOrFunction.newInstance,
-      CreateMixin.newInstance,
+      FixInfo.single([ChangeTo.getterOrSetter]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateField.newInstance]),
+      FixInfo.single([CreateGetter.newInstance]),
+      FixInfo.single([CreateLocalVariable.newInstance]),
+      FixInfo.single([CreateMethodOrFunction.newInstance]),
+      FixInfo.single([CreateMixin.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
-      ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMethodOrFunction.newInstance,
-      CreateMixin.newInstance,
-      CreateSetter.newInstance,
+      FixInfo.single([ChangeTo.getterOrSetter]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateField.newInstance]),
+      FixInfo.single([CreateGetter.newInstance]),
+      FixInfo.single([CreateLocalVariable.newInstance]),
+      FixInfo.single([CreateMethodOrFunction.newInstance]),
+      FixInfo.single([CreateMixin.newInstance]),
+      FixInfo.single([CreateSetter.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [
-      AddAsync.newInstance,
+      FixInfo.single([AddAsync.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
-      ChangeTo.method,
-      CreateClass.newInstance,
-      CreateFunction.newInstance,
-      CreateMethod.method,
+      FixInfo.single([ChangeTo.method]),
+      FixInfo.single([CreateClass.newInstance]),
+      FixInfo.single([CreateFunction.newInstance]),
+      FixInfo.single([CreateMethod.method]),
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-      AddMissingParameterNamed.newInstance,
-      ConvertFlutterChild.newInstance,
-      ConvertFlutterChildren.newInstance,
+      FixInfo.single([AddMissingParameterNamed.newInstance]),
+      FixInfo.single([ConvertFlutterChild.newInstance]),
+      FixInfo.single([ConvertFlutterChildren.newInstance]),
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
-      ChangeTo.getterOrSetter,
-      CreateField.newInstance,
-      CreateSetter.newInstance,
+      FixInfo.single([ChangeTo.getterOrSetter]),
+      FixInfo.single([CreateField.newInstance]),
+      FixInfo.single([CreateSetter.newInstance]),
     ],
     CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
       // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
-      QualifyReference.newInstance,
+      FixInfo.single([QualifyReference.newInstance]),
     ],
     CompileTimeErrorCode
         .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
       // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
       //  method or setter. The existing producers would need to be updated so
       //  that only the appropriate subset is generated.
-      QualifyReference.newInstance,
+      FixInfo.single([QualifyReference.newInstance]),
     ],
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
-      CreateFile.newInstance,
+      FixInfo.single([CreateFile.newInstance]),
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      MoveTypeArgumentsToClass.newInstance,
-      RemoveTypeArguments.newInstance,
+      FixInfo.single([MoveTypeArgumentsToClass.newInstance]),
+      FixInfo.single([RemoveTypeArguments.newInstance]),
     ],
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
-      MakeReturnTypeNullable.newInstance,
+      FixInfo.single([MakeReturnTypeNullable.newInstance]),
     ],
 
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
-      ReplaceWithNullAware.newInstance,
+      FixInfo.single([ReplaceWithNullAware.newInstance]),
     ],
     HintCode.DEAD_CODE: [
-      RemoveDeadCode.newInstance,
+      FixInfo.single([RemoveDeadCode.newInstance]),
     ],
     HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
-      RemoveDeadCode.newInstance,
+      FixInfo.single([RemoveDeadCode.newInstance]),
     ],
     HintCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
-      RemoveDeadCode.newInstance,
+      FixInfo.single([RemoveDeadCode.newInstance]),
     ],
     HintCode.DIVISION_OPTIMIZATION: [
-      UseEffectiveIntegerDivision.newInstance,
+      FixInfo.single([UseEffectiveIntegerDivision.newInstance]),
     ],
     HintCode.DUPLICATE_HIDDEN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      FixInfo.single([RemoveNameFromCombinator.newInstance]),
     ],
     HintCode.DUPLICATE_IMPORT: [
-      RemoveUnusedImport.newInstance,
+      FixInfo.single([RemoveUnusedImport.newInstance]),
     ],
     HintCode.DUPLICATE_SHOWN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      FixInfo.single([RemoveNameFromCombinator.newInstance]),
     ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
     HintCode.INVALID_FACTORY_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.INVALID_IMMUTABLE_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.INVALID_LITERAL_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.INVALID_REQUIRED_NAMED_PARAM: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.INVALID_SEALED_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.MISSING_REQUIRED_PARAM: [
-      AddMissingRequiredArgument.newInstance,
+      FixInfo.single([AddMissingRequiredArgument.newInstance]),
     ],
     HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
-      AddMissingRequiredArgument.newInstance,
+      FixInfo.single([AddMissingRequiredArgument.newInstance]),
     ],
     HintCode.MISSING_RETURN: [
-      AddAsync.missingReturn,
+      FixInfo.single([AddAsync.missingReturn]),
     ],
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      FixInfo.single([RemoveQuestionMark.newInstance]),
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
-      RemoveAnnotation.newInstance,
+      FixInfo.single([RemoveAnnotation.newInstance]),
     ],
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
     HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
+      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
     ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
+      FixInfo.single([UpdateSdkConstraints.version_2_1_0]),
     ],
     HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
+      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
     ],
     HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
+      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
     ],
     HintCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
+      FixInfo.single([UpdateSdkConstraints.version_2_6_0]),
     ],
     HintCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-      UpdateSdkConstraints.version_2_2_2,
+      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
     ],
     HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
+      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
     ],
     HintCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
+      FixInfo.single([UpdateSdkConstraints.version_2_2_0]),
     ],
     HintCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
+      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
     ],
     HintCode.TYPE_CHECK_IS_NOT_NULL: [
-      UseNotEqNull.newInstance,
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          UseNotEqNull.newInstance,
+        ],
+      ),
     ],
     HintCode.TYPE_CHECK_IS_NULL: [
-      UseEqEqNull.newInstance,
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          UseEqEqNull.newInstance,
+        ],
+      ),
     ],
     HintCode.UNDEFINED_HIDDEN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      FixInfo.single([RemoveNameFromCombinator.newInstance]),
     ],
     HintCode.UNDEFINED_SHOWN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      FixInfo.single([RemoveNameFromCombinator.newInstance]),
     ],
     HintCode.UNNECESSARY_CAST: [
-      RemoveUnnecessaryCast.newInstance,
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          RemoveUnnecessaryCast.newInstance,
+        ],
+      ),
     ],
 //    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
-      RemoveComparison.newInstance,
+      FixInfo.single([RemoveComparison.newInstance]),
     ],
     HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
-      RemoveComparison.newInstance,
+      FixInfo.single([RemoveComparison.newInstance]),
     ],
 //    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
 // TODO(brianwilkerson) Add a fix to remove the type check.
@@ -1666,55 +1645,67 @@ class FixProcessor extends BaseProcessor {
 // TODO(brianwilkerson) Add a fix to remove the type check.
 //    ],
     HintCode.UNUSED_CATCH_CLAUSE: [
-      RemoveUnusedCatchClause.newInstance,
+      FixInfo.single([RemoveUnusedCatchClause.newInstance]),
     ],
     HintCode.UNUSED_CATCH_STACK: [
-      RemoveUnusedCatchStack.newInstance,
+      FixInfo.single([RemoveUnusedCatchStack.newInstance]),
     ],
     HintCode.UNUSED_ELEMENT: [
-      RemoveUnusedElement.newInstance,
+      FixInfo.single([RemoveUnusedElement.newInstance]),
     ],
     HintCode.UNUSED_FIELD: [
-      RemoveUnusedField.newInstance,
+      FixInfo.single([RemoveUnusedField.newInstance]),
     ],
     HintCode.UNUSED_IMPORT: [
-      RemoveUnusedImport.newInstance,
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: false,
+        generators: [
+          RemoveUnusedImport.newInstance,
+        ],
+      ),
     ],
     HintCode.UNUSED_LABEL: [
-      RemoveUnusedLabel.newInstance,
+      FixInfo.single([RemoveUnusedLabel.newInstance]),
     ],
     HintCode.UNUSED_LOCAL_VARIABLE: [
-      RemoveUnusedLocalVariable.newInstance,
+      FixInfo.single([RemoveUnusedLocalVariable.newInstance]),
     ],
     HintCode.UNUSED_SHOWN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      FixInfo.single([RemoveNameFromCombinator.newInstance]),
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
-      InsertSemicolon.newInstance,
+      FixInfo.single([InsertSemicolon.newInstance]),
     ],
     ParserErrorCode.GETTER_WITH_PARAMETERS: [
-      RemoveParametersInGetterDeclaration.newInstance,
+      FixInfo.single([RemoveParametersInGetterDeclaration.newInstance]),
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
-      AddTypeAnnotation.newInstance,
+      FixInfo.single([AddTypeAnnotation.newInstance]),
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
-      ReplaceVarWithDynamic.newInstance,
+      FixInfo.single([ReplaceVarWithDynamic.newInstance]),
     ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
-      RemoveDeadIfNull.newInstance,
+      FixInfo.single([RemoveDeadIfNull.newInstance]),
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
-      ReplaceWithNotNullAware.newInstance,
+      FixInfo.single([ReplaceWithNotNullAware.newInstance]),
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
-      ReplaceWithNotNullAware.newInstance,
+      FixInfo.single([ReplaceWithNotNullAware.newInstance]),
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
-      AddMissingEnumCaseClauses.newInstance,
+      FixInfo.single([AddMissingEnumCaseClauses.newInstance]),
     ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
-      RemoveNonNullAssertion.newInstance,
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          RemoveNonNullAssertion.newInstance,
+        ],
+      ),
     ],
   };
 
@@ -1792,9 +1783,9 @@ class FixProcessor extends BaseProcessor {
         }
       }
     } else {
-      var generators = nonLintProducerMap[errorCode];
-      if (generators != null) {
-        for (var generator in generators) {
+      var fixes = nonLintProducerMap[errorCode] ?? [];
+      for (var fix in fixes) {
+        for (var generator in fix.generators) {
           await compute(generator());
         }
       }

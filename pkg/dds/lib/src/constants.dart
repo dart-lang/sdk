@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 abstract class RPCResponses {
   static const success = <String, dynamic>{
     'type': 'Success',
@@ -15,6 +13,10 @@ abstract class RPCResponses {
     'valueAsString': '<collected>',
   };
 }
+
+// Give connections time to reestablish before considering them closed.
+// Required to reestablish connections killed by UberProxy.
+const sseKeepAlive = Duration(seconds: 30);
 
 abstract class PauseTypeMasks {
   static const pauseOnStartMask = 1 << 0;

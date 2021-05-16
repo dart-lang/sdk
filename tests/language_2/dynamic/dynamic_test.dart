@@ -4,6 +4,8 @@
 //
 // Dart test program testing the use of 'dynamic' in generic types.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 abstract class Iface<K, V> {}

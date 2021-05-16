@@ -49,34 +49,42 @@ class BlockIterator : public ValueObject {
   intptr_t current_;
 };
 
+struct ConstantAndRepresentation {
+  const Object& constant;
+  Representation representation;
+};
+
 struct ConstantPoolTrait {
   typedef ConstantInstr* Value;
-  typedef const Object& Key;
+  typedef ConstantAndRepresentation Key;
   typedef ConstantInstr* Pair;
 
-  static Key KeyOf(Pair kv) { return kv->value(); }
+  static Key KeyOf(Pair kv) {
+    return ConstantAndRepresentation{kv->value(), kv->representation()};
+  }
 
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline uword Hash(Key key) {
-    if (key.IsSmi()) {
-      return Smi::Cast(key).Value();
+    if (key.constant.IsSmi()) {
+      return Smi::Cast(key.constant).Value();
     }
-    if (key.IsDouble()) {
+    if (key.constant.IsDouble()) {
       return static_cast<intptr_t>(bit_cast<int32_t, float>(
-          static_cast<float>(Double::Cast(key).value())));
+          static_cast<float>(Double::Cast(key.constant).value())));
     }
-    if (key.IsMint()) {
-      return static_cast<intptr_t>(Mint::Cast(key).value());
+    if (key.constant.IsMint()) {
+      return static_cast<intptr_t>(Mint::Cast(key.constant).value());
     }
-    if (key.IsString()) {
-      return String::Cast(key).Hash();
+    if (key.constant.IsString()) {
+      return String::Cast(key.constant).Hash();
     }
-    return key.GetClassId();
+    return key.constant.GetClassId();
   }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
-    return kv->value().ptr() == key.ptr();
+    return (kv->value().ptr() == key.constant.ptr()) &&
+           (kv->representation() == key.representation);
   }
 };
 
@@ -264,11 +272,14 @@ class FlowGraph : public ZoneAllocated {
 
   // Returns the definition for the object from the constant pool if
   // one exists, otherwise returns nullptr.
-  ConstantInstr* GetExistingConstant(const Object& object) const;
+  ConstantInstr* GetExistingConstant(
+      const Object& object,
+      Representation representation = kTagged) const;
 
   // Always returns a definition for the object from the constant pool,
   // allocating one if it doesn't already exist.
-  ConstantInstr* GetConstant(const Object& object);
+  ConstantInstr* GetConstant(const Object& object,
+                             Representation representation = kTagged);
 
   void AddToGraphInitialDefinitions(Definition* defn);
   void AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
@@ -479,6 +490,10 @@ class FlowGraph : public ZoneAllocated {
                        GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters);
+#if defined(DEBUG)
+  // Validates no phis are missing on join entry instructions.
+  void ValidatePhis();
+#endif  // defined(DEBUG)
 
   void PopulateEnvironmentFromFunctionEntry(
       FunctionEntryInstr* function_entry,
@@ -636,8 +651,8 @@ class LivenessAnalysis : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& postorder_;
 
   // Live-out sets for each block.  They contain indices of variables
-  // that are live out from this block: that is values that were either
-  // defined in this block or live into it and that are used in some
+  // that are live out from this block. That is values that were (1) either
+  // defined in this block or live into it, and (2) that are used in some
   // successor block.
   GrowableArray<BitVector*> live_out_;
 

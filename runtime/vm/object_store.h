@@ -193,6 +193,11 @@ class ObjectPointerVisitor;
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_mint_stub)                                                 \
+  RW(Code, allocate_double_stub)                                               \
+  RW(Code, allocate_float32x4_stub)                                            \
+  RW(Code, allocate_float64x2_stub)                                            \
+  RW(Code, allocate_int32x4_stub)                                              \
   RW(Code, allocate_int8_array_stub)                                           \
   RW(Code, allocate_uint8_array_stub)                                          \
   RW(Code, allocate_uint8_clamped_array_stub)                                  \
@@ -207,6 +212,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_float32x4_array_stub)                                      \
   RW(Code, allocate_int32x4_array_stub)                                        \
   RW(Code, allocate_float64x2_array_stub)                                      \
+  RW(Code, allocate_closure_stub)                                              \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
@@ -261,6 +267,11 @@ class ObjectPointerVisitor;
   DO(stack_overflow_stub_without_fpu_regs_stub,                                \
      StackOverflowSharedWithoutFPURegs)                                        \
   DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_mint_stub, AllocateMint)                                         \
+  DO(allocate_double_stub, AllocateDouble)                                     \
+  DO(allocate_float32x4_stub, AllocateFloat32x4)                               \
+  DO(allocate_float64x2_stub, AllocateFloat64x2)                               \
+  DO(allocate_int32x4_stub, AllocateInt32x4)                                   \
   DO(allocate_int8_array_stub, AllocateInt8Array)                              \
   DO(allocate_uint8_array_stub, AllocateUint8Array)                            \
   DO(allocate_uint8_clamped_array_stub, AllocateUint8ClampedArray)             \
@@ -275,6 +286,7 @@ class ObjectPointerVisitor;
   DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
   DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
   DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
+  DO(allocate_closure_stub, AllocateClosure)                                   \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \

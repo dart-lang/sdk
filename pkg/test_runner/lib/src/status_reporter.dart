@@ -77,9 +77,9 @@ void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
     'runtime'
   ];
 
-  print('Running: python ${args.join(" ")}');
+  print('Running: python3 ${args.join(" ")}');
 
-  var result = Process.runSync('python', args);
+  var result = Process.runSync('python3', args);
 
   if (result.exitCode != 0) {
     print('ERROR');
@@ -149,7 +149,7 @@ void main(List<String> args) {
             '--report-in-json',
             '--use-sdk'
           ];
-          var result = Process.runSync('python', args);
+          var result = Process.runSync('python3', args);
           if (result.exitCode != 0) {
             print(result.stdout);
             print(result.stderr);

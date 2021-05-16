@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -438,9 +437,9 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
     return library.getElementDeclaration(element);
   }
 
-  ParsedLibraryResultImpl _getParsedLibrary(String path) {
+  ParsedLibraryResult _getParsedLibrary(String path) {
     var session = contextFor(path).currentSession;
-    return session.getParsedLibrary(path) as ParsedLibraryResultImpl;
+    return session.getParsedLibrary2(path) as ParsedLibraryResult;
   }
 }
 
@@ -455,8 +454,8 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     return library.getElementDeclaration(element);
   }
 
-  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) {
+  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
     var session = contextFor(path).currentSession;
-    return session.getResolvedLibrary(path);
+    return await session.getResolvedLibrary2(path) as ResolvedLibraryResult;
   }
 }

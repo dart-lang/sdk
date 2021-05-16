@@ -46,8 +46,7 @@ class PackageBundleBuilder {
     sink.writeUint8List(astBytes);
     sink.writeUint8List(resolutionBytes);
 
-    sink.flushAndDestroy();
-    return byteSink.builder.takeBytes();
+    return sink.flushAndTake();
   }
 }
 
@@ -62,7 +61,6 @@ class PackageBundleLibrary {
 class PackageBundleReader {
   final List<PackageBundleLibrary> libraries = [];
   late final PackageBundleSdk? _sdk;
-  late final Uint8List _astBytes;
   late final Uint8List _resolutionBytes;
 
   PackageBundleReader(Uint8List bytes) {
@@ -86,11 +84,12 @@ class PackageBundleReader {
       );
     }
 
-    _astBytes = reader.readUint8List();
+    reader.readUint8List(); // astBytes
     _resolutionBytes = reader.readUint8List();
   }
 
-  Uint8List get astBytes => _astBytes;
+  @Deprecated('The linker does not need it anymore')
+  Uint8List get astBytes => Uint8List(0);
 
   Uint8List get resolutionBytes => _resolutionBytes;
 

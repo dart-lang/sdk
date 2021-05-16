@@ -39,12 +39,12 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.12.0",
+  "sdk_tag": "version:2.13.0-211.14.beta",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "65d887eaa99f45e0bd5320ae7ef247eb8d4a264f",
+  "co19_rev": "055b5c984613ec1b8ef76516db3ea99fee63acb9",
   "co19_2_rev": "f7f583366396cb1457e58c9bfb6d6e53dc21d741",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
@@ -73,16 +73,17 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "d8fea36c10ef96797be02e3d132d572445cd86f4",
-  "async_rev": "376d418b1b535030fbe3369938d2ffdbb0340a77",
+  "async_rev": "49464c342fe64c8632223ce3475364d163fb0623",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
   "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",
   "boringssl_rev" : "1607f54fed72c6589d560254626909a64124f091",
   "browser-compat-data_tag": "v1.0.22",
+  "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
   "chrome_rev" : "19997",
-  "cli_util_rev" : "fd1b716e8a350a454e01ae56df540293d31ff6c8",
+  "cli_util_rev" : "8c504de5deb08fe32ecf51f9662bb37d8c708e57",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "9967dcd3d7645db6de48d5abfab3018bb0c84236",
   "convert_rev": "a60156c6efd653657c8926b5788219ed609917d7",
@@ -105,25 +106,26 @@ vars = {
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
   "chromedriver_tag": "83.0.4103.39",
-  "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
-  "dartdoc_rev" : "505f163f7cb48e917503e4a23fbff1227e08b263",
+  "dartdoc_rev" : "e6a9b7c536a85e49233c97bb892bbb0ab778e425",
+  "devtools_rev" : "e138d55437a59838607415ef21f20bd6c4955dbc",
+  "jsshell_tag": "version:88.0",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
   "glob_rev": "a62acf590598f458d3198d9f2930c1c9dd4b1379",
   "html_rev": "00cd3c22dac0e68e6ed9e7e4945101aedb1b3109",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
-  "http_multi_server_rev" : "7aca9e87d4a68374b685334f20359320054b8d7b",
+  "http_multi_server_rev": "de1b312164c24a1690b46c6e97bd47eff40c4649",
   "http_parser_rev": "7720bfd42a0c096734c5213478fdce92c62f0293",
   "http_retry_rev": "845771af7bb5ab38ab740ce4a31f3b0c7680302b",
-  "http_rev": "69d6064dd92470ed7ccd50a808fc789ee7716fe8",
+  "http_rev": "abb2bb182fbd7f03aafd1f889b902d7b3bdb8769",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_rev": "b8dfe403fd8528fd14399dee3a6527b55802dd4d",
-  "linter_tag": "1.3.0",
+  "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
+  "linter_tag": "1.4.0",
   "logging_rev": "e2f633b543ef89c54688554b15ca3d7e425b86a2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "9c4beaac96d8f008078e00b027915f81b665d2de",
@@ -139,7 +141,7 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
-  "pub_rev": "0e657414a472e74ca5dd76ae0db50cc060251dec",
+  "pub_rev": "00c00e8adf9706bebe8f94483b7663c5f36f59d2",
   "pub_semver_rev": "f50d80ef10c4b2fa5f4c8878036a4d9342c0cc82",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
@@ -147,13 +149,13 @@ vars = {
   "shelf_static_rev": "fa30419055279a00c9e428439b1abe362d18f25d",
   "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
   "shelf_proxy_tag": "v1.0.0",
-  "shelf_rev": "00e50adfb776602c25942a99d89f8704cc20db9c",
+  "shelf_rev": "4b9294e29eb308709444a5c0b890fa8ccd69fae4",
   "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
-  "sse_tag": "5da8fedcdc56f306933d202e2d204753eecefd36",
+  "sse_tag": "adc3ac8027784ed9783d066dccadad44458788e4",
   "stack_trace_tag": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
@@ -162,14 +164,14 @@ vars = {
   "test_process_tag": "2.0.0",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
   "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
-  "test_rev": "e673623f45d75ccec750d35271b0b4d1423e9fac",
+  "test_rev": "433f1d8726f9c1484007588470b17830a5e97a12",
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
-  "usage_rev": "5b7317ba89166f3cf1af98cb280a4cc8e78f25f9",
+  "usage_rev": "e0780cd8b2f8af69a28dc52678ffe8492da27d06",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
   "watcher_rev": "3924194385fb215cef483193ed2879a618a3d69c",
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_rev": "d3e100de8feb0283a04732366bb591ebd2282d7d",
+  "web_socket_channel_rev": "6448ce532445a8a458fa191d9346df071ae0acad",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "webkit_inspection_protocol_rev": "6b15729292d030f2e5c5861022da4c5a4c11961c",
   "yaml_rev": "b4c4411631bda556ce9a45af1ab0eecaf9f3ac53",
@@ -225,10 +227,27 @@ deps = {
       }],
       "dep_type": "cipd",
   },
+  Var("dart_root") + "/third_party/firefox_jsshell": {
+      "packages": [{
+          "package": "dart/third_party/jsshell/${{platform}}",
+          "version": Var("jsshell_tag"),
+      }],
+      "condition": "checkout_javascript_engines",
+      "dep_type": "cipd",
+  },
+  # TODO(b/186078239): remove this copy to the old location
+  Var("dart_root") + "/third_party/firefox_jsshell/linux/jsshell": {
+      "packages": [{
+          "package": "dart/third_party/jsshell/linux-amd64",
+          "version": Var("jsshell_tag"),
+      }],
+      "condition": "checkout_javascript_engines",
+      "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/devtools": {
       "packages": [{
           "package": "dart/third_party/flutter/devtools",
-          "version": "revision:6729ec62c3548839018c32fa711756202431ccf7",
+          "version": "git_revision:" + Var("devtools_rev"),
       }],
       "dep_type": "cipd",
   },
@@ -268,8 +287,8 @@ deps = {
 
   Var("dart_root") + "/third_party/gsutil": {
       "packages": [{
-          "package": "infra/gsutil",
-          "version": "version:4.34",
+          "package": "infra/3pp/tools/gsutil",
+          "version": "version:4.58",
       }],
       "dep_type": "cipd",
   },
@@ -301,6 +320,9 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
+  Var("dart_root") + "/third_party/pkg/browser_launcher":
+      Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
+
   Var("dart_root") + "/third_party/tcmalloc/gperftools":
       Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
       "@" + Var("gperftools_revision"),
@@ -317,9 +339,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_rev"),
-  Var("dart_root") + "/third_party/pkg/browser_launcher":
-      Var("dart_git") + "browser_launcher.git" +
-      "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
@@ -652,79 +671,43 @@ deps_os = {
 
 hooks = [
   {
-    "name": "firefox_jsshell",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--recursive",
-      "--auto_platform",
-      "--extract",
-      "--directory",
-      Var('dart_root') + "/third_party/firefox_jsshell",
-    ],
-    "condition": "checkout_javascript_engines",
-  },
-  {
     # Pull Debian sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'i386'],
   },
   {
     # Pull Debian sysroot for amd64 Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'amd64'],
   },
   {
     # Pull Debian sysroot for arm Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'arm'],
   },
   {
     # Pull Debian jessie sysroot for arm64 Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'arm64'],
   },
   {
     'name': 'buildtools',
     'pattern': '.',
-    'action': ['python', 'sdk/tools/buildtools/update.py'],
+    'action': ['python3', 'sdk/tools/buildtools/update.py'],
   },
   {
     # Update the Windows toolchain if necessary.
     'name': 'win_toolchain',
     'pattern': '.',
-    'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
+    'action': ['python3', 'sdk/build/vs_toolchain.py', 'update'],
+    'condition': 'checkout_win'
   },
 ]
-
-hooks_os = {
-  "win": [
-    {
-      "name": "7zip",
-      "pattern": ".",
-      "action": [
-        "download_from_google_storage",
-        "--no_auth",
-        "--no_resume",
-        "--bucket",
-        "dart-dependencies",
-        "--platform=win32",
-        "--extract",
-        "-s",
-        Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
-      ],
-    },
-  ]
-}

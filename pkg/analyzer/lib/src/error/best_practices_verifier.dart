@@ -338,6 +338,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var element = node.declaredElement as ConstructorElementImpl;
     if (!_isNonNullableByDefault && node.declaredElement!.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
@@ -349,7 +350,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     _checkStrictInferenceInParameters(node.parameters,
         body: node.body, initializers: node.initializers);
-    super.visitConstructorDeclaration(node);
+    _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
+    try {
+      super.visitConstructorDeclaration(node);
+    } finally {
+      _deprecatedVerifier.popInDeprecated();
+    }
   }
 
   @override
@@ -367,7 +373,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _checkForReturnOfDoNotStore(node.expression);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
     super.visitExpressionFunctionBody(node);
   }
 
@@ -406,8 +414,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               field.name,
               [field.name, overriddenElement!.enclosingElement.name]);
         }
-
-        _checkForAssignmentOfDoNotStore(field.initializer);
+        if (!_invalidAccessVerifier._inTestDirectory) {
+          _checkForAssignmentOfDoNotStore(field.initializer);
+        }
       }
     } finally {
       _deprecatedVerifier.popInDeprecated();
@@ -650,7 +659,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    _checkForReturnOfDoNotStore(node.expression);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
     super.visitReturnStatement(node);
   }
 
@@ -678,8 +689,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
-    for (var decl in node.variables.variables) {
-      _checkForAssignmentOfDoNotStore(decl.initializer);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      for (var decl in node.variables.variables) {
+        _checkForAssignmentOfDoNotStore(decl.initializer);
+      }
     }
 
     try {

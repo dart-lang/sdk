@@ -384,14 +384,7 @@ class DuplicateDefinitionVerifier {
 
     var previous = getterScope[name];
     if (previous != null) {
-      if (_isGetterSetterPair(element, previous)) {
-        // OK
-      } else if (element is FieldFormalParameterElement &&
-          previous is FieldFormalParameterElement &&
-          element.field != null &&
-          element.field!.isFinal) {
-        // Reported as CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES.
-      } else {
+      if (!_isGetterSetterPair(element, previous)) {
         _errorReporter.reportErrorForNode(
           getError(previous, element),
           identifier,

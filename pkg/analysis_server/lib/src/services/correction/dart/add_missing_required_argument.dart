@@ -42,14 +42,15 @@ class AddMissingRequiredArgument extends CorrectionProducer {
       }
     }
 
-    var diagnostic = this.diagnostic;
+    final diagnostic = this.diagnostic;
     if (diagnostic == null) {
       return;
     }
 
     if (targetElement is ExecutableElement && argumentList != null) {
       // Format: "Missing required argument 'foo'."
-      var messageParts = diagnostic.problemMessage.message.split("'");
+      var messageParts =
+          diagnostic.problemMessage.messageText(includeUrl: false).split("'");
       if (messageParts.length < 2) {
         return;
       }

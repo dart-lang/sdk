@@ -9,7 +9,8 @@ import 'package:kernel/binary/ast_from_binary.dart' show ParseError;
 import 'utils.dart';
 
 main() {
-  Library lib1 = new Library(Uri.parse("foo://bar.dart"));
+  Uri uri = Uri.parse("foo://bar.dart");
+  Library lib1 = new Library(uri, fileUri: uri);
   Component c1 = new Component(libraries: [lib1]);
   List<int> serialized = serializeComponent(c1);
   // The last 4 bytes is the size entry in the index. Overwrite that with 0's.

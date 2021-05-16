@@ -4,6 +4,8 @@
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 // VMOptions=--no-intrinsify
 
+// @dart = 2.9
+
 // Library tag to be able to run in html test framework.
 library float32x4_test;
 

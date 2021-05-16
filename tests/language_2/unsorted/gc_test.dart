@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing GC, issue 1469.
 
+// @dart = 2.9
+
 main() {
   var div;
   for (int i = 0; i < 200; ++i) {

@@ -4,9 +4,7 @@
 
 library kernel.ast_to_text;
 
-import 'dart:core' hide MapEntry;
-import 'dart:core' as core show MapEntry;
-
+import 'dart:core';
 import 'dart:convert' show json;
 
 import '../ast.dart';
@@ -429,9 +427,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       endLine(":");
       endLine("//");
       for (String s in problemsAsJson) {
-        Map<String, Object> decoded = json.decode(s);
-        List<Object> plainTextFormatted =
-            decoded["plainTextFormatted"] as List<Object>;
+        Map<String, dynamic> decoded = json.decode(s);
+        List<dynamic> plainTextFormatted =
+            decoded["plainTextFormatted"] as List<dynamic>;
         List<String> lines = plainTextFormatted.join("\n").split("\n");
         for (int i = 0; i < lines.length; i++) {
           write("//");
@@ -1339,6 +1337,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('extension');
+    if (node.isExtensionTypeDeclaration) {
+      writeWord('type');
+    }
     writeWord(getExtensionName(node));
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
@@ -1787,7 +1788,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
-  visitMapEntry(MapEntry node) {
+  visitMapLiteralEntry(MapLiteralEntry node) {
     writeExpression(node.key);
     writeComma(':');
     writeExpression(node.value);
@@ -2515,10 +2516,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
-    writeType(node.bound!);
-    if (node.defaultType != null) {
+    writeType(node.bound);
+    // ignore: unnecessary_null_comparison
+    if (node.defaultType != node.bound) {
       writeSpaced('=');
-      writeType(node.defaultType!);
+      writeType(node.defaultType);
     }
   }
 
@@ -2635,8 +2637,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
 
     writeSymbol(' {');
-    writeList(node.fieldValues.entries,
-        (core.MapEntry<Reference, Constant> entry) {
+    writeList(node.fieldValues.entries, (MapEntry<Reference, Constant> entry) {
       if (entry.key.node != null) {
         writeWord('${entry.key.asField.name.text}');
       } else {

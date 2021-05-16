@@ -196,6 +196,19 @@ struct RangeErrorABI {
   static const Register kIndexReg = EBX;
 };
 
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+struct AllocateBoxABI {
+  static const Register kResultReg = EAX;
+  static const Register kTempReg = EBX;
+};
+
+// ABI for AllocateClosureStub.
+struct AllocateClosureABI {
+  static const Register kResultReg = EAX;
+  static const Register kFunctionReg = EBX;
+  static const Register kScratchReg = EDX;
+};
+
 // ABI for Allocate<TypedData>ArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kLengthReg = EAX;
@@ -235,6 +248,11 @@ enum ScaleFactor {
   TIMES_WORD_SIZE = kInt32SizeLog2,
 #else
 #error "Unexpected word size"
+#endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+#error Cannot compress IA32
 #endif
 };
 
@@ -315,7 +333,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
 #if defined(TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else

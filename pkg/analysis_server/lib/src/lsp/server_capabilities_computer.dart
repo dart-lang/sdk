@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -124,8 +122,8 @@ class ServerCapabilitiesComputer {
 
   final LspAnalysisServer _server;
 
-  /// Map from method name to current registration data.
-  Map<String, Registration> currentRegistrations = {};
+  /// List of current registrations.
+  Set<Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
   ServerCapabilitiesComputer(this._server);
@@ -133,9 +131,7 @@ class ServerCapabilitiesComputer {
   ServerCapabilities computeServerCapabilities(
       LspClientCapabilities clientCapabilities) {
     final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
-
     final renameOptionsSupport = clientCapabilities.renameValidation;
-
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
     final previewCommitCharacters =
         _server.clientConfiguration.previewCommitCharacters;
@@ -204,7 +200,7 @@ class ServerCapabilitiesComputer {
       // `textDocument.codeAction.codeActionLiteralSupport`."
       codeActionProvider: dynamicRegistrations.codeActions
           ? null
-          : codeActionLiteralSupport != null
+          : codeActionLiteralSupport
               ? Either2<bool, CodeActionOptions>.t2(CodeActionOptions(
                   codeActionKinds: DartCodeActionKind.serverSupportedKinds,
                 ))
@@ -306,8 +302,10 @@ class ServerCapabilitiesComputer {
     // Completion is supported for some synchronised files that we don't _fully_
     // support (eg. YAML). If these gain support for things like hover, we may
     // wish to move them to fullySupprtedTypes but add an exclusion for formatting.
-    final completionSupportedTypes = {
-      ...fullySupportedTypes,
+    final completionSupportedTypesExcludingDart = {
+      // Dart is excluded here at it's registered separately with trigger/commit
+      // characters.
+      ...pluginTypes,
       pubspecFile,
       analysisOptionsFile,
       fixDataFile,
@@ -320,17 +318,17 @@ class ServerCapabilitiesComputer {
         _server.clientConfiguration.previewCommitCharacters;
 
     /// Helper for creating registrations with IDs.
-    void register(bool condition, Method method, [ToJsonable options]) {
+    void register(bool condition, Method method, [ToJsonable? options]) {
       if (condition == true) {
         registrations.add(Registration(
             id: (_lastRegistrationId++).toString(),
-            method: method.toJson(),
+            method: method.toString(),
             registerOptions: options));
       }
     }
 
     final dynamicRegistrations =
-        ClientDynamicRegistrations(_server.clientCapabilities.raw);
+        ClientDynamicRegistrations(_server.clientCapabilities!.raw);
 
     register(
       dynamicRegistrations.textSync,
@@ -349,14 +347,24 @@ class ServerCapabilitiesComputer {
           syncKind: TextDocumentSyncKind.Incremental,
           documentSelector: synchronisedTypes),
     );
+    // Trigger and commit characters are specific to Dart, so register them
+    // separately to the others.
     register(
       dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
-        documentSelector: completionSupportedTypes,
+        documentSelector: [dartFiles],
         triggerCharacters: dartCompletionTriggerCharacters,
         allCommitCharacters:
             previewCommitCharacters ? dartCompletionCommitCharacters : null,
+        resolveProvider: true,
+      ),
+    );
+    register(
+      dynamicRegistrations.completion,
+      Method.textDocument_completion,
+      CompletionRegistrationOptions(
+        documentSelector: completionSupportedTypesExcludingDart,
         resolveProvider: true,
       ),
     );
@@ -464,58 +472,60 @@ class ServerCapabilitiesComputer {
     await _applyRegistrations(registrations);
   }
 
-  Future<void> _applyRegistrations(List<Registration> registrations) async {
-    final newRegistrationsByMethod = {
-      for (final registration in registrations)
-        registration.method: registration
-    };
+  Future<void> _applyRegistrations(List<Registration> newRegistrations) async {
+    // Compute a diff of old and new registrations to send the unregister or
+    // another register request. We compare registrations by their methods and
+    // the hashcode of their registration options to allow for multiple
+    // registrations of a single method.
 
-    final additionalRegistrations = List.of(registrations);
-    final removedRegistrations = <Unregistration>[];
+    String _registrationHash(Registration registration) =>
+        '${registration.method}${registration.registerOptions.hashCode}';
 
-    // compute a diff of old and new registrations to send the unregister or
-    // another register request. We assume that we'll only ever have one
-    // registration per LSP method name.
-    for (final entry in currentRegistrations.entries) {
-      final method = entry.key;
-      final registration = entry.value;
+    final newRegistrationsMap = Map.fromEntries(
+        newRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+    final newRegistrationsJsons = newRegistrationsMap.values.toSet();
+    final currentRegistrationsMap = Map.fromEntries(
+        currentRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+    final currentRegistrationJsons = currentRegistrationsMap.values.toSet();
 
-      final newRegistrationForMethod = newRegistrationsByMethod[method];
-      final entryRemovedOrChanged = newRegistrationForMethod?.registerOptions !=
-          registration.registerOptions;
+    final registrationsToAdd = newRegistrationsMap.entries
+        .where((entry) => !currentRegistrationJsons.contains(entry.value))
+        .map((entry) => entry.key)
+        .toList();
 
-      if (entryRemovedOrChanged) {
-        removedRegistrations.add(
-            Unregistration(id: registration.id, method: registration.method));
-      } else {
-        // Replace the registration in our new set with the original registration
-        // so that we retain the original ID sent to the client (otherwise we
-        // will try to unregister using an ID the client was never sent).
-        newRegistrationsByMethod[method] = registration;
-        additionalRegistrations.remove(newRegistrationForMethod);
-      }
-    }
+    final registrationsToRemove = currentRegistrationsMap.entries
+        .where((entry) => !newRegistrationsJsons.contains(entry.value))
+        .map((entry) => entry.key)
+        .toList();
 
-    currentRegistrations = newRegistrationsByMethod;
+    // Update the current list before we start sending requests since we
+    // go async.
+    currentRegistrations
+      ..removeAll(registrationsToRemove)
+      ..addAll(registrationsToAdd);
 
-    if (removedRegistrations.isNotEmpty) {
+    if (registrationsToRemove.isNotEmpty) {
+      final unregistrations = registrationsToRemove
+          .map((r) => Unregistration(id: r.id, method: r.method))
+          .toList();
       await _server.sendRequest(Method.client_unregisterCapability,
-          UnregistrationParams(unregisterations: removedRegistrations));
+          UnregistrationParams(unregisterations: unregistrations));
     }
 
     // Only send the registration request if we have at least one (since
     // otherwise we don't know that the client supports registerCapability).
-    if (additionalRegistrations.isNotEmpty) {
+    if (registrationsToAdd.isNotEmpty) {
       final registrationResponse = await _server.sendRequest(
         Method.client_registerCapability,
-        RegistrationParams(registrations: additionalRegistrations),
+        RegistrationParams(registrations: registrationsToAdd),
       );
 
-      if (registrationResponse.error != null) {
+      final error = registrationResponse.error;
+      if (error != null) {
         _server.logErrorToClient(
           'Failed to register capabilities with client: '
-          '(${registrationResponse.error.code}) '
-          '${registrationResponse.error.message}',
+          '(${error.code}) '
+          '${error.message}',
         );
       }
     }

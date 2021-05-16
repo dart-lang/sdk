@@ -5,7 +5,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-const appSnapshotPageSize = 4096;
+// Maximum page size across all supported architectures (arm64 macOS has 16K
+// pages, the rest are all 4k pages).
+const elfPageSize = 16384;
 const appjitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
 
 enum Kind { aot, exe }
@@ -15,8 +17,7 @@ Future writeAppendedExecutable(
   final dartaotruntime = File(dartaotruntimePath);
   final int dartaotruntimeLength = dartaotruntime.lengthSync();
 
-  final padding =
-      ((appSnapshotPageSize - dartaotruntimeLength) % appSnapshotPageSize);
+  final padding = ((elfPageSize - dartaotruntimeLength) % elfPageSize);
   final padBytes = Uint8List(padding);
   final offset = dartaotruntimeLength + padding;
 

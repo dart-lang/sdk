@@ -40,12 +40,6 @@ const METADATA = 'metadata';
 /// Use [JsBuiltin.getType] instead of directly accessing this embedded global.
 const TYPES = 'types';
 
-/// Returns a function that maps a name of a class to its type.
-///
-/// This embedded global is used by the runtime when computing the internal
-/// runtime-type-information (rti) object.
-const GET_TYPE_FROM_NAME = 'getTypeFromName';
-
 /// A JS map from mangled global names to their unmangled names.
 ///
 /// If the program does not use reflection, this embedded global may be empty
@@ -200,9 +194,6 @@ enum JsGetName {
   DEFAULT_VALUES_PROPERTY,
   CALL_NAME_PROPERTY,
   DEFERRED_ACTION_PROPERTY,
-
-  /// Prefix used for generated type argument substitutions on classes.
-  OPERATOR_AS_PREFIX,
 
   /// Prefix used for generated type test property on classes.
   OPERATOR_IS_PREFIX,

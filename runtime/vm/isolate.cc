@@ -564,9 +564,9 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
   Thread* thread = nullptr;
   OSThread* os_thread = OSThread::Current();
   if (os_thread != nullptr) {
-    // If a safepoint operation is in progress wait for it
-    // to finish before scheduling this thread in.
-    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
+    // If a safepoint operation is in progress wait for it to finish before
+    // scheduling this thread.
+    while (!bypass_safepoint && safepoint_handler()->AnySafepointInProgress()) {
       ml->Wait();
     }
 
@@ -653,7 +653,8 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->heap_ = nullptr;
   thread->set_os_thread(nullptr);
   thread->set_execution_state(Thread::kThreadInNative);
-  thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
+  thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
+                              Thread::AtDeoptSafepointField::encode(true));
   thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (is_mutator) {
@@ -923,7 +924,7 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   if (need_to_grow_backing_store) {
     // We have to stop other isolates from accessing their field state, since
     // we'll have to grow the backing store.
-    SafepointOperationScope ops(Thread::Current());
+    GcSafepointOperationScope scope(Thread::Current());
     for (auto isolate : isolates_) {
       auto field_table = isolate->field_table();
       if (field_table->IsReadyToUse()) {
@@ -2106,7 +2107,7 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
 
 void IsolateGroup::DeleteReloadContext() {
   // Another thread may be in the middle of GetClassForHeapWalkAt.
-  SafepointOperationScope safepoint_scope(Thread::Current());
+  GcSafepointOperationScope safepoint_scope(Thread::Current());
   group_reload_context_.reset();
 
   delete program_reload_context_;
@@ -2795,10 +2796,11 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   // all other threads, including auxiliary threads are at a safepoint), even
   // though we only need to ensure that the mutator threads are stopped.
   if (use_force_growth_in_otherwise) {
-    ForceGrowthSafepointOperationScope safepoint_scope(thread);
+    ForceGrowthSafepointOperationScope safepoint_scope(
+        thread, SafepointLevel::kGCAndDeopt);
     otherwise->Call();
   } else {
-    SafepointOperationScope safepoint_scope(thread);
+    DeoptSafepointOperationScope safepoint_scope(thread);
     otherwise->Call();
   }
 }

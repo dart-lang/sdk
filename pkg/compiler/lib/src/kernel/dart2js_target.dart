@@ -62,8 +62,6 @@ int _foldLateLowerings(List<int> lowerings) =>
 
 /// Late lowerings which the frontend performs for dart2js.
 const List<int> _allEnabledLateLowerings = [
-  LateLowering.initializedNonFinalStaticField,
-  LateLowering.initializedFinalStaticField,
   LateLowering.uninitializedNonFinalInstanceField,
   LateLowering.uninitializedFinalInstanceField,
   LateLowering.initializedNonFinalInstanceField,
@@ -79,9 +77,11 @@ class Dart2jsTarget extends Target {
   @override
   final String name;
 
+  final bool omitLateNames;
+
   Map<String, ir.Class> _nativeClasses;
 
-  Dart2jsTarget(this.name, this.flags);
+  Dart2jsTarget(this.name, this.flags, {this.omitLateNames = false});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -117,8 +117,11 @@ class Dart2jsTarget extends Target {
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
-      uri.scheme == 'dart' &&
-      (uri.path == 'core' || uri.path == '_interceptors');
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_interceptors' ||
+          uri.path == '_native_typed_data');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
@@ -157,7 +160,8 @@ class Dart2jsTarget extends Target {
               _nativeClasses)
           .visitLibrary(library);
     }
-    lowering.transformLibraries(libraries, coreTypes, hierarchy);
+    lowering.transformLibraries(libraries, coreTypes, hierarchy,
+        omitLateNames: omitLateNames);
     logger?.call("Lowering transformations performed");
   }
 
@@ -187,9 +191,9 @@ class Dart2jsTarget extends Target {
           new ir.ListLiteral(
               arguments.types.map((t) => new ir.TypeLiteral(t)).toList()),
           new ir.ListLiteral(arguments.positional)..fileOffset = offset,
-          new ir.MapLiteral(new List<ir.MapEntry>.from(
+          new ir.MapLiteral(new List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
-            return new ir.MapEntry(
+            return new ir.MapLiteralEntry(
                 new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;

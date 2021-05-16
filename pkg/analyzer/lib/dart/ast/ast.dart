@@ -1762,6 +1762,19 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   set type(TypeName type);
 }
 
+/// An expression representing a reference to a constructor, e.g. the expression
+/// `List.filled` in `var x = List.filled;`.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an identifier refers to a type); they are
+/// produced at resolution time.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ConstructorReference implements Expression {
+  /// The constructor being referenced.
+  ConstructorName get constructorName;
+}
+
 /// An AST node that makes reference to a constructor.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2998,6 +3011,36 @@ abstract class FunctionExpressionInvocation
   /// given [typeArguments].
   @Deprecated('Clients should not build AST manually')
   set typeArguments(TypeArgumentList? typeArguments);
+}
+
+/// An expression representing a reference to a function, possibly with type
+/// arguments applied to it, e.g. the expression `print` in `var x = print;`.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class FunctionReference implements Expression {
+  /// The function being referenced.
+  ///
+  /// In error-free code, this will be either a SimpleIdentifier (indicating a
+  /// function that is in scope), a PrefixedIdentifier (indicating a either
+  /// function imported via prefix or a static method in a class), or a
+  /// PropertyAccess (indicating a static method in a class imported via
+  /// prefix).  In code with errors, this could be other kinds of expressions
+  /// (e.g. `(...)<int>` parses as a FunctionReference whose referent is a
+  /// ParenthesizedExpression.
+  Expression get function;
+
+  /// The type arguments being applied to the function, or `null` if there are
+  /// no type arguments.
+  TypeArgumentList? get typeArguments;
+
+  /// The actual type arguments being applied to the function, either explicitly
+  /// specified in [typeArguments], or inferred.
+  ///
+  /// If the AST has been resolved, never returns `null`, returns an empty list
+  /// if the function does not have type parameters.
+  ///
+  /// Returns `null` if the AST structure has not been resolved.
+  List<DartType>? get typeArgumentTypes;
 }
 
 /// A function type alias.
@@ -4293,6 +4336,9 @@ abstract class NamespaceDirective implements UriBasedDirective {
   /// Set the semicolon terminating the directive to the given [token].
   @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
+
+  @override
+  LibraryElement? get uriElement;
 }
 
 /// The "native" clause in an class declaration.
@@ -5520,6 +5566,23 @@ abstract class TypedLiteral implements Literal {
   /// [typeArguments].
   @Deprecated('Clients should not build AST manually')
   set typeArguments(TypeArgumentList? typeArguments);
+}
+
+/// An expression representing a type, e.g. the expression `int` in
+/// `var x = int;`.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an identifier refers to a type); they are
+/// produced at resolution time.
+///
+/// The `.staticType` getter returns the type of the expression (which will
+/// always be the type `Type`).  To see the type represented by the type literal
+/// use `.typeName.type`.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TypeLiteral implements Expression {
+  /// The type represented by this literal.
+  TypeName get typeName;
 }
 
 /// The name of a type, which can optionally include type arguments.

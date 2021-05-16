@@ -17,27 +17,27 @@ class AddConst extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    AstNode? node = this.node;
-    if (node is SimpleIdentifier) {
-      node = node.parent;
+    AstNode? targetNode = node;
+    if (targetNode is SimpleIdentifier) {
+      targetNode = targetNode.parent;
     }
-    if (node is ConstructorDeclaration) {
-      var node_final = node;
+    if (targetNode is ConstructorDeclaration) {
+      var node_final = targetNode;
       await builder.addDartFileEdit(file, (builder) {
         final offset = node_final.firstTokenAfterCommentAndMetadata.offset;
         builder.addSimpleInsertion(offset, 'const ');
       });
       return;
     }
-    if (node is TypeName) {
-      node = node.parent;
+    if (targetNode is TypeName) {
+      targetNode = targetNode.parent;
     }
-    if (node is ConstructorName) {
-      node = node.parent;
+    if (targetNode is ConstructorName) {
+      targetNode = targetNode.parent;
     }
-    if (node is InstanceCreationExpression) {
-      if (node.keyword == null) {
-        var node_final = node;
+    if (targetNode is InstanceCreationExpression) {
+      if (targetNode.keyword == null) {
+        var node_final = targetNode;
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(node_final.offset, 'const ');
         });

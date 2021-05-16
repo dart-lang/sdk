@@ -72,7 +72,7 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => _State();
+  State<Foo> createState() => _State();
 }
 
 class _State extends State<Foo> {
@@ -95,7 +95,7 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => _State();
+  State<Foo> createState() => _State();
 }
 
 class _State extends State<Foo> {

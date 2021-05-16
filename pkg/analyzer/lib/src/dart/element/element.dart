@@ -17,7 +17,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -41,10 +43,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
-import 'package:analyzer/src/util/comment.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
@@ -77,6 +80,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   /// Set the accessors contained in this class to the given [accessors].
   set accessors(List<PropertyAccessorElement> accessors) {
+    assert(!isMixinApplication);
     for (PropertyAccessorElement accessor in accessors) {
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
@@ -93,6 +97,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   /// Set the fields contained in this class to the given [fields].
   set fields(List<FieldElement> fields) {
+    assert(!isMixinApplication);
     for (FieldElement field in fields) {
       (field as FieldElementImpl).enclosingElement = this;
     }
@@ -448,6 +453,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// TODO(scheglov) implement as modifier
   bool _isSimplyBounded = true;
 
+  ElementLinkedData? linkedData;
+
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(String name, int offset) : super(name, offset);
@@ -469,13 +476,10 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _accessors;
     }
 
-    if (linkedNode != null) {
-      if (linkedNode is ClassOrMixinDeclaration) {
-        _createPropertiesAndAccessors();
-        return _accessors;
-      } else {
-        return _accessors = const [];
-      }
+    var linkedData = this.linkedData;
+    if (linkedData is ClassElementLinkedData) {
+      linkedData.readMembers(this);
+      return _accessors;
     }
 
     return _accessors;
@@ -488,56 +492,21 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  int? get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int? get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset;
-  }
-
-  @override
   List<ConstructorElement> get constructors {
     if (!identical(_constructors, _Sentinel.constructorElement)) {
       return _constructors;
     }
 
     if (isMixinApplication) {
+      // Assign to break a possible infinite recursion during computing.
+      _constructors = const <ConstructorElement>[];
       return _constructors = _computeMixinAppConstructors();
     }
 
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-      var context = enclosingUnit.linkedContext!;
-      var containerRef = reference!.getChild('@constructor');
-      _constructors = context.getConstructors(linkedNode!).map((node) {
-        var name = node.name?.name ?? '';
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement;
-        element ??= ConstructorElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-
-      if (_constructors.isEmpty) {
-        return _constructors = [
-          ConstructorElementImpl.forLinkedNode(
-            this,
-            containerRef.getChild(''),
-            null,
-          )
-            ..isSynthetic = true
-            ..name = ''
-            ..nameOffset = -1
-            .._constantInitializers = const [],
-        ];
-      }
+    var linkedData = this.linkedData;
+    if (linkedData is ClassElementLinkedData) {
+      linkedData.readMembers(this);
+      return _constructors;
     }
 
     if (_constructors.isEmpty) {
@@ -562,29 +531,15 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var comment = context.getDocumentationComment(linkedNode!);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
-
-  @override
   List<FieldElement> get fields {
     if (!identical(_fields, _Sentinel.fieldElement)) {
       return _fields;
     }
 
-    if (linkedNode != null) {
-      if (linkedNode is ClassOrMixinDeclaration) {
-        linkedContext!.applyResolution(linkedNode!);
-        _createPropertiesAndAccessors();
-        return _fields;
-      } else {
-        _fields = const [];
-      }
+    var linkedData = this.linkedData;
+    if (linkedData is ClassElementLinkedData) {
+      linkedData.readMembers(this);
+      return _fields;
     }
 
     return _fields;
@@ -657,12 +612,12 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   List<InterfaceType> get interfacesInternal {
+    linkedData?.read(this);
     if (!identical(_interfaces, _Sentinel.interfaceType)) {
       return _interfaces;
     }
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
       var context = enclosingUnit.linkedContext!;
       var implementsClause = context.getImplementsClause(linkedNode!);
       if (implementsClause != null) {
@@ -710,9 +665,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// TODO(scheglov) implement as modifier
   @override
   bool get isSimplyBounded {
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-    }
     return _isSimplyBounded;
   }
 
@@ -723,7 +675,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isValidMixin {
-    var supertype = this.supertype;
+    final supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {
       return false;
     }
@@ -739,25 +691,21 @@ class ClassElementImpl extends AbstractClassElementImpl
   ElementKind get kind => ElementKind.CLASS;
 
   @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
+
+  @override
   List<MethodElement> get methods {
     if (!identical(_methods, _Sentinel.methodElement)) {
       return _methods;
     }
 
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-      var context = enclosingUnit.linkedContext!;
-      var containerRef = reference!.getChild('@method');
-      return _methods = context
-          .getMethods(linkedNode as CompilationUnitMember)
-          .where((node) => node.propertyKeyword == null)
-          .map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as MethodElement?;
-        element ??= MethodElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
+    var linkedData = this.linkedData;
+    if (linkedData is ClassElementLinkedData) {
+      linkedData.readMembers(this);
+      return _methods;
     }
 
     return _methods;
@@ -765,6 +713,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   /// Set the methods contained in this class to the given [methods].
   set methods(List<MethodElement> methods) {
+    assert(!isMixinApplication);
     for (MethodElement method in methods) {
       (method as MethodElementImpl).enclosingElement = this;
     }
@@ -780,12 +729,12 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
 
+    linkedData?.read(this);
     if (!identical(_mixins, _Sentinel.interfaceType)) {
       return _mixins;
     }
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
       var context = enclosingUnit.linkedContext!;
       var withClause = context.getWithClause(linkedNode!);
       if (withClause != null) {
@@ -808,6 +757,11 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   String get name {
+    final linkedData = this.linkedData;
+    if (linkedData != null) {
+      return linkedData.reference.name;
+    }
+
     if (linkedNode != null) {
       return reference!.name;
     }
@@ -829,6 +783,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   InterfaceType? get supertype {
+    linkedData?.read(this);
     if (_supertype != null) return _supertype!;
 
     if (hasModifier(Modifier.DART_CORE_OBJECT)) {
@@ -836,7 +791,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
       var type = linkedContext!.getSuperclass(linkedNode!)?.type;
       if (_isInterfaceTypeClass(type)) {
         return _supertype = type as InterfaceType;
@@ -852,6 +806,12 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   set supertype(InterfaceType? supertype) {
     _supertype = supertype;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    linkedData?.read(this);
+    return super.typeParameters;
   }
 
   /// Set the type parameters defined for this class to the given
@@ -882,6 +842,18 @@ class ClassElementImpl extends AbstractClassElementImpl
   ConstructorElement? getNamedConstructor(String name) =>
       getNamedConstructorFromList(name, constructors);
 
+  void resetAfterMixinInference() {
+    linkedMixinInferenceCallback = null;
+    _mixins = _Sentinel.interfaceType;
+  }
+
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
+
+    this.linkedData = linkedData;
+  }
+
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -910,7 +882,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     // forwarded to this class.
     Iterable<ConstructorElement> constructorsToForward;
     if (!superElement.isMixinApplication) {
-      var library = this.library;
+      final library = this.library;
       constructorsToForward = superElement.constructors
           .where((constructor) => constructor.isAccessibleIn(library))
           .where((constructor) => !constructor.isFactory);
@@ -956,29 +928,33 @@ class ClassElementImpl extends AbstractClassElementImpl
     // substituting type parameters as appropriate.
     return constructorsToForward
         .map((ConstructorElement superclassConstructor) {
-      var containerRef = reference!.getChild('@constructor');
       var name = superclassConstructor.name;
-      var implicitConstructor = ConstructorElementImpl.forLinkedNode(
-          this, containerRef.getChild(name), null);
+      var implicitConstructor = ConstructorElementImpl(name, -1);
       implicitConstructor.isSynthetic = true;
       implicitConstructor.name = name;
       implicitConstructor.nameOffset = -1;
-      implicitConstructor._constantInitializers = const [];
-      implicitConstructor.redirectedConstructor = superclassConstructor;
+
+      var containerRef = reference!.getChild('@constructor');
+      var implicitReference = containerRef.getChild(name);
+      implicitConstructor.reference = implicitReference;
+      implicitReference.element = implicitConstructor;
+
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =
           superclassConstructor.isConst && !hasMixinWithInstanceVariables;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
+      var argumentsForSuperInvocation = <Expression>[];
       if (count > 0) {
         var implicitParameters = <ParameterElement>[];
         for (int i = 0; i < count; i++) {
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
-          if (superParameter is DefaultParameterElementImpl) {
+          if (superParameter is ConstVariableElement) {
+            var constVariable = superParameter as ConstVariableElement;
             implicitParameter =
                 DefaultParameterElementImpl(superParameter.name, -1)
-                  ..constantInitializer = superParameter.constantInitializer;
+                  ..constantInitializer = constVariable.constantInitializer;
           } else {
             implicitParameter = ParameterElementImpl(superParameter.name, -1);
           }
@@ -990,77 +966,38 @@ class ClassElementImpl extends AbstractClassElementImpl
           implicitParameter.type =
               substitution.substituteType(superParameter.type);
           implicitParameters.add(implicitParameter);
+          argumentsForSuperInvocation.add(
+            astFactory.simpleIdentifier(
+              StringToken(TokenType.STRING, implicitParameter.name, -1),
+            )
+              ..staticElement = implicitParameter
+              ..staticType = implicitParameter.type,
+          );
         }
         implicitConstructor.parameters = implicitParameters;
       }
       implicitConstructor.enclosingElement = this;
+
+      var isNamed = superclassConstructor.name.isNotEmpty;
+      implicitConstructor.constantInitializers = [
+        astFactory.superConstructorInvocation(
+          Tokens.SUPER,
+          isNamed ? Tokens.PERIOD : null,
+          isNamed
+              ? (astFactory.simpleIdentifier(
+                  StringToken(TokenType.STRING, superclassConstructor.name, -1),
+                )..staticElement = superclassConstructor)
+              : null,
+          astFactory.argumentList(
+            Tokens.OPEN_PAREN,
+            argumentsForSuperInvocation,
+            Tokens.CLOSE_PAREN,
+          ),
+        )..staticElement = superclassConstructor,
+      ];
+
       return implicitConstructor;
     }).toList(growable: false);
-  }
-
-  void _createPropertiesAndAccessors() {
-    assert(identical(_accessors, _Sentinel.propertyAccessorElement));
-    assert(identical(_fields, _Sentinel.fieldElement));
-
-    var context = enclosingUnit.linkedContext;
-    var accessorList = <PropertyAccessorElement>[];
-    var fieldList = <FieldElement>[];
-
-    var fields = context!.getFields(linkedNode as CompilationUnitMember);
-    for (var field in fields) {
-      var name = field.name.name;
-      var fieldElement = field.declaredElement as FieldElementImpl?;
-      fieldElement ??= FieldElementImpl.forLinkedNodeFactory(
-          this, reference!.getChild('@field').getChild(name), field);
-      fieldList.add(fieldElement);
-
-      accessorList.add(fieldElement.getter!);
-      if (fieldElement.setter != null) {
-        accessorList.add(fieldElement.setter!);
-      }
-    }
-
-    var methods = context.getMethods(linkedNode as CompilationUnitMember);
-    for (var method in methods) {
-      var isGetter = method.isGetter;
-      var isSetter = method.isSetter;
-      if (!isGetter && !isSetter) continue;
-
-      var name = method.name.name;
-      var containerRef = isGetter
-          ? reference!.getChild('@getter')
-          : reference!.getChild('@setter');
-
-      var accessorElement =
-          method.declaredElement as PropertyAccessorElementImpl?;
-      accessorElement ??= PropertyAccessorElementImpl.forLinkedNode(
-          this, containerRef.getChild(name), method);
-      accessorList.add(accessorElement);
-
-      var fieldRef = reference!.getChild('@field').getChild(name);
-      var field = fieldRef.element as FieldElementImpl?;
-      if (field == null) {
-        field = FieldElementImpl(name, -1);
-        fieldRef.element = field;
-        field.enclosingElement = this;
-        field.isSynthetic = true;
-        field.isFinal = isGetter;
-        field.isStatic = accessorElement.isStatic;
-        fieldList.add(field);
-      } else {
-        field.isFinal = false;
-      }
-
-      accessorElement.variable = field;
-      if (isGetter) {
-        field.getter ??= accessorElement;
-      } else {
-        field.setter ??= accessorElement;
-      }
-    }
-
-    _accessors = accessorList;
-    _fields = fieldList;
   }
 
   /// Return `true` if the given [type] is an [InterfaceType] that can be used
@@ -1134,10 +1071,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
-  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
+  List<PropertyAccessorElement> _accessors = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
-  List<ClassElement> _enums = _Sentinel.classElement;
+  List<ClassElement> _enums = const [];
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
@@ -1145,7 +1082,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
-  List<FunctionElement> _functions = _Sentinel.functionElement;
+  List<FunctionElement> _functions = const [];
 
   /// A list containing all of the mixins contained in this compilation unit.
   List<ClassElement> _mixins = _Sentinel.classElement;
@@ -1164,7 +1101,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ClassElement> _types = _Sentinel.classElement;
 
   /// A list containing all of the variables contained in this compilation unit.
-  List<TopLevelVariableElement> _variables = _Sentinel.topLevelVariables;
+  List<TopLevelVariableElement> _variables = const [];
+
+  ElementLinkedData? linkedData;
 
   /// Initialize a newly created compilation unit element to have the given
   /// [name].
@@ -1173,23 +1112,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         super(null, -1);
 
   CompilationUnitElementImpl.forLinkedNode(LibraryElementImpl enclosingLibrary,
-      this.linkedContext, Reference reference, CompilationUnitImpl linkedNode)
+      this.linkedContext, Reference reference, CompilationUnitImpl? linkedNode)
       : super.forLinkedNode(enclosingLibrary, reference, linkedNode) {
     _nameOffset = -1;
-    linkedNode.declaredElement = this;
+    linkedNode?.declaredElement = this;
   }
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    if (linkedNode != null) {
-      _createPropertiesAndAccessors(this);
-      return _accessors;
-    }
-
     return _accessors;
   }
 
@@ -1203,22 +1133,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  int get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength!;
-  }
-
-  @override
-  int get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset!;
-  }
-
-  @override
   LibraryElement get enclosingElement =>
       super.enclosingElement as LibraryElement;
 
@@ -1229,22 +1143,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get enums {
-    if (!identical(_enums, _Sentinel.classElement)) {
-      return _enums;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@enum');
-      _enums =
-          _linkedUnitDeclarations.whereType<EnumDeclarationImpl>().map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement;
-        element ??= EnumElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _enums;
   }
 
@@ -1295,24 +1193,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<FunctionElement> get functions {
-    if (!identical(_functions, _Sentinel.functionElement)) {
-      return _functions;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@function');
-      return _functions = _linkedUnitDeclarations
-          .whereType<FunctionDeclarationImpl>()
-          .where((node) => !node.isGetter && !node.isSetter)
-          .map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as FunctionElement?;
-        element ??= FunctionElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _functions;
   }
 
@@ -1341,7 +1221,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @Deprecated('Not useful for clients')
   @override
   bool get hasLoadLibraryFunction {
-    List<FunctionElement> functions = this.functions;
+    final functions = this.functions;
     for (int i = 0; i < functions.length; i++) {
       if (functions[i].name == FunctionElement.LOAD_LIBRARY_NAME) {
         return true;
@@ -1363,6 +1243,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
 
   @override
   List<ClassElement> get mixins {
@@ -1399,15 +1285,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
-    if (!identical(_variables, _Sentinel.topLevelVariables)) {
-      return _variables;
-    }
-
-    if (linkedNode != null) {
-      _createPropertiesAndAccessors(this);
-      return _variables;
-    }
-
     return _variables;
   }
 
@@ -1507,7 +1384,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   List<CompilationUnitMember> get _linkedUnitDeclarations {
-    return linkedContext!.unit_withDeclarations.declarations;
+    return linkedContext!.unit.declarations;
   }
 
   @override
@@ -1543,6 +1420,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return null;
   }
 
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
+
+    this.linkedData = linkedData;
+  }
+
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -1554,99 +1438,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(typeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
-  }
-
-  static void _createPropertiesAndAccessors(CompilationUnitElementImpl unit) {
-    if (!identical(unit._variables, _Sentinel.topLevelVariables)) {
-      return;
-    }
-    assert(identical(unit._accessors, _Sentinel.propertyAccessorElement));
-
-    var accessorMap =
-        <CompilationUnitElementImpl, List<PropertyAccessorElement>>{};
-    var variableMap =
-        <CompilationUnitElementImpl, List<TopLevelVariableElement>>{};
-
-    var units = unit.library.units;
-    for (var unit in units) {
-      var unitImpl = unit as CompilationUnitElementImpl;
-      var context = unitImpl.linkedContext!;
-
-      var accessorList = <PropertyAccessorElement>[];
-      accessorMap[unitImpl] = accessorList;
-
-      var variableList = <TopLevelVariableElement>[];
-      variableMap[unitImpl] = variableList;
-
-      // TODO(scheglov) Bad, we want to read only functions / variables.
-      var unitNode = context.unit_withDeclarations;
-      var unitDeclarations = unitNode.declarations;
-
-      var variables = context.topLevelVariables(unitNode);
-      for (var variable in variables) {
-        var variableElement =
-            variable.declaredElement as TopLevelVariableElementImpl?;
-        if (variableElement == null) {
-          var name = variable.name.name;
-          var reference =
-              unitImpl.reference!.getChild('@variable').getChild(name);
-          variableElement = TopLevelVariableElementImpl.forLinkedNodeFactory(
-              unitImpl, reference, variable);
-        }
-        variableList.add(variableElement);
-
-        accessorList.add(variableElement.getter!);
-        if (variableElement.setter != null) {
-          accessorList.add(variableElement.setter!);
-        }
-      }
-
-      for (var node in unitDeclarations) {
-        if (node is FunctionDeclaration) {
-          var isGetter = node.isGetter;
-          var isSetter = node.isSetter;
-          if (!isGetter && !isSetter) continue;
-
-          var name = node.name.name;
-          var containerRef = isGetter
-              ? unitImpl.reference!.getChild('@getter')
-              : unitImpl.reference!.getChild('@setter');
-
-          var accessorElement =
-              node.declaredElement as PropertyAccessorElementImpl?;
-          accessorElement ??= PropertyAccessorElementImpl.forLinkedNode(
-              unitImpl, containerRef.getChild(name), node);
-          accessorList.add(accessorElement);
-
-          var fieldRef =
-              unitImpl.reference!.getChild('@variable').getChild(name);
-          var field = fieldRef.element as TopLevelVariableElementImpl?;
-          if (field == null) {
-            field = TopLevelVariableElementImpl(name, -1);
-            fieldRef.element = field;
-            field.enclosingElement = unitImpl;
-            field.isSynthetic = true;
-            field.isFinal = isGetter;
-            variableList.add(field);
-          } else {
-            field.isFinal = false;
-          }
-
-          accessorElement.variable = field;
-          if (isGetter) {
-            field.getter = accessorElement;
-          } else {
-            field.setter = accessorElement;
-          }
-        }
-      }
-    }
-
-    for (var unit in units) {
-      var unitImpl = unit as CompilationUnitElementImpl;
-      unitImpl._accessors = accessorMap[unit]!;
-      unitImpl._variables = variableMap[unit]!;
-    }
   }
 }
 
@@ -1663,9 +1454,11 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /// [name] and [offset].
   ConstFieldElementImpl(String name, int offset) : super(name, offset);
 
-  ConstFieldElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+  @override
+  Expression? get constantInitializer {
+    linkedData?.read(this);
+    return super.constantInitializer;
+  }
 }
 
 /// A field element representing an enum constant.
@@ -1676,22 +1469,8 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
       EnumElementImpl enumElement, String name, this._index)
       : super(enumElement, name);
 
-  ConstFieldElementImpl_EnumValue.forLinkedNode(EnumElementImpl enumElement,
-      Reference reference, AstNode linkedNode, this._index)
-      : super.forLinkedNode(enumElement, reference, linkedNode);
-
   @override
   Expression? get constantInitializer => null;
-
-  @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var comment = context.getDocumentationComment(linkedNode!);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
 
   @override
   EvaluationResultImpl? get evaluationResult {
@@ -1725,22 +1504,6 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 
   @override
   bool get hasInitializer => false;
-
-  @override
-  String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-    return super.nameOffset;
-  }
 
   @override
   InterfaceType get type =>
@@ -1801,10 +1564,6 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
     enclosingElement = _enum;
   }
 
-  ConstFieldElementImpl_ofEnum.forLinkedNode(
-      this._enum, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(_enum, reference, linkedNode);
-
   @override
   set evaluationResult(_) {
     assert(false);
@@ -1858,15 +1617,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
-  List<ConstructorInitializer> _constantInitializers =
-      _Sentinel.constructorInitializer;
+  List<ConstructorInitializer> _constantInitializers = const [];
 
-  /// The offset of the `.` before this constructor name or `null` if not named.
-  int? _periodOffset;
+  @override
+  int? periodOffset;
 
-  /// Return the offset of the character immediately following the last
-  /// character of this constructor's name, or `null` if not named.
-  int? _nameEnd;
+  @override
+  int? nameEnd;
 
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
@@ -1880,26 +1637,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// and [offset].
   ConstructorElementImpl(String name, int offset) : super(name, offset);
 
-  ConstructorElementImpl.forLinkedNode(ClassElementImpl enclosingClass,
-      Reference reference, ConstructorDeclarationImpl? linkedNode)
-      : super.forLinkedNode(enclosingClass, reference, linkedNode) {
-    linkedNode?.declaredElement = this;
-  }
-
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {
-    if (!identical(_constantInitializers, _Sentinel.constructorInitializer)) {
-      return _constantInitializers;
-    }
-
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-      return _constantInitializers = linkedContext!.getConstructorInitializers(
-        linkedNode as ConstructorDeclaration,
-      );
-    }
-
+    linkedData?.read(this);
     return _constantInitializers;
   }
 
@@ -1912,9 +1653,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   String get displayName {
-    if (linkedNode != null) {
-      return reference!.name;
+    final linkedData = this.linkedData;
+    if (linkedData != null) {
+      return linkedData.reference.name;
     }
+
     return super.displayName;
   }
 
@@ -1924,10 +1667,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isConst {
-    if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ConstructorDeclaration;
-      return linkedNode.constKeyword != null;
-    }
     return hasModifier(Modifier.CONST);
   }
 
@@ -1948,10 +1687,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isFactory {
-    if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ConstructorDeclaration;
-      return linkedNode.factoryKeyword != null;
-    }
     return hasModifier(Modifier.FACTORY);
   }
 
@@ -1967,60 +1702,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
-  int? get nameEnd {
-    if (linkedNode != null) {
-      var node = linkedNode as ConstructorDeclaration;
-      if (node.name != null) {
-        return node.name!.end;
-      } else {
-        return node.returnType.end;
-      }
-    }
-
-    return _nameEnd;
-  }
-
-  set nameEnd(int? nameEnd) {
-    _nameEnd = nameEnd;
-  }
-
-  @override
-  int? get periodOffset {
-    if (linkedNode != null) {
-      var node = linkedNode as ConstructorDeclaration;
-      return node.period?.offset;
-    }
-
-    return _periodOffset;
-  }
-
-  set periodOffset(int? periodOffset) {
-    _periodOffset = periodOffset;
-  }
-
-  @override
   ConstructorElement? get redirectedConstructor {
-    if (_redirectedConstructor != null) return _redirectedConstructor;
-
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-      var context = enclosingUnit.linkedContext!;
-      if (isFactory) {
-        var node = context
-            .getConstructorRedirected(linkedNode as ConstructorDeclaration);
-        return _redirectedConstructor = node?.staticElement;
-      } else {
-        var initializers = context
-            .getConstructorInitializers(linkedNode as ConstructorDeclaration);
-        for (var initializer in initializers) {
-          if (initializer is RedirectingConstructorInvocation) {
-            return _redirectedConstructor = initializer.staticElement;
-          }
-        }
-      }
-      return null;
-    }
-
+    linkedData?.read(this);
     return _redirectedConstructor;
   }
 
@@ -2110,9 +1793,11 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   ConstTopLevelVariableElementImpl(String name, int offset)
       : super(name, offset);
 
-  ConstTopLevelVariableElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+  @override
+  Expression? get constantInitializer {
+    linkedData?.read(this);
+    return super.constantInitializer;
+  }
 }
 
 /// Mixin used by elements that represent constant variables and have
@@ -2140,7 +1825,6 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
     if (_constantInitializer != null) return _constantInitializer!;
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
       return _constantInitializer = linkedContext!.getInitializer(linkedNode!);
     }
 
@@ -2198,6 +1882,12 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   DefaultParameterElementImpl.forLinkedNode(ElementImpl enclosing,
       Reference? reference, FormalParameterImpl linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
+
+  @override
+  String? get defaultValueCode {
+    var ast = constantInitializer;
+    return ast != null ? ast.toSource() : null;
+  }
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -2359,7 +2049,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    var element = this.element;
+    final element = this.element;
     if (element is ConstructorElement) {
       return element.library.isDartCore &&
           element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
@@ -2468,7 +2158,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String className,
   }) {
-    var element = this.element;
+    final element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
         element.library.name == libraryName;
@@ -2492,7 +2182,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String name,
   }) {
-    var element = this.element;
+    final element = this.element;
     return element is PropertyAccessorElement &&
         element.name == name &&
         element.library.name == libraryName;
@@ -2591,7 +2281,7 @@ abstract class ElementImpl implements Element {
 
   /// The documentation comment source for this element.
   set documentationComment(String? doc) {
-    _docComment = doc?.replaceAll('\r\n', '\n');
+    _docComment = doc;
   }
 
   @override
@@ -2610,7 +2300,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasAlwaysThrows {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isAlwaysThrows) {
@@ -2622,7 +2312,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDeprecated {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDeprecated) {
@@ -2634,7 +2324,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDoNotStore {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDoNotStore) {
@@ -2646,7 +2336,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasFactory {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isFactory) {
@@ -2665,7 +2355,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasInternal {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isInternal) {
@@ -2677,7 +2367,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTest {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTest) {
@@ -2689,7 +2379,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTestGroup {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTestGroup) {
@@ -2701,7 +2391,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasJS {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isJS) {
@@ -2713,7 +2403,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasLiteral {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isLiteral) {
@@ -2725,7 +2415,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustCallSuper {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustCallSuper) {
@@ -2737,7 +2427,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasNonVirtual {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isNonVirtual) {
@@ -2749,7 +2439,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOptionalTypeArgs {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOptionalTypeArgs) {
@@ -2761,7 +2451,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOverride {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOverride) {
@@ -2773,7 +2463,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasProtected {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isProtected) {
@@ -2785,7 +2475,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasRequired {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isRequired) {
@@ -2797,7 +2487,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasSealed {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isSealed) {
@@ -2809,7 +2499,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTemplate {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTemplate) {
@@ -2821,7 +2511,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTesting {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTesting) {
@@ -2841,7 +2531,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPrivate {
-    var name = this.name;
+    final name = this.name;
     if (name == null) {
       return true;
     }
@@ -2886,7 +2576,6 @@ abstract class ElementImpl implements Element {
     }
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
       var metadata = linkedContext!.getMetadata(linkedNode!);
       return _metadata = _buildAnnotations2(enclosingUnit, metadata);
     }
@@ -2981,7 +2670,7 @@ abstract class ElementImpl implements Element {
   @override
   String getExtendedDisplayName(String? shortName) {
     shortName ??= displayName;
-    var source = this.source;
+    final source = this.source;
     return "$shortName (${source?.fullName})";
   }
 
@@ -3210,50 +2899,27 @@ class ElementLocationImpl implements ElementLocation {
 
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl {
+  ElementLinkedData? linkedData;
+
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(String name, int offset) : super(name, offset);
 
-  EnumElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
-      Reference reference, EnumDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    if (linkedNode != null) {
-      _resynthesizeMembers2();
-    }
-
+    linkedData?.read(this);
     return _accessors;
   }
 
   @override
   List<InterfaceType> get allSupertypes => <InterfaceType>[supertype];
 
-  @override
-  int? get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int? get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset;
-  }
-
   List<FieldElement> get constants {
     return fields.where((field) => !field.isSynthetic).toList();
+  }
+
+  List<FieldElement> get constants_unresolved {
+    return _fields.where((field) => !field.isSynthetic).toList();
   }
 
   @override
@@ -3266,25 +2932,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var comment = context.getDocumentationComment(linkedNode!);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
-
-  @override
   List<FieldElement> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    if (linkedNode != null) {
-      _resynthesizeMembers2();
-    }
-
+    linkedData?.read(this);
     return _fields;
   }
 
@@ -3316,15 +2965,14 @@ class EnumElementImpl extends AbstractClassElementImpl {
   ElementKind get kind => ElementKind.ENUM;
 
   @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
+
+  @override
   List<MethodElement> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    if (linkedNode != null) {
-      _resynthesizeMembers2();
-    }
-
+    linkedData?.read(this);
     return _methods;
   }
 
@@ -3333,19 +2981,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   @override
@@ -3368,58 +3004,18 @@ class EnumElementImpl extends AbstractClassElementImpl {
     var method = MethodElementImpl('toString', -1);
     method.isSynthetic = true;
     method.enclosingElement = this;
-    if (linkedNode != null) {
-      method.returnType = library.typeProvider.stringType;
-      method.reference = reference!.getChild('@method').getChild('toString');
-    }
+    method.reference = reference?.getChild('@method').getChild('toString');
     _methods = <MethodElement>[method];
   }
 
   @override
   ConstructorElement? getNamedConstructor(String name) => null;
 
-  void _resynthesizeMembers2() {
-    var fields = <FieldElementImpl>[];
-    var getters = <PropertyAccessorElementImpl>[];
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
 
-    // Build the 'index' field.
-    {
-      var field = FieldElementImpl('index', -1)
-        ..enclosingElement = this
-        ..isSynthetic = true
-        ..isFinal = true
-        ..type = library.typeProvider.intType;
-      fields.add(field);
-      getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
-          reference: reference!.getChild('@getter').getChild('index'))
-        ..enclosingElement = this);
-    }
-
-    // Build the 'values' field.
-    {
-      var field = ConstFieldElementImpl_EnumValues(this);
-      fields.add(field);
-      getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
-          reference: reference!.getChild('@getter').getChild('values'))
-        ..enclosingElement = this);
-    }
-
-    // Build fields for all enum constants.
-    var containerRef = reference!.getChild('@constant');
-    var constants = (linkedNode as EnumDeclaration).constants;
-    for (var i = 0; i < constants.length; ++i) {
-      var constant = constants[i];
-      var name = constant.name.name;
-      var reference = containerRef.getChild(name);
-      var field = ConstFieldElementImpl_EnumValue.forLinkedNode(
-          this, reference, constant, i);
-      fields.add(field);
-      getters.add(field.getter as PropertyAccessorElementImpl);
-    }
-
-    _fields = fields;
-    _accessors = getters;
-    createToStringMethodElement();
+    this.linkedData = linkedData;
   }
 }
 
@@ -3436,6 +3032,8 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   /// The type of function defined by this executable element.
   FunctionType? _type;
+
+  ElementLinkedData? linkedData;
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
@@ -3454,37 +3052,11 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  int? get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int? get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset;
-  }
-
-  @override
   String get displayName {
     if (linkedNode != null) {
       return reference!.name;
     }
     return super.displayName;
-  }
-
-  @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var comment = context.getDocumentationComment(linkedNode!);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
   }
 
   @override
@@ -3558,6 +3130,12 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
+
+  @override
   String get name {
     if (linkedNode != null) {
       return reference!.name;
@@ -3587,17 +3165,21 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     _parameters = parameters;
   }
 
+  List<ParameterElement> get parameters_unresolved {
+    return _parameters;
+  }
+
   /// Gets the element's parameters, without going through the indirection of
   /// [ElementTypeProvider].
   ///
   /// In most cases, the [parameters] getter should be used instead.
   List<ParameterElement> get parametersInternal {
+    linkedData?.read(this);
     if (!identical(_parameters, _Sentinel.parameterElement)) {
       return _parameters;
     }
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
       var context = enclosingUnit.linkedContext!;
       var containerRef = reference!.getChild('@parameter');
       var formalParameters = context.getFormalParameters(linkedNode!);
@@ -3630,12 +3212,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   @override
   DartType get returnTypeInternal {
-    if (_returnType != null) return _returnType!;
-
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-      return _returnType!;
-    }
+    linkedData?.read(this);
     return _returnType!;
   }
 
@@ -3673,6 +3250,13 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     builder.writeExecutableElement(this, displayName);
   }
 
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
+
+    this.linkedData = linkedData;
+  }
+
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -3684,42 +3268,14 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 /// A concrete implementation of an [ExportElement].
 class ExportElementImpl extends UriReferencedElementImpl
     implements ExportElement {
-  /// The library that is exported from this library by this export directive.
-  LibraryElement? _exportedLibrary;
+  @override
+  LibraryElement? exportedLibrary;
 
-  /// The combinators that were specified as part of the export directive in the
-  /// order in which they were specified.
-  List<NamespaceCombinator> _combinators = _Sentinel.namespaceCombinator;
+  @override
+  List<NamespaceCombinator> combinators = const [];
 
   /// Initialize a newly created export element at the given [offset].
   ExportElementImpl(int offset) : super(null, offset);
-
-  ExportElementImpl.forLinkedNode(
-      LibraryElementImpl enclosing, ExportDirectiveImpl linkedNode)
-      : super.forLinkedNode(enclosing, null, linkedNode) {
-    linkedNode.element = this;
-  }
-
-  @override
-  List<NamespaceCombinator> get combinators {
-    if (!identical(_combinators, _Sentinel.namespaceCombinator)) {
-      return _combinators;
-    }
-
-    if (linkedNode != null) {
-      var node = linkedNode as ExportDirective;
-      return _combinators = ImportElementImpl._buildCombinators2(
-        enclosingUnit.linkedContext!,
-        node.combinators,
-      );
-    }
-
-    return _combinators;
-  }
-
-  set combinators(List<NamespaceCombinator> combinators) {
-    _combinators = combinators;
-  }
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -3728,44 +3284,10 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  LibraryElement? get exportedLibrary {
-    if (_exportedLibrary != null) return _exportedLibrary;
-
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-    }
-
-    return _exportedLibrary;
-  }
-
-  set exportedLibrary(LibraryElement? exportedLibrary) {
-    _exportedLibrary = exportedLibrary;
-  }
-
-  @override
-  String get identifier => exportedLibrary!.name!;
+  String get identifier => exportedLibrary!.name ?? 'unknown';
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getDirectiveOffset(linkedNode as Directive);
-    }
-
-    return super.nameOffset;
-  }
-
-  @override
-  String? get uri {
-    if (linkedNode != null) {
-      var node = linkedNode as ExportDirective;
-      return node.uri.stringValue;
-    }
-
-    return super.uri;
-  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitExportElement(this);
@@ -3785,18 +3307,20 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   /// A list containing all of the accessors (getters and setters) contained in
   /// this extension.
-  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
+  List<PropertyAccessorElement> _accessors = const [];
 
   /// A list containing all of the fields contained in this extension.
-  List<FieldElement> _fields = _Sentinel.fieldElement;
+  List<FieldElement> _fields = const [];
 
   /// A list containing all of the methods contained in this extension.
-  List<MethodElement> _methods = _Sentinel.methodElement;
+  List<MethodElement> _methods = const [];
+
+  ElementLinkedData? linkedData;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [offset] in the file that contains the declaration of this
   /// element.
-  ExtensionElementImpl(String name, int nameOffset) : super(name, nameOffset);
+  ExtensionElementImpl(String? name, int nameOffset) : super(name, nameOffset);
 
   /// Initialize using the given linked information.
   ExtensionElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
@@ -3807,17 +3331,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    if (linkedNode != null) {
-      if (linkedNode is ExtensionDeclaration) {
-        _createPropertiesAndAccessors();
-        return _accessors;
-      }
-    }
-
     return _accessors;
   }
 
@@ -3829,33 +3342,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
   }
 
   @override
-  int? get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int? get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset;
-  }
-
-  @override
   String get displayName => name ?? '';
-
-  @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var comment = context.getDocumentationComment(linkedNode!);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
 
   @override
   CompilationUnitElementImpl get enclosingElement {
@@ -3871,11 +3358,11 @@ class ExtensionElementImpl extends _ExistingElementImpl
   }
 
   DartType get extendedTypeInternal {
+    linkedData?.read(this);
     if (_extendedType != null) return _extendedType!;
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ExtensionDeclaration;
-      linkedContext!.applyResolution(linkedNode);
+      final linkedNode = this.linkedNode as ExtensionDeclaration;
       return _extendedType = linkedNode.extendedType.typeOrThrow;
     }
 
@@ -3884,19 +3371,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<FieldElement> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    if (linkedNode != null) {
-      if (linkedNode is ExtensionDeclaration) {
-        _createPropertiesAndAccessors();
-        return _fields;
-      } else {
-        return _fields;
-      }
-    }
-
     return _fields;
   }
 
@@ -3909,6 +3383,9 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   String get identifier {
+    if (linkedData != null) {
+      return linkedData!.reference.name;
+    }
     if (linkedNode != null) {
       return reference!.name;
     }
@@ -3922,26 +3399,13 @@ class ExtensionElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.EXTENSION;
 
   @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
+
+  @override
   List<MethodElement> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var containerRef = reference!.getChild('@method');
-      return _methods = context
-          .getMethods(linkedNode as CompilationUnitMember)
-          .where((node) => node.propertyKeyword == null)
-          .map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as MethodElement?;
-        element ??= MethodElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _methods;
   }
 
@@ -3968,6 +3432,12 @@ class ExtensionElementImpl extends _ExistingElementImpl
     }
 
     return super.nameOffset;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    linkedData?.read(this);
+    return super.typeParameters;
   }
 
   /// Set the type parameters defined by this extension to the given
@@ -4019,6 +3489,13 @@ class ExtensionElementImpl extends _ExistingElementImpl
         setterName, accessors);
   }
 
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
+
+    this.linkedData = linkedData;
+  }
+
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -4026,74 +3503,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
     safelyVisitChildren(fields, visitor);
     safelyVisitChildren(methods, visitor);
     safelyVisitChildren(typeParameters, visitor);
-  }
-
-  /// Create the accessors and fields when [linkedNode] is not `null`.
-  void _createPropertiesAndAccessors() {
-    assert(identical(_accessors, _Sentinel.propertyAccessorElement));
-    assert(identical(_fields, _Sentinel.fieldElement));
-
-    var context = enclosingUnit.linkedContext!;
-    var accessorList = <PropertyAccessorElement>[];
-    var fieldList = <FieldElement>[];
-
-    var fields = context.getFields(linkedNode as CompilationUnitMember);
-    for (var field in fields) {
-      var name = field.name.name;
-      var fieldElement = field.declaredElement as FieldElementImpl?;
-      fieldElement ??= FieldElementImpl.forLinkedNodeFactory(
-          this, reference!.getChild('@field').getChild(name), field);
-      fieldList.add(fieldElement);
-
-      accessorList.add(fieldElement.getter!);
-      if (fieldElement.setter != null) {
-        accessorList.add(fieldElement.setter!);
-      }
-    }
-
-    var methods = context.getMethods(linkedNode as CompilationUnitMember);
-    for (var method in methods) {
-      var isGetter = method.isGetter;
-      var isSetter = method.isSetter;
-      if (!isGetter && !isSetter) continue;
-
-      var name = method.name.name;
-      var containerRef = isGetter
-          ? reference!.getChild('@getter')
-          : reference!.getChild('@setter');
-
-      var accessorElement =
-          method.declaredElement as PropertyAccessorElementImpl?;
-      accessorElement ??= PropertyAccessorElementImpl.forLinkedNode(
-          this, containerRef.getChild(name), method);
-      accessorList.add(accessorElement);
-
-      var fieldRef = reference!.getChild('@field').getChild(name);
-      var field = fieldRef.element as FieldElementImpl?;
-      if (field == null) {
-        field = FieldElementImpl(name, -1);
-        fieldRef.element = field;
-        field.enclosingElement = this;
-        field.isSynthetic = true;
-        field.isFinal = isGetter;
-        field.isStatic = accessorElement.isStatic;
-        fieldList.add(field);
-      } else {
-        // TODO(brianwilkerson) Shouldn't this depend on whether there is a
-        //  setter?
-        field.isFinal = false;
-      }
-
-      accessorElement.variable = field;
-      if (isGetter) {
-        field.getter = accessorElement;
-      } else {
-        field.setter = accessorElement;
-      }
-    }
-
-    _accessors = accessorList;
-    _fields = fieldList;
   }
 }
 
@@ -4108,59 +3517,16 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// [name] at the given [offset].
   FieldElementImpl(String name, int offset) : super(name, offset);
 
-  FieldElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    if (linkedNode is VariableDeclarationImpl) {
-      linkedNode.name.staticElement = this;
-    }
-    if (!linkedNode.isSynthetic) {
-      var enclosingRef = enclosing.reference!;
-
-      getter = PropertyAccessorElementImpl_ImplicitGetter(
-        this,
-        reference: enclosingRef.getChild('@getter').getChild(name),
-      );
-
-      if (_hasSetter) {
-        setter = PropertyAccessorElementImpl_ImplicitSetter(
-          this,
-          reference: enclosingRef.getChild('@setter').getChild(name),
-        );
-      }
-    }
-  }
-
-  factory FieldElementImpl.forLinkedNodeFactory(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
-    var context = enclosing.enclosingUnit.linkedContext!;
-    if (context.shouldBeConstFieldElement(linkedNode)) {
-      return ConstFieldElementImpl.forLinkedNode(
-        enclosing,
-        reference,
-        linkedNode,
-      );
-    }
-    return FieldElementImpl.forLinkedNode(enclosing, reference, linkedNode);
-  }
-
   @override
   FieldElement get declaration => this;
 
   @override
   bool get isAbstract {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isAbstract(linkedNode!);
-    }
     return hasModifier(Modifier.ABSTRACT);
   }
 
   @override
   bool get isCovariant {
-    if (linkedNode != null) {
-      return linkedContext!.isExplicitlyCovariant(linkedNode!);
-    }
-
     return hasModifier(Modifier.COVARIANT);
   }
 
@@ -4177,17 +3543,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isExternal {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isExternal(linkedNode!);
-    }
     return hasModifier(Modifier.EXTERNAL);
   }
 
   @override
   bool get isStatic {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isStatic(linkedNode!);
-    }
     return hasModifier(Modifier.STATIC);
   }
 
@@ -4198,6 +3558,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.FIELD;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
@@ -4246,6 +3612,15 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
     _field = field;
   }
 
+  /// Initializing formals are visible only in the "formal parameter
+  /// initializer scope", which is the current scope of the initializer list
+  /// of the constructor, and which is enclosed in the scope where the
+  /// constructor is declared. And according to the specification, they
+  /// introduce final local variables, always, regardless whether the field
+  /// is final.
+  @override
+  bool get isFinal => true;
+
   @override
   bool get isInitializingFormal => true;
 
@@ -4266,36 +3641,12 @@ class FunctionElementImpl extends ExecutableElementImpl
   /// [offset].
   FunctionElementImpl(String name, int offset) : super(name, offset);
 
-  FunctionElementImpl.forLinkedNode(ElementImpl enclosing, Reference reference,
-      FunctionDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
-
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
   FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
 
-  /// Synthesize an unnamed function element that takes [parameters] and returns
-  /// [returnType].
-  FunctionElementImpl.synthetic(
-      List<ParameterElement> parameters, DartType returnType)
-      : super("", -1) {
-    isSynthetic = true;
-    this.returnType = returnType;
-    this.parameters = parameters;
-  }
-
   @override
   ExecutableElement get declaration => this;
-
-  @override
-  String get displayName {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
-    return super.displayName;
-  }
 
   @override
   String get identifier {
@@ -4325,6 +3676,9 @@ class FunctionElementImpl extends ExecutableElementImpl
 @Deprecated('Use TypeAliasElement instead')
 class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
     implements FunctionTypeAliasElement {
+  FunctionTypeAliasElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
   FunctionTypeAliasElementImpl.forLinkedNode(
     CompilationUnitElementImpl enclosingUnit,
     Reference reference,
@@ -4537,35 +3891,8 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of a [HideElementCombinator].
 class HideElementCombinatorImpl implements HideElementCombinator {
-  final LinkedUnitContext? linkedContext;
-  final HideCombinator? linkedNode;
-
-  /// The names that are not to be made visible in the importing library even if
-  /// they are defined in the imported library.
-  List<String> _hiddenNames = _Sentinel.string;
-
-  HideElementCombinatorImpl()
-      : linkedContext = null,
-        linkedNode = null;
-
-  HideElementCombinatorImpl.forLinkedNode(this.linkedContext, this.linkedNode);
-
   @override
-  List<String> get hiddenNames {
-    if (!identical(_hiddenNames, _Sentinel.string)) {
-      return _hiddenNames;
-    }
-
-    if (linkedNode != null) {
-      return _hiddenNames = linkedNode!.hiddenNames.map((i) => i.name).toList();
-    }
-
-    return _hiddenNames;
-  }
-
-  set hiddenNames(List<String> hiddenNames) {
-    _hiddenNames = hiddenNames;
-  }
+  List<String> hiddenNames = const [];
 
   @override
   String toString() {
@@ -4585,20 +3912,17 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 /// A concrete implementation of an [ImportElement].
 class ImportElementImpl extends UriReferencedElementImpl
     implements ImportElement {
-  /// The offset of the prefix of this import in the file that contains the this
-  /// import directive, or `-1` if this import is synthetic.
-  int _prefixOffset = 0;
+  @override
+  LibraryElement? importedLibrary;
 
-  /// The library that is imported into this library by this import directive.
-  LibraryElement? _importedLibrary;
+  @override
+  PrefixElement? prefix;
 
-  /// The combinators that were specified as part of the import directive in the
-  /// order in which they were specified.
-  List<NamespaceCombinator> _combinators = _Sentinel.namespaceCombinator;
+  @override
+  int prefixOffset = -1;
 
-  /// The prefix that was specified as part of the import directive, or `null
-  ///` if there was no prefix specified.
-  PrefixElement? _prefix;
+  @override
+  List<NamespaceCombinator> combinators = const [];
 
   /// The cached value of [namespace].
   Namespace? _namespace;
@@ -4606,33 +3930,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   /// Initialize a newly created import element at the given [offset].
   /// The offset may be `-1` if the import is synthetic.
   ImportElementImpl(int offset) : super(null, offset);
-
-  ImportElementImpl.forLinkedNode(
-      LibraryElementImpl enclosing, ImportDirectiveImpl linkedNode)
-      : super.forLinkedNode(enclosing, null, linkedNode) {
-    linkedNode.element = this;
-  }
-
-  @override
-  List<NamespaceCombinator> get combinators {
-    if (!identical(_combinators, _Sentinel.namespaceCombinator)) {
-      return _combinators;
-    }
-
-    if (linkedNode != null) {
-      var node = linkedNode as ImportDirective;
-      return _combinators = ImportElementImpl._buildCombinators2(
-        enclosingUnit.linkedContext!,
-        node.combinators,
-      );
-    }
-
-    return _combinators;
-  }
-
-  set combinators(List<NamespaceCombinator> combinators) {
-    _combinators = combinators;
-  }
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -4644,26 +3941,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   String get identifier => "${importedLibrary?.identifier}@$nameOffset";
 
   @override
-  LibraryElement? get importedLibrary {
-    if (_importedLibrary != null) return _importedLibrary;
-
-    if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-    }
-
-    return _importedLibrary;
-  }
-
-  set importedLibrary(LibraryElement? importedLibrary) {
-    _importedLibrary = importedLibrary;
-  }
-
-  @override
   bool get isDeferred {
-    if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ImportDirective;
-      return linkedNode.deferredKeyword != null;
-    }
     return hasModifier(Modifier.DEFERRED);
   }
 
@@ -4676,66 +3954,9 @@ class ImportElementImpl extends UriReferencedElementImpl
   ElementKind get kind => ElementKind.IMPORT;
 
   @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getDirectiveOffset(linkedNode as Directive);
-    }
-
-    return super.nameOffset;
-  }
-
-  @override
   Namespace get namespace {
     return _namespace ??=
         NamespaceBuilder().createImportNamespaceForDirective(this);
-  }
-
-  @override
-  PrefixElement? get prefix {
-    if (_prefix != null) return _prefix;
-
-    if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ImportDirective;
-      var prefix = linkedNode.prefix;
-      if (prefix != null) {
-        var name = prefix.name;
-        var library = enclosingElement as LibraryElementImpl;
-        _prefix = PrefixElementImpl.forLinkedNode(
-          library,
-          library.reference!.getChild('@prefix').getChild(name),
-          prefix,
-        );
-      }
-    }
-
-    return _prefix;
-  }
-
-  set prefix(PrefixElement? prefix) {
-    _prefix = prefix;
-  }
-
-  @override
-  int get prefixOffset {
-    if (linkedNode != null) {
-      var node = linkedNode as ImportDirective;
-      return node.prefix?.offset ?? -1;
-    }
-    return _prefixOffset;
-  }
-
-  set prefixOffset(int prefixOffset) {
-    _prefixOffset = prefixOffset;
-  }
-
-  @override
-  String? get uri {
-    if (linkedNode != null) {
-      var node = linkedNode as ImportDirective;
-      return node.uri.stringValue;
-    }
-
-    return super.uri;
   }
 
   @override
@@ -4750,19 +3971,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     prefix?.accept(visitor);
-  }
-
-  static List<NamespaceCombinator> _buildCombinators2(
-      LinkedUnitContext context, List<Combinator> combinators) {
-    return combinators.map((node) {
-      if (node is HideCombinator) {
-        return HideElementCombinatorImpl.forLinkedNode(context, node);
-      }
-      if (node is ShowCombinator) {
-        return ShowElementCombinatorImpl.forLinkedNode(context, node);
-      }
-      throw UnimplementedError('${node.runtimeType}');
-    }).toList();
   }
 }
 
@@ -4832,6 +4040,8 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   final LinkedUnitContext? linkedContext;
 
+  LibraryElementLinkedData? linkedData;
+
   @override
   final FeatureSet featureSet;
 
@@ -4860,7 +4070,7 @@ class LibraryElementImpl extends _ExistingElementImpl
   late FunctionElement _loadLibraryFunction;
 
   @override
-  final int nameLength;
+  int nameLength;
 
   /// The export [Namespace] of this library, `null` if it has not been
   /// computed yet.
@@ -4881,31 +4091,23 @@ class LibraryElementImpl extends _ExistingElementImpl
   LibraryElementImpl(this.context, this.session, String name, int offset,
       this.nameLength, this.featureSet)
       : linkedContext = null,
+        linkedData = null,
         super(name, offset);
 
   LibraryElementImpl.forLinkedNode(
-      this.context,
-      this.session,
-      String name,
-      int offset,
-      this.nameLength,
-      this.linkedContext,
-      Reference reference,
-      CompilationUnit linkedNode)
-      : featureSet = linkedNode.featureSet,
+    this.context,
+    this.session,
+    String name,
+    int offset,
+    this.nameLength,
+    this.linkedContext,
+    Reference reference,
+    CompilationUnit? linkedNode,
+    FeatureSet featureSet,
+  )   : featureSet = featureSet,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
-  }
-
-  @override
-  int get codeLength {
-    return _definingCompilationUnit.codeLength;
-  }
-
-  @override
-  int get codeOffset {
-    return _definingCompilationUnit.codeOffset;
   }
 
   @override
@@ -4921,21 +4123,13 @@ class LibraryElementImpl extends _ExistingElementImpl
   }
 
   @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var comment = linkedContext!.getLibraryDocumentationComment();
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
-
-  @override
   CompilationUnitElementImpl get enclosingUnit {
     return _definingCompilationUnit;
   }
 
   @override
   FunctionElement? get entryPoint {
+    linkedData?.read(this);
     if (_entryPoint != null) return _entryPoint!;
 
     if (linkedContext != null) {
@@ -4970,6 +4164,12 @@ class LibraryElementImpl extends _ExistingElementImpl
   Namespace get exportNamespace {
     if (_exportNamespace != null) return _exportNamespace!;
 
+    final linkedData = this.linkedData;
+    if (linkedData != null) {
+      var elements = linkedData.elementFactory;
+      return _exportNamespace = elements.buildExportNamespace(source.uri);
+    }
+
     if (linkedNode != null) {
       var elements = linkedContext!.elementFactory;
       return _exportNamespace = elements.buildExportNamespace(source.uri);
@@ -4984,12 +4184,13 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   List<ExportElement> get exports {
+    linkedData?.read(this);
     if (!identical(_exports, _Sentinel.exportElement)) {
       return _exports;
     }
 
     if (linkedNode != null) {
-      var unit = linkedContext!.unit_withDirectives;
+      var unit = linkedContext!.unit;
       return _exports = unit.directives
           .whereType<ExportDirective>()
           .map((node) => node.element!)
@@ -5008,10 +4209,14 @@ class LibraryElementImpl extends _ExistingElementImpl
     _exports = exports;
   }
 
+  List<ExportElement> get exports_unresolved {
+    return _exports;
+  }
+
   @override
   bool get hasExtUri {
     if (linkedNode != null) {
-      var unit = linkedContext!.unit_withDirectives;
+      var unit = linkedContext!.unit;
       for (var import in unit.directives) {
         if (import is ImportDirective) {
           var uriLiteral = import.uri;
@@ -5045,6 +4250,14 @@ class LibraryElementImpl extends _ExistingElementImpl
     return false;
   }
 
+  bool get hasPartOfDirective {
+    return hasModifier(Modifier.HAS_PART_OF_DIRECTIVE);
+  }
+
+  set hasPartOfDirective(bool hasPartOfDirective) {
+    setModifier(Modifier.HAS_PART_OF_DIRECTIVE, hasPartOfDirective);
+  }
+
   @override
   String get identifier => '${_definingCompilationUnit.source.uri}';
 
@@ -5062,12 +4275,13 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   List<ImportElement> get imports {
+    linkedData?.read(this);
     if (!identical(_imports, _Sentinel.importElement)) {
       return _imports;
     }
 
     if (linkedNode != null) {
-      var unit = linkedContext!.unit_withDirectives;
+      var unit = linkedContext!.unit;
       _imports = unit.directives
           .whereType<ImportDirective>()
           .map((node) => node.element!)
@@ -5102,6 +4316,10 @@ class LibraryElementImpl extends _ExistingElementImpl
     }
     _imports = imports;
     _prefixes = null;
+  }
+
+  List<ImportElement> get imports_unresolved {
+    return _imports;
   }
 
   @override
@@ -5182,6 +4400,10 @@ class LibraryElementImpl extends _ExistingElementImpl
     return _languageVersion!;
   }
 
+  set languageVersion(LibraryLanguageVersion languageVersion) {
+    _languageVersion = languageVersion;
+  }
+
   @override
   LibraryElementImpl get library => this;
 
@@ -5192,6 +4414,7 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
     if (!identical(_metadata, _Sentinel.elementAnnotation)) {
       return _metadata;
     }
@@ -5225,6 +4448,11 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   Namespace get publicNamespace {
     if (_publicNamespace != null) return _publicNamespace!;
+
+    if (linkedData != null) {
+      return _publicNamespace =
+          NamespaceBuilder().createPublicNamespaceForLibrary(this);
+    }
 
     if (linkedNode != null) {
       return _publicNamespace =
@@ -5390,11 +4618,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
     return hasModifier(Modifier.LATE);
   }
 
-  /// Set whether this variable is late.
-  set isLate(bool isLate) {
-    setModifier(Modifier.LATE, isLate);
-  }
-
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
@@ -5417,12 +4640,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(String name, int offset) : super(name, offset);
-
-  MethodElementImpl.forLinkedNode(TypeParameterizedElementMixin enclosingClass,
-      Reference reference, MethodDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosingClass, reference, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
 
   @override
   MethodElement get declaration => this;
@@ -5456,9 +4673,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   bool get isStatic {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isStatic(linkedNode!);
-    }
     return hasModifier(Modifier.STATIC);
   }
 
@@ -5517,13 +4731,13 @@ class MixinElementImpl extends ClassElementImpl {
 
   @override
   List<InterfaceType> get superclassConstraints {
+    linkedData?.read(this);
     if (!identical(_superclassConstraints, _Sentinel.interfaceType)) {
       return _superclassConstraints;
     }
 
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is MixinDeclaration) {
-      linkedContext!.applyResolution(linkedNode);
       List<InterfaceType>? constraints;
       var onClause = linkedNode.onClause;
       if (onClause != null) {
@@ -5608,28 +4822,42 @@ class Modifier implements Comparable<Modifier> {
   /// scheme.
   static const Modifier HAS_EXT_URI = Modifier('HAS_EXT_URI', 12);
 
+  /// A flag used for libraries indicating that the variable has an explicit
+  /// initializer.
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
+
+  /// A flag used for fields and top-level variables that have implicit type,
+  /// and specify when the type has been inferred.
+  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 14);
+
+  /// A flag used for libraries indicating that the defining compilation unit
+  /// has a `part of` directive, meaning that this unit should be a part,
+  /// but is used as a library.
+  static const Modifier HAS_PART_OF_DIRECTIVE =
+      Modifier('HAS_PART_OF_DIRECTIVE', 15);
+
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 13);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 14);
+  static const Modifier LATE = Modifier('LATE', 17);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 15);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 16);
+  static const Modifier SETTER = Modifier('SETTER', 19);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 17);
+  static const Modifier STATIC = Modifier('STATIC', 20);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5645,6 +4873,8 @@ class Modifier implements Comparable<Modifier> {
     GENERATOR,
     GETTER,
     HAS_EXT_URI,
+    HAS_INITIALIZER,
+    HAS_PART_OF_DIRECTIVE,
     IMPLICIT_TYPE,
     LATE,
     MIXIN_APPLICATION,
@@ -5913,32 +5143,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
   @override
-  int? get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int? get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset;
-  }
-
-  @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var comment = context.getDocumentationComment(linkedNode!);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
-
-  @override
   Element get enclosingElement => super.enclosingElement!;
 
   @override
@@ -5950,8 +5154,16 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   }
 
   bool get hasInitializer {
-    return linkedNode != null &&
-        linkedContext!.hasInitializer(linkedNode as VariableDeclarationImpl);
+    if (linkedNode != null) {
+      return linkedContext!
+          .hasInitializer(linkedNode as VariableDeclarationImpl);
+    }
+    return hasModifier(Modifier.HAS_INITIALIZER);
+  }
+
+  /// Set whether this variable has an initializer.
+  set hasInitializer(bool hasInitializer) {
+    setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
   }
 
   @override
@@ -6047,7 +5259,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   String? get defaultValueCode {
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is DefaultFormalParameter) {
       return linkedNode.defaultValue?.toSource();
     }
@@ -6100,7 +5312,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get isFinal {
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as FormalParameter;
+      final linkedNode = this.linkedNode as FormalParameter;
       return linkedNode.isFinal;
     }
     return super.isFinal;
@@ -6138,7 +5350,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_parameterKind != null) return _parameterKind!;
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as FormalParameterImpl;
+      final linkedNode = this.linkedNode as FormalParameterImpl;
       return linkedNode.kind;
     }
 
@@ -6393,11 +5605,8 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
-  PrefixElementImpl(String name, int nameOffset) : super(name, nameOffset);
-
-  PrefixElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, SimpleIdentifier linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+  PrefixElementImpl(String name, int nameOffset, {Reference? reference})
+      : super(name, nameOffset, reference: reference);
 
   @override
   String get displayName => name;
@@ -6411,18 +5620,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
   @override
   String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return (linkedNode as SimpleIdentifier).offset;
-    }
-    return super.nameOffset;
   }
 
   @override
@@ -6447,10 +5645,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
   PropertyAccessorElementImpl(String name, int offset) : super(name, offset);
-
-  PropertyAccessorElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
@@ -6496,9 +5690,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isGetter {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isGetter(linkedNode!);
-    }
     return hasModifier(Modifier.GETTER);
   }
 
@@ -6509,9 +5700,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isSetter {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isSetter(linkedNode!);
-    }
     return hasModifier(Modifier.SETTER);
   }
 
@@ -6522,9 +5710,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isStatic {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isStatic(linkedNode!);
-    }
     return hasModifier(Modifier.STATIC);
   }
 
@@ -6542,14 +5727,13 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
+
+  @override
   String get name {
-    if (linkedNode != null) {
-      var name = reference!.name;
-      if (isSetter) {
-        return '$name=';
-      }
-      return name;
-    }
     if (isSetter) {
       return "${super.name}=";
     }
@@ -6725,6 +5909,8 @@ abstract class PropertyInducingElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
+  ElementLinkedData? linkedData;
+
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
   PropertyInducingElementImpl(String name, int offset) : super(name, offset);
@@ -6733,7 +5919,11 @@ abstract class PropertyInducingElementImpl
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  bool get hasTypeInferred => _type != null;
+  bool get hasTypeInferred => hasModifier(Modifier.HAS_TYPE_INFERRED);
+
+  set hasTypeInferred(bool value) {
+    setModifier(Modifier.HAS_TYPE_INFERRED, value);
+  }
 
   @override
   bool get isConstantEvaluated => true;
@@ -6751,11 +5941,10 @@ abstract class PropertyInducingElementImpl
 
   @override
   DartType get typeInternal {
+    linkedData?.read(this);
     if (_type != null) return _type!;
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
-
       // While performing inference during linking, the first step is to collect
       // dependencies. During this step we resolve the expression, but we might
       // reference elements that don't have their types inferred yet. So, here
@@ -6795,6 +5984,27 @@ abstract class PropertyInducingElementImpl
 
     return !isFinal;
   }
+
+  void createImplicitAccessors(Reference enclosingRef, String name) {
+    getter = PropertyAccessorElementImpl_ImplicitGetter(
+      this,
+      reference: enclosingRef.getChild('@getter').getChild(name),
+    );
+
+    if (_hasSetter) {
+      setter = PropertyAccessorElementImpl_ImplicitSetter(
+        this,
+        reference: enclosingRef.getChild('@setter').getChild(name),
+      );
+    }
+  }
+
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
+
+    this.linkedData = linkedData;
+  }
 }
 
 /// Instances of this class are set for fields and top-level variables
@@ -6805,66 +6015,14 @@ abstract class PropertyInducingElementTypeInference {
 
 /// A concrete implementation of a [ShowElementCombinator].
 class ShowElementCombinatorImpl implements ShowElementCombinator {
-  final LinkedUnitContext? linkedContext;
-  final ShowCombinator? linkedNode;
-
-  /// The names that are to be made visible in the importing library if they are
-  /// defined in the imported library.
-  List<String> _shownNames = _Sentinel.string;
-
-  /// The offset of the character immediately following the last character of
-  /// this node.
-  int _end = -1;
-
-  /// The offset of the 'show' keyword of this element.
-  int _offset = 0;
-
-  ShowElementCombinatorImpl()
-      : linkedContext = null,
-        linkedNode = null;
-
-  ShowElementCombinatorImpl.forLinkedNode(this.linkedContext, this.linkedNode);
+  @override
+  List<String> shownNames = const [];
 
   @override
-  int get end {
-    if (linkedNode != null) {
-      return linkedNode!.end;
-    }
-    return _end;
-  }
-
-  set end(int end) {
-    _end = end;
-  }
+  int offset = 0;
 
   @override
-  int get offset {
-    if (linkedNode != null) {
-      return linkedNode!.keyword.offset;
-    }
-    return _offset;
-  }
-
-  set offset(int offset) {
-    _offset = offset;
-  }
-
-  @override
-  List<String> get shownNames {
-    if (!identical(_shownNames, _Sentinel.string)) {
-      return _shownNames;
-    }
-
-    if (linkedNode != null) {
-      return _shownNames = linkedNode!.shownNames.map((i) => i.name).toList();
-    }
-
-    return _shownNames;
-  }
-
-  set shownNames(List<String> shownNames) {
-    _shownNames = shownNames;
-  }
+  int end = -1;
 
   @override
   String toString() {
@@ -6888,53 +6046,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   /// the given [name] and [offset].
   TopLevelVariableElementImpl(String name, int offset) : super(name, offset);
 
-  TopLevelVariableElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    if (linkedNode is VariableDeclarationImpl) {
-      linkedNode.name.staticElement = this;
-    }
-    if (!linkedNode.isSynthetic) {
-      var enclosingRef = enclosing.reference!;
-
-      getter = PropertyAccessorElementImpl_ImplicitGetter(
-        this,
-        reference: enclosingRef.getChild('@getter').getChild(name),
-      );
-
-      if (_hasSetter) {
-        setter = PropertyAccessorElementImpl_ImplicitSetter(
-          this,
-          reference: enclosingRef.getChild('@setter').getChild(name),
-        );
-      }
-    }
-  }
-
-  factory TopLevelVariableElementImpl.forLinkedNodeFactory(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
-    if (enclosing.enclosingUnit.linkedContext!.isConst(linkedNode)) {
-      return ConstTopLevelVariableElementImpl.forLinkedNode(
-        enclosing,
-        reference,
-        linkedNode,
-      );
-    }
-    return TopLevelVariableElementImpl.forLinkedNode(
-      enclosing,
-      reference,
-      linkedNode,
-    );
-  }
-
   @override
   TopLevelVariableElement get declaration => this;
 
   @override
   bool get isExternal {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isExternal(linkedNode!);
-    }
     return hasModifier(Modifier.EXTERNAL);
   }
 
@@ -6943,6 +6059,12 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -6962,6 +6084,10 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
   bool hasSelfReference = false;
+
+  bool isFunctionTypeAliasBased = false;
+
+  ElementLinkedData? linkedData;
 
   bool _isAliasedElementReady = false;
   ElementImpl? _aliasedElement;
@@ -7009,13 +6135,20 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     return _aliasedElement;
   }
 
+  set aliasedElement(ElementImpl? aliasedElement) {
+    _isAliasedElementReady = true;
+    _aliasedElement = aliasedElement;
+    aliasedElement?.enclosingElement = this;
+  }
+
   @override
   DartType get aliasedType {
+    linkedData?.read(this);
     if (_aliasedType != null) return _aliasedType!;
 
     _ensureAliasedElement();
 
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is GenericTypeAlias) {
       var typeNode = linkedNode.type;
       if (isNonFunctionTypeAliasesEnabled) {
@@ -7039,33 +6172,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
-  int get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength!;
-  }
-
-  @override
-  int get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset!;
-  }
-
-  @override
   String get displayName => name;
-
-  @override
-  String? get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var comment = context.getDocumentationComment(linkedNode!);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
 
   @override
   CompilationUnitElement get enclosingElement =>
@@ -7078,6 +6185,12 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     } else {
       return ElementKind.FUNCTION_TYPE_ALIAS;
     }
+  }
+
+  @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
   }
 
   @override
@@ -7095,6 +6208,12 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     }
 
     return super.nameOffset;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    linkedData?.read(this);
+    return super.typeParameters;
   }
 
   /// Set the type parameters defined for this type to the given
@@ -7165,11 +6284,20 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     }
   }
 
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
+
+    this.linkedData = linkedData;
+  }
+
   void _ensureAliasedElement() {
     if (_isAliasedElementReady) return;
     _isAliasedElementReady = true;
 
-    var linkedNode = this.linkedNode;
+    linkedData?.read(this);
+
+    final linkedNode = this.linkedNode;
     if (linkedNode != null) {
       if (linkedNode is GenericTypeAlias) {
         var type = linkedNode.type;
@@ -7201,7 +6329,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
           linkedNode,
         );
       }
-      linkedContext!.applyResolution(linkedNode);
     }
   }
 
@@ -7258,28 +6385,12 @@ class TypeParameterElementImpl extends ElementImpl
   DartType? get boundInternal {
     if (_bound != null) return _bound;
 
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is TypeParameter) {
       return _bound = linkedNode.bound?.type;
     }
 
     return _bound;
-  }
-
-  @override
-  int get codeLength {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeLength(linkedNode!);
-    }
-    return super.codeLength!;
-  }
-
-  @override
-  int get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext!.getCodeOffset(linkedNode!);
-    }
-    return super.codeOffset!;
   }
 
   @override
@@ -7372,7 +6483,6 @@ mixin TypeParameterizedElementMixin
     }
 
     if (linkedNode != null) {
-      linkedContext!.applyResolution(linkedNode!);
       var typeParameters = linkedContext!.getTypeParameters2(linkedNode!);
       if (typeParameters == null) {
         return _typeParameterElements = const [];
@@ -7386,6 +6496,10 @@ mixin TypeParameterizedElementMixin
       }).toList();
     }
 
+    return _typeParameterElements;
+  }
+
+  List<TypeParameterElement> get typeParameters_unresolved {
     return _typeParameterElements;
   }
 }
@@ -7408,7 +6522,7 @@ abstract class UriReferencedElementImpl extends _ExistingElementImpl
   UriReferencedElementImpl(String? name, int offset) : super(name, offset);
 
   UriReferencedElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference? reference, AstNode linkedNode)
+      ElementImpl enclosing, Reference? reference, AstNode? linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
   /// Initialize using the given serialized information.
@@ -7454,7 +6568,8 @@ abstract class VariableElementImpl extends ElementImpl
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  VariableElementImpl(String? name, int offset) : super(name, offset);
+  VariableElementImpl(String? name, int offset, {Reference? reference})
+      : super(name, offset, reference: reference);
 
   VariableElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference? reference, AstNode linkedNode)
@@ -7501,6 +6616,11 @@ abstract class VariableElementImpl extends ElementImpl
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
   }
 
+  /// Set whether this variable is abstract.
+  set isAbstract(bool isAbstract) {
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
+
   @override
   bool get isConst {
     if (linkedNode != null) {
@@ -7517,6 +6637,11 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   bool get isConstantEvaluated => true;
 
+  /// Set whether this variable is external.
+  set isExternal(bool isExternal) {
+    setModifier(Modifier.EXTERNAL, isExternal);
+  }
+
   @override
   bool get isFinal {
     if (linkedNode != null) {
@@ -7528,6 +6653,11 @@ abstract class VariableElementImpl extends ElementImpl
   /// Set whether this variable is final.
   set isFinal(bool isFinal) {
     setModifier(Modifier.FINAL, isFinal);
+  }
+
+  /// Set whether this variable is late.
+  set isLate(bool isLate) {
+    setModifier(Modifier.LATE, isLate);
   }
 
   @override
@@ -7588,27 +6718,19 @@ class _Sentinel {
   static final List<ClassElement> classElement = List.unmodifiable([]);
   static final List<ConstructorElement> constructorElement =
       List.unmodifiable([]);
-  static final List<ConstructorInitializer> constructorInitializer =
-      List.unmodifiable([]);
   static final List<ElementAnnotation> elementAnnotation =
       List.unmodifiable([]);
   static final List<ExportElement> exportElement = List.unmodifiable([]);
   static final List<ExtensionElement> extensionElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
-  static final List<FunctionElement> functionElement = List.unmodifiable([]);
   @Deprecated('Use TypeAliasElement instead')
   static final List<FunctionTypeAliasElement> functionTypeAliasElement =
       List.unmodifiable([]);
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<InterfaceType> interfaceType = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
-  static final List<NamespaceCombinator> namespaceCombinator =
-      List.unmodifiable([]);
   static final List<ParameterElement> parameterElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
-      List.unmodifiable([]);
-  static final List<String> string = List.unmodifiable([]);
-  static final List<TopLevelVariableElement> topLevelVariables =
       List.unmodifiable([]);
   static final List<TypeAliasElement> typeAliasElement = List.unmodifiable([]);
   static final List<TypeParameterElement> typeParameterElement =

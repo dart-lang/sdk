@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
+import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -19,37 +18,37 @@ class SearchDomainHandler implements protocol.RequestHandler {
   /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /// The [SearchEngine] for this server.
-  final SearchEngine searchEngine;
-
   /// The next search response id.
   int _nextSearchId = 0;
 
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  SearchDomainHandler(this.server) : searchEngine = server.searchEngine;
+  SearchDomainHandler(this.server);
 
-  Future findElementReferences(protocol.Request request) async {
+  Future<void> findElementReferences(protocol.Request request) async {
+    final searchEngine = server.searchEngine;
     var params =
         protocol.SearchFindElementReferencesParams.fromRequest(request);
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
     if (element is ImportElement) {
-      element = (element as ImportElement).prefix;
+      element = element.prefix;
     }
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+      element = element.field;
     }
     if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
+      element = element.variable;
     }
     // respond
     var searchId = (_nextSearchId++).toString();
     var result = protocol.SearchFindElementReferencesResult();
     if (element != null) {
       result.id = searchId;
-      result.element = protocol.convertElement(element);
+      var withNullability = element.library?.isNonNullableByDefault ?? false;
+      result.element =
+          protocol.convertElement(element, withNullability: withNullability);
     }
     _sendSearchResult(request, result);
     // search elements
@@ -61,6 +60,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberDeclarations(protocol.Request request) async {
+    final searchEngine = server.searchEngine;
     var params =
         protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     await server.onAnalysisComplete;
@@ -74,6 +74,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberReferences(protocol.Request request) async {
+    final searchEngine = server.searchEngine;
     var params = protocol.SearchFindMemberReferencesParams.fromRequest(request);
     await server.onAnalysisComplete;
     // respond
@@ -86,6 +87,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findTopLevelDeclarations(protocol.Request request) async {
+    final searchEngine = server.searchEngine;
     var params =
         protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     try {
@@ -112,10 +114,11 @@ class SearchDomainHandler implements protocol.RequestHandler {
     var params =
         protocol.SearchGetElementDeclarationsParams.fromRequest(request);
 
-    RegExp regExp;
-    if (params.pattern != null) {
+    RegExp? regExp;
+    var pattern = params.pattern;
+    if (pattern != null) {
       try {
-        regExp = RegExp(params.pattern);
+        regExp = RegExp(pattern);
       } on FormatException catch (exception) {
         server.sendResponse(protocol.Response.invalidParameter(
             request, 'pattern', exception.message));
@@ -157,6 +160,11 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }
 
     var tracker = server.declarationsTracker;
+    if (tracker == null) {
+      server.sendResponse(Response.unsupportedFeature(
+          request.id, 'Completion is not enabled.'));
+      return;
+    }
     var files = <String>{};
     var remainingMaxResults = params.maxResults;
     var declarations = search.WorkspaceSymbols(tracker).declarations(
@@ -188,6 +196,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   /// Implement the `search.getTypeHierarchy` request.
   Future getTypeHierarchy(protocol.Request request) async {
+    final searchEngine = server.searchEngine;
     var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     var file = params.file;
     // prepare element
@@ -215,7 +224,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   @override
-  protocol.Response handleRequest(protocol.Request request) {
+  protocol.Response? handleRequest(protocol.Request request) {
     try {
       var requestName = request.method;
       if (requestName == SEARCH_REQUEST_FIND_ELEMENT_REFERENCES) {

@@ -459,7 +459,7 @@ class CollectionTransformer extends Transformer {
   }
 
   void _translateEntry(
-      MapEntry entry,
+      MapLiteralEntry entry,
       InterfaceType receiverType,
       DartType keyType,
       DartType valueType,
@@ -480,7 +480,7 @@ class CollectionTransformer extends Transformer {
     }
   }
 
-  void _addNormalEntry(MapEntry entry, InterfaceType receiverType,
+  void _addNormalEntry(MapLiteralEntry entry, InterfaceType receiverType,
       VariableDeclaration result, List<Statement> body) {
     body.add(_createExpressionStatement(_createIndexSet(entry.fileOffset,
         _createVariableGet(result), receiverType, entry.key, entry.value)));
@@ -741,7 +741,7 @@ class CollectionTransformer extends Transformer {
     // If there were no control-flow entries we are done.
     if (i == node.entries.length) return node;
 
-    MapLiteral makeLiteral(int fileOffset, List<MapEntry> entries) {
+    MapLiteral makeLiteral(int fileOffset, List<MapLiteralEntry> entries) {
       return _createMapLiteral(
           fileOffset, node.keyType, node.valueType, entries,
           isConst: true);
@@ -749,13 +749,14 @@ class CollectionTransformer extends Transformer {
 
     // Build a concatenation node.
     List<Expression> parts = [];
-    List<MapEntry> currentPart = i > 0 ? node.entries.sublist(0, i) : null;
+    List<MapLiteralEntry> currentPart =
+        i > 0 ? node.entries.sublist(0, i) : null;
 
     DartType collectionType = _typeEnvironment.mapType(
         node.keyType, node.valueType, _currentLibrary.nonNullable);
 
     for (; i < node.entries.length; ++i) {
-      MapEntry entry = node.entries[i];
+      MapLiteralEntry entry = node.entries[i];
       if (entry is SpreadMapEntry) {
         if (currentPart != null) {
           parts.add(makeLiteral(node.fileOffset, currentPart));
@@ -789,7 +790,7 @@ class CollectionTransformer extends Transformer {
         unhandled("${entry.runtimeType}", "_translateConstMap",
             entry.fileOffset, getFileUri(entry));
       } else {
-        currentPart ??= <MapEntry>[];
+        currentPart ??= <MapLiteralEntry>[];
         currentPart.add(entry.accept<TreeNode>(this));
       }
     }
@@ -846,7 +847,7 @@ class CollectionTransformer extends Transformer {
   }
 
   MapLiteral _createMapLiteral(int fileOffset, DartType keyType,
-      DartType valueType, List<MapEntry> entries,
+      DartType valueType, List<MapLiteralEntry> entries,
       {bool isConst: false}) {
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);

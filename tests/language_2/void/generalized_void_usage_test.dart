@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Dart test for static checks on situations where expressions of type void
 // can be used. The point is simply that there are no compile-time errors.
 

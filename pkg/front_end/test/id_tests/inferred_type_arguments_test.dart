@@ -65,7 +65,10 @@ class InferredTypeArgumentDataExtractor
 
   @override
   List<DartType> computeNodeValue(Id id, TreeNode node) {
-    if (node is Arguments) {
+    if (node is Arguments ||
+        node is ListLiteral ||
+        node is SetLiteral ||
+        node is MapLiteral) {
       return typeInferenceResult.inferredTypeArguments[node];
     }
     return null;

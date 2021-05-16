@@ -349,6 +349,13 @@ void ReachabilityFenceInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
+const char* Value::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
 void Value::PrintTo(BaseTextBuffer* f) const {
   PrintUse(f, *definition());
 
@@ -369,6 +376,10 @@ void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     strncpy(buffer, cstr, pos);
     buffer[pos] = '\0';
     f->Printf("#%s\\n...", buffer);
+  }
+
+  if (representation() != kNoRepresentation && representation() != kTagged) {
+    f->Printf(" %s", RepresentationToCString(representation()));
   }
 }
 
@@ -643,15 +654,22 @@ void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   right()->PrintTo(f);
 }
 
-void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < InputCount(); ++i) {
+void AllocationInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  Definition::PrintOperandsTo(f);
+  if (InputCount() > 0) {
     f->AddString(", ");
-    InputAt(i)->PrintTo(f);
   }
   if (Identity().IsNotAliased()) {
-    f->AddString(" <not-aliased>");
+    f->AddString("<not-aliased>");
   }
+}
+
+void AllocateObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("cls=%s", String::Handle(cls().ScrubbedName()).ToCString());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
+  }
+  AllocationInstr::PrintOperandsTo(f);
 }
 
 void MaterializeObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -699,16 +717,20 @@ void InstantiateTypeArgumentsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void AllocateContextInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%" Pd "", num_context_variables());
+  f->Printf("num_variables=%" Pd "", num_context_variables());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
+  }
+  TemplateAllocation::PrintOperandsTo(f);
 }
 
 void AllocateUninitializedContextInstr::PrintOperandsTo(
     BaseTextBuffer* f) const {
-  f->Printf("%" Pd "", num_context_variables());
-
-  if (Identity().IsNotAliased()) {
-    f->AddString(" <not-aliased>");
+  f->Printf("num_variables=%" Pd "", num_context_variables());
+  if (InputCount() > 0 || Identity().IsNotAliased()) {
+    f->AddString(", ");
   }
+  TemplateAllocation::PrintOperandsTo(f);
 }
 
 void MathUnaryInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -834,6 +856,8 @@ void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
     f->AddString(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
       Definition* def = defns[i];
+      // Skip constants which are not used in the graph.
+      if (def->IsConstant() && !def->HasUses()) continue;
       f->AddString("\n      ");
       def->PrintTo(f);
     }

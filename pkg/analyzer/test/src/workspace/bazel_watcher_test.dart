@@ -233,6 +233,47 @@ class BazelWatcherTest with ResourceProviderMixin {
     recPort.close();
   }
 
+  void test_bazelFileWatcherWithFolder() async {
+    _addResources([
+      '/workspace/WORKSPACE',
+    ]);
+
+    // The `_addResources`/`_deleteResources` functions recognize a folder by a
+    // trailing `/`, but everywhere else we need to use normalized paths.
+    var addFolder = (path) => _addResources(['$path/']);
+    var deleteFolder = (path) => _deleteResources(['$path/']);
+
+    var candidates = [
+      convertPath('/workspace/bazel-out'),
+      convertPath('/workspace/blaze-out'),
+    ];
+    var watcher = BazelFilePoller(resourceProvider, candidates);
+
+    // First do some tests with the first candidate path.
+    addFolder(candidates[0]);
+    var event = watcher.poll()!;
+
+    expect(event.type, ChangeType.ADD);
+    expect(event.path, candidates[0]);
+
+    deleteFolder(candidates[0]);
+    event = watcher.poll()!;
+
+    expect(event.type, ChangeType.REMOVE);
+    expect(event.path, candidates[0]);
+
+    // Now check that if we add the *second* candidate, we'll get the
+    // notification for it.
+    addFolder(candidates[1]);
+    event = watcher.poll()!;
+
+    expect(event.type, ChangeType.ADD);
+    expect(event.path, candidates[1]);
+
+    // Next poll should be `null` since there were no changes.
+    expect(watcher.poll(), isNull);
+  }
+
   /// Create new files and directories from [paths].
   void _addResources(List<String> paths) {
     for (String path in paths) {

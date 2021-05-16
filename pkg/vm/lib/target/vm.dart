@@ -159,7 +159,7 @@ class VmTarget extends Target {
     } else {
       // TODO(jensj/dacoharkes): We can probably limit the transformations to
       // libraries that transitivley depend on dart:ffi.
-      final ffiTransformerData = transformFfiDefinitions.transformLibraries(
+      transformFfiDefinitions.transformLibraries(
           component,
           coreTypes,
           hierarchy,
@@ -167,14 +167,8 @@ class VmTarget extends Target {
           diagnosticReporter,
           referenceFromIndex,
           changedStructureNotifier);
-      transformFfiUseSites.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          libraries,
-          diagnosticReporter,
-          ffiTransformerData,
-          referenceFromIndex);
+      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+          libraries, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi annotations");
     }
 
@@ -234,9 +228,9 @@ class VmTarget extends Target {
           new StaticInvocation(
               coreTypes.mapUnmodifiable,
               new Arguments([
-                new MapLiteral(new List<MapEntry>.from(
+                new MapLiteral(new List<MapLiteralEntry>.from(
                     arguments.named.map((NamedExpression arg) {
-                  return new MapEntry(
+                  return new MapLiteralEntry(
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;

@@ -41,9 +41,11 @@ import 'package:kernel/kernel.dart'
         LibraryDependency,
         LibraryPart,
         Name,
+        NamedNode,
         NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
+        Reference,
         ReturnStatement,
         Source,
         Supertype,
@@ -125,6 +127,8 @@ import 'source/source_library_builder.dart'
 import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
+
+final Uri dartFfiUri = Uri.parse("dart:ffi");
 
 class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
@@ -998,6 +1002,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
+  bool _importsFfi() {
+    if (userBuilders == null) return false;
+    final Uri dartFfiUri = Uri.parse("dart:ffi");
+    for (LibraryBuilder builder in userBuilders.values) {
+      Library lib = builder.library;
+      for (LibraryDependency dependency in lib.dependencies) {
+        if (dependency.targetLibrary.importUri == dartFfiUri) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /// Figure out if we can (and was asked to) do experimental invalidation.
   /// Note that this returns (future or) [null] if we're not doing experimental
   /// invalidation.
@@ -1071,6 +1089,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
+    // Special case mixins: Because the VM mixin transformation inlines
+    // procedures, if the changed file is used as a mixin anywhere else
+    // we can't only recompile the changed file.
     // TODO(jensj): Check for mixins in a smarter and faster way.
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
       if (missingSources.contains(builder.fileUri)) {
@@ -1089,6 +1110,37 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // list and just rebuild that library too.
             // print("Usage of mixin in ${lib.importUri}");
             return null;
+          }
+        }
+      }
+    }
+
+    // Special case FFI: Because the VM ffi transformation inlines
+    // size and position, if the changed file contains ffi structs
+    // we can't only recompile the changed file.
+    // TODO(jensj): Come up with something smarter for this. E.g. we might
+    // check if the FFI-classes are used in other libraries, or as actual nested
+    // structures in other FFI-classes etc.
+    // Alternatively (https://github.com/dart-lang/sdk/issues/45899) we might
+    // do something else entirely that doesn't require special handling.
+    if (_importsFfi()) {
+      for (LibraryBuilder builder in rebuildBodies) {
+        Library lib = builder.library;
+        for (LibraryDependency dependency in lib.dependencies) {
+          Library importLibrary = dependency.targetLibrary;
+          if (importLibrary.importUri == dartFfiUri) {
+            // Explicitly imports dart:ffi.
+            return null;
+          }
+          for (Reference exportReference in importLibrary.additionalExports) {
+            NamedNode export = exportReference.node;
+            if (export is Class) {
+              Class c = export;
+              if (c.enclosingLibrary.importUri == dartFfiUri) {
+                // Implicitly imports a dart:ffi class.
+                return null;
+              }
+            }
           }
         }
       }
@@ -1948,7 +2000,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Procedure procedure = new Procedure(
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
-          isStatic: isStatic)
+          isStatic: isStatic, fileUri: debugLibrary.fileUri)
         ..isNonNullableByDefault = debugLibrary.isNonNullableByDefault;
 
       parameters.body = new ReturnStatement(compiledExpression)

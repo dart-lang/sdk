@@ -4,6 +4,8 @@
 //
 // Use qualified symbols at various places.
 
+// @dart = 2.9
+
 library Prefix14Test.dart;
 
 import "package:expect/expect.dart";

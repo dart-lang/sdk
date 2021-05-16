@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test check that we catch label errors.
 
+// @dart = 2.9
+
 main() {
   if (true) {
     break;

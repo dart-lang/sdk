@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test runs invokes getField and setField enough times to get cached
 // closures generated and with enough different field names to trip the path
 // that flushes the closure cache.

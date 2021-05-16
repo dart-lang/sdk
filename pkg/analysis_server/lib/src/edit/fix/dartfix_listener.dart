@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -37,7 +35,7 @@ class DartFixListener {
   }
 
   /// Record a recommendation to be sent to the client.
-  void addRecommendation(String description, [Location location]) {
+  void addRecommendation(String description, [Location? location]) {
     otherSuggestions.add(DartFixSuggestion(description, location: location));
   }
 
@@ -81,11 +79,11 @@ class DartFixListener {
   /// Return the [Location] representing the specified offset and length
   /// in the given compilation unit.
   Location locationFor(ResolvedUnitResult result, int offset, int length) {
-    var lineInfo = result.unit.lineInfo;
+    var lineInfo = result.unit!.lineInfo!;
     var startLocation = lineInfo.getLocation(offset);
     var endLocation = lineInfo.getLocation(offset + length);
     return Location(
-        result.path,
+        result.path!,
         offset,
         length,
         startLocation.lineNumber,

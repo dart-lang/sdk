@@ -70,6 +70,7 @@ import '../fasta_codes.dart'
         templateConstEvalInvalidSymbolName,
         templateConstEvalKeyImplementsEqual,
         templateConstEvalNonConstantVariableGet,
+        templateConstEvalUnhandledCoreException,
         templateConstEvalUnhandledException,
         templateConstEvalZeroDivisor;
 
@@ -1006,8 +1007,17 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         errorReporter.reportInvalidExpression(invalid);
         return new UnevaluatedConstant(invalid);
       } else if (result is _AbortDueToThrowConstant) {
-        final Message message = templateConstEvalUnhandledException
-            .withArguments(result.throwValue, isNonNullableByDefault);
+        final Object value = result.throwValue;
+        Message message;
+        if (value is Constant) {
+          message = templateConstEvalUnhandledException.withArguments(
+              value, isNonNullableByDefault);
+        } else if (value is Error) {
+          message = templateConstEvalUnhandledCoreException
+              .withArguments(value.toString());
+        }
+        assert(message != null);
+
         final Uri uri = getFileUri(result.node);
         final int fileOffset = getFileOffset(uri, result.node);
         final LocatedMessage locatedMessageActualError =
@@ -1197,7 +1207,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (env.isEmpty) {
       // We only try to evaluate the same [node] *once* within an empty
       // environment.
-      if (nodeCache.containsKey(node)) {
+      // For const functions, recompute getters instead of using the cached
+      // value.
+      bool isGetter = node is InstanceGet || node is PropertyGet;
+      if (nodeCache.containsKey(node) && !(enableConstFunctions && isGetter)) {
         result = nodeCache[node];
         if (result == null) {
           // [null] is a sentinel value only used when still evaluating the same
@@ -1217,8 +1230,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else {
       bool sentinelInserted = false;
       if (nodeCache.containsKey(node)) {
-        bool isRecursiveFunctionCall =
-            node is MethodInvocation || node is StaticInvocation;
+        bool isRecursiveFunctionCall = node is MethodInvocation ||
+            node is InstanceInvocation ||
+            node is FunctionInvocation ||
+            node is LocalFunctionInvocation ||
+            node is StaticInvocation;
         if (nodeCache[node] == null &&
             !(enableConstFunctions && isRecursiveFunctionCall)) {
           // recursive call
@@ -1324,11 +1340,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitListLiteral(ListLiteral node) {
-    if (!node.isConst) {
+    if (!node.isConst && !enableConstFunctions) {
       return createInvalidExpressionConstant(node, "Non-constant list literal");
     }
-    final ListConstantBuilder builder =
-        new ListConstantBuilder(node, convertType(node.typeArgument), this);
+    final ListConstantBuilder builder = new ListConstantBuilder(
+        node, convertType(node.typeArgument), this,
+        isMutable: !node.isConst);
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
     // We therefore reset it before each call, combine it and set it correctly
@@ -1400,7 +1417,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // We therefore reset it before each call, combine it and set it correctly
     // at the end.
     bool wasOrBecameUnevaluated = seenUnevaluatedChild;
-    for (MapEntry element in node.entries) {
+    for (MapLiteralEntry element in node.entries) {
       seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
       wasOrBecameUnevaluated |= seenUnevaluatedChild;
@@ -1431,7 +1448,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitConstructorInvocation(ConstructorInvocation node) {
-    if (!node.isConst) {
+    if (!node.isConst && !enableConstFunctions) {
       return createInvalidExpressionConstant(
           node, 'Non-constant constructor invocation "$node".');
     }
@@ -2007,12 +2024,70 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitFunctionInvocation(FunctionInvocation node) {
-    return createInvalidExpressionConstant(node, "function invocation");
+    if (!enableConstFunctions) {
+      return createInvalidExpressionConstant(node, "function invocation");
+    }
+
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+
+    return _evaluateFunctionInvocation(node, receiver, node.arguments);
   }
 
   @override
   Constant visitLocalFunctionInvocation(LocalFunctionInvocation node) {
-    return createInvalidExpressionConstant(node, "local function invocation");
+    if (!enableConstFunctions) {
+      return createInvalidExpressionConstant(node, "local function invocation");
+    }
+
+    final Constant receiver = env.lookupVariable(node.variable);
+    assert(receiver != null);
+    if (receiver is AbortConstant) return receiver;
+
+    return _evaluateFunctionInvocation(node, receiver, node.arguments);
+  }
+
+  Constant _evaluateFunctionInvocation(
+      TreeNode node, Constant receiver, Arguments argumentsNode) {
+    final List<Constant> arguments =
+        _evaluatePositionalArguments(argumentsNode);
+
+    if (arguments == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(arguments != null);
+
+    // Evaluate type arguments of the function invoked.
+    List<DartType> types = _evaluateTypeArguments(node, argumentsNode);
+    if (types == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(types != null);
+
+    // Evaluate named arguments of the function invoked.
+    final Map<String, Constant> named = _evaluateNamedArguments(argumentsNode);
+    if (named == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(named != null);
+
+    if (receiver is FunctionValue) {
+      return _handleFunctionInvocation(
+          receiver.function, types, arguments, named,
+          functionEnvironment: receiver.environment);
+    } else {
+      return createInvalidExpressionConstant(
+          node, "function invocation with invalid receiver");
+    }
   }
 
   @override
@@ -2065,9 +2140,29 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
   }
 
+  /// Converts integer constant types to an int value.
+  ///
+  /// Returns [null] on unmatched [intFolder] and [value] type.
+  int _convertToInt(Constant value) {
+    if (intFolder is JsConstantIntFolder && value is DoubleConstant) {
+      return value.value.toInt();
+    } else if (intFolder is VmConstantIntFolder && value is IntConstant) {
+      return value.value;
+    }
+    return null;
+  }
+
   Constant _handleInvocation(
-      Expression node, Name name, Constant receiver, List<Constant> arguments) {
+      Expression node, Name name, Constant receiver, List<Constant> arguments,
+      {List<DartType> typeArguments, Map<String, Constant> namedArguments}) {
     final String op = name.text;
+
+    // TODO(kallentu): Handle all constant toString methods.
+    if (receiver is PrimitiveConstant &&
+        op == 'toString' &&
+        enableConstFunctions) {
+      return new StringConstant(receiver.value.toString());
+    }
 
     // Handle == and != first (it's common between all types). Since `a != b` is
     // parsed as `!(a == b)` it is handled implicitly through ==.
@@ -2079,9 +2174,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // This is a white-listed set of methods we need to support on constants.
     if (receiver is StringConstant) {
       if (arguments.length == 1) {
+        final Constant other = arguments[0];
         switch (op) {
           case '+':
-            final Constant other = arguments[0];
             if (other is StringConstant) {
               return canonicalize(
                   new StringConstant(receiver.value + other.value));
@@ -2094,6 +2189,27 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                     typeEnvironment.coreTypes.stringLegacyRawType,
                     other.getType(_staticTypeContext),
                     isNonNullableByDefault));
+          case '[]':
+            if (enableConstFunctions) {
+              if (intFolder.isInt(other)) {
+                int index = _convertToInt(other);
+                assert(index != null);
+
+                if (index < 0 || index >= receiver.value.length) {
+                  return new _AbortDueToThrowConstant(
+                      node, new RangeError.index(index, receiver.value));
+                }
+                return canonicalize(new StringConstant(receiver.value[index]));
+              }
+              return createErrorConstant(
+                  node,
+                  templateConstEvalInvalidBinaryOperandType.withArguments(
+                      '[]',
+                      receiver,
+                      typeEnvironment.coreTypes.intNonNullableRawType,
+                      other.getType(_staticTypeContext),
+                      isNonNullableByDefault));
+            }
         }
       }
     } else if (intFolder.isInt(receiver)) {
@@ -2182,6 +2298,82 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is ListConstant && enableConstFunctions) {
+      if (arguments.length == 1) {
+        final Constant other = arguments[0];
+        switch (op) {
+          case '[]':
+            if (intFolder.isInt(other)) {
+              int index = _convertToInt(other);
+              assert(index != null);
+
+              if (index < 0 || index >= receiver.entries.length) {
+                return new _AbortDueToThrowConstant(
+                    node, new RangeError.index(index, receiver.entries));
+              }
+              return receiver.entries[index];
+            }
+            return createErrorConstant(
+                node,
+                templateConstEvalInvalidBinaryOperandType.withArguments(
+                    '[]',
+                    receiver,
+                    typeEnvironment.coreTypes.intNonNullableRawType,
+                    other.getType(_staticTypeContext),
+                    isNonNullableByDefault));
+          case 'add':
+            if (receiver is MutableListConstant) {
+              receiver.entries.add(other);
+              return receiver;
+            }
+            return new _AbortDueToThrowConstant(node, new UnsupportedError(op));
+        }
+      }
+    } else if (receiver is MapConstant && enableConstFunctions) {
+      if (arguments.length == 1) {
+        final Constant other = arguments[0];
+        switch (op) {
+          case '[]':
+            final ConstantMapEntry mapEntry = receiver.entries
+                .firstWhere((entry) => entry.key == other, orElse: () => null);
+            // Null value if key is not in the map.
+            return mapEntry?.value ?? new NullConstant();
+        }
+      }
+    } else if (receiver is InstanceConstant && enableConstFunctions) {
+      final Class instanceClass = receiver.classNode;
+      assert(typeEnvironment.hierarchy is ClassHierarchy);
+      final Member member = (typeEnvironment.hierarchy as ClassHierarchy)
+          .getDispatchTarget(instanceClass, name);
+      final FunctionNode function = member.function;
+
+      // TODO(kallentu): Implement [Object] class methods which have backend
+      // specific functions that cannot be run by the constant evaluator.
+      final bool isObjectMember = member.enclosingClass != null &&
+          member.enclosingClass.name == "Object";
+      if (function != null && !isObjectMember) {
+        return withNewInstanceBuilder(instanceClass, typeArguments, () {
+          final EvaluationEnvironment newEnv = new EvaluationEnvironment();
+          for (int i = 0; i < instanceClass.typeParameters.length; i++) {
+            newEnv.addTypeParameterValue(
+                instanceClass.typeParameters[i], receiver.typeArguments[i]);
+          }
+
+          // Ensure that fields are visible for instance access.
+          receiver.fieldValues.forEach((Reference fieldRef, Constant value) =>
+              instanceBuilder.setFieldValue(fieldRef.asField, value));
+          return _handleFunctionInvocation(
+              function, receiver.typeArguments, arguments, namedArguments,
+              functionEnvironment: newEnv);
+        });
+      }
+
+      switch (op) {
+        case 'toString':
+          // Default value for toString() of instances.
+          return new StringConstant(
+              "Instance of '${receiver.classReference.toStringInternal()}'");
+      }
     }
 
     return createErrorConstant(
@@ -2218,7 +2410,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     assert(_gotError == null);
     assert(arguments != null);
 
-    if (enableConstFunctions && receiver is FunctionValue) {
+    if (enableConstFunctions) {
       // Evaluate type arguments of the method invoked.
       List<DartType> types = _evaluateTypeArguments(node, node.arguments);
       if (types == null && _gotError != null) {
@@ -2240,9 +2432,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       assert(_gotError == null);
       assert(named != null);
 
-      return _handleFunctionInvocation(
-          receiver.function, types, arguments, named,
-          functionEnvironment: receiver.environment);
+      if (receiver is FunctionValue) {
+        return _handleFunctionInvocation(
+            receiver.function, types, arguments, named,
+            functionEnvironment: receiver.environment);
+      }
+
+      return _handleInvocation(node, node.name, receiver, arguments,
+          typeArguments: types, namedArguments: named);
     }
 
     if (shouldBeUnevaluated) {
@@ -2401,6 +2598,45 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               interfaceTarget: node.interfaceTarget));
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is ListConstant && enableConstFunctions) {
+      switch (node.name.text) {
+        case 'first':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.first;
+        case 'isEmpty':
+          return new BoolConstant(receiver.entries.isEmpty);
+        case 'isNotEmpty':
+          return new BoolConstant(receiver.entries.isNotEmpty);
+        // TODO(kallentu): case 'iterator'
+        case 'last':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.last;
+        case 'length':
+          return new IntConstant(receiver.entries.length);
+        // TODO(kallentu): case 'reversed'
+        case 'single':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          } else if (receiver.entries.length > 1) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('Too many elements'));
+          }
+          return receiver.entries.single;
+      }
+    } else if (receiver is InstanceConstant && enableConstFunctions) {
+      for (final Reference fieldRef in receiver.fieldValues.keys) {
+        final Field field = fieldRef.asField;
+        if (field.name == node.name) {
+          return receiver.fieldValues[fieldRef];
+        }
+      }
     }
     return createErrorConstant(
         node,
@@ -2478,6 +2714,45 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new PropertyGet(extract(receiver), node.name, node.interfaceTarget));
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is ListConstant && enableConstFunctions) {
+      switch (node.name.text) {
+        case 'first':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.first;
+        case 'isEmpty':
+          return new BoolConstant(receiver.entries.isEmpty);
+        case 'isNotEmpty':
+          return new BoolConstant(receiver.entries.isNotEmpty);
+        // TODO(kallentu): case 'iterator'
+        case 'last':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.last;
+        case 'length':
+          return new IntConstant(receiver.entries.length);
+        // TODO(kallentu): case 'reversed'
+        case 'single':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          } else if (receiver.entries.length > 1) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('Too many elements'));
+          }
+          return receiver.entries.single;
+      }
+    } else if (receiver is InstanceConstant && enableConstFunctions) {
+      for (final Reference fieldRef in receiver.fieldValues.keys) {
+        final Field field = fieldRef.asField;
+        if (field.name == node.name) {
+          return receiver.fieldValues[fieldRef];
+        }
+      }
     }
     return createErrorConstant(
         node,
@@ -2877,7 +3152,21 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      return executeBody(function.body);
+
+      final Constant result = executeBody(function.body);
+      if (result is NullConstant &&
+          function.returnType.nullability == Nullability.nonNullable) {
+        // Ensure that the evaluated constant returned is not null if the
+        // function has a non-nullable return type.
+        return createErrorConstant(
+            function,
+            templateConstEvalInvalidType.withArguments(
+                result,
+                function.returnType,
+                result.getType(_staticTypeContext),
+                isNonNullableByDefault));
+      }
+      return result;
     }
 
     if (functionEnvironment != null) {
@@ -3285,7 +3574,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   Constant canonicalize(Constant constant) {
-    return canonicalizationCache.putIfAbsent(constant, () => constant);
+    // Don't use putIfAbsent to avoid the context allocation needed
+    // for the closure.
+    return canonicalizationCache[constant] ??= constant;
   }
 
   T withNewInstanceBuilder<T>(
@@ -3557,6 +3848,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     Constant result;
     if (node.expression != null) {
       result = evaluate(node.expression);
+      if (result is AbortConstant) return new AbortStatus(result);
     }
     return new ReturnStatus(result);
   }
@@ -3582,17 +3874,39 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     if (tryStatus is AbortStatus) {
       final Constant error = tryStatus.error;
       if (error is _AbortDueToThrowConstant) {
-        final Constant throwConstant = error.throwValue;
+        final Object throwValue = error.throwValue;
         final DartType defaultType =
             exprEvaluator.typeEnvironment.coreTypes.objectNonNullableRawType;
+
+        DartType throwType;
+        if (throwValue is Constant) {
+          throwType = throwValue.getType(exprEvaluator._staticTypeContext);
+        } else if (throwValue is StateError) {
+          final Class stateErrorClass = exprEvaluator
+              .coreTypes.coreLibrary.classes
+              .firstWhere((Class klass) => klass.name == 'StateError');
+          throwType =
+              new InterfaceType(stateErrorClass, Nullability.nonNullable);
+        } else if (throwValue is RangeError) {
+          final Class rangeErrorClass = exprEvaluator
+              .coreTypes.coreLibrary.classes
+              .firstWhere((Class klass) => klass.name == 'RangeError');
+          throwType =
+              new InterfaceType(rangeErrorClass, Nullability.nonNullable);
+        }
+        assert(throwType != null);
+
         for (Catch catchClause in node.catches) {
-          if (exprEvaluator.isSubtype(throwConstant, catchClause.guard,
-                  SubtypeCheckMode.withNullabilities) ||
+          if (exprEvaluator.typeEnvironment.isSubtypeOf(throwType,
+                  catchClause.guard, SubtypeCheckMode.withNullabilities) ||
               catchClause.guard == defaultType) {
             return exprEvaluator.withNewEnvironment(() {
               if (catchClause.exception != null) {
-                exprEvaluator.env
-                    .addVariableValue(catchClause.exception, throwConstant);
+                // TODO(kallentu): Store non-constant exceptions.
+                if (throwValue is Constant) {
+                  exprEvaluator.env
+                      .addVariableValue(catchClause.exception, throwValue);
+                }
               }
               // TODO(kallentu): Store appropriate stack trace in environment.
               return catchClause.body.accept(this);
@@ -3618,6 +3932,8 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     if (node.initializer != null) {
       value = evaluate(node.initializer);
       if (value is AbortConstant) return new AbortStatus(value);
+    } else {
+      value = new NullConstant();
     }
     exprEvaluator.env.addVariableValue(node, value);
     return const ProceedStatus();
@@ -3759,8 +4075,13 @@ class EvaluationEnvironment {
   }
 
   DartType substituteType(DartType type) {
-    if (_typeVariables.isEmpty) return type;
-    return substitute(type, _typeVariables);
+    if (_typeVariables.isEmpty) return _parent?.substituteType(type) ?? type;
+    final DartType substitutedType = substitute(type, _typeVariables);
+    if (identical(substitutedType, type) && _parent != null) {
+      // No distinct type created, substitute type in parent.
+      return _parent.substituteType(type);
+    }
+    return substitutedType;
   }
 }
 
@@ -3814,6 +4135,15 @@ class AbortStatus extends ExecutionStatus {
 class BreakStatus extends ExecutionStatus {
   final LabeledStatement target;
   BreakStatus(this.target);
+}
+
+/// Mutable lists used within the [ConstantEvaluator].
+class MutableListConstant extends ListConstant {
+  MutableListConstant(DartType typeArgument, List<Constant> entries)
+      : super(typeArgument, entries);
+
+  @override
+  String toString() => 'MutableListConstant(${toStringInternal()})';
 }
 
 /// An intermediate result that is used for invoking function nodes with their
@@ -3993,8 +4323,8 @@ class _AbortDueToInvalidExpressionConstant extends AbortConstant {
 }
 
 class _AbortDueToThrowConstant extends AbortConstant {
-  final Throw node;
-  final Constant throwValue;
+  final TreeNode node;
+  final Object throwValue;
 
   _AbortDueToThrowConstant(this.node, this.throwValue);
 

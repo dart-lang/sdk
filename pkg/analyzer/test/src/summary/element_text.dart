@@ -283,10 +283,21 @@ class _ElementWriter {
     buffer.write(e.enclosingElement.name);
     if (e.name.isNotEmpty) {
       buffer.write('.');
-      writeName(e);
+      buffer.write(e.displayName);
     }
     if (!e.isSynthetic) {
       writeCodeRange(e);
+      if (withOffsets) {
+        var periodOffset = e.periodOffset;
+        var nameEnd = e.nameEnd;
+        if (periodOffset != null && nameEnd != null) {
+          buffer.write('[periodOffset: $periodOffset]');
+          buffer.write('[nameOffset: ${e.nameOffset}]');
+          buffer.write('[nameEnd: $nameEnd]');
+        } else {
+          buffer.write('[nameOffset: ${e.nameOffset}]');
+        }
+      }
     }
 
     writeParameterElements(e.parameters);
@@ -583,7 +594,7 @@ class _ElementWriter {
       writeNode(e.name);
       if (e.constructorName != null) {
         buffer.write('.');
-        writeNode(e.constructorName!);
+        writeNode(e.constructorName);
       }
       if (e.arguments != null) {
         writeList('(', ')', e.arguments!.arguments, ', ', writeNode,
@@ -598,7 +609,7 @@ class _ElementWriter {
       writeNode(e.condition);
       if (e.message != null) {
         buffer.write(', ');
-        writeNode(e.message!);
+        writeNode(e.message);
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
@@ -623,13 +634,13 @@ class _ElementWriter {
       writeNode(e.type);
       if (e.name != null) {
         buffer.write('.');
-        writeNode(e.name!);
+        writeNode(e.name);
       }
     } else if (e is DoubleLiteral) {
       buffer.write(e.value);
     } else if (e is GenericFunctionType) {
       if (e.returnType != null) {
-        writeNode(e.returnType!);
+        writeNode(e.returnType);
         buffer.write(' ');
       }
       buffer.write('Function');
@@ -838,6 +849,12 @@ class _ElementWriter {
     writeCodeRange(e);
 
     if (!withFullyResolvedAst) {
+      if (e.typeParameters.isNotEmpty) {
+        buffer.write('/*');
+        writeTypeParameterElements(e.typeParameters, withDefault: false);
+        buffer.write('*/');
+      }
+
       if (e.parameters.isNotEmpty) {
         buffer.write('/*');
         writeList('(', ')', e.parameters, ', ', writeParameterElement);
@@ -873,7 +890,17 @@ class _ElementWriter {
     if (!e.isSynthetic) {
       PropertyInducingElement variable = e.variable;
       expect(variable, isNotNull);
-      expect(variable.isSynthetic, isTrue);
+
+      if (e.isGetter) {
+        // Usually we have a synthetic property for a non-synthetic accessor.
+        expect(variable.isSynthetic, isTrue);
+      } else {
+        // But it is possible to have a non-synthetic property.
+        // class A {
+        //   final int foo;
+        //   set foo(int newValue) {}
+        // }
+      }
 
       var variableEnclosing = variable.enclosingElement;
       if (variableEnclosing is CompilationUnitElement) {
@@ -921,15 +948,13 @@ class _ElementWriter {
 
     writeName(e);
 
+    expect(e.typeParameters, isEmpty);
+
     if (e.isSetter || e.parameters.isNotEmpty) {
       writeParameterElements(e.parameters);
     }
 
-    expect(e.typeParameters, isEmpty);
-
-    expect(e.isSynchronous, isTrue);
-    expect(e.isAsynchronous, isFalse);
-    expect(e.isGenerator, isFalse);
+    writeBodyModifiers(e);
 
     if (e.isAbstract || e.isExternal) {
       buffer.writeln(';');
@@ -1152,7 +1177,17 @@ class _ElementWriter {
   /// the same enclosing element as the [property].
   void _assertSyntheticAccessorEnclosing(
       PropertyInducingElement property, PropertyAccessorElement accessor) {
-    expect(accessor.isSynthetic, isTrue);
+    if (accessor.isSynthetic) {
+      // Usually we have a non-synthetic property, and a synthetic accessor.
+    } else {
+      // But it is possible to have a non-synthetic setter.
+      // class A {
+      //   final int foo;
+      //   set foo(int newValue) {}
+      // }
+      assert(accessor.isSetter, isTrue);
+    }
+
     expect(accessor.variable, same(property));
 
     var propertyEnclosing = property.enclosingElement;
@@ -1217,10 +1252,10 @@ class _ElementWriter {
   }
 
   void _withIndent(void Function() f) {
-    var indent = this.indent;
-    this.indent = '$indent  ';
+    var savedIndent = indent;
+    indent = '$savedIndent  ';
     f();
-    this.indent = indent;
+    indent = savedIndent;
   }
 
   void _writelnTypeWithIndent(String name, DartType? type) {
@@ -1239,8 +1274,9 @@ class _ElementWriter {
     String enclosingNames = '',
   }) {
     for (var parameter in parameters) {
-      if (parameter is DefaultParameterElementImpl) {
-        var defaultValue = parameter.constantInitializer;
+      if (parameter is ConstVariableElement) {
+        var defaultParameter = parameter as ConstVariableElement;
+        var defaultValue = defaultParameter.constantInitializer;
         if (defaultValue != null) {
           _writelnWithIndent(enclosingNames + parameter.name);
           _withIndent(() {

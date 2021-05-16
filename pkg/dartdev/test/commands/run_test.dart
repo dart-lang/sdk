@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -79,7 +81,7 @@ void run() {
     p.file('main.dart', 'void main(args) { print(args); }');
     ProcessResult result = p.runSync([
       'run',
-      '--enable-experiment=triple-shift',
+      '--enable-experiment=test-experiment',
       'main.dart',
       'argument1',
       'argument2',
@@ -131,7 +133,7 @@ void main(List<String> args) => print("$b $args");
     final name = path.join(p.dirPath, 'main.dart');
     final result = p.runSync([
       'run',
-      '--enable-experiment=triple-shift',
+      '--enable-experiment=test-experiment',
       name,
       '--argument1',
       'argument2',
@@ -299,5 +301,62 @@ void main(List<String> args) => print("$b $args");
         predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+  });
+
+  group('DevTools', () {
+    const devToolsMessagePrefix =
+        'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
+
+    test('spawn simple', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        'run',
+        '--enable-vm-service',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, contains(devToolsMessagePrefix));
+    });
+
+    test('implicit spawn', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        '--enable-vm-service',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, contains(devToolsMessagePrefix));
+    });
+
+    test(
+      'spawn via SIGQUIT',
+      () async {
+        p = project(
+          mainSrc:
+              'void main() { print("ready"); int i = 0; while(true) { i++; } }',
+        );
+        Process process = await p.start([
+          p.relativeFilePath,
+        ]);
+
+        final readyCompleter = Completer<void>();
+        final completer = Completer<void>();
+
+        StreamSubscription sub;
+        sub = process.stdout.transform(utf8.decoder).listen((event) async {
+          if (event.contains('ready')) {
+            readyCompleter.complete();
+          } else if (event.contains(devToolsMessagePrefix)) {
+            await sub.cancel();
+            completer.complete();
+          }
+        });
+        // Wait for process to start.
+        await readyCompleter.future;
+        process.kill(ProcessSignal.sigquit);
+        await completer.future;
+        process.kill();
+      },
+      // No support for SIGQUIT on Windows.
+      skip: Platform.isWindows,
+    );
   });
 }

@@ -106,7 +106,7 @@ class AnalyzerConverter {
       endColumn = endLocation.columnNumber;
     }
     return plugin.DiagnosticMessage(
-        message.message,
+        message.messageText(includeUrl: true),
         plugin.Location(
             file, offset, length, startLine, startColumn, endLine, endColumn));
   }

@@ -22,8 +22,9 @@ List<String> compilerFlagsForFile(String filepath) {
     '-DDEBUG',
     '-DTARGET_OS_LINUX',
     '-DTESTING',
+    '-std=c++17',
     '-x',
-    'c++17',
+    'c++',
   ];
   return flags;
 }

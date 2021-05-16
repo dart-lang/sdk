@@ -45,13 +45,15 @@ mixin ControlFlowElement on Expression {
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.defaultExpression(this, arg);
 
-  /// Returns this control flow element as a [MapEntry], or `null` if this
-  /// control flow element cannot be converted into a [MapEntry].
+  /// Returns this control flow element as a [MapLiteralEntry], or `null` if
+  /// this control flow element cannot be converted into a [MapLiteralEntry].
   ///
-  /// [onConvertForElement] is called when a [ForElement] or [ForInElement] is
-  /// converted to a [ForMapEntry] or [ForInMapEntry], respectively.
+  /// [onConvertElement] is called when a [ForElement], [ForInElement], or
+  /// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
+  /// [IfMapEntry], respectively.
   // TODO(johnniwinther): Merge this with [convertToMapEntry].
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to));
+  MapLiteralEntry toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to));
 }
 
 /// A spread element in a list or set literal.
@@ -91,8 +93,8 @@ class SpreadElement extends Expression with ControlFlowElement {
   }
 
   @override
-  SpreadMapEntry toMapEntry(
-      void onConvertForElement(TreeNode from, TreeNode to)) {
+  SpreadMapEntry toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
     return new SpreadMapEntry(expression, isNullAware)..fileOffset = fileOffset;
   }
 
@@ -163,23 +165,26 @@ class IfElement extends Expression with ControlFlowElement {
   }
 
   @override
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to)) {
-    MapEntry thenEntry;
+  MapLiteralEntry toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
+    MapLiteralEntry thenEntry;
     if (then is ControlFlowElement) {
       ControlFlowElement thenElement = then;
-      thenEntry = thenElement.toMapEntry(onConvertForElement);
+      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
     }
     if (thenEntry == null) return null;
-    MapEntry otherwiseEntry;
+    MapLiteralEntry otherwiseEntry;
     if (otherwise != null) {
       if (otherwise is ControlFlowElement) {
         ControlFlowElement otherwiseElement = otherwise;
-        otherwiseEntry = otherwiseElement.toMapEntry(onConvertForElement);
+        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
       }
       if (otherwiseEntry == null) return null;
     }
-    return new IfMapEntry(condition, thenEntry, otherwiseEntry)
+    IfMapEntry result = new IfMapEntry(condition, thenEntry, otherwiseEntry)
       ..fileOffset = fileOffset;
+    onConvertElement(this, result);
+    return result;
   }
 
   @override
@@ -251,17 +256,18 @@ class ForElement extends Expression with ControlFlowElement {
   }
 
   @override
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to)) {
-    MapEntry bodyEntry;
+  MapLiteralEntry toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
+    MapLiteralEntry bodyEntry;
     if (body is ControlFlowElement) {
       ControlFlowElement bodyElement = body;
-      bodyEntry = bodyElement.toMapEntry(onConvertForElement);
+      bodyEntry = bodyElement.toMapLiteralEntry(onConvertElement);
     }
     if (bodyEntry == null) return null;
     ForMapEntry result =
         new ForMapEntry(variables, condition, updates, bodyEntry)
           ..fileOffset = fileOffset;
-    onConvertForElement(this, result);
+    onConvertElement(this, result);
     return result;
   }
 
@@ -367,18 +373,19 @@ class ForInElement extends Expression with ControlFlowElement {
   }
 
   @override
-  MapEntry toMapEntry(void onConvertForElement(TreeNode from, TreeNode to)) {
-    MapEntry bodyEntry;
+  MapLiteralEntry toMapLiteralEntry(
+      void onConvertElement(TreeNode from, TreeNode to)) {
+    MapLiteralEntry bodyEntry;
     if (body is ControlFlowElement) {
       ControlFlowElement bodyElement = body;
-      bodyEntry = bodyElement.toMapEntry(onConvertForElement);
+      bodyEntry = bodyElement.toMapLiteralEntry(onConvertElement);
     }
     if (bodyEntry == null) return null;
     ForInMapEntry result = new ForInMapEntry(variable, iterable,
         syntheticAssignment, expressionEffects, bodyEntry, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
-    onConvertForElement(this, result);
+    onConvertElement(this, result);
     return result;
   }
 
@@ -393,7 +400,7 @@ class ForInElement extends Expression with ControlFlowElement {
   }
 }
 
-mixin ControlFlowMapEntry implements MapEntry {
+mixin ControlFlowMapEntry implements MapLiteralEntry {
   @override
   Expression get key {
     throw new UnsupportedError('ControlFlowMapEntry.key getter');
@@ -481,8 +488,8 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
 /// An 'if' element in a map literal.
 class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression condition;
-  MapEntry then;
-  MapEntry otherwise;
+  MapLiteralEntry then;
+  MapLiteralEntry otherwise;
 
   IfMapEntry(this.condition, this.then, this.otherwise) {
     condition?.parent = this;
@@ -520,11 +527,11 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
       condition?.parent = this;
     }
     if (then != null) {
-      then = v.transformOrRemove(then, dummyMapEntry);
+      then = v.transformOrRemove(then, dummyMapLiteralEntry);
       then?.parent = this;
     }
     if (otherwise != null) {
-      otherwise = v.transformOrRemove(otherwise, dummyMapEntry);
+      otherwise = v.transformOrRemove(otherwise, dummyMapLiteralEntry);
       otherwise?.parent = this;
     }
   }
@@ -545,7 +552,7 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
-  MapEntry body;
+  MapLiteralEntry body;
 
   ForMapEntry(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
@@ -585,7 +592,7 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
     }
     v.transformExpressionList(updates, this);
     if (body != null) {
-      body = v.transformOrRemove(body, dummyMapEntry);
+      body = v.transformOrRemove(body, dummyMapLiteralEntry);
       body?.parent = this;
     }
   }
@@ -607,7 +614,7 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression iterable;
   Expression syntheticAssignment; // May be null.
   Statement expressionEffects; // May be null.
-  MapEntry body;
+  MapLiteralEntry body;
   Expression problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
@@ -683,7 +690,7 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       expressionEffects?.parent = this;
     }
     if (body != null) {
-      body = v.transformOrRemove(body, dummyMapEntry);
+      body = v.transformOrRemove(body, dummyMapLiteralEntry);
       body?.parent = this;
     }
     if (problem != null) {
@@ -707,31 +714,31 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 /// converted an error reported through [helper] and an invalid expression is
 /// returned.
 ///
-/// [onConvertForMapEntry] is called when a [ForMapEntry] or [ForInMapEntry] is
-/// converted to a [ForElement] or [ForInElement], respectively.
-Expression convertToElement(MapEntry entry, InferenceHelper helper,
-    void onConvertForMapEntry(TreeNode from, TreeNode to)) {
+/// [onConvertMapEntry] is called when a [ForMapEntry], [ForInMapEntry], or
+/// [IfMapEntry] is converted to a [ForElement], [ForInElement], or [IfElement],
+/// respectively.
+Expression convertToElement(MapLiteralEntry entry, InferenceHelper helper,
+    void onConvertMapEntry(TreeNode from, TreeNode to)) {
   if (entry is SpreadMapEntry) {
     return new SpreadElement(entry.expression, entry.isNullAware)
       ..fileOffset = entry.expression.fileOffset;
   }
   if (entry is IfMapEntry) {
-    return new IfElement(
+    IfElement result = new IfElement(
         entry.condition,
-        convertToElement(entry.then, helper, onConvertForMapEntry),
+        convertToElement(entry.then, helper, onConvertMapEntry),
         entry.otherwise == null
             ? null
-            : convertToElement(entry.otherwise, helper, onConvertForMapEntry))
+            : convertToElement(entry.otherwise, helper, onConvertMapEntry))
       ..fileOffset = entry.fileOffset;
+    onConvertMapEntry(entry, result);
+    return result;
   }
   if (entry is ForMapEntry) {
-    ForElement result = new ForElement(
-        entry.variables,
-        entry.condition,
-        entry.updates,
-        convertToElement(entry.body, helper, onConvertForMapEntry))
+    ForElement result = new ForElement(entry.variables, entry.condition,
+        entry.updates, convertToElement(entry.body, helper, onConvertMapEntry))
       ..fileOffset = entry.fileOffset;
-    onConvertForMapEntry(entry, result);
+    onConvertMapEntry(entry, result);
     return result;
   }
   if (entry is ForInMapEntry) {
@@ -740,11 +747,11 @@ Expression convertToElement(MapEntry entry, InferenceHelper helper,
         entry.iterable,
         entry.syntheticAssignment,
         entry.expressionEffects,
-        convertToElement(entry.body, helper, onConvertForMapEntry),
+        convertToElement(entry.body, helper, onConvertMapEntry),
         entry.problem,
         isAsync: entry.isAsync)
       ..fileOffset = entry.fileOffset;
-    onConvertForMapEntry(entry, result);
+    onConvertMapEntry(entry, result);
     return result;
   }
   Expression key = entry.key;
@@ -778,35 +785,38 @@ bool isConvertibleToMapEntry(Expression element) {
   return false;
 }
 
-/// Convert [element] to a [MapEntry], if possible. If [element] cannot be
-/// converted an error reported through [helper] and a map entry holding an
+/// Convert [element] to a [MapLiteralEntry], if possible. If [element] cannot
+/// be converted an error reported through [helper] and a map entry holding an
 /// invalid expression is returned.
 ///
-/// [onConvertForElement] is called when a [ForElement] or [ForInElement] is
-/// converted to a [ForMapEntry] or [ForInMapEntry], respectively.
-MapEntry convertToMapEntry(Expression element, InferenceHelper helper,
-    void onConvertForElement(TreeNode from, TreeNode to)) {
+/// [onConvertElement] is called when a [ForElement], [ForInElement], or
+/// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
+/// [IfMapEntry], respectively.
+MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
+    void onConvertElement(TreeNode from, TreeNode to)) {
   if (element is SpreadElement) {
     return new SpreadMapEntry(element.expression, element.isNullAware)
       ..fileOffset = element.expression.fileOffset;
   }
   if (element is IfElement) {
-    return new IfMapEntry(
+    IfMapEntry result = new IfMapEntry(
         element.condition,
-        convertToMapEntry(element.then, helper, onConvertForElement),
+        convertToMapEntry(element.then, helper, onConvertElement),
         element.otherwise == null
             ? null
-            : convertToMapEntry(element.otherwise, helper, onConvertForElement))
+            : convertToMapEntry(element.otherwise, helper, onConvertElement))
       ..fileOffset = element.fileOffset;
+    onConvertElement(element, result);
+    return result;
   }
   if (element is ForElement) {
     ForMapEntry result = new ForMapEntry(
         element.variables,
         element.condition,
         element.updates,
-        convertToMapEntry(element.body, helper, onConvertForElement))
+        convertToMapEntry(element.body, helper, onConvertElement))
       ..fileOffset = element.fileOffset;
-    onConvertForElement(element, result);
+    onConvertElement(element, result);
     return result;
   }
   if (element is ForInElement) {
@@ -815,14 +825,14 @@ MapEntry convertToMapEntry(Expression element, InferenceHelper helper,
         element.iterable,
         element.syntheticAssignment,
         element.expressionEffects,
-        convertToMapEntry(element.body, helper, onConvertForElement),
+        convertToMapEntry(element.body, helper, onConvertElement),
         element.problem,
         isAsync: element.isAsync)
       ..fileOffset = element.fileOffset;
-    onConvertForElement(element, result);
+    onConvertElement(element, result);
     return result;
   }
-  return new MapEntry(
+  return new MapLiteralEntry(
       helper.buildProblem(
         templateExpectedAfterButGot.withArguments(':'),
         element.fileOffset,

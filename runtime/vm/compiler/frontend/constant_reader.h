@@ -27,16 +27,17 @@ class ConstantReader {
   InstancePtr ReadConstantExpression();
   ObjectPtr ReadAnnotations();
 
-  // Peeks to see if constant at the given offset will evaluate to
+  // Peeks to see if constant at the given index will evaluate to
   // instance of the given clazz.
-  bool IsInstanceConstant(intptr_t constant_offset, const Class& clazz);
+  bool IsInstanceConstant(intptr_t constant_index, const Class& clazz);
 
-  // Reads a constant at the given offset (possibly by recursing
+  // Reads a constant at the given index (possibly by recursing
   // into sub-constants).
-  InstancePtr ReadConstant(intptr_t constant_offset);
+  InstancePtr ReadConstant(intptr_t constant_index);
 
  private:
-  InstancePtr ReadConstantInternal(intptr_t constant_offset);
+  InstancePtr ReadConstantInternal(intptr_t constant_index);
+  intptr_t NavigateToIndex(KernelReaderHelper* reader, intptr_t constant_index);
 
   KernelReaderHelper* helper_;
   Zone* zone_;

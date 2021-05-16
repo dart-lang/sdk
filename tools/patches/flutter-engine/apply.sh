@@ -57,12 +57,12 @@ if [ $need_runhooks = true ]; then
   # referencing.
   # Normally gclient sync would update the cache - but we are bypassing
   # it here.
-  git_cache=$(python -c 'import imp; config = imp.load_source("config", ".gclient"); print getattr(config, "cache_dir", "")')
+  git_cache=$(python3 -c 'import imp; config = imp.load_source("config", ".gclient"); print(getattr(config, "cache_dir", ""))')
 
   # DEPS file might have been patched with new version of packages that
   # Dart SDK depends on. Get information about dependencies from the
   # DEPS file and forcefully update checkouts of those dependencies.
-  gclient.py revinfo | grep 'src/third_party/dart/third_party' | while read -r line; do
+  gclient.py revinfo --ignore-dep-type=cipd | grep 'src/third_party/dart/third_party' | while read -r line; do
     # revinfo would produce lines in the following format:
     #     path: git-url@tag-or-hash
     # Where no spaces occur inside path, git-url or tag-or-hash.

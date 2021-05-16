@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
+// @dart = 2.9
+
 // Test branch optimization for TestSmiInstr
 
 import "package:expect/expect.dart";

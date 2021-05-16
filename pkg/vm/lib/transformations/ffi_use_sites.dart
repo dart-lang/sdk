@@ -9,7 +9,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         templateFfiDartTypeMismatch,
-        templateFfiEmptyStruct,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
@@ -27,7 +26,6 @@ import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
     show
-        FfiTransformerData,
         NativeType,
         FfiTransformer,
         nativeTypeSizes,
@@ -42,7 +40,6 @@ void transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
-    FfiTransformerData ffiTransformerData,
     ReferenceFromIndex referenceFromIndex) {
   final index = new LibraryIndex(
       component, ["dart:ffi", "dart:_internal", "dart:typed_data"]);
@@ -57,22 +54,12 @@ void transformLibraries(
     return;
   }
   final transformer = new _FfiUseSiteTransformer(
-      index,
-      coreTypes,
-      hierarchy,
-      diagnosticReporter,
-      referenceFromIndex,
-      ffiTransformerData.replacedGetters,
-      ffiTransformerData.replacedSetters,
-      ffiTransformerData.emptyCompounds);
+      index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
   libraries.forEach(transformer.visitLibrary);
 }
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
 class _FfiUseSiteTransformer extends FfiTransformer {
-  final Map<Field, Procedure> replacedGetters;
-  final Map<Field, Procedure> replacedSetters;
-  final Set<Class> emptyCompounds;
   StaticTypeContext _staticTypeContext;
 
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
@@ -86,10 +73,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
-      this.replacedGetters,
-      this.replacedSetters,
-      this.emptyCompounds)
+      ReferenceFromIndex referenceFromIndex)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex) {}
 
@@ -146,43 +130,21 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    super.visitPropertyGet(node);
-
-    final Procedure replacedWith = replacedGetters[node.interfaceTarget];
-    if (replacedWith != null) {
-      node = PropertyGet(node.receiver, replacedWith.name, replacedWith);
-    }
-
-    return node;
-  }
-
-  @override
-  visitPropertySet(PropertySet node) {
-    super.visitPropertySet(node);
-
-    final Procedure replacedWith = replacedSetters[node.interfaceTarget];
-    if (replacedWith != null) {
-      node = PropertySet(
-          node.receiver, replacedWith.name, node.value, replacedWith);
-    }
-
-    return node;
-  }
-
-  @override
   visitStaticInvocation(StaticInvocation node) {
     super.visitStaticInvocation(node);
 
     final Member target = node.target;
     try {
-      if (target == structPointerRef || target == structPointerElemAt) {
+      if (target == structPointerRef ||
+          target == structPointerElemAt ||
+          target == unionPointerRef ||
+          target == unionPointerElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceRef(node);
-      } else if (target == structArrayElemAt) {
+      } else if (target == structArrayElemAt || target == unionArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
@@ -220,7 +182,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyCompounds(dartType, node);
 
         final replacement = _replaceLookupFunction(node);
 
@@ -228,7 +189,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           final returnType = dartType.returnType;
           if (returnType is InterfaceType) {
             final clazz = returnType.classNode;
-            if (clazz.superclass == structClass) {
+            if (clazz.superclass == structClass ||
+                clazz.superclass == unionClass) {
               return _invokeCompoundConstructor(replacement, clazz);
             }
           }
@@ -241,7 +203,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyCompounds(dartType, node);
 
         final DartType nativeSignature =
             (nativeType as InterfaceType).typeArguments[0];
@@ -256,7 +217,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           final returnType = dartType.returnType;
           if (returnType is InterfaceType) {
             final clazz = returnType.classNode;
-            if (clazz.superclass == structClass) {
+            if (clazz.superclass == structClass ||
+                clazz.superclass == unionClass) {
               return _invokeCompoundConstructor(replacement, clazz);
             }
           }
@@ -272,7 +234,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyCompounds(dartType, node);
 
         final funcType = dartType as FunctionType;
 
@@ -286,7 +247,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         if (expectedReturn == NativeType.kVoid ||
             expectedReturn == NativeType.kPointer ||
             expectedReturn == NativeType.kHandle ||
-            expectedReturnClass.superclass == structClass) {
+            expectedReturnClass.superclass == structClass ||
+            expectedReturnClass.superclass == unionClass) {
           if (node.arguments.positional.length > 1) {
             diagnosticReporter.report(
                 templateFfiExpectedNoExceptionalReturn.withArguments(
@@ -351,7 +313,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final compoundClasses = funcType.positionalParameters
             .whereType<InterfaceType>()
             .map((t) => t.classNode)
-            .where((c) => c.superclass == structClass)
+            .where((c) =>
+                c.superclass == structClass || c.superclass == unionClass)
             .toList();
         return _invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
@@ -364,11 +327,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         Expression sizeInBytes = _inlineSizeOf(nativeType);
         if (sizeInBytes != null) {
           if (node.arguments.positional.length == 2) {
-            sizeInBytes = MethodInvocation(
-                node.arguments.positional[1],
-                numMultiplication.name,
-                Arguments([sizeInBytes]),
-                numMultiplication);
+            sizeInBytes = multiply(node.arguments.positional[1], sizeInBytes);
           }
           return MethodInvocation(
               node.arguments.positional[0],
@@ -425,7 +384,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final NativeType nt = getType(nativeClass);
     if (nt == null) {
       // User-defined compounds.
-      Field sizeOfField = nativeClass.fields.single;
+      Field sizeOfField = nativeClass.fields
+          .firstWhere((field) => field.name == Name('#sizeOf'));
       return StaticGet(sizeOfField);
     }
     final int size = nativeTypeSizes[nt.index];
@@ -521,11 +481,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           pointer,
           offsetByMethod.name,
           Arguments([
-            MethodInvocation(
-                node.arguments.positional[1],
-                numMultiplication.name,
-                Arguments([_inlineSizeOf(dartType)]),
-                numMultiplication)
+            multiply(node.arguments.positional[1], _inlineSizeOf(dartType))
           ]),
           offsetByMethod);
     }
@@ -539,11 +495,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
 
     final typedDataBasePrime = typedDataBaseOffset(
-        PropertyGet(NullCheck(node.arguments.positional[0]),
-            arrayTypedDataBaseField.name, arrayTypedDataBaseField),
-        MethodInvocation(node.arguments.positional[1], numMultiplication.name,
-            Arguments([StaticGet(clazz.fields.single)]), numMultiplication),
-        StaticGet(clazz.fields.single),
+        getArrayTypedDataBaseField(NullCheck(node.arguments.positional[0])),
+        multiply(node.arguments.positional[1], _inlineSizeOf(dartType)),
+        _inlineSizeOf(dartType),
         dartType,
         node.fileOffset);
 
@@ -610,26 +564,17 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final elementSizeVar = VariableDeclaration("#elementSize",
-        initializer: MethodInvocation(
+        initializer: multiply(
             VariableGet(singleElementSizeVar),
-            numMultiplication.name,
-            Arguments([
-              PropertyGet(
-                  VariableGet(arrayVar),
-                  arrayNestedDimensionsFlattened.name,
-                  arrayNestedDimensionsFlattened)
-            ]),
-            numMultiplication),
+            PropertyGet(
+                VariableGet(arrayVar),
+                arrayNestedDimensionsFlattened.name,
+                arrayNestedDimensionsFlattened)),
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final offsetVar = VariableDeclaration("#offset",
-        initializer: MethodInvocation(
-            VariableGet(elementSizeVar),
-            numMultiplication.name,
-            Arguments([
-              VariableGet(indexVar),
-            ]),
-            numMultiplication),
+        initializer:
+            multiply(VariableGet(elementSizeVar), VariableGet(indexVar)),
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
 
@@ -654,8 +599,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               arrayConstructor,
               Arguments([
                 typedDataBaseOffset(
-                    PropertyGet(VariableGet(arrayVar),
-                        arrayTypedDataBaseField.name, arrayTypedDataBaseField),
+                    getArrayTypedDataBaseField(VariableGet(arrayVar)),
                     VariableGet(offsetVar),
                     VariableGet(elementSizeVar),
                     dartType,
@@ -677,13 +621,11 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         StaticInvocation(
             memCopy,
             Arguments([
-              PropertyGet(VariableGet(arrayVar), arrayTypedDataBaseField.name,
-                  arrayTypedDataBaseField)
-                ..fileOffset = node.fileOffset,
+              getArrayTypedDataBaseField(
+                  VariableGet(arrayVar), node.fileOffset),
               VariableGet(offsetVar),
-              PropertyGet(node.arguments.positional[2],
-                  arrayTypedDataBaseField.name, arrayTypedDataBaseField)
-                ..fileOffset = node.fileOffset,
+              getArrayTypedDataBaseField(
+                  node.arguments.positional[2], node.fileOffset),
               ConstantExpression(IntConstant(0)),
               VariableGet(elementSizeVar),
             ]))
@@ -709,13 +651,41 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           return MethodInvocation(
               node.receiver,
               offsetByMethod.name,
-              Arguments([
-                MethodInvocation(
-                    node.arguments.positional.single,
-                    numMultiplication.name,
-                    Arguments([inlineSizeOf]),
-                    numMultiplication)
-              ]),
+              Arguments(
+                  [multiply(node.arguments.positional.single, inlineSizeOf)]),
+              offsetByMethod);
+        }
+      }
+    } on _FfiStaticTypeError {
+      // It's OK to swallow the exception because the diagnostics issued will
+      // cause compilation to fail. By continuing, we can report more
+      // diagnostics before compilation ends.
+    }
+
+    return node;
+  }
+
+  @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+
+    final Member target = node.interfaceTarget;
+    try {
+      if (target == elementAtMethod) {
+        final DartType pointerType =
+            node.receiver.getStaticType(_staticTypeContext);
+        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+
+        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+
+        Expression inlineSizeOf = _inlineSizeOf(nativeType);
+        if (inlineSizeOf != null) {
+          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
+          return MethodInvocation(
+              node.receiver,
+              offsetByMethod.name,
+              Arguments(
+                  [multiply(node.arguments.positional.single, inlineSizeOf)]),
               offsetByMethod);
         }
       }
@@ -771,29 +741,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     }
   }
 
-  void _ensureNoEmptyCompounds(DartType nativeType, Expression node) {
-    // Error on structs with no fields.
-    if (nativeType is InterfaceType) {
-      final Class nativeClass = nativeType.classNode;
-      if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
-        if (emptyCompounds.contains(nativeClass)) {
-          diagnosticReporter.report(
-              templateFfiEmptyStruct.withArguments(nativeClass.name),
-              node.fileOffset,
-              1,
-              node.location.file);
-        }
-      }
-    }
-
-    // Recurse when seeing a function type.
-    if (nativeType is FunctionType) {
-      nativeType.positionalParameters
-          .forEach((e) => _ensureNoEmptyCompounds(e, node));
-      _ensureNoEmptyCompounds(nativeType.returnType, node);
-    }
-  }
-
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(DartType nativeType,
@@ -830,13 +777,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         klass == compoundClass ||
         klass == opaqueClass ||
         klass == structClass ||
+        klass == unionClass ||
         nativeTypesClasses.contains(klass)) {
       return null;
     }
 
     // The Opaque and Struct classes can be extended, but subclasses
     // cannot be (nor implemented).
-    final onlyDirectExtendsClasses = [opaqueClass, structClass];
+    final onlyDirectExtendsClasses = [opaqueClass, structClass, unionClass];
     final superClass = klass.superclass;
     for (final onlyDirectExtendsClass in onlyDirectExtendsClasses) {
       if (hierarchy.isSubtypeOf(klass, onlyDirectExtendsClass)) {

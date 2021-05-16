@@ -21,8 +21,8 @@ class A extends core::Object {
     : self::A::unboxedSmi = unboxedSmi, self::A::unboxedInt = unboxedInt, self::A::unboxedDouble = unboxedDouble, self::A::boxedNullableInt = boxedNullableInt, self::A::boxedNullableDouble = boxedNullableDouble, self::A::boxedNonNullableIntOrDouble = boxedNonNullableIntOrDouble, self::A::boxedNullableIntOrDouble = boxedNullableIntOrDouble, self::A::boxedNullableX = boxedNullableX, self::A::boxedX = boxedX, super core::Object::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
 static field dynamic usedObject;
 [@vm.unboxing-info.metadata=()->i]static get mint() → core::int*
   return -6144092014192636707;

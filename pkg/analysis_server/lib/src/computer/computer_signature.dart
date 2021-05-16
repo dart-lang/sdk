@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
@@ -16,9 +17,11 @@ class DartUnitSignatureComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final AstNode? _node;
   late ArgumentList _argumentList;
+  final bool _isNonNullableByDefault;
   DartUnitSignatureComputer(
       this._dartdocInfo, CompilationUnit _unit, int _offset)
-      : _node = NodeLocator(_offset).searchWithin(_unit);
+      : _node = NodeLocator(_offset).searchWithin(_unit),
+        _isNonNullableByDefault = _unit.isNonNullableByDefault;
 
   /// The [ArgumentList] node located by [compute].
   ArgumentList get argumentList => _argumentList;
@@ -59,7 +62,8 @@ class DartUnitSignatureComputer {
 
     return AnalysisGetSignatureResult(name, parameters,
         dartdoc: DartUnitHoverComputer.computeDocumentation(
-            _dartdocInfo, execElement));
+                _dartdocInfo, execElement)
+            ?.full);
   }
 
   ParameterInfo _convertParam(ParameterElement param) {
@@ -72,7 +76,7 @@ class DartUnitSignatureComputer {
                     ? ParameterKind.REQUIRED_NAMED
                     : ParameterKind.REQUIRED_POSITIONAL,
         param.displayName,
-        param.type.getDisplayString(withNullability: false),
+        param.type.getDisplayString(withNullability: _isNonNullableByDefault),
         defaultValue: param.defaultValueCode);
   }
 

@@ -52,44 +52,44 @@ class ImportLibrary extends MultiCorrectionProducer {
         ]);
       }
     } else if (_importKind == _ImportKind.forTopLevelVariable) {
-      var node = this.node;
-      if (node is Annotation) {
-        var name = node.name;
+      var targetNode = node;
+      if (targetNode is Annotation) {
+        var name = targetNode.name;
         if (name.staticElement == null) {
-          if (node.arguments != null) {
+          if (targetNode.arguments != null) {
             return;
           }
-          node = name;
+          targetNode = name;
         }
       }
-      if (node is SimpleIdentifier) {
-        var name = node.name;
+      if (targetNode is SimpleIdentifier) {
+        var name = targetNode.name;
         yield* _importLibraryForElement(
             name,
             const [ElementKind.TOP_LEVEL_VARIABLE],
             const [TopLevelDeclarationKind.variable]);
       }
     } else if (_importKind == _ImportKind.forType) {
-      var node = this.node;
-      if (node is Annotation) {
-        var name = node.name;
+      var targetNode = node;
+      if (targetNode is Annotation) {
+        var name = targetNode.name;
         if (name.staticElement == null) {
-          if (node.arguments == null) {
+          if (targetNode.arguments == null) {
             return;
           }
-          node = name;
+          targetNode = name;
         }
       }
-      if (mightBeTypeIdentifier(node)) {
-        var typeName = (node is SimpleIdentifier)
-            ? node.name
-            : (node as PrefixedIdentifier).prefix.name;
+      if (mightBeTypeIdentifier(targetNode)) {
+        var typeName = (targetNode is SimpleIdentifier)
+            ? targetNode.name
+            : (targetNode as PrefixedIdentifier).prefix.name;
         yield* _importLibraryForElement(
             typeName,
             const [ElementKind.CLASS, ElementKind.FUNCTION_TYPE_ALIAS],
             const [TopLevelDeclarationKind.type]);
-      } else if (mightBeImplicitConstructor(node)) {
-        var typeName = (node as SimpleIdentifier).name;
+      } else if (mightBeImplicitConstructor(targetNode)) {
+        var typeName = (targetNode as SimpleIdentifier).name;
         yield* _importLibraryForElement(typeName, const [ElementKind.CLASS],
             const [TopLevelDeclarationKind.type]);
       }

@@ -782,7 +782,7 @@ class EnumListParameter : public MethodParameter {
   const char* const* enums_;
 };
 
-typedef bool (*ServiceMethodEntry)(Thread* thread, JSONStream* js);
+typedef void (*ServiceMethodEntry)(Thread* thread, JSONStream* js);
 
 struct ServiceMethodDescriptor {
   const char* name;
@@ -925,13 +925,8 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
         js.PostReply();
         return T->StealStickyError();
       }
-      if (method->entry(T, &js)) {
-        js.PostReply();
-      } else {
-        // NOTE(turnidge): All message handlers currently return true,
-        // so this case shouldn't be reached, at present.
-        UNIMPLEMENTED();
-      }
+      method->entry(T, &js);
+      js.PostReply();
       return T->StealStickyError();
     }
 
@@ -1405,9 +1400,8 @@ static const MethodParameter* get_isolate_params[] = {
     NULL,
 };
 
-static bool GetIsolate(Thread* thread, JSONStream* js) {
+static void GetIsolate(Thread* thread, JSONStream* js) {
   thread->isolate()->PrintJSON(js, false);
-  return true;
 }
 
 static const MethodParameter* get_isolate_group_params[] = {
@@ -1462,11 +1456,10 @@ static void ActOnIsolateGroup(JSONStream* js,
       /*if_not_found=*/[&js]() { PrintSentinel(js, kExpiredSentinel); });
 }
 
-static bool GetIsolateGroup(Thread* thread, JSONStream* js) {
+static void GetIsolateGroup(Thread* thread, JSONStream* js) {
   ActOnIsolateGroup(js, [&](IsolateGroup* isolate_group) {
     isolate_group->PrintJSON(js, false);
   });
-  return true;
 }
 
 static const MethodParameter* get_memory_usage_params[] = {
@@ -1474,9 +1467,8 @@ static const MethodParameter* get_memory_usage_params[] = {
     NULL,
 };
 
-static bool GetMemoryUsage(Thread* thread, JSONStream* js) {
+static void GetMemoryUsage(Thread* thread, JSONStream* js) {
   thread->isolate()->PrintMemoryUsageJSON(js);
-  return true;
 }
 
 static const MethodParameter* get_isolate_group_memory_usage_params[] = {
@@ -1484,11 +1476,10 @@ static const MethodParameter* get_isolate_group_memory_usage_params[] = {
     NULL,
 };
 
-static bool GetIsolateGroupMemoryUsage(Thread* thread, JSONStream* js) {
+static void GetIsolateGroupMemoryUsage(Thread* thread, JSONStream* js) {
   ActOnIsolateGroup(js, [&](IsolateGroup* isolate_group) {
     isolate_group->PrintMemoryUsageJSON(js);
   });
-  return true;
 }
 
 static const MethodParameter* get_scripts_params[] = {
@@ -1496,7 +1487,7 @@ static const MethodParameter* get_scripts_params[] = {
     NULL,
 };
 
-static bool GetScripts(Thread* thread, JSONStream* js) {
+static void GetScripts(Thread* thread, JSONStream* js) {
   auto object_store = thread->isolate_group()->object_store();
   Zone* zone = thread->zone();
 
@@ -1523,7 +1514,6 @@ static bool GetScripts(Thread* thread, JSONStream* js) {
       }
     }
   }
-  return true;
 }
 
 static const MethodParameter* get_stack_params[] = {
@@ -1532,9 +1522,9 @@ static const MethodParameter* get_stack_params[] = {
     NULL,
 };
 
-static bool GetStack(Thread* thread, JSONStream* js) {
+static void GetStack(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
   intptr_t limit = 0;
   bool has_limit = js->HasParam("limit");
@@ -1542,7 +1532,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     limit = UIntParameter::Parse(js->LookupParam("limit"));
     if (limit < 0) {
       PrintInvalidParamError(js, "limit");
-      return true;
+      return;
     }
   }
   Isolate* isolate = thread->isolate();
@@ -1606,16 +1596,13 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     MessageHandler::AcquiredQueues aq(isolate->message_handler());
     jsobj.AddProperty("messages", aq.queue());
   }
-
-  return true;
 }
 
-static bool HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
+static void HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
   jsobj->AddProperty("type", "_EchoResponse");
   if (js->HasParam("text")) {
     jsobj->AddProperty("text", js->LookupParam("text"));
   }
-  return true;
 }
 
 void Service::SendEchoEvent(Isolate* isolate, const char* text) {
@@ -1651,17 +1638,17 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
                     data_size);
 }
 
-static bool TriggerEchoEvent(Thread* thread, JSONStream* js) {
+static void TriggerEchoEvent(Thread* thread, JSONStream* js) {
   if (Service::echo_stream.enabled()) {
     Service::SendEchoEvent(thread->isolate(), js->LookupParam("text"));
   }
   JSONObject jsobj(js);
-  return HandleCommonEcho(&jsobj, js);
+  HandleCommonEcho(&jsobj, js);
 }
 
-static bool Echo(Thread* thread, JSONStream* js) {
+static void Echo(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
-  return HandleCommonEcho(&jsobj, js);
+  HandleCommonEcho(&jsobj, js);
 }
 
 static bool ContainsNonInstance(const Object& obj) {
@@ -2121,7 +2108,7 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
   return NULL;
 }
 
-static bool PrintInboundReferences(Thread* thread,
+static void PrintInboundReferences(Thread* thread,
                                    Object* target,
                                    intptr_t limit,
                                    JSONStream* js) {
@@ -2188,8 +2175,6 @@ static bool PrintInboundReferences(Thread* thread,
   for (intptr_t i = 0; i < path.Length(); i++) {
     path.SetAt(i, Object::null_object());
   }
-
-  return true;
 }
 
 static const MethodParameter* get_inbound_references_params[] = {
@@ -2197,21 +2182,21 @@ static const MethodParameter* get_inbound_references_params[] = {
     NULL,
 };
 
-static bool GetInboundReferences(Thread* thread, JSONStream* js) {
+static void GetInboundReferences(Thread* thread, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
-    return true;
+    return;
   }
   const char* limit_cstr = js->LookupParam("limit");
   if (limit_cstr == NULL) {
     PrintMissingParamError(js, "limit");
-    return true;
+    return;
   }
   intptr_t limit;
   if (!GetIntegerId(limit_cstr, &limit)) {
     PrintInvalidParamError(js, "limit");
-    return true;
+    return;
   }
 
   Object& obj = Object::Handle(thread->zone());
@@ -2228,12 +2213,12 @@ static bool GetInboundReferences(Thread* thread, JSONStream* js) {
     } else {
       PrintInvalidParamError(js, "targetId");
     }
-    return true;
+    return;
   }
-  return PrintInboundReferences(thread, &obj, limit, js);
+  PrintInboundReferences(thread, &obj, limit, js);
 }
 
-static bool PrintRetainingPath(Thread* thread,
+static void PrintRetainingPath(Thread* thread,
                                Object* obj,
                                intptr_t limit,
                                JSONStream* js) {
@@ -2323,8 +2308,6 @@ static bool PrintRetainingPath(Thread* thread,
   for (intptr_t i = 0; i < path.Length(); i++) {
     path.SetAt(i, Object::null_object());
   }
-
-  return true;
 }
 
 static const MethodParameter* get_retaining_path_params[] = {
@@ -2332,21 +2315,21 @@ static const MethodParameter* get_retaining_path_params[] = {
     NULL,
 };
 
-static bool GetRetainingPath(Thread* thread, JSONStream* js) {
+static void GetRetainingPath(Thread* thread, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
-    return true;
+    return;
   }
   const char* limit_cstr = js->LookupParam("limit");
   if (limit_cstr == NULL) {
     PrintMissingParamError(js, "limit");
-    return true;
+    return;
   }
   intptr_t limit;
   if (!GetIntegerId(limit_cstr, &limit)) {
     PrintInvalidParamError(js, "limit");
-    return true;
+    return;
   }
 
   Object& obj = Object::Handle(thread->zone());
@@ -2363,9 +2346,9 @@ static bool GetRetainingPath(Thread* thread, JSONStream* js) {
     } else {
       PrintInvalidParamError(js, "targetId");
     }
-    return true;
+    return;
   }
-  return PrintRetainingPath(thread, &obj, limit, js);
+  PrintRetainingPath(thread, &obj, limit, js);
 }
 
 static const MethodParameter* get_retained_size_params[] = {
@@ -2374,7 +2357,7 @@ static const MethodParameter* get_retained_size_params[] = {
     NULL,
 };
 
-static bool GetRetainedSize(Thread* thread, JSONStream* js) {
+static void GetRetainedSize(Thread* thread, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   ASSERT(target_id != NULL);
   ObjectIdRing::LookupResult lookup_result;
@@ -2388,7 +2371,7 @@ static bool GetRetainedSize(Thread* thread, JSONStream* js) {
     } else {
       PrintInvalidParamError(js, "targetId");
     }
-    return true;
+    return;
   }
   // TODO(rmacnak): There is no way to get the size retained by a class object.
   // SizeRetainedByClass should be a separate RPC.
@@ -2398,14 +2381,13 @@ static bool GetRetainedSize(Thread* thread, JSONStream* js) {
     intptr_t retained_size = graph.SizeRetainedByClass(cls.id());
     const Object& result = Object::Handle(Integer::New(retained_size));
     result.PrintJSON(js, true);
-    return true;
+    return;
   }
 
   ObjectGraph graph(thread);
   intptr_t retained_size = graph.SizeRetainedByInstance(obj);
   const Object& result = Object::Handle(Integer::New(retained_size));
   result.PrintJSON(js, true);
-  return true;
 }
 
 static const MethodParameter* get_reachable_size_params[] = {
@@ -2414,7 +2396,7 @@ static const MethodParameter* get_reachable_size_params[] = {
     NULL,
 };
 
-static bool GetReachableSize(Thread* thread, JSONStream* js) {
+static void GetReachableSize(Thread* thread, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
   ASSERT(target_id != NULL);
   ObjectIdRing::LookupResult lookup_result;
@@ -2428,7 +2410,7 @@ static bool GetReachableSize(Thread* thread, JSONStream* js) {
     } else {
       PrintInvalidParamError(js, "targetId");
     }
-    return true;
+    return;
   }
   // TODO(rmacnak): There is no way to get the size retained by a class object.
   // SizeRetainedByClass should be a separate RPC.
@@ -2438,14 +2420,13 @@ static bool GetReachableSize(Thread* thread, JSONStream* js) {
     intptr_t retained_size = graph.SizeReachableByClass(cls.id());
     const Object& result = Object::Handle(Integer::New(retained_size));
     result.PrintJSON(js, true);
-    return true;
+    return;
   }
 
   ObjectGraph graph(thread);
   intptr_t retained_size = graph.SizeReachableByInstance(obj);
   const Object& result = Object::Handle(Integer::New(retained_size));
   result.PrintJSON(js, true);
-  return true;
 }
 
 static const MethodParameter* invoke_params[] = {
@@ -2453,21 +2434,21 @@ static const MethodParameter* invoke_params[] = {
     NULL,
 };
 
-static bool Invoke(Thread* thread, JSONStream* js) {
+static void Invoke(Thread* thread, JSONStream* js) {
   const char* receiver_id = js->LookupParam("targetId");
   if (receiver_id == NULL) {
     PrintMissingParamError(js, "targetId");
-    return true;
+    return;
   }
   const char* selector_cstr = js->LookupParam("selector");
   if (selector_cstr == NULL) {
     PrintMissingParamError(js, "selector");
-    return true;
+    return;
   }
   const char* argument_ids = js->LookupParam("argumentIds");
   if (argument_ids == NULL) {
     PrintMissingParamError(js, "argumentIds");
-    return true;
+    return;
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2489,7 +2470,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     } else {
       PrintInvalidParamError(js, "targetId");
     }
-    return true;
+    return;
   }
 
   const GrowableObjectArray& growable_args =
@@ -2504,7 +2485,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
   intptr_t n = strlen(argument_ids);
   if ((n < 2) || (argument_ids[0] != '[') || (argument_ids[n - 1] != ']')) {
     PrintInvalidParamError(js, "argumentIds");
-    return true;
+    return;
   }
   if (n > 2) {
     intptr_t start = 1;
@@ -2516,7 +2497,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
       if (end == start) {
         // Empty element.
         PrintInvalidParamError(js, "argumentIds");
-        return true;
+        return;
       }
 
       const char* argument_id =
@@ -2529,7 +2510,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
       if (!(argument.IsInstance() || argument.IsNull()) ||
           ContainsNonInstance(argument)) {
         PrintInvalidParamError(js, "argumentIds");
-        return true;
+        return;
       }
       if (argument.ptr() == Object::sentinel().ptr()) {
         if (lookup_result == ObjectIdRing::kCollected) {
@@ -2539,7 +2520,7 @@ static bool Invoke(Thread* thread, JSONStream* js) {
         } else {
           PrintInvalidParamError(js, "argumentIds");
         }
-        return true;
+        return;
       }
       growable_args.Add(argument);
 
@@ -2557,14 +2538,14 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     const Object& result =
         Object::Handle(zone, lib.Invoke(selector, args, arg_names));
     result.PrintJSON(js, true);
-    return true;
+    return;
   }
   if (receiver.IsClass()) {
     const Class& cls = Class::Cast(receiver);
     const Object& result =
         Object::Handle(zone, cls.Invoke(selector, args, arg_names));
     result.PrintJSON(js, true);
-    return true;
+    return;
   }
   if (is_instance) {
     // We don't use Instance::Cast here because it doesn't allow null.
@@ -2573,13 +2554,12 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     const Object& result =
         Object::Handle(zone, instance.Invoke(selector, args, arg_names));
     result.PrintJSON(js, true);
-    return true;
+    return;
   }
   js->PrintError(kInvalidParams,
                  "%s: invalid 'targetId' parameter: "
                  "Cannot invoke against a VM-internal object",
                  js->method());
-  return true;
 }
 
 static const MethodParameter* evaluate_params[] = {
@@ -2697,14 +2677,13 @@ static bool BuildScope(Thread* thread,
   return false;
 }
 
-static bool Evaluate(Thread* thread, JSONStream* js) {
+static void Evaluate(Thread* thread, JSONStream* js) {
   // If a compilation service is available, this RPC invocation will have been
   // intercepted by RunningIsolates.routeRequest.
   js->PrintError(
       kExpressionCompilationError,
       "%s: No compilation service available; cannot evaluate from source.",
       js->method());
-  return true;
 }
 
 static const MethodParameter* build_expression_evaluation_scope_params[] = {
@@ -2714,9 +2693,9 @@ static const MethodParameter* build_expression_evaluation_scope_params[] = {
     NULL,
 };
 
-static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
+static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   Isolate* isolate = thread->isolate();
@@ -2724,7 +2703,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (framePos >= stack->Length()) {
     PrintInvalidParamError(js, "frameIndex");
-    return true;
+    return;
   }
 
   Zone* zone = thread->zone();
@@ -2739,7 +2718,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   bool isStatic = false;
 
   if (BuildScope(thread, js, param_names, param_values)) {
-    return true;
+    return;
   }
 
   if (js->HasParam("frameIndex")) {
@@ -2748,7 +2727,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
     if (framePos >= stack->Length()) {
       PrintInvalidParamError(js, "frameIndex");
-      return true;
+      return;
     }
 
     ActivationFrame* frame = stack->FrameAt(framePos);
@@ -2772,7 +2751,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     if (!js->HasParam("targetId")) {
       js->PrintError(kInvalidParams,
                      "Either targetId or frameIndex has to be provided.");
-      return true;
+      return;
     }
     const char* target_id = js->LookupParam("targetId");
 
@@ -2781,7 +2760,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         zone, LookupHeapObject(thread, target_id, &lookup_result));
     if (obj.ptr() == Object::sentinel().ptr()) {
       PrintInvalidParamError(js, "targetId");
-      return true;
+      return;
     }
     if (obj.IsLibrary()) {
       const Library& lib = Library::Cast(obj);
@@ -2804,7 +2783,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         js->PrintError(
             kInvalidParams,
             "Expressions can be evaluated only with regular Dart instances");
-        return true;
+        return;
       }
 
       if (!cls.IsTopLevel()) {
@@ -2843,8 +2822,6 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     report.AddProperty("klass", klass_name.ToCString());
   }
   report.AddProperty("isStatic", isStatic);
-
-  return true;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2895,13 +2872,12 @@ static const MethodParameter* compile_expression_params[] = {
     NULL,
 };
 
-static bool CompileExpression(Thread* thread, JSONStream* js) {
+static void CompileExpression(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
-  return true;
 #else
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   if (!KernelIsolate::IsRunning() && !KernelIsolate::Start()) {
@@ -2909,7 +2885,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
         kExpressionCompilationError,
         "%s: No compilation service available; cannot evaluate from source.",
         js->method());
-    return true;
+    return;
   }
 
   const char* klass = js->LookupParam("klass");
@@ -2920,14 +2896,14 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
   if (!ParseCSVList(js->LookupParam("definitions"), params)) {
     PrintInvalidParamError(js, "definitions");
-    return true;
+    return;
   }
 
   const GrowableObjectArray& type_params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
   if (!ParseCSVList(js->LookupParam("typeDefinitions"), type_params)) {
     PrintInvalidParamError(js, "typedDefinitions");
-    return true;
+    return;
   }
 
   const uint8_t* kernel_buffer = Service::dart_library_kernel();
@@ -2943,7 +2919,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     js->PrintError(kExpressionCompilationError, "%s", compilation_result.error);
     free(compilation_result.error);
-    return true;
+    return;
   }
 
   const uint8_t* kernel_bytes = compilation_result.kernel;
@@ -2952,7 +2928,6 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
 
   JSONObject report(js);
   report.AddPropertyBase64("kernelBytes", kernel_bytes, kernel_length);
-  return true;
 #endif
 }
 
@@ -2970,9 +2945,9 @@ ExternalTypedDataPtr DecodeKernelBuffer(const char* kernel_buffer_base64) {
   return ExternalTypedData::NewFinalizeWithFree(kernel_buffer, kernel_length);
 }
 
-static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
+static void EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   Isolate* isolate = thread->isolate();
@@ -2985,7 +2960,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (frame_pos >= stack->Length()) {
     PrintInvalidParamError(js, "frameIndex");
-    return true;
+    return;
   }
   Zone* zone = thread->zone();
   const GrowableObjectArray& param_names =
@@ -2993,7 +2968,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   const GrowableObjectArray& param_values =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   if (BuildScope(thread, js, param_names, param_values)) {
-    return true;
+    return;
   }
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
@@ -3006,7 +2981,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
     intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
     if (frame_pos >= stack->Length()) {
       PrintInvalidParamError(js, "frameIndex");
-      return true;
+      return;
     }
 
     ActivationFrame* frame = stack->FrameAt(frame_pos);
@@ -3022,13 +2997,12 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
             Array::Handle(zone, Array::MakeFixedLength(param_values)),
             type_arguments));
     result.PrintJSON(js, true);
-    return true;
   } else {
     // evaluating expression in the context of a given object
     if (!js->HasParam("targetId")) {
       js->PrintError(kInvalidParams,
                      "Either targetId or frameIndex has to be provided.");
-      return true;
+      return;
     }
     const char* target_id = js->LookupParam("targetId");
     ObjectIdRing::LookupResult lookup_result;
@@ -3042,7 +3016,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       } else {
         PrintInvalidParamError(js, "targetId");
       }
-      return true;
+      return;
     }
     TypeArguments& type_arguments = TypeArguments::Handle(zone);
     if (obj.IsLibrary()) {
@@ -3055,7 +3029,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
       result.PrintJSON(js, true);
-      return true;
+      return;
     }
     if (obj.IsClass()) {
       const Class& cls = Class::Cast(obj);
@@ -3067,7 +3041,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
       result.PrintJSON(js, true);
-      return true;
+      return;
     }
     if ((obj.IsInstance() || obj.IsNull()) && !ContainsNonInstance(obj)) {
       // We don't use Instance::Cast here because it doesn't allow null.
@@ -3082,13 +3056,12 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
       result.PrintJSON(js, true);
-      return true;
+      return;
     }
     js->PrintError(kInvalidParams,
                    "%s: invalid 'targetId' parameter: "
                    "Cannot evaluate against a VM-internal object",
                    js->method());
-    return true;
   }
 }
 
@@ -3099,33 +3072,81 @@ static const MethodParameter* evaluate_in_frame_params[] = {
     NULL,
 };
 
-static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
+static void EvaluateInFrame(Thread* thread, JSONStream* js) {
   // If a compilation service is available, this RPC invocation will have been
   // intercepted by RunningIsolates.routeRequest.
   js->PrintError(
       kExpressionCompilationError,
       "%s: No compilation service available; cannot evaluate from source.",
       js->method());
-  return true;
+}
+
+static void MarkClasses(const Class& root,
+                        bool include_subclasses,
+                        bool include_implementors) {
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+  SharedClassTable* table = thread->isolate()->group()->shared_class_table();
+  GrowableArray<const Class*> worklist;
+  table->SetCollectInstancesFor(root.id(), true);
+  worklist.Add(&root);
+  GrowableObjectArray& subclasses = GrowableObjectArray::Handle();
+  GrowableObjectArray& implementors = GrowableObjectArray::Handle();
+  while (!worklist.is_empty()) {
+    const Class& cls = *worklist.RemoveLast();
+    // All subclasses are implementors, but they are not included in
+    // `direct_implementors`.
+    if (include_subclasses || include_implementors) {
+      subclasses = cls.direct_subclasses_unsafe();
+      if (!subclasses.IsNull()) {
+        for (intptr_t j = 0; j < subclasses.Length(); j++) {
+          Class& subclass = Class::Handle();
+          subclass ^= subclasses.At(j);
+          if (!table->CollectInstancesFor(subclass.id())) {
+            table->SetCollectInstancesFor(subclass.id(), true);
+            worklist.Add(&subclass);
+          }
+        }
+      }
+    }
+    if (include_implementors) {
+      implementors = cls.direct_implementors_unsafe();
+      if (!implementors.IsNull()) {
+        for (intptr_t j = 0; j < implementors.Length(); j++) {
+          Class& implementor = Class::Handle();
+          implementor ^= implementors.At(j);
+          if (!table->CollectInstancesFor(implementor.id())) {
+            table->SetCollectInstancesFor(implementor.id(), true);
+            worklist.Add(&implementor);
+          }
+        }
+      }
+    }
+  }
+}
+
+static void UnmarkClasses() {
+  SharedClassTable* table = IsolateGroup::Current()->shared_class_table();
+  for (intptr_t i = 1; i < table->NumCids(); i++) {
+    table->SetCollectInstancesFor(i, false);
+  }
 }
 
 class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
-  GetInstancesVisitor(const Class& cls,
-                      ZoneGrowableHandlePtrArray<Object>* storage,
+  GetInstancesVisitor(ZoneGrowableHandlePtrArray<Object>* storage,
                       intptr_t limit)
-      : cls_(cls), storage_(storage), limit_(limit), count_(0) {}
+      : table_(IsolateGroup::Current()->shared_class_table()),
+        storage_(storage),
+        limit_(limit),
+        count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     ObjectPtr raw_obj = it->Get();
     if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
-    Thread* thread = Thread::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(thread);
-    Object& obj = thread->ObjectHandle();
-    obj = raw_obj;
-    if (obj.GetClassId() == cls_.id()) {
+    if (table_->CollectInstancesFor(raw_obj->GetClassId())) {
       if (count_ < limit_) {
         storage_->Add(Object::Handle(raw_obj));
       }
@@ -3137,7 +3158,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
   intptr_t count() const { return count_; }
 
  private:
-  const Class& cls_;
+  SharedClassTable* const table_;
   ZoneGrowableHandlePtrArray<Object>* storage_;
   const intptr_t limit_;
   intptr_t count_;
@@ -3148,27 +3169,27 @@ static const MethodParameter* get_instances_params[] = {
     NULL,
 };
 
-static bool GetInstances(Thread* thread, JSONStream* js) {
+static void GetInstances(Thread* thread, JSONStream* js) {
   const char* object_id = js->LookupParam("objectId");
   if (object_id == NULL) {
     PrintMissingParamError(js, "objectId");
-    return true;
+    return;
   }
   const char* limit_cstr = js->LookupParam("limit");
   if (limit_cstr == NULL) {
     PrintMissingParamError(js, "limit");
-    return true;
+    return;
   }
   intptr_t limit;
   if (!GetIntegerId(limit_cstr, &limit)) {
     PrintInvalidParamError(js, "limit");
-    return true;
+    return;
   }
 
   const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.ptr() == Object::sentinel().ptr() || !obj.IsClass()) {
     PrintInvalidParamError(js, "objectId");
-    return true;
+    return;
   }
   const Class& cls = Class::Cast(obj);
 
@@ -3177,11 +3198,13 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   HANDLESCOPE(thread);
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
-  GetInstancesVisitor visitor(cls, &storage, limit);
+  GetInstancesVisitor visitor(&storage, limit);
   {
     ObjectGraph graph(thread);
     HeapIterationScope iteration_scope(Thread::Current(), true);
+    MarkClasses(cls, false, false);
     graph.IterateObjects(&visitor);
+    UnmarkClasses();
   }
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
@@ -3193,7 +3216,54 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
       samples.AddValue(storage.At(i));
     }
   }
-  return true;
+}
+
+static const MethodParameter* get_instances_as_array_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
+  const char* object_id = js->LookupParam("objectId");
+  if (object_id == NULL) {
+    PrintMissingParamError(js, "objectId");
+    return;
+  }
+
+  bool include_subclasses =
+      BoolParameter::Parse(js->LookupParam("includeSubclasses"), false);
+  bool include_implementors =
+      BoolParameter::Parse(js->LookupParam("includeImplementors"), false);
+
+  const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
+  if (obj.ptr() == Object::sentinel().ptr() || !obj.IsClass()) {
+    PrintInvalidParamError(js, "objectId");
+    return;
+  }
+  const Class& cls = Class::Cast(obj);
+
+  // Ensure the array and handles created below are promptly destroyed.
+  Array& instances = Array::Handle();
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), 1024);
+    GetInstancesVisitor visitor(&storage, kSmiMax);
+    {
+      ObjectGraph graph(thread);
+      HeapIterationScope iteration_scope(Thread::Current(), true);
+      MarkClasses(cls, include_subclasses, include_implementors);
+      graph.IterateObjects(&visitor);
+      UnmarkClasses();
+    }
+    intptr_t count = visitor.count();
+    instances = Array::New(count);
+    for (intptr_t i = 0; i < count; i++) {
+      instances.SetAt(i, storage.At(i));
+    }
+  }
+  instances.PrintJSON(js, /* as_ref */ true);
 }
 
 static const MethodParameter* get_ports_params[] = {
@@ -3201,7 +3271,7 @@ static const MethodParameter* get_ports_params[] = {
     NULL,
 };
 
-static bool GetPorts(Thread* thread, JSONStream* js) {
+static void GetPorts(Thread* thread, JSONStream* js) {
   // Ensure the array and handles created below are promptly destroyed.
   StackZone zone(thread);
   HANDLESCOPE(thread);
@@ -3220,7 +3290,6 @@ static bool GetPorts(Thread* thread, JSONStream* js) {
       }
     }
   }
-  return true;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3245,13 +3314,12 @@ static const MethodParameter* get_source_report_params[] = {
     NULL,
 };
 
-static bool GetSourceReport(Thread* thread, JSONStream* js) {
+static void GetSourceReport(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "disabled in AOT mode and PRODUCT.");
-  return false;
 #else
   if (CheckCompilerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   const char* reports_str = js->LookupParam("reports");
@@ -3288,7 +3356,7 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
         Object::Handle(LookupHeapObject(thread, script_id_param, NULL));
     if (obj.ptr() == Object::sentinel().ptr() || !obj.IsScript()) {
       PrintInvalidParamError(js, "scriptId");
-      return true;
+      return;
     }
     script ^= obj.ptr();
   } else {
@@ -3297,20 +3365,19 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
           kInvalidParams,
           "%s: the 'tokenPos' parameter requires the 'scriptId' parameter",
           js->method());
-      return true;
+      return;
     }
     if (js->HasParam("endTokenPos")) {
       js->PrintError(
           kInvalidParams,
           "%s: the 'endTokenPos' parameter requires the 'scriptId' parameter",
           js->method());
-      return true;
+      return;
     }
   }
   SourceReport report(report_set, compile_mode);
   report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
                    TokenPosition::Deserialize(end_pos));
-  return true;
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
@@ -3323,20 +3390,19 @@ static const MethodParameter* reload_sources_params[] = {
     NULL,
 };
 
-static bool ReloadSources(Thread* thread, JSONStream* js) {
+static void ReloadSources(Thread* thread, JSONStream* js) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
-  return true;
 #else
   if (CheckCompilerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   IsolateGroup* isolate_group = thread->isolate_group();
   if (isolate_group->library_tag_handler() == nullptr) {
     js->PrintError(kFeatureDisabled,
                    "A library tag handler must be installed.");
-    return true;
+    return;
   }
   // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
   // call to accept an isolate group instead of an isolate.
@@ -3346,16 +3412,16 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
     js->PrintError(kIsolateReloadBarred,
                    "This isolate cannot reload sources anymore because there "
                    "was an unhandled exception error. Restart the isolate.");
-    return true;
+    return;
   }
   if (isolate_group->IsReloading()) {
     js->PrintError(kIsolateIsReloading, "This isolate is being reloaded.");
-    return true;
+    return;
   }
   if (!isolate_group->CanReload()) {
     js->PrintError(kFeatureDisabled,
                    "This isolate cannot reload sources right now.");
-    return true;
+    return;
   }
   const bool force_reload =
       BoolParameter::Parse(js->LookupParam("force"), false);
@@ -3365,7 +3431,6 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
 
   Service::CheckForPause(isolate, js);
 
-  return true;
 #endif
 }
 
@@ -3391,11 +3456,11 @@ ErrorPtr Service::MaybePause(Isolate* isolate, const Error& error) {
   return error.ptr();
 }
 
-static bool AddBreakpointCommon(Thread* thread,
+static void AddBreakpointCommon(Thread* thread,
                                 JSONStream* js,
                                 const String& script_uri) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   const char* line_param = js->LookupParam("line");
@@ -3407,7 +3472,7 @@ static bool AddBreakpointCommon(Thread* thread,
     if (col == 0) {
       // Column number is 1-based.
       PrintInvalidParamError(js, "column");
-      return true;
+      return;
     }
   }
   ASSERT(!script_uri.IsNull());
@@ -3418,10 +3483,9 @@ static bool AddBreakpointCommon(Thread* thread,
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at line '%s'", js->method(),
                    line_param);
-    return true;
+    return;
   }
   bpt->PrintJSON(js);
-  return true;
 }
 
 static const MethodParameter* add_breakpoint_params[] = {
@@ -3432,21 +3496,21 @@ static const MethodParameter* add_breakpoint_params[] = {
     NULL,
 };
 
-static bool AddBreakpoint(Thread* thread, JSONStream* js) {
+static void AddBreakpoint(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   const char* script_id_param = js->LookupParam("scriptId");
   Object& obj = Object::Handle(LookupHeapObject(thread, script_id_param, NULL));
   if (obj.ptr() == Object::sentinel().ptr() || !obj.IsScript()) {
     PrintInvalidParamError(js, "scriptId");
-    return true;
+    return;
   }
   const Script& script = Script::Cast(obj);
   const String& script_uri = String::Handle(script.url());
   ASSERT(!script_uri.IsNull());
-  return AddBreakpointCommon(thread, js, script_uri);
+  AddBreakpointCommon(thread, js, script_uri);
 }
 
 static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
@@ -3457,14 +3521,14 @@ static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
     NULL,
 };
 
-static bool AddBreakpointWithScriptUri(Thread* thread, JSONStream* js) {
+static void AddBreakpointWithScriptUri(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   const char* script_uri_param = js->LookupParam("scriptUri");
   const String& script_uri = String::Handle(String::New(script_uri_param));
-  return AddBreakpointCommon(thread, js, script_uri);
+  AddBreakpointCommon(thread, js, script_uri);
 }
 
 static const MethodParameter* add_breakpoint_at_entry_params[] = {
@@ -3473,16 +3537,16 @@ static const MethodParameter* add_breakpoint_at_entry_params[] = {
     NULL,
 };
 
-static bool AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
+static void AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   const char* function_id = js->LookupParam("functionId");
   Object& obj = Object::Handle(LookupHeapObject(thread, function_id, NULL));
   if (obj.ptr() == Object::sentinel().ptr() || !obj.IsFunction()) {
     PrintInvalidParamError(js, "functionId");
-    return true;
+    return;
   }
   const Function& function = Function::Cast(obj);
   Breakpoint* bpt =
@@ -3491,10 +3555,9 @@ static bool AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at function '%s'", js->method(),
                    function.ToCString());
-    return true;
+    return;
   }
   bpt->PrintJSON(js);
-  return true;
 }
 
 static const MethodParameter* add_breakpoint_at_activation_params[] = {
@@ -3503,16 +3566,16 @@ static const MethodParameter* add_breakpoint_at_activation_params[] = {
     NULL,
 };
 
-static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
+static void AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   const char* object_id = js->LookupParam("objectId");
   Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.ptr() == Object::sentinel().ptr() || !obj.IsInstance()) {
     PrintInvalidParamError(js, "objectId");
-    return true;
+    return;
   }
   const Instance& closure = Instance::Cast(obj);
   Breakpoint* bpt =
@@ -3520,10 +3583,9 @@ static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
   if (bpt == NULL) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at activation", js->method());
-    return true;
+    return;
   }
   bpt->PrintJSON(js);
-  return true;
 }
 
 static const MethodParameter* remove_breakpoint_params[] = {
@@ -3531,14 +3593,14 @@ static const MethodParameter* remove_breakpoint_params[] = {
     NULL,
 };
 
-static bool RemoveBreakpoint(Thread* thread, JSONStream* js) {
+static void RemoveBreakpoint(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   if (!js->HasParam("breakpointId")) {
     PrintMissingParamError(js, "breakpointId");
-    return true;
+    return;
   }
   const char* bpt_id = js->LookupParam("breakpointId");
   ObjectIdRing::LookupResult lookup_result;
@@ -3548,11 +3610,10 @@ static bool RemoveBreakpoint(Thread* thread, JSONStream* js) {
   // have been already removed?
   if (bpt == NULL) {
     PrintInvalidParamError(js, "breakpointId");
-    return true;
+    return;
   }
   isolate->debugger()->RemoveBreakpoint(bpt->id());
   PrintSuccess(js);
-  return true;
 }
 
 static ClassPtr GetMetricsClass(Thread* thread) {
@@ -3567,7 +3628,7 @@ static ClassPtr GetMetricsClass(Thread* thread) {
   return metrics_cls.ptr();
 }
 
-static bool HandleNativeMetricsList(Thread* thread, JSONStream* js) {
+static void HandleNativeMetricsList(Thread* thread, JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "MetricList");
   {
@@ -3585,15 +3646,14 @@ static bool HandleNativeMetricsList(Thread* thread, JSONStream* js) {
     ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
 #undef ADD_METRIC
   }
-  return true;
 }
 
-static bool HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
+static void HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
   auto isolate = thread->isolate();
 #define ADD_METRIC(type, variable, name, unit)                                 \
   if (strcmp(id, name) == 0) {                                                 \
     isolate->Get##variable##Metric()->PrintJSON(js);                           \
-    return true;                                                               \
+    return;                                                                    \
   }
   ISOLATE_METRIC_LIST(ADD_METRIC);
 #undef ADD_METRIC
@@ -3602,16 +3662,15 @@ static bool HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
 #define ADD_METRIC(type, variable, name, unit)                                 \
   if (strcmp(id, name) == 0) {                                                 \
     isolate_group->Get##variable##Metric()->PrintJSON(js);                     \
-    return true;                                                               \
+    return;                                                                    \
   }
   ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
 #undef ADD_METRIC
 
   PrintInvalidParamError(js, "metricId");
-  return true;
 }
 
-static bool HandleDartMetricsList(Thread* thread, JSONStream* js) {
+static void HandleDartMetricsList(Thread* thread, JSONStream* js) {
   Zone* zone = thread->zone();
   const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
   const auto& error = metrics_cls.EnsureIsFinalized(Thread::Current());
@@ -3629,10 +3688,9 @@ static bool HandleDartMetricsList(Thread* thread, JSONStream* js) {
   ASSERT(result.IsString());
   TextBuffer* buffer = js->buffer();
   buffer->AddString(String::Cast(result).ToCString());
-  return true;
 }
 
-static bool HandleDartMetric(Thread* thread, JSONStream* js, const char* id) {
+static void HandleDartMetric(Thread* thread, JSONStream* js, const char* id) {
   Zone* zone = thread->zone();
   const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
   const String& print_metric_name = String::Handle(String::New("_printMetric"));
@@ -3651,10 +3709,9 @@ static bool HandleDartMetric(Thread* thread, JSONStream* js, const char* id) {
     ASSERT(result.IsString());
     TextBuffer* buffer = js->buffer();
     buffer->AddString(String::Cast(result).ToCString());
-    return true;
+    return;
   }
   PrintInvalidParamError(js, "metricId");
-  return true;
 }
 
 static const MethodParameter* get_isolate_metric_list_params[] = {
@@ -3662,7 +3719,7 @@ static const MethodParameter* get_isolate_metric_list_params[] = {
     NULL,
 };
 
-static bool GetIsolateMetricList(Thread* thread, JSONStream* js) {
+static void GetIsolateMetricList(Thread* thread, JSONStream* js) {
   bool native_metrics = false;
   if (js->HasParam("type")) {
     if (js->ParamIs("type", "Native")) {
@@ -3671,16 +3728,17 @@ static bool GetIsolateMetricList(Thread* thread, JSONStream* js) {
       native_metrics = false;
     } else {
       PrintInvalidParamError(js, "type");
-      return true;
+      return;
     }
   } else {
     PrintMissingParamError(js, "type");
-    return true;
+    return;
   }
   if (native_metrics) {
-    return HandleNativeMetricsList(thread, js);
+    HandleNativeMetricsList(thread, js);
+  } else {
+    HandleDartMetricsList(thread, js);
   }
-  return HandleDartMetricsList(thread, js);
 }
 
 static const MethodParameter* get_isolate_metric_params[] = {
@@ -3688,52 +3746,31 @@ static const MethodParameter* get_isolate_metric_params[] = {
     NULL,
 };
 
-static bool GetIsolateMetric(Thread* thread, JSONStream* js) {
+static void GetIsolateMetric(Thread* thread, JSONStream* js) {
   const char* metric_id = js->LookupParam("metricId");
   if (metric_id == NULL) {
     PrintMissingParamError(js, "metricId");
-    return true;
+    return;
   }
   // Verify id begins with "metrics/".
   static const char* const kMetricIdPrefix = "metrics/";
   static intptr_t kMetricIdPrefixLen = strlen(kMetricIdPrefix);
   if (strncmp(metric_id, kMetricIdPrefix, kMetricIdPrefixLen) != 0) {
     PrintInvalidParamError(js, "metricId");
-    return true;
+    return;
   }
   // Check if id begins with "metrics/native/".
   static const char* const kNativeMetricIdPrefix = "metrics/native/";
   static intptr_t kNativeMetricIdPrefixLen = strlen(kNativeMetricIdPrefix);
   const bool native_metric =
       strncmp(metric_id, kNativeMetricIdPrefix, kNativeMetricIdPrefixLen) == 0;
+  const char* id = metric_id + (native_metric ? kNativeMetricIdPrefixLen
+                                              : kMetricIdPrefixLen);
   if (native_metric) {
-    const char* id = metric_id + kNativeMetricIdPrefixLen;
-    return HandleNativeMetric(thread, js, id);
+    HandleNativeMetric(thread, js, id);
+  } else {
+    HandleDartMetric(thread, js, id);
   }
-  const char* id = metric_id + kMetricIdPrefixLen;
-  return HandleDartMetric(thread, js, id);
-}
-
-static const MethodParameter* get_vm_metric_list_params[] = {
-    NO_ISOLATE_PARAMETER,
-    NULL,
-};
-
-static bool GetVMMetricList(Thread* thread, JSONStream* js) {
-  return false;
-}
-
-static const MethodParameter* get_vm_metric_params[] = {
-    NO_ISOLATE_PARAMETER,
-    NULL,
-};
-
-static bool GetVMMetric(Thread* thread, JSONStream* js) {
-  const char* metric_id = js->LookupParam("metricId");
-  if (metric_id == NULL) {
-    PrintMissingParamError(js, "metricId");
-  }
-  return false;
 }
 
 static const char* const timeline_streams_enum_names[] = {
@@ -3764,10 +3801,9 @@ static bool HasStream(const char** recorded_streams, const char* stream) {
 }
 #endif
 
-static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
+static void SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 #if !defined(SUPPORT_TIMELINE)
   PrintSuccess(js);
-  return true;
 #else
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
@@ -3792,8 +3828,6 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
   }
 
   PrintSuccess(js);
-
-  return true;
 #endif
 }
 
@@ -3802,17 +3836,15 @@ static const MethodParameter* get_vm_timeline_flags_params[] = {
     NULL,
 };
 
-static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
+static void GetVMTimelineFlags(Thread* thread, JSONStream* js) {
 #if !defined(SUPPORT_TIMELINE)
   JSONObject obj(js);
   obj.AddProperty("type", "TimelineFlags");
-  return true;
 #else
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
   Timeline::PrintFlagsToJSON(js);
-  return true;
 #endif
 }
 
@@ -3821,11 +3853,10 @@ static const MethodParameter* get_vm_timeline_micros_params[] = {
     NULL,
 };
 
-static bool GetVMTimelineMicros(Thread* thread, JSONStream* js) {
+static void GetVMTimelineMicros(Thread* thread, JSONStream* js) {
   JSONObject obj(js);
   obj.AddProperty("type", "Timestamp");
   obj.AddPropertyTimeMicros("timestamp", OS::GetCurrentMonotonicMicros());
-  return true;
 }
 
 static const MethodParameter* clear_vm_timeline_params[] = {
@@ -3833,7 +3864,7 @@ static const MethodParameter* clear_vm_timeline_params[] = {
     NULL,
 };
 
-static bool ClearVMTimeline(Thread* thread, JSONStream* js) {
+static void ClearVMTimeline(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
@@ -3841,8 +3872,6 @@ static bool ClearVMTimeline(Thread* thread, JSONStream* js) {
   Timeline::Clear();
 
   PrintSuccess(js);
-
-  return true;
 }
 
 static const MethodParameter* get_vm_timeline_params[] = {
@@ -3852,7 +3881,7 @@ static const MethodParameter* get_vm_timeline_params[] = {
     NULL,
 };
 
-static bool GetVMTimeline(Thread* thread, JSONStream* js) {
+static void GetVMTimeline(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
@@ -3870,7 +3899,7 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
                    "documentation for more details on where timeline events "
                    "can be found for this recorder type.",
                    timeline_recorder->name());
-    return true;
+    return;
   }
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
@@ -3878,7 +3907,6 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
       Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
   TimelineEventFilter filter(time_origin_micros, time_extent_micros);
   timeline_recorder->PrintJSON(js, &filter);
-  return true;
 }
 
 static const char* const step_enum_names[] = {
@@ -3899,7 +3927,7 @@ static const MethodParameter* resume_params[] = {
     NULL,
 };
 
-static bool Resume(Thread* thread, JSONStream* js) {
+static void Resume(Thread* thread, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   Debugger::ResumeAction step = Debugger::kContinue;
   if (step_param != NULL) {
@@ -3914,7 +3942,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
           kInvalidParams,
           "%s: the 'frameIndex' parameter can only be used when rewinding",
           js->method());
-      return true;
+      return;
     }
     frame_index = UIntParameter::Parse(js->LookupParam("frameIndex"));
   }
@@ -3932,7 +3960,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
       Service::HandleEvent(&event);
     }
     PrintSuccess(js);
-    return true;
+    return;
   }
   if (isolate->message_handler()->should_pause_on_start()) {
     isolate->message_handler()->set_should_pause_on_start(false);
@@ -3942,28 +3970,27 @@ static bool Resume(Thread* thread, JSONStream* js) {
       Service::HandleEvent(&event);
     }
     PrintSuccess(js);
-    return true;
+    return;
   }
   if (isolate->message_handler()->is_paused_on_exit()) {
     isolate->message_handler()->set_should_pause_on_exit(false);
     isolate->SetResumeRequest();
     // We don't send a resume event because we will be exiting.
     PrintSuccess(js);
-    return true;
+    return;
   }
   if (isolate->debugger()->PauseEvent() == NULL) {
     js->PrintError(kIsolateMustBePaused, NULL);
-    return true;
+    return;
   }
 
   const char* error = NULL;
   if (!isolate->debugger()->SetResumeAction(step, frame_index, &error)) {
     js->PrintError(kCannotResume, "%s", error);
-    return true;
+    return;
   }
   isolate->SetResumeRequest();
   PrintSuccess(js);
-  return true;
 }
 
 static const MethodParameter* kill_params[] = {
@@ -3971,14 +3998,13 @@ static const MethodParameter* kill_params[] = {
     NULL,
 };
 
-static bool Kill(Thread* thread, JSONStream* js) {
+static void Kill(Thread* thread, JSONStream* js) {
   const String& msg =
       String::Handle(String::New("isolate terminated by Kill service request"));
   const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
   error.set_is_user_initiated(true);
   Thread::Current()->set_sticky_error(error);
   PrintSuccess(js);
-  return true;
 }
 
 static const MethodParameter* pause_params[] = {
@@ -3986,7 +4012,7 @@ static const MethodParameter* pause_params[] = {
     NULL,
 };
 
-static bool Pause(Thread* thread, JSONStream* js) {
+static void Pause(Thread* thread, JSONStream* js) {
   // TODO(turnidge): This interrupt message could have been sent from
   // the service isolate directly, but would require some special case
   // code.  That would prevent this isolate getting double-interrupted
@@ -3995,20 +4021,18 @@ static bool Pause(Thread* thread, JSONStream* js) {
   isolate->SendInternalLibMessage(Isolate::kInterruptMsg,
                                   isolate->pause_capability());
   PrintSuccess(js);
-  return true;
 }
 
 static const MethodParameter* enable_profiler_params[] = {
     NULL,
 };
 
-static bool EnableProfiler(Thread* thread, JSONStream* js) {
+static void EnableProfiler(Thread* thread, JSONStream* js) {
   if (!FLAG_profiler) {
     FLAG_profiler = true;
     Profiler::Init();
   }
   PrintSuccess(js);
-  return true;
 }
 
 static const MethodParameter* get_tag_profile_params[] = {
@@ -4016,11 +4040,10 @@ static const MethodParameter* get_tag_profile_params[] = {
     NULL,
 };
 
-static bool GetTagProfile(Thread* thread, JSONStream* js) {
+static void GetTagProfile(Thread* thread, JSONStream* js) {
   JSONObject miniProfile(js);
   miniProfile.AddProperty("type", "TagProfile");
   thread->isolate()->vm_tag_counters()->PrintToJSONObject(&miniProfile);
-  return true;
 }
 
 static const MethodParameter* get_cpu_samples_params[] = {
@@ -4030,7 +4053,7 @@ static const MethodParameter* get_cpu_samples_params[] = {
     NULL,
 };
 
-static bool GetCpuSamples(Thread* thread, JSONStream* js) {
+static void GetCpuSamples(Thread* thread, JSONStream* js) {
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
@@ -4038,11 +4061,10 @@ static bool GetCpuSamples(Thread* thread, JSONStream* js) {
   const bool include_code_samples =
       BoolParameter::Parse(js->LookupParam("_code"), false);
   if (CheckProfilerDisabled(thread, js)) {
-    return true;
+    return;
   }
   ProfilerService::PrintJSON(js, time_origin_micros, time_extent_micros,
                              include_code_samples);
-  return true;
 }
 
 static const MethodParameter* get_allocation_traces_params[] = {
@@ -4053,7 +4075,7 @@ static const MethodParameter* get_allocation_traces_params[] = {
     NULL,
 };
 
-static bool GetAllocationTraces(Thread* thread, JSONStream* js) {
+static void GetAllocationTraces(Thread* thread, JSONStream* js) {
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
@@ -4067,7 +4089,7 @@ static bool GetAllocationTraces(Thread* thread, JSONStream* js) {
     GetPrefixedIntegerId(class_id, "classes/", &cid);
     if (IsValidClassId(isolate, cid)) {
       if (CheckProfilerDisabled(thread, js)) {
-        return true;
+        return;
       }
       const Class& cls = Class::Handle(GetClassForId(isolate, cid));
       ProfilerService::PrintAllocationJSON(js, cls, time_origin_micros,
@@ -4078,12 +4100,11 @@ static bool GetAllocationTraces(Thread* thread, JSONStream* js) {
   } else {
     // Otherwise, return allocations for all traced class IDs.
     if (CheckProfilerDisabled(thread, js)) {
-      return true;
+      return;
     }
     ProfilerService::PrintAllocationJSON(js, time_origin_micros,
                                          time_extent_micros);
   }
-  return true;
 }
 
 static const MethodParameter* get_native_allocation_samples_params[] = {
@@ -4093,7 +4114,7 @@ static const MethodParameter* get_native_allocation_samples_params[] = {
     NULL,
 };
 
-static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
+static void GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
@@ -4104,11 +4125,10 @@ static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
   IsolateGroup::Current()->heap()->CollectAllGarbage();
 #endif
   if (CheckNativeAllocationProfilerDisabled(thread, js)) {
-    return true;
+    return;
   }
   ProfilerService::PrintNativeAllocationJSON(
       js, time_origin_micros, time_extent_micros, include_code_samples);
-  return true;
 }
 
 static const MethodParameter* clear_cpu_samples_params[] = {
@@ -4116,13 +4136,12 @@ static const MethodParameter* clear_cpu_samples_params[] = {
     NULL,
 };
 
-static bool ClearCpuSamples(Thread* thread, JSONStream* js) {
+static void ClearCpuSamples(Thread* thread, JSONStream* js) {
   ProfilerService::ClearSamples();
   PrintSuccess(js);
-  return true;
 }
 
-static bool GetAllocationProfileImpl(Thread* thread,
+static void GetAllocationProfileImpl(Thread* thread,
                                      JSONStream* js,
                                      bool internal) {
   bool should_reset_accumulator = false;
@@ -4132,7 +4151,7 @@ static bool GetAllocationProfileImpl(Thread* thread,
       should_reset_accumulator = true;
     } else {
       PrintInvalidParamError(js, "reset");
-      return true;
+      return;
     }
   }
   if (js->HasParam("gc")) {
@@ -4140,7 +4159,7 @@ static bool GetAllocationProfileImpl(Thread* thread,
       should_collect = true;
     } else {
       PrintInvalidParamError(js, "gc");
-      return true;
+      return;
     }
   }
   auto isolate_group = thread->isolate_group();
@@ -4152,7 +4171,6 @@ static bool GetAllocationProfileImpl(Thread* thread,
     isolate_group->heap()->CollectAllGarbage();
   }
   isolate_group->class_table()->AllocationProfilePrintJSON(js, internal);
-  return true;
 }
 
 static const MethodParameter* get_allocation_profile_params[] = {
@@ -4160,12 +4178,12 @@ static const MethodParameter* get_allocation_profile_params[] = {
     NULL,
 };
 
-static bool GetAllocationProfilePublic(Thread* thread, JSONStream* js) {
-  return GetAllocationProfileImpl(thread, js, false);
+static void GetAllocationProfilePublic(Thread* thread, JSONStream* js) {
+  GetAllocationProfileImpl(thread, js, false);
 }
 
-static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
-  return GetAllocationProfileImpl(thread, js, true);
+static void GetAllocationProfile(Thread* thread, JSONStream* js) {
+  GetAllocationProfileImpl(thread, js, true);
 }
 
 static const MethodParameter* collect_all_garbage_params[] = {
@@ -4173,11 +4191,10 @@ static const MethodParameter* collect_all_garbage_params[] = {
     NULL,
 };
 
-static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
+static void CollectAllGarbage(Thread* thread, JSONStream* js) {
   auto heap = thread->isolate_group()->heap();
   heap->CollectAllGarbage(Heap::kDebugging);
   PrintSuccess(js);
-  return true;
 }
 
 static const MethodParameter* get_heap_map_params[] = {
@@ -4185,7 +4202,7 @@ static const MethodParameter* get_heap_map_params[] = {
     NULL,
 };
 
-static bool GetHeapMap(Thread* thread, JSONStream* js) {
+static void GetHeapMap(Thread* thread, JSONStream* js) {
   auto isolate_group = thread->isolate_group();
   if (js->HasParam("gc")) {
     if (js->ParamIs("gc", "scavenge")) {
@@ -4197,11 +4214,10 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
                                             Heap::kDebugging);
     } else {
       PrintInvalidParamError(js, "gc");
-      return true;
+      return;
     }
   }
   isolate_group->heap()->PrintHeapMapToJSONStream(isolate_group, js);
-  return true;
 }
 
 static const MethodParameter* request_heap_snapshot_params[] = {
@@ -4209,14 +4225,13 @@ static const MethodParameter* request_heap_snapshot_params[] = {
     NULL,
 };
 
-static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
+static void RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   if (Service::heapsnapshot_stream.enabled()) {
     HeapSnapshotWriter writer(thread);
     writer.Write();
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
   PrintSuccess(js);
-  return true;
 }
 
 static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
@@ -4229,94 +4244,122 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   rss.AddProperty64("size", Service::CurrentRSS());
   JSONArray rss_children(&rss, "children");
 
-  JSONObject vm(&rss_children);
   intptr_t vm_size = 0;
   {
-    JSONArray vm_children(&vm, "children");
+    JSONObject vm(&rss_children);
+    {
+      JSONArray vm_children(&vm, "children");
+
+      {
+        JSONObject profiler(&vm_children);
+        profiler.AddProperty("name", "Profiler");
+        profiler.AddProperty("description",
+                             "Samples from the Dart VM's profiler");
+        intptr_t size = Profiler::Size();
+        vm_size += size;
+        profiler.AddProperty64("size", size);
+        JSONArray(&profiler, "children");
+      }
+
+      {
+        JSONObject timeline(&vm_children);
+        timeline.AddProperty("name", "Timeline");
+        timeline.AddProperty(
+            "description",
+            "Timeline events from dart:developer and Dart_TimelineEvent");
+        intptr_t size = Timeline::recorder()->Size();
+        vm_size += size;
+        timeline.AddProperty64("size", size);
+        JSONArray(&timeline, "children");
+      }
+
+      {
+        JSONObject zone(&vm_children);
+        zone.AddProperty("name", "Zone");
+        zone.AddProperty("description", "Arena allocation in the Dart VM");
+        intptr_t size = Zone::Size();
+        vm_size += size;
+        zone.AddProperty64("size", size);
+        JSONArray(&zone, "children");
+      }
+
+      {
+        JSONObject semi(&vm_children);
+        semi.AddProperty("name", "SemiSpace Cache");
+        semi.AddProperty("description", "Cached heap regions");
+        intptr_t size = SemiSpace::CachedSize();
+        vm_size += size;
+        semi.AddProperty64("size", size);
+        JSONArray(&semi, "children");
+      }
+
+      IsolateGroup::ForEach([&vm_children,
+                             &vm_size](IsolateGroup* isolate_group) {
+        // Note: new_space()->CapacityInWords() includes memory that hasn't been
+        // allocated from the OS yet.
+        int64_t capacity =
+            (isolate_group->heap()->new_space()->UsedInWords() +
+             isolate_group->heap()->old_space()->CapacityInWords()) *
+            kWordSize;
+        int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+        int64_t free = capacity - used;
+
+        JSONObject group(&vm_children);
+        group.AddPropertyF("name", "IsolateGroup %s",
+                           isolate_group->source()->name);
+        group.AddProperty("description", "Dart heap capacity");
+        vm_size += capacity;
+        group.AddProperty64("size", capacity);
+        JSONArray group_children(&group, "children");
+
+        {
+          JSONObject jsused(&group_children);
+          jsused.AddProperty("name", "Used");
+          jsused.AddProperty("description", "");
+          jsused.AddProperty64("size", used);
+          JSONArray(&jsused, "children");
+        }
+
+        {
+          JSONObject jsfree(&group_children);
+          jsfree.AddProperty("name", "Free");
+          jsfree.AddProperty("description", "");
+          jsfree.AddProperty64("size", free);
+          JSONArray(&jsfree, "children");
+        }
+      });
+    }  // vm_children
+
+    vm.AddProperty("name", "Dart VM");
+    vm.AddProperty("description", "");
+    vm.AddProperty64("size", vm_size);
+  }
+
+  intptr_t used, capacity;
+  const char* implementation;
+  if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
+    JSONObject malloc(&rss_children);
+    malloc.AddPropertyF("name", "Malloc (%s)", implementation);
+    malloc.AddProperty("description", "");
+    malloc.AddProperty64("size", capacity);
+    JSONArray malloc_children(&malloc, "children");
 
     {
-      JSONObject profiler(&vm_children);
-      profiler.AddProperty("name", "Profiler");
-      profiler.AddProperty("description",
-                           "Samples from the Dart VM's profiler");
-      intptr_t size = Profiler::Size();
-      vm_size += size;
-      profiler.AddProperty64("size", size);
-      JSONArray(&profiler, "children");
+      JSONObject malloc_used(&malloc_children);
+      malloc_used.AddProperty("name", "Used");
+      malloc_used.AddProperty("description", "");
+      malloc_used.AddProperty64("size", used);
+      JSONArray(&malloc_used, "children");
     }
 
     {
-      JSONObject timeline(&vm_children);
-      timeline.AddProperty("name", "Timeline");
-      timeline.AddProperty(
-          "description",
-          "Timeline events from dart:developer and Dart_TimelineEvent");
-      intptr_t size = Timeline::recorder()->Size();
-      vm_size += size;
-      timeline.AddProperty64("size", size);
-      JSONArray(&timeline, "children");
+      JSONObject malloc_free(&malloc_children);
+      malloc_free.AddProperty("name", "Free");
+      malloc_free.AddProperty("description", "");
+      malloc_free.AddProperty64("size", capacity - used);
+      JSONArray(&malloc_free, "children");
     }
-
-    {
-      JSONObject zone(&vm_children);
-      zone.AddProperty("name", "Zone");
-      zone.AddProperty("description", "Arena allocation in the Dart VM");
-      intptr_t size = Zone::Size();
-      vm_size += size;
-      zone.AddProperty64("size", size);
-      JSONArray(&zone, "children");
-    }
-
-    {
-      JSONObject semi(&vm_children);
-      semi.AddProperty("name", "SemiSpace Cache");
-      semi.AddProperty("description", "Cached heap regions");
-      intptr_t size = SemiSpace::CachedSize();
-      vm_size += size;
-      semi.AddProperty64("size", size);
-      JSONArray(&semi, "children");
-    }
-
-    IsolateGroup::ForEach(
-        [&vm_children, &vm_size](IsolateGroup* isolate_group) {
-          // Note: new_space()->CapacityInWords() includes memory that hasn't
-          // been allocated from the OS yet.
-          int64_t capacity =
-              (isolate_group->heap()->new_space()->UsedInWords() +
-               isolate_group->heap()->old_space()->CapacityInWords()) *
-              kWordSize;
-          int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
-          int64_t free = capacity - used;
-
-          JSONObject group(&vm_children);
-          group.AddPropertyF("name", "IsolateGroup %s",
-                             isolate_group->source()->name);
-          group.AddProperty("description", "Dart heap capacity");
-          vm_size += capacity;
-          group.AddProperty64("size", capacity);
-          JSONArray group_children(&group, "children");
-
-          {
-            JSONObject jsused(&group_children);
-            jsused.AddProperty("name", "Used");
-            jsused.AddProperty("description", "");
-            jsused.AddProperty64("size", used);
-            JSONArray(&jsused, "children");
-          }
-
-          {
-            JSONObject jsfree(&group_children);
-            jsfree.AddProperty("name", "Free");
-            jsfree.AddProperty("description", "");
-            jsfree.AddProperty64("size", free);
-            JSONArray(&jsfree, "children");
-          }
-        });
-  }  // vm_children
-
-  vm.AddProperty("name", "Dart VM");
-  vm.AddProperty("description", "");
-  vm.AddProperty64("size", vm_size);
+  }
 
   return vm_size;
 }
@@ -4325,9 +4368,8 @@ static const MethodParameter* get_process_memory_usage_params[] = {
     NULL,
 };
 
-static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
+static void GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
   GetProcessMemoryUsageHelper(js);
-  return true;
 }
 
 void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
@@ -4446,7 +4488,7 @@ class PersistentHandleVisitor : public HandleVisitor {
   JSONArray* handles_;
 };
 
-static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
+static void GetPersistentHandles(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
 
@@ -4477,8 +4519,6 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
           });
     }
   }
-
-  return true;
 }
 
 static const MethodParameter* get_ports_private_params[] = {
@@ -4486,13 +4526,12 @@ static const MethodParameter* get_ports_private_params[] = {
     NULL,
 };
 
-static bool GetPortsPrivate(Thread* thread, JSONStream* js) {
+static void GetPortsPrivate(Thread* thread, JSONStream* js) {
   MessageHandler* message_handler = thread->isolate()->message_handler();
   PortMap::PrintPortsForMessageHandler(message_handler, js);
-  return true;
 }
 
-static bool RespondWithMalformedJson(Thread* thread, JSONStream* js) {
+static void RespondWithMalformedJson(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("a", "a");
   JSONObject jsobj1(js);
@@ -4501,13 +4540,11 @@ static bool RespondWithMalformedJson(Thread* thread, JSONStream* js) {
   jsobj2.AddProperty("a", "a");
   JSONObject jsobj3(js);
   jsobj3.AddProperty("a", "a");
-  return true;
 }
 
-static bool RespondWithMalformedObject(Thread* thread, JSONStream* js) {
+static void RespondWithMalformedObject(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("bart", "simpson");
-  return true;
 }
 
 static const MethodParameter* get_object_params[] = {
@@ -4517,17 +4554,17 @@ static const MethodParameter* get_object_params[] = {
     NULL,
 };
 
-static bool GetObject(Thread* thread, JSONStream* js) {
+static void GetObject(Thread* thread, JSONStream* js) {
   const char* id = js->LookupParam("objectId");
   if (id == NULL) {
     PrintMissingParamError(js, "objectId");
-    return true;
+    return;
   }
   if (js->HasParam("offset")) {
     intptr_t value = UIntParameter::Parse(js->LookupParam("offset"));
     if (value < 0) {
       PrintInvalidParamError(js, "offset");
-      return true;
+      return;
     }
     js->set_offset(value);
   }
@@ -4535,7 +4572,7 @@ static bool GetObject(Thread* thread, JSONStream* js) {
     intptr_t value = UIntParameter::Parse(js->LookupParam("count"));
     if (value < 0) {
       PrintInvalidParamError(js, "count");
-      return true;
+      return;
     }
     js->set_count(value);
   }
@@ -4561,27 +4598,26 @@ static bool GetObject(Thread* thread, JSONStream* js) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     // We found a heap object for this id.  Return it.
     obj.PrintJSON(js, false);
-    return true;
+    return;
   } else if (lookup_result == ObjectIdRing::kCollected) {
     PrintSentinel(js, kCollectedSentinel);
-    return true;
+    return;
   } else if (lookup_result == ObjectIdRing::kExpired) {
     PrintSentinel(js, kExpiredSentinel);
-    return true;
+    return;
   }
 
   // Handle non-heap objects.
   Breakpoint* bpt = LookupBreakpoint(thread->isolate(), id, &lookup_result);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
-    return true;
+    return;
   } else if (lookup_result == ObjectIdRing::kCollected) {
     PrintSentinel(js, kCollectedSentinel);
-    return true;
+    return;
   }
 
   PrintInvalidParamError(js, "objectId");
-  return true;
 }
 
 static const MethodParameter* get_object_store_params[] = {
@@ -4589,10 +4625,9 @@ static const MethodParameter* get_object_store_params[] = {
     NULL,
 };
 
-static bool GetObjectStore(Thread* thread, JSONStream* js) {
+static void GetObjectStore(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   thread->isolate_group()->object_store()->PrintToJSONObject(&jsobj);
-  return true;
 }
 
 static const MethodParameter* get_isolate_object_store_params[] = {
@@ -4600,10 +4635,9 @@ static const MethodParameter* get_isolate_object_store_params[] = {
     NULL,
 };
 
-static bool GetIsolateObjectStore(Thread* thread, JSONStream* js) {
+static void GetIsolateObjectStore(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   thread->isolate()->isolate_object_store()->PrintToJSONObject(&jsobj);
-  return true;
 }
 
 static const MethodParameter* get_class_list_params[] = {
@@ -4611,11 +4645,10 @@ static const MethodParameter* get_class_list_params[] = {
     NULL,
 };
 
-static bool GetClassList(Thread* thread, JSONStream* js) {
+static void GetClassList(Thread* thread, JSONStream* js) {
   ClassTable* table = thread->isolate_group()->class_table();
   JSONObject jsobj(js);
   table->PrintToJSONObject(&jsobj);
-  return true;
 }
 
 static const MethodParameter* get_type_arguments_list_params[] = {
@@ -4623,7 +4656,7 @@ static const MethodParameter* get_type_arguments_list_params[] = {
     NULL,
 };
 
-static bool GetTypeArgumentsList(Thread* thread, JSONStream* js) {
+static void GetTypeArgumentsList(Thread* thread, JSONStream* js) {
   bool only_with_instantiations = false;
   if (js->ParamIs("onlyWithInstantiations", "true")) {
     only_with_instantiations = true;
@@ -4652,7 +4685,6 @@ static bool GetTypeArgumentsList(Thread* thread, JSONStream* js) {
     }
   }
   typeargs_table.Release();
-  return true;
 }
 
 static const MethodParameter* get_version_params[] = {
@@ -4660,7 +4692,7 @@ static const MethodParameter* get_version_params[] = {
     NULL,
 };
 
-static bool GetVersion(Thread* thread, JSONStream* js) {
+static void GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major",
@@ -4669,7 +4701,6 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
                     static_cast<intptr_t>(SERVICE_PROTOCOL_MINOR_VERSION));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
-  return true;
 }
 
 class ServiceIsolateVisitor : public IsolateVisitor {
@@ -4748,7 +4779,15 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
-  MallocHooks::PrintToJSONObject(&jsobj);
+  {
+    intptr_t used, capacity;
+    const char* implementation;
+    if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
+      jsobj.AddProperty("_mallocUsed", used);
+      jsobj.AddProperty("_mallocCapacity", capacity);
+      jsobj.AddProperty("_mallocImplementation", implementation);
+    }
+  }
   PrintJSONForEmbedderInformation(&jsobj);
   // Construct the isolate and isolate_groups list.
   {
@@ -4788,9 +4827,8 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   }
 }
 
-static bool GetVM(Thread* thread, JSONStream* js) {
+static void GetVM(Thread* thread, JSONStream* js) {
   Service::PrintJSONForVM(js, false);
-  return true;
 }
 
 static const char* exception_pause_mode_names[] = {
@@ -4813,17 +4851,17 @@ static const MethodParameter* set_exception_pause_mode_params[] = {
     NULL,
 };
 
-static bool SetExceptionPauseMode(Thread* thread, JSONStream* js) {
+static void SetExceptionPauseMode(Thread* thread, JSONStream* js) {
   const char* mode = js->LookupParam("mode");
   if (mode == NULL) {
     PrintMissingParamError(js, "mode");
-    return true;
+    return;
   }
   Dart_ExceptionPauseInfo info =
       EnumMapper(mode, exception_pause_mode_names, exception_pause_mode_values);
   if (info == kInvalidExceptionPauseInfo) {
     PrintInvalidParamError(js, "mode");
-    return true;
+    return;
   }
   Isolate* isolate = thread->isolate();
   isolate->debugger()->SetExceptionPauseInfo(info);
@@ -4832,7 +4870,6 @@ static bool SetExceptionPauseMode(Thread* thread, JSONStream* js) {
     Service::HandleEvent(&event);
   }
   PrintSuccess(js);
-  return true;
 }
 
 static const MethodParameter* set_breakpoint_state_params[] = {
@@ -4842,7 +4879,7 @@ static const MethodParameter* set_breakpoint_state_params[] = {
     nullptr,
 };
 
-static bool SetBreakpointState(Thread* thread, JSONStream* js) {
+static void SetBreakpointState(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   const char* bpt_id = js->LookupParam("breakpointId");
   bool enable = BoolParameter::Parse(js->LookupParam("enable"), true);
@@ -4852,7 +4889,7 @@ static bool SetBreakpointState(Thread* thread, JSONStream* js) {
   // have been already removed?
   if (bpt == nullptr) {
     PrintInvalidParamError(js, "breakpointId");
-    return true;
+    return;
   }
   if (isolate->debugger()->SetBreakpointState(bpt, enable)) {
     if (Service::debug_stream.enabled()) {
@@ -4862,7 +4899,6 @@ static bool SetBreakpointState(Thread* thread, JSONStream* js) {
     }
   }
   bpt->PrintJSON(js);
-  return true;
 }
 
 static const MethodParameter* get_flag_list_params[] = {
@@ -4870,9 +4906,8 @@ static const MethodParameter* get_flag_list_params[] = {
     NULL,
 };
 
-static bool GetFlagList(Thread* thread, JSONStream* js) {
+static void GetFlagList(Thread* thread, JSONStream* js) {
   Flags::PrintJSON(js);
-  return true;
 }
 
 static const MethodParameter* set_flags_params[] = {
@@ -4880,23 +4915,23 @@ static const MethodParameter* set_flags_params[] = {
     NULL,
 };
 
-static bool SetFlag(Thread* thread, JSONStream* js) {
+static void SetFlag(Thread* thread, JSONStream* js) {
   const char* flag_name = js->LookupParam("name");
   if (flag_name == NULL) {
     PrintMissingParamError(js, "name");
-    return true;
+    return;
   }
   const char* flag_value = js->LookupParam("value");
   if (flag_value == NULL) {
     PrintMissingParamError(js, "value");
-    return true;
+    return;
   }
 
   if (Flags::Lookup(flag_name) == NULL) {
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Error");
     jsobj.AddProperty("message", "Cannot set flag: flag not found");
-    return true;
+    return;
   }
 
   // Changing most flags at runtime is dangerous because e.g., it may leave the
@@ -4927,7 +4962,7 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Error");
     jsobj.AddProperty("message", "Cannot set flag: cannot change at runtime");
-    return true;
+    return;
   }
 
   const char* error = NULL;
@@ -4947,12 +4982,10 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
       event.set_flag_new_value(flag_value);
       Service::HandleEvent(&event);
     }
-    return true;
   } else {
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Error");
     jsobj.AddProperty("message", error);
-    return true;
   }
 }
 
@@ -4963,7 +4996,7 @@ static const MethodParameter* set_library_debuggable_params[] = {
     NULL,
 };
 
-static bool SetLibraryDebuggable(Thread* thread, JSONStream* js) {
+static void SetLibraryDebuggable(Thread* thread, JSONStream* js) {
   const char* lib_id = js->LookupParam("libraryId");
   ObjectIdRing::LookupResult lookup_result;
   Object& obj =
@@ -4974,10 +5007,9 @@ static bool SetLibraryDebuggable(Thread* thread, JSONStream* js) {
     const Library& lib = Library::Cast(obj);
     lib.set_debuggable(is_debuggable);
     PrintSuccess(js);
-    return true;
+    return;
   }
   PrintInvalidParamError(js, "libraryId");
-  return true;
 }
 
 static const MethodParameter* set_name_params[] = {
@@ -4986,7 +5018,7 @@ static const MethodParameter* set_name_params[] = {
     NULL,
 };
 
-static bool SetName(Thread* thread, JSONStream* js) {
+static void SetName(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   isolate->set_name(js->LookupParam("name"));
   if (Service::isolate_stream.enabled()) {
@@ -4994,7 +5026,7 @@ static bool SetName(Thread* thread, JSONStream* js) {
     Service::HandleEvent(&event);
   }
   PrintSuccess(js);
-  return true;
+  return;
 }
 
 static const MethodParameter* set_vm_name_params[] = {
@@ -5003,7 +5035,7 @@ static const MethodParameter* set_vm_name_params[] = {
     NULL,
 };
 
-static bool SetVMName(Thread* thread, JSONStream* js) {
+static void SetVMName(Thread* thread, JSONStream* js) {
   const char* name_param = js->LookupParam("name");
   free(vm_name);
   vm_name = Utils::StrDup(name_param);
@@ -5012,7 +5044,7 @@ static bool SetVMName(Thread* thread, JSONStream* js) {
     Service::HandleEvent(&event);
   }
   PrintSuccess(js);
-  return true;
+  return;
 }
 
 static const MethodParameter* set_trace_class_allocation_params[] = {
@@ -5022,9 +5054,9 @@ static const MethodParameter* set_trace_class_allocation_params[] = {
     NULL,
 };
 
-static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
+static void SetTraceClassAllocation(Thread* thread, JSONStream* js) {
   if (CheckCompilerDisabled(thread, js)) {
-    return true;
+    return;
   }
 
   const char* class_id = js->LookupParam("classId");
@@ -5034,13 +5066,12 @@ static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   if (!IsValidClassId(isolate, cid)) {
     PrintInvalidParamError(js, "classId");
-    return true;
+    return;
   }
   const Class& cls = Class::Handle(GetClassForId(isolate, cid));
   ASSERT(!cls.IsNull());
   cls.SetTraceAllocation(enable);
   PrintSuccess(js);
-  return true;
 }
 
 static const MethodParameter* get_default_classes_aliases_params[] = {
@@ -5048,7 +5079,7 @@ static const MethodParameter* get_default_classes_aliases_params[] = {
     NULL,
 };
 
-static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
+static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "ClassesAliasesMap");
 
@@ -5121,8 +5152,6 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
 #undef DEFINE_ADD_MAP_KEY
 #undef DEFINE_ADD_VALUE_F_CID
 #undef DEFINE_ADD_VALUE_F
-
-  return true;
 }
 
 // clang-format off
@@ -5176,6 +5205,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
+  { "_getInstancesAsArray", GetInstancesAsArray,
+    get_instances_as_array_params },
   { "getPorts", GetPorts,
     get_ports_params },
   { "getIsolate", GetIsolate,
@@ -5222,10 +5253,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_version_params },
   { "getVM", GetVM,
     get_vm_params },
-  { "_getVMMetric", GetVMMetric,
-    get_vm_metric_params },
-  { "_getVMMetricList", GetVMMetricList,
-    get_vm_metric_list_params },
   { "getVMTimeline", GetVMTimeline,
     get_vm_timeline_params },
   { "getVMTimelineFlags", GetVMTimelineFlags,

@@ -56,7 +56,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         return;
       }
     }
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
       var previous = node.findPrevious(entity as Token);
@@ -142,7 +142,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var entity = this.entity;
+    final entity = this.entity;
     // Don't suggest class name
     if (entity == node.name) {
       return;
@@ -544,7 +544,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    var entity = this.entity;
+    final entity = this.entity;
     // Don't suggest mixin name
     if (entity == node.name) {
       return;
@@ -906,7 +906,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (block == null) {
       return false;
     }
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is Statement) {
       var entityIndex = block.statements.indexOf(entity);
       if (entityIndex > 0) {

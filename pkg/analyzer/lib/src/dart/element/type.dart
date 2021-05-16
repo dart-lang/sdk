@@ -140,11 +140,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   int get hashCode {
     // Reference the arrays of parameters
-    List<DartType> normalParameterTypes = this.normalParameterTypes;
-    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-    Iterable<DartType> namedParameterTypes = this.namedParameterTypes.values;
+    final normalParameterTypes = this.normalParameterTypes;
+    final optionalParameterTypes = this.optionalParameterTypes;
+    var namedParameterTypes = this.namedParameterTypes.values;
     // Generate the hashCode
-    int code = returnType.hashCode;
+    var code = returnType.hashCode;
     for (int i = 0; i < normalParameterTypes.length; i++) {
       code = (code << 1) + normalParameterTypes[i].hashCode;
     }
@@ -954,7 +954,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      var element = this.element as AbstractClassElementImpl;
+      final element = this.element as AbstractClassElementImpl;
       return element.lookupStaticGetter(name, library);
     }
 
@@ -1198,7 +1198,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      var element = this.element as AbstractClassElementImpl;
+      final element = this.element as AbstractClassElementImpl;
       return element.lookupStaticMethod(name, library);
     }
 
@@ -1287,7 +1287,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      var element = this.element as AbstractClassElementImpl;
+      final element = this.element as AbstractClassElementImpl;
       return element.lookupStaticSetter(name, library);
     }
 
@@ -1891,7 +1891,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   DartType resolveToBound(DartType objectType) {
-    var promotedBound = this.promotedBound;
+    final promotedBound = this.promotedBound;
     if (promotedBound != null) {
       return promotedBound.resolveToBound(objectType);
     }

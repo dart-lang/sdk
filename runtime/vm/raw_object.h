@@ -45,24 +45,71 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 class CodeStatistics;
 class StackFrame;
 
-#define VISIT_FROM(type, first)                                                \
-  type* from() { return reinterpret_cast<type*>(&first##_); }
+#define DEFINE_CONTAINS_COMPRESSED(type)                                       \
+  static constexpr bool kContainsCompressedPointers =                          \
+      is_compressed_ptr<type>::value;
 
-#define VISIT_TO(type, last)                                                   \
-  type* to() { return reinterpret_cast<type*>(&last##_); }
+#define CHECK_CONTAIN_COMPRESSED(type)                                         \
+  static_assert(                                                               \
+      kContainsCompressedPointers || is_uncompressed_ptr<type>::value,         \
+      "From declaration uses ObjectPtr");                                      \
+  static_assert(                                                               \
+      !kContainsCompressedPointers || is_compressed_ptr<type>::value,          \
+      "From declaration uses CompressedObjectPtr");
 
-#define VISIT_TO_LENGTH(type, last)                                            \
-  type* to(intptr_t length) { return reinterpret_cast<type*>(last); }
+#define VISIT_FROM(first)                                                      \
+  DEFINE_CONTAINS_COMPRESSED(decltype(first##_))                               \
+  base_ptr_type<decltype(first##_)>::type* from() {                            \
+    return reinterpret_cast<base_ptr_type<decltype(first##_)>::type*>(         \
+        &first##_);                                                            \
+  }
+
+#define VISIT_FROM_PAYLOAD_START(elem_type)                                    \
+  static_assert(is_uncompressed_ptr<elem_type>::value ||                       \
+                    is_compressed_ptr<elem_type>::value,                       \
+                "Payload elements must be object pointers");                   \
+  DEFINE_CONTAINS_COMPRESSED(elem_type)                                        \
+  base_ptr_type<elem_type>::type* from() {                                     \
+    const uword payload_start = reinterpret_cast<uword>(this) + sizeof(*this); \
+    ASSERT(Utils::IsAligned(payload_start, sizeof(elem_type)));                \
+    return reinterpret_cast<base_ptr_type<elem_type>::type*>(payload_start);   \
+  }
+
+#define VISIT_TO(last)                                                         \
+  CHECK_CONTAIN_COMPRESSED(decltype(last##_));                                 \
+  base_ptr_type<decltype(last##_)>::type* to(intptr_t length = 0) {            \
+    return reinterpret_cast<base_ptr_type<decltype(last##_)>::type*>(          \
+        &last##_);                                                             \
+  }
+
+#define VISIT_TO_PAYLOAD_END(elem_type)                                        \
+  static_assert(is_uncompressed_ptr<elem_type>::value ||                       \
+                    is_compressed_ptr<elem_type>::value,                       \
+                "Payload elements must be object pointers");                   \
+  CHECK_CONTAIN_COMPRESSED(elem_type);                                         \
+  base_ptr_type<elem_type>::type* to(intptr_t length) {                        \
+    const uword payload_start = reinterpret_cast<uword>(this) + sizeof(*this); \
+    ASSERT(Utils::IsAligned(payload_start, sizeof(elem_type)));                \
+    const uword payload_last =                                                 \
+        payload_start + sizeof(elem_type) * (length - 1);                      \
+    return reinterpret_cast<base_ptr_type<elem_type>::type*>(payload_last);    \
+  }
 
 #define VISIT_NOTHING() int NothingToVisit();
 
+#if defined(DART_COMPRESSED_POINTERS)
 #define ASSERT_UNCOMPRESSED(Type)                                              \
-  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Untagged##Type, from) ==          \
-         sizeof(ObjectPtr))
+  static_assert(!Untagged##Type::kContainsCompressedPointers,                  \
+                "Should contain compressed pointers");
 
 #define ASSERT_COMPRESSED(Type)                                                \
-  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Untagged##Type, from) ==          \
-         sizeof(CompressedObjectPtr))
+  static_assert(Untagged##Type::kContainsCompressedPointers,                   \
+                "Should not contain compressed pointers");
+#else
+// Do no checks if there are no compressed pointers.
+#define ASSERT_UNCOMPRESSED(Type)
+#define ASSERT_COMPRESSED(Type)
+#endif
 
 #define ASSERT_NOTHING_TO_VISIT(Type)                                          \
   ASSERT(SIZE_OF_RETURNED_VALUE(Untagged##Type, NothingToVisit) == sizeof(int))
@@ -166,7 +213,7 @@ class UntaggedObject {
     }
 
     static constexpr bool SizeFits(intptr_t size) {
-      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      assert(Utils::IsAligned(size, kObjectAlignment));
       return (size <= kMaxSizeTag);
     }
 
@@ -219,13 +266,13 @@ class UntaggedObject {
     Tags() : tags_(0) {}
 
     operator T() const { return tags_.load(std::memory_order_relaxed); }
-
     T operator=(T tags) {
       tags_.store(tags, std::memory_order_relaxed);
       return tags;
     }
 
     T load(std::memory_order order) const { return tags_.load(order); }
+    void store(T value, std::memory_order order) { tags_.store(value, order); }
 
     bool compare_exchange_weak(T old_tags,
                                T new_tags,
@@ -243,12 +290,13 @@ class UntaggedObject {
       return TagBitField::decode(*reinterpret_cast<const T*>(&tags_));
     }
 
-    template <class TagBitField>
+    template <class TagBitField,
+              std::memory_order order = std::memory_order_relaxed>
     void UpdateBool(bool value) {
       if (value) {
-        tags_.fetch_or(TagBitField::encode(true), std::memory_order_relaxed);
+        tags_.fetch_or(TagBitField::encode(true), order);
       } else {
-        tags_.fetch_and(~TagBitField::encode(true), std::memory_order_relaxed);
+        tags_.fetch_and(~TagBitField::encode(true), order);
       }
     }
 
@@ -319,6 +367,11 @@ class UntaggedObject {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
     tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
+  }
+  void SetMarkBitRelease() {
+    ASSERT(IsOldObject());
+    ASSERT(!IsMarked());
+    tags_.UpdateBool<OldAndNotMarkedBit, std::memory_order_release>(false);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
@@ -533,10 +586,13 @@ class UntaggedObject {
     tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
   }
 
+ protected:
+  // Automatically inherited by subclasses unless overridden.
+  static constexpr bool kContainsCompressedPointers = false;
+
   // All writes to heap objects should ultimately pass through one of the
   // methods below or their counterparts in Object, to ensure that the
   // write barrier is correctly applied.
- protected:
   template <typename type, std::memory_order order = std::memory_order_relaxed>
   type LoadPointer(type const* addr) const {
     return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
@@ -585,10 +641,11 @@ class UntaggedObject {
     }
   }
 
-  void StorePointer(CompressedObjectPtr* addr,
-                    ObjectPtr value,
-                    Thread* thread) {
-    *addr = value;
+  template <typename type, typename compressed_type>
+  void StoreCompressedPointer(compressed_type const* addr,
+                              type value,
+                              Thread* thread) {
+    *const_cast<compressed_type*>(addr) = value;
     if (value->IsHeapObject()) {
       CheckHeapPointerStore(value, thread);
     }
@@ -619,10 +676,23 @@ class UntaggedObject {
     }
   }
 
-  void StoreArrayPointer(CompressedObjectPtr* addr,
-                         ObjectPtr value,
-                         Thread* thread) {
-    *addr = value;
+  template <typename type,
+            typename compressed_type,
+            std::memory_order order = std::memory_order_relaxed>
+  void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
+    reinterpret_cast<std::atomic<compressed_type>*>(
+        const_cast<compressed_type*>(addr))
+        ->store(static_cast<compressed_type>(value), order);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+
+  template <typename type, typename compressed_type>
+  void StoreCompressedArrayPointer(compressed_type const* addr,
+                                   type value,
+                                   Thread* thread) {
+    *const_cast<compressed_type*>(addr) = value;
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
     }
@@ -842,7 +912,30 @@ inline intptr_t ObjectPtr::GetClassId() const {
                                                                                \
  protected:                                                                    \
   type* array_name() { OPEN_ARRAY_START(type, type); }                         \
-  type const* array_name() const { OPEN_ARRAY_START(type, type); }
+  type const* array_name() const { OPEN_ARRAY_START(type, type); }             \
+  VISIT_TO_PAYLOAD_END(type)
+
+#define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)    \
+ public:                                                                       \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  type accessor_name(intptr_t index) const {                                   \
+    return LoadCompressedPointer<type, Compressed##type, order>(               \
+        &array_name()[index]);                                                 \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value) {                       \
+    StoreCompressedArrayPointer<type, Compressed##type, order>(                \
+        &array_name()[index], value);                                          \
+  }                                                                            \
+                                                                               \
+ protected:                                                                    \
+  Compressed##type* array_name() {                                             \
+    OPEN_ARRAY_START(Compressed##type, Compressed##type);                      \
+  }                                                                            \
+  Compressed##type const* array_name() const {                                 \
+    OPEN_ARRAY_START(Compressed##type, Compressed##type);                      \
+  }                                                                            \
+  VISIT_TO_PAYLOAD_END(Compressed##type)
 
 #define SMI_FIELD(type, name)                                                  \
  public:                                                                       \
@@ -903,9 +996,9 @@ class UntaggedClass : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Class);
 
-  VISIT_FROM(CompressedObjectPtr, name)
   COMPRESSED_POINTER_FIELD(StringPtr, name)
-  COMPRESSED_POINTER_FIELD(StringPtr, user_name)
+  VISIT_FROM(name)
+  NOT_IN_PRODUCT(COMPRESSED_POINTER_FIELD(StringPtr, user_name))
   COMPRESSED_POINTER_FIELD(ArrayPtr, functions)
   COMPRESSED_POINTER_FIELD(ArrayPtr, functions_hash_table)
   COMPRESSED_POINTER_FIELD(ArrayPtr, fields)
@@ -913,8 +1006,7 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, interfaces)  // Array of AbstractType.
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(LibraryPtr, library)
-  // Array of TypeParameter.
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_parameters)
+  COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, super_type)
   // Canonicalized const instances of this class.
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
@@ -922,24 +1014,49 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(TypePtr, declaration_type)
   // Cache for dispatcher functions.
   COMPRESSED_POINTER_FIELD(ArrayPtr, invocation_dispatcher_cache)
-  // Stub code for allocation of instances.
-  COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
+
+#if !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
   // Array of Class.
   COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_implementors)
   // Array of Class.
   COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)
+#endif  // !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Stub code for allocation of instances.
+  COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
   // CHA optimized codes.
   COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
-  VISIT_TO(CompressedObjectPtr, dependent_code)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
+  VISIT_TO(invocation_dispatcher_cache)
+#else
+  VISIT_TO(direct_subclasses)
+#endif  // defined(PRODUCT)
+#else
+  VISIT_TO(dependent_code)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<CompressedObjectPtr*>(&allocation_stub_);
+#if defined(PRODUCT)
+        return reinterpret_cast<CompressedObjectPtr*>(
+            &invocation_dispatcher_cache_);
+#else
+        return reinterpret_cast<CompressedObjectPtr*>(&direct_subclasses_);
+#endif  // defined(PRODUCT)
       case Snapshot::kFull:
       case Snapshot::kFullCore:
-        return reinterpret_cast<CompressedObjectPtr*>(&direct_subclasses_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        return reinterpret_cast<CompressedObjectPtr*>(&allocation_stub_);
+#endif
       case Snapshot::kFullJIT:
+#if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&dependent_code_);
+#endif
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -949,8 +1066,8 @@ class UntaggedClass : public UntaggedObject {
     return NULL;
   }
 
-  TokenPosition token_pos_;
-  TokenPosition end_token_pos_;
+  NOT_IN_PRECOMPILED(TokenPosition token_pos_);
+  NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
 
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
@@ -966,7 +1083,7 @@ class UntaggedClass : public UntaggedObject {
   // Offset of the next instance field.
   int32_t host_next_field_offset_in_words_;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
   // Size if fixed len or 0 if variable len (target).
   int32_t target_instance_size_in_words_;
 
@@ -975,7 +1092,7 @@ class UntaggedClass : public UntaggedObject {
 
   // Offset of the next instance field (target).
   int32_t target_next_field_offset_in_words_;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_offset_;
@@ -998,12 +1115,12 @@ class UntaggedPatchClass : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
 
-  VISIT_FROM(CompressedObjectPtr, patched_class)
   COMPRESSED_POINTER_FIELD(ClassPtr, patched_class)
+  VISIT_FROM(patched_class)
   COMPRESSED_POINTER_FIELD(ClassPtr, origin_class)
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, library_kernel_data)
-  VISIT_TO(CompressedObjectPtr, library_kernel_data)
+  VISIT_TO(library_kernel_data)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
@@ -1182,8 +1299,8 @@ class UntaggedFunction : public UntaggedObject {
   uword entry_point_;            // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
 
-  VISIT_FROM(CompressedObjectPtr, name)
   COMPRESSED_POINTER_FIELD(StringPtr, name)
+  VISIT_FROM(name)
   // Class or patch class or mixin class where this function is defined.
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names)
@@ -1213,9 +1330,9 @@ class UntaggedFunction : public UntaggedObject {
   // Unoptimized code, keep it after optimization.
   NOT_IN_PRECOMPILED(COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code));
 #if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(CompressedObjectPtr, code);
+  VISIT_TO(code);
 #else
-  VISIT_TO(CompressedObjectPtr, unoptimized_code);
+  VISIT_TO(unoptimized_code);
 #endif
 
   NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
@@ -1281,8 +1398,8 @@ class UntaggedClosureData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ClosureData);
 
-  VISIT_FROM(CompressedObjectPtr, context_scope)
   COMPRESSED_POINTER_FIELD(ContextScopePtr, context_scope)
+  VISIT_FROM(context_scope)
   // Enclosing function of this local function.
 #if defined(DART_PRECOMPILER)
   // Can be wrapped by a WSR in the precompiler.
@@ -1292,9 +1409,7 @@ class UntaggedClosureData : public UntaggedObject {
 #endif
   // Closure object for static implicit closures.
   COMPRESSED_POINTER_FIELD(InstancePtr, closure)
-  // Instantiate-to-bounds TAV for use when no TAV is provided.
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, default_type_arguments)
-  VISIT_TO(CompressedObjectPtr, default_type_arguments)
+  VISIT_TO(closure)
 
   enum class DefaultTypeArgumentsKind : uint8_t {
     // Only here to make sure it's explicitly set appropriately.
@@ -1325,8 +1440,8 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
 
-  VISIT_FROM(CompressedObjectPtr, signature_type)
   COMPRESSED_POINTER_FIELD(TypePtr, signature_type)
+  VISIT_FROM(signature_type)
   COMPRESSED_POINTER_FIELD(FunctionTypePtr, c_signature)
 
   // Target Dart method for callbacks, otherwise null.
@@ -1334,8 +1449,7 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
 
   // For callbacks, value to return if Dart target throws an exception.
   COMPRESSED_POINTER_FIELD(InstancePtr, callback_exceptional_return)
-
-  VISIT_TO(CompressedObjectPtr, callback_exceptional_return)
+  VISIT_TO(callback_exceptional_return)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Callback id for callbacks.
@@ -1353,8 +1467,8 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
 class UntaggedField : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
-  VISIT_FROM(CompressedObjectPtr, name)
   COMPRESSED_POINTER_FIELD(StringPtr, name)
+  VISIT_FROM(name)
   // Class or patch class or mixin class where this field is defined or original
   // field.
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
@@ -1382,17 +1496,17 @@ class UntaggedField : public UntaggedObject {
     return NULL;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(CompressedObjectPtr, dependent_code);
+  VISIT_TO(dependent_code);
 #else
   // For type test in implicit setter.
   COMPRESSED_POINTER_FIELD(SubtypeTestCachePtr, type_test_cache);
-  VISIT_TO(CompressedObjectPtr, type_test_cache);
+  VISIT_TO(type_test_cache);
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   ClassIdTagType guarded_cid_;
   ClassIdTagType is_nullable_;  // kNullCid if field can contain null value and
-                                // kInvalidCid otherwise.
+                                // kIllegalCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_offset_;
@@ -1424,8 +1538,8 @@ class UntaggedField : public UntaggedObject {
 class alignas(8) UntaggedScript : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Script);
 
-  VISIT_FROM(CompressedObjectPtr, url)
   COMPRESSED_POINTER_FIELD(StringPtr, url)
+  VISIT_FROM(url)
   COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
   COMPRESSED_POINTER_FIELD(ArrayPtr, compile_time_constants)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
@@ -1435,7 +1549,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, debug_positions)
   COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
   COMPRESSED_POINTER_FIELD(StringPtr, source)
-  VISIT_TO(CompressedObjectPtr, source)
+  VISIT_TO(source)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1516,8 +1630,8 @@ class UntaggedLibrary : public UntaggedObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
-  VISIT_FROM(CompressedObjectPtr, name)
   COMPRESSED_POINTER_FIELD(StringPtr, name)
+  VISIT_FROM(name)
   COMPRESSED_POINTER_FIELD(StringPtr, url)
   COMPRESSED_POINTER_FIELD(StringPtr, private_key)
   // Top-level names in this library.
@@ -1556,7 +1670,7 @@ class UntaggedLibrary : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, exported_names);
   // Array of scripts loaded in this library.
   COMPRESSED_POINTER_FIELD(ArrayPtr, loaded_scripts);
-  VISIT_TO(CompressedObjectPtr, loaded_scripts);
+  VISIT_TO(loaded_scripts);
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
@@ -1576,15 +1690,15 @@ class UntaggedLibrary : public UntaggedObject {
 class UntaggedNamespace : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
-  VISIT_FROM(CompressedObjectPtr, target)
   // library with name dictionary.
   COMPRESSED_POINTER_FIELD(LibraryPtr, target)
+  VISIT_FROM(target)
   // list of names that are exported.
   COMPRESSED_POINTER_FIELD(ArrayPtr, show_names)
   // list of names that are hidden.
   COMPRESSED_POINTER_FIELD(ArrayPtr, hide_names)
   COMPRESSED_POINTER_FIELD(LibraryPtr, owner)
-  VISIT_TO(CompressedObjectPtr, owner)
+  VISIT_TO(owner)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1606,8 +1720,8 @@ class UntaggedNamespace : public UntaggedObject {
 class UntaggedKernelProgramInfo : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
 
-  VISIT_FROM(CompressedObjectPtr, string_offsets)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, string_offsets)
+  VISIT_FROM(string_offsets)
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, string_data)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, canonical_names)
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, metadata_payloads)
@@ -1620,7 +1734,7 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, libraries_cache)
   COMPRESSED_POINTER_FIELD(ArrayPtr, classes_cache)
   COMPRESSED_POINTER_FIELD(ObjectPtr, retained_kernel_blob)
-  VISIT_TO(CompressedObjectPtr, retained_kernel_blob)
+  VISIT_TO(retained_kernel_blob)
 
   uint32_t kernel_binary_version_;
 
@@ -1632,10 +1746,10 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
 class UntaggedWeakSerializationReference : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
 
-  VISIT_FROM(CompressedObjectPtr, target)
   COMPRESSED_POINTER_FIELD(ObjectPtr, target)
+  VISIT_FROM(target)
   COMPRESSED_POINTER_FIELD(ObjectPtr, replacement)
-  VISIT_TO(CompressedObjectPtr, replacement)
+  VISIT_TO(replacement)
 };
 
 class UntaggedCode : public UntaggedObject {
@@ -1687,8 +1801,8 @@ class UntaggedCode : public UntaggedObject {
   uword unchecked_entry_point_;              // Accessed from generated code.
   uword monomorphic_unchecked_entry_point_;  // Accessed from generated code.
 
-  VISIT_FROM(ObjectPtr, object_pool)
   POINTER_FIELD(ObjectPoolPtr, object_pool)  // Accessed from generated code.
+  VISIT_FROM(object_pool)
   POINTER_FIELD(InstructionsPtr,
                 instructions)  // Accessed from generated code.
   // If owner_ is Function::null() the owner is a regular stub.
@@ -1716,11 +1830,11 @@ class UntaggedCode : public UntaggedObject {
   NOT_IN_PRODUCT(POINTER_FIELD(ArrayPtr, comments))
 
 #if !defined(PRODUCT)
-  VISIT_TO(ObjectPtr, comments);
+  VISIT_TO(comments);
 #elif defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(ObjectPtr, code_source_map);
+  VISIT_TO(code_source_map);
 #else
-  VISIT_TO(ObjectPtr, static_calls_target_table);
+  VISIT_TO(static_calls_target_table);
 #endif
 
   // Compilation timestamp.
@@ -1767,6 +1881,7 @@ class UntaggedObjectPool : public UntaggedObject {
   };
   Entry* data() { OPEN_ARRAY_START(Entry, Entry); }
   Entry const* data() const { OPEN_ARRAY_START(Entry, Entry); }
+  DEFINE_CONTAINS_COMPRESSED(decltype(Entry::raw_obj_));
 
   // The entry bits are located after the last entry. They are encoded versions
   // of `ObjectPool::TypeBits() | ObjectPool::PatchabililtyBit()`.
@@ -1838,9 +1953,9 @@ class UntaggedInstructionsSection : public UntaggedObject {
 class UntaggedInstructionsTable : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsTable);
 
-  VISIT_FROM(ObjectPtr, descriptors)
   POINTER_FIELD(ArrayPtr, descriptors)
-  VISIT_TO_LENGTH(ObjectPtr, &descriptors_)
+  VISIT_FROM(descriptors)
+  VISIT_TO(descriptors)
 
   intptr_t length_;
   uword start_pc_;
@@ -2096,21 +2211,13 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   // platforms.
   uword num_entries_;
 
-  CompressedObjectPtr* from() {
-    return reinterpret_cast<CompressedObjectPtr*>(&names()[0]);
-  }
-  CompressedStringPtr* names() {
-    // Array of [num_entries_] variable names.
-    OPEN_ARRAY_START(CompressedStringPtr, CompressedStringPtr);
-  }
+  VISIT_FROM_PAYLOAD_START(CompressedStringPtr)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names)
+
   CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
-  StringPtr name(intptr_t i) {
-    return LoadCompressedPointer<StringPtr>(nameAddrAt(i));
-  }
   void set_name(intptr_t i, StringPtr value) {
     StoreCompressedPointer(nameAddrAt(i), value);
   }
-  VISIT_TO_LENGTH(CompressedObjectPtr, nameAddrAt(length - 1));
 
   // Variable info with [num_entries_] entries.
   VarInfo* data() {
@@ -2129,9 +2236,9 @@ class UntaggedExceptionHandlers : public UntaggedObject {
 
   // Array with [num_entries_] entries. Each entry is an array of all handled
   // exception types.
-  VISIT_FROM(CompressedObjectPtr, handled_types_data)
   COMPRESSED_POINTER_FIELD(ArrayPtr, handled_types_data)
-  VISIT_TO_LENGTH(CompressedObjectPtr, &handled_types_data_)
+  VISIT_FROM(handled_types_data)
+  VISIT_TO(handled_types_data)
 
   // Exception handler info of length [num_entries_].
   const ExceptionHandlerInfo* data() const {
@@ -2149,11 +2256,10 @@ class UntaggedContext : public UntaggedObject {
 
   int32_t num_variables_;
 
-  VISIT_FROM(ObjectPtr, parent)
   POINTER_FIELD(ContextPtr, parent)
+  VISIT_FROM(parent)
   // Variable length data follows here.
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
-  VISIT_TO_LENGTH(ObjectPtr, &data()[length - 1]);
 
   friend class Object;
   friend class SnapshotReader;
@@ -2183,6 +2289,10 @@ class UntaggedContextScope : public UntaggedObject {
 
   int32_t num_variables_;
   bool is_implicit_;  // true, if this context scope is for an implicit closure.
+
+  // Just choose one of the fields in VariableDesc, since they should all be
+  // compressed or not compressed.
+  DEFINE_CONTAINS_COMPRESSED(decltype(VariableDesc::name));
 
   CompressedObjectPtr* from() {
     VariableDesc* begin = const_cast<VariableDesc*>(VariableDescAddr(0));
@@ -2233,9 +2343,9 @@ class UntaggedContextScope : public UntaggedObject {
 
 class UntaggedSingleTargetCache : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
-  VISIT_FROM(ObjectPtr, target)
   POINTER_FIELD(CodePtr, target)
-  VISIT_TO(ObjectPtr, target)
+  VISIT_FROM(target)
+  VISIT_TO(target)
   uword entry_point_;
   ClassIdTagType lower_limit_;
   ClassIdTagType upper_limit_;
@@ -2243,10 +2353,10 @@ class UntaggedSingleTargetCache : public UntaggedObject {
 
 class UntaggedMonomorphicSmiableCall : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MonomorphicSmiableCall);
-  VISIT_FROM(ObjectPtr, target)
   POINTER_FIELD(CodePtr,
                 target);  // Entrypoint PC in bare mode, Code in non-bare mode.
-  VISIT_TO(ObjectPtr, target)
+  VISIT_FROM(target)
+  VISIT_TO(target)
   uword expected_cid_;
   uword entrypoint_;
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -2256,31 +2366,31 @@ class UntaggedMonomorphicSmiableCall : public UntaggedObject {
 class UntaggedCallSiteData : public UntaggedObject {
  protected:
   POINTER_FIELD(StringPtr, target_name);  // Name of target function.
+  VISIT_FROM(target_name)
   // arg_descriptor in RawICData and in RawMegamorphicCache should be
   // in the same position so that NoSuchMethod can access it.
   POINTER_FIELD(ArrayPtr, args_descriptor);  // Arguments descriptor.
+  VISIT_TO(args_descriptor)
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
 };
 
 class UntaggedUnlinkedCall : public UntaggedCallSiteData {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
-  VISIT_FROM(ObjectPtr, target_name)
-  VISIT_TO(ObjectPtr, args_descriptor)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   bool can_patch_to_monomorphic_;
 };
 
 class UntaggedICData : public UntaggedCallSiteData {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
-  VISIT_FROM(ObjectPtr, target_name)
   POINTER_FIELD(ArrayPtr, entries)  // Contains class-ids, target and count.
   // Static type of the receiver, if instance call and available.
   NOT_IN_PRECOMPILED(POINTER_FIELD(AbstractTypePtr, receivers_static_type))
   POINTER_FIELD(ObjectPtr,
                 owner)  // Parent/calling function or original IC of cloned IC.
-  VISIT_TO(ObjectPtr, owner)
+  VISIT_TO(owner)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -2304,10 +2414,9 @@ class UntaggedICData : public UntaggedCallSiteData {
 class UntaggedMegamorphicCache : public UntaggedCallSiteData {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache);
 
-  VISIT_FROM(ObjectPtr, target_name)
   POINTER_FIELD(ArrayPtr, buckets)
   SMI_FIELD(SmiPtr, mask)
-  VISIT_TO(ObjectPtr, mask)
+  VISIT_TO(mask)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t filled_entry_count_;
@@ -2316,18 +2425,18 @@ class UntaggedMegamorphicCache : public UntaggedCallSiteData {
 class UntaggedSubtypeTestCache : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache);
 
-  VISIT_FROM(ObjectPtr, cache)
   POINTER_FIELD(ArrayPtr, cache)
-  VISIT_TO(ObjectPtr, cache)
+  VISIT_FROM(cache)
+  VISIT_TO(cache)
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit);
 
-  VISIT_FROM(CompressedObjectPtr, parent)
   COMPRESSED_POINTER_FIELD(LoadingUnitPtr, parent)
+  VISIT_FROM(parent)
   COMPRESSED_POINTER_FIELD(ArrayPtr, base_objects)
-  VISIT_TO(CompressedObjectPtr, base_objects)
+  VISIT_TO(base_objects)
   int32_t id_;
   bool load_outstanding_;
   bool loaded_;
@@ -2340,21 +2449,21 @@ class UntaggedError : public UntaggedObject {
 class UntaggedApiError : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
 
-  VISIT_FROM(CompressedObjectPtr, message)
   COMPRESSED_POINTER_FIELD(StringPtr, message)
-  VISIT_TO(CompressedObjectPtr, message)
+  VISIT_FROM(message)
+  VISIT_TO(message)
 };
 
 class UntaggedLanguageError : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LanguageError);
 
-  VISIT_FROM(CompressedObjectPtr, previous_error)
   COMPRESSED_POINTER_FIELD(ErrorPtr, previous_error)  // May be null.
+  VISIT_FROM(previous_error)
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(StringPtr, message)
   // Incl. previous error's formatted message.
   COMPRESSED_POINTER_FIELD(StringPtr, formatted_message)
-  VISIT_TO(CompressedObjectPtr, formatted_message)
+  VISIT_TO(formatted_message)
   TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;              // Of type Report::Kind.
@@ -2365,37 +2474,39 @@ class UntaggedLanguageError : public UntaggedError {
 class UntaggedUnhandledException : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnhandledException);
 
-  VISIT_FROM(CompressedObjectPtr, exception)
   COMPRESSED_POINTER_FIELD(InstancePtr, exception)
+  VISIT_FROM(exception)
   COMPRESSED_POINTER_FIELD(InstancePtr, stacktrace)
-  VISIT_TO(CompressedObjectPtr, stacktrace)
+  VISIT_TO(stacktrace)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class UntaggedUnwindError : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnwindError);
 
-  VISIT_FROM(CompressedObjectPtr, message)
   COMPRESSED_POINTER_FIELD(StringPtr, message)
-  VISIT_TO(CompressedObjectPtr, message)
+  VISIT_FROM(message)
+  VISIT_TO(message)
   bool is_user_initiated_;
 };
 
 class UntaggedInstance : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
+  friend class Object;
+  friend class SnapshotReader;
 };
 
 class UntaggedLibraryPrefix : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
 
-  VISIT_FROM(CompressedObjectPtr, name)
   // Library prefix name.
   COMPRESSED_POINTER_FIELD(StringPtr, name)
+  VISIT_FROM(name)
   // Libraries imported with this prefix.
   COMPRESSED_POINTER_FIELD(ArrayPtr, imports)
   // Library which declares this prefix.
   COMPRESSED_POINTER_FIELD(LibraryPtr, importer)
-  VISIT_TO(CompressedObjectPtr, importer)
+  VISIT_TO(importer)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -2420,18 +2531,34 @@ class UntaggedTypeArguments : public UntaggedInstance {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
 
-  VISIT_FROM(ObjectPtr, instantiations)
   // The instantiations_ array remains empty for instantiated type arguments.
-  POINTER_FIELD(ArrayPtr,
-                instantiations)  // Of 3-tuple: 2 instantiators, result.
-  SMI_FIELD(SmiPtr, length)
-  SMI_FIELD(SmiPtr, hash)
-  SMI_FIELD(SmiPtr, nullability)
+  // Of 3-tuple: 2 instantiators, result.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, instantiations)
+  VISIT_FROM(instantiations)
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+  COMPRESSED_SMI_FIELD(SmiPtr, hash)
+  COMPRESSED_SMI_FIELD(SmiPtr, nullability)
   // Variable length data follows here.
-  VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
-  ObjectPtr* to(intptr_t length) {
-    return reinterpret_cast<ObjectPtr*>(&types()[length - 1]);
-  }
+  COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
+
+  friend class Object;
+  friend class SnapshotReader;
+};
+
+class UntaggedTypeParameters : public UntaggedObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameters);
+
+  // Length of names reflects the number of type parameters.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, names)
+  VISIT_FROM(names)
+  // flags: isGenericCovariantImpl and (todo) variance.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, flags)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, bounds)
+  // defaults is the instantiation to bounds (calculated by CFE).
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, defaults)
+  VISIT_TO(defaults)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Object;
   friend class SnapshotReader;
@@ -2450,11 +2577,10 @@ class UntaggedAbstractType : public UntaggedInstance {
  protected:
   static constexpr intptr_t kTypeStateBitSize = 2;
 
-  uword type_test_stub_entry_point_;  // Accessed from generated code.
-  COMPRESSED_POINTER_FIELD(
-      CodePtr,
-      type_test_stub)  // Must be the last field, since subclasses use it
-                       // in their VISIT_FROM.
+  // Accessed from generated code.
+  uword type_test_stub_entry_point_;
+  COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
+  VISIT_FROM(type_test_stub)
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
@@ -2467,11 +2593,10 @@ class UntaggedType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  VISIT_FROM(CompressedObjectPtr, type_test_stub)
   COMPRESSED_POINTER_FIELD(SmiPtr, type_class_id)
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(CompressedObjectPtr, hash)
+  VISIT_TO(hash)
   uint8_t type_state_;
   uint8_t nullability_;
 
@@ -2485,14 +2610,12 @@ class UntaggedFunctionType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
 
-  VISIT_FROM(CompressedObjectPtr, type_test_stub)
-  // Array of TypeParameter.
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_parameters)
+  COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names);
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(CompressedObjectPtr, hash)
+  VISIT_TO(hash)
   uint32_t packed_fields_;  // Number of parent type args and own parameters.
   uint8_t type_state_;
   uint8_t nullability_;
@@ -2548,9 +2671,8 @@ class UntaggedTypeRef : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
 
-  VISIT_FROM(CompressedObjectPtr, type_test_stub)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, type)  // The referenced type.
-  VISIT_TO(CompressedObjectPtr, type)
+  VISIT_TO(type)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
@@ -2558,22 +2680,13 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  VISIT_FROM(CompressedObjectPtr, type_test_stub)
-  COMPRESSED_POINTER_FIELD(StringPtr, name)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   // ObjectType if no explicit bound specified.
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
-  // The instantiation to bounds of this parameter as calculated by the CFE.
-  //
-  // TODO(dartbug.com/43901): Once a separate TypeParameters class has been
-  // added, move these there and remove them from TypeParameter objects.
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, default_argument)
-  VISIT_TO(CompressedObjectPtr, default_argument)
+  VISIT_TO(bound)
   ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
-  // TODO(regis): Can we use uint8_t twice below? Or keep uint16_t?
-  // Warning: BuildTypeParameterTypeTestStub assumes uint16_t.
-  uint16_t base_;  // Number of enclosing function type parameters.
-  uint16_t index_;
+  uint8_t base_;   // Number of enclosing function type parameters.
+  uint8_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
   uint8_t flags_;
   uint8_t nullability_;
 
@@ -2581,9 +2694,7 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   using BeingFinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
   using FinalizedBit =
       BitField<decltype(flags_), bool, BeingFinalizedBit::kNextBit, 1>;
-  using GenericCovariantImplBit =
-      BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
-  static constexpr intptr_t kFlagsBitSize = GenericCovariantImplBit::kNextBit;
+  static constexpr intptr_t kFlagsBitSize = FinalizedBit::kNextBit;
 
  private:
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -2600,15 +2711,14 @@ class UntaggedClosure : public UntaggedInstance {
 
   // The following fields are also declared in the Dart source of class
   // _Closure.
-  VISIT_FROM(ObjectPtr, instantiator_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
+  VISIT_FROM(instantiator_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
   POINTER_FIELD(FunctionPtr, function)
   POINTER_FIELD(ContextPtr, context)
   POINTER_FIELD(SmiPtr, hash)
-
-  VISIT_TO(ObjectPtr, hash)
+  VISIT_TO(hash)
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2677,13 +2787,13 @@ class UntaggedString : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(String);
 
  protected:
-  VISIT_FROM(CompressedObjectPtr, length)
   COMPRESSED_SMI_FIELD(SmiPtr, length)
-#if !defined(HASH_IN_OBJECT_HEADER)
-  COMPRESSED_SMI_FIELD(SmiPtr, hash)
-  VISIT_TO(CompressedObjectPtr, hash)
+  VISIT_FROM(length)
+#if defined(HASH_IN_OBJECT_HEADER)
+  VISIT_TO(length)
 #else
-  VISIT_TO(CompressedObjectPtr, length)
+  COMPRESSED_SMI_FIELD(SmiPtr, hash)
+  VISIT_TO(hash);
 #endif
 
  private:
@@ -2753,6 +2863,8 @@ class UntaggedTypedDataBase : public UntaggedPointerBase {
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
   COMPRESSED_SMI_FIELD(SmiPtr, length);
+  VISIT_FROM(length)
+  VISIT_TO(length)
 
  private:
   friend class UntaggedTypedDataView;
@@ -2771,11 +2883,7 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   void RecomputeDataField() { data_ = internal_data(); }
 
  protected:
-  VISIT_FROM(CompressedObjectPtr, length)
-  VISIT_TO_LENGTH(CompressedObjectPtr, &length_)
-
   // Variable length data follows here.
-
   uint8_t* internal_data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* internal_data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
@@ -2846,10 +2954,9 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   }
 
  protected:
-  VISIT_FROM(CompressedObjectPtr, length)
   COMPRESSED_POINTER_FIELD(TypedDataBasePtr, typed_data)
   COMPRESSED_SMI_FIELD(SmiPtr, offset_in_bytes)
-  VISIT_TO(CompressedObjectPtr, offset_in_bytes)
+  VISIT_TO(offset_in_bytes)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Api;
@@ -2893,12 +3000,11 @@ class UntaggedBool : public UntaggedInstance {
 class UntaggedArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Array);
 
-  VISIT_FROM(ObjectPtr, type_arguments)
   ARRAY_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  VISIT_FROM(type_arguments)
   SMI_FIELD(SmiPtr, length)
   // Variable length data follows here.
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
-  VISIT_TO_LENGTH(ObjectPtr, &data()[length - 1])
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
@@ -2929,11 +3035,11 @@ class UntaggedImmutableArray : public UntaggedArray {
 class UntaggedGrowableObjectArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
-  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  VISIT_FROM(type_arguments)
   SMI_FIELD(SmiPtr, length)
   POINTER_FIELD(ArrayPtr, data)
-  VISIT_TO(ObjectPtr, data)
+  VISIT_TO(data)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
@@ -2943,14 +3049,14 @@ class UntaggedGrowableObjectArray : public UntaggedInstance {
 class UntaggedLinkedHashMap : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
-  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  VISIT_FROM(type_arguments)
   POINTER_FIELD(TypedDataPtr, index)
   POINTER_FIELD(SmiPtr, hash_mask)
   POINTER_FIELD(ArrayPtr, data)
   POINTER_FIELD(SmiPtr, used_data)
   POINTER_FIELD(SmiPtr, deleted_keys)
-  VISIT_TO(ObjectPtr, deleted_keys)
+  VISIT_TO(deleted_keys)
 
   friend class SnapshotReader;
 };
@@ -3024,18 +3130,14 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 
 class UntaggedExternalTypedData : public UntaggedTypedDataBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
-
- protected:
-  VISIT_FROM(CompressedObjectPtr, length)
-  VISIT_TO(CompressedObjectPtr, length)
 };
 
 class UntaggedPointer : public UntaggedPointerBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
 
-  VISIT_FROM(CompressedObjectPtr, type_arguments)
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(CompressedObjectPtr, type_arguments)
+  VISIT_FROM(type_arguments)
+  VISIT_TO(type_arguments)
 
   friend class Pointer;
 };
@@ -3067,15 +3169,15 @@ class alignas(8) UntaggedSendPort : public UntaggedInstance {
 class UntaggedReceivePort : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ReceivePort);
 
-  VISIT_FROM(CompressedObjectPtr, send_port)
   COMPRESSED_POINTER_FIELD(SendPortPtr, send_port)
+  VISIT_FROM(send_port)
   COMPRESSED_POINTER_FIELD(InstancePtr, handler)
-#if !defined(PRODUCT)
+#if defined(PRODUCT)
+  VISIT_TO(handler)
+#else
   COMPRESSED_POINTER_FIELD(StringPtr, debug_name)
   COMPRESSED_POINTER_FIELD(StackTracePtr, allocation_location)
-  VISIT_TO(CompressedObjectPtr, allocation_location)
-#else
-  VISIT_TO(CompressedObjectPtr, handler)
+  VISIT_TO(allocation_location)
 #endif  // !defined(PRODUCT)
 };
 
@@ -3091,15 +3193,15 @@ class UntaggedTransferableTypedData : public UntaggedInstance {
 class UntaggedStackTrace : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackTrace);
 
-  VISIT_FROM(CompressedObjectPtr, async_link)
   // Link to parent async stack trace.
   COMPRESSED_POINTER_FIELD(StackTracePtr, async_link);
+  VISIT_FROM(async_link)
   // Code object for each frame in the stack trace.
   COMPRESSED_POINTER_FIELD(ArrayPtr, code_array);
   // Offset of PC for each frame.
   COMPRESSED_POINTER_FIELD(TypedDataPtr, pc_offset_array);
 
-  VISIT_TO(CompressedObjectPtr, pc_offset_array)
+  VISIT_TO(pc_offset_array)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // False for pre-allocated stack trace (used in OOM and Stack overflow).
@@ -3114,8 +3216,8 @@ class UntaggedStackTrace : public UntaggedInstance {
 class UntaggedRegExp : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(RegExp);
 
-  VISIT_FROM(CompressedObjectPtr, capture_name_map)
   COMPRESSED_POINTER_FIELD(ArrayPtr, capture_name_map)
+  VISIT_FROM(capture_name_map)
   // Pattern to be used for matching.
   COMPRESSED_POINTER_FIELD(StringPtr, pattern)
   COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte)  // FunctionPtr or TypedDataPtr
@@ -3126,7 +3228,7 @@ class UntaggedRegExp : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte_sticky)
   COMPRESSED_POINTER_FIELD(ObjectPtr, external_one_byte_sticky)
   COMPRESSED_POINTER_FIELD(ObjectPtr, external_two_byte_sticky)
-  VISIT_TO(CompressedObjectPtr, external_two_byte_sticky)
+  VISIT_TO(external_two_byte_sticky)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   intptr_t num_bracket_expressions_;
@@ -3148,10 +3250,10 @@ class UntaggedRegExp : public UntaggedInstance {
 class UntaggedWeakProperty : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  VISIT_FROM(ObjectPtr, key)
   POINTER_FIELD(ObjectPtr, key)
+  VISIT_FROM(key)
   POINTER_FIELD(ObjectPtr, value)
-  VISIT_TO(ObjectPtr, value)
+  VISIT_TO(value)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Linked list is chaining all pending weak properties. Not visited by
@@ -3171,18 +3273,18 @@ class UntaggedWeakProperty : public UntaggedInstance {
 class UntaggedMirrorReference : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MirrorReference);
 
-  VISIT_FROM(CompressedObjectPtr, referent)
   COMPRESSED_POINTER_FIELD(ObjectPtr, referent)
-  VISIT_TO(CompressedObjectPtr, referent)
+  VISIT_FROM(referent)
+  VISIT_TO(referent)
 };
 
 // UserTag are used by the profiler to track Dart script state.
 class UntaggedUserTag : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UserTag);
 
-  VISIT_FROM(CompressedObjectPtr, label)
   COMPRESSED_POINTER_FIELD(StringPtr, label)
-  VISIT_TO(CompressedObjectPtr, label)
+  VISIT_FROM(label)
+  VISIT_TO(label)
 
   // Isolate unique tag.
   uword tag_;
@@ -3197,9 +3299,9 @@ class UntaggedUserTag : public UntaggedInstance {
 class UntaggedFutureOr : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
 
-  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(ObjectPtr, type_arguments)
+  VISIT_FROM(type_arguments)
+  VISIT_TO(type_arguments)
 
   friend class SnapshotReader;
 };

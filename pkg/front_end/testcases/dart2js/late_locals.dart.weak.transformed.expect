@@ -14,49 +14,49 @@ static method main() → void {
   self::testNonNullableInitializedFinalLocal();
 }
 static method testNullableUninitializedNonFinalLocal() → void {
-  final _la::_Cell x = new _la::_Cell::•();
+  final _la::_Cell x = new _la::_Cell::named("x");
   x.{_la::_Cell::value} = 42;
   core::print(x.{_la::_Cell::readLocal}<core::int>(){() → core::int});
 }
 static method testNonNullableUninitializedNonFinalLocal() → void {
-  final _la::_Cell x = new _la::_Cell::•();
+  final _la::_Cell x = new _la::_Cell::named("x");
   x.{_la::_Cell::value} = 42;
   core::print(x.{_la::_Cell::readLocal}<core::int>(){() → core::int});
 }
 static method testNullableUninitializedFinalLocal() → void {
-  final _la::_Cell x = new _la::_Cell::•();
+  final _la::_Cell x = new _la::_Cell::named("x");
   x.{_la::_Cell::finalLocalValue} = 42;
   core::print(x.{_la::_Cell::readLocal}<core::int>(){() → core::int});
 }
 static method testNonNullableUninitializedFinalLocal() → void {
-  final _la::_Cell x = new _la::_Cell::•();
+  final _la::_Cell x = new _la::_Cell::named("x");
   x.{_la::_Cell::finalLocalValue} = 42;
   core::print(x.{_la::_Cell::readLocal}<core::int>(){() → core::int});
 }
 static method testNullableInitializedNonFinalLocal() → void {
-  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int? => 1.{core::int::unary-}(){() → core::int});
+  final _la::_InitializedCell x = new _la::_InitializedCell::named("x", () → core::int? => 1.{core::int::unary-}(){() → core::int});
   core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
   x.{_la::_InitializedCell::value} = 42;
   core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
-  final _la::_InitializedCell y = new _la::_InitializedCell::•(() → core::int? => null);
+  final _la::_InitializedCell y = new _la::_InitializedCell::named("y", () → core::int? => null);
   core::print(y.{_la::_InitializedCell::read}<core::int?>(){() → core::int?});
   y.{_la::_InitializedCell::value} = 42;
   core::print(y.{_la::_InitializedCell::read}<core::int>(){() → core::int});
 }
 static method testNonNullableInitializedNonFinalLocal() → void {
-  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int => 1.{core::int::unary-}(){() → core::int});
+  final _la::_InitializedCell x = new _la::_InitializedCell::named("x", () → core::int => 1.{core::int::unary-}(){() → core::int});
   core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
   x.{_la::_InitializedCell::value} = 42;
   core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
 }
 static method testNullableInitializedFinalLocal() → void {
-  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int? => 1.{core::int::unary-}(){() → core::int});
+  final _la::_InitializedCell x = new _la::_InitializedCell::named("x", () → core::int? => 1.{core::int::unary-}(){() → core::int});
   core::print(x.{_la::_InitializedCell::readFinal}<core::int?>(){() → core::int?});
-  final _la::_InitializedCell y = new _la::_InitializedCell::•(() → core::int? => null);
+  final _la::_InitializedCell y = new _la::_InitializedCell::named("y", () → core::int? => null);
   core::print(y.{_la::_InitializedCell::readFinal}<core::int?>(){() → core::int?});
 }
 static method testNonNullableInitializedFinalLocal() → void {
-  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int => 1.{core::int::unary-}(){() → core::int});
+  final _la::_InitializedCell x = new _la::_InitializedCell::named("x", () → core::int => 1.{core::int::unary-}(){() → core::int});
   core::print(x.{_la::_InitializedCell::readFinal}<core::int>(){() → core::int});
 }
 

@@ -13,6 +13,6 @@ class C1 {
 
 test(C1 c) sync* {
   if (c.bad == null) return;
-  yield* /*analyzer.notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ c
-      . /*cfe.notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ bad;
+  yield* c.
+      /*notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ bad;
 }

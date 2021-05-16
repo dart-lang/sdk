@@ -11,7 +11,7 @@ import 'dart:async';
 
 Future<String> getVersion(var rootPath) {
   var printVersionScript = rootPath.resolve("tools/make_version.py");
-  return Process.run("python", [printVersionScript.toFilePath(), "--quiet"],
+  return Process.run("python3", [printVersionScript.toFilePath(), "--quiet"],
           runInShell: true)
       .then((result) {
     if (result.exitCode != 0) {

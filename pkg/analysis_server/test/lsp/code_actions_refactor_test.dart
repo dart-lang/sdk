@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -20,6 +18,8 @@ void main() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
+    defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
+    defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
   });
 }
 
@@ -75,8 +75,7 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -105,12 +104,11 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     // Respond to any applyEdit requests from the server with successful responses
     // and capturing the last edit.
-    WorkspaceEdit edit;
+    late WorkspaceEdit edit;
     requestsFromServer.listen((request) async {
       if (request.method == Method.workspace_applyEdit) {
         final params = ApplyWorkspaceEditParams.fromJson(request.params);
@@ -132,7 +130,7 @@ void newMethod() {
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -149,8 +147,7 @@ main() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     // Send an edit request immediately after the refactor request.
     final req1 = executeCodeAction(codeAction);
@@ -211,8 +208,7 @@ Object Text(Object text) => null;
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -262,7 +258,8 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent,
         workDoneToken: clientProvidedTestWorkDoneToken);
@@ -296,7 +293,8 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
 
@@ -347,7 +345,8 @@ void newMethod() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
 
@@ -382,8 +381,7 @@ void foo(int arg) {}
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction = findCommand(
-        codeActions, Commands.performRefactor, extractVariableTitle);
-    expect(codeAction, isNotNull);
+        codeActions, Commands.performRefactor, extractVariableTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -413,8 +411,7 @@ void foo(int arg) {}
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction = findCommand(
-        codeActions, Commands.performRefactor, extractVariableTitle);
-    expect(codeAction, isNotNull);
+        codeActions, Commands.performRefactor, extractVariableTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -494,8 +491,7 @@ class NewWidget extends StatelessWidget {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
-        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
-    expect(codeAction, isNotNull);
+        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
@@ -514,5 +510,118 @@ main() {}
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);
+  }
+}
+
+@reflectiveTest
+class InlineLocalVariableRefactorCodeActionsTest
+    extends AbstractCodeActionsTest {
+  final inlineVariableTitle = 'Inline Local Variable';
+
+  Future<void> test_appliesCorrectEdits() async {
+    const content = '''
+void main() {
+  var a^ = 1;
+  print(a);
+  print(a);
+  print(a);
+}
+    ''';
+    const expectedContent = '''
+void main() {
+  print(1);
+  print(1);
+  print(1);
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, inlineVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+}
+
+@reflectiveTest
+class InlineMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final inlineMethodTitle = 'Inline Method';
+
+  Future<void> test_inlineAtCallSite() async {
+    const content = '''
+void foo1() {
+  ba^r();
+}
+
+void foo2() {
+  bar();
+}
+
+void bar() {
+  print('test');
+}
+    ''';
+    const expectedContent = '''
+void foo1() {
+  print('test');
+}
+
+void foo2() {
+  bar();
+}
+
+void bar() {
+  print('test');
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineAtMethod() async {
+    const content = '''
+void foo1() {
+  bar();
+}
+
+void foo2() {
+  bar();
+}
+
+void ba^r() {
+  print('test');
+}
+    ''';
+    const expectedContent = '''
+void foo1() {
+  print('test');
+}
+
+void foo2() {
+  print('test');
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
   }
 }

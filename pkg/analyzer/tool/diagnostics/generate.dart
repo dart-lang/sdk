@@ -361,8 +361,8 @@ class DocumentationGenerator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    ParsedUnitResult result = session.getParsedUnit(path);
-    if (result.state != ResultState.VALID) {
+    var result = session.getParsedUnit2(path);
+    if (result is! ParsedUnitResult) {
       throw StateError('Unable to parse "$path"');
     }
     return result;
@@ -547,7 +547,7 @@ For additional details, see the
 
 [definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
 
-### Mixin Application
+### Mixin application
 
 A _mixin application_ is the class created when a mixin is applied to a class.
 For example, consider the following declarations:

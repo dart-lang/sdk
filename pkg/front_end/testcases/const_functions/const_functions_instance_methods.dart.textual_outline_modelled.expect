@@ -1,0 +1,63 @@
+import "package:expect/expect.dart";
+
+String fn() => const A().toString();
+String fn2() => const B().toString();
+String fn7() => const F<int, String, num>().fn("string");
+String fn8() => const G<int>().fn("string");
+
+class A {
+  const A();
+}
+
+class B {
+  @override
+  String toString() => "B";
+  const B();
+}
+
+class C {
+  const C(this.y);
+  final int y;
+  int fn() {}
+}
+
+class D extends C {
+  const D(int y) : super(y);
+  @override
+  int fn() => 300;
+}
+
+class E extends C {
+  const E(int y) : super(y);
+}
+
+class F<T, U, V> {
+  U fn(U x) => x;
+  const F();
+}
+
+class G<T> extends F<T, String, num> {
+  const G();
+}
+
+const fnVal1 = const C(0).fn();
+const fnVal2 = const C(1).fn();
+const fnVal3 = const D(1).fn();
+const fnVal4 = const E(0).fn();
+const fnVal5 = const F<int, String, num>().fn("string");
+const fnVal6 = const G<int>().fn("string");
+const toString1 = const A().toString();
+const toString2 = const B().toString();
+const var1 = fn();
+const var2 = fn2();
+const var3 = fn3();
+const var4 = fn4();
+const var5 = fn5();
+const var6 = fn6();
+const var7 = fn7();
+const var8 = fn8();
+int fn3() => const C(0).fn();
+int fn4() => const C(1).fn();
+int fn5() => const D(1).fn();
+int fn6() => const E(1).fn();
+void main() {}

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for type checks involving the void type.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 void f() {

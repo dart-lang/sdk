@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -199,7 +199,7 @@ class Stats {
 bool TRACK_STATS = true;
 dumpStats() {
   print("------------ STATS ----------------");
-  print(Blink_JsNative_DomException.getPropertyStats.toString()); 
+  print(Blink_JsNative_DomException.getPropertyStats.toString());
   print(Blink_JsNative_DomException.setPropertyStats.toString());
   print(Blink_JsNative_DomException.callMethodStats.toString());
   print(Blink_JsNative_DomException.constructorStats.toString());
@@ -209,8 +209,8 @@ dumpStats() {
 clearStats() {
   Blink_JsNative_DomException.getPropertyStats.clear();
   Blink_JsNative_DomException.setPropertyStats.clear();
-  Blink_JsNative_DomException.callMethodStats.clear();  
-  Blink_JsNative_DomException.constructorStats.clear();  
+  Blink_JsNative_DomException.callMethodStats.clear();
+  Blink_JsNative_DomException.constructorStats.clear();
 }
 
 class Blink_JsNative_DomException {
@@ -388,7 +388,7 @@ CLASS_DEFINITION_END = """}
 
 def ConstantOutputOrder(a, b):
     """Canonical output ordering for constants."""
-    return cmp(a.id, b.id)
+    return (a.id > b.id) - (a.id < b.id)
 
 
 def generate_parameter_entries(param_infos):
@@ -617,8 +617,8 @@ def _Emit_Blink_Operation(blink_file, interface, analyzeOperations,
                     Select_Stub(OPERATION_2, is_native) % (name, interface.id,
                                                            name))
             else:
-                print "FATAL ERROR: _blink emitter operator %s.%s" % (
-                    interface.id, name)
+                print("FATAL ERROR: _blink emitter operator %s.%s" %
+                      (interface.id, name))
                 exit
 
         return

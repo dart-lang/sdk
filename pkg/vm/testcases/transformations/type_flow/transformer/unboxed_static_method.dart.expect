@@ -7,8 +7,8 @@ class X extends core::Object {
     : super core::Object::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
-[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
 static field dynamic usedObject;
 [@vm.unboxing-info.metadata=()->i]static get mint() → core::int*
   return -6144092014192636707;
@@ -85,4 +85,9 @@ static method main() → dynamic {
   self::use([@vm.inferred-type.metadata=#lib::X?] self::returnBoxedNullableX());
   self::use([@vm.inferred-type.metadata=#lib::X] self::returnBoxedX());
   self::use([@vm.inferred-type.metadata=dart.core::_Smi] self::returnBoxedSmiFromEntryPoint());
+}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
 }

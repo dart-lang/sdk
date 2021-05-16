@@ -1265,6 +1265,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Expression visitDeferredExpression(js.DeferredExpression node) => node;
 
   @override
+  visitDeferredStatement(js.DeferredStatement node) => unsupported(node);
+
+  @override
   js.Expression visitDeferredNumber(js.DeferredNumber node) => node;
 
   @override
@@ -2674,6 +2677,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitDeferredExpression(js.DeferredExpression node) {
     return false;
+  }
+
+  @override
+  bool visitDeferredStatement(js.DeferredStatement node) {
+    return unsupported(node);
   }
 
   @override

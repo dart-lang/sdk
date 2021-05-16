@@ -75,10 +75,10 @@ void SecureSocketUtils::CheckStatusSSL(int status,
   }
   if (SSL_LOG_STATUS) {
     int error = ERR_get_error();
-    Syslog::PrintErr("Failed: %s status %d", message, status);
+    Syslog::PrintErr("Failed: %s status: %d ", message, status);
     char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
     ERR_error_string_n(error, error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
-    Syslog::PrintErr("ERROR: %d %s\n", error, error_string);
+    Syslog::PrintErr("%s\n", error_string);
   }
   SecureSocketUtils::ThrowIOException(status, type, message, ssl);
 }

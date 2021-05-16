@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -34,9 +32,9 @@ int findIdentifierLength(String search) {
 /// The base class for all [Refactoring] tests.
 abstract class RefactoringTest extends AbstractSingleUnitTest
     with WithNonFunctionTypeAliasesMixin {
-  SearchEngine searchEngine;
+  late SearchEngine searchEngine;
 
-  SourceChange refactoringChange;
+  late SourceChange refactoringChange;
 
   Refactoring get refactoring;
 
@@ -48,7 +46,9 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     }
     // prepare FileEdit
     var fileEdit = refactoringChange.getFileEdit(convertPath(path));
-    expect(fileEdit, isNotNull, reason: 'No file edit for $path');
+    if (fileEdit == null) {
+      fail('No file edit for $path');
+    }
     // validate resulting code
     var file = getFile(path);
     var ini = file.readAsStringSync();
@@ -79,26 +79,28 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
 
   /// Asserts that [status] has expected severity and message.
   void assertRefactoringStatus(
-      RefactoringStatus status, RefactoringProblemSeverity expectedSeverity,
-      {String expectedMessage,
-      SourceRange expectedContextRange,
-      String expectedContextSearch}) {
+      RefactoringStatus status, RefactoringProblemSeverity? expectedSeverity,
+      {String? expectedMessage,
+      SourceRange? expectedContextRange,
+      String? expectedContextSearch}) {
     expect(status.severity, expectedSeverity, reason: status.toString());
     if (expectedSeverity != null) {
-      var problem = status.problem;
+      var problem = status.problem!;
       expect(problem.severity, expectedSeverity);
       if (expectedMessage != null) {
         expect(problem.message, expectedMessage);
       }
       if (expectedContextRange != null) {
-        expect(problem.location.offset, expectedContextRange.offset);
-        expect(problem.location.length, expectedContextRange.length);
+        var location = problem.location!;
+        expect(location.offset, expectedContextRange.offset);
+        expect(location.length, expectedContextRange.length);
       }
       if (expectedContextSearch != null) {
+        var location = problem.location!;
         var expectedOffset = findOffset(expectedContextSearch);
         var expectedLength = findIdentifierLength(expectedContextSearch);
-        expect(problem.location.offset, expectedOffset);
-        expect(problem.location.length, expectedLength);
+        expect(location.offset, expectedOffset);
+        expect(location.length, expectedLength);
       }
     }
   }
@@ -125,7 +127,9 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     }
     // prepare FileEdit
     var fileEdit = refactoringChange.getFileEdit(testFile);
-    expect(fileEdit, isNotNull);
+    if (fileEdit == null) {
+      fail('No file edit for $testFile');
+    }
     // validate resulting code
     var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(actualCode, expectedCode);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
@@ -26,25 +24,17 @@ const dartCompletionCommitCharacters = ['('];
 
 /// Set the characters that will cause the editor to automatically
 /// trigger completion.
-/// TODO(dantup): There are several characters that we want to conditionally
-/// allow to trigger completion, but they can only be added when the completion
-/// provider is able to handle them in context:
-///
-///    {   trigger if being typed in a string immediately after a $
-///    '   trigger if the opening quote for an import/export
-///    "   trigger if the opening quote for an import/export
-///    /   trigger if as part of a path in an import/export
-///    \   trigger if as part of a path in an import/export
-///    :   don't trigger when typing case expressions (`case x:`)
-///
-/// Additionally, we need to prefix `filterText` on completion items
-/// with spaces for those that can follow whitespace (eg. `foo` in
-/// `myArg: foo`) to ensure they're not filtered away when the user
-/// types space.
-///
-/// See https://github.com/Dart-Code/Dart-Code/blob/68d1cd271e88a785570257d487adbdec17abd6a3/src/providers/dart_completion_item_provider.ts#L36-L64
-/// for the VS Code implementation of this.
-const dartCompletionTriggerCharacters = ['.', '=', '(', r'$'];
+const dartCompletionTriggerCharacters = [
+  '.',
+  '=',
+  '(',
+  r'$',
+  '"',
+  "'",
+  '{',
+  '/',
+  ':'
+];
 
 /// Characters that refresh signature help only if it's already open on the client.
 const dartSignatureHelpRetriggerCharacters = <String>[','];
@@ -56,7 +46,7 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 const dartTypeFormattingCharacters = ['}', ';'];
 
 /// A [ProgressToken] used for reporting progress when the server is analyzing.
-final analyzingProgressToken = Either2<num, String>.t2('ANALYZING');
+final analyzingProgressToken = Either2<int, String>.t2('ANALYZING');
 
 final emptyWorkspaceEdit = WorkspaceEdit();
 
@@ -114,9 +104,17 @@ abstract class CustomSemanticTokenModifiers {
   /// - parameter
   static const label = SemanticTokenModifiers('label');
 
+  /// A modifier applied to constructors to allow colouring them differently
+  /// to class names that are not constructors.
+  static const constructor = SemanticTokenModifiers('constructor');
+
+  /// A modifier applied to escape characters within a string to allow colouring
+  /// them differently.
+  static const escape = SemanticTokenModifiers('escape');
+
   /// All custom semantic token modifiers, used to populate the LSP Legend which must
   /// include all used modifiers.
-  static const values = [control, label];
+  static const values = [control, label, constructor];
 }
 
 abstract class CustomSemanticTokenTypes {

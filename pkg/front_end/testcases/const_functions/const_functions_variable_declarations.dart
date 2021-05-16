@@ -62,6 +62,12 @@ int function8() {
   return a;
 }
 
+const var9 = function9();
+int? function9() {
+  int? x;
+  return x;
+}
+
 void main() {
   Expect.equals(var1, 4);
   Expect.equals(var1_1, 5);
@@ -72,4 +78,5 @@ void main() {
   Expect.equals(var6, 2);
   Expect.equals(var7, 2);
   Expect.equals(var8, 2);
+  Expect.equals(var9, null);
 }

@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,7 +19,7 @@ void main() {
 @reflectiveTest
 class InlineLocalTest extends RefactoringTest {
   @override
-  InlineLocalRefactoringImpl refactoring;
+  late InlineLocalRefactoringImpl refactoring;
 
   Future<void> test_access() async {
     await indexTestUnit('''
@@ -639,7 +636,7 @@ main() {
 
   void _createRefactoring(String search) {
     var offset = findOffset(search);
-    refactoring = InlineLocalRefactoring(
+    refactoring = InlineLocalRefactoringImpl(
       searchEngine,
       testAnalysisResult,
       offset,

@@ -215,85 +215,101 @@ class ClassStubGenerator {
 ///   * `isStatic`.
 ///   * `name`.
 ///   * `isIntercepted.
-List<jsAst.Statement> buildTearOffCode(CompilerOptions options, Emitter emitter,
-    Namer namer, CommonElements commonElements) {
+List<jsAst.Statement> buildTearOffCode(
+    CompilerOptions options, Emitter emitter, CommonElements commonElements) {
   FunctionEntity closureFromTearOff = commonElements.closureFromTearOff;
-  jsAst.Expression tearOffAccessExpression;
-  jsAst.Expression tearOffGlobalObjectString;
-  jsAst.Expression tearOffGlobalObject;
+  jsAst.Expression closureFromTearOffAccessExpression;
   if (closureFromTearOff != null) {
-    tearOffAccessExpression = emitter.staticFunctionAccess(closureFromTearOff);
-    tearOffGlobalObject =
-        js.stringPart(namer.globalObjectForMember(closureFromTearOff));
-    tearOffGlobalObjectString =
-        js.string(namer.globalObjectForMember(closureFromTearOff));
+    closureFromTearOffAccessExpression =
+        emitter.staticFunctionAccess(closureFromTearOff);
   } else {
     // Default values for mocked-up test libraries.
-    tearOffAccessExpression =
+    closureFromTearOffAccessExpression =
         js(r'''function() { throw "Helper 'closureFromTearOff' missing." }''');
-    tearOffGlobalObjectString = js.string('MissingHelperFunction');
-    tearOffGlobalObject = js(
-        r'''(function() { throw "Helper 'closureFromTearOff' missing." })()''');
   }
 
   jsAst.Statement tearOffGetter;
-  if (!options.useContentSecurityPolicy) {
-    jsAst.Expression tearOffAccessText = new jsAst.UnparsedNode(
-        tearOffAccessExpression, options.enableMinification, false);
-    tearOffGetter = js.statement('''
-function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
-  return isIntercepted
-      ? new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
-                     #tearOffGlobalObjectString, "c",
-          "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
-            "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);" +
-                "return new c(this, funcs[0], receiver, name);" +
-           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null)
-      : new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
-                     #tearOffGlobalObjectString, "c",
-          "return function tearOff_" + name + (functionCounter++)+ "() {" +
-            "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);" +
-                "return new c(this, funcs[0], null, name);" +
-             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null);
-}''', {
-      'tearOffAccessText': tearOffAccessText,
-      'tearOffGlobalObject': tearOffGlobalObject,
-      'tearOffGlobalObjectString': tearOffGlobalObjectString
-    });
-  } else {
-    tearOffGetter = js.statement('''
+  if (options.useContentSecurityPolicy) {
+    tearOffGetter = js.statement(
+      '''
       function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
         var cache = null;
         return isIntercepted
             ? function(receiver) {
-                if (cache === null) cache = #(
+                if (cache === null) cache = #createTearOffClass(
                     this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);
                 return new cache(this, funcs[0], receiver, name);
               }
             : function() {
-                if (cache === null) cache = #(
+                if (cache === null) cache = #createTearOffClass(
                     this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);
                 return new cache(this, funcs[0], null, name);
               };
-      }''', [tearOffAccessExpression, tearOffAccessExpression]);
+      }''',
+      {'createTearOffClass': closureFromTearOffAccessExpression},
+    );
+  } else {
+    // In the CSP version above, the allocation `new cache(...)` is polymorphic
+    // since the same JavaScript anonymous function is used for all instance
+    // tear-offs.
+    //
+    // The following code uses `new Function` to create a fresh instance method
+    // tear-off getter for each method, allowing the allocation to be
+    // monomorphic. This translates into a 2x performance improvement when a
+    // method is torn-off many times.  The cost is that the getter, created via
+    // `new Function`, is more expensive to create, and that cost is at program
+    // startup.
+    //
+    // The a counter in the name ensures that the JavaScript engine does not
+    // attempt to fold all of the almost-identical functions back to the same
+    // instance of Function.
+    //
+    // Functions created by `new Function` are at the JavaScript global scope,
+    // so cannot close-over any values from an 'intermediate' enclosing scope.
+    // We use `new Function` to create a function that is immediately applied to
+    // create a context with the closed-over values. The closed-over values
+    // include parameters, (Dart) top-level definitions, and the local `cache`
+    // variable all in one context (passing `null` to initialize `cache`).
+    tearOffGetter = js.statement(
+      '''
+function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
+  return isIntercepted
+
+      ? new Function("funcs, applyTrampolineIndex, reflectionInfo, name, createTearOffClass, cache",
+          "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
+            "if (cache === null) cache = createTearOffClass(" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);" +
+                "return new cache(this, funcs[0], receiver, name);" +
+           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #createTearOffClass, null)
+
+      : new Function("funcs, applyTrampolineIndex, reflectionInfo, name, createTearOffClass, cache",
+          "return function tearOff_" + name + (functionCounter++)+ "() {" +
+            "if (cache === null) cache = createTearOffClass(" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);" +
+                "return new cache(this, funcs[0], null, name);" +
+             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #createTearOffClass, null);
+}''',
+      {'createTearOffClass': closureFromTearOffAccessExpression},
+    );
   }
 
-  jsAst.Statement tearOff = js.statement('''
-      function tearOff(funcs, applyTrampolineIndex,
+  jsAst.Statement tearOff = js.statement(
+    '''
+    function tearOff(funcs, applyTrampolineIndex,
           reflectionInfo, isStatic, name, isIntercepted) {
       var cache = null;
       return isStatic
           ? function() {
-              if (cache === null) cache = #tearOff(
+              if (cache === null) cache = #createTearOffClass(
                   this, funcs, applyTrampolineIndex,
                   reflectionInfo, true, false, name).prototype;
               return cache;
             }
           : tearOffGetter(funcs, applyTrampolineIndex,
               reflectionInfo, name, isIntercepted);
-    }''', {'tearOff': tearOffAccessExpression});
+    }''',
+    {'createTearOffClass': closureFromTearOffAccessExpression},
+  );
 
-  return <jsAst.Statement>[tearOffGetter, tearOff];
+  return [tearOffGetter, tearOff];
 }

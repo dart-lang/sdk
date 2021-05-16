@@ -41,14 +41,13 @@ abstract class _MinifiedFieldNamer implements Namer {
 class _FieldNamingRegistry {
   final Namer namer;
 
-  final Map<Entity, _FieldNamingScope> scopes =
-      new Map<Entity, _FieldNamingScope>();
+  final Map<Entity, _FieldNamingScope> scopes = {};
 
-  final Map<Entity, jsAst.Name> globalNames = new Map<Entity, jsAst.Name>();
+  final Map<Entity, jsAst.Name> globalNames = {};
 
   int globalCount = 0;
 
-  final List<jsAst.Name> nameStore = <jsAst.Name>[];
+  final List<jsAst.Name> nameStore = [];
 
   _FieldNamingRegistry(this.namer);
 
@@ -93,7 +92,7 @@ class _FieldNamingRegistry {
 class _FieldNamingScope {
   final _FieldNamingScope superScope;
   final Entity container;
-  final Map<Entity, jsAst.Name> names = new Maplet<Entity, jsAst.Name>();
+  final Map<Entity, jsAst.Name> names = Maplet();
   final _FieldNamingRegistry registry;
 
   /// Naming counter used for fields of ordinary classes.
@@ -117,25 +116,25 @@ class _FieldNamingScope {
     if (result != null) return result;
 
     if (world.isUsedAsMixin(cls)) {
-      result = new _MixinFieldNamingScope.mixin(cls, registry);
+      result = _MixinFieldNamingScope.mixin(cls, registry);
     } else {
       var superclass = world.elementEnvironment.getSuperClass(cls);
       if (superclass == null) {
-        result = new _FieldNamingScope.rootScope(cls, registry);
+        result = _FieldNamingScope.rootScope(cls, registry);
       } else {
         _FieldNamingScope superScope =
-            new _FieldNamingScope.forClass(superclass, world, registry);
+            _FieldNamingScope.forClass(superclass, world, registry);
         if (world.elementEnvironment.isMixinApplication(cls)) {
-          result =
-              new _MixinFieldNamingScope.mixedIn(cls, superScope, registry);
+          result = _MixinFieldNamingScope.mixedIn(cls, superScope, registry);
         } else {
-          result = new _FieldNamingScope.inherit(cls, superScope, registry);
+          result = _FieldNamingScope.inherit(cls, superScope, registry);
         }
       }
     }
 
     world.elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
+      // TODO(sra): Don't add elided names.
       if (member.isField && member.isInstanceMember) result.add(member);
     });
 

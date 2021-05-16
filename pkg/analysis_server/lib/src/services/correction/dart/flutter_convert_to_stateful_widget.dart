@@ -153,8 +153,10 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
                 builder.writeln();
               }
               builder.writeln('  @override');
-              builder.writeln(
-                  '  $stateName$typeParams createState() => $stateName$typeParams();');
+              builder.write('  ');
+              builder.writeReference(stateClass);
+              builder.write('<${widgetClass.name}$typeParams>');
+              builder.writeln(' createState() => $stateName$typeParams();');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
               }

@@ -20,7 +20,7 @@ class MakeReturnTypeNullable extends CorrectionProducer {
       return;
     }
 
-    var node = this.node;
+    final node = this.node;
     if (node is! Expression) {
       return;
     }

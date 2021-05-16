@@ -5,10 +5,10 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///bounds_from_opt_in_lib.dart";
 
-class LegacyClass<T extends Null = Null> extends bou::Class<self::LegacyClass::T*> {
+class LegacyClass<T extends Null> extends bou::Class<self::LegacyClass::T*> {
   synthetic constructor •() → self::LegacyClass<self::LegacyClass::T*>*
     ;
-  method method<T extends Null = Null>() → dynamic
+  method method<T extends Null>() → dynamic
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -30,11 +30,11 @@ library /*isNonNullableByDefault*/;
 import self as bou;
 import "dart:core" as core;
 
-class Class<T extends Never = Never> extends core::Object {
+class Class<T extends Never> extends core::Object {
   synthetic constructor •() → bou::Class<bou::Class::T>
     ;
-  method method<T extends Never = Never>() → dynamic
+  method method<T extends Never>() → dynamic
     ;
 }
-static method method<T extends Never = Never>() → dynamic
+static method method<T extends Never>() → dynamic
   ;

@@ -3735,11 +3735,10 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
   set_register(NULL, CODE_REG, code);
   set_register(NULL, PP, pp);
-  set_register(NULL, BARRIER_MASK, thread->write_barrier_mask());
+  set_register(
+      NULL, HEAP_BITS,
+      (thread->write_barrier_mask() << 32) | (thread->heap_base() >> 32));
   set_register(NULL, NULL_REG, static_cast<int64_t>(Object::null()));
-#if defined(DART_COMPRESSED_POINTERS)
-  set_register(NULL, HEAP_BASE, thread->heap_base());
-#endif
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     set_register(NULL, DISPATCH_TABLE_REG,
                  reinterpret_cast<int64_t>(thread->dispatch_table_array()));

@@ -4,6 +4,8 @@
 // Test various optimizations and deoptimizations of optimizing compiler..
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 addThem(a, b) {

@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 @JS()
 library promise_reject_null_test;
 

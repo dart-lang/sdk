@@ -16,10 +16,8 @@ import 'js_emitter.dart' show MetadataCollector;
 
 class Program {
   final List<Fragment> fragments;
-  final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
-  final bool hasSoftDeferredClasses;
 
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
@@ -30,11 +28,9 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments, this.holders, this.typeToInterceptorMap,
-      this._metadataCollector, this.finalizers,
-      {this.needsNativeSupport,
-      this.outputContainsConstantList,
-      this.hasSoftDeferredClasses}) {
+  Program(this.fragments, this.typeToInterceptorMap, this._metadataCollector,
+      this.finalizers,
+      {this.needsNativeSupport, this.outputContainsConstantList}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
   }
@@ -74,23 +70,6 @@ class Program {
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
   Fragment get mainFragment => fragments.first;
-}
-
-/// This class represents a JavaScript object that contains static state, like
-/// classes or functions.
-class Holder {
-  final String name;
-  final int index;
-  final bool isStaticStateHolder;
-  final bool isConstantsHolder;
-
-  Holder(this.name, this.index,
-      {this.isStaticStateHolder: false, this.isConstantsHolder: false});
-
-  @override
-  String toString() {
-    return 'Holder(name=${name})';
-  }
 }
 
 /// This class represents one output file.
@@ -176,10 +155,9 @@ class DeferredFragment extends Fragment {
 
 class Constant {
   final js.Name name;
-  final Holder holder;
   final ConstantValue value;
 
-  Constant(this.name, this.holder, this.value);
+  Constant(this.name, this.value);
 
   @override
   String toString() {
@@ -187,11 +165,7 @@ class Constant {
   }
 }
 
-abstract class FieldContainer {
-  List<Field> get staticFieldsForReflection;
-}
-
-class Library implements FieldContainer {
+class Library {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final LibraryEntity element;
@@ -201,11 +175,8 @@ class Library implements FieldContainer {
   final List<Class> classes;
   final List<ClassTypeData> classTypeData;
 
-  @override
-  final List<Field> staticFieldsForReflection;
-
-  Library(this.element, this.uri, this.statics, this.classes,
-      this.classTypeData, this.staticFieldsForReflection);
+  Library(
+      this.element, this.uri, this.statics, this.classes, this.classTypeData);
 
   @override
   String toString() {
@@ -222,14 +193,13 @@ class StaticField {
   final js.Name getterName;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
-  final Holder holder;
   final js.Expression code;
   final bool isFinal;
   final bool isLazy;
   final bool isInitializedByConstant;
   final bool usesNonNullableInitialization;
 
-  StaticField(this.element, this.name, this.getterName, this.holder, this.code,
+  StaticField(this.element, this.name, this.getterName, this.code,
       {this.isFinal,
       this.isLazy,
       this.isInitializedByConstant: false,
@@ -256,7 +226,7 @@ class ClassTypeData {
           check.cls == commonElements.objectClass || check.cls == element);
 }
 
-class Class implements FieldContainer {
+class Class {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final ClassEntity element;
@@ -267,7 +237,6 @@ class Class implements FieldContainer {
   final ClassTypeData typeData;
 
   final js.Name name;
-  final Holder holder;
   Class _superclass;
   Class _mixinClass;
   final List<Method> methods;
@@ -280,19 +249,13 @@ class Class implements FieldContainer {
 
   /// noSuchMethod stubs in the special case that the class is Object.
   final List<StubMethod> noSuchMethodStubs;
-  @override
-  final List<Field> staticFieldsForReflection;
+
   final bool hasRtiField; // Per-instance runtime type information pseudo-field.
   final bool onlyForRti;
   final bool onlyForConstructor;
   final bool isDirectlyInstantiated;
   final bool isNative;
   final bool isClosureBaseClass; // Common base class for closures.
-
-  /// Whether this class should be soft deferred.
-  ///
-  /// A soft-deferred class is only fully initialized at first instantiation.
-  final bool isSoftDeferred;
 
   final bool isMixinApplicationWithMembers;
 
@@ -316,10 +279,8 @@ class Class implements FieldContainer {
       this.element,
       this.typeData,
       this.name,
-      this.holder,
       this.methods,
       this.fields,
-      this.staticFieldsForReflection,
       this.callStubs,
       this.noSuchMethodStubs,
       this.checkedSetters,
@@ -331,7 +292,6 @@ class Class implements FieldContainer {
       this.isDirectlyInstantiated,
       this.isNative,
       this.isClosureBaseClass,
-      this.isSoftDeferred = false,
       this.isMixinApplicationWithMembers}) {
     assert(onlyForRti != null);
     assert(onlyForConstructor != null);
@@ -356,9 +316,6 @@ class Class implements FieldContainer {
 
   js.Name get superclassName => superclass == null ? null : superclass.name;
 
-  int get superclassHolderIndex =>
-      (superclass == null) ? 0 : superclass.holder.index;
-
   @override
   String toString() => 'Class(name=${name.key},element=$element)';
 }
@@ -368,9 +325,7 @@ class MixinApplication extends Class {
       ClassEntity element,
       ClassTypeData typeData,
       js.Name name,
-      Holder holder,
       List<Field> instanceFields,
-      List<Field> staticFieldsForReflection,
       List<StubMethod> callStubs,
       List<StubMethod> checkedSetters,
       List<StubMethod> isChecks,
@@ -383,10 +338,8 @@ class MixinApplication extends Class {
             element,
             typeData,
             name,
-            holder,
             const <Method>[],
             instanceFields,
-            staticFieldsForReflection,
             callStubs,
             const <StubMethod>[],
             checkedSetters,
@@ -624,21 +577,11 @@ class ParameterStubMethod extends StubMethod {
   }
 }
 
-abstract class StaticMethod implements Method {
-  Holder get holder;
-}
+abstract class StaticMethod implements Method {}
 
 class StaticDartMethod extends DartMethod implements StaticMethod {
-  @override
-  final Holder holder;
-
-  StaticDartMethod(
-      FunctionEntity element,
-      js.Name name,
-      this.holder,
-      js.Expression code,
-      List<ParameterStubMethod> parameterStubs,
-      js.Name callName,
+  StaticDartMethod(FunctionEntity element, js.Name name, js.Expression code,
+      List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
       js.Name tearOffName,
       bool canBeApplied,
@@ -666,9 +609,8 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {
-  @override
-  Holder holder;
-  StaticStubMethod(js.Name name, this.holder, js.Expression code)
+  LibraryEntity library;
+  StaticStubMethod(this.library, js.Name name, js.Expression code)
       : super(name, code);
 
   @override

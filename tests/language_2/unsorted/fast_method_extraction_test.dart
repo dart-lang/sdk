@@ -4,6 +4,8 @@
 // Test that fast method extraction returns correct closure.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

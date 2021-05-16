@@ -5,6 +5,8 @@
 // This test checks that the type parameter bounds on tearoffs from generic
 // classes are properly instantiated in the signature of the tearoff.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C<T> {

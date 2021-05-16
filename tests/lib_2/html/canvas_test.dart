@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library CanvasTest;
 
 import 'dart:html';

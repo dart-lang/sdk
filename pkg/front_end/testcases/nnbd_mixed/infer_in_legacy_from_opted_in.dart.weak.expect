@@ -15,6 +15,6 @@ import self as inf;
 import "dart:core" as core;
 
 static field core::int y = 42;
-static method foo<T extends core::num = core::num>(inf::foo::T t1, inf::foo::T t2) → inf::foo::T
+static method foo<T extends core::num>(inf::foo::T t1, inf::foo::T t2) → inf::foo::T
   return t1;
 static method baz(core::int? v) → dynamic {}

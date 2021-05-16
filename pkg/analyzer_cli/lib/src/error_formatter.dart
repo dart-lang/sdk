@@ -312,10 +312,16 @@ class HumanErrorFormatter extends ErrorFormatter {
     for (var message in error.contextMessages) {
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
-        var lineInfo = session.driver.getFileSync(message.filePath)?.lineInfo;
-        var location = lineInfo.getLocation(message.offset);
-        contextMessages.add(ContextMessage(message.filePath, message.message,
-            location.lineNumber, location.columnNumber));
+        var fileResult = session.driver.getFileSync2(message.filePath);
+        if (fileResult is FileResult) {
+          var lineInfo = fileResult?.lineInfo;
+          var location = lineInfo.getLocation(message.offset);
+          contextMessages.add(ContextMessage(
+              message.filePath,
+              message.messageText(includeUrl: true),
+              location.lineNumber,
+              location.columnNumber));
+        }
       }
     }
 
@@ -389,7 +395,7 @@ class JsonErrorFormatter extends ErrorFormatter {
           contextMessages.add({
             'location': location(contextMessage.filePath, contextMessage.offset,
                 contextMessage.length, lineInfo),
-            'message': contextMessage.message,
+            'message': contextMessage.messageText(includeUrl: true),
           });
         }
         var errorCode = error.errorCode;
@@ -401,7 +407,7 @@ class JsonErrorFormatter extends ErrorFormatter {
           'type': errorCode.type.name,
           'location': location(problemMessage.filePath, problemMessage.offset,
               problemMessage.length, lineInfo),
-          'problemMessage': problemMessage.message,
+          'problemMessage': problemMessage.messageText(includeUrl: true),
           if (error.correction != null) 'correctionMessage': error.correction,
           if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
           if (url != null) 'documentation': url,

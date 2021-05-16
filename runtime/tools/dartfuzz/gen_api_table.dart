@@ -14,8 +14,6 @@
 // Then send out modified dartfuzz_api_table.dart for review together
 // with a modified dartfuzz.dart that increases the version.
 
-import 'dart:io';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -218,7 +216,6 @@ final Map<String, String> typeToLibraryMethodsListName = {
   stateErrorEncoding: stateErrorLibs,
   stringBufferEncoding: stringBufferLibs,
   stringEncoding: stringLibs,
-  stringEncoding: stringLibs,
   symbolEncoding: symbolLibs,
   typeErrorEncoding: typeErrorLibs,
   uint16ListEncoding: uint16ListLibs,
@@ -303,8 +300,8 @@ final typedDataFloatTypes = [
   float64x2ListEncoding
 ];
 
-main() async {
-  final AnalysisSession session = GenUtil.createAnalysisSession();
+void main() async {
+  final session = GenUtil.createAnalysisSession();
 
   // Visit libraries for table generation.
   await visitLibraryAtUri(session, 'dart:async');
@@ -331,44 +328,45 @@ main() async {
   dumpFooter();
 }
 
-visitLibraryAtUri(AnalysisSession session, String uri) async {
-  final String libPath = session.uriConverter.uriToPath(Uri.parse(uri));
-  ResolvedLibraryResult result = await session.getResolvedLibrary(libPath);
-  if (result.state != ResultState.VALID) {
+Future<void> visitLibraryAtUri(AnalysisSession session, String uri) async {
+  final libPath = session.uriConverter.uriToPath(Uri.parse(uri));
+  var result = await session.getResolvedLibrary2(libPath);
+  if (result is ResolvedLibraryResult) {
+    visitLibrary(result.element);
+  } else {
     throw StateError('Unable to resolve "$uri"');
   }
-  visitLibrary(result.element);
 }
 
-visitLibrary(LibraryElement library) async {
+void visitLibrary(LibraryElement library) {
   // This uses the element model to traverse the code. The element model
   // represents the semantic structure of the code. A library consists of
   // one or more compilation units.
-  for (CompilationUnitElement unit in library.units) {
+  for (var unit in library.units) {
     visitCompilationUnit(unit);
   }
 }
 
-visitCompilationUnit(CompilationUnitElement unit) {
+void visitCompilationUnit(CompilationUnitElement unit) {
   // Each compilation unit contains elements for all of the top-level
   // declarations in a single file, such as variables, functions, and
   // classes. Note that `types` only returns classes. You can use
   // `mixins` to visit mixins, `enums` to visit enum, `functionTypeAliases`
   // to visit typedefs, etc.
-  for (TopLevelVariableElement variable in unit.topLevelVariables) {
+  for (var variable in unit.topLevelVariables) {
     if (variable.isPublic) {
       addToTable(typeString(variable.type), variable.name,
           [voidEncoding, voidEncoding],
           isMethod: false);
     }
   }
-  for (FunctionElement function in unit.functions) {
+  for (var function in unit.functions) {
     if (function.isPublic && !function.isOperator) {
       addToTable(typeString(function.returnType), function.name,
           protoString(null, function.parameters));
     }
   }
-  for (ClassElement classElement in unit.types) {
+  for (var classElement in unit.types) {
     if (classElement.isPublic) {
       visitClass(classElement);
     }
@@ -386,7 +384,7 @@ void visitClass(ClassElement classElement) {
   // methods, `fields` visits fields, `accessors` visits getters and setters, etc.
   // There are also accessors to get the superclass, mixins, interfaces, type
   // parameters, etc.
-  for (ConstructorElement constructor in classElement.constructors) {
+  for (var constructor in classElement.constructors) {
     if (constructor.isPublic &&
         constructor.isFactory &&
         constructor.name.isNotEmpty) {
@@ -396,7 +394,7 @@ void visitClass(ClassElement classElement) {
           protoString(null, constructor.parameters));
     }
   }
-  for (MethodElement method in classElement.methods) {
+  for (var method in classElement.methods) {
     if (method.isPublic && !method.isOperator) {
       if (method.isStatic) {
         addToTable(
@@ -409,7 +407,7 @@ void visitClass(ClassElement classElement) {
       }
     }
   }
-  for (PropertyAccessorElement accessor in classElement.accessors) {
+  for (var accessor in classElement.accessors) {
     if (accessor.isPublic && accessor.isGetter) {
       var variable = accessor.variable;
       if (accessor.isStatic) {
@@ -587,7 +585,7 @@ String typeString(DartType type) {
 List<String> protoString(DartType receiver, List<ParameterElement> parameters) {
   final proto = [receiver == null ? voidEncoding : typeString(receiver)];
   // Construct prototype for non-named parameters.
-  for (ParameterElement parameter in parameters) {
+  for (var parameter in parameters) {
     if (!parameter.isNamed) {
       proto.add(typeString(parameter.type));
     }
@@ -629,7 +627,7 @@ void addToTable(String ret, String name, List<String> proto,
   // for example, to avoid excessive runtime or memory
   // allocation in the generated fuzzing program.
   if (name == 'padLeft' || name == 'padRight') {
-    for (int i = 0; i < proto.length - 1; ++i) {
+    for (var i = 0; i < proto.length - 1; ++i) {
       if (proto[i] == intEncoding && proto[i + 1] == stringEncoding) {
         restrictions = List<Restriction>.filled(proto.length, Restriction.none);
         restrictions[i] = Restriction.small;
@@ -638,7 +636,7 @@ void addToTable(String ret, String name, List<String> proto,
       }
     }
   } else if (name == 'List<int>.filled') {
-    for (int i = 0; i < proto.length; ++i) {
+    for (var i = 0; i < proto.length; ++i) {
       if (proto[i] == intEncoding) {
         restrictions = List<Restriction>.filled(proto.length, Restriction.none);
         restrictions[i] = Restriction.small;
@@ -651,7 +649,7 @@ void addToTable(String ret, String name, List<String> proto,
 }
 
 void dumpHeader() {
-  print("""
+  print('''
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -660,7 +658,7 @@ void dumpHeader() {
 
 /// NOTE: this code has been generated automatically.
 
-import \"dartfuzz_type_table.dart\";
+import 'dartfuzz_type_table.dart';
 
 /// Enum for different restrictions on parameters for library methods.
 /// none - No restriction on the corresponding parameter.
@@ -686,7 +684,7 @@ class DartLib {
   {this.restrictions});
   Restriction getRestriction(int paramIndex) => (restrictions == null) ?
   Restriction.none : restrictions[paramIndex];
-""");
+''');
 }
 
 void dumpTypeToLibraryMethodMap() {
@@ -695,7 +693,7 @@ void dumpTypeToLibraryMethodMap() {
     if (typeToLibraryMethodsList[key].isNotEmpty) {
       // Only output a mapping from type to library methods list name for those
       // types that have a non-empty library methods list.
-      print('    ${key}: ${typeToLibraryMethodsListName[key]},');
+      print('    $key: ${typeToLibraryMethodsListName[key]},');
     }
   }
   print('  };');
@@ -704,7 +702,7 @@ void dumpTypeToLibraryMethodMap() {
 void dumpTypedDataFloatTypes() {
   print('  static const typedDataFloatTypes = [');
   for (var type in typedDataFloatTypes) {
-    print('    ${type},');
+    print('    $type,');
   }
   print('  ];');
 }

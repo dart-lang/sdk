@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,10 +22,6 @@ class DartUnitHoverComputer {
   final int _offset;
 
   DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
-
-  bool get _isNonNullableByDefault {
-    return _unit.declaredElement?.library.isNonNullableByDefault ?? false;
-  }
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -105,7 +102,7 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = computeDocumentation(_dartdocInfo, element);
+        hover.dartdoc = computeDocumentation(_dartdocInfo, element)?.full;
       }
       // parameter
       hover.parameter = _elementDisplayString(
@@ -135,16 +132,18 @@ class DartUnitHoverComputer {
 
   String? _elementDisplayString(Element? element) {
     return element?.getDisplayString(
-      withNullability: _isNonNullableByDefault,
+      withNullability: _unit.isNonNullableByDefault,
     );
   }
 
   String? _typeDisplayString(DartType? type) {
-    return type?.getDisplayString(withNullability: _isNonNullableByDefault);
+    return type?.getDisplayString(
+        withNullability: _unit.isNonNullableByDefault);
   }
 
-  static String? computeDocumentation(
-      DartdocDirectiveInfo dartdocInfo, Element elementBeingDocumented) {
+  static Documentation? computeDocumentation(
+      DartdocDirectiveInfo dartdocInfo, Element elementBeingDocumented,
+      {bool includeSummary = false}) {
     // TODO(dantup) We're reusing this in parameter information - move it
     // somewhere shared?
     Element? element = elementBeingDocumented;
@@ -194,12 +193,14 @@ class DartUnitHoverComputer {
     if (rawDoc == null) {
       return null;
     }
-    var result = dartdocInfo.processDartdoc(rawDoc);
+    var result =
+        dartdocInfo.processDartdoc(rawDoc, includeSummary: includeSummary);
 
     var documentedElementClass = documentedElement.enclosingElement;
     if (documentedElementClass != null &&
         documentedElementClass != element.enclosingElement) {
-      result += '\n\nCopied from `${documentedElementClass.displayName}`.';
+      var documentedClass = documentedElementClass.displayName;
+      result.full = '${result.full}\n\nCopied from `$documentedClass`.';
     }
 
     return result;

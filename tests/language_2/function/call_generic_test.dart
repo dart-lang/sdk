@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // dart2jsOptions=-Ddart.isdart2js=true
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 @pragma('dart2js:noInline')

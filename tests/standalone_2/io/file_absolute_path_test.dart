@@ -4,6 +4,8 @@
 //
 // Dart test program for testing FileSystemEntity.absolute
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import 'dart:io';
 

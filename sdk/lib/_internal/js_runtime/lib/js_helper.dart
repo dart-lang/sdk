@@ -11,7 +11,6 @@ import 'dart:_js_embedded_names'
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
-        GET_TYPE_FROM_NAME,
         GET_ISOLATE_TAG,
         INITIALIZE_LOADED_HUNK,
         INTERCEPTED_NAMES,
@@ -54,11 +53,7 @@ import 'dart:_internal'
 
 import 'dart:_native_typed_data';
 
-import 'dart:_js_names'
-    show
-        extractKeys,
-        unmangleGlobalNameIfPreservedAnyways,
-        unmangleAllIdentifiersIfPreservedAnyways;
+import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
 import 'dart:_rti' as newRti
     show
@@ -274,7 +269,7 @@ class Primitives {
   static int? parseInt(String source, int? radix) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
-    var match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
+    List? match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
@@ -357,7 +352,7 @@ class Primitives {
         source)) {
       return null;
     }
-    var result = JS('num', r'parseFloat(#)', source);
+    double result = JS('double', r'parseFloat(#)', source);
     if (result.isNaN) {
       var trimmed = source.trim();
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
@@ -535,7 +530,7 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCharCode(charCode) {
+  static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('returns:String;effects:none;depends:none',
@@ -603,8 +598,8 @@ class Primitives {
         as int;
   }
 
-  static int? valueFromDecomposedDate(
-      years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
+  static int? valueFromDecomposedDate(int years, int month, int day, int hours,
+      int minutes, int seconds, int milliseconds, bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -623,7 +618,7 @@ class Primitives {
       years += 400;
       jsMonth -= 400 * 12;
     }
-    var value;
+    num value;
     if (isUtc) {
       value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
           hours, minutes, seconds, milliseconds);
@@ -737,9 +732,9 @@ class Primitives {
     return (weekday + 6) % 7 + 1;
   }
 
-  static valueFromDateString(str) {
+  static num valueFromDateString(str) {
     if (str is! String) throw argumentErrorValue(str);
-    var value = JS('num', r'Date.parse(#)', str);
+    num value = JS('num', r'Date.parse(#)', str);
     if (value.isNaN) throw argumentErrorValue(str);
     return value;
   }
@@ -1000,29 +995,6 @@ class Primitives {
 
   static StackTrace extractStackTrace(Error error) {
     return getTraceFromException(JS('', r'#.$thrownJsError', error));
-  }
-}
-
-/// Helper class for allocating and using JS object literals as caches.
-class JsCache {
-  /// Returns a JavaScript object suitable for use as a cache.
-  static allocate() {
-    var result = JS('=Object', 'Object.create(null)');
-    // Deleting a property makes V8 assume that it shouldn't create a hidden
-    // class for [result] and map transitions. Although these map transitions
-    // pay off if there are many cache hits for the same keys, it becomes
-    // really slow when there aren't many repeated hits.
-    JS('void', '#.x=0', result);
-    JS('void', 'delete #.x', result);
-    return result;
-  }
-
-  static fetch(cache, String key) {
-    return JS('', '#[#]', cache, key);
-  }
-
-  static void update(cache, String key, value) {
-    JS('void', '#[#] = #', cache, key, value);
   }
 }
 
@@ -2763,7 +2735,7 @@ Future<Null> loadDeferredLibrary(String loadId) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i]).then((Null _) {
+    return _loadHunk(uris[i], loadId).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -2860,7 +2832,7 @@ String _computeThisScriptFromTrace() {
   throw new UnsupportedError('Cannot extract URI from "$stack"');
 }
 
-Future<Null> _loadHunk(String hunkName) {
+Future<Null> _loadHunk(String hunkName, String loadId) {
   var future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
@@ -2900,8 +2872,10 @@ Future<Null> _loadHunk(String hunkName) {
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryLoader)) {
     try {
-      JS('void', '#(#, #, #)', deferredLibraryLoader, uri, jsSuccess,
-          jsFailure);
+      // Share the loadId that hunk belongs to, this will allow for any
+      // additional loadId based bundling optimizations.
+      JS('void', '#(#, #, #, #)', deferredLibraryLoader, uri, jsSuccess,
+          jsFailure, loadId);
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }

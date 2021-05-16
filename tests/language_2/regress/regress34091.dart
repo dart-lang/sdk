@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests that stack traces from data URIs don't contain the entire URI, and
 // instead just have the substitute file name: <data:application/dart>
 

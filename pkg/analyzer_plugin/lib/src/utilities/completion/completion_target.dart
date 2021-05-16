@@ -385,7 +385,7 @@ class CompletionTarget {
 
   /// Return `true` if the target is a double or int literal.
   bool isDoubleOrIntLiteral() {
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is Token) {
       var previousTokenType = containingNode.findPrevious(entity)?.type;
       return previousTokenType == TokenType.DOUBLE ||
@@ -506,7 +506,10 @@ class CompletionTarget {
     if (token == null) {
       return null;
     }
-    if (offset >= token.offset) {
+    // Usually if the offset is greater than the token it can't be in the comment
+    // but for EOF this is not the case - the offset at EOF could still be inside
+    // the comment if EOF is on the same line as the comment.
+    if (token.type != TokenType.EOF && offset >= token.offset) {
       return null;
     }
     token = token.precedingComments;

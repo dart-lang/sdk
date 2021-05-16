@@ -186,7 +186,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
   CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-  CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
@@ -218,7 +217,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
   CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
   CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
-  CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
   CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
@@ -228,6 +226,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
   CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INVALID_ANNOTATION,
+  CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.INVALID_ASSIGNMENT,
   CompileTimeErrorCode.INVALID_CAST_FUNCTION,
@@ -338,6 +337,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER,
   CompileTimeErrorCode.NOT_A_TYPE,
   CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+  CompileTimeErrorCode.NOT_BINARY_OPERATOR,
   CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
@@ -479,6 +479,7 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.MUST_BE_A_SUBTYPE,
   FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
   FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
+  FfiCode.NON_POSITIVE_ARRAY_DIMENSION,
   FfiCode.NON_SIZED_TYPE_ARGUMENT,
   FfiCode.PACKED_ANNOTATION,
   FfiCode.PACKED_ANNOTATION_ALIGNMENT,
@@ -848,9 +849,6 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
-  StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
-  StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE,
-  StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
   TodoCode.TODO,
 ];
 
@@ -947,7 +945,8 @@ class AnalysisError implements Diagnostic {
         filePath: source.fullName,
         length: length,
         message: message,
-        offset: offset);
+        offset: offset,
+        url: null);
   }
 
   /// Initialize a newly created analysis error with given values.
@@ -959,7 +958,8 @@ class AnalysisError implements Diagnostic {
         filePath: source.fullName,
         length: length,
         message: message,
-        offset: offset);
+        offset: offset,
+        url: null);
   }
 
   /// Initialize a newly created analysis error. The error is associated with
@@ -981,6 +981,7 @@ class AnalysisError implements Diagnostic {
       length: length,
       message: messageText,
       offset: offset,
+      url: null,
     );
   }
 
@@ -1009,7 +1010,7 @@ class AnalysisError implements Diagnostic {
 
   /// Return the message to be displayed for this error. The message should
   /// indicate what is wrong and why it is wrong.
-  String get message => _problemMessage.message;
+  String get message => _problemMessage.messageText(includeUrl: true);
 
   /// The character offset from the beginning of the source (zero based) where
   /// the error occurred.

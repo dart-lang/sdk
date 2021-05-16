@@ -72,6 +72,16 @@ Future<int> f(Future<Future<int>> a) async {
     ]);
   }
 
+  test_function_async_block_Future_String__to_Future_int() async {
+    await assertErrorsInCode('''
+Future<int> f(Future<String> a) async {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 49, 1),
+    ]);
+  }
+
   test_function_async_block_Future_void() async {
     await assertNoErrorsInCode('''
 void f1(Future<void> a) async { return a; }

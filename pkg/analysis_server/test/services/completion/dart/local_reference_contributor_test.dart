@@ -6289,7 +6289,7 @@ import 'package:flutter/widgets.dart';
 
 class TestWidget extends StatefulWidget {
   @override
-  TestWidgetState createState() {
+  State<TestWidget> createState() {
     return new TestWidgetState();
   }
 }

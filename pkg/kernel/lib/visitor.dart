@@ -319,7 +319,7 @@ abstract class TreeVisitor<R>
   R visitNamedExpression(NamedExpression node) => defaultTreeNode(node);
   R visitSwitchCase(SwitchCase node) => defaultTreeNode(node);
   R visitCatch(Catch node) => defaultTreeNode(node);
-  R visitMapEntry(MapEntry node) => defaultTreeNode(node);
+  R visitMapLiteralEntry(MapLiteralEntry node) => defaultTreeNode(node);
   R visitComponent(Component node) => defaultTreeNode(node);
 }
 
@@ -510,7 +510,8 @@ abstract class TreeVisitor1<R, A>
       defaultTreeNode(node, arg);
   R visitSwitchCase(SwitchCase node, A arg) => defaultTreeNode(node, arg);
   R visitCatch(Catch node, A arg) => defaultTreeNode(node, arg);
-  R visitMapEntry(MapEntry node, A arg) => defaultTreeNode(node, arg);
+  R visitMapLiteralEntry(MapLiteralEntry node, A arg) =>
+      defaultTreeNode(node, arg);
   R visitComponent(Component node, A arg) => defaultTreeNode(node, arg);
 }
 
@@ -1354,12 +1355,13 @@ class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyNamedExpression);
   }
 
-  /// Transforms or removes [MapEntry] nodes in [nodes] as children of [parent].
+  /// Transforms or removes [MapLiteralEntry] nodes in [nodes] as children of
+  /// [parent].
   ///
   /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [MapEntry] nodes.
-  void transformMapEntryList(List<MapEntry> nodes, TreeNode parent) {
-    transformList(nodes, parent, dummyMapEntry);
+  /// sentinel for [MapLiteralEntry] nodes.
+  void transformMapEntryList(List<MapLiteralEntry> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyMapLiteralEntry);
   }
 
   /// Transforms or removes [Statement] nodes in [nodes] as children of

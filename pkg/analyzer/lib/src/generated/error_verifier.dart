@@ -85,7 +85,7 @@ class EnclosingExecutableContext {
   EnclosingExecutableContext.empty() : this(null);
 
   String? get displayName {
-    var element = this.element;
+    final element = this.element;
     if (element is ConstructorElement) {
       var className = element.enclosingElement.displayName;
       var constructorName = element.displayName;
@@ -561,7 +561,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumDeclaration(EnumDeclaration node) {
     var outerEnum = _enclosingEnum;
     try {
-      _enclosingEnum = node.declaredElement!;
+      _enclosingEnum = node.declaredElement;
       _duplicateDefinitionVerifier.checkEnum(node);
       super.visitEnumDeclaration(node);
     } finally {
@@ -3120,7 +3120,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (withClause == null) {
       return;
     }
-    var declaredSupertype = superclassName?.type;
+    var declaredSupertype = superclassName?.type ?? _typeProvider.objectType;
     if (declaredSupertype is! InterfaceType) {
       return;
     }
@@ -4272,7 +4272,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 [parameter.identifier.name]);
           } else if (fieldElement.isStatic) {
             errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
           } else if (!typeSystem.isSubtypeOf(declaredType, fieldType)) {
@@ -4289,7 +4289,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 [parameter.identifier.name]);
           } else if (fieldElement.isStatic) {
             errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
           }

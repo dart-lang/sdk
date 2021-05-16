@@ -87,11 +87,14 @@ main() async {
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, null, -1);
     Procedure getter = new Procedure(
-        new Name("myGetter"), ProcedureKind.Getter, new FunctionNode(null));
+        new Name("myGetter"), ProcedureKind.Getter, new FunctionNode(null),
+        fileUri: uri);
     Procedure interfaceTarget = new Procedure(new Name("myInterfaceTarget"),
-        ProcedureKind.Method, new FunctionNode(null));
+        ProcedureKind.Method, new FunctionNode(null),
+        fileUri: uri);
     Procedure setter = new Procedure(
-        new Name("mySetter"), ProcedureKind.Setter, new FunctionNode(null));
+        new Name("mySetter"), ProcedureKind.Setter, new FunctionNode(null),
+        fileUri: uri);
     Message message = templateUnspecified.withArguments("My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
@@ -110,8 +113,8 @@ main() async {
     Generator generator =
         new ThisAccessGenerator(helper, token, false, false, false);
 
-    Library library = new Library(uri);
-    Class cls = new Class(name: 'foo');
+    Library library = new Library(uri, fileUri: uri);
+    Class cls = new Class(name: 'foo', fileUri: uri);
     library.addClass(cls);
     library.addProcedure(getter);
     library.addProcedure(setter);

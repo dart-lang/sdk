@@ -135,6 +135,7 @@ class5b
 class5c
 class5d
 cloneable
+cm
 cmd
 cmp
 cnn
@@ -293,6 +294,7 @@ field4a
 field4b
 filesystem
 filler
+filters
 fisk
 five
 floor

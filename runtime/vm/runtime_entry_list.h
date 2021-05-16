@@ -9,7 +9,13 @@ namespace dart {
 
 #define RUNTIME_ENTRY_LIST(V)                                                  \
   V(AllocateArray)                                                             \
+  V(AllocateMint)                                                              \
+  V(AllocateDouble)                                                            \
+  V(AllocateFloat32x4)                                                         \
+  V(AllocateFloat64x2)                                                         \
+  V(AllocateInt32x4)                                                           \
   V(AllocateTypedData)                                                         \
+  V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(BreakpointRuntimeHandler)                                                  \
@@ -44,7 +50,6 @@ namespace dart {
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
-  V(AllocateMint)                                                              \
   V(Throw)                                                                     \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \

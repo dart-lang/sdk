@@ -9,7 +9,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method add<A extends core::num* = core::num*, B extends core::num* = core::num*>(self::add::A* a, self::add::B* b) → core::num*
+static method add<A extends core::num*, B extends core::num*>(self::add::A* a, self::add::B* b) → core::num*
   return a.{core::num::+}(b);
 static method test() → dynamic {
   core::int* x = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/generic_function_type_in_message.dart:8:11: Error: A value of type 'num Function<A extends num, B extends num>(A, B)' can't be assigned to a variable of type 'int'.

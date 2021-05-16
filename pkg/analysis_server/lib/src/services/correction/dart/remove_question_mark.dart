@@ -18,17 +18,17 @@ class RemoveQuestionMark extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    AstNode? node = this.node;
-    if (node is VariableDeclaration) {
-      var parent = node.parent;
+    AstNode? targetNode = node;
+    if (targetNode is VariableDeclaration) {
+      var parent = targetNode.parent;
       if (parent is VariableDeclarationList) {
-        node = parent.type;
+        targetNode = parent.type;
       } else {
         return;
       }
     }
-    if (node is TypeName) {
-      var questionMark = node.question;
+    if (targetNode is TypeName) {
+      var questionMark = targetNode.question;
       if (questionMark == null) {
         return;
       }

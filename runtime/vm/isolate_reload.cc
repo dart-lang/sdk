@@ -2560,20 +2560,20 @@ void ProgramReloadContext::RebuildDirectSubclasses() {
 
   // Clear the direct subclasses for all classes.
   Class& cls = Class::Handle();
-  GrowableObjectArray& subclasses = GrowableObjectArray::Handle();
+  const GrowableObjectArray& null_list = GrowableObjectArray::Handle();
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
       if (!cls.is_declaration_loaded()) {
         continue;  // Can't have any subclasses or implementors yet.
       }
-      subclasses = cls.direct_subclasses();
-      if (!subclasses.IsNull()) {
-        cls.ClearDirectSubclasses();
+      // Testing for null to prevent attempting to write to read-only classes
+      // in the VM isolate.
+      if (cls.direct_subclasses() != GrowableObjectArray::null()) {
+        cls.set_direct_subclasses(null_list);
       }
-      subclasses = cls.direct_implementors();
-      if (!subclasses.IsNull()) {
-        cls.ClearDirectImplementors();
+      if (cls.direct_implementors() != GrowableObjectArray::null()) {
+        cls.set_direct_implementors(null_list);
       }
     }
   }

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that private dart:_ libraries cannot be imported.
 
+// @dart = 2.9
+
 import "dart:_internal";
 //     ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.IMPORT_INTERNAL_LIBRARY

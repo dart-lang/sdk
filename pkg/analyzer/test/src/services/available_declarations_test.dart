@@ -1178,7 +1178,7 @@ class A {}
 /// Before macro.
 /// {@macro foo}
 /// After macro.''');
-    expect(result, '''
+    expect(result.full, '''
 Before macro.
 Body of the template.
 After macro.''');
@@ -3496,9 +3496,9 @@ class C {}
     newFile(a, content: 'class A {}');
     newFile(b, content: 'class B {}');
     newFile(c, content: 'class C {}');
-    testAnalysisContext.currentSession.getFile(a);
-    testAnalysisContext.currentSession.getFile(b);
-    testAnalysisContext.currentSession.getFile(c);
+    testAnalysisContext.currentSession.getFile2(a);
+    testAnalysisContext.currentSession.getFile2(b);
+    testAnalysisContext.currentSession.getFile2(c);
 
     var context = tracker.addContext(testAnalysisContext);
     await _doAllTrackerWork();

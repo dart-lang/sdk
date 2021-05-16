@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
@@ -440,6 +441,7 @@ class CallSites : public ValueObject {
   void FindCallSites(FlowGraph* graph,
                      intptr_t depth,
                      GrowableArray<InlinedInfo>* inlined_info) {
+    COMPILER_TIMINGS_TIMER_SCOPE(graph->thread(), FindCallSites);
     ASSERT(graph != NULL);
     if (depth > inlining_depth_threshold_) {
       if (FLAG_print_inlining_tree) {
@@ -891,6 +893,24 @@ class CallSiteInliner : public ValueObject {
                    const Array& argument_names,
                    InlinedCallData* call_data,
                    bool stricter_heuristic) {
+    Timer timer;
+    if (thread()->compiler_timings() != nullptr) {
+      timer.Start();
+    }
+    const bool success = TryInliningImpl(function, argument_names, call_data,
+                                         stricter_heuristic);
+    if (thread()->compiler_timings() != nullptr) {
+      timer.Stop();
+      thread()->compiler_timings()->RecordInliningStatsByOutcome(success,
+                                                                 timer);
+    }
+    return success;
+  }
+
+  bool TryInliningImpl(const Function& function,
+                       const Array& argument_names,
+                       InlinedCallData* call_data,
+                       bool stricter_heuristic) {
     if (trace_inlining()) {
       String& name = String::Handle(function.QualifiedUserVisibleName());
       THR_Print("  => %s (deopt count %d)\n", name.ToCString(),
@@ -1040,6 +1060,7 @@ class CallSiteInliner : public ValueObject {
             caller_graph_->max_block_id() + 1,
             entry_kind == Code::EntryKind::kUnchecked);
         {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
           callee_graph = builder.BuildGraph();
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
@@ -1051,6 +1072,10 @@ class CallSiteInliner : public ValueObject {
 #endif
           CalleeGraphValidator::Validate(callee_graph);
         }
+
+        {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), PopulateWithICData);
+
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
         if (CompilerState::Current().is_aot()) {
           callee_graph->PopulateWithICData(parsed_function->function());
@@ -1062,6 +1087,7 @@ class CallSiteInliner : public ValueObject {
         // manually here.
         if (!CompilerState::Current().is_aot() && function.is_intrinsic()) {
           callee_graph->PopulateWithICData(parsed_function->function());
+        }
         }
 
         // The parameter stubs are a copy of the actual arguments providing
@@ -1127,6 +1153,7 @@ class CallSiteInliner : public ValueObject {
 
         {
           // Compute SSA on the callee graph, catching bailouts.
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
           callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                    param_stubs);
 #if defined(DEBUG)
@@ -1196,46 +1223,54 @@ class CallSiteInliner : public ValueObject {
                                            &call_site_count);
 
         // Use heuristics do decide if this call should be inlined.
-        InliningDecision decision =
-            ShouldWeInline(function, instruction_count, call_site_count);
-        if (!decision.value) {
-          // If size is larger than all thresholds, don't consider it again.
-          if ((instruction_count > FLAG_inlining_size_threshold) &&
-              (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
-            function.set_is_inlinable(false);
-          }
-          TRACE_INLINING(
-              THR_Print("     Bailout: heuristics (%s) with "
-                        "code size:  %" Pd ", "
-                        "call sites: %" Pd ", "
-                        "inlining depth of callee: %d, "
-                        "const args: %" Pd "\n",
-                        decision.reason, instruction_count, call_site_count,
-                        function.inlining_depth(), constants_count));
-          PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
-                              call_data->call);
-          return false;
-        }
-
-        // If requested, a stricter heuristic is applied to this inlining. This
-        // heuristic always scans the method (rather than possibly reusing
-        // cached results) to make sure all specializations are accounted for.
-        // TODO(ajcbik): with the now better bookkeeping, explore removing this
-        if (stricter_heuristic) {
-          if (!IsSmallLeaf(callee_graph)) {
+        {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), MakeInliningDecision);
+          InliningDecision decision =
+              ShouldWeInline(function, instruction_count, call_site_count);
+          if (!decision.value) {
+            // If size is larger than all thresholds, don't consider it again.
+            if ((instruction_count > FLAG_inlining_size_threshold) &&
+                (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
+              function.set_is_inlinable(false);
+            }
             TRACE_INLINING(
-                THR_Print("     Bailout: heuristics (no small leaf)\n"));
-            PRINT_INLINING_TREE("Heuristic fail (no small leaf)",
-                                &call_data->caller, &function, call_data->call);
+                THR_Print("     Bailout: heuristics (%s) with "
+                          "code size:  %" Pd ", "
+                          "call sites: %" Pd ", "
+                          "inlining depth of callee: %d, "
+                          "const args: %" Pd "\n",
+                          decision.reason, instruction_count, call_site_count,
+                          function.inlining_depth(), constants_count));
+            PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
+                                call_data->call);
             return false;
+          }
+
+          // If requested, a stricter heuristic is applied to this inlining.
+          // This heuristic always scans the method (rather than possibly
+          // reusing cached results) to make sure all specializations are
+          // accounted for.
+          // TODO(ajcbik): with the now better bookkeeping, explore removing
+          // this
+          if (stricter_heuristic) {
+            if (!IsSmallLeaf(callee_graph)) {
+              TRACE_INLINING(
+                  THR_Print("     Bailout: heuristics (no small leaf)\n"));
+              PRINT_INLINING_TREE("Heuristic fail (no small leaf)",
+                                  &call_data->caller, &function,
+                                  call_data->call);
+              return false;
+            }
           }
         }
 
         // Inline dispatcher methods regardless of the current depth.
-        const intptr_t depth =
-            function.IsDispatcherOrImplicitAccessor() ? 0 : inlining_depth_;
-        collected_call_sites_->FindCallSites(callee_graph, depth,
-                                             &inlined_info_);
+        {
+          const intptr_t depth =
+              function.IsDispatcherOrImplicitAccessor() ? 0 : inlining_depth_;
+          collected_call_sites_->FindCallSites(callee_graph, depth,
+                                               &inlined_info_);
+        }
 
         // Add the function to the cache.
         if (!in_cache) {
@@ -1262,9 +1297,12 @@ class CallSiteInliner : public ValueObject {
               callee_guarded_fields[i]);
         }
 
-        FlowGraphInliner::SetInliningId(
-            callee_graph, inliner_->NextInlineId(callee_graph->function(),
-                                                 call_data->call->source()));
+        {
+          COMPILER_TIMINGS_TIMER_SCOPE(thread(), SetInliningId);
+          FlowGraphInliner::SetInliningId(
+              callee_graph, inliner_->NextInlineId(callee_graph->function(),
+                                                   call_data->call->source()));
+        }
         TRACE_INLINING(THR_Print("     Success\n"));
         TRACE_INLINING(THR_Print(
             "       with reason %s, code size %" Pd ", call sites: %" Pd "\n",
@@ -1365,6 +1403,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineCall(InlinedCallData* call_data) {
+    COMPILER_TIMINGS_TIMER_SCOPE(thread(), InlineCall);
     FlowGraph* callee_graph = call_data->callee_graph;
     auto callee_function_entry = callee_graph->graph_entry()->normal_entry();
 
@@ -1473,11 +1512,8 @@ class CallSiteInliner : public ValueObject {
       Function& target = Function::ZoneHandle();
       Definition* receiver =
           call->Receiver()->definition()->OriginalDefinition();
-      if (AllocateObjectInstr* alloc = receiver->AsAllocateObject()) {
-        if (!alloc->closure_function().IsNull()) {
-          target = alloc->closure_function().ptr();
-          ASSERT(alloc->cls().IsClosureClass());
-        }
+      if (const auto* alloc = receiver->AsAllocateClosure()) {
+        target = alloc->known_function().ptr();
       } else if (ConstantInstr* constant = receiver->AsConstant()) {
         if (constant->value().IsClosure()) {
           target = Closure::Cast(constant->value()).function();
@@ -1845,6 +1881,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
 // If not all variants are inlined, we add a PolymorphicInstanceCall
 // instruction to handle the non-inlined variants.
 TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
+  COMPILER_TIMINGS_TIMER_SCOPE(owner_->thread(), BuildDecisionGraph);
   const intptr_t try_idx = call_->GetBlock()->try_index();
 
   // Start with a fresh target entry.
@@ -2204,6 +2241,7 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph,
                                         bool force,
                                         intptr_t* instruction_count,
                                         intptr_t* call_site_count) {
+  COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), CollectGraphInfo);
   const Function& function = flow_graph->function();
   // For OSR, don't even bother.
   if (flow_graph->IsCompiledForOsr()) {
@@ -2259,16 +2297,20 @@ static bool IsInlineableOperator(const Function& function) {
 }
 
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
+  Thread* thread = dart::Thread::Current();
+  COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
-  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_prefer_inline(),
+  return Library::FindPragma(thread, /*only_core=*/false, function,
+                             Symbols::vm_prefer_inline(),
                              /*multiple=*/false, &options);
 }
 
 bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
+  Thread* thread = dart::Thread::Current();
+  COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
-  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_never_inline(),
+  return Library::FindPragma(thread, /*only_core=*/false, function,
+                             Symbols::vm_never_inline(),
                              /*multiple=*/false, &options);
 }
 
@@ -2279,6 +2321,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
     return true;
   }
 
+  COMPILER_TIMINGS_TIMER_SCOPE(dart::Thread::Current(), MakeInliningDecision);
   // We don't want to inline DIFs for recognized methods because we would rather
   // replace them with inline FG before inlining introduces any superfluous
   // AssertAssignable instructions.
@@ -3619,6 +3662,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     Definition** result,
     SpeculativeInliningPolicy* policy,
     FlowGraphInliner::ExactnessInfo* exactness) {
+  COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), InlineRecognizedMethod);
+
   if (receiver_cid == kNeverCid) {
     // Receiver was defined in dead code and was replaced by the sentinel.
     // Original receiver cid is lost, so don't try to inline recognized

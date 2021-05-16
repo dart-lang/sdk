@@ -59,7 +59,7 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
 
   // Try allocating in new space.
   const Class& cls = GrowableObjectArrayClass();
-  __ TryAllocate(cls, normal_ir_body, R0, R1);
+  __ TryAllocate(cls, normal_ir_body, Assembler::kFarJump, R0, R1);
 
   // Store backing array object in growable array object.
   __ ldr(R1, Address(SP, kArrayOffset));  // Data argument.
@@ -235,10 +235,16 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
 
   // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
   __ ldp(R2, R3, Address(SP, 2 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // x_used > 0, Smi. R2 = x_used + 1, round up.
   __ AsrImmediate(R2, R2, 2);  // R2 = num of digit pairs to read.
   // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
   __ ldp(R4, R5, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R5, R5);
+#endif
   __ SmiUntag(R5);
   // R0 = n ~/ (2*_DIGIT_BITS)
   __ AsrImmediate(R0, R5, 6);
@@ -279,10 +285,16 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
 
   // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
   __ ldp(R2, R3, Address(SP, 2 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // x_used > 0, Smi. R2 = x_used + 1, round up.
   __ AsrImmediate(R2, R2, 2);  // R2 = num of digit pairs to read.
   // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
   __ ldp(R4, R5, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R5, R5);
+#endif
   __ SmiUntag(R5);
   // R0 = n ~/ (2*_DIGIT_BITS)
   __ AsrImmediate(R0, R5, 6);
@@ -328,6 +340,9 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   // R2 = used, R3 = digits
   __ ldp(R2, R3, Address(SP, 3 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
   __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
@@ -335,6 +350,9 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R4, R4);
+#endif
   __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
   __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
@@ -394,6 +412,9 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   // R2 = used, R3 = digits
   __ ldp(R2, R3, Address(SP, 3 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
   __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
@@ -401,6 +422,9 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R4, R4);
+#endif
   __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
   __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
@@ -480,6 +504,9 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R3 = x, no_op if x == 0
   // R0 = xi as Smi, R1 = x_digits.
   __ ldp(R0, R1, Address(SP, 5 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R3, FieldAddress(R1, target::TypedData::data_offset()));
   __ tst(R3, Operand(R3));
@@ -487,6 +514,9 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
 
   // R6 = (SmiUntag(n) + 1)/2, no_op if n == 0
   __ ldr(R6, Address(SP, 0 * target::kWordSize));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R6, R6);
+#endif
   __ add(R6, R6, Operand(2));
   __ adds(R6, ZR, Operand(R6, ASR, 2));  // SmiUntag(R6) and set cc.
   __ b(&done, EQ);
@@ -494,12 +524,18 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R4 = mip = &m_digits[i >> 1]
   // R0 = i as Smi, R1 = m_digits.
   __ ldp(R0, R1, Address(SP, 3 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R4, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
   // R5 = ajp = &a_digits[j >> 1]
   // R0 = j as Smi, R1 = a_digits.
   __ ldp(R0, R1, Address(SP, 1 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R5, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
@@ -588,6 +624,9 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // R4 = xip = &x_digits[i >> 1]
   // R2 = i as Smi, R3 = x_digits
   __ ldp(R2, R3, Address(SP, 2 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   __ add(R3, R3, Operand(R2, LSL, 1));
   __ add(R4, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
 
@@ -615,6 +654,9 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
 
   // int n = (used - i + 1)/2 - 1
   __ ldr(R0, Address(SP, 0 * target::kWordSize));  // used is Smi
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ sub(R8, R0, Operand(R2));
   __ add(R8, R8, Operand(2));
   __ movn(R0, Immediate(1), 0);          // R0 = ~1 = -2.
@@ -727,6 +769,9 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   // R2 = dh = digits[(i >> 1) - 1 .. i >> 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(
                  R1, target::TypedData::data_offset() - kBytesPerBigIntDigit));
@@ -873,6 +918,9 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
   // R2 = digits[i >> 1 .. (i >> 1) + 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R0, R0);
+#endif
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(R1, target::TypedData::data_offset()));
 
@@ -989,7 +1037,7 @@ static void DoubleArithmeticOperations(Assembler* assembler,
       UNREACHABLE();
   }
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
 
@@ -1030,7 +1078,7 @@ void AsmIntrinsifier::Double_mulFromInteger(Assembler* assembler,
   __ LoadDFieldFromOffset(V0, R0, target::Double::value_offset());
   __ fmuld(V0, V0, V1);
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1048,7 +1096,7 @@ void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
   __ scvtfdw(V0, R0);
 #endif
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1196,7 +1244,7 @@ void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
   __ Bind(&double_op);
   __ fsqrtd(V0, V1);
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(&is_smi);
@@ -1551,20 +1599,27 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::Object_setHash(Assembler* assembler,
-                                     Label* normal_ir_body) {
+void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
+                                                Label* normal_ir_body) {
+  Label already_set;
   __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Object.
+  __ ldr(R1, FieldAddress(R0, target::String::hash_offset(), kFourBytes),
+         kUnsignedFourBytes);
+  __ cbnz(&already_set, R1, kFourBytes);
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Value.
   // R0: Untagged address of header word (ldxr/stxr do not support offsets).
   __ sub(R0, R0, Operand(kHeapObjectTag));
   __ SmiUntag(R1);
-  __ LslImmediate(R1, R1, target::UntaggedObject::kHashTagPos);
+  __ LslImmediate(R3, R1, target::UntaggedObject::kHashTagPos);
   Label retry;
   __ Bind(&retry);
   __ ldxr(R2, R0, kEightBytes);
-  __ orr(R2, R2, Operand(R1));
+  __ orr(R2, R2, Operand(R3));
   __ stxr(R4, R2, R0, kEightBytes);
   __ cbnz(&retry, R4);
+  // Fall-through with R1 containing new hash value (untagged).
+  __ Bind(&already_set);
+  __ SmiTag(R0, R1);
   __ ret();
 }
 
@@ -1707,7 +1762,12 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ b(normal_ir_body, NE);
   ASSERT(kSmiTagShift == 1);
   __ AddImmediate(R0, target::TwoByteString::data_offset() - kHeapObjectTag);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ ldr(R1, Address(R0, R1), kUnsignedTwoBytes);
+#else
+  // Upper half of a compressed Smi is garbage.
+  __ ldr(R1, Address(R0, R1, SXTW, Address::Unscaled), kUnsignedTwoBytes);
+#endif
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
@@ -1963,7 +2023,12 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
   __ SmiUntag(R2);
   __ AddImmediate(R3, R0,
                   target::TwoByteString::data_offset() - kHeapObjectTag);
+#if !defined(DART_COMPRESSED_POINTERS)
   __ str(R2, Address(R3, R1), kUnsignedTwoBytes);
+#else
+  // Upper half of a compressed Smi is garbage.
+  __ str(R2, Address(R3, R1, SXTW, Address::Unscaled), kUnsignedTwoBytes);
+#endif
   __ ret();
 }
 
@@ -1972,6 +2037,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);
@@ -1985,6 +2053,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+#if defined(DART_COMPRESSED_POINTERS)
+  __ sxtw(R2, R2);
+#endif
   TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);

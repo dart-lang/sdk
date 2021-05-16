@@ -4,6 +4,8 @@
 // Dart test program which shows how to write self verifying tests
 // and how to print dart objects if needed.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Helper {

@@ -4,6 +4,8 @@
 // Test for a dart2js bug where the live environment was not computed
 // right.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

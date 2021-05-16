@@ -53,7 +53,7 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeAnnotation(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is Annotation) {
       var name = node.name;
       if (name.staticElement == null) {
@@ -105,7 +105,7 @@ class ChangeTo extends CorrectionProducer {
 
   Future<void> _proposeClassOrMixinMember(ChangeBuilder builder,
       Expression? target, _ElementPredicate predicate) async {
-    var node = this.node;
+    final node = this.node;
     var targetIdentifierElement =
         target is Identifier ? target.staticElement : null;
     if (node is SimpleIdentifier) {
@@ -139,7 +139,7 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeFunction(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is SimpleIdentifier) {
       // Prepare the optional import prefix name.
       String? prefixName;
@@ -181,7 +181,7 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeGetterOrSetter(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is SimpleIdentifier) {
       // prepare target
       Expression? target;

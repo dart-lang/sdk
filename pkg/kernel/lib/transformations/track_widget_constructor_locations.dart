@@ -390,7 +390,8 @@ class WidgetCreatorTracker {
         isFinal: true,
         getterReference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
-            .reference);
+            .reference,
+        fileUri: clazz.fileUri);
     clazz.addField(locationField);
 
     final Set<Constructor> _handledConstructors =

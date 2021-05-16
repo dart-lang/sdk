@@ -4,6 +4,8 @@
 // Test efficient and correct implementation of !identical(a, b).
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 notIdenticalTest1(a) {

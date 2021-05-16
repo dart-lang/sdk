@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class A<T> {
   void method1(T t) => null; //# 01: ok
   void method2(T t) => null; //# 02: compile-time error

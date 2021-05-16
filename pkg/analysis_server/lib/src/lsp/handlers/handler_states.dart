@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -48,7 +46,7 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
   FailureStateMessageHandler(LspAnalysisServer server) : super(server);
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     return error(
         ErrorCodes.InternalError,
         'An unrecoverable error occurred and the server cannot process messages',
@@ -126,12 +124,12 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  ErrorOr<void> handleUnknownMessage(IncomingMessage message) {
+  ErrorOr<Object?> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while initializing');
-      return success();
+      return success(null);
     }
     return error(
         ErrorCodes.ServerNotInitialized,
@@ -146,12 +144,12 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while shutting down');
-      return success();
+      return success(null);
     }
     return error(ErrorCodes.InvalidRequest,
         'Unable to handle ${message.method} after shutdown request');
@@ -166,12 +164,12 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while uninitialized');
-      return success();
+      return success(null);
     }
     return error(ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request');

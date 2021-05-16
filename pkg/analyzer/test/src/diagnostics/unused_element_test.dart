@@ -712,6 +712,78 @@ void main() {
 ''');
   }
 
+  test_method_isUsed_privateExtension_generic_binaryOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  int operator -(int other) => other;
+}
+void f(A<int> a) {
+  a - 3;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_indexEqOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  void operator []=(int index, T value) {
+}}
+void f(A<int> a) {
+  a[0] = 1;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_indexOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  A<T> operator [](int index) => throw 0;
+}
+void f(A<int> a) {
+  a[0];
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_method() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  A<T> foo() => throw 0;
+}
+void f(A<int> a) {
+  a.foo();
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_postfixOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  A<T> operator -(int i) => throw 0;
+}
+void f(A<int> a) {
+  a--;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_generic_prefixOperator() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+extension _A<T> on A<T> {
+  T operator ~() => throw 0;
+}
+void f(A<int> a) {
+  ~a;
+}
+''');
+  }
+
   test_method_isUsed_privateExtension_indexEqOperator() async {
     await assertNoErrorsInCode(r'''
 extension _A on bool {

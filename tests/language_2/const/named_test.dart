@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that const constructors work with named arguments.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main() {

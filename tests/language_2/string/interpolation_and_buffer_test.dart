@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Interpolation calls `toString`.
 // The evaluation of the interpolation fails if `toString` throws or returns
 // null. In Dart 2, any method overriding `Object.toString` must return a

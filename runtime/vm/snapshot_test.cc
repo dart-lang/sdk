@@ -726,7 +726,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
   uint8_t* isolate_snapshot_data_buffer;
 
   // Start an Isolate, load a script and create a full snapshot.
-  Timer timer1(true, "Snapshot_test");
+  Timer timer1;
   timer1.Start();
   {
     TestIsolateScope __test_isolate__;
@@ -760,7 +760,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
 
   // Now Create another isolate using the snapshot and execute a method
   // from the script.
-  Timer timer2(true, "Snapshot_test");
+  Timer timer2;
   timer2.Start();
   TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_data_buffer);
   {

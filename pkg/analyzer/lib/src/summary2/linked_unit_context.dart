@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_library_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -22,14 +21,11 @@ class LinkedUnitContext {
   final String uriStr;
   final Reference reference;
   final bool isSynthetic;
-  final CompilationUnit? unit;
-  final UnitReader? unitReader;
-
-  bool _hasDirectivesRead = false;
+  final CompilationUnit unit;
 
   LinkedUnitContext(this.libraryContext, this.indexInLibrary, this.partUriStr,
       this.uriStr, this.reference, this.isSynthetic,
-      {required this.unit, required this.unitReader});
+      {required this.unit});
 
   CompilationUnitElementImpl get element {
     return reference.element as CompilationUnitElementImpl;
@@ -38,7 +34,7 @@ class LinkedUnitContext {
   LinkedElementFactory get elementFactory => libraryContext.elementFactory;
 
   bool get hasPartOfDirective {
-    for (var directive in unit_withDirectives.directives) {
+    for (var directive in unit.directives) {
       if (directive is PartOfDirective) {
         return true;
       }
@@ -47,111 +43,12 @@ class LinkedUnitContext {
   }
 
   /// Return `true` if this unit is a part of a bundle that is being linked.
-  bool get isLinking => unitReader == null;
+  bool get isLinking => true;
 
   TypeProvider get typeProvider {
     var libraryReference = libraryContext.reference;
     var libraryElement = libraryReference.element as LibraryElementImpl;
     return libraryElement.typeProvider;
-  }
-
-  CompilationUnit get unit_withDeclarations {
-    unitReader?.readDeclarations();
-    return unit!;
-  }
-
-  /// Ensure that [unit] has directives ready (because we are linking,
-  /// and so always have full AST, or, if we are reading, we make sure
-  /// that we have them read).
-  CompilationUnit get unit_withDirectives {
-    if (unitReader != null && !_hasDirectivesRead) {
-      _hasDirectivesRead = true;
-      unitReader!.readDirectives();
-      var libraryElement =
-          libraryContext.reference.element as LibraryElementImpl;
-      for (var directive in unit!.directives) {
-        if (directive is ExportDirectiveImpl) {
-          if (directive.element == null) {
-            ExportElementImpl.forLinkedNode(libraryElement, directive);
-          }
-        } else if (directive is ImportDirectiveImpl) {
-          if (directive.element == null) {
-            ImportElementImpl.forLinkedNode(libraryElement, directive);
-          }
-        }
-      }
-    }
-    return unit!;
-  }
-
-  void applyResolution(AstNode node) {
-    if (node is VariableDeclaration) {
-      node = node.parent!.parent!;
-    }
-    if (node is HasAstLinkedContext) {
-      var astLinkedContext = (node as HasAstLinkedContext).linkedContext;
-      astLinkedContext?.applyResolution(this);
-    }
-  }
-
-  void createGenericFunctionTypeElement(int id, GenericFunctionTypeImpl node) {
-    var containerRef = this.reference.getChild('@genericFunctionType');
-    var reference = containerRef.getChild('$id');
-    var element = GenericFunctionTypeElementImpl.forLinkedNode(
-      this.reference.element as ElementImpl,
-      reference,
-      node,
-    );
-    node.declaredElement = element;
-  }
-
-  int getCodeLength(AstNode node) {
-    if (node is HasAstLinkedContext) {
-      var linked = (node as HasAstLinkedContext).linkedContext;
-      return linked != null ? linked.codeLength : node.length;
-    }
-
-    if (node is CompilationUnitImpl) {
-      var data = node.summaryData as SummaryDataForCompilationUnit?;
-      if (data != null) {
-        return data.codeLength;
-      } else {
-        return node.length;
-      }
-    } else if (node is EnumConstantDeclaration) {
-      return node.length;
-    } else if (node is FormalParameter) {
-      return node.length;
-    } else if (node is TypeParameter) {
-      return node.length;
-    } else if (node is VariableDeclaration) {
-      var parent2 = node.parent!.parent!;
-      var linked = (parent2 as HasAstLinkedContext).linkedContext!;
-      return linked.getVariableDeclarationCodeLength(node);
-    }
-    throw UnimplementedError('${node.runtimeType}');
-  }
-
-  int getCodeOffset(AstNode node) {
-    if (node is HasAstLinkedContext) {
-      var linked = (node as HasAstLinkedContext).linkedContext;
-      return linked != null ? linked.codeOffset : node.offset;
-    }
-
-    if (node is CompilationUnit) {
-      return 0;
-    } else if (node is EnumConstantDeclaration) {
-      return node.offset;
-    } else if (node is FormalParameter) {
-      return node.offset;
-    } else if (node is TypeParameter) {
-      return node.offset;
-    } else if (node is VariableDeclaration) {
-      var parent2 = node.parent!.parent!;
-      var linked = (parent2 as HasAstLinkedContext).linkedContext!;
-      return linked.getVariableDeclarationCodeOffset(node);
-    }
-    throw UnimplementedError('${node.runtimeType}');
   }
 
   List<ConstructorInitializer> getConstructorInitializers(
@@ -175,18 +72,6 @@ class LinkedUnitContext {
 
   int getDirectiveOffset(Directive node) {
     return node.keyword.offset;
-  }
-
-  Comment? getDocumentationComment(AstNode node) {
-    if (node is HasAstLinkedContext) {
-      var linkedContext = (node as HasAstLinkedContext).linkedContext;
-      linkedContext?.readDocumentationComment();
-      return (node as AnnotatedNode).documentationComment;
-    } else if (node is VariableDeclaration) {
-      return getDocumentationComment(node.parent!.parent!);
-    } else {
-      throw UnimplementedError('${node.runtimeType}');
-    }
   }
 
   String getFieldFormalParameterName(AstNode node) {
@@ -274,21 +159,8 @@ class LinkedUnitContext {
     return (node as CompilationUnitImpl).languageVersion!;
   }
 
-  Comment? getLibraryDocumentationComment() {
-    for (var directive in unit_withDirectives.directives) {
-      if (directive is LibraryDirectiveImpl) {
-        var data = directive.summaryData as SummaryDataForLibraryDirective;
-        data.readDocumentationComment();
-        return directive.documentationComment;
-      }
-    }
-    return null;
-  }
-
   List<Annotation> getLibraryMetadata() {
-    unit_withDirectives;
-    unitReader!.applyDirectivesResolution(this);
-    for (var directive in unit!.directives) {
+    for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         return directive.metadata;
       }
@@ -649,18 +521,10 @@ class LinkedUnitContext {
       if (variableList.isFinal) {
         var class_ = fieldDeclaration.parent;
         if (class_ is ClassDeclaration) {
-          var hasLinkedContext = class_ as HasAstLinkedContext;
-          var linkedContext = hasLinkedContext.linkedContext;
-          // TODO(scheglov) Get rid of this check, exists only for linking.
-          // Maybe we should pre-create all elements before linking.
-          if (linkedContext != null) {
-            return linkedContext.isClassWithConstConstructor;
-          } else {
-            for (var member in class_.members) {
-              if (member is ConstructorDeclaration &&
-                  member.constKeyword != null) {
-                return true;
-              }
+          for (var member in class_.members) {
+            if (member is ConstructorDeclaration &&
+                member.constKeyword != null) {
+              return true;
             }
           }
         }
@@ -682,27 +546,22 @@ class LinkedUnitContext {
   List<ClassMember> _getClassOrExtensionOrMixinMembers(
     CompilationUnitMember node,
   ) {
-    var linkedContext = (node as HasAstLinkedContext).linkedContext;
-    if (linkedContext != null) {
-      return linkedContext.classMembers;
+    if (node is ClassDeclaration) {
+      return node.members;
+    } else if (node is ClassTypeAlias) {
+      return <ClassMember>[];
+    } else if (node is ExtensionDeclaration) {
+      return node.members;
+    } else if (node is MixinDeclaration) {
+      return node.members;
     } else {
-      if (node is ClassDeclaration) {
-        return node.members;
-      } else if (node is ClassTypeAlias) {
-        return <ClassMember>[];
-      } else if (node is ExtensionDeclaration) {
-        return node.members;
-      } else if (node is MixinDeclaration) {
-        return node.members;
-      } else {
-        throw StateError('${node.runtimeType}');
-      }
+      throw StateError('${node.runtimeType}');
     }
   }
 
   NodeList<Annotation> _getPartDirectiveAnnotation() {
     var definingContext = libraryContext.definingUnit;
-    var definingUnit = definingContext.unit_withDirectives;
+    var definingUnit = definingContext.unit;
     var partDirectiveIndex = 0;
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {

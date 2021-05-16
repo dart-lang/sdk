@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 class NodesToBuildType {
@@ -31,13 +32,17 @@ class NodesToBuildType {
 }
 
 class TypesBuilder {
+  final Linker _linker;
+
+  TypesBuilder(this._linker);
+
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   VoidTypeImpl get _voidType => VoidTypeImpl.instance;
 
   /// Build types for all type annotations, and set types for declarations.
   void build(NodesToBuildType nodes) {
-    DefaultTypesBuilder().build(nodes.declarations);
+    DefaultTypesBuilder(_linker).build(nodes.declarations);
 
     for (var builder in nodes.typeBuilders) {
       builder.build();
@@ -48,6 +53,13 @@ class TypesBuilder {
     for (var declaration in nodes.declarations) {
       _declaration(declaration);
     }
+
+    // TODO(scheglov) generalize
+    _linker.elementNodes.forEach((element, node) {
+      if (element is TypeParameterElementImpl && node is TypeParameter) {
+        element.bound = node.bound?.type;
+      }
+    });
   }
 
   FunctionType _buildFunctionType(
@@ -367,6 +379,7 @@ class _MixinsInference {
       _MixinInference(element, featureSet).perform(withClause);
     } finally {
       element.linkedMixinInferenceCallback = null;
+      element.resetAfterMixinInference();
     }
   }
 

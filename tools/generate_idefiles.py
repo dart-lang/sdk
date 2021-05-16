@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -42,7 +42,7 @@ def GenerateCompileCommands(options):
     fname = os.path.join(options.dir, "compile_commands.json")
 
     if os.path.isfile(fname) and not options.force:
-        print fname + " already exists, use --force to override"
+        print(fname + " already exists, use --force to override")
         return
 
     gn_result = generate_buildfiles.RunGn(options)
@@ -132,7 +132,7 @@ def GenerateAnalysisOptions(options):
     fname = os.path.join(options.dir, "analysis_options.yaml")
 
     if os.path.isfile(fname) and not options.force:
-        print fname + " already exists, use --force to override"
+        print(fname + " already exists, use --force to override")
         return
 
     with open(fname, "w") as f:

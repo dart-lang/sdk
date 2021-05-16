@@ -38,4 +38,9 @@ class B extends A {
   const B() : super();
 }
 
+const var4 = C();
+class C {
+  int? x;
+}
+
 void main() {}

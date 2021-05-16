@@ -78,6 +78,8 @@ abstract class TypeParamOrArgInfo {
   /// Return the number of type arguments
   int get typeArgumentCount;
 
+  bool get recovered => false;
+
   /// Return the simple type associated with this simple type argument
   /// or throw an exception if this is not a simple type argument.
   TypeInfo get typeInfo {
@@ -346,5 +348,7 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
 /// possible other constructs will pass (e.g., 'a < C, D > 3').
 TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
   TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
-  return optional('(', typeArg.skip(token).next!) ? typeArg : noTypeParamOrArg;
+  return optional('(', typeArg.skip(token).next!) && !typeArg.recovered
+      ? typeArg
+      : noTypeParamOrArg;
 }

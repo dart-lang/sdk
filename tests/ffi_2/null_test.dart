@@ -15,6 +15,8 @@
 // VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";

@@ -2,10 +2,10 @@ library #lib;
 import self as self;
 import "generated/foo.pb.dart" as pb;
 import "dart:core" as core;
-import "package:test_core/test_core.dart" as tes;
+import "package:test_core/scaffolding.dart" as sca;
 import "package:protobuf/protobuf.dart" as pro;
-import "package:test_api/src/frontend/expect.dart" as exp;
-import "package:test_api/src/frontend/throws_matcher.dart" as thr;
+import "package:test_api/src/expect/expect.dart" as exp;
+import "package:test_api/src/expect/throws_matcher.dart" as thr;
 
 import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
@@ -20,13 +20,13 @@ static method main() → dynamic {
     } =>#t3);
     [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pb::FooKeep::aKeep} = 43;
   } =>#t1;
-  tes::test(() → Null {
+  sca::test(() → Null {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.freeze] [@vm.inferred-type.metadata=!? (skip check)] foo.{pro::GeneratedMessage::freeze}();
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] foo.{pb::FooKeep::barKeep}.{pb::BarKeep::aKeep}, 5);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=!] foo.{pb::FooKeep::mapKeep}.{core::Map::[]}("foo").{pb::BarKeep::aKeep}, 2);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.hasHasKeep] [@vm.inferred-type.metadata=dart.core::bool (skip check)] foo.{pb::FooKeep::hasHasKeep}(), false);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=int] foo.{pb::FooKeep::aKeep}, 43);
-    exp::expect(() → void => [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.clearClearKeep] [@vm.inferred-type.metadata=!? (skip check)] foo.{pb::FooKeep::clearClearKeep}(), [@vm.inferred-type.metadata=library package:test_api/src/frontend/throws_matcher.dart::Throws] thr::throwsA());
+    exp::expect(() → void => [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.clearClearKeep] [@vm.inferred-type.metadata=!? (skip check)] foo.{pb::FooKeep::clearClearKeep}(), [@vm.inferred-type.metadata=library package:test_api/src/expect/throws_matcher.dart::Throws] thr::throwsA());
   });
 }
 library foo.pb.dart /*isNonNullableByDefault*/;
@@ -133,4 +133,23 @@ class ClearKeep extends pro::GeneratedMessage {
   @#C7
   static method create() → self::ClearKeep
     return new self::ClearKeep::_();
+}
+constants  {
+  #C1 = false
+  #C2 = tearoff self::BarKeep::create
+  #C3 = tearoff self::HasKeep::create
+  #C4 = tearoff self::ClearKeep::create
+  #C5 = "dart2js:noInline"
+  #C6 = null
+  #C7 = core::pragma {name:#C5, options:#C6}
+  #C8 = 1
+  #C9 = pro::TagNumber {tagNumber:#C8}
+  #C10 = 3
+  #C11 = pro::TagNumber {tagNumber:#C10}
+  #C12 = 5
+  #C13 = pro::TagNumber {tagNumber:#C12}
+  #C14 = 6
+  #C15 = pro::TagNumber {tagNumber:#C14}
+  #C16 = 7
+  #C17 = pro::TagNumber {tagNumber:#C16}
 }

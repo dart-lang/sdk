@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -21,6 +19,6 @@ class ReanalyzeHandler extends MessageHandler<void, void> {
   @override
   Future<ErrorOr<void>> handle(void _, CancellationToken token) async {
     server.reanalyze();
-    return success();
+    return success(null);
   }
 }

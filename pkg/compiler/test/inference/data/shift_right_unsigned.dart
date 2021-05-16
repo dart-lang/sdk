@@ -21,20 +21,20 @@ int g1 = 0;
 test1() {
   int a = 1234;
   int b = 2;
-  return a /*invoke: [exact=JSUInt31]*/>>> b;
+  return a /*invoke: [exact=JSUInt31]*/ >>> b;
 }
 
 /*member: test2:[subclass=JSUInt32]*/
 test2() {
-  return g1 /*invoke: [subclass=JSInt]*/>>> g1;
+  return g1 /*invoke: [subclass=JSInt]*/ >>> g1;
 }
 
 /*member: test3:[subclass=JSUInt32]*/
 test3() {
-  return g1 /*invoke: [subclass=JSInt]*/>>> 1;
+  return g1 /*invoke: [subclass=JSInt]*/ >>> 1;
 }
 
 /*member: test4:[exact=JSUInt31]*/
 test4() {
-  return 10 /*invoke: [exact=JSUInt31]*/>>> g1;
+  return 10 /*invoke: [exact=JSUInt31]*/ >>> g1;
 }

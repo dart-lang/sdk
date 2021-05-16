@@ -89,7 +89,7 @@ class NamedTypeBuilder extends TypeBuilder {
       return _type!;
     }
 
-    var element = this.element;
+    final element = this.element;
     if (element is ClassElement) {
       var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);
@@ -251,7 +251,7 @@ class NamedTypeBuilder extends TypeBuilder {
     // If the element is not being linked, there is no reason (or a way,
     // because the linked node might be read only partially) to go through
     // its node - all its types have already been built.
-    if (!element.linkedContext!.isLinking) {
+    if (element.linkedContext == null) {
       return element.aliasedType;
     }
 

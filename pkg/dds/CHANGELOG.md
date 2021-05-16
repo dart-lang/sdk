@@ -1,3 +1,12 @@
+# 2.0.0
+- **Breaking change:** add null safety support.
+- **Breaking change:** minimum Dart SDK revision bumped to 2.12.0.
+
+# 1.8.0
+- Add support for launching DevTools from DDS.
+- Fixed issue where two clients subscribing to the same stream in close succession
+  could result in DDS sending multiple `streamListen` requests to the VM service.
+
 # 1.7.6
 - Update dependencies.
 

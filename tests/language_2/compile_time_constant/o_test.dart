@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test compile-time constants with string-interpolation.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 const str = "foo";

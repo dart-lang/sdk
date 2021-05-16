@@ -65,7 +65,6 @@
 library kernel.ast;
 
 import 'dart:core';
-import 'dart:core' as core show MapEntry;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
@@ -230,8 +229,7 @@ abstract class NamedNode extends TreeNode {
 
 abstract class FileUriNode extends TreeNode {
   /// The URI of the source file this node was loaded from.
-  // TODO(johnniwinther): Make this non-nullable.
-  Uri? get fileUri;
+  Uri get fileUri;
 }
 
 abstract class Annotatable extends TreeNode {
@@ -256,7 +254,7 @@ class Library extends NamedNode
 
   /// The URI of the source file this library was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   Version? _languageVersion;
   Version get languageVersion => _languageVersion ?? defaultLanguageVersion;
@@ -331,9 +329,9 @@ class Library extends NamedNode
   List<String>? problemsAsJson;
 
   @override
-  final List<Expression> annotations;
+  List<Expression> annotations;
 
-  final List<LibraryDependency> dependencies;
+  List<LibraryDependency> dependencies;
 
   /// References to nodes exported by `export` declarations that:
   /// - aren't ambiguous, or
@@ -341,13 +339,13 @@ class Library extends NamedNode
   final List<Reference> additionalExports = <Reference>[];
 
   @informative
-  final List<LibraryPart> parts;
+  List<LibraryPart> parts;
 
-  final List<Typedef> typedefs;
-  final List<Class> classes;
-  final List<Extension> extensions;
-  final List<Procedure> procedures;
-  final List<Field> fields;
+  List<Typedef> _typedefs;
+  List<Class> _classes;
+  List<Extension> _extensions;
+  List<Procedure> _procedures;
+  List<Field> _fields;
 
   Library(this.importUri,
       {this.name,
@@ -359,24 +357,71 @@ class Library extends NamedNode
       List<Extension>? extensions,
       List<Procedure>? procedures,
       List<Field>? fields,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
-      : this.annotations = annotations ?? <Expression>[],
+      // ignore: unnecessary_null_comparison
+      : assert(fileUri != null),
+        this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
         this.parts = parts ?? <LibraryPart>[],
-        this.typedefs = typedefs ?? <Typedef>[],
-        this.classes = classes ?? <Class>[],
-        this.extensions = extensions ?? <Extension>[],
-        this.procedures = procedures ?? <Procedure>[],
-        this.fields = fields ?? <Field>[],
+        this._typedefs = typedefs ?? <Typedef>[],
+        this._classes = classes ?? <Class>[],
+        this._extensions = extensions ?? <Extension>[],
+        this._procedures = procedures ?? <Procedure>[],
+        this._fields = fields ?? <Field>[],
         super(reference) {
     setParents(this.dependencies, this);
     setParents(this.parts, this);
-    setParents(this.typedefs, this);
-    setParents(this.classes, this);
-    setParents(this.extensions, this);
-    setParents(this.procedures, this);
-    setParents(this.fields, this);
+    setParents(this._typedefs, this);
+    setParents(this._classes, this);
+    setParents(this._extensions, this);
+    setParents(this._procedures, this);
+    setParents(this._fields, this);
+  }
+
+  List<Typedef> get typedefs => _typedefs;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding typedefs when reading the dill file.
+  void set typedefsInternal(List<Typedef> typedefs) {
+    _typedefs = typedefs;
+  }
+
+  List<Class> get classes => _classes;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding classes when reading the dill file.
+  void set classesInternal(List<Class> classes) {
+    _classes = classes;
+  }
+
+  List<Extension> get extensions => _extensions;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding extensions when reading the dill file.
+  void set extensionsInternal(List<Extension> extensions) {
+    _extensions = extensions;
+  }
+
+  List<Procedure> get procedures => _procedures;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  void set proceduresInternal(List<Procedure> procedures) {
+    _procedures = procedures;
+  }
+
+  List<Field> get fields => _fields;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding fields when reading the dill file.
+  void set fieldsInternal(List<Field> fields) {
+    _fields = fields;
   }
 
   Nullability get nullable {
@@ -769,7 +814,7 @@ class Combinator extends TreeNode {
 class Typedef extends NamedNode implements FileUriNode, Annotatable {
   /// The URI of the source file that contains the declaration of this typedef.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -789,12 +834,14 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
 
   Typedef(this.name, this.type,
       {Reference? reference,
-      this.fileUri,
+      required this.fileUri,
       List<TypeParameter>? typeParameters,
       List<TypeParameter>? typeParametersOfFunctionType,
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
+      // ignore: unnecessary_null_comparison
+      : assert(fileUri != null),
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.typeParametersOfFunctionType =
             typeParametersOfFunctionType ?? <TypeParameter>[],
         this.positionalParameters =
@@ -853,7 +900,7 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -1037,7 +1084,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   /// The URI of the source file this class was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   final List<TypeParameter> typeParameters;
 
@@ -1048,7 +1095,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   Supertype? mixedInType;
 
   /// The types from the `implements` clause.
-  final List<Supertype> implementedTypes;
+  List<Supertype> implementedTypes;
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
@@ -1068,10 +1115,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     }
   }
 
-  /// Internal. Should *ONLY* be used from within kernel.
-  ///
-  /// Used for adding fields when reading the dill file.
-  final List<Field> fieldsInternal;
+  List<Field> _fieldsInternal;
   DirtifyingList<Field>? _fieldsView;
 
   /// Fields declared in the class.
@@ -1080,28 +1124,39 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<Field> get fields {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return fieldsInternal;
-    return _fieldsView ??= new DirtifyingList(this, fieldsInternal);
+    if (dirty) return _fieldsInternal;
+    return _fieldsView ??= new DirtifyingList(this, _fieldsInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding constructors when reading the dill file.
-  final List<Constructor> constructorsInternal;
+  /// Used for adding fields when reading the dill file.
+  void set fieldsInternal(List<Field> fields) {
+    _fieldsInternal = fields;
+    _fieldsView = null;
+  }
+
+  List<Constructor> _constructorsInternal;
   DirtifyingList<Constructor>? _constructorsView;
 
   /// Constructors declared in the class.
   List<Constructor> get constructors {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return constructorsInternal;
-    return _constructorsView ??= new DirtifyingList(this, constructorsInternal);
+    if (dirty) return _constructorsInternal;
+    return _constructorsView ??=
+        new DirtifyingList(this, _constructorsInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding procedures when reading the dill file.
-  final List<Procedure> proceduresInternal;
+  /// Used for adding constructors when reading the dill file.
+  void set constructorsInternal(List<Constructor> constructors) {
+    _constructorsInternal = constructors;
+    _constructorsView = null;
+  }
+
+  List<Procedure> _proceduresInternal;
   DirtifyingList<Procedure>? _proceduresView;
 
   /// Procedures declared in the class.
@@ -1110,16 +1165,19 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<Procedure> get procedures {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return proceduresInternal;
-    return _proceduresView ??= new DirtifyingList(this, proceduresInternal);
+    if (dirty) return _proceduresInternal;
+    return _proceduresView ??= new DirtifyingList(this, _proceduresInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding redirecting factory constructor when reading the dill
-  /// file.
-  final List<RedirectingFactoryConstructor>
-      redirectingFactoryConstructorsInternal;
+  /// Used for adding procedures when reading the dill file.
+  void set proceduresInternal(List<Procedure> procedures) {
+    _proceduresInternal = procedures;
+    _proceduresView = null;
+  }
+
+  List<RedirectingFactoryConstructor> _redirectingFactoryConstructorsInternal;
   DirtifyingList<RedirectingFactoryConstructor>?
       _redirectingFactoryConstructorsView;
 
@@ -1129,9 +1187,19 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<RedirectingFactoryConstructor> get redirectingFactoryConstructors {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return redirectingFactoryConstructorsInternal;
+    if (dirty) return _redirectingFactoryConstructorsInternal;
     return _redirectingFactoryConstructorsView ??=
-        new DirtifyingList(this, redirectingFactoryConstructorsInternal);
+        new DirtifyingList(this, _redirectingFactoryConstructorsInternal);
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding redirecting factory constructor when reading the dill
+  /// file.
+  void set redirectingFactoryConstructorsInternal(
+      List<RedirectingFactoryConstructor> redirectingFactoryConstructors) {
+    _redirectingFactoryConstructorsInternal = redirectingFactoryConstructors;
+    _redirectingFactoryConstructorsView = null;
   }
 
   Class(
@@ -1146,23 +1214,25 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       List<Procedure>? procedures,
       List<Field>? fields,
       List<RedirectingFactoryConstructor>? redirectingFactoryConstructors,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
-        this.fieldsInternal = fields ?? <Field>[],
-        this.constructorsInternal = constructors ?? <Constructor>[],
-        this.proceduresInternal = procedures ?? <Procedure>[],
-        this.redirectingFactoryConstructorsInternal =
+        this._fieldsInternal = fields ?? <Field>[],
+        this._constructorsInternal = constructors ?? <Constructor>[],
+        this._proceduresInternal = procedures ?? <Procedure>[],
+        this._redirectingFactoryConstructorsInternal =
             redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    setParents(this.constructorsInternal, this);
-    setParents(this.proceduresInternal, this);
-    setParents(this.fieldsInternal, this);
-    setParents(this.redirectingFactoryConstructorsInternal, this);
+    setParents(this._constructorsInternal, this);
+    setParents(this._proceduresInternal, this);
+    setParents(this._fieldsInternal, this);
+    setParents(this._redirectingFactoryConstructorsInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
@@ -1288,21 +1358,21 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   void addConstructor(Constructor constructor) {
     dirty = true;
     constructor.parent = this;
-    constructorsInternal.add(constructor);
+    _constructorsInternal.add(constructor);
   }
 
   /// Adds a procedure to this class.
   void addProcedure(Procedure procedure) {
     dirty = true;
     procedure.parent = this;
-    proceduresInternal.add(procedure);
+    _proceduresInternal.add(procedure);
   }
 
   /// Adds a field to this class.
   void addField(Field field) {
     dirty = true;
     field.parent = this;
-    fieldsInternal.add(field);
+    _fieldsInternal.add(field);
   }
 
   /// Adds a field to this class.
@@ -1310,7 +1380,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       RedirectingFactoryConstructor redirectingFactoryConstructor) {
     dirty = true;
     redirectingFactoryConstructor.parent = this;
-    redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
+    _redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
   }
 
   @override
@@ -1413,7 +1483,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1429,7 +1499,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   String name;
 
   /// The URI of the source file this class was loaded from.
-  Uri? fileUri;
+  Uri fileUri;
 
   /// Type parameters declared on the extension.
   final List<TypeParameter> typeParameters;
@@ -1447,10 +1517,15 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   ///
   /// The members are converted into top-level members and only accessible
   /// by reference through [ExtensionMemberDescriptor].
-  final List<ExtensionMemberDescriptor> members;
+  List<ExtensionMemberDescriptor> members;
 
   @override
   List<Expression> annotations = const <Expression>[];
+
+  // Must match serialized bit positions.
+  static const int FlagExtensionTypeDeclaration = 1 << 0;
+
+  int flags = 0;
 
   @override
   void addAnnotation(Expression node) {
@@ -1466,10 +1541,12 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
       List<TypeParameter>? typeParameters,
       DartType? onType,
       List<ExtensionMemberDescriptor>? members,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionMemberDescriptor>[],
         super(reference) {
@@ -1480,6 +1557,16 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   }
 
   Library get enclosingLibrary => parent as Library;
+
+  bool get isExtensionTypeDeclaration {
+    return flags & FlagExtensionTypeDeclaration != 0;
+  }
+
+  void set isExtensionTypeDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagExtensionTypeDeclaration)
+        : (flags & ~FlagExtensionTypeDeclaration);
+  }
 
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitExtension(this);
@@ -1515,7 +1602,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -1621,7 +1708,7 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
 
   /// The URI of the source file this member was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   /// Flags summarizing the kinds of AST nodes contained in this member, for
   /// speeding up transformations that only affect certain types of nodes.
@@ -1643,6 +1730,8 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   Member(this.name, this.fileUri, Reference? reference)
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         super(reference);
 
   Class? get enclosingClass => parent is Class ? parent as Class : null;
@@ -1761,7 +1850,7 @@ class Field extends Member {
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? getterReference,
       Reference? setterReference})
       : this.setterReference = setterReference ?? new Reference(),
@@ -1786,7 +1875,7 @@ class Field extends Member {
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? getterReference})
       : this.setterReference = null,
         super(name, fileUri, getterReference) {
@@ -1959,7 +2048,7 @@ class Field extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -2000,7 +2089,7 @@ class Constructor extends Member {
       bool isSynthetic: false,
       List<Initializer>? initializers,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference})
       : this.initializers = initializers ?? <Initializer>[],
         // ignore: unnecessary_null_comparison
@@ -2116,7 +2205,7 @@ class Constructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2180,7 +2269,7 @@ class RedirectingFactoryConstructor extends Member {
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters,
       int? requiredParameterCount,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference})
       : this.typeArguments = typeArguments ?? <DartType>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -2291,7 +2380,7 @@ class RedirectingFactoryConstructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2546,7 +2635,7 @@ class Procedure extends Member {
       bool isExtensionMember: false,
       bool isSynthetic: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference,
       ProcedureStubKind stubKind: ProcedureStubKind.Regular,
       Member? stubTarget})
@@ -2572,7 +2661,7 @@ class Procedure extends Member {
       bool isExtensionMember: false,
       bool isSynthetic: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference,
       this.stubKind: ProcedureStubKind.Regular,
       this.stubTargetReference})
@@ -2796,7 +2885,7 @@ class Procedure extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -5891,7 +5980,7 @@ class MethodInvocation extends InvocationExpression {
               getterType.typeParameters,
               getterType.typeParameters
                   .map((TypeParameter typeParameter) =>
-                      typeParameter.defaultType!)
+                      typeParameter.defaultType)
                   .toList());
         }
         return substitution.substituteType(getterType.returnType);
@@ -7883,7 +7972,7 @@ class MapLiteral extends Expression {
   bool isConst;
   DartType keyType; // Not null, defaults to DynamicType.
   DartType valueType; // Not null, defaults to DynamicType.
-  final List<MapEntry> entries;
+  final List<MapLiteralEntry> entries;
 
   MapLiteral(this.entries,
       {this.keyType: const DynamicType(),
@@ -7959,20 +8048,21 @@ class MapLiteral extends Expression {
   }
 }
 
-class MapEntry extends TreeNode {
+class MapLiteralEntry extends TreeNode {
   Expression key;
   Expression value;
 
-  MapEntry(this.key, this.value) {
+  MapLiteralEntry(this.key, this.value) {
     key.parent = this;
     value.parent = this;
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitMapEntry(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitMapLiteralEntry(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitMapEntry(this, arg);
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitMapLiteralEntry(this, arg);
 
   @override
   void visitChildren(Visitor v) {
@@ -10229,10 +10319,6 @@ abstract class Name extends Node {
     }
   }
 
-  // TODO(johnniwinther): Remove this when dependent code has been updated to
-  // use [text].
-  String get name => text;
-
   @override
   bool operator ==(other) {
     return other is Name && text == other.text && library == other.library;
@@ -10876,8 +10962,8 @@ class FunctionType extends DartType {
         }
         for (int index = 0; index < typeParameters.length; index++) {
           if (!typeParameters[index]
-              .bound!
-              .equals(other.typeParameters[index].bound!, assumptions)) {
+              .bound
+              .equals(other.typeParameters[index].bound, assumptions)) {
             return false;
           }
         }
@@ -11561,7 +11647,7 @@ class TypeParameterType extends DartType {
   }
 
   /// Returns the bound of the type parameter, accounting for promotions.
-  DartType get bound => (promotedBound ?? parameter.bound)!;
+  DartType get bound => promotedBound ?? parameter.bound;
 
   /// Nullability of the type, calculated from its parts.
   ///
@@ -11611,8 +11697,8 @@ class TypeParameterType extends DartType {
     // non-nullable types can be passed in for the type parameter, making the
     // corresponding type parameter types 'undetermined.'  Otherwise, the
     // nullability matches that of the bound.
-    DartType? bound = typeParameter.bound;
-    if (bound == null) {
+    DartType bound = typeParameter.bound;
+    if (identical(bound, TypeParameter.unsetBoundSentinel)) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
 
@@ -11622,7 +11708,7 @@ class TypeParameterType extends DartType {
     // other ways for such a dependency to exist, they should be checked here.
     bool nullabilityDependsOnItself = false;
     {
-      DartType? type = typeParameter.bound;
+      DartType type = typeParameter.bound;
       while (type is FutureOrType) {
         type = type.typeArgument;
       }
@@ -11961,20 +12047,30 @@ class TypeParameter extends TreeNode implements Annotatable {
 
   String? name; // Cosmetic name.
 
+  /// Sentinel value used for the [bound] that has not yet been computed. This
+  /// is needed to make the [bound] field non-nullable while supporting
+  /// recursive bounds.
+  static final DartType unsetBoundSentinel = new InvalidType();
+
   /// The bound on the type variable.
   ///
-  /// Should not be null except temporarily during IR construction.  Should
-  /// be set to the root class for type parameters without an explicit bound.
-  // TODO(johnniwinther): Can we make this late non-nullable?
-  DartType? bound;
+  /// This is set to [unsetBoundSentinel] temporarily during IR construction.
+  /// This is set to the `Object?` for type parameters without an explicit
+  /// bound.
+  DartType bound;
+
+  /// Sentinel value used for the [defaultType] that has not yet been computed.
+  /// This is needed to make the [defaultType] field non-nullable while
+  /// supporting recursive bounds for which the default type need to be set
+  /// late.
+  static final DartType unsetDefaultTypeSentinel = new InvalidType();
 
   /// The default value of the type variable. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference at compile time. At run time,
   /// [defaultType] is used by the backends in place of the missing type
   /// argument of a dynamic invocation of a generic function.
-  // TODO(johnniwinther): Can we make this late non-nullable?
-  DartType? defaultType;
+  DartType defaultType;
 
   /// Describes variance of the type parameter w.r.t. declaration on which it is
   /// defined. For classes, if variance is not explicitly set, the type
@@ -11992,7 +12088,9 @@ class TypeParameter extends TreeNode implements Annotatable {
 
   static const int legacyCovariantSerializationMarker = 4;
 
-  TypeParameter([this.name, this.bound, this.defaultType]);
+  TypeParameter([this.name, DartType? bound, DartType? defaultType])
+      : bound = bound ?? unsetBoundSentinel,
+        defaultType = defaultType ?? unsetDefaultTypeSentinel;
 
   // Must match serialized bit positions.
   static const int FlagGenericCovariantImpl = 1 << 0;
@@ -12029,39 +12127,33 @@ class TypeParameter extends TreeNode implements Annotatable {
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
-    bound?.accept(v);
-    defaultType?.accept(v);
+    bound.accept(v);
+    defaultType.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (bound != null) {
-      bound = v.visitDartType(bound!);
+      bound = v.visitDartType(bound);
     }
+    // ignore: unnecessary_null_comparison
     if (defaultType != null) {
-      defaultType = v.visitDartType(defaultType!);
+      defaultType = v.visitDartType(defaultType);
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (bound != null) {
-      DartType newBound = v.visitDartType(bound!, dummyDartType);
-      if (identical(newBound, dummyDartType)) {
-        bound = null;
-      } else {
-        bound = newBound;
-      }
+      bound = v.visitDartType(bound, cannotRemoveSentinel);
     }
+    // ignore: unnecessary_null_comparison
     if (defaultType != null) {
-      DartType newDefaultType = v.visitDartType(defaultType!, dummyDartType);
-      if (identical(newDefaultType, dummyDartType)) {
-        defaultType = null;
-      } else {
-        defaultType = newDefaultType;
-      }
+      defaultType = v.visitDartType(defaultType, cannotRemoveSentinel);
     }
   }
 
@@ -12864,7 +12956,7 @@ class Component extends TreeNode {
   Component get enclosingComponent => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location? getLocation(Uri? file, int offset) {
+  Location? getLocation(Uri file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
 
@@ -12897,8 +12989,7 @@ class Component extends TreeNode {
 /// A tuple with file, line, and column number, for displaying human-readable
 /// locations.
 class Location {
-  // TODO(johnniwinther): Make this non-nullable.
-  final Uri? file;
+  final Uri file;
   final int line; // 1-based.
   final int column; // 1-based.
 
@@ -12944,7 +13035,7 @@ abstract class MetadataRepository<T> {
   /// can't have metadata attached to them. Also, metadata is not saved on
   /// Block nodes inside BlockExpressions.
   static bool isSupported(Node node) {
-    return !(node is MapEntry ||
+    return !(node is MapLiteralEntry ||
         node is Catch ||
         (node is Block && node.parent is BlockExpression));
   }
@@ -13086,7 +13177,7 @@ class Source {
   }
 
   /// Translates an offset to 1-based line and column numbers in the given file.
-  Location getLocation(Uri? file, int offset) {
+  Location getLocation(Uri file, int offset) {
     List<int>? lineStarts = this.lineStarts;
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
@@ -13314,7 +13405,7 @@ class _Hash {
         // `-1` is used as a dummy default value.
         -1);
     int i = 0;
-    for (core.MapEntry entry in map.entries) {
+    for (MapEntry entry in map.entries) {
       entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
     }
     entryHashes.sort();
@@ -13382,7 +13473,7 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 const Null informative = null;
 
 Location? _getLocationInComponent(
-    Component? component, Uri? fileUri, int offset) {
+    Component? component, Uri fileUri, int offset) {
   if (component != null) {
     return component.getLocation(fileUri, offset);
   } else {
@@ -13556,6 +13647,77 @@ final List<NamedType> emptyListOfNamedType =
 final List<TypeParameter> emptyListOfTypeParameter =
     List.filled(0, dummyTypeParameter, growable: false);
 
+/// Almost const <Constant>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Constant> emptyListOfConstant =
+    List.filled(0, dummyConstant, growable: false);
+
+/// Almost const <String>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<String> emptyListOfString = List.filled(0, '', growable: false);
+
+/// Almost const <Typedef>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Typedef> emptyListOfTypedef =
+    List.filled(0, dummyTypedef, growable: false);
+
+/// Almost const <Extension>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Extension> emptyListOfExtension =
+    List.filled(0, dummyExtension, growable: false);
+
+/// Almost const <Field>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Field> emptyListOfField =
+    List.filled(0, dummyField, growable: false);
+
+/// Almost const <LibraryPart>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<LibraryPart> emptyListOfLibraryPart =
+    List.filled(0, dummyLibraryPart, growable: false);
+
+/// Almost const <LibraryDependency>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<LibraryDependency> emptyListOfLibraryDependency =
+    List.filled(0, dummyLibraryDependency, growable: false);
+
+/// Almost const <Procedure>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Procedure> emptyListOfProcedure =
+    List.filled(0, dummyProcedure, growable: false);
+
+/// Almost const <MapLiteralEntry>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<MapLiteralEntry> emptyListOfMapLiteralEntry =
+    List.filled(0, dummyMapLiteralEntry, growable: false);
+
+/// Almost const <Class>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Class> emptyListOfClass =
+    List.filled(0, dummyClass, growable: false);
+
+/// Almost const <ExtensionMemberDescriptor>[], but not const in an attempt to
+/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
+    List.filled(0, dummyExtensionMemberDescriptor, growable: false);
+
+/// Almost const <Constructor>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Constructor> emptyListOfConstructor =
+    List.filled(0, dummyConstructor, growable: false);
+
+/// Almost const <RedirectingFactoryConstructor>[], but not const in an attempt
+/// to avoid polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<RedirectingFactoryConstructor>
+    emptyListOfRedirectingFactoryConstructor =
+    List.filled(0, dummyRedirectingFactoryConstructor, growable: false);
+
+/// Almost const <Initializer>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Initializer> emptyListOfInitializer =
+    List.filled(0, dummyInitializer, growable: false);
+
 /// Non-nullable [DartType] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
@@ -13584,12 +13746,15 @@ final Uri dummyUri = new Uri(scheme: 'dummy');
 /// Non-nullable [Name] dummy value.
 final Name dummyName = new _PublicName('');
 
+/// Non-nullable [Reference] dummy value.
+final Reference dummyReference = new Reference();
+
 /// Non-nullable [Library] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Library dummyLibrary = new Library(dummyUri);
+final Library dummyLibrary = new Library(dummyUri, fileUri: dummyUri);
 
 /// Non-nullable [LibraryDependency] dummy value.
 ///
@@ -13618,7 +13783,7 @@ final LibraryPart dummyLibraryPart = new LibraryPart(const [], '');
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Class dummyClass = new Class(name: '');
+final Class dummyClass = new Class(name: '', fileUri: dummyUri);
 
 /// Non-nullable [Constructor] dummy value.
 ///
@@ -13626,35 +13791,47 @@ final Class dummyClass = new Class(name: '');
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final Constructor dummyConstructor =
-    new Constructor(dummyFunctionNode, name: dummyName);
+    new Constructor(dummyFunctionNode, name: dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Extension] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Extension dummyExtension = new Extension(name: '');
+final Extension dummyExtension = new Extension(name: '', fileUri: dummyUri);
+
+/// Non-nullable [ExtensionMemberDescriptor] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
+    new ExtensionMemberDescriptor(
+        name: dummyName,
+        kind: ExtensionMemberKind.Getter,
+        member: dummyReference);
 
 /// Non-nullable [Member] dummy value.
 ///
 /// This can be used for instance as a dummy initial value for the
 /// `List.filled` constructor.
-final Member dummyMember = new Field.mutable(new _PublicName(''));
+final Member dummyMember = new Field.mutable(dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Procedure] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Procedure dummyProcedure =
-    new Procedure(dummyName, ProcedureKind.Method, dummyFunctionNode);
+final Procedure dummyProcedure = new Procedure(
+    dummyName, ProcedureKind.Method, dummyFunctionNode,
+    fileUri: dummyUri);
 
 /// Non-nullable [Field] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Field dummyField = new Field.mutable(dummyName);
+final Field dummyField = new Field.mutable(dummyName, fileUri: dummyUri);
 
 /// Non-nullable [RedirectingFactoryConstructor] dummy value.
 ///
@@ -13662,14 +13839,14 @@ final Field dummyField = new Field.mutable(dummyName);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final RedirectingFactoryConstructor dummyRedirectingFactoryConstructor =
-    new RedirectingFactoryConstructor(null, name: dummyName);
+    new RedirectingFactoryConstructor(null, name: dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Typedef] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Typedef dummyTypedef = new Typedef('', null);
+final Typedef dummyTypedef = new Typedef('', null, fileUri: dummyUri);
 
 /// Non-nullable [Initializer] dummy value.
 ///
@@ -13722,12 +13899,13 @@ final VariableDeclaration dummyVariableDeclaration =
 /// constructor.
 final TypeParameter dummyTypeParameter = new TypeParameter();
 
-/// Non-nullable [MapEntry] dummy value.
+/// Non-nullable [MapLiteralEntry] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final MapEntry dummyMapEntry = new MapEntry(dummyExpression, dummyExpression);
+final MapLiteralEntry dummyMapLiteralEntry =
+    new MapLiteralEntry(dummyExpression, dummyExpression);
 
 /// Non-nullable [Arguments] dummy value.
 ///
@@ -13759,6 +13937,13 @@ final SwitchCase dummySwitchCase = new SwitchCase.defaultCase(dummyStatement);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final Catch dummyCatch = new Catch(null, dummyStatement);
+
+/// Non-nullable [Constant] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final Constant dummyConstant = new NullConstant();
 
 /// Sentinel value used to signal that a node cannot be removed through the
 /// [RemovingTransformer].

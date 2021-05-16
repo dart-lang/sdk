@@ -3777,6 +3777,7 @@ class DiagnosticMessageBuilder extends Object
   int? _length;
   String? _message;
   int? _offset;
+  String? _url;
 
   @override
   String get filePath => _filePath ??= '';
@@ -3813,12 +3814,25 @@ class DiagnosticMessageBuilder extends Object
     this._offset = value;
   }
 
+  @override
+  String get url => _url ??= '';
+
+  /// The URL of the message, if any.
+  set url(String value) {
+    this._url = value;
+  }
+
   DiagnosticMessageBuilder(
-      {String? filePath, int? length, String? message, int? offset})
+      {String? filePath,
+      int? length,
+      String? message,
+      int? offset,
+      String? url})
       : _filePath = filePath,
         _length = length,
         _message = message,
-        _offset = offset;
+        _offset = offset,
+        _url = url;
 
   /// Flush [informative] data recursively.
   void flushInformative() {}
@@ -3829,11 +3843,13 @@ class DiagnosticMessageBuilder extends Object
     signatureSink.addInt(this._length ?? 0);
     signatureSink.addString(this._message ?? '');
     signatureSink.addInt(this._offset ?? 0);
+    signatureSink.addString(this._url ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_filePath;
     fb.Offset? offset_message;
+    fb.Offset? offset_url;
     var filePath = _filePath;
     if (filePath != null) {
       offset_filePath = fbBuilder.writeString(filePath);
@@ -3841,6 +3857,10 @@ class DiagnosticMessageBuilder extends Object
     var message = _message;
     if (message != null) {
       offset_message = fbBuilder.writeString(message);
+    }
+    var url = _url;
+    if (url != null) {
+      offset_url = fbBuilder.writeString(url);
     }
     fbBuilder.startTable();
     if (offset_filePath != null) {
@@ -3851,6 +3871,9 @@ class DiagnosticMessageBuilder extends Object
       fbBuilder.addOffset(2, offset_message);
     }
     fbBuilder.addUint32(3, _offset, 0);
+    if (offset_url != null) {
+      fbBuilder.addOffset(4, offset_url);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -3875,6 +3898,7 @@ class _DiagnosticMessageImpl extends Object
   int? _length;
   String? _message;
   int? _offset;
+  String? _url;
 
   @override
   String get filePath {
@@ -3896,6 +3920,11 @@ class _DiagnosticMessageImpl extends Object
   @override
   int get offset {
     return _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
+  }
+
+  @override
+  String get url {
+    return _url ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
   }
 }
 
@@ -3919,6 +3948,10 @@ abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
     if (local_offset != 0) {
       _result["offset"] = local_offset;
     }
+    var local_url = url;
+    if (local_url != '') {
+      _result["url"] = local_url;
+    }
     return _result;
   }
 
@@ -3928,6 +3961,7 @@ abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
         "length": length,
         "message": message,
         "offset": offset,
+        "url": url,
       };
 
   @override
@@ -4444,6 +4478,7 @@ class UnlinkedUnit2Builder extends Object
   bool? _hasPartOfDirective;
   List<UnlinkedNamespaceDirectiveBuilder>? _imports;
   List<int>? _lineStarts;
+  String? _partOfName;
   String? _partOfUri;
   List<String>? _parts;
 
@@ -4501,9 +4536,17 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
+  String get partOfName => _partOfName ??= '';
+
+  /// The library name of the `part of my.name;` directive.
+  set partOfName(String value) {
+    this._partOfName = value;
+  }
+
+  @override
   String get partOfUri => _partOfUri ??= '';
 
-  /// URI of the `part of` directive.
+  /// URI of the `part of 'uri';` directive.
   set partOfUri(String value) {
     this._partOfUri = value;
   }
@@ -4523,6 +4566,7 @@ class UnlinkedUnit2Builder extends Object
       bool? hasPartOfDirective,
       List<UnlinkedNamespaceDirectiveBuilder>? imports,
       List<int>? lineStarts,
+      String? partOfName,
       String? partOfUri,
       List<String>? parts})
       : _apiSignature = apiSignature,
@@ -4531,6 +4575,7 @@ class UnlinkedUnit2Builder extends Object
         _hasPartOfDirective = hasPartOfDirective,
         _imports = imports,
         _lineStarts = lineStarts,
+        _partOfName = partOfName,
         _partOfUri = partOfUri,
         _parts = parts;
 
@@ -4582,6 +4627,7 @@ class UnlinkedUnit2Builder extends Object
     }
     signatureSink.addBool(this._hasLibraryDirective == true);
     signatureSink.addString(this._partOfUri ?? '');
+    signatureSink.addString(this._partOfName ?? '');
   }
 
   List<int> toBuffer() {
@@ -4594,6 +4640,7 @@ class UnlinkedUnit2Builder extends Object
     fb.Offset? offset_exports;
     fb.Offset? offset_imports;
     fb.Offset? offset_lineStarts;
+    fb.Offset? offset_partOfName;
     fb.Offset? offset_partOfUri;
     fb.Offset? offset_parts;
     var apiSignature = _apiSignature;
@@ -4613,6 +4660,10 @@ class UnlinkedUnit2Builder extends Object
     var lineStarts = _lineStarts;
     if (!(lineStarts == null || lineStarts.isEmpty)) {
       offset_lineStarts = fbBuilder.writeListUint32(lineStarts);
+    }
+    var partOfName = _partOfName;
+    if (partOfName != null) {
+      offset_partOfName = fbBuilder.writeString(partOfName);
     }
     var partOfUri = _partOfUri;
     if (partOfUri != null) {
@@ -4637,6 +4688,9 @@ class UnlinkedUnit2Builder extends Object
     }
     if (offset_lineStarts != null) {
       fbBuilder.addOffset(5, offset_lineStarts);
+    }
+    if (offset_partOfName != null) {
+      fbBuilder.addOffset(8, offset_partOfName);
     }
     if (offset_partOfUri != null) {
       fbBuilder.addOffset(7, offset_partOfUri);
@@ -4675,6 +4729,7 @@ class _UnlinkedUnit2Impl extends Object
   bool? _hasPartOfDirective;
   List<idl.UnlinkedNamespaceDirective>? _imports;
   List<int>? _lineStarts;
+  String? _partOfName;
   String? _partOfUri;
   List<String>? _parts;
 
@@ -4714,6 +4769,12 @@ class _UnlinkedUnit2Impl extends Object
   List<int> get lineStarts {
     return _lineStarts ??=
         const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+  }
+
+  @override
+  String get partOfName {
+    return _partOfName ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 8, '');
   }
 
   @override
@@ -4759,6 +4820,10 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
     if (local_lineStarts.isNotEmpty) {
       _result["lineStarts"] = local_lineStarts;
     }
+    var local_partOfName = partOfName;
+    if (local_partOfName != '') {
+      _result["partOfName"] = local_partOfName;
+    }
     var local_partOfUri = partOfUri;
     if (local_partOfUri != '') {
       _result["partOfUri"] = local_partOfUri;
@@ -4778,6 +4843,7 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
         "hasPartOfDirective": hasPartOfDirective,
         "imports": imports,
         "lineStarts": lineStarts,
+        "partOfName": partOfName,
         "partOfUri": partOfUri,
         "parts": parts,
       };

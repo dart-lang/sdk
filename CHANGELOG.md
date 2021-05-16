@@ -2,12 +2,35 @@
 
 ### Core libraries
 
+#### `dart:async`
+
+* The uncaught error handlers of `Zone`s are now run in the parent zone
+  of the zone where they were declared. This prevents a throwing handler
+  from causing an infinite loop by repeatedly triggering itself.
+
 #### `dart:core`
 
 *   The native `DateTime` class now better handles local time around
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
+#### `dart:typed_data`
+
+*   **BREAKING CHANGE** (https://github.com/dart-lang/sdk/issues/45115)
+    Most types exposed by this library can no longer be extended, implemented
+    or mixed-in. The affected types are `ByteBuffer`, `TypedData` and *all*
+    its subclasses, `Int32x4`, `Float32x4`, `Float64x2` and `Endian`.
+
+#### `dart:web_sql`
+
+*   `dart:web_sql` is marked deprecated and will be removed in an upcoming
+    release. Also the API `window.openDatabase` in `dart:html` is deprecated as
+    well.
+
+    This API and library was exposing the WebSQL proposed standard. The standard
+    was abandoned more than 5 years ago and is not supported by most browsers.
+    The `dart:web_sql` library has been documented as unsupported and deprecated
+    for many years as well and but wasn't annotated properly until now.
 ### Dart VM
 
 *   **Breaking Change** [#45071][]: `Dart_NewWeakPersistentHandle`'s and
@@ -19,19 +42,97 @@
 
 ### Tools
 
+#### Dart command line
+
+- The `dart create` command has been updated to create projects that use the new
+  'core' set of lints from `package:lints`. See https://dart.dev/go/core-lints
+  for more information about these lints.
+
 #### Linter
 
-Updated the Linter to `1.3.0`, which includes:
+Updated the Linter to `1.4.0`, which includes:
 
-- updated `non_constant_identifier_names` to check local variables, for-loop
-  initializers and catch clauses.
-- updated error range of `lines_longer_than_80_chars` to start at 80 to make
-  splitting easier.
-- new lint: `require_trailing_commas`.
-- new lint: `prefer_null_aware_method_calls`.
+- `directives_ordering` now checks ordering of `package:` imports in code
+  outside pub packages.
+- simple reachability analysis added to `use_build_context_synchronously` to
+  short-circuit await-discovery in terminating blocks.
+- `use_build_context_synchronously` updated to recognize nullable types when
+  accessed from legacy libraries.
 
+#### Pub
 
-## 2.13.0
+* `dart pub publish` now respects `.pubignore` files with gitignore-style rules.
+ `.gitignore` files in the repo are still respected if they are not
+  overridden by a `.pubignore` in the same directory.
+
+  pub no longer queries git for listing the files. This implies:
+  * Checked in files will now be ignored if they are included by a `.gitignore`
+    rule.
+  * Global ignores are no longer taken into account.
+  * Even packages that are not in git source control will have their
+    `.gitignore` files respected.
+
+* New flag `dart pub deps --json` gives a machine parsable overview of the
+  current dependencies.
+* New command: `dart pub cache clean`. Will delete everything in your current
+  pub cache.
+* Commands related to a single package now takes a `--directory` option to
+  operate on a package in the given directory instead of the working directory.
+* git dependencies with a relative repo url would previously be interpreted
+  relative to the current package, even for transitive dependencies. This now
+  fails instead.
+
+* Pub now uses a Dart library to read and write tar files.
+  This should fix several issues we had with incompatibilities between different
+  system `tar`s.
+* `PUB_HOSTED_URL` can now include a trailing slash.
+
+### Language
+
+*   Add an unsigned shift right operator `>>>`. Pad with zeroes, ignoring the
+    sign bit. On the web platform `int.>>>` shifts the low 32 bits interpreted
+    as an unsigned integer, so `a >>> b` gives the same result as
+    `a.toUnsigned(32) >>> b` on the VM.
+
+*   Prior to Dart 2.14, metadata (annotations) were not permitted to be
+    specified with generic type arguments.  This restriction is lifted in Dart
+    Dart 2.14.
+
+    ```dart
+    class C<T> {
+      const C();
+    }
+    @C();      // Previously permitted.
+    @C<int>(); // Previously an error, now permitted.
+    ```
+
+*   Prior to Dart 2.14, generic function types were not permitted as arguments
+    to generic classes or functions, nor to be used as generic bounds.  This
+    restriction is lifted in Dart 2.14.
+
+    ```dart
+    T wrapWithLogging<T>(T f) {
+      if (f is void Function<T>(T x)) {
+        return <S>(S x) {
+          print("Call: f<$S>($x)");
+          var r = f<S>(x);
+          print("Return: $x");
+          return r;
+        } as T;
+      } // More cases here
+      return f;
+    }
+    void foo<T>(T x) {
+      print("Foo!");
+    }
+    void main() {
+      // Previously an error, now permitted.
+      var f = wrapWithLogging<void Function<T>(T)>(foo);
+      f<int>(3);
+    }
+    ```
+
+## 2.13.0 - 2021-05-18
 
 ### Language
 
@@ -152,11 +253,21 @@ Updated the Linter to `1.2.1`, which includes:
 
 [#44211]: https://github.com/dart-lang/sdk/issues/44211
 
-## 2.12.3 - 2021-04-12
+## 2.12.4 - 2021-04-15
+
+This is a patch release that fixes a Dart VM compiler crashes when compiling
+initializers containing async closures (issue [#45306][]).
+
+[#45306]: https://github.com/dart-lang/sdk/issues/45306
+
+## 2.12.3 - 2021-04-14
 
 This is a patch release that fixes a vulnerability in `dart:html` related to
-DOM clobbering. Thanks again to **Vincenzo di Cicco** for finding and reporting
-this vulnerability.
+DOM clobbering. See the [vulnerability advisory][CVE-2021-22540] for more
+details. Thanks again to **Vincenzo di Cicco** for finding and reporting this
+vulnerability.
+
+[CVE-2021-22540]: https://github.com/dart-lang/sdk/security/advisories/GHSA-3rfv-4jvg-9522
 
 ## 2.12.2 - 2021-03-17
 

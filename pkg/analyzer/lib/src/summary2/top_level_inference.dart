@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -77,7 +76,7 @@ class ConstantInitializersResolver {
   void _resolveVariable(VariableElement element) {
     if (element.isSynthetic) return;
 
-    var variable = _getLinkedNode(element) as VariableDeclaration;
+    var variable = linker.getLinkingNode(element) as VariableDeclaration;
     if (variable.initializer == null) return;
 
     var declarationList = variable.parent as VariableDeclarationList;
@@ -85,16 +84,16 @@ class ConstantInitializersResolver {
     if (typeNode != null) {
       if (declarationList.isConst ||
           declarationList.isFinal && _enclosingClassHasConstConstructor) {
-        var astResolver = AstResolver(linker, _unitElement, _scope);
-        astResolver.resolve(
-          variable.initializer!,
-          () {
-            InferenceContext.setType(variable.initializer, typeNode.type);
-            return variable.initializer!;
-          },
-          isTopLevelVariableInitializer: true,
-        );
+        var astResolver =
+            AstResolver(linker, _unitElement, _scope, variable.initializer!);
+        astResolver.resolveExpression(() => variable.initializer!,
+            contextType: typeNode.type);
       }
+    }
+
+    if (element is ConstVariableElement) {
+      var constElement = element as ConstVariableElement;
+      constElement.constantInitializer = variable.initializer;
     }
   }
 }
@@ -141,9 +140,10 @@ class _ConstructorInferenceNode extends _InferenceNode {
     this._constructor,
     Map<String, FieldElement> fieldMap,
   ) {
+    // TODO(scheglov) Can we rewrite this to just elements?
     for (var parameterElement in _constructor.parameters) {
       if (parameterElement is FieldFormalParameterElement) {
-        var parameterNode = _getLinkedNode(parameterElement);
+        var parameterNode = _walker._linker.getLinkingNode(parameterElement);
         if (parameterNode is DefaultFormalParameter) {
           parameterNode = parameterNode.parameter;
         }
@@ -322,7 +322,7 @@ class _InitializerInference {
   void _addVariableNode(PropertyInducingElement element) {
     if (element.isSynthetic) return;
 
-    var node = _getLinkedNode(element) as VariableDeclaration;
+    var node = _linker.getLinkingNode(element) as VariableDeclaration;
     var variableList = node.parent as VariableDeclarationList;
     if (variableList.type != null) {
       return;
@@ -376,15 +376,6 @@ class _VariableInferenceNode extends _InferenceNode {
     return _node.name.name;
   }
 
-  bool get isImplicitlyTypedInstanceField {
-    var variables = _node.parent as VariableDeclarationList;
-    if (variables.type == null) {
-      var parent = variables.parent;
-      return parent is FieldDeclaration && !parent.isStatic;
-    }
-    return false;
-  }
-
   PropertyInducingElementImpl get _elementImpl {
     return _node.declaredElement as PropertyInducingElementImpl;
   }
@@ -400,19 +391,7 @@ class _VariableInferenceNode extends _InferenceNode {
       return const <_InferenceNode>[];
     }
 
-    var dependencies =
-        collector._set.map(_walker.getNode).whereNotNull().toList();
-
-    for (var node in dependencies) {
-      if (node is _VariableInferenceNode &&
-          node.isImplicitlyTypedInstanceField) {
-        _elementImpl.type = DynamicTypeImpl.instance;
-        isEvaluated = true;
-        return const <_InferenceNode>[];
-      }
-    }
-
-    return dependencies;
+    return collector._set.map(_walker.getNode).whereNotNull().toList();
   }
 
   @override
@@ -423,6 +402,7 @@ class _VariableInferenceNode extends _InferenceNode {
       var initializerType = _node.initializer!.typeOrThrow;
       initializerType = _refineType(initializerType);
       _elementImpl.type = initializerType;
+      _elementImpl.hasTypeInferred = true;
     }
 
     isEvaluated = true;
@@ -461,12 +441,9 @@ class _VariableInferenceNode extends _InferenceNode {
   }
 
   void _resolveInitializer({required bool forDependencies}) {
-    var astResolver = AstResolver(_walker._linker, _unitElement, _scope);
-    astResolver.resolve(
-      _node.initializer!,
-      () => _node.initializer!,
-      buildElements: forDependencies,
-      isTopLevelVariableInitializer: true,
-    );
+    var astResolver =
+        AstResolver(_walker._linker, _unitElement, _scope, _node.initializer!);
+    astResolver.resolveExpression(() => _node.initializer!,
+        buildElements: forDependencies);
   }
 }

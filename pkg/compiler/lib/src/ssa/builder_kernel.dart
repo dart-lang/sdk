@@ -48,7 +48,6 @@ import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/member_usage.dart' show MemberAccess;
 import '../universe/selector.dart';
-import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
 import '../world.dart';
@@ -2201,14 +2200,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   HInstruction _callSetRuntimeTypeInfo(HInstruction typeInfo,
       HInstruction newObject, SourceInformation sourceInformation) {
     // Set the runtime type information on the object.
-    FunctionEntity typeInfoSetterFn = _commonElements.setRuntimeTypeInfo;
+    FunctionEntity typeInfoSetterFn = _commonElements.setArrayType;
     // TODO(efortuna): Insert source information in this static invocation.
     _pushStaticInvocation(typeInfoSetterFn, <HInstruction>[newObject, typeInfo],
         _abstractValueDomain.dynamicType, const <DartType>[],
         sourceInformation: sourceInformation);
 
     // The new object will now be referenced through the
-    // `setRuntimeTypeInfo` call. We therefore set the type of that
+    // `setArrayType` call. We therefore set the type of that
     // instruction to be of the object's type.
     assert(
         stack.last is HInvokeStatic || stack.last == newObject,
@@ -3215,7 +3214,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     // The map literal constructors take the key-value pairs as a List
     List<HInstruction> constructorArgs = <HInstruction>[];
-    for (ir.MapEntry mapEntry in node.entries) {
+    for (ir.MapLiteralEntry mapEntry in node.entries) {
       mapEntry.key.accept(this);
       constructorArgs.add(pop());
       mapEntry.value.accept(this);
@@ -3288,7 +3287,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  void visitMapEntry(ir.MapEntry node) {
+  void visitMapLiteralEntry(ir.MapLiteralEntry node) {
     failedAt(CURRENT_ELEMENT_SPANNABLE,
         'ir.MapEntry should be handled in visitMapLiteral');
   }
@@ -4168,10 +4167,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleForeignDartClosureToJs(invocation, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {
       _handleForeignRawFunctionRef(invocation, 'RAW_DART_FUNCTION_REF');
-    } else if (name == 'JS_SET_STATIC_STATE') {
-      _handleForeignJsSetStaticState(invocation);
-    } else if (name == 'JS_GET_STATIC_STATE') {
-      _handleForeignJsGetStaticState(invocation);
     } else if (name == 'JS_GET_NAME') {
       _handleForeignJsGetName(invocation);
     } else if (name == 'JS_EMBEDDED_GLOBAL') {
@@ -4274,7 +4269,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           selector = new Selector.indexSet();
         } else {
           if (namedArgumentsLiteral is ir.MapLiteral) {
-            namedArgumentsLiteral.entries.forEach((ir.MapEntry entry) {
+            namedArgumentsLiteral.entries.forEach((ir.MapLiteralEntry entry) {
               String key = _readStringLiteral(entry.key);
               namedArguments[key] = entry.value;
             });
@@ -4499,37 +4494,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return;
   }
 
-  void _handleForeignJsSetStaticState(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 1, maxPositional: 1)) {
-      // Result expected on stack.
-      stack.add(graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
-
-    String isolateName = _namer.staticStateHolder;
-    SideEffects sideEffects = new SideEffects.empty();
-    sideEffects.setAllSideEffects();
-    push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
-        _abstractValueDomain.dynamicType, inputs,
-        nativeBehavior: NativeBehavior.CHANGES_OTHER, effects: sideEffects));
-  }
-
-  void _handleForeignJsGetStaticState(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 0, maxPositional: 0)) {
-      // Result expected on stack.
-      stack.add(graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    push(new HForeignCode(js.js.parseForeignJS(_namer.staticStateHolder),
-        _abstractValueDomain.dynamicType, <HInstruction>[],
-        nativeBehavior: NativeBehavior.DEPENDS_OTHER));
-  }
-
   void _handleForeignJsGetName(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation,
         minPositional: 1, maxPositional: 1)) {
@@ -4664,8 +4628,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
         ClassEntity objectClass = closedWorld.commonElements.objectClass;
-        return js.js
-            .expressionTemplateYielding(_emitter.typeAccess(objectClass));
+        return js.js.expressionTemplateYielding(
+            _emitter.constructorAccess(objectClass));
 
       case JsBuiltin.dartClosureConstructor:
         ClassEntity closureClass = closedWorld.commonElements.closureClass;
@@ -4674,8 +4638,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         registry
             // ignore:deprecated_member_use_from_same_package
             .registerInstantiatedClass(closureClass);
-        return js.js
-            .expressionTemplateYielding(_emitter.typeAccess(closureClass));
+        return js.js.expressionTemplateYielding(
+            _emitter.constructorAccess(closureClass));
 
       case JsBuiltin.getMetadata:
         String metadataAccess =
@@ -5320,28 +5284,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void visitEqualsNull(ir.EqualsNull node) {
     node.expression.accept(this);
     HInstruction receiverInstruction = pop();
-
-    // Hack to detect `null == o`.
-    // TODO(johnniwinther): Remove this after the new method invocation has
-    // landed stably. This is only included to make the transition a no-op.
-    if (node.fileOffset < node.expression.fileOffset) {
-      _pushDynamicInvocation(
-          node,
-          new StaticType(
-              _elementMap.commonElements.nullType, ClassRelation.subtype),
-          _typeInferenceMap.receiverTypeOfInvocation(
-              node, _abstractValueDomain),
-          Selectors.equals,
-          <HInstruction>[
-            graph.addConstantNull(closedWorld),
-            receiverInstruction
-          ],
-          const <DartType>[],
-          _sourceInformationBuilder.buildCall(node.expression, node));
-    } else {
-      _handleEquals(node, node.expression, receiverInstruction,
-          graph.addConstantNull(closedWorld));
-    }
+    _handleEquals(node, node.expression, receiverInstruction,
+        graph.addConstantNull(closedWorld));
   }
 
   @override
@@ -6186,7 +6130,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     ir.Member memberContextNode = _elementMap.getMemberContextNode(function);
-    bool hasBox = false;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
         (ir.VariableDeclaration variable, {bool isElided}) {
@@ -6200,14 +6143,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           scopeData.isBoxedVariable(_localsMap, local)) {
         // The parameter will be a field in the box passed as the last
         // parameter. So no need to have it.
-        hasBox = true;
         return;
       }
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(local, argument);
     });
 
-    if (hasBox) {
+    if (forGenerativeConstructorBody && scopeData.requiresContextBox) {
       HInstruction box = compiledArguments[argumentIndex++];
       assert(box is HCreateBox);
       // TODO(sra): Make inlining of closures work. We should always call

@@ -5,8 +5,6 @@
 /// Classes for representing information about the program structure.
 library vm_snapshot_analysis.program_info;
 
-import 'package:meta/meta.dart';
-
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 /// Represents information about compiled program.
@@ -22,7 +20,7 @@ class ProgramInfo {
 
   /// V8 snapshot profile if this [ProgramInfo] object was created from an
   /// output of `--write-v8-snapshot-profile-to=...` flag.
-  SnapshotInfo snapshotInfo;
+  SnapshotInfo? snapshotInfo;
 
   ProgramInfo._(this.root, this.stubs, this.unknown);
 
@@ -45,24 +43,22 @@ class ProgramInfo {
   }
 
   ProgramInfoNode makeNode(
-      {@required String name,
-      @required ProgramInfoNode parent,
-      @required NodeType type}) {
-    return parent.children.putIfAbsent(name, () {
-      final node = ProgramInfoNode._(
-          id: _nextId++, name: name, parent: parent ?? root, type: type);
-      node.parent.children[name] = node;
-      return node;
-    });
+      {required String name,
+      required ProgramInfoNode parent,
+      required NodeType type}) {
+    return parent.children.putIfAbsent(
+        name,
+        () => ProgramInfoNode._(
+            id: _nextId++, name: name, parent: parent, type: type));
   }
 
   /// Recursively visit all function nodes, which have [FunctionInfo.info]
   /// populated.
   void visit(
-      void Function(
-              String pkg, String lib, String cls, String fun, ProgramInfoNode n)
+      void Function(String? pkg, String lib, String? cls, String? fun,
+              ProgramInfoNode n)
           callback) {
-    final context = List<String>.filled(NodeType.values.length, null);
+    final context = List<String?>.filled(NodeType.values.length, null);
 
     void recurse(ProgramInfoNode node) {
       final prevContext = context[node._type];
@@ -72,11 +68,11 @@ class ProgramInfo {
         context[node._type] = node.name;
       }
 
-      final String pkg = context[NodeType.packageNode.index];
-      final String lib = context[NodeType.libraryNode.index];
-      final String cls = context[NodeType.classNode.index];
-      final String mem = context[NodeType.functionNode.index];
-      callback(pkg, lib, cls, mem, node);
+      final pkg = context[NodeType.packageNode.index];
+      final lib = context[NodeType.libraryNode.index];
+      final cls = context[NodeType.classNode.index];
+      final mem = context[NodeType.functionNode.index];
+      callback(pkg, lib!, cls, mem, node);
 
       for (var child in node.children.values) {
         recurse(child);
@@ -96,12 +92,14 @@ class ProgramInfo {
   Map<String, dynamic> toJson() => root.toJson();
 
   /// Lookup a node in the program given a path to it.
-  ProgramInfoNode lookup(List<String> path) {
+  ProgramInfoNode? lookup(List<String> path) {
     var n = root;
     for (var p in path) {
-      if ((n = n.children[p]) == null) {
-        break;
+      final next = n.children[p];
+      if (next == null) {
+        return null;
       }
+      n = next;
     }
     return n;
   }
@@ -121,12 +119,12 @@ String _typeToJson(NodeType type) => const {
       NodeType.classNode: 'class',
       NodeType.functionNode: 'function',
       NodeType.other: 'other',
-    }[type];
+    }[type]!;
 
 class ProgramInfoNode {
   final int id;
   final String name;
-  final ProgramInfoNode parent;
+  final ProgramInfoNode? parent;
   final Map<String, ProgramInfoNode> children = {};
   final int _type;
 
@@ -151,13 +149,13 @@ class ProgramInfoNode {
   /// Assuming that both `C.f` and `C.g` are included into AOT snapshot
   /// and string `"something"` does not occur anywhere else in the program
   /// then the size of `"something"` is going to be attributed to `C`.
-  int size;
+  int? size;
 
   ProgramInfoNode._(
-      {@required this.id,
-      @required this.name,
-      @required this.parent,
-      @required NodeType type})
+      {required this.id,
+      required this.name,
+      required this.parent,
+      required NodeType type})
       : _type = type.index;
 
   NodeType get type => NodeType.values[_type];
@@ -175,9 +173,10 @@ class ProgramInfoNode {
     var prefix = '';
     // Do not include root name or package name (library uri already contains
     // package name).
-    if (parent?.parent != null && parent?.type != NodeType.packageNode) {
-      prefix = parent.qualifiedName;
-      if (parent.type != NodeType.libraryNode) {
+    final p = parent;
+    if (p != null && p.parent != null && p.type != NodeType.packageNode) {
+      prefix = p.qualifiedName;
+      if (p.type != NodeType.libraryNode) {
         prefix += '.';
       } else {
         prefix += '::';
@@ -198,7 +197,7 @@ class ProgramInfoNode {
     var n = this;
     while (n.parent != null) {
       result.add(n.name);
-      n = n.parent;
+      n = n.parent!;
     }
     return result.reversed.toList();
   }
@@ -215,24 +214,24 @@ ProgramInfo computeDiff(ProgramInfo oldInfo, ProgramInfo newInfo) {
   final programDiff = ProgramInfo();
 
   var path = <Object>[];
-  void recurse(ProgramInfoNode oldNode, ProgramInfoNode newNode) {
+  void recurse(ProgramInfoNode? oldNode, ProgramInfoNode? newNode) {
     if (oldNode?.size != newNode?.size) {
       var diffNode = programDiff.root;
       for (var i = 0; i < path.length; i += 2) {
-        final name = path[i];
-        final type = path[i + 1];
+        final name = path[i] as String;
+        final type = path[i + 1] as NodeType;
         diffNode =
             programDiff.makeNode(name: name, parent: diffNode, type: type);
       }
-      diffNode.size ??= 0;
-      diffNode.size += (newNode?.size ?? 0) - (oldNode?.size ?? 0);
+      diffNode.size =
+          (diffNode.size ?? 0) + (newNode?.size ?? 0) - (oldNode?.size ?? 0);
     }
 
     for (var key in _allKeys(newNode?.children, oldNode?.children)) {
       final newChildNode = newNode != null ? newNode.children[key] : null;
       final oldChildNode = oldNode != null ? oldNode.children[key] : null;
       path.add(key);
-      path.add(oldChildNode?.type ?? newChildNode?.type);
+      path.add((oldChildNode?.type ?? newChildNode?.type)!);
       recurse(oldChildNode, newChildNode);
       path.removeLast();
       path.removeLast();
@@ -244,7 +243,7 @@ ProgramInfo computeDiff(ProgramInfo oldInfo, ProgramInfo newInfo) {
   return programDiff;
 }
 
-Iterable<T> _allKeys<T>(Map<T, dynamic> a, Map<T, dynamic> b) {
+Iterable<T> _allKeys<T>(Map<T, dynamic>? a, Map<T, dynamic>? b) {
   return <T>{...?a?.keys, ...?b?.keys};
 }
 
@@ -267,14 +266,14 @@ class Histogram {
 
   Histogram._(this.bucketInfo, this.buckets)
       : bySize = buckets.keys.toList(growable: false)
-          ..sort((a, b) => buckets[b] - buckets[a]),
+          ..sort((a, b) => buckets[b]! - buckets[a]!),
         totalSize = buckets.values.fold(0, (sum, size) => sum + size);
 
   static Histogram fromIterable<T>(
     Iterable<T> entries, {
-    @required int Function(T) sizeOf,
-    @required String Function(T) bucketFor,
-    @required BucketInfo bucketInfo,
+    required int Function(T) sizeOf,
+    required String Function(T) bucketFor,
+    required BucketInfo bucketInfo,
   }) {
     final buckets = <String, int>{};
 
@@ -290,20 +289,26 @@ class Histogram {
   /// Rebuckets the histogram given the new bucketing rule.
   Histogram map(String Function(String) bucketFor) {
     return Histogram.fromIterable(buckets.keys,
-        sizeOf: (key) => buckets[key],
+        sizeOf: (key) => buckets[key]!,
         bucketFor: bucketFor,
         bucketInfo: bucketInfo);
   }
 }
 
 /// Construct the histogram of specific [type] given a [ProgramInfo].
+///
+/// [filter] glob can be provided to skip some of the nodes in the [info]:
+/// a string is created which contains library name, class name and function
+/// name for the given node and if this string does not match the [filter]
+/// glob then this node is ignored.
 Histogram computeHistogram(ProgramInfo info, HistogramType type,
-    {String filter}) {
-  bool Function(String, String, String) matchesFilter;
+    {String? filter}) {
+  bool Function(String, String?, String?) matchesFilter;
 
   if (filter != null) {
     final re = RegExp(filter.replaceAll('*', '.*'), caseSensitive: false);
-    matchesFilter = (lib, cls, fun) => re.hasMatch("${lib}::${cls}.${fun}");
+    matchesFilter =
+        (lib, cls, fun) => re.hasMatch("${lib}::${cls ?? ''}.${fun ?? ''}");
   } else {
     matchesFilter = (_, __, ___) => true;
   }
@@ -318,10 +323,12 @@ Histogram computeHistogram(ProgramInfo info, HistogramType type,
       });
     }
 
+    final snapshotInfo = info.snapshotInfo!;
+
     return Histogram.fromIterable<Node>(
-        info.snapshotInfo.snapshot.nodes.where((n) =>
+        snapshotInfo.snapshot.nodes.where((n) =>
             filter == null ||
-            filteredNodes.contains(info.snapshotInfo.ownerOf(n).id)),
+            filteredNodes.contains(snapshotInfo.ownerOf(n).id)),
         sizeOf: (n) {
           return n.selfSize;
         },
@@ -329,17 +336,18 @@ Histogram computeHistogram(ProgramInfo info, HistogramType type,
         bucketInfo: const BucketInfo(nameComponents: ['Type']));
   } else {
     final buckets = <String, int>{};
-    final bucketing = Bucketing._forType[type];
+    final bucketing = Bucketing._forType[type]!;
 
     info.visit((pkg, lib, cls, fun, node) {
-      if (node.size == null || node.size == 0) {
+      final sz = node.size;
+      if (sz == null || sz == 0) {
         return;
       }
       if (!matchesFilter(lib, cls, fun)) {
         return;
       }
       final bucket = bucketing.bucketFor(pkg, lib, cls, fun);
-      buckets[bucket] = (buckets[bucket] ?? 0) + node.size;
+      buckets[bucket] = (buckets[bucket] ?? 0) + sz;
     });
 
     return Histogram._(bucketing, buckets);
@@ -363,15 +371,15 @@ class BucketInfo {
   /// one returned by [nameComponents]).
   List<String> namesFromBucket(String bucket) => [bucket];
 
-  const BucketInfo({@required this.nameComponents});
+  const BucketInfo({required this.nameComponents});
 }
 
 abstract class Bucketing extends BucketInfo {
   /// Constructs the bucket name from the given library name [lib], class name
   /// [cls] and function name [fun].
-  String bucketFor(String pkg, String lib, String cls, String fun);
+  String bucketFor(String? pkg, String lib, String? cls, String? fun);
 
-  const Bucketing({@required List<String> nameComponents})
+  const Bucketing({required List<String> nameComponents})
       : super(nameComponents: nameComponents);
 
   static const _forType = {
@@ -387,11 +395,11 @@ const String _nameSeparator = ';;;';
 
 class _BucketBySymbol extends Bucketing {
   @override
-  String bucketFor(String pkg, String lib, String cls, String fun) {
+  String bucketFor(String? pkg, String lib, String? cls, String? fun) {
     if (fun == null) {
       return '@other${_nameSeparator}';
     }
-    return '$lib${_nameSeparator}${cls}${cls != '' ? '.' : ''}${fun}';
+    return '$lib${_nameSeparator}${cls ?? ''}${cls != '' && cls != null ? '.' : ''}${fun}';
   }
 
   @override
@@ -402,7 +410,7 @@ class _BucketBySymbol extends Bucketing {
 
 class _BucketByClass extends Bucketing {
   @override
-  String bucketFor(String pkg, String lib, String cls, String fun) {
+  String bucketFor(String? pkg, String lib, String? cls, String? fun) {
     if (cls == null) {
       return '@other${_nameSeparator}';
     }
@@ -417,14 +425,14 @@ class _BucketByClass extends Bucketing {
 
 class _BucketByLibrary extends Bucketing {
   @override
-  String bucketFor(String pkg, String lib, String cls, String fun) => '$lib';
+  String bucketFor(String? pkg, String lib, String? cls, String? fun) => '$lib';
 
   const _BucketByLibrary() : super(nameComponents: const ['Library']);
 }
 
 class _BucketByPackage extends Bucketing {
   @override
-  String bucketFor(String pkg, String lib, String cls, String fun) =>
+  String bucketFor(String? pkg, String lib, String? cls, String? fun) =>
       pkg ?? lib;
 
   const _BucketByPackage() : super(nameComponents: const ['Package']);

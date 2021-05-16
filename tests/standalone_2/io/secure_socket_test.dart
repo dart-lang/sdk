@@ -13,6 +13,8 @@
 // OtherResources=certificates/server_key.p12
 // OtherResources=certificates/trusted_certs.p12
 
+// @dart = 2.9
+
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";

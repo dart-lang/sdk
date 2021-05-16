@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -18,7 +16,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 /// Handles workspace/executeCommand messages by delegating to a specific handler
 /// based on the command.
 class ExecuteCommandHandler
-    extends MessageHandler<ExecuteCommandParams, Object> {
+    extends MessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler> commandHandlers;
   ExecuteCommandHandler(LspAnalysisServer server)
       : commandHandlers = {
@@ -37,7 +35,7 @@ class ExecuteCommandHandler
       ExecuteCommandParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Object>> handle(
+  Future<ErrorOr<Object?>> handle(
       ExecuteCommandParams params, CancellationToken cancellationToken) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
@@ -45,9 +43,10 @@ class ExecuteCommandHandler
           '${params.command} is not a valid command identifier', null);
     }
 
-    final progress = params.workDoneToken != null
-        ? ProgressReporter.clientProvided(server, params.workDoneToken)
-        : server.clientCapabilities.workDoneProgress
+    final workDoneToken = params.workDoneToken;
+    final progress = workDoneToken != null
+        ? ProgressReporter.clientProvided(server, workDoneToken)
+        : server.clientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
     return handler.handle(params.arguments, progress, cancellationToken);

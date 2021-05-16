@@ -470,6 +470,8 @@ bool Options::ParseArguments(int argc,
   SSLCertContext::set_root_certs_cache(Options::root_certs_cache());
   SSLCertContext::set_long_ssl_cert_evaluation(
       Options::long_ssl_cert_evaluation());
+  SSLCertContext::set_bypass_trusting_system_roots(
+      Options::bypass_trusting_system_roots());
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
@@ -583,7 +585,7 @@ bool Options::ParseArguments(int argc,
         run_command = true;
       }
       if (!Options::disable_dart_dev() && enable_vm_service_ && run_command) {
-        const char* dds_format_str = "--launch-dds=%s:%d";
+        const char* dds_format_str = "--launch-dds=%s\\:%d";
         size_t size =
             snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
                      vm_service_server_port());
@@ -603,6 +605,7 @@ bool Options::ParseArguments(int argc,
       first_option = false;
     }
   }
+
   // Verify consistency of arguments.
 
   // snapshot_depfile is an alias for depfile. Passing them both is an error.

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks --enable_asserts
 
+// @dart = 2.9
+
 typedef Handler(bool e);
 
 class Hello {

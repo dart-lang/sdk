@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing the instanceof operation.
 
+// @dart = 2.9
+
 library intrinsified_methods_test;
 
 import "package:expect/expect.dart";

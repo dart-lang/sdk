@@ -5,8 +5,10 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -23,12 +25,13 @@ import 'package:analyzer/src/summary2/variance_builder.dart';
 var timerLinkingLinkingBundle = Stopwatch();
 var timerLinkingRemoveBundle = Stopwatch();
 
+/// TODO(scheglov) deprecate `withInformative`.
 LinkResult link(
   LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-  bool withInformative,
-) {
-  var linker = Linker(elementFactory, withInformative);
+  List<LinkInputLibrary> inputLibraries, [
+  bool? withInformative,
+]) {
+  var linker = Linker(elementFactory);
   linker.link(inputLibraries);
   return LinkResult(
     astBytes: linker.astBytes,
@@ -38,18 +41,18 @@ LinkResult link(
 
 class Linker {
   final LinkedElementFactory elementFactory;
-  final bool withInformative;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
+  final Map<ElementImpl, ast.AstNode> elementNodes = Map.identity();
+
   late InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
-  late BundleWriter bundleWriter;
   late Uint8List astBytes;
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory, this.withInformative);
+  Linker(this.elementFactory);
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -61,13 +64,14 @@ class Linker {
 
   Reference get rootReference => elementFactory.rootReference;
 
-  void link(List<LinkInputLibrary> inputLibraries) {
-    bundleWriter = BundleWriter(
-      withInformative,
-      elementFactory.dynamicRef,
-    );
-    _writeAst(inputLibraries);
+  /// If the [element] is part of a library being linked, return the node
+  /// from which it was created.
+  ast.AstNode? getLinkingNode(Element element) {
+    var node = elementNodes[element];
+    return node ?? (element as ElementImpl).linkedNode;
+  }
 
+  void link(List<LinkInputLibrary> inputLibraries) {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
     }
@@ -75,7 +79,7 @@ class Linker {
     _buildOutlines();
 
     timerLinkingLinkingBundle.start();
-    _writeResolution();
+    _writeLibraries();
     timerLinkingLinkingBundle.stop();
 
     timerLinkingRemoveBundle.start();
@@ -85,9 +89,16 @@ class Linker {
     timerLinkingRemoveBundle.stop();
   }
 
+  void _buildEnumChildren() {
+    for (var library in builders.values) {
+      library.buildEnumChildren();
+    }
+  }
+
   void _buildOutlines() {
     _computeLibraryScopes();
     _createTypeSystem();
+    _buildEnumChildren();
     _resolveTypes();
     _performTopLevelInference();
     _resolveConstructors();
@@ -109,12 +120,8 @@ class Linker {
     }
 
     for (var library in builders.values) {
-      library.buildDirectives();
       library.addLocalDeclarations();
-    }
-
-    for (var library in builders.values) {
-      library.resolveUriDirectives();
+      library.buildElements();
     }
 
     for (var library in builders.values) {
@@ -212,38 +219,18 @@ class Linker {
     VarianceBuilder().perform(this);
     computeSimplyBounded(builders.values);
     TypeAliasSelfReferenceFinder().perform(this);
-    TypesBuilder().build(nodesToBuildType);
+    TypesBuilder(this).build(nodesToBuildType);
   }
 
-  void _writeAst(List<LinkInputLibrary> inputLibraries) {
-    for (var inputLibrary in inputLibraries) {
-      bundleWriter.addLibraryAst(
-        LibraryToWriteAst(
-          units: inputLibrary.units.map((e) {
-            return UnitToWriteAst(
-              node: e.unit,
-            );
-          }).toList(),
-        ),
-      );
-    }
-  }
+  void _writeLibraries() {
+    var bundleWriter = BundleWriter(
+      elementFactory.dynamicRef,
+    );
 
-  void _writeResolution() {
     for (var builder in builders.values) {
-      bundleWriter.addLibraryResolution(
-        LibraryToWriteResolution(
-          uriStr: '${builder.uri}',
-          exports: builder.exports,
-          units: builder.context.units.map((e) {
-            return UnitToWriteResolution(
-              uriStr: e.uriStr,
-              partUriStr: e.partUriStr,
-              node: e.unit!,
-              isSynthetic: e.isSynthetic,
-            );
-          }).toList(),
-        ),
+      bundleWriter.writeLibraryElement(
+        builder.element,
+        builder.exports,
       );
     }
 
@@ -268,7 +255,7 @@ class LinkInputUnit {
   final String? partUriStr;
   final Source source;
   final bool isSynthetic;
-  final CompilationUnit unit;
+  final ast.CompilationUnit unit;
 
   LinkInputUnit(
     this.partUriStr,

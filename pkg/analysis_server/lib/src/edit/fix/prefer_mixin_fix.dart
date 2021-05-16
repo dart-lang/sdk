@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
@@ -30,9 +28,12 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
   int get numPhases => 0;
 
   Future<void> convertClassToMixin(Element elem) async {
-    var result = await listener.server.getResolvedUnit(elem.source?.fullName);
+    var result = await listener.server.getResolvedUnit(elem.source!.fullName);
+    if (result == null) {
+      return;
+    }
 
-    for (var declaration in result.unit.declarations) {
+    for (var declaration in result.unit!.declarations) {
       if (declaration is ClassOrMixinDeclaration &&
           declaration.name.name == elem.name) {
         var processor = AssistProcessor(
@@ -74,10 +75,13 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
   @override
   Future<void> fixError(ResolvedUnitResult result, AnalysisError error) async {
     var node = NodeLocator(error.offset).searchWithin(result.unit);
+    if (node == null) {
+      return;
+    }
     var type = node.thisOrAncestorOfType<TypeName>();
     if (type != null) {
       var element = type.name.staticElement;
-      if (element.source?.fullName != null) {
+      if (element != null && element.source?.fullName != null) {
         classesToConvert.add(element);
       }
     } else {
@@ -97,7 +101,7 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
     var task = PreferMixinFix(listener);
-    registrar.registerLintTask(Registry.ruleRegistry['prefer_mixin'], task);
+    registrar.registerLintTask(Registry.ruleRegistry['prefer_mixin']!, task);
     registrar.registerCodeTask(task);
   }
 }

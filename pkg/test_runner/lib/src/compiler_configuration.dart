@@ -9,6 +9,7 @@ import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart';
+import 'test_case.dart' show TestCase;
 import 'test_file.dart';
 import 'utils.dart';
 
@@ -25,10 +26,7 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
 /// list allows the result of calling this to be spread into another list.
 List<String> _experimentsArgument(
     TestConfiguration configuration, TestFile testFile) {
-  var experiments = {
-    ...configuration.experiments,
-    ...testFile.experiments,
-  };
+  var experiments = TestCase.getExperiments(testFile, configuration);
   if (experiments.isEmpty) {
     return const [];
   }

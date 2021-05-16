@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This tests uses the multi-test "ok" feature:
 // none: Trimmed behaviour. Passing on the VM.
 // 01: Trimmed version for dart2js.

@@ -437,6 +437,9 @@ table DiagnosticMessage {
   /// The zero-based offset from the start of the file to the beginning of the
   /// source range associated with this message.
   offset:uint (id: 3);
+
+  /// The URL of the message, if any.
+  url:string (id: 4);
 }
 
 /// Information about the Dartdoc directives in an [AvailableFile].
@@ -498,7 +501,10 @@ table UnlinkedUnit2 {
   /// Offsets of the first character of each line in the source code.
   lineStarts:[uint] (id: 5);
 
-  /// URI of the `part of` directive.
+  /// The library name of the `part of my.name;` directive.
+  partOfName:string (id: 8);
+
+  /// URI of the `part of 'uri';` directive.
   partOfUri:string (id: 7);
 
   /// URIs of `part` directives.

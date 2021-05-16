@@ -40,6 +40,7 @@ const _tagStrings = <_Tag, String>{
 
 enum _AttributeName {
   abstractOrigin,
+  artificial,
   callColumn,
   callFile,
   callLine,
@@ -66,6 +67,7 @@ const _attributeNames = <int, _AttributeName>{
   0x20: _AttributeName.inline,
   0x25: _AttributeName.producer,
   0x31: _AttributeName.abstractOrigin,
+  0x34: _AttributeName.artificial,
   0x39: _AttributeName.declarationColumn,
   0x3a: _AttributeName.declarationFile,
   0x3b: _AttributeName.declarationLine,
@@ -84,6 +86,7 @@ const _attributeNameStrings = <_AttributeName, String>{
   _AttributeName.inline: "DW_AT_inline",
   _AttributeName.producer: "DW_AT_producer",
   _AttributeName.abstractOrigin: "DW_AT_abstract_origin",
+  _AttributeName.artificial: "DW_AT_artificial",
   _AttributeName.declarationColumn: "DW_AT_decl_column",
   _AttributeName.declarationFile: "DW_AT_decl_file",
   _AttributeName.declarationLine: "DW_AT_decl_line",
@@ -95,6 +98,7 @@ const _attributeNameStrings = <_AttributeName, String>{
 enum _AttributeForm {
   address,
   constant,
+  flag,
   reference4,
   sectionOffset,
   string,
@@ -103,6 +107,7 @@ enum _AttributeForm {
 const _attributeForms = <int, _AttributeForm>{
   0x01: _AttributeForm.address,
   0x08: _AttributeForm.string,
+  0x0c: _AttributeForm.flag,
   0x0f: _AttributeForm.constant,
   0x13: _AttributeForm.reference4,
   0x17: _AttributeForm.sectionOffset,
@@ -111,6 +116,7 @@ const _attributeForms = <int, _AttributeForm>{
 const _attributeFormStrings = <_AttributeForm, String>{
   _AttributeForm.address: "DW_FORM_addr",
   _AttributeForm.string: "DW_FORM_string",
+  _AttributeForm.flag: "DW_FORM_flag",
   _AttributeForm.constant: "DW_FORM_udata",
   _AttributeForm.reference4: "DW_FORM_ref4",
   _AttributeForm.sectionOffset: "DW_FORM_sec_offset",
@@ -139,6 +145,8 @@ class _Attribute {
     switch (form) {
       case _AttributeForm.string:
         return reader.readNullTerminatedString();
+      case _AttributeForm.flag:
+        return reader.readByte() != 0;
       case _AttributeForm.address:
         return reader.readBytes(header.addressSize);
       case _AttributeForm.sectionOffset:
@@ -154,6 +162,8 @@ class _Attribute {
     switch (form) {
       case _AttributeForm.string:
         return value as String;
+      case _AttributeForm.flag:
+        return value.toString();
       case _AttributeForm.address:
         return '0x' + paddedHex(value as int, unit?.header.addressSize ?? 0);
       case _AttributeForm.sectionOffset:
@@ -310,6 +320,8 @@ class DebugInformationEntry {
 
   int? get highPC => this[_AttributeName.highProgramCounter] as int?;
 
+  bool get isArtificial => (this[_AttributeName.artificial] ?? false) as bool;
+
   bool containsPC(int virtualAddress) =>
       (lowPC ?? 0) <= virtualAddress && virtualAddress < (highPC ?? -1);
 
@@ -339,6 +351,7 @@ class DebugInformationEntry {
         ..add(DartCallInfo(
             function: unit.nameOfOrigin(abstractOrigin ?? -1),
             inlined: inlined,
+            internal: isArtificial,
             filename: callFilename(child.callFileIndex ?? -1),
             line: child.callLine ?? 0,
             column: child.callColumn ?? 0));
@@ -353,6 +366,7 @@ class DebugInformationEntry {
       DartCallInfo(
           function: unit.nameOfOrigin(abstractOrigin ?? -1),
           inlined: inlined,
+          internal: isArtificial,
           filename: filename,
           line: line,
           column: column)
@@ -1057,6 +1071,7 @@ abstract class CallInfo {
 /// Represents the information for a call site located in Dart source code.
 class DartCallInfo extends CallInfo {
   final bool inlined;
+  final bool internal;
   final String function;
   final String filename;
   final int line;
@@ -1064,28 +1079,32 @@ class DartCallInfo extends CallInfo {
 
   DartCallInfo(
       {this.inlined = false,
+      this.internal = false,
       required this.function,
       required this.filename,
       required this.line,
       required this.column});
 
   @override
-  bool get isInternal => false;
+  bool get isInternal => internal;
 
   @override
-  int get hashCode => _hashFinish(_hashCombine(
-      _hashCombine(
-          _hashCombine(
-              _hashCombine(
-                  _hashCombine(0, inlined.hashCode), function.hashCode),
-              filename.hashCode),
-          line.hashCode),
-      column.hashCode));
+  int get hashCode {
+    int hash = 0;
+    hash = _hashCombine(hash, inlined.hashCode);
+    hash = _hashCombine(hash, internal.hashCode);
+    hash = _hashCombine(hash, function.hashCode);
+    hash = _hashCombine(hash, filename.hashCode);
+    hash = _hashCombine(hash, line.hashCode);
+    hash = _hashCombine(hash, column.hashCode);
+    return _hashFinish(hash);
+  }
 
   @override
   bool operator ==(Object other) {
     if (other is DartCallInfo) {
       return inlined == other.inlined &&
+          internal == other.internal &&
           function == other.function &&
           filename == other.filename &&
           line == other.line &&

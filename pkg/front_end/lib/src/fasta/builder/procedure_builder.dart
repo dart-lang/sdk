@@ -271,7 +271,8 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
           new FunctionNode(null),
           isStatic: true,
           isExtensionMember: true,
-          reference: _tearOffReference)
+          reference: _tearOffReference,
+          fileUri: fileUri)
         ..isNonNullableByDefault = library.isNonNullableByDefault;
     }
   }
@@ -798,23 +799,15 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           for (VariableDeclaration parameter
               in member.function.positionalParameters) {
             inferrer.flowAnalysis?.declare(parameter, true);
-            positionalArguments.add(new VariableGetImpl(
-                parameter,
-                inferrer.typePromoter.getFactForAccess(parameter, 0),
-                inferrer.typePromoter.currentScope,
-                forNullGuardedAccess: false));
+            positionalArguments.add(
+                new VariableGetImpl(parameter, forNullGuardedAccess: false));
           }
           List<NamedExpression> namedArguments = <NamedExpression>[];
           for (VariableDeclaration parameter
               in member.function.namedParameters) {
             inferrer.flowAnalysis?.declare(parameter, true);
-            namedArguments.add(new NamedExpression(
-                parameter.name,
-                new VariableGetImpl(
-                    parameter,
-                    inferrer.typePromoter.getFactForAccess(parameter, 0),
-                    inferrer.typePromoter.currentScope,
-                    forNullGuardedAccess: false)));
+            namedArguments.add(new NamedExpression(parameter.name,
+                new VariableGetImpl(parameter, forNullGuardedAccess: false)));
           }
           // If arguments are created using [Forest.createArguments], and the
           // type arguments are omitted, they are to be inferred.

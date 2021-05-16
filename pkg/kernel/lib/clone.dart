@@ -99,7 +99,9 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   T clone<T extends TreeNode>(T node) {
     final Uri? activeFileUriSaved = _activeFileUri;
-    if (node is FileUriNode) _activeFileUri = node.fileUri ?? _activeFileUri;
+    if (node is FileUriNode) {
+      _activeFileUri = node.fileUri;
+    }
     final TreeNode result = node.accept(this)
       ..fileOffset = _cloneFileOffset(node.fileOffset);
     _activeFileUri = activeFileUriSaved;
@@ -109,7 +111,9 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   T? cloneOptional<T extends TreeNode>(T? node) {
     if (node == null) return null;
     final Uri? activeFileUriSaved = _activeFileUri;
-    if (node is FileUriNode) _activeFileUri = node.fileUri ?? _activeFileUri;
+    if (node is FileUriNode) {
+      _activeFileUri = node.fileUri;
+    }
     TreeNode? result = node.accept(this);
     if (result != null) result.fileOffset = _cloneFileOffset(node.fileOffset);
     _activeFileUri = activeFileUriSaved;
@@ -128,8 +132,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   Uri? _activeFileUriFromContext(TreeNode? node) {
     while (node != null) {
-      if (node is FileUriNode && node.fileUri != null) {
-        return node.fileUri!;
+      if (node is FileUriNode) {
+        return node.fileUri;
       }
       node = node.parent;
     }
@@ -313,8 +317,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         isConst: node.isConst);
   }
 
-  visitMapEntry(MapEntry node) {
-    return new MapEntry(clone(node.key), clone(node.value));
+  visitMapLiteralEntry(MapLiteralEntry node) {
+    return new MapLiteralEntry(clone(node.key), clone(node.value));
   }
 
   visitAwaitExpression(AwaitExpression node) {
@@ -505,9 +509,10 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node]!;
-    newNode.bound = visitType(node.bound!);
+    newNode.bound = visitType(node.bound);
+    // ignore: unnecessary_null_comparison
     if (node.defaultType != null) {
-      newNode.defaultType = visitType(node.defaultType!);
+      newNode.defaultType = visitType(node.defaultType);
     }
     return newNode
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
@@ -754,7 +759,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
 
   Constructor cloneConstructor(Constructor node, Reference? reference) {
     final Uri? activeFileUriSaved = _activeFileUri;
-    _activeFileUri = node.fileUri ?? _activeFileUri;
+    _activeFileUri = node.fileUri;
 
     Constructor result = new Constructor(
       super.clone(node.function),
@@ -764,7 +769,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       isSynthetic: node.isSynthetic,
       initializers: node.initializers.map(super.clone).toList(),
       transformerFlags: node.transformerFlags,
-      fileUri: _activeFileUri,
+      fileUri: node.fileUri,
       reference: reference,
     )
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
@@ -779,12 +784,12 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
 
   Procedure cloneProcedure(Procedure node, Reference? reference) {
     final Uri? activeFileUriSaved = _activeFileUri;
-    _activeFileUri = node.fileUri ?? _activeFileUri;
+    _activeFileUri = node.fileUri;
     Procedure result = new Procedure(
         node.name, node.kind, super.clone(node.function),
         reference: reference,
         transformerFlags: node.transformerFlags,
-        fileUri: _activeFileUri,
+        fileUri: node.fileUri,
         stubKind: node.stubKind,
         stubTarget: node.stubTarget)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
@@ -802,7 +807,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
   Field cloneField(
       Field node, Reference? getterReference, Reference? setterReference) {
     final Uri? activeFileUriSaved = _activeFileUri;
-    _activeFileUri = node.fileUri ?? _activeFileUri;
+    _activeFileUri = node.fileUri;
 
     Field result;
     if (node.hasSetter) {
@@ -810,7 +815,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
           type: visitType(node.type),
           initializer: cloneOptional(node.initializer),
           transformerFlags: node.transformerFlags,
-          fileUri: _activeFileUri,
+          fileUri: node.fileUri,
           getterReference: getterReference,
           setterReference: setterReference);
     } else {
@@ -822,7 +827,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
           type: visitType(node.type),
           initializer: cloneOptional(node.initializer),
           transformerFlags: node.transformerFlags,
-          fileUri: _activeFileUri,
+          fileUri: node.fileUri,
           getterReference: getterReference);
     }
     result
@@ -840,7 +845,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
   RedirectingFactoryConstructor cloneRedirectingFactoryConstructor(
       RedirectingFactoryConstructor node, Reference? reference) {
     final Uri? activeFileUriSaved = _activeFileUri;
-    _activeFileUri = node.fileUri ?? _activeFileUri;
+    _activeFileUri = node.fileUri;
 
     prepareTypeParameters(node.typeParameters);
     RedirectingFactoryConstructor result = new RedirectingFactoryConstructor(
@@ -855,7 +860,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
             node.positionalParameters.map(super.clone).toList(),
         namedParameters: node.namedParameters.map(super.clone).toList(),
         requiredParameterCount: node.requiredParameterCount,
-        fileUri: _activeFileUri,
+        fileUri: node.fileUri,
         reference: reference)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()

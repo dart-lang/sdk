@@ -449,7 +449,7 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
     }
   } =>#t98];
 }
-static method bar<X extends core::List<core::int>? = core::List<core::int>?, Y extends core::Set<core::int>? = core::Set<core::int>?, Z extends core::Iterable<core::int>? = core::Iterable<core::int>?, W extends core::Map<core::int, core::int>? = core::Map<core::int, core::int>?>(core::bool condition, core::Iterable<dynamic> iterable, self::bar::X% x, self::bar::Y% y, self::bar::Z% z, self::bar::W% w) → dynamic {
+static method bar<X extends core::List<core::int>?, Y extends core::Set<core::int>?, Z extends core::Iterable<core::int>?, W extends core::Map<core::int, core::int>?>(core::bool condition, core::Iterable<dynamic> iterable, self::bar::X% x, self::bar::Y% y, self::bar::Z% z, self::bar::W% w) → dynamic {
   return <core::Object>[ block {
     final core::Set<core::int> #t101 = col::LinkedHashSet::•<core::int>();
     for (final dynamic #t102 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:50:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.

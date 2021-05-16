@@ -16,7 +16,7 @@ static method test1(self::C<core::num> c) → dynamic
   ;
 static method test2(self::C<core::num?> c) → dynamic
   ;
-static method test3<S extends core::num? = core::num?>(self::test3::S% s) → dynamic
+static method test3<S extends core::num?>(self::test3::S% s) → dynamic
   ;
 static method main() → dynamic
   ;

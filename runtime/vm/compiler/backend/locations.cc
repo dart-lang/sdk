@@ -59,6 +59,33 @@ bool RepresentationUtils::IsUnsigned(Representation rep) {
 #undef REP_SIZEOF_CLAUSE
 #undef REP_IN_SET_CLAUSE
 
+compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
+  if (rep == kTagged || rep == kUntagged) {
+    return compiler::kObjectBytes;
+  }
+  ASSERT(IsUnboxedInteger(rep));
+  switch (ValueSize(rep)) {
+    case 8:
+      ASSERT_EQUAL(compiler::target::kWordSize, 8);
+      return compiler::kEightBytes;
+    case 4:
+      return IsUnsigned(rep) ? compiler::kUnsignedFourBytes
+                             : compiler::kFourBytes;
+    case 2:
+      // No kUnboxed{Uint,Int}16 yet.
+      UNIMPLEMENTED();
+      break;
+    case 1:
+      if (!IsUnsigned(rep)) {
+        // No kUnboxedInt8 yet.
+        UNIMPLEMENTED();
+      }
+      return compiler::kUnsignedByte;
+  }
+  UNREACHABLE();
+  return compiler::kObjectBytes;
+}
+
 const char* Location::RepresentationToCString(Representation repr) {
   switch (repr) {
 #define REPR_CASE(Name, __, ___)                                               \

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -23,12 +21,12 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
-  FileKind fileKind;
-  String libraryName;
-  Outline outline;
+  late FileKind fileKind;
+  String? libraryName;
+  Outline? outline;
 
   final Completer<void> _outlineReceived = Completer();
-  Completer _highlightsReceived = Completer();
+  Completer? _highlightsReceived = Completer();
 
   Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
@@ -71,7 +69,7 @@ class BBB {
     await waitForTasksFinished();
     expect(outline, isNull);
     await prepareOutline();
-    var unitOutline = outline;
+    var unitOutline = outline!;
     var outlines = unitOutline.children;
     expect(outlines, hasLength(2));
   }
@@ -128,11 +126,11 @@ class B {}
     // This will pre-cache the analysis result for the file.
     setPriorityFiles([testFile]);
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
-    await _highlightsReceived.future;
+    await _highlightsReceived!.future;
 
     // Now subscribe for outline notification, we must get it even though
     // the result which is used is pre-cached, and not a newly computed.
     await prepareOutline();
-    expect(outline.children, hasLength(2));
+    expect(outline!.children, hasLength(2));
   }
 }

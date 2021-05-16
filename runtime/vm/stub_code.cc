@@ -162,7 +162,6 @@ ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
   }
   return static_calls_table.ptr();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
@@ -171,15 +170,27 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   const Error& error =
       Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
   ASSERT(error.IsNull());
-  if (cls.id() == kArrayCid) {
-    return object_store->allocate_array_stub();
-  } else if (cls.id() == kContextCid) {
-    return object_store->allocate_context_stub();
-  } else if (cls.id() == kUnhandledExceptionCid) {
-    return object_store->allocate_unhandled_exception_stub();
+  switch (cls.id()) {
+    case kArrayCid:
+      return object_store->allocate_array_stub();
+    case kContextCid:
+      return object_store->allocate_context_stub();
+    case kUnhandledExceptionCid:
+      return object_store->allocate_unhandled_exception_stub();
+    case kMintCid:
+      return object_store->allocate_mint_stub();
+    case kDoubleCid:
+      return object_store->allocate_double_stub();
+    case kFloat32x4Cid:
+      return object_store->allocate_float32x4_stub();
+    case kFloat64x2Cid:
+      return object_store->allocate_float64x2_stub();
+    case kInt32x4Cid:
+      return object_store->allocate_int32x4_stub();
+    case kClosureCid:
+      return object_store->allocate_closure_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
     compiler::ObjectPoolBuilder object_pool_builder;
     Precompiler* precompiler = Precompiler::Instance();
@@ -247,7 +258,6 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     }
 #endif  // !PRODUCT
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.ptr();
 }
 
@@ -286,6 +296,7 @@ CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
   UNREACHABLE();
   return Code::null();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(TARGET_ARCH_IA32)
 CodePtr StubCode::GetBuildMethodExtractorStub(

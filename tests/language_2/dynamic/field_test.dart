@@ -4,6 +4,8 @@
 //
 // Test that ensures that fields can be accessed dynamically.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A extends C {

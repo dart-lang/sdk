@@ -323,7 +323,8 @@ abstract class SingleCorrectionProducer extends _AbstractCorrectionProducer {
 
   /// Return the text of the error message being fixed, or `null` if there is
   /// no diagnostic.
-  String? get errorMessage => diagnostic?.problemMessage.message;
+  String? get errorMessage =>
+      diagnostic?.problemMessage.messageText(includeUrl: true);
 
   /// Return the offset of the error message being fixed, or `null` if there is
   /// no diagnostic.
@@ -372,7 +373,7 @@ abstract class _AbstractCorrectionProducer {
   AstNode? get coveredNode {
     // TODO(brianwilkerson) Consider renaming this to `coveringNode`.
     if (_coveredNode == null) {
-      var diagnostic = this.diagnostic;
+      final diagnostic = this.diagnostic;
       if (diagnostic == null) {
         return null;
       }

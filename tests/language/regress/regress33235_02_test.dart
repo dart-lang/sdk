@@ -11,7 +11,7 @@ class C {
 //^
 // [cfe] Conflicts with member 'n'.
 //  ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
 
   static int n() {
   //         ^

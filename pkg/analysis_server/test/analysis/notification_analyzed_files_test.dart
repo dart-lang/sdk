@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -20,7 +18,7 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
-  List<String> analyzedFiles;
+  late List<String> analyzedFiles;
   bool analyzedFilesReceived = false;
 
   void assertHasFile(String filePath) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+
+- Migrate to null-safety.
+
 ## 0.6.0
 
 - Update to latest args, path, meta dependency.

@@ -411,7 +411,7 @@ void SharedClassTable::Unregister(intptr_t index) {
 }
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   const intptr_t num_cids = NumCids();
   std::unique_ptr<ClassPtr[]> cls_by_old_cid(new ClassPtr[num_cids]);
   auto* table = table_.load();
@@ -422,7 +422,7 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
 }
 
 void SharedClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   const intptr_t num_cids = NumCids();
   std::unique_ptr<intptr_t[]> size_by_old_cid(new intptr_t[num_cids]);
   auto* table = table_.load();

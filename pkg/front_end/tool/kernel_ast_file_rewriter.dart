@@ -8,10 +8,7 @@ import "dart:io" show File, Platform, stdout;
 import "dart:typed_data" show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import "package:front_end/src/fasta/util/direct_parser_ast.dart";
-import "package:front_end/src/fasta/util/direct_parser_ast_helper.dart"
-    show DirectParserASTContent;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';

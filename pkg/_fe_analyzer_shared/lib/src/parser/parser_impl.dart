@@ -6146,7 +6146,7 @@ class Parser {
     potentialTypeArg ??= computeTypeParamOrArg(token);
     afterToken ??= potentialTypeArg.skip(token).next!;
     TypeParamOrArgInfo typeArg;
-    if (optional('(', afterToken)) {
+    if (optional('(', afterToken) && !potentialTypeArg.recovered) {
       typeArg = potentialTypeArg;
     } else {
       typeArg = noTypeParamOrArg;

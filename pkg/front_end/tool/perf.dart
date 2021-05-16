@@ -20,7 +20,6 @@ library front_end.tool.perf;
 import 'dart:io' show Directory, File, Platform, exit;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
