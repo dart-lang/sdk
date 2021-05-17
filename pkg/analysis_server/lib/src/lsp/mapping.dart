@@ -65,11 +65,6 @@ String buildSnippetStringWithTabStops(
   text ??= '';
   offsetLengthPairs ??= const [];
 
-  String escape(String input) => input.replaceAllMapped(
-        RegExp(r'[$}\\]'), // Replace any of $ } \
-        (c) => '\\${c[0]}', // Prefix with a backslash
-      );
-
   // Snippets syntax is documented in the LSP spec:
   // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
   //
@@ -90,18 +85,18 @@ String buildSnippetStringWithTabStops(
     final pairLength = offsetLengthPairs[i + 1];
 
     // Add any text that came before this tabstop to the result.
-    output.add(escape(text.substring(offset, pairOffset)));
+    output.add(escapeSnippetString(text.substring(offset, pairOffset)));
 
     // Add this tabstop
-    final tabStopText =
-        escape(text.substring(pairOffset, pairOffset + pairLength));
+    final tabStopText = escapeSnippetString(
+        text.substring(pairOffset, pairOffset + pairLength));
     output.add('\${${tabStopNumber++}:$tabStopText}');
 
     offset = pairOffset + pairLength;
   }
 
   // Add any remaining text that was after the last tabstop.
-  output.add(escape(text.substring(offset)));
+  output.add(escapeSnippetString(text.substring(offset)));
 
   return output.join('');
 }
@@ -527,6 +522,15 @@ lsp.SymbolKind elementKindToSymbolKind(
   return getKindPreferences()
       .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
+
+/// Escapes a string to be used in an LSP edit that uses Snippet mode.
+///
+/// Snippets can contain special markup like `${a:b}` so some characters need
+/// escaping (according to the LSP spec, those are `$`, `}` and `\`).
+String escapeSnippetString(String input) => input.replaceAllMapped(
+      RegExp(r'[$}\\]'), // Replace any of $ } \
+      (c) => '\\${c[0]}', // Prefix with a backslash
+    );
 
 String? getCompletionDetail(
   server.CompletionSuggestion suggestion,
@@ -1415,7 +1419,7 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
               defaultArgumentListTextRanges,
             )
           : '\${0:}'; // No required params still gets a tabstop in the parens.
-      insertText += '($functionCallSuffix)';
+      insertText = '${escapeSnippetString(insertText)}($functionCallSuffix)';
     } else if (selectionOffset != 0 &&
         // We don't need a tabstop if the selection is the end of the string.
         selectionOffset != completion.length) {

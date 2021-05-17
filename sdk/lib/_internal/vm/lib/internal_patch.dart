@@ -102,9 +102,9 @@ class VMLibraryHooks {
   }
 }
 
-final bool has63BitSmis = _has63BitSmis();
-
-bool _has63BitSmis() native "Internal_has63BitSmis";
+@pragma("vm:recognized", "other")
+@pragma('vm:prefer-inline')
+bool get has63BitSmis native "Internal_has63BitSmis";
 
 @pragma("vm:recognized", "other")
 @pragma("vm:entry-point", "call")

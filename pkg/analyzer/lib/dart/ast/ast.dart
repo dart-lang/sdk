@@ -508,6 +508,8 @@ abstract class AstVisitor<R> {
 
   R? visitConstructorName(ConstructorName node);
 
+  R? visitConstructorReference(ConstructorReference node);
+
   R? visitContinueStatement(ContinueStatement node);
 
   R? visitDeclaredIdentifier(DeclaredIdentifier node);
@@ -565,6 +567,8 @@ abstract class AstVisitor<R> {
   R? visitFunctionExpression(FunctionExpression node);
 
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
+
+  R? visitFunctionReference(FunctionReference node);
 
   R? visitFunctionTypeAlias(FunctionTypeAlias functionTypeAlias);
 
@@ -682,6 +686,8 @@ abstract class AstVisitor<R> {
   R? visitTryStatement(TryStatement node);
 
   R? visitTypeArgumentList(TypeArgumentList node);
+
+  R? visitTypeLiteral(TypeLiteral node);
 
   R? visitTypeName(TypeName node);
 

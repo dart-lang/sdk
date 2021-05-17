@@ -39,7 +39,7 @@ environment:
 dev_dependencies:
   build_runner: ^1.10.0
   build_web_compilers: ^2.11.0
-  lints: ^1.0.0-0
+  lints: ^1.0.0
 ''';
 
 final String _readme = '''

@@ -181,6 +181,32 @@ main() {
         insertText: r'Aaaaa(${0:a})',
       );
 
+  Future<void> test_completeFunctionCalls_escapesDollarArgs() =>
+      checkCompleteFunctionCallInsertText(
+        r'''
+        int myFunction(String a$a, int b, {String c}) {
+          var a = [[myFu^]]
+        }
+        ''',
+        'myFunction(…)',
+        insertTextFormat: InsertTextFormat.Snippet,
+        // The dollar should have been escaped.
+        insertText: r'myFunction(${1:a\$a}, ${2:b})',
+      );
+
+  Future<void> test_completeFunctionCalls_escapesDollarName() =>
+      checkCompleteFunctionCallInsertText(
+        r'''
+        int myFunc$tion(String a, int b, {String c}) {
+          var a = [[myFu^]]
+        }
+        ''',
+        r'myFunc$tion(…)',
+        insertTextFormat: InsertTextFormat.Snippet,
+        // The dollar should have been escaped.
+        insertText: r'myFunc\$tion(${1:a}, ${2:b})',
+      );
+
   Future<void> test_completeFunctionCalls_existingArgList_constructor() =>
       checkCompleteFunctionCallInsertText(
         '''

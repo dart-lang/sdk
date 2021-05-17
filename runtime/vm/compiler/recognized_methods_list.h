@@ -203,6 +203,7 @@ namespace dart {
   V(Future, wait, FutureWait, 0xc71e731d)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0x966a802c)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x165b47c4)       \
+  V(::, has63BitSmis, Has63BitSmis, 0xf61b5ab2)                                \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

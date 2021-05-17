@@ -351,6 +351,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    safelyVisitNode(node.constructorName);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     sink.write("continue");
     safelyVisitNodeWithPrefix(" ", node.label);
@@ -611,6 +616,12 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNode(node.function);
     safelyVisitNode(node.typeArguments);
     safelyVisitNode(node.argumentList);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    safelyVisitNode(node.function);
+    safelyVisitNode(node.typeArguments);
   }
 
   @override
@@ -1081,6 +1092,11 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('<');
     safelyVisitNodeListWithSeparator(node.arguments, ", ");
     sink.write('>');
+  }
+
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    safelyVisitNode(node.typeName);
   }
 
   @override
