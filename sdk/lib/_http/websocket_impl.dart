@@ -995,12 +995,16 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   Timer? _closeTimer;
   _WebSocketPerMessageDeflate? _deflate;
 
-  static final HttpClient _httpClient = new HttpClient();
+  static HttpClient _httpClient = new HttpClient();
 
   static Future<WebSocket> connect(
       String url, Iterable<String>? protocols, Map<String, dynamic>? headers,
-      {CompressionOptions compression =
-          CompressionOptions.compressionDefault}) {
+      {CompressionOptions compression = CompressionOptions.compressionDefault,
+      HttpClient customClient}) {
+    //overriding _httpClient if user specifies a custom http client.
+    if (customClient != null) {
+      _httpClient = customClient..userAgent ??= _httpClient.userAgent;
+    }
     Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
