@@ -14,7 +14,7 @@ class Enum(object):
 
     def __init__(self, type, name2value):
         self.name2value = name2value
-        self.value2name = {v: k for k, v in name2value.iteritems()}
+        self.value2name = {v: k for k, v in name2value.items()}
         self.type = type
 
     def from_raw(self, v):
