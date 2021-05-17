@@ -1008,38 +1008,56 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   /// expression that promotes the expression to [_type]. This is needed for a
   /// sound encoding of fields with type variable type of undetermined
   /// nullability.
-  Expression _createFieldRead({bool needsPromotion: false}) {
+  Expression _createFieldRead(bool useNewMethodInvocationEncoding,
+      {bool needsPromotion: false}) {
     if (needsPromotion) {
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          _createFieldGet(_field),
+          _createFieldGet(_field, useNewMethodInvocationEncoding),
           type: _type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new Let(
           variable, new VariableGet(variable, _type)..fileOffset = fileOffset);
     } else {
-      return _createFieldGet(_field);
+      return _createFieldGet(_field, useNewMethodInvocationEncoding);
     }
   }
 
   /// Creates an [Expression] that reads [field].
-  Expression _createFieldGet(Field field) {
+  Expression _createFieldGet(Field field, bool useNewMethodInvocationEncoding) {
     if (field.isStatic) {
       return new StaticGet(field)..fileOffset = fileOffset;
     } else {
-      return new PropertyGet(
-          new ThisExpression()..fileOffset = fileOffset, field.name, field)
-        ..fileOffset = fileOffset;
+      if (useNewMethodInvocationEncoding) {
+        // No substitution needed for the result type, since any type variables
+        // in there are also in scope at the access site.
+        return new InstanceGet(InstanceAccessKind.Instance,
+            new ThisExpression()..fileOffset = fileOffset, field.name,
+            interfaceTarget: field, resultType: field.type)
+          ..fileOffset = fileOffset;
+      } else {
+        return new PropertyGet(
+            new ThisExpression()..fileOffset = fileOffset, field.name, field)
+          ..fileOffset = fileOffset;
+      }
     }
   }
 
   /// Creates an [Expression] that writes [value] to [field].
-  Expression _createFieldSet(Field field, Expression value) {
+  Expression _createFieldSet(
+      Field field, Expression value, bool useNewMethodInvocationEncoding) {
     if (field.isStatic) {
       return new StaticSet(field, value)..fileOffset = fileOffset;
     } else {
-      return new PropertySet(new ThisExpression()..fileOffset = fileOffset,
-          field.name, value, field)
-        ..fileOffset = fileOffset;
+      if (useNewMethodInvocationEncoding) {
+        return new InstanceSet(InstanceAccessKind.Instance,
+            new ThisExpression()..fileOffset = fileOffset, field.name, value,
+            interfaceTarget: field)
+          ..fileOffset = fileOffset;
+      } else {
+        return new PropertySet(new ThisExpression()..fileOffset = fileOffset,
+            field.name, value, field)
+          ..fileOffset = fileOffset;
+      }
     }
   }
 
@@ -1234,9 +1252,9 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
         coreTypes, fileOffset, name, parameter, _type,
         shouldReturnValue: false,
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value),
-        createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value),
+            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
+        createIsSetWrite: (Expression value) => _createFieldSet(
+            _lateIsSetField, value, useNewMethodInvocationEncoding),
         isSetEncoding: isSetEncoding);
   }
 }
@@ -1249,7 +1267,8 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
     return late_lowering.createGetterBodyWithoutInitializer(
         coreTypes, fileOffset, name, type, useNewMethodInvocationEncoding,
         createVariableRead: _createFieldRead,
-        createIsSetRead: () => _createFieldGet(_lateIsSetField),
+        createIsSetRead: () =>
+            _createFieldGet(_lateIsSetField, useNewMethodInvocationEncoding),
         isSetEncoding: isSetEncoding,
         forField: true);
   }
@@ -1326,10 +1345,11 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
         name, _type, initializer, useNewMethodInvocationEncoding,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value),
-        createIsSetRead: () => _createFieldGet(_lateIsSetField),
-        createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value),
+            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
+        createIsSetRead: () =>
+            _createFieldGet(_lateIsSetField, useNewMethodInvocationEncoding),
+        createIsSetWrite: (Expression value) => _createFieldSet(
+            _lateIsSetField, value, useNewMethodInvocationEncoding),
         isSetEncoding: isSetEncoding);
   }
 }
@@ -1372,12 +1392,14 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
     return late_lowering.createSetterBodyFinal(coreTypes, fileOffset, name,
         parameter, type, useNewMethodInvocationEncoding,
         shouldReturnValue: false,
-        createVariableRead: () => _createFieldGet(_field),
+        createVariableRead: (bool useNewMethodInvocationEncoding) =>
+            _createFieldGet(_field, useNewMethodInvocationEncoding),
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value),
-        createIsSetRead: () => _createFieldGet(_lateIsSetField),
-        createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value),
+            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
+        createIsSetRead: () =>
+            _createFieldGet(_lateIsSetField, useNewMethodInvocationEncoding),
+        createIsSetWrite: (Expression value) => _createFieldSet(
+            _lateIsSetField, value, useNewMethodInvocationEncoding),
         isSetEncoding: isSetEncoding,
         forField: true);
   }
@@ -1420,10 +1442,11 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
         fileOffset, name, _type, initializer, useNewMethodInvocationEncoding,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value),
-        createIsSetRead: () => _createFieldGet(_lateIsSetField),
-        createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value),
+            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
+        createIsSetRead: () =>
+            _createFieldGet(_lateIsSetField, useNewMethodInvocationEncoding),
+        createIsSetWrite: (Expression value) => _createFieldSet(
+            _lateIsSetField, value, useNewMethodInvocationEncoding),
         isSetEncoding: isSetEncoding,
         forField: true);
   }

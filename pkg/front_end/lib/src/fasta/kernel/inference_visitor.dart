@@ -6613,7 +6613,8 @@ class InferenceVisitor
         result.add(isSetVariable);
       }
 
-      Expression createVariableRead({bool needsPromotion: false}) {
+      Expression createVariableRead(bool useNewMethodInvocationEncoding,
+          {bool needsPromotion: false}) {
         if (needsPromotion) {
           return new VariableGet(node, node.type)..fileOffset = fileOffset;
         } else {
