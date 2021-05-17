@@ -182,19 +182,18 @@ Updated the Linter to `1.4.0`, which includes:
 
 #### `dart:collection`
 
-- The `SplayTreeMap` was changed to allow `null` as key if the `compare`
-  function allows it. It now checks that a new key can be used as an
-  argument to the `compare` function when the member is added,
-  *even if the map is empty* (in which case it just compares the key
-  to itself).
-- The `SplayTreeSet` was changed to checks that a new element can be used as an
-  argument to the `compare` function when the member is added,
-  *even if the set is empty* (in which case it just compares the element
-  to itself).
+*   The `SplayTreeMap` was changed to allow `null` as key if the `compare`
+    function allows it. It now checks that a new key can be used as an argument
+    to the `compare` function when the member is added, *even if the map is
+    empty* (in which case it just compares the key to itself).
+
+*   The `SplayTreeSet` was changed to checks that a new element can be used as
+    an argument to the `compare` function when the member is added, *even if the
+    set is empty* (in which case it just compares the element to itself).
 
 #### `dart:developer`
 
-- Added `serverWebSocketUri` property to `ServiceProtocolInfo`.
+*   Added `serverWebSocketUri` property to `ServiceProtocolInfo`.
 
 ### Dart VM
 
@@ -202,21 +201,21 @@ Updated the Linter to `1.4.0`, which includes:
 
 #### Analyzer
 
-- Static analyses with "error" severity can once again be ignored with
-  comments like `// ignore: code` and `// ignore_for_file: code`. To declare
-  that certain analysis codes, or codes with certain severities ("error",
-  "warning", and "info") cannot be ignored with such comments, list them in
-  `analysis_options.yaml`, under the `analyzer` heading, with a new YAML key,
-  `cannot-ignore`. For example, to declare that "error" codes and
-  `unused_import` cannot be ignored, write the following into
-  `analysis_options.yaml`:
+*   Static analyses with "error" severity can once again be ignored with
+    comments like `// ignore: code` and `// ignore_for_file: code`. To declare
+    that certain analysis codes, or codes with certain severities ("error",
+    "warning", and "info") cannot be ignored with such comments, list them in
+    `analysis_options.yaml`, under the `analyzer` heading, with a new YAML key,
+    `cannot-ignore`. For example, to declare that "error" codes and
+    `unused_import` cannot be ignored, write the following into
+    `analysis_options.yaml`:
 
-  ```yaml
-  analyzer:
-    cannot-ignore:
-      - error
-      - unused_import
-  ```
+    ```yaml
+    analyzer:
+      cannot-ignore:
+        - error
+        - unused_import
+    ```
 
 #### dart format
 
@@ -227,19 +226,17 @@ Updated the Linter to `1.4.0`, which includes:
 
 Updated the Linter to `1.2.1`, which includes:
 
-- improvements to `iterable_contains_unrelated_type` to better support `List`
-  content checks.
-- fixes to `camel_case_types` and `prefer_mixin` to support non-function
-  type aliases.
-- fixed `prefer_mixin` to properly make exceptions for `dart.collection`
-  legacy mixins.
-- new lint: `use_build_context_synchronously` (experimental).
-- new lint: `avoid_multiple_declarations_per_line`.
-- full library migration to null-safety.
-- new lint: `use_if_null_to_convert_nulls_to_bools`.
-- new lint: `deprecated_consistency`.
-- new lint: `use_named_constants`.
-- deprecation of `avoid_as`.
+*   Improved `iterable_contains_unrelated_type` to better support `List` content
+    checks.
+*   Fixed `camel_case_types` and `prefer_mixin` to support non-function type
+    aliases.
+*   Fixed `prefer_mixin` to properly make exceptions for `dart.collection`
+    legacy mixins.
+*   Added new lints `avoid_multiple_declarations_per_line`,
+    `use_if_null_to_convert_nulls_to_bools`, `deprecated_consistency`,
+    `use_named_constants`, `use_build_context_synchronously` (experimental).
+*   Deprecated `avoid_as`.
+*   Migrated library to null-safety.
 
 ### Other libraries
 
