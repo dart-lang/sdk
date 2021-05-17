@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
+    defineReflectiveTests(ReturnOfInvalidTypeWithNoImplicitCastsTest);
     defineReflectiveTests(ReturnOfInvalidTypeWithNullSafetyTest);
   });
 }
@@ -387,6 +388,28 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ReturnOfInvalidTypeWithNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_return() async {
+    await assertErrorsWithNoImplicitCasts('int f(num n) => n;', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 16, 1),
+    ]);
+  }
+
+  test_return_async() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+Future<List<String>> f() async {
+  List<Object> x = <Object>['hello', 'world'];
+  return x;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 89, 1),
     ]);
   }
 }
