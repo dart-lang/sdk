@@ -3040,33 +3040,11 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   ExecutableElementImpl(String name, int offset, {Reference? reference})
       : super(name, offset, reference: reference);
 
-  /// Initialize using the given linked node.
-  ExecutableElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode? linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    if (linkedNode is MethodDeclarationImpl) {
-      linkedNode.name.staticElement = this;
-    } else if (linkedNode is FunctionDeclarationImpl) {
-      linkedNode.name.staticElement = this;
-    }
-  }
-
-  @override
-  String get displayName {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
-    return super.displayName;
-  }
-
   @override
   Element get enclosingElement => super.enclosingElement!;
 
   @override
   bool get hasImplicitReturnType {
-    if (linkedNode != null) {
-      return linkedContext!.hasImplicitReturnType(linkedNode!);
-    }
     return hasModifier(Modifier.IMPLICIT_TYPE);
   }
 
@@ -3077,18 +3055,11 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   @override
   bool get isAbstract {
-    if (linkedNode != null) {
-      return !isExternal &&
-          enclosingUnit.linkedContext!.isAbstract(linkedNode!);
-    }
     return hasModifier(Modifier.ABSTRACT);
   }
 
   @override
   bool get isAsynchronous {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isAsynchronous(linkedNode!);
-    }
     return hasModifier(Modifier.ASYNCHRONOUS);
   }
 
@@ -3099,9 +3070,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   @override
   bool get isExternal {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isExternal(linkedNode!);
-    }
     return hasModifier(Modifier.EXTERNAL);
   }
 
@@ -3112,9 +3080,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   @override
   bool get isGenerator {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isGenerator(linkedNode!);
-    }
     return hasModifier(Modifier.GENERATOR);
   }
 
@@ -3137,19 +3102,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   @override
   String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   @override
@@ -3175,22 +3128,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// In most cases, the [parameters] getter should be used instead.
   List<ParameterElement> get parametersInternal {
     linkedData?.read(this);
-    if (!identical(_parameters, _Sentinel.parameterElement)) {
-      return _parameters;
-    }
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var containerRef = reference!.getChild('@parameter');
-      var formalParameters = context.getFormalParameters(linkedNode!);
-      _parameters = ParameterElementImpl.forLinkedNodeList(
-        this,
-        context,
-        containerRef,
-        formalParameters,
-      );
-    }
-
     return _parameters;
   }
 
@@ -5133,57 +5070,16 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   NonParameterVariableElementImpl(String name, int offset)
       : super(name, offset);
 
-  NonParameterVariableElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
   @override
   Element get enclosingElement => super.enclosingElement!;
 
-  @override
-  bool get hasImplicitType {
-    if (linkedNode != null) {
-      return linkedContext!.hasImplicitType(linkedNode!);
-    }
-    return super.hasImplicitType;
-  }
-
   bool get hasInitializer {
-    if (linkedNode != null) {
-      return linkedContext!
-          .hasInitializer(linkedNode as VariableDeclarationImpl);
-    }
     return hasModifier(Modifier.HAS_INITIALIZER);
   }
 
   /// Set whether this variable has an initializer.
   set hasInitializer(bool hasInitializer) {
     setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
-  }
-
-  @override
-  String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
-  }
-
-  @override
-  DartType get type => ElementTypeProvider.current.getVariableType(this);
-
-  @override
-  set type(DartType type) {
-    _type = type;
   }
 }
 
@@ -5910,10 +5806,6 @@ abstract class PropertyInducingElementImpl
   /// [offset].
   PropertyInducingElementImpl(String name, int offset) : super(name, offset);
 
-  PropertyInducingElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
   bool get hasTypeInferred => hasModifier(Modifier.HAS_TYPE_INFERRED);
 
   set hasTypeInferred(bool value) {
@@ -5925,9 +5817,6 @@ abstract class PropertyInducingElementImpl
 
   @override
   bool get isLate {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isLate(linkedNode!);
-    }
     return hasModifier(Modifier.LATE);
   }
 
@@ -5939,19 +5828,6 @@ abstract class PropertyInducingElementImpl
     linkedData?.read(this);
     if (_type != null) return _type!;
 
-    if (linkedNode != null) {
-      // While performing inference during linking, the first step is to collect
-      // dependencies. During this step we resolve the expression, but we might
-      // reference elements that don't have their types inferred yet. So, here
-      // we give some type. A better solution would be to infer recursively, but
-      // we are not doing this yet.
-      if (_type == null) {
-        assert(linkedContext!.isLinking);
-        return DynamicTypeImpl.instance;
-      }
-
-      return _type!;
-    }
     if (isSynthetic && _type == null) {
       if (getter != null) {
         _type = getter!.returnType;
