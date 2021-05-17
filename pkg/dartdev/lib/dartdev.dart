@@ -69,12 +69,14 @@ class DartdevRunner extends CommandRunner<int> {
     allowTrailingOptions: false,
   );
 
+  final bool verbose;
+
   static const String dartdevDescription =
       'A command-line utility for Dart development';
 
-  DartdevRunner(List<String> args) : super('dart', '$dartdevDescription.') {
-    final bool verbose = args.contains('-v') || args.contains('--verbose');
-
+  DartdevRunner(List<String> args)
+      : verbose = args.contains('-v') || args.contains('--verbose'),
+        super('dart', '$dartdevDescription.') {
     argParser.addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show additional command output.');
     argParser.addFlag('version',
@@ -112,7 +114,7 @@ class DartdevRunner extends CommandRunner<int> {
 
   @override
   String get invocation =>
-      'dart [<vm-flags>] <command|dart-file> [<arguments>]';
+      'dart ${verbose ? '[vm-options] ' : ''}<command|dart-file> [arguments]';
 
   @visibleForTesting
   Analytics get analytics => _analytics;

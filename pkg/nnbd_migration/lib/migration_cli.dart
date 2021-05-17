@@ -152,7 +152,7 @@ class MigrateCommand extends DartdevCommand {
   final bool verbose;
 
   MigrateCommand({this.verbose = false})
-      : super(cmdName, '$cmdDescription\n\n$migrationGuideLink') {
+      : super(cmdName, '$cmdDescription\n\n$migrationGuideLink', verbose) {
     MigrationCli._defineOptions(argParser, !verbose);
   }
 

@@ -67,7 +67,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
   static const String cmdName = 'js';
 
   CompileJSCommand({bool verbose})
-      : super(cmdName, 'Compile Dart to JavaScript.') {
+      : super(cmdName, 'Compile Dart to JavaScript.', verbose) {
     argParser
       ..addOption(
         commonOptions['outputFile'].flag,
@@ -173,7 +173,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     this.fileExt,
     this.formatName,
     bool verbose,
-  }) : super(commandName, 'Compile Dart $help') {
+  }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
         commonOptions['outputFile'].flag,
@@ -267,7 +267,7 @@ class CompileNativeCommand extends CompileSubcommandCommand {
     this.format,
     this.help,
     bool verbose,
-  }) : super(commandName, 'Compile Dart $help') {
+  }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
         commonOptions['outputFile'].flag,
@@ -348,15 +348,15 @@ Remove debugging information from the output and save it separately to the speci
 }
 
 abstract class CompileSubcommandCommand extends DartdevCommand {
-  CompileSubcommandCommand(String name, String description,
+  CompileSubcommandCommand(String name, String description, bool verbose,
       {bool hidden = false})
-      : super(name, description, hidden: hidden);
+      : super(name, description, verbose, hidden: hidden);
 }
 
 class CompileCommand extends DartdevCommand {
   static const String cmdName = 'compile';
   CompileCommand({bool verbose = false})
-      : super(cmdName, 'Compile Dart to various formats.') {
+      : super(cmdName, 'Compile Dart to various formats.', verbose) {
     addSubcommand(CompileJSCommand(
       verbose: verbose,
     ));

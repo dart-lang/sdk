@@ -23,6 +23,36 @@ void defineCreateTests() {
 
   tearDown(() => p?.dispose());
 
+  test('--help', () {
+    p = project();
+    var result = p.runSync(['create', '--help']);
+
+    expect(result.stdout, contains('Create a new Dart project.'));
+    expect(
+      result.stdout,
+      contains(
+        'Usage: dart create [arguments] <directory>',
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('--help --verbose', () {
+    p = project();
+    var result = p.runSync(['create', '--help', '--verbose']);
+
+    expect(result.stdout, contains('Create a new Dart project.'));
+    expect(
+      result.stdout,
+      contains(
+        'Usage: dart [vm-options] create [arguments] <directory>',
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
   test('default template exists', () {
     expect(CreateCommand.legalTemplateIds,
         contains(CreateCommand.defaultTemplateId));

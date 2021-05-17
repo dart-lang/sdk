@@ -17,7 +17,7 @@ import '../vm_interop_handler.dart';
 class TestCommand extends DartdevCommand {
   static const String cmdName = 'test';
 
-  TestCommand() : super(cmdName, 'Run tests for a project.');
+  TestCommand() : super(cmdName, 'Run tests for a project.', false);
 
   // This argument parser is here solely to ensure that VM specific flags are
   // provided before any command and to provide a more consistent help message

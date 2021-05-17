@@ -60,7 +60,7 @@ ${result.stderr}
     return p.runSync(['fix', ...args], workingDir: workingDir);
   }
 
-  test('help', () {
+  test('--help', () {
     p = project(mainSrc: 'int get foo => 1;\n');
 
     var result = runFix([p.dirPath, '--help']);
@@ -68,7 +68,31 @@ ${result.stderr}
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
-        result.stdout, contains('Apply automated fixes to Dart source code.'));
+      result.stdout,
+      contains(
+        'Apply automated fixes to Dart source code.',
+      ),
+    );
+    expect(result.stdout, contains('Usage: dart fix [arguments]'));
+  });
+
+  test('--help --verbose', () {
+    p = project(mainSrc: 'int get foo => 1;\n');
+
+    var result = runFix([p.dirPath, '--help', '--verbose']);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(
+      result.stdout,
+      contains(
+        'Apply automated fixes to Dart source code.',
+      ),
+    );
+    expect(
+      result.stdout,
+      contains('Usage: dart [vm-options] fix [arguments]'),
+    );
   });
 
   test('none', () {
