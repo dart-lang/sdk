@@ -39,7 +39,7 @@ environment:
 #   path: ^1.8.0
 
 dev_dependencies:
-  lints: ^1.0.0-0
+  lints: ^1.0.0
 ''';
 
 final String _readme = '''
