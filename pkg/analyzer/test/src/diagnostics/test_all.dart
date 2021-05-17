@@ -646,6 +646,7 @@ import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
+import 'unnecessary_import_test.dart' as unnecessary_import;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
@@ -1115,6 +1116,7 @@ main() {
     undefined_setter.main();
     undefined_shown_name.main();
     unignorable_ignore.main();
+    unnecessary_import.main();
     unnecessary_cast.main();
     unnecessary_ignore.main();
     unnecessary_no_such_method.main();
