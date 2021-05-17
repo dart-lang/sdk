@@ -1005,6 +1005,10 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     if (customClient != null) {
       _httpClient = customClient..userAgent ??= _httpClient.userAgent;
     }
+    Uri uri = Uri.parse(url);
+    if (uri.scheme != "ws" && uri.scheme != "wss") {
+      throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
+    }
 
     Random random = new Random();
     // Generate 16 random bytes.
