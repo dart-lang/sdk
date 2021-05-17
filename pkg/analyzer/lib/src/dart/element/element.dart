@@ -3625,11 +3625,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   bool get isInitializingFormal => true;
 
   @override
-  set type(DartType type) {
-    _type = type;
-  }
-
-  @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitFieldFormalParameterElement(this);
 }
