@@ -2715,10 +2715,8 @@ class ConstructorReferenceImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw UnimplementedError(
-        'Visitor support for ConstructorReference is not yet implemented');
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitConstructorReference(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5064,10 +5062,7 @@ class FunctionReferenceImpl extends ExpressionImpl
   }
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw UnimplementedError(
-        'Visitor support for FunctionReference is not yet implemented');
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10106,10 +10101,7 @@ class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   }
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw UnimplementedError(
-        'Visitor support for TypeLiteral is not yet implemented');
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {

@@ -1,6 +1,9 @@
 ## 1.6.0-dev
 * Deprecated `AnalysisDriver` default constructor.  Added `tmp1`. The goal
   is to allow deprecating and removing unused  parameters.
+* Added AST structures and visit methods to support the upcoming "constructor
+  tearoffs" feature: `ConstructorReference`, `FunctionReference`, and
+  `TypeLiteral`.
 
 ## 1.5.0
 * Support for the language version `2.14`.
