@@ -40,5 +40,6 @@ console_groups: {
     console_ids: "dart/dart-fuzz"
     console_ids: "dart/flutter"
     console_ids: "dart/flutter-hhh"
+    console_ids: "dart/iso-stress"
 }
 tree_status_host: "dart-status.appspot.com"

@@ -284,6 +284,11 @@ luci.console_view(
     refs = ["refs/heads/master"],
 )
 
+luci.list_view(
+    name = "iso-stress",
+    title = "VM Isolate Stress Test Console",
+)
+
 luci.console_view(
     name = "fyi",
     repo = DART_GIT,
@@ -1522,6 +1527,12 @@ dart_ci_builder(
     },
 )
 
+# Isolate stress test builder
+dart_vm_nightly_builder(
+    "iso-stress-linux",
+    channels = [],
+)
+
 # external
 dart_ci_sandbox_builder(
     "google",
@@ -1666,6 +1677,12 @@ luci.console_view_entry(
     short_name = "web",
     category = "flutter",
     console_view = "flutter-hhh",
+)
+
+# VM isolate stress test console
+luci.list_view_entry(
+    builder = "iso-stress-linux",
+    list_view = "iso-stress",
 )
 
 def chromium_infra_recipe(name):
