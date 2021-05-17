@@ -884,6 +884,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
+    case MethodRecognizer::kHas63BitSmis:
       return true;
     default:
       return false;
@@ -1479,6 +1480,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadUntagged(compiler::target::Pointer::data_field_offset());
       body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
       body += Box(kUnboxedFfiIntPtr);
+    } break;
+    case MethodRecognizer::kHas63BitSmis: {
+#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+      body += Constant(Bool::True());
+#else
+      body += Constant(Bool::False());
+#endif  // defined(ARCH_IS_64_BIT)
     } break;
     default: {
       UNREACHABLE();
