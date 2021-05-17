@@ -575,36 +575,6 @@ void KernelLoader::AnnotateNativeProcedures() {
   kernel_program_info_.set_potential_natives(potential_natives_);
 }
 
-StringPtr KernelLoader::DetectExternalNameCtor() {
-  helper_.ReadTag();
-  helper_.ReadPosition();
-  NameIndex annotation_class = H.EnclosingName(
-      helper_.ReadCanonicalNameReference());  // read target reference,
-
-  if (!IsClassName(annotation_class, Symbols::DartInternal(),
-                   Symbols::ExternalName())) {
-    helper_.SkipArguments();
-    return String::null();
-  }
-
-  // Read arguments:
-  intptr_t total_arguments = helper_.ReadUInt();  // read argument count.
-  helper_.SkipListOfDartTypes();                  // read list of types.
-  intptr_t positional_arguments = helper_.ReadListLength();
-  ASSERT(total_arguments == 1 && positional_arguments == 1);
-
-  Tag tag = helper_.ReadTag();
-  ASSERT(tag == kStringLiteral);
-  String& result = H.DartSymbolPlain(
-      helper_.ReadStringReference());  // read index into string table.
-
-  // List of named.
-  intptr_t list_length = helper_.ReadListLength();  // read list length.
-  ASSERT(list_length == 0);
-
-  return result.ptr();
-}
-
 bool KernelLoader::IsClassName(NameIndex name,
                                const String& library,
                                const String& klass) {
@@ -618,15 +588,6 @@ bool KernelLoader::IsClassName(NameIndex name,
   StringIndex library_name_index =
       H.CanonicalNameString(H.CanonicalNameParent(name));
   return H.StringEquals(library_name_index, library.ToCString());
-}
-
-bool KernelLoader::DetectPragmaCtor() {
-  helper_.ReadTag();
-  helper_.ReadPosition();
-  NameIndex annotation_class = H.EnclosingName(
-      helper_.ReadCanonicalNameReference());  // read target reference
-  helper_.SkipArguments();
-  return IsClassName(annotation_class, Symbols::DartCore(), Symbols::Pragma());
 }
 
 void KernelLoader::LoadNativeExtensionLibraries() {
@@ -674,9 +635,6 @@ void KernelLoader::LoadNativeExtensionLibraries() {
           ASSERT(constant.clazz() == external_name_class_.ptr());
           uri_path ^= constant.GetField(external_name_field_);
         }
-      } else if (tag == kConstructorInvocation ||
-                 tag == kConstConstructorInvocation) {
-        uri_path = DetectExternalNameCtor();
       } else {
         helper_.SkipExpression();
       }
@@ -1876,22 +1834,9 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
   *is_potential_native = false;
   *has_pragma_annotation = false;
   Instance& constant = Instance::Handle(Z);
-  String& detected_name = String::Handle(Z);
   for (intptr_t i = 0; i < annotation_count; ++i) {
     const intptr_t tag = helper_.PeekTag();
-    if (tag == kConstructorInvocation || tag == kConstConstructorInvocation) {
-      const intptr_t start = helper_.ReaderOffset();
-      detected_name = DetectExternalNameCtor();
-      if (!detected_name.IsNull()) {
-        *native_name = detected_name.ptr();
-        continue;
-      }
-
-      helper_.SetOffset(start);
-      if (DetectPragmaCtor()) {
-        *has_pragma_annotation = true;
-      }
-    } else if (tag == kConstantExpression) {
+    if (tag == kConstantExpression) {
       const Array& constant_table_array =
           Array::Handle(kernel_program_info_.constants());
       if (constant_table_array.IsNull()) {
