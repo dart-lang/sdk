@@ -34,6 +34,8 @@ import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'avoid_types_as_parameter_names_test.dart'
+    as avoid_types_as_parameter_names;
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
@@ -710,6 +712,7 @@ main() {
     assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
+    avoid_types_as_parameter_names.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
     binary_operator_written_out.main();
