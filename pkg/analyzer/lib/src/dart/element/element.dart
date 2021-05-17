@@ -3677,8 +3677,8 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   FunctionType? _type;
 
   GenericFunctionTypeElementImpl.forLinkedNode(
-      ElementImpl enclosingElement, Reference? reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosingElement, reference, linkedNode) {
+      ElementImpl enclosingElement, AstNode linkedNode)
+      : super.forLinkedNode(enclosingElement, null, linkedNode) {
     if (linkedNode is GenericFunctionTypeImpl) {
       linkedNode.declaredElement = this;
     }
@@ -6177,10 +6177,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
               type.declaredElement as GenericFunctionTypeElementImpl?;
           // TODO(scheglov) Do we need this?
           // We probably should set it when linking and when applying.
-          // TODO(scheglov) And remove the reference!.
           _aliasedElement ??= GenericFunctionTypeElementImpl.forLinkedNode(
             this,
-            reference!.getChild('@function'),
             type,
           );
         } else if (isNonFunctionTypeAliasesEnabled) {
@@ -6193,10 +6191,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
             ..returnType = DynamicTypeImpl.instance;
         }
       } else {
-        // TODO(scheglov) Same as above (both).
+        // TODO(scheglov) Same as above.
         _aliasedElement = GenericFunctionTypeElementImpl.forLinkedNode(
           this,
-          reference!.getChild('@function'),
           linkedNode,
         );
       }
