@@ -96,10 +96,6 @@ class Base64Codec extends Codec<List<int>, String> {
   /// * Validate that the length is correct (a multiple of four).
   String normalize(String source, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, source.length);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     const percent = 0x25;
     const equals = 0x3d;
     StringBuffer? buffer;
@@ -407,10 +403,6 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
     if (buffer == null || buffer.length < bufferLength) {
       bufferCache = buffer = Uint8List(bufferLength);
     }
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (buffer == null) {
-      throw "unreachable";
-    }
     // Return a view of the buffer, so it has the requested length.
     return Uint8List.view(buffer.buffer, buffer.offsetInBytes, bufferLength);
   }
@@ -490,10 +482,6 @@ class Base64Decoder extends Converter<String, List<int>> {
   /// The [Uint8List.buffer] may be larger than the decoded bytes.
   Uint8List convert(String input, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, input.length);
-    // TODO(38725): Remove workaround when assignment promotion is implemented
-    if (end == null) {
-      throw RangeError("Invalid range");
-    }
     if (start == end) return Uint8List(0);
     var decoder = _Base64Decoder();
     var buffer = decoder.decode(input, start, end)!;
