@@ -4,7 +4,6 @@
 // @dart = 2.9
 // Requirements=nnbd-weak
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
 
 // Test that a type alias `T` denoting `void` can be used.
 

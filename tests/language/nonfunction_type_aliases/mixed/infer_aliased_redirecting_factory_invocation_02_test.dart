@@ -4,7 +4,6 @@
 // @dart = 2.9
 // Requirements=nnbd-weak
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
 
 import 'package:expect/expect.dart';
 import 'infer_aliased_redirecting_factory_invocation_02_lib.dart';

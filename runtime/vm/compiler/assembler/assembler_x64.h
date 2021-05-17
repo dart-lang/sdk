@@ -971,7 +971,7 @@ class Assembler : public AssemblerBase {
   void LoadFieldFromOffset(Register dst,
                            Register base,
                            int32_t offset,
-                           OperandSize sz = kEightBytes) {
+                           OperandSize sz = kEightBytes) override {
     LoadFromOffset(dst, FieldAddress(base, offset), sz);
   }
   void LoadCompressedFieldFromOffset(Register dst,

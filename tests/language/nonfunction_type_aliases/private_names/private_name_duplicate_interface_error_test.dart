@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=nonfunction-type-aliases
-
 // Test that private names exported via public typedefs may not appear multiple
 // times in a super-interface graph.
 
@@ -42,7 +40,7 @@ class A3 extends PublicGenericClassOfInt {}
 /// Test that having a private generic class in the super-interface graph
 /// twice with two different generic instantiations is an error.
 class A4 extends A3 implements PublicGenericClass<String> {
-// [error line 42, column 1, length 411]
+// [error line 40, column 1, length 411]
 // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
 //    ^
 // [cfe] 'A4' can't implement both '_PrivateGenericClass<int>' and '_PrivateGenericClass<String>'
@@ -55,7 +53,7 @@ class A5 extends A3 implements PublicGenericClass<int> {}
 /// Test that having a private generic class in the implements clause twice with
 /// two different generic instantiations is an error.
 class A6 implements PublicGenericClass<int>, PublicGenericClass<String> {
-// [error line 55, column 1, length 546]
+// [error line 53, column 1, length 546]
 // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
 //    ^
 // [cfe] 'A6' can't implement both '_PrivateGenericClass<int>' and '_PrivateGenericClass<String>'

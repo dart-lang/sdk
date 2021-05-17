@@ -224,15 +224,6 @@ class KernelLoader : public ValueObject {
                                   const Library& library,
                                   const LibraryIndex& library_index);
 
-  // Check for the presence of a (possibly const) constructor for the
-  // 'ExternalName' class. If found, returns the name parameter to the
-  // constructor.
-  StringPtr DetectExternalNameCtor();
-
-  // Check for the presence of a (possibly const) constructor for the 'pragma'
-  // class. Returns whether it was found (no details about the type of pragma).
-  bool DetectPragmaCtor();
-
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
   void AnnotateNativeProcedures();
