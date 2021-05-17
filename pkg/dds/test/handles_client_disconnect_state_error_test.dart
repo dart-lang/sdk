@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'dart:async';
 
 import 'package:dds/dds.dart';
@@ -9,7 +11,6 @@ import 'package:dds/src/dds_impl.dart';
 import 'package:dds/src/rpc_error_codes.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:pedantic/pedantic.dart';
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -42,28 +43,15 @@ class StreamCancelDisconnectPeer extends FakePeer {
   }
 }
 
-class FakeWebSocketSink extends Fake implements WebSocketSink {
-  @override
-  Future close([int? closeCode, String? closeReason]) {
-    // Do nothing.
-    return Future.value();
-  }
-}
-
-class FakeWebSocketChannel extends Fake implements WebSocketChannel {
-  @override
-  WebSocketSink get sink => FakeWebSocketSink();
-}
-
 void main() {
-  webSocketBuilder = (Uri _) => FakeWebSocketChannel();
+  webSocketBuilder = (Uri _) => null;
   peerBuilder =
       (WebSocketChannel _, dynamic __) async => StreamCancelDisconnectPeer();
 
   test('StateError handled by _StreamManager.clientDisconnect', () async {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
         Uri(scheme: 'http'));
-    final ws = await WebSocketChannel.connect(dds.uri!.replace(scheme: 'ws'));
+    final ws = await WebSocketChannel.connect(dds.uri.replace(scheme: 'ws'));
 
     // Create a VM service client that connects to DDS.
     final client = json_rpc.Client(ws.cast<String>());
@@ -90,7 +78,7 @@ void main() {
       () async {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
         Uri(scheme: 'http'));
-    final ws = await WebSocketChannel.connect(dds.uri!.replace(scheme: 'ws'));
+    final ws = await WebSocketChannel.connect(dds.uri.replace(scheme: 'ws'));
 
     // Create a VM service client that connects to DDS.
     final client = json_rpc.Client(ws.cast<String>());

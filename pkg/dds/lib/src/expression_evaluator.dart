@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
+// @dart=2.10
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
@@ -17,16 +17,16 @@ class ExpressionEvaluator {
   ExpressionEvaluator(this.dds);
 
   Future<Map<String, dynamic>> execute(json_rpc.Parameters parameters) async {
-    DartDevelopmentServiceClient? externalClient =
+    DartDevelopmentServiceClient externalClient =
         dds.clientManager.findFirstClientThatHandlesService(
       'compileExpression',
     );
     // If no compilation service is registered, just forward to the VM service.
     if (externalClient == null) {
-      return (await dds.vmServiceClient.sendRequest(
+      return await dds.vmServiceClient.sendRequest(
         parameters.method,
         parameters.value,
-      )) as Map<String, dynamic>;
+      );
     }
 
     final isolateId = parameters['isolateId'].asString;
@@ -59,18 +59,18 @@ class ExpressionEvaluator {
       json_rpc.Parameters parameters) async {
     final params = _setupParams(parameters);
     params['isolateId'] = parameters['isolateId'].asString;
-    if (parameters['scope'].asMapOr({}).isNotEmpty) {
+    if (parameters['scope'].asMapOr(null) != null) {
       params['scope'] = parameters['scope'].asMap;
     }
-    return (await dds.vmServiceClient.sendRequest(
+    return await dds.vmServiceClient.sendRequest(
       '_buildExpressionEvaluationScope',
       params,
-    )) as Map<String, dynamic>;
+    );
   }
 
   Future<String> _compileExpression(String isolateId, String expression,
       Map<String, dynamic> buildScopeResponseResult) async {
-    DartDevelopmentServiceClient? externalClient =
+    DartDevelopmentServiceClient externalClient =
         dds.clientManager.findFirstClientThatHandlesService(
       'compileExpression',
     );
@@ -116,13 +116,13 @@ class ExpressionEvaluator {
     params['kernelBytes'] = kernelBase64;
     params['disableBreakpoints'] =
         parameters['disableBreakpoints'].asBoolOr(false);
-    if (parameters['scope'].asMapOr({}).isNotEmpty) {
+    if (parameters['scope'].asMapOr(null) != null) {
       params['scope'] = parameters['scope'].asMap;
     }
-    return (await dds.vmServiceClient.sendRequest(
+    return await dds.vmServiceClient.sendRequest(
       '_evaluateCompiledExpression',
       params,
-    )) as Map<String, dynamic>;
+    );
   }
 
   Map<String, dynamic> _setupParams(json_rpc.Parameters parameters) {

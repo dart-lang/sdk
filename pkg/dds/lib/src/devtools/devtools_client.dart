@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 import 'dart:async';
 
 import 'package:json_rpc_2/src/server.dart' as json_rpc;
@@ -20,7 +22,7 @@ class LoggingMiddlewareSink<S> implements StreamSink<S> {
   }
 
   @override
-  void addError(Object error, [StackTrace? stackTrace]) {
+  void addError(Object error, [StackTrace stackTrace]) {
     print('DevTools SSE error response: $error');
     sink.addError(error);
   }
@@ -57,7 +59,7 @@ class DevToolsClient {
     }
 
     _server = json_rpc.Server(
-      StreamChannel(stream, sink as StreamSink<String>),
+      StreamChannel(stream, sink),
       strictProtocolChecks: false,
     );
     _registerJsonRpcMethods();
@@ -90,5 +92,5 @@ class DevToolsClient {
     });
   }
 
-  late json_rpc.Server _server;
+  json_rpc.Server _server;
 }

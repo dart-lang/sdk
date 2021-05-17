@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 // Originally pulled from dart:_vmservice.
 
 import 'dart:collection';
@@ -23,14 +25,14 @@ class NamedLookup<E> with IterableMixin<E> {
   }
 
   void remove(E e) {
-    final id = _ids.remove(e)!;
+    final id = _ids.remove(e);
     _elements.remove(id);
     _generator.release(id);
   }
 
-  E? operator [](String id) => _elements[id];
+  E operator [](String id) => _elements[id];
 
-  String? keyOf(E e) => _ids[e];
+  String keyOf(E e) => _ids[e];
 
   Iterator<E> get iterator => _ids.keys.iterator;
 }

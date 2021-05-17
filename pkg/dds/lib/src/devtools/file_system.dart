@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart=2.9
+
 // TODO(bkonyi): remove once package:devtools_server_api is available
 // See https://github.com/flutter/devtools/issues/2958.
 
@@ -16,7 +18,7 @@ class LocalFileSystem {
   static String _userHomeDir() {
     final String envKey =
         Platform.operatingSystem == 'windows' ? 'APPDATA' : 'HOME';
-    final String? value = Platform.environment[envKey];
+    final String value = Platform.environment[envKey];
     return value == null ? '.' : value;
   }
 
@@ -44,7 +46,7 @@ class LocalFileSystem {
   /// Returns a DevTools file from the given path.
   ///
   /// Only files within ~/.flutter-devtools/ can be accessed.
-  static File? devToolsFileFromPath(String pathFromDevToolsDir) {
+  static File devToolsFileFromPath(String pathFromDevToolsDir) {
     if (pathFromDevToolsDir.contains('..')) {
       // The passed in path should not be able to walk up the directory tree
       // outside of the ~/.flutter-devtools/ directory.
@@ -61,7 +63,7 @@ class LocalFileSystem {
   /// Returns a DevTools file from the given path as encoded json.
   ///
   /// Only files within ~/.flutter-devtools/ can be accessed.
-  static String? devToolsFileAsJson(String pathFromDevToolsDir) {
+  static String devToolsFileAsJson(String pathFromDevToolsDir) {
     final file = devToolsFileFromPath(pathFromDevToolsDir);
     if (file == null) return null;
 

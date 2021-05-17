@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import 'client.dart';
@@ -54,7 +56,7 @@ class _RunningIsolate {
   /// done so. Called when the last client of a given name disconnects or
   /// changes name to ensure we don't deadlock waiting for approval to resume
   /// from a disconnected client.
-  Future<void> maybeResumeAfterClientChange(String? clientName) async {
+  Future<void> maybeResumeAfterClientChange(String clientName) async {
     // Remove approvals from the disconnected client.
     _resumeApprovalsByName.remove(clientName);
 
@@ -73,7 +75,7 @@ class _RunningIsolate {
   /// which have provided approval to resume this isolate. If not provided,
   /// the existing approvals state will be examined to see if the isolate
   /// should resume due to a client disconnect or name change.
-  bool shouldResume({DartDevelopmentServiceClient? resumingClient}) {
+  bool shouldResume({DartDevelopmentServiceClient resumingClient}) {
     if (resumingClient != null) {
       // Mark approval by the client.
       _resumeApprovalsByName.add(resumingClient.name);
@@ -83,9 +85,9 @@ class _RunningIsolate {
         isolateManager.dds.clientManager.clientResumePermissions;
 
     // Determine which clients require approval for this pause type.
-    permissions.forEach((clientName, clientNamePermissions) {
+    permissions.forEach((name, clientNamePermissions) {
       if (clientNamePermissions.permissionsMask & _isolateStateMask != 0) {
-        requiredClientApprovals.add(clientName!);
+        requiredClientApprovals.add(name);
       }
     });
 
@@ -114,8 +116,8 @@ class _RunningIsolate {
   final IsolateManager isolateManager;
   final String name;
   final String id;
-  final Set<String?> _resumeApprovalsByName = {};
-  _IsolateState? _state;
+  final Set<String> _resumeApprovalsByName = {};
+  _IsolateState _state;
 }
 
 class IsolateManager {
@@ -150,16 +152,16 @@ class IsolateManager {
         final isolate = isolates[id];
         switch (eventKind) {
           case ServiceEvents.pauseExit:
-            isolate!.pausedOnExit();
+            isolate.pausedOnExit();
             break;
           case ServiceEvents.pausePostRequest:
-            isolate!.pausedPostRequest();
+            isolate.pausedPostRequest();
             break;
           case ServiceEvents.pauseStart:
-            isolate!.pausedOnStart();
+            isolate.pausedOnStart();
             break;
           case ServiceEvents.resume:
-            isolate!.resumed();
+            isolate.resumed();
             break;
           default:
             break;
@@ -235,13 +237,12 @@ class IsolateManager {
     String isolateId,
     json_rpc.Parameters parameters,
   ) async {
-    const invalidFrameIndex = -1;
-    final step = parameters['step'].asStringOr('');
-    final frameIndex = parameters['frameIndex'].asIntOr(invalidFrameIndex);
+    final step = parameters['step'].asStringOr(null);
+    final frameIndex = parameters['frameIndex'].asIntOr(null);
     final resumeResult = await dds.vmServiceClient.sendRequest('resume', {
       'isolateId': isolateId,
-      if (step.isNotEmpty) 'step': step,
-      if (frameIndex != invalidFrameIndex) 'frameIndex': frameIndex,
+      if (step != null) 'step': step,
+      if (frameIndex != null) 'frameIndex': frameIndex,
     });
     return resumeResult;
   }

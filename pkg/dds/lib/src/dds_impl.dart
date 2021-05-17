@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -170,13 +172,13 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     }
     _shuttingDown = true;
     // Don't accept any more HTTP requests.
-    await _server.close();
+    await _server?.close();
 
     // Close connections to clients.
     await clientManager.shutdown();
 
     // Close connection to VM service.
-    await _vmServiceSocket.sink.close();
+    await _vmServiceSocket?.sink?.close();
 
     _done.complete();
   }
@@ -265,16 +267,16 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   Handler _httpHandler() {
-    if (_devToolsConfiguration != null && _devToolsConfiguration!.enable) {
+    if (_devToolsConfiguration != null && _devToolsConfiguration.enable) {
       // Install the DevTools handlers and forward any unhandled HTTP requests to
       // the VM service.
-      final String buildDir =
-          _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
+      final buildDir =
+          _devToolsConfiguration.customBuildDirectoryPath?.toFilePath();
       return devtoolsHandler(
         dds: this,
         buildDir: buildDir,
         notFoundHandler: proxyHandler(remoteVmServiceUri),
-      ) as FutureOr<Response> Function(Request);
+      );
     }
     return proxyHandler(remoteVmServiceUri);
   }
@@ -292,7 +294,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return pathSegments;
   }
 
-  Uri? _toWebSocket(Uri? uri) {
+  Uri _toWebSocket(Uri uri) {
     if (uri == null) {
       return null;
     }
@@ -301,7 +303,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return uri.replace(scheme: 'ws', pathSegments: pathSegments);
   }
 
-  Uri? _toSse(Uri? uri) {
+  Uri _toSse(Uri uri) {
     if (uri == null) {
       return null;
     }
@@ -310,7 +312,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
-  Uri? _toDevTools(Uri? uri) {
+  Uri _toDevTools(Uri uri) {
     // The DevTools URI is a bit strange as the query parameters appear after
     // the fragment. There's no nice way to encode the query parameters
     // properly, so we create another Uri just to grab the formatted query.
@@ -323,7 +325,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     ).query;
     return Uri(
       scheme: 'http',
-      host: uri!.host,
+      host: uri.host,
       port: uri.port,
       pathSegments: [
         ...uri.pathSegments.where(
@@ -336,61 +338,56 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     );
   }
 
-  String? getNamespace(DartDevelopmentServiceClient client) =>
+  String getNamespace(DartDevelopmentServiceClient client) =>
       clientManager.clients.keyOf(client);
 
   bool get authCodesEnabled => _authCodesEnabled;
   final bool _authCodesEnabled;
-  String? get authCode => _authCode;
-  String? _authCode;
+  String get authCode => _authCode;
+  String _authCode;
 
   final bool shouldLogRequests;
 
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
 
-  @override
-  Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri)!;
+  Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri);
   Uri _remoteVmServiceUri;
 
-  @override
-  Uri? get uri => _uri;
-  Uri? _uri;
+  Uri get uri => _uri;
+  Uri _uri;
 
-  @override
-  Uri? get sseUri => _toSse(_uri);
+  Uri get sseUri => _toSse(_uri);
 
-  @override
-  Uri? get wsUri => _toWebSocket(_uri);
+  Uri get wsUri => _toWebSocket(_uri);
 
-  @override
-  Uri? get devToolsUri =>
-      _devToolsConfiguration?.enable ?? false ? _toDevTools(_uri) : null;
+  Uri get devToolsUri =>
+      _devToolsConfiguration.enable ? _toDevTools(_uri) : null;
 
   final bool _ipv6;
 
   bool get isRunning => _uri != null;
 
-  final DevToolsConfiguration? _devToolsConfiguration;
+  final DevToolsConfiguration _devToolsConfiguration;
 
   Future<void> get done => _done.future;
   Completer _done = Completer<void>();
   bool _shuttingDown = false;
 
   ClientManager get clientManager => _clientManager;
-  late ClientManager _clientManager;
+  ClientManager _clientManager;
 
   ExpressionEvaluator get expressionEvaluator => _expressionEvaluator;
-  late ExpressionEvaluator _expressionEvaluator;
+  ExpressionEvaluator _expressionEvaluator;
 
   IsolateManager get isolateManager => _isolateManager;
-  late IsolateManager _isolateManager;
+  IsolateManager _isolateManager;
 
   StreamManager get streamManager => _streamManager;
-  late StreamManager _streamManager;
+  StreamManager _streamManager;
 
   static const _kSseHandlerPath = '\$debugHandler';
 
-  late json_rpc.Peer vmServiceClient;
-  late WebSocketChannel _vmServiceSocket;
-  late HttpServer _server;
+  json_rpc.Peer vmServiceClient;
+  WebSocketChannel _vmServiceSocket;
+  HttpServer _server;
 }

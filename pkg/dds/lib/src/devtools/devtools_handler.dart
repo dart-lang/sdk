@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 import 'dart:async';
 
 import 'package:dds/src/constants.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -21,9 +24,9 @@ import 'server_api.dart';
 /// [notFoundHandler] is a [Handler] to which requests that could not be handled
 /// by the DevTools handler are forwarded (e.g., a proxy to the VM service).
 FutureOr<Handler> devtoolsHandler({
-  required DartDevelopmentServiceImpl dds,
-  required String buildDir,
-  required Handler notFoundHandler,
+  @required DartDevelopmentServiceImpl dds,
+  @required String buildDir,
+  @required Handler notFoundHandler,
 }) {
   // Serves the web assets for DevTools.
   final devtoolsAssetHandler = createStaticHandler(

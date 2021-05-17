@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,16 +15,18 @@ import 'common/test_helper.dart';
 
 void main() {
   group('DDS', () {
-    late Process process;
-    late DartDevelopmentService dds;
+    Process process;
+    DartDevelopmentService dds;
 
     setUp(() async {
       process = await spawnDartProcess('smoke.dart');
     });
 
     tearDown(() async {
-      await dds.shutdown();
-      process.kill();
+      await dds?.shutdown();
+      process?.kill();
+      dds = null;
+      process = null;
     });
 
     void createSmokeTest(bool useAuthCodes, bool ipv6) {
@@ -39,7 +43,7 @@ void main() {
           expect(dds.isRunning, true);
 
           try {
-            Uri.parseIPv6Address(dds.uri!.host);
+            Uri.parseIPv6Address(dds.uri.host);
             expect(ipv6, true);
           } on FormatException {
             expect(ipv6, false);
@@ -48,11 +52,11 @@ void main() {
           // Ensure basic websocket requests are forwarded correctly to the VM service.
           final service = await vmServiceConnectUri(dds.wsUri.toString());
           final version = await service.getVersion();
-          expect(version.major! > 0, true);
-          expect(version.minor! >= 0, true);
+          expect(version.major > 0, true);
+          expect(version.minor >= 0, true);
 
           expect(
-            dds.uri!.pathSegments,
+            dds.uri.pathSegments,
             useAuthCodes ? isNotEmpty : isEmpty,
           );
 
@@ -69,7 +73,7 @@ void main() {
           final Map<String, dynamic> jsonResponse = (await response
               .transform(utf8.decoder)
               .transform(json.decoder)
-              .single) as Map<String, dynamic>;
+              .single);
           expect(jsonResponse['result']['type'], 'Version');
           expect(jsonResponse['result']['major'] > 0, true);
           expect(jsonResponse['result']['minor'] >= 0, true);
@@ -83,6 +87,12 @@ void main() {
   });
 
   test('Invalid args test', () async {
+    // null VM Service URI
+    expect(
+        () async =>
+            await DartDevelopmentService.startDartDevelopmentService(null),
+        throwsA(TypeMatcher<ArgumentError>()));
+
     // Non-HTTP VM Service URI scheme
     expect(
         () async => await DartDevelopmentService.startDartDevelopmentService(

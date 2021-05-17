@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'dart:async';
 import 'dart:collection';
 
 import 'package:async/async.dart';
+import 'package:meta/meta.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/src/vm_service.dart';
 
 extension DdsExtension on VmService {
   static bool _factoriesRegistered = false;
-  static Version? _ddsVersion;
+  static Version _ddsVersion;
 
   /// The _getDartDevelopmentServiceVersion_ RPC is used to determine what version of
   /// the Dart Development Service Protocol is served by a DDS instance.
@@ -22,7 +25,7 @@ extension DdsExtension on VmService {
       _ddsVersion =
           await _callHelper<Version>('getDartDevelopmentServiceVersion');
     }
-    return _ddsVersion!;
+    return _ddsVersion;
   }
 
   /// Retrieve the event history for `stream`.
@@ -44,19 +47,19 @@ extension DdsExtension on VmService {
   /// If `stream` does not have event history collected, a parameter error is
   /// sent over the returned [Stream].
   Stream<Event> onEventWithHistory(String stream) {
-    late StreamController<Event> controller;
-    late StreamQueue<Event> streamEvents;
+    StreamController<Event> controller;
+    StreamQueue<Event> streamEvents;
 
     controller = StreamController<Event>(onListen: () async {
       streamEvents = StreamQueue<Event>(onEvent(stream));
       final history = (await getStreamHistory(stream)).history;
-      Event? firstStreamEvent;
+      Event firstStreamEvent;
       unawaited(streamEvents.peek.then((e) {
         firstStreamEvent = e;
       }));
       for (final event in history) {
         if (firstStreamEvent != null &&
-            event.timestamp! > firstStreamEvent!.timestamp!) {
+            event.timestamp > firstStreamEvent.timestamp) {
           break;
         }
         controller.sink.add(event);
@@ -106,12 +109,12 @@ extension DdsExtension on VmService {
     if (_ddsVersion == null) {
       _ddsVersion = await getDartDevelopmentServiceVersion();
     }
-    return ((_ddsVersion!.major == major && _ddsVersion!.minor! >= minor) ||
-        (_ddsVersion!.major! > major));
+    return ((_ddsVersion.major == major && _ddsVersion.minor >= minor) ||
+        (_ddsVersion.major > major));
   }
 
   Future<T> _callHelper<T>(String method,
-      {String? isolateId, Map args = const {}}) {
+      {String isolateId, Map args = const {}}) {
     if (!_factoriesRegistered) {
       _registerFactories();
     }
@@ -132,10 +135,10 @@ extension DdsExtension on VmService {
 
 /// A collection of historical [Event]s from some stream.
 class StreamHistory extends Response {
-  static StreamHistory? parse(Map<String, dynamic>? json) =>
+  static StreamHistory parse(Map<String, dynamic> json) =>
       json == null ? null : StreamHistory._fromJson(json);
 
-  StreamHistory({required List<Event> history}) : _history = history;
+  StreamHistory({@required List<Event> history}) : _history = history;
 
   StreamHistory._fromJson(Map<String, dynamic> json)
       : _history = json['history']

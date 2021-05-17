@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'dart:math';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -48,8 +50,9 @@ class LoggingRepository extends _RingBuffer<Map<String, dynamic>> {
 
 // TODO(bkonyi): move to standalone file if we decide to use this elsewhere.
 class _RingBuffer<T> {
-  _RingBuffer(this._bufferSize) {
-    _buffer = List<T?>.filled(
+  _RingBuffer(int initialSize) {
+    _bufferSize = initialSize;
+    _buffer = List<T>.filled(
       _bufferSize,
       null,
     );
@@ -57,7 +60,7 @@ class _RingBuffer<T> {
 
   Iterable<T> call() sync* {
     for (int i = _size - 1; i >= 0; --i) {
-      yield _buffer[(_count - i - 1) % _bufferSize]!;
+      yield _buffer[(_count - i - 1) % _bufferSize];
     }
   }
 
@@ -73,7 +76,7 @@ class _RingBuffer<T> {
     if (size == _bufferSize) {
       return;
     }
-    final resized = List<T?>.filled(
+    final resized = List<T>.filled(
       size,
       null,
     );
@@ -94,5 +97,5 @@ class _RingBuffer<T> {
 
   int _bufferSize;
   int _count = 0;
-  late List<T?> _buffer;
+  List<T> _buffer;
 }

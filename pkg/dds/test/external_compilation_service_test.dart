@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'dart:io';
 
 import 'package:dds/dds.dart';
@@ -11,8 +13,8 @@ import 'common/test_helper.dart';
 
 void main() {
   group('DDS', () {
-    late Process process;
-    late DartDevelopmentService dds;
+    Process process;
+    DartDevelopmentService dds;
 
     setUp(() async {
       process =
@@ -20,8 +22,10 @@ void main() {
     });
 
     tearDown(() async {
-      await dds.shutdown();
-      process.kill();
+      await dds?.shutdown();
+      process?.kill();
+      dds = null;
+      process = null;
     });
 
     test('evaluate invokes client provided compileExpression RPC', () async {
@@ -40,10 +44,9 @@ void main() {
         throw 'error';
       });
       final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates!.first.id!);
+      final isolate = await service.getIsolate(vm.isolates.first.id);
       try {
-        await service.evaluate(
-            isolate.id!, isolate.libraries!.first.id!, '1 + 1');
+        await service.evaluate(isolate.id, isolate.libraries.first.id, '1 + 1');
       } catch (_) {
         // ignore error
       }
@@ -67,13 +70,11 @@ void main() {
         throw 'error';
       });
       final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates!.first.id!);
-      await service.resume(isolate.id!);
+      final isolate = await service.getIsolate(vm.isolates.first.id);
+      await service.resume(isolate.id);
       try {
-        await service.evaluateInFrame(isolate.id!, 0, '1 + 1');
-      } catch (e, st) {
-        print(e);
-        print(st);
+        await service.evaluateInFrame(isolate.id, 0, '1 + 1');
+      } catch (_) {
         // ignore error
       }
       expect(invokedCompileExpression, true);

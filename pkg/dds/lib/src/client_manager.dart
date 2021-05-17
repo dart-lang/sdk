@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.10
+
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import 'client.dart';
@@ -96,7 +98,7 @@ class ClientManager {
       pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
     }
 
-    clientResumePermissions[client.name!]!.permissionsMask = pauseTypeMask;
+    clientResumePermissions[client.name].permissionsMask = pauseTypeMask;
     return RPCResponses.success;
   }
 
@@ -109,10 +111,10 @@ class ClientManager {
     _clearClientName(client);
     client.name = name.isEmpty ? client.defaultClientName : name;
     clientResumePermissions.putIfAbsent(
-      client.name!,
+      client.name,
       () => _ClientResumePermissions(),
     );
-    clientResumePermissions[client.name!]!.clients.add(client);
+    clientResumePermissions[client.name].clients.add(client);
   }
 
   /// Resets the client's name while also cleaning up resume permissions and
@@ -153,7 +155,7 @@ class ClientManager {
     }
   }
 
-  DartDevelopmentServiceClient? findFirstClientThatHandlesService(
+  DartDevelopmentServiceClient findFirstClientThatHandlesService(
       String service) {
     for (final client in clients) {
       if (client.services.containsKey(service)) {
@@ -171,7 +173,7 @@ class ClientManager {
 
   /// Mapping of client names to all clients of that name and their resume
   /// permissions.
-  final Map<String?, _ClientResumePermissions> clientResumePermissions = {};
+  final Map<String, _ClientResumePermissions> clientResumePermissions = {};
 
   final DartDevelopmentServiceImpl dds;
 }
