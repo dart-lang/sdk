@@ -1000,6 +1000,10 @@ static bool IsFfiCompound(Thread* T, const Object& obj) {
   // (no implementations or indirect subclasses are allowed).
   const auto& klass = Class::Handle(Z, obj.clazz());
   const auto& super_klass = Class::Handle(Z, klass.SuperClass());
+  if (super_klass.IsNull()) {
+    // This means klass is Object.
+    return false;
+  }
   if (super_klass.Name() != Symbols::Struct().ptr() &&
       super_klass.Name() != Symbols::Union().ptr()) {
     return false;
