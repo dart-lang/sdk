@@ -21,8 +21,6 @@ import 'package:dev_compiler/dev_compiler.dart'
 // that would replace api used below. This api was made private in
 // an effort to discourage further use.
 // ignore_for_file: implementation_imports
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:front_end/widget_cache.dart';
 import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
