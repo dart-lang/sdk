@@ -293,6 +293,21 @@ Expression getLateFieldInitializer(Member node) {
             PropertySet propertySet = firstStatement.expression;
             assert(propertySet.interfaceTarget == getLateFieldTarget(node));
             return propertySet.value;
+          } else if (firstStatement.expression is InstanceSet) {
+            // We have
+            //
+            //    get field {
+            //      if (!_#isSet#field) {
+            //        this._#field = <init>;
+            //        ...
+            //      }
+            //      return _#field;
+            //    }
+            //
+            // in case `<init>` is the initializer.
+            InstanceSet instanceSet = firstStatement.expression;
+            assert(instanceSet.interfaceTarget == getLateFieldTarget(node));
+            return instanceSet.value;
           } else if (firstStatement.expression is StaticSet) {
             // We have
             //
@@ -351,6 +366,15 @@ Expression getLateFieldInitializer(Member node) {
             // in which case there is no initializer.
             return null;
           } else if (then is PropertySet) {
+            // We have
+            //
+            //    get field => let # = this._#field in <is-unset>
+            //        ? this._#field = <init> : #;
+            //
+            // in which case `<init>` is the initializer.
+            assert(then.interfaceTarget == getLateFieldTarget(node));
+            return then.value;
+          } else if (then is InstanceSet) {
             // We have
             //
             //    get field => let # = this._#field in <is-unset>

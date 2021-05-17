@@ -99,3 +99,8 @@ static method main(core::List<core::String*>* args) → dynamic {
   new self::TestAssertInitializer::•();
   self::testRemovalOfStatementBodies();
 }
+constants  {
+  #C1 = true
+  #C2 = false
+  #C3 = 10
+}

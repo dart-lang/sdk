@@ -151,3 +151,6 @@ static method main() → void {
   self::test3();
   self::test4();
 }
+constants  {
+  #C1 = null
+}

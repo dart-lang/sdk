@@ -112,3 +112,23 @@ class ClearKeep extends pro::GeneratedMessage {
   static method create() → self::ClearKeep
     return new self::ClearKeep::_();
 }
+constants  {
+  #C1 = false
+  #C2 = tearoff self::FooKeep::create
+  #C3 = tearoff self::BarKeep::create
+  #C4 = tearoff self::HasKeep::create
+  #C5 = tearoff self::ClearKeep::create
+  #C6 = "dart2js:noInline"
+  #C7 = null
+  #C8 = core::pragma {name:#C6, options:#C7}
+  #C9 = 1
+  #C10 = pro::TagNumber {tagNumber:#C9}
+  #C11 = 3
+  #C12 = pro::TagNumber {tagNumber:#C11}
+  #C13 = 5
+  #C14 = pro::TagNumber {tagNumber:#C13}
+  #C15 = 6
+  #C16 = pro::TagNumber {tagNumber:#C15}
+  #C17 = 7
+  #C18 = pro::TagNumber {tagNumber:#C17}
+}

@@ -480,7 +480,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       SkipDartType();                   // read function_type.
       return;
     case kFunctionInvocation:
-      BuildHash(ReadByte());             // read kind.
+      ReadByte();                        // read kind.
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read receiver.
       CalculateArgumentsFingerprint();   // read arguments.

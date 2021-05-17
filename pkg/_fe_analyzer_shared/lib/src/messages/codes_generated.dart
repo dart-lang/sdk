@@ -1293,7 +1293,7 @@ const Template<
 const Code<Message Function(String nameOKEmpty)> codeConstEvalDeferredLibrary =
     const Code<Message Function(String nameOKEmpty)>("ConstEvalDeferredLibrary",
         analyzerCodes: <String>[
-      "NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY"
+      "INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY"
     ]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

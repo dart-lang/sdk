@@ -2248,7 +2248,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
 
         push(js.js('#.#.call(#)', [
-          _emitter.prototypeAccess(superClass, hasBeenInstantiated: true),
+          _emitter.prototypeAccess(superClass),
           methodName,
           visitArguments(node.inputs, start: 0)
         ]).withSourceInformation(node.sourceInformation));

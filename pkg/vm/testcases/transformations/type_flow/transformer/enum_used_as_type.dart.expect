@@ -19,3 +19,6 @@ static method main() → dynamic {
     let final self::Class* #t1 = new self::Class::•() in let final self::Enum* #t2 = _in::unsafeCast<self::Enum*>(_in::unsafeCast<dynamic>(null)) in [@vm.direct-call.metadata=#lib::Class.method] [@vm.inferred-type.metadata=!? (skip check)] #t1.{self::Class::method}();
   }
 }
+constants  {
+  #C1 = null
+}

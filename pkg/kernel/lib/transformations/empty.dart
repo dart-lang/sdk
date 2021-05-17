@@ -6,7 +6,6 @@ library kernel.transformations.empty;
 
 import '../ast.dart';
 import '../kernel.dart';
-import '../visitor.dart';
 
 Component transformComponent(Component component) {
   new EmptyTransformer().visitComponent(component);

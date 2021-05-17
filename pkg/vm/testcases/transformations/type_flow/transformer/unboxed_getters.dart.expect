@@ -92,3 +92,6 @@ static method main() → dynamic {
   final self::UBIB* ubib = new self::UBIB::•();
   self::use([@vm.inferred-type.metadata=int]([@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::UBI*} ubia : ubib).{self::UBI::value});
 }
+constants  {
+  #C1 = null
+}

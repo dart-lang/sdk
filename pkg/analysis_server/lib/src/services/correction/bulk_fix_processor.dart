@@ -235,7 +235,7 @@ class BulkFixProcessor {
       return;
     }
 
-    var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+    var fixes = FixProcessor.nonLintProducerMap[errorCode] ?? [];
     for (var fix in fixes) {
       if (fix.canBeBulkApplied) {
         final generators = fix.generators;
@@ -367,7 +367,7 @@ class BulkFixProcessor {
         var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
         await bulkApply(fixes, codeName);
       } else {
-        var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+        var fixes = FixProcessor.nonLintProducerMap[errorCode] ?? [];
         await bulkApply(fixes, codeName);
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {

@@ -91,3 +91,18 @@ static method main() → dynamic {
   self::use(#C12);
   self::use(#C13);
 }
+constants  {
+  #C1 = null
+  #C2 = tearoff self::takePositional
+  #C3 = tearoff self::takeOptional
+  #C4 = tearoff self::takeNamed
+  #C5 = tearoff self::returnUnboxedSmi
+  #C6 = tearoff self::returnUnboxedInt
+  #C7 = tearoff self::returnUnboxedDouble
+  #C8 = tearoff self::returnBoxedNullableInt
+  #C9 = tearoff self::returnBoxedNullableDouble
+  #C10 = tearoff self::returnBoxedIntOrDouble
+  #C11 = tearoff self::returnBoxedNullableIntOrDouble
+  #C12 = tearoff self::returnBoxedNullableX
+  #C13 = tearoff self::returnBoxedX
+}

@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapValueTypeNotAssignableTest);
+    defineReflectiveTests(MapValueTypeNotAssignableWithNoImplicitCastsTest);
     defineReflectiveTests(MapValueTypeNotAssignableWithoutNullSafetyTest);
   });
 }
@@ -195,6 +196,61 @@ var v = <bool, int>{...{true: 'a'}};
 const dynamic a = 'a';
 var v = <bool, int>{...{true: a}};
 ''');
+  }
+}
+
+@reflectiveTest
+class MapValueTypeNotAssignableWithNoImplicitCastsTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
+  test_ifElement_falseBranch_value_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, dynamic a) {
+  <int, int>{if (c) 0: 0 else 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 61, 1),
+    ]);
+  }
+
+  test_ifElement_falseBranch_value_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, num a) {
+  <int, int>{if (c) 0: 0 else 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 57, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch_value_dynamic() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, dynamic a) {
+  <int, int>{if (c) 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 51, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch_value_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(bool c, num a) {
+  <int, int>{if (c) 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
+    ]);
+  }
+
+  test_spread_value_supertype() async {
+    await assertErrorsWithNoImplicitCasts(r'''
+void f(Map<dynamic, num> a) {
+  <dynamic, int>{...a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 50, 1),
+    ]);
   }
 }
 

@@ -1274,8 +1274,9 @@ class _ElementWriter {
     String enclosingNames = '',
   }) {
     for (var parameter in parameters) {
-      if (parameter is DefaultParameterElementImpl) {
-        var defaultValue = parameter.constantInitializer;
+      if (parameter is ConstVariableElement) {
+        var defaultParameter = parameter as ConstVariableElement;
+        var defaultValue = defaultParameter.constantInitializer;
         if (defaultValue != null) {
           _writelnWithIndent(enclosingNames + parameter.name);
           _withIndent(() {

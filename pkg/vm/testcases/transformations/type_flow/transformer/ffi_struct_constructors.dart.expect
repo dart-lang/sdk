@@ -116,3 +116,23 @@ static method testNestedLoad() → void {
   final self::Struct12* struct12 = [@vm.direct-call.metadata=#lib::Struct11.nested] [@vm.inferred-type.metadata=#lib::Struct12] struct11.{self::Struct11::nested};
   core::print(struct12);
 }
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C3 = <core::Type>[#C2]
+  #C4 = null
+  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = TypeLiteralConstant(self::Struct12)
+  #C8 = <core::Type>[#C7]
+  #C9 = ffi::_FfiStructLayout {fieldTypes:#C8, packing:#C4}
+  #C10 = core::pragma {name:#C1, options:#C9}
+  #C11 = 0
+  #C12 = <core::int*>[#C11, #C11, #C11]
+  #C13 = 8
+  #C14 = 4
+  #C15 = <core::int*>[#C13, #C14, #C14]
+  #C16 = tearoff self::useStruct3
+  #C17 = tearoff self::returnStruct7
+  #C18 = 1
+}

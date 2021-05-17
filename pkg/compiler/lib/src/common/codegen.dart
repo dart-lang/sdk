@@ -533,9 +533,6 @@ class CodegenResult {
         case ModularNameKind.rtiField:
           name.value = namer.rtiFieldJsName;
           break;
-        case ModularNameKind.runtimeTypeName:
-          name.value = namer.runtimeTypeName(name.data);
-          break;
         case ModularNameKind.className:
           name.value = namer.className(name.data);
           break;
@@ -565,9 +562,6 @@ class CodegenResult {
           break;
         case ModularNameKind.globalPropertyNameForClass:
           name.value = namer.globalPropertyNameForClass(name.data);
-          break;
-        case ModularNameKind.globalPropertyNameForType:
-          name.value = namer.globalPropertyNameForType(name.data);
           break;
         case ModularNameKind.globalPropertyNameForMember:
           name.value = namer.globalPropertyNameForMember(name.data);
@@ -617,7 +611,6 @@ class CodegenResult {
 
 enum ModularNameKind {
   rtiField,
-  runtimeTypeName,
   className,
   aliasedSuperMember,
   staticClosure,
@@ -628,7 +621,6 @@ enum ModularNameKind {
   invocation,
   lazyInitializer,
   globalPropertyNameForClass,
-  globalPropertyNameForType,
   globalPropertyNameForMember,
   globalNameForInterfaceTypeVariable,
   nameForGetInterceptor,
@@ -654,8 +646,6 @@ class ModularName extends js.Name implements js.AstContainer {
     switch (kind) {
       case ModularNameKind.rtiField:
         break;
-      case ModularNameKind.globalPropertyNameForType:
-      case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
       case ModularNameKind.globalPropertyNameForClass:
@@ -697,8 +687,6 @@ class ModularName extends js.Name implements js.AstContainer {
     switch (kind) {
       case ModularNameKind.rtiField:
         break;
-      case ModularNameKind.globalPropertyNameForType:
-      case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
       case ModularNameKind.globalPropertyNameForClass:

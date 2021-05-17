@@ -47,3 +47,8 @@ static method main() → dynamic {
     }
   }
 }
+constants  {
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

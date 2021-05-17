@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -76,7 +75,7 @@ class ConstantInitializersResolver {
   void _resolveVariable(VariableElement element) {
     if (element.isSynthetic) return;
 
-    var variable = _getLinkedNode(element) as VariableDeclaration;
+    var variable = linker.getLinkingNode(element) as VariableDeclaration;
     if (variable.initializer == null) return;
 
     var declarationList = variable.parent as VariableDeclarationList;
@@ -125,40 +124,20 @@ class TopLevelInference {
 class _ConstructorInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
   final ConstructorElement _constructor;
-
-  /// The parameters that have types from [_fields].
-  final List<FieldFormalParameter> _parameters = [];
-
-  /// The parallel list of fields corresponding to [_parameters].
-  final List<FieldElement> _fields = [];
+  final List<_FieldFormalParameterWithField> _parameters = [];
 
   @override
   bool isEvaluated = false;
 
-  _ConstructorInferenceNode(
-    this._walker,
-    this._constructor,
-    Map<String, FieldElement> fieldMap,
-  ) {
-    for (var parameterElement in _constructor.parameters) {
-      if (parameterElement is FieldFormalParameterElement) {
-        var parameterNode = _getLinkedNode(parameterElement);
-        if (parameterNode is DefaultFormalParameter) {
-          parameterNode = parameterNode.parameter;
-        }
-
-        if (parameterNode is FieldFormalParameterImpl &&
-            parameterNode.type == null &&
-            parameterNode.parameters == null) {
-          parameterNode.identifier.staticElement = parameterElement;
-          var name = parameterNode.identifier.name;
-          var fieldElement = fieldMap[name];
-          if (fieldElement != null) {
-            _parameters.add(parameterNode);
-            _fields.add(fieldElement);
-          } else {
-            (parameterElement as ParameterElementImpl).type =
-                DynamicTypeImpl.instance;
+  _ConstructorInferenceNode(this._walker, this._constructor) {
+    for (var parameter in _constructor.parameters) {
+      if (parameter is FieldFormalParameterElementImpl) {
+        if (parameter.hasImplicitType) {
+          var field = parameter.field;
+          if (field != null) {
+            _parameters.add(
+              _FieldFormalParameterWithField(parameter, field),
+            );
           }
         }
       }
@@ -170,28 +149,37 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    return _fields.map(_walker.getNode).whereNotNull().toList();
+    return _parameters
+        .map((e) => _walker.getNode(e.field))
+        .whereNotNull()
+        .toList();
   }
 
   @override
   void evaluate() {
-    for (var i = 0; i < _parameters.length; ++i) {
-      var parameter = _parameters[i];
-      var type = _fields[i].type;
-      (parameter.declaredElement as ParameterElementImpl).type = type;
+    for (var parameterWithField in _parameters) {
+      var parameter = parameterWithField.parameter;
+      parameter.type = parameterWithField.field.type;
     }
     isEvaluated = true;
   }
 
   @override
   void markCircular(List<_InferenceNode> cycle) {
-    for (var i = 0; i < _parameters.length; ++i) {
-      var parameterNode = _parameters[i];
-      (parameterNode.declaredElement as ParameterElementImpl).type =
-          DynamicTypeImpl.instance;
+    for (var parameterWithField in _parameters) {
+      var parameter = parameterWithField.parameter;
+      parameter.type = DynamicTypeImpl.instance;
     }
     isEvaluated = true;
   }
+}
+
+/// A field formal parameter with a non-nullable field.
+class _FieldFormalParameterWithField {
+  final FieldFormalParameterElementImpl parameter;
+  final FieldElement field;
+
+  _FieldFormalParameterWithField(this.parameter, this.field);
 }
 
 class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
@@ -288,16 +276,8 @@ class _InitializerInference {
   }
 
   void _addClassConstructorFieldFormals(ClassElement class_) {
-    var fieldMap = <String, FieldElement>{};
-    for (var field in class_.fields) {
-      if (field.isStatic) continue;
-      if (field.isSynthetic) continue;
-      fieldMap[field.name] ??= field;
-    }
-
     for (var constructor in class_.constructors) {
-      var inferenceNode =
-          _ConstructorInferenceNode(_walker, constructor, fieldMap);
+      var inferenceNode = _ConstructorInferenceNode(_walker, constructor);
       _walker._nodes[constructor] = inferenceNode;
     }
   }
@@ -321,7 +301,7 @@ class _InitializerInference {
   void _addVariableNode(PropertyInducingElement element) {
     if (element.isSynthetic) return;
 
-    var node = _getLinkedNode(element) as VariableDeclaration;
+    var node = _linker.getLinkingNode(element) as VariableDeclaration;
     var variableList = node.parent as VariableDeclarationList;
     if (variableList.type != null) {
       return;
@@ -401,6 +381,7 @@ class _VariableInferenceNode extends _InferenceNode {
       var initializerType = _node.initializer!.typeOrThrow;
       initializerType = _refineType(initializerType);
       _elementImpl.type = initializerType;
+      _elementImpl.hasTypeInferred = true;
     }
 
     isEvaluated = true;

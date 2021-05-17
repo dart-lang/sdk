@@ -12,8 +12,6 @@ import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
 
 import '../util/graph.dart' show Graph, computeStrongComponents;
 
-import '../visitor.dart' show DartTypeVisitor, DartTypeVisitor1;
-
 import 'legacy_erasure.dart';
 
 class TypeVariableGraph extends Graph<int> {

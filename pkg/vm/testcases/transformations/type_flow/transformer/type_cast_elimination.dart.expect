@@ -54,3 +54,9 @@ static method main() → void {
   [@vm.direct-call.metadata=#lib::B.testAOfT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testAOfT1}(new self::A::•<self::A<core::int*>*>());
   [@vm.direct-call.metadata=#lib::B.testAOfT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<self::A<core::int*>*>().{self::B::testAOfT2negative}(new self::A::•<self::A<core::num*>*>());
 }
+constants  {
+  #C1 = 42
+  #C2 = null
+  #C3 = "hi"
+  #C4 = "bye"
+}

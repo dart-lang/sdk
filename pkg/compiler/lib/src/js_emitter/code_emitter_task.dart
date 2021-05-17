@@ -163,7 +163,7 @@ class CodeEmitterTask extends CompilerTask {
 /// the closed world computed by the codegen enqueuer.
 abstract class ModularEmitter {
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
+  jsAst.Expression prototypeAccess(ClassEntity e);
 
   /// Returns the JS function representing the given function.
   ///
@@ -184,11 +184,8 @@ abstract class ModularEmitter {
   /// The returned expression must only be used in a JS `new` expression.
   jsAst.Expression constructorAccess(ClassEntity e);
 
-  /// Returns the JS expression representing the type [e].
-  jsAst.Expression typeAccess(Entity e);
-
   /// Returns the JS name representing the type [e].
-  jsAst.Name typeAccessNewRti(Entity e);
+  jsAst.Name typeAccessNewRti(ClassEntity e);
 
   /// Returns the JS name representing the type variable [e].
   jsAst.Name typeVariableAccessNewRti(TypeVariableEntity e);

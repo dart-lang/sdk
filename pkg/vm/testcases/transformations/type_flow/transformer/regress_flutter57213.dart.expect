@@ -29,3 +29,8 @@ class E extends self::D {
     ;
 }
 static method main() → void {}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

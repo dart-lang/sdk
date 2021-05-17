@@ -757,7 +757,16 @@ abstract class AbstractScanner implements Scanner {
         iterations++;
 
         if (iterations > 100) {
-          break;
+          return recoveryCount;
+        }
+      }
+      if (!atEndOfFile()) {
+        // $EOF in the middle of the file. Skip it as `tokenize`.
+        next = advance();
+        iterations++;
+
+        if (iterations > 100) {
+          return recoveryCount;
         }
       }
     }

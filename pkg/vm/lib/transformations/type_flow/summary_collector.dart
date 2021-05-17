@@ -774,8 +774,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
       _summary.result = _returnValue;
     }
 
-    // Visit annotations on members, classes and libraries.
-    // Other nodes currently do not have annotations used by the VM.
     member.annotations.forEach(_visit);
     member.enclosingClass?.annotations?.forEach(_visit);
     member.enclosingLibrary?.annotations?.forEach(_visit);
@@ -2136,6 +2134,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   @override
   TypeExpr visitFunctionDeclaration(FunctionDeclaration node) {
     // TODO(alexmarkov): support function types.
+    node.variable.annotations.forEach(_visit);
     _declareVariableWithStaticType(node.variable);
     _handleNestedFunctionNode(node.function);
     return null;
@@ -2248,6 +2247,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
 
   @override
   TypeExpr visitVariableDeclaration(VariableDeclaration node) {
+    node.annotations.forEach(_visit);
     final TypeExpr initialValue =
         node.initializer == null ? _nullType : _visit(node.initializer);
     _declareVariable(node, initialValue);

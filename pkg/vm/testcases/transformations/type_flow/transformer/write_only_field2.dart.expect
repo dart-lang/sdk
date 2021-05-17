@@ -66,3 +66,9 @@ static method main() → void {
   [@vm.direct-call.metadata=#lib::I.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::I::•().{self::I::foo}();
   5;
 }
+constants  {
+  #C1 = 1
+  #C2 = self::G {bazz:#C1}
+  #C3 = 2
+  #C4 = self::G {bazz:#C3}
+}

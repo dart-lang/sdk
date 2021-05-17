@@ -86,3 +86,8 @@ static method main() → dynamic {
   self::use([@vm.inferred-type.metadata=#lib::X] self::returnBoxedX());
   self::use([@vm.inferred-type.metadata=dart.core::_Smi] self::returnBoxedSmiFromEntryPoint());
 }
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

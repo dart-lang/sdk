@@ -122,8 +122,8 @@ Component transformComponent(
 }
 
 // Pass which removes all annotations except @ExternalName and @pragma
-// on members, classes and libraries. May also keep @TagNumber which is used
-// by protobuf handler.
+// on variables, members, classes and libraries.
+// May also keep @TagNumber which is used by protobuf handler.
 class CleanupAnnotations extends RecursiveVisitor {
   final Class externalNameClass;
   final Class pragmaClass;
@@ -152,7 +152,10 @@ class CleanupAnnotations extends RecursiveVisitor {
   }
 
   void _cleanupAnnotations(Node node, List<Expression> annotations) {
-    if (node is Member || node is Class || node is Library) {
+    if (node is VariableDeclaration ||
+        node is Member ||
+        node is Class ||
+        node is Library) {
       annotations.removeWhere((a) => !_keepAnnotation(a));
     } else {
       annotations.clear();

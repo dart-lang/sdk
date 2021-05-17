@@ -4,7 +4,6 @@
 
 import '../ast.dart';
 import '../core_types.dart';
-import '../visitor.dart';
 
 class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   final CoreTypes coreTypes;

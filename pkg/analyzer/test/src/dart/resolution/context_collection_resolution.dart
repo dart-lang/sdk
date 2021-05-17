@@ -25,6 +25,7 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+import '../../../generated/test_support.dart';
 import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
 
@@ -359,6 +360,29 @@ class PubspecYamlFileConfig {
     }
 
     return buffer.toString();
+  }
+}
+
+mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
+  Future<void> assertErrorsWithNoImplicitCasts(
+    String code,
+    List<ExpectedError> expectedErrorsWhenImplicitCastsDisabled,
+  ) async {
+    newFile(testFilePath, content: code);
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    disposeAnalysisContextCollection();
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        implicitCasts: false,
+      ),
+    );
+
+    await resolveTestFile();
+    assertErrorsInResult(expectedErrorsWhenImplicitCastsDisabled);
   }
 }
 

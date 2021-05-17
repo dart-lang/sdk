@@ -20,7 +20,6 @@ enum DeferredHolderExpressionKind {
   globalObjectForConstants,
   globalObjectForLibrary,
   globalObjectForClass,
-  globalObjectForType,
   globalObjectForMember,
 }
 
@@ -65,9 +64,6 @@ class DeferredHolderExpression extends js.DeferredExpression
       case DeferredHolderExpressionKind.globalObjectForClass:
         entity = source.readClass();
         break;
-      case DeferredHolderExpressionKind.globalObjectForType:
-        entity = source.readClass();
-        break;
       case DeferredHolderExpressionKind.globalObjectForMember:
         entity = source.readMember();
         break;
@@ -88,9 +84,6 @@ class DeferredHolderExpression extends js.DeferredExpression
         sink.writeLibrary(entity);
         break;
       case DeferredHolderExpressionKind.globalObjectForClass:
-        sink.writeClass(entity);
-        break;
-      case DeferredHolderExpressionKind.globalObjectForType:
         sink.writeClass(entity);
         break;
       case DeferredHolderExpressionKind.globalObjectForMember:
@@ -360,10 +353,6 @@ class DeferredHolderExpressionFinalizerImpl
     return globalObjectForLibrary(entity.library);
   }
 
-  String globalObjectForType(Entity entity) {
-    return globalObjectForClass(entity);
-  }
-
   String globalObjectForStaticState() => r'$';
 
   String globalObjectForConstants() => 'C';
@@ -396,8 +385,6 @@ class DeferredHolderExpressionFinalizerImpl
         return globalObjectForLibrary(entity);
       case DeferredHolderExpressionKind.globalObjectForClass:
         return globalObjectForClass(entity);
-      case DeferredHolderExpressionKind.globalObjectForType:
-        return globalObjectForType(entity);
       case DeferredHolderExpressionKind.globalObjectForMember:
         return globalObjectForMember(entity);
       case DeferredHolderExpressionKind.globalObjectForConstants:

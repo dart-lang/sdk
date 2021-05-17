@@ -989,8 +989,8 @@ class ProgramBuilder {
       {bool isHolderInterceptedClass: false, ClassEntity cls}) {
     List<Field> fields = <Field>[];
 
-    void visitField(FieldEntity field, js.Name name, js.Name accessorName,
-        bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
+    void visitField(FieldEntity field, js.Name name, bool needsGetter,
+        bool needsSetter, bool needsCheckedSetter) {
       int getterFlags = 0;
       if (needsGetter) {
         if (!_interceptorData.fieldHasInterceptedGetter(field)) {
@@ -1027,6 +1027,8 @@ class ProgramBuilder {
       if (fieldData.isEffectivelyConstant) {
         constantValue = fieldData.constantValue;
       }
+
+      js.Name accessorName = _namer.fieldAccessorName(field);
 
       fields.add(Field(
           field,

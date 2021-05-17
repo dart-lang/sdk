@@ -6083,6 +6083,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "constructor invocation.",
       hasPublishedDocs: true);
 
+
+  static const CompileTimeErrorCode INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY =
+      CompileTimeErrorCode(
+          'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be used in annotations.",
+          correction: "Try moving the constant from the deferred library,"
+              " or removing 'deferred' from the import.");
+
   /**
    * No parameters.
    */
