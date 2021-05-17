@@ -415,11 +415,9 @@ void TypeTestingStubGenerator::
   // fall through to continue
 
   // b) Then we'll load the values for the type parameters.
-  __ LoadField(
-      TTSInternalRegs::kInstanceTypeArgumentsReg,
-      compiler::FieldAddress(
-          TypeTestABI::kInstanceReg,
-          compiler::target::Class::TypeArgumentsFieldOffset(type_class)));
+  __ LoadFieldFromOffset(
+      TTSInternalRegs::kInstanceTypeArgumentsReg, TypeTestABI::kInstanceReg,
+      compiler::target::Class::TypeArgumentsFieldOffset(type_class));
 
   // The kernel frontend should fill in any non-assigned type parameters on
   // construction with dynamic/Object, so we should never get the null type

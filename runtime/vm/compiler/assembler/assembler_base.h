@@ -605,6 +605,10 @@ class AssemblerBase : public StackResource {
   };
 
   virtual void LoadField(Register dst, const FieldAddress& address) = 0;
+  virtual void LoadFieldFromOffset(Register reg,
+                                   Register base,
+                                   int32_t offset,
+                                   OperandSize = kWordBytes) = 0;
   void LoadFromSlot(Register dst, Register base, const Slot& slot);
 
   virtual void StoreIntoObject(
