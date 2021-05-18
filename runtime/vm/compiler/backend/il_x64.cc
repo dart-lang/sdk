@@ -167,6 +167,10 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           dest_start_reg);
   if (element_size_ <= 8) {
     __ SmiUntag(RCX);
+  } else {
+#if defined(DART_COMPRESSED_POINTERS)
+    __ orl(RCX, RCX);
+#endif
   }
   switch (element_size_) {
     case 1:
@@ -233,15 +237,29 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
       scale = TIMES_1;
       break;
     case 2:
+#if defined(DART_COMPRESSED_POINTERS)
+      // Clear garbage upper bits, as no form of lea will ignore them. Assume
+      // start is positive to use the shorter orl over the longer movsxd.
+      __ orl(start_reg, start_reg);
+#endif
       scale = TIMES_1;
       break;
     case 4:
+#if defined(DART_COMPRESSED_POINTERS)
+      __ orl(start_reg, start_reg);
+#endif
       scale = TIMES_2;
       break;
     case 8:
+#if defined(DART_COMPRESSED_POINTERS)
+      __ orl(start_reg, start_reg);
+#endif
       scale = TIMES_4;
       break;
     case 16:
+#if defined(DART_COMPRESSED_POINTERS)
+      __ orl(start_reg, start_reg);
+#endif
       scale = TIMES_8;
       break;
     default:
