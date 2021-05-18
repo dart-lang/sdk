@@ -18838,7 +18838,7 @@ class CheckForPointers : public ObjectPointerVisitor {
   bool has_pointers() const { return has_pointers_; }
 
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
-    if (first != last) {
+    if (last >= first) {
       has_pointers_ = true;
     }
   }
@@ -18846,7 +18846,7 @@ class CheckForPointers : public ObjectPointerVisitor {
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
                                CompressedObjectPtr* last) {
-    if (first != last) {
+    if (last >= first) {
       has_pointers_ = true;
     }
   }
@@ -18882,8 +18882,9 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
   } else {
 #if defined(DEBUG)
     // Make sure that we are not missing any fields.
-    CheckForPointers has_pointers(IsolateGroup::Current());
-    this->ptr()->untag()->VisitPointers(&has_pointers);
+    IsolateGroup* group = IsolateGroup::Current();
+    CheckForPointers has_pointers(group);
+    this->ptr()->untag()->VisitPointersPrecise(group, &has_pointers);
     ASSERT(!has_pointers.has_pointers());
 #endif  // DEBUG
   }
