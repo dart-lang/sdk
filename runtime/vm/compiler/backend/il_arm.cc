@@ -6495,7 +6495,7 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       switch (op_kind()) {
         case Token::kBIT_AND: {
           __ and_(out_lo, left_lo, o);
-          __ mov(out_hi, compiler::Operand(left_hi));
+          __ mov(out_hi, compiler::Operand(0));
           break;
         }
         case Token::kBIT_OR: {
