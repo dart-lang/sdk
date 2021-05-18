@@ -299,8 +299,9 @@ class LibraryAnalyzer {
       verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
-      verifier.generateUnnecessaryImportHints(
-          errorReporter, _usedImportedElementsList);
+      // TODO(srawlins): Re-enable this check once Flutter engine path is clear.
+      // verifier.generateUnnecessaryImportHints(
+      //     errorReporter, _usedImportedElementsList);
     }
 
     // Unused local elements.
