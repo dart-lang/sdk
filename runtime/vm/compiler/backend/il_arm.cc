@@ -6486,47 +6486,16 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!can_overflow());
   ASSERT(!CanDeoptimize());
 
+  compiler::Operand right_lo, right_hi;
   if (locs()->in(1).IsConstant()) {
-    compiler::Operand imm_lo;
-    compiler::Operand imm_hi;
-    if (CanBePairOfImmediateOperands(right(), &imm_lo, &imm_hi)) {
-      switch (op_kind()) {
-        case Token::kBIT_AND: {
-          __ and_(out_lo, left_lo, imm_lo);
-          __ and_(out_hi, left_hi, imm_hi);
-          break;
-        }
-        case Token::kBIT_OR: {
-          __ orr(out_lo, left_lo, imm_lo);
-          __ orr(out_hi, left_hi, imm_hi);
-          break;
-        }
-        case Token::kBIT_XOR: {
-          __ eor(out_lo, left_lo, imm_lo);
-          __ eor(out_hi, left_hi, imm_hi);
-          break;
-        }
-        case Token::kADD: {
-          __ adds(out_lo, left_lo, imm_lo);
-          __ adcs(out_hi, left_hi, imm_hi);
-          break;
-        }
-        case Token::kSUB: {
-          __ subs(out_lo, left_lo, imm_lo);
-          __ sbcs(out_hi, left_hi, imm_hi);
-          break;
-        }
-        default:
-          UNREACHABLE();
-      }
-      return;
-    }
-    UNREACHABLE();
+    const bool ok = CanBePairOfImmediateOperands(right(), &right_lo, &right_hi);
+    RELEASE_ASSERT(ok);
+  } else {
+    PairLocation* right_pair = locs()->in(1).AsPairLocation();
+    right_lo = compiler::Operand(right_pair->At(0).reg());
+    right_hi = compiler::Operand(right_pair->At(1).reg());
   }
 
-  PairLocation* right_pair = locs()->in(1).AsPairLocation();
-  Register right_lo = right_pair->At(0).reg();
-  Register right_hi = right_pair->At(1).reg();
   switch (op_kind()) {
     case Token::kBIT_AND: {
       __ and_(out_lo, left_lo, compiler::Operand(right_lo));
@@ -6554,12 +6523,15 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMUL: {
+      PairLocation* right_pair = locs()->in(1).AsPairLocation();
+      Register right_lo_reg = right_pair->At(0).reg();
+      Register right_hi_reg = right_pair->At(1).reg();
       // Compute 64-bit a * b as:
       //     a_l * b_l + (a_h * b_l + a_l * b_h) << 32
       Register temp = locs()->temp(0).reg();
-      __ mul(temp, left_lo, right_hi);
-      __ mla(out_hi, left_hi, right_lo, temp);
-      __ umull(out_lo, temp, left_lo, right_lo);
+      __ mul(temp, left_lo, right_hi_reg);
+      __ mla(out_hi, left_hi, right_lo_reg, temp);
+      __ umull(out_lo, temp, left_lo, right_lo_reg);
       __ add(out_hi, out_hi, compiler::Operand(temp));
       break;
     }
