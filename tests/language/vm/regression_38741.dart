@@ -10,7 +10,7 @@
 import 'package:expect/expect.dart';
 
 @pragma('vm:prefer-inline')
-bool foo(dynamic x) => x < 10;
+bool foo(int x) => x < 10;
 
 @pragma('vm:never-inline')
 bool bar(bool f) => f && foo(1);
