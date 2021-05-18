@@ -180,33 +180,33 @@ abstract class num implements Comparable<num> {
 
   /// Whether this number is numerically smaller than [other].
   ///
-  /// Returns `true` if this number is smaller than [other],
-  /// and returns `false` if this number is greater than or equal to [other]
+  /// Returns `true` if this number is smaller than [other].
+  /// Returns `false` if this number is greater than or equal to [other]
   /// or if either value is a NaN value like [double.nan].
   bool operator <(num other);
 
   /// Whether this number is numerically smaller than or equal to [other].
   ///
-  /// Returns `true` if this number is smaller than or equal to [other],
-  /// and returns `false` if this number is greater than [other]
+  /// Returns `true` if this number is smaller than or equal to [other].
+  /// Returns `false` if this number is greater than [other]
   /// or if either value is a NaN value like [double.nan].
   bool operator <=(num other);
 
   /// Whether this number is numerically greater than [other].
   ///
-  /// Returns `true` if this number is greater than [other],
-  /// and returns `false` if this number is smaller than or equal to [other]
+  /// Returns `true` if this number is greater than [other].
+  /// Returns `false` if this number is smaller than or equal to [other]
   /// or if either value is a NaN value like [double.nan].
   bool operator >(num other);
 
   /// Whether this number is numerically greater than or equal to [other].
   ///
-  /// Returns `true` if this number is greater than or equal to [other],
-  /// and returns `false` if this number is smaller than [other]
+  /// Returns `true` if this number is greater than or equal to [other].
+  /// Returns `false` if this number is smaller than [other]
   /// or if either value is a NaN value like [double.nan].
   bool operator >=(num other);
 
-  /// Whether the number is a Not-a-Number value.
+  /// Whether this number is a Not-a-Number value.
   ///
   /// Is `true` if this number is the [double.nan] value
   /// or any other of the possible [double] NaN values.
@@ -225,7 +225,7 @@ abstract class num implements Comparable<num> {
   /// This precludes a NaN value like [double.nan] from being negative.
   bool get isNegative;
 
-  /// Whether the number is positive infinity or negative infinity.
+  /// Whether this number is positive infinity or negative infinity.
   ///
   /// Only satisfied by [double.infinity] and [double.negativeInfinity].
   ///
@@ -233,7 +233,7 @@ abstract class num implements Comparable<num> {
   /// and [isNaN].
   bool get isInfinite;
 
-  /// Whether the number is finite.
+  /// Whether this number is finite.
   ///
   /// The only non-finite numbers are NaN values, positive infinity, and
   /// negative infinity. All integers are finite.
@@ -257,7 +257,7 @@ abstract class num implements Comparable<num> {
   /// plus one if this number is greater than zero,
   /// and zero if this number is equal to zero.
   ///
-  /// Returns NaN if the number is a [double] NaN value.
+  /// Returns NaN if this number is a [double] NaN value.
   ///
   /// Returns a number of the same type as this number.
   /// For doubles, `(-0.0).sign` is `-0.0`.
