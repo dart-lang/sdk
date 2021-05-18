@@ -124,13 +124,24 @@ main(List<String> arguments) async {
   final shards = int.parse(options['shards']);
   final shard = int.parse(options['shard']) - 1;
 
-  final thisShardsConfigurations = [];
-  for (int i = 0; i < configurations.length; i++) {
-    if ((i % shards) == shard) {
-      thisShardsConfigurations.add(configurations[i]);
+  // Tasks will eventually be killed if they do not have any output for some
+  // time. So we'll explicitly print something every 4 minutes.
+  final sw = Stopwatch()..start();
+  final timer = Timer.periodic(const Duration(minutes: 4), (_) {
+    print('[${sw.elapsed}] ... still working ...');
+  });
+
+  try {
+    final thisShardsConfigurations = [];
+    for (int i = 0; i < configurations.length; i++) {
+      if ((i % shards) == shard) {
+        thisShardsConfigurations.add(configurations[i]);
+      }
     }
-  }
-  for (final config in thisShardsConfigurations) {
-    await config.runTest();
+    for (final config in thisShardsConfigurations) {
+      await config.runTest();
+    }
+  } finally {
+    timer.cancel();
   }
 }
