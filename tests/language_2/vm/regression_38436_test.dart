@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--optimization_counter_threshold=1
 
 import "package:expect/expect.dart";
@@ -528,8 +530,7 @@ class X0 {
                                                 57: var4,
                                                 73: var7[-43],
                                                 38: var0
-                                              })
-                                                  .isNotEmpty ||
+                                              }).isNotEmpty ||
                                               ({
                                                 67: var4,
                                                 14: 'M\u{1f600}1HNbP',
@@ -537,8 +538,7 @@ class X0 {
                                                 85: 'uyq',
                                                 95: var7[(-(Int32x4.wwxw))],
                                                 33: ''
-                                              })
-                                                  .isNotEmpty))
+                                              }).isNotEmpty))
                                       : false)
                                   ? var2
                                   : (++var2))
@@ -557,8 +557,7 @@ class X0 {
                                   51: '-8ht',
                                   26: ('(2l3\u2665h' ?? var0),
                                   79: var4
-                                })
-                                        .isNotEmpty
+                                }).isNotEmpty
                                     ? var5[(var2 % loc0)]
                                     : var2) %
                                 ((!(NetworkInterface.listSupported))
@@ -1566,7 +1565,8 @@ class X2 extends X0 with X1 {
 
 class X3 extends X1 {
   Map<int, String> fld3_0 = {
-    if (true) if (false) 45: 'ynEn\u2665nG' else 70: 'c\u{1f600}mN4\u2665a',
+    if (true)
+      if (false) 45: 'ynEn\u2665nG' else 70: 'c\u{1f600}mN4\u2665a',
     if (true) 30: '6\u2665P!Pbi',
     81: 't',
     82: '17fx#!',
@@ -1738,8 +1738,7 @@ class X3 extends X1 {
                                             7: par3,
                                             69: Uri.decodeFull(
                                                 (foo1_3() + 'LX+'))
-                                          })
-                                            .isEmpty)
+                                          }).isEmpty)
                                     ? (~((13 | 64)))
                                     : (-(var2)))),
                             (par1--),
@@ -1794,8 +1793,7 @@ class X3 extends X1 {
                     4: 'pUc(q',
                     15: 'K\u{1f600}hmdZ\u2665',
                     95: (var1 ? var4 : (var1 ? fld3_0[-45] : foo1_3()))
-                  })
-                              .isNotEmpty
+                  }).isNotEmpty
                           ? ((var1 ? var1 : (var1 ? var1 : foo3_0(var3))) ||
                               foo3_0(var3))
                           : (!(((false || true) ? var1 : false))))
@@ -1993,8 +1991,7 @@ class X3 extends X1 {
                                   95: '\u{1f600}2tIYqE',
                                   43: (true ? 'baf-\u2665' : var4),
                                   30: var7[(-((-68 % ZLibOption.defaultLevel)))]
-                                }))
-                                  .isNotEmpty))
+                                })).isNotEmpty))
                             -13
                           else
                             (var1 ? (-((-(var5[56])))) : (var2--)),
@@ -2156,8 +2153,7 @@ class X3 extends X1 {
                                           ? ((var2--) ?? fld3_2)
                                           : var5[(fld3_2--)])],
                                       52: '(('
-                                    })
-                                        .isEmpty)))
+                                    }).isEmpty)))
                                 ? fld3_0
                                 : {
                                     39: foo1_3(),
