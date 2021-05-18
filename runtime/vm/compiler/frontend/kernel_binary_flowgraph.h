@@ -350,9 +350,12 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildTryFinally();
   Fragment BuildYieldStatement();
   Fragment BuildVariableDeclaration();
-  Fragment BuildFunctionDeclaration();
+  Fragment BuildFunctionDeclaration(intptr_t offset);
   Fragment BuildFunctionNode(TokenPosition parent_position,
-                             StringIndex name_index);
+                             StringIndex name_index,
+                             bool has_valid_annotation,
+                             bool has_pragma,
+                             intptr_t func_decl_offset);
 
   // Build flow graph for '_nativeEffect'.
   Fragment BuildNativeEffect();
