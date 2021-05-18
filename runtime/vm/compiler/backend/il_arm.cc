@@ -6438,17 +6438,15 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, CS);
   }
 }
-
-static bool CanBeImmediateOperand(Value* value) {
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == NULL) ||
-      !compiler::Assembler::IsSafeSmi(constant->value())) {
-    return false;
+static bool CanBePairOfImmediateOperands(Value* value,
+                                         compiler::Operand* low,
+                                         compiler::Operand* high) {
+  int64_t imm;
+  if (value->BindsToConstant() && compiler::HasIntegerValue(value->BoundConstant(), &imm)) {
+    return compiler::Operand::CanHold(Utils::Low32Bits(imm), low) &&
+      compiler::Operand::CanHold(Utils::High32Bits(imm), high);
   }
-
-  compiler::Operand o;
-  const int64_t operand = compiler::target::SmiValue(constant->value());
-  return compiler::Operand::CanHold(operand, &o);
+  return false;
 }
 
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
@@ -6460,9 +6458,11 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
 
-  if ((op_kind() == Token::kBIT_AND || op_kind() == Token::kBIT_OR ||
-      op_kind() == Token::kBIT_XOR || op_kind() == Token::kADD ||
-      op_kind() == Token::kSUB) && CanBeImmediateOperand(right())) {
+  compiler::Operand o;
+  if (CanBePairOfImmediateOperands(right(), &o, &o) &&
+      (op_kind() == Token::kBIT_AND || op_kind() == Token::kBIT_OR ||
+       op_kind() == Token::kBIT_XOR || op_kind() == Token::kADD ||
+       op_kind() == Token::kSUB)) {
     summary->set_in(1, Location::Constant(right()->definition()->AsConstant()));
   } else {
     summary->set_in(1, Location::Pair(Location::RequiresRegister(),
@@ -6487,35 +6487,33 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!CanDeoptimize());
 
   if (locs()->in(1).IsConstant()) {
-    const Object& constant = locs()->in(1).constant();
-    ASSERT(compiler::target::IsSmi(constant));
-    const intptr_t value = compiler::target::SmiValue(constant);
-    compiler::Operand o;
-    if (compiler::Operand::CanHold(value, &o)) {
+    compiler::Operand imm_lo;
+    compiler::Operand imm_hi;
+    if (CanBePairOfImmediateOperands(right(), &imm_lo, &imm_hi)) {
       switch (op_kind()) {
         case Token::kBIT_AND: {
-          __ and_(out_lo, left_lo, o);
-          __ mov(out_hi, compiler::Operand(0));
+          __ and_(out_lo, left_lo, imm_lo);
+          __ and_(out_hi, left_hi, imm_hi);
           break;
         }
         case Token::kBIT_OR: {
-          __ orr(out_lo, left_lo, o);
-          __ mov(out_hi, compiler::Operand(left_hi));
+          __ orr(out_lo, left_lo, imm_lo);
+          __ orr(out_hi, left_hi, imm_hi);
           break;
         }
         case Token::kBIT_XOR: {
-          __ eor(out_lo, left_lo, o);
-          __ mov(out_hi, compiler::Operand(left_hi));
+          __ eor(out_lo, left_lo, imm_lo);
+          __ eor(out_hi, left_hi, imm_hi);
           break;
         }
         case Token::kADD: {
-          __ adds(out_lo, left_lo, o);
-          __ adcs(out_hi, left_hi, compiler::Operand(0));
+          __ adds(out_lo, left_lo, imm_lo);
+          __ adcs(out_hi, left_hi, imm_hi);
           break;
         }
         case Token::kSUB: {
-          __ subs(out_lo, left_lo, o);
-          __ sbcs(out_hi, left_hi, compiler::Operand(0));
+          __ subs(out_lo, left_lo, imm_lo);
+          __ sbcs(out_hi, left_hi, imm_hi);
           break;
         }
         default:
