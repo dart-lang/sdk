@@ -5,7 +5,7 @@
 library PrefixTest;
 
 import "package:expect/expect.dart";
-import "test1.dart";
+import "new_test1.dart";
 
 main() {
   Expect.equals(Prefix.getSource(), Prefix.getImport() + 1);

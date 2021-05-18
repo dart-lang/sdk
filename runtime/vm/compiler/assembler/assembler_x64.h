@@ -976,7 +976,7 @@ class Assembler : public AssemblerBase {
   }
   void LoadCompressedFieldFromOffset(Register dst,
                                      Register base,
-                                     int32_t offset) {
+                                     int32_t offset) override {
     LoadCompressed(dst, FieldAddress(base, offset));
   }
   void LoadIndexedPayload(Register dst,
@@ -1032,8 +1032,10 @@ class Assembler : public AssemblerBase {
   void CompareWithFieldValue(Register value, FieldAddress address) {
     cmpq(value, address);
   }
-  void CompareWithCompressedFieldValue(Register value, FieldAddress address) {
-    OBJ(cmp)(value, address);
+  void CompareWithCompressedFieldFromOffset(Register value,
+                                            Register base,
+                                            int32_t offset) {
+    OBJ(cmp)(value, FieldAddress(base, offset));
   }
 
   void CompareTypeNullabilityWith(Register type, int8_t value) {

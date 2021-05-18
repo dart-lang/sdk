@@ -631,6 +631,9 @@ class AssemblerBase : public StackResource {
 #if defined(DART_COMPRESSED_POINTERS)
   virtual void LoadCompressedField(Register dst,
                                    const FieldAddress& address) = 0;
+  virtual void LoadCompressedFieldFromOffset(Register dst,
+                                             Register base,
+                                             int32_t offset) = 0;
   virtual void StoreCompressedIntoObject(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
@@ -643,6 +646,11 @@ class AssemblerBase : public StackResource {
 #else
   virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
     LoadField(dst, address);
+  }
+  virtual void LoadCompressedFieldFromOffset(Register dst,
+                                             Register base,
+                                             int32_t offset) {
+    LoadFieldFromOffset(dst, base, offset);
   }
   virtual void StoreCompressedIntoObject(
       Register object,      // Object we are storing into.

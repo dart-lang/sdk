@@ -931,6 +931,23 @@ void Assembler::LoadCompressed(Register dest, const Address& slot) {
 #endif
 }
 
+void Assembler::LoadCompressedFromOffset(Register dest,
+                                         Register base,
+                                         int32_t offset) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  LoadFromOffset(dest, base, offset);
+#else
+  if (Address::CanHoldOffset(offset, Address::Offset, kFourBytes)) {
+    ldr(dest, Address(base, offset), kUnsignedFourBytes);  // Zero-extension.
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    ldr(dest, Address(base, 0), kUnsignedFourBytes);  // Zero-extension.
+  }
+  add(dest, dest, Operand(HEAP_BITS, LSL, 32));
+#endif
+}
+
 void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   ldr(dest, slot);

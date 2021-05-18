@@ -1257,6 +1257,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStatement() {
+  intptr_t offset = ReaderOffset();
   Tag tag = ReadTag();  // read tag.
   switch (tag) {
     case kExpressionStatement:
@@ -1300,7 +1301,7 @@ Fragment StreamingFlowGraphBuilder::BuildStatement() {
     case kVariableDeclaration:
       return BuildVariableDeclaration();
     case kFunctionDeclaration:
-      return BuildFunctionDeclaration();
+      return BuildFunctionDeclaration(offset);
     default:
       ReportUnexpectedTag("statement", tag);
       UNREACHABLE();
@@ -4241,7 +4242,9 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(TokenPosition* p) {
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
   ReadPosition();  // read position.
-  return BuildFunctionNode(TokenPosition::kNoSource, StringIndex());
+  return BuildFunctionNode(TokenPosition::kNoSource, StringIndex(),
+                           /*has_valid_annotation=*/false, /*has_pragma=*/false,
+                           /*func_decl_offset=*/0);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* p) {
@@ -5424,16 +5427,39 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
   return instructions;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration() {
-  TokenPosition position = ReadPosition();  // read position.
-  intptr_t variable_offset = ReaderOffset() + data_program_offset_;
+Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration(intptr_t offset) {
+  TokenPosition position = ReadPosition();
+  const intptr_t variable_offset = ReaderOffset() + data_program_offset_;
 
-  // read variable declaration.
+  // Read variable declaration.
   VariableDeclarationHelper helper(this);
+
+  bool has_pragma = false;
+  bool has_valid_annotation = false;
+  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+  const intptr_t annotation_count = ReadListLength();
+  for (intptr_t i = 0; i < annotation_count; ++i) {
+    const intptr_t tag = PeekTag();
+    if (tag != kInvalidExpression) {
+      has_valid_annotation = true;
+    }
+    if (tag == kConstantExpression) {
+      auto& instance = Instance::Handle();
+      instance = constant_reader_.ReadConstantExpression();
+      if (instance.clazz() == IG->object_store()->pragma_class()) {
+        has_pragma = true;
+      }
+      continue;
+    }
+    SkipExpression();
+  }
+  helper.SetJustRead(VariableDeclarationHelper::kAnnotations);
+
   helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
 
   Fragment instructions = DebugStepCheck(position);
-  instructions += BuildFunctionNode(position, helper.name_index_);
+  instructions += BuildFunctionNode(position, helper.name_index_,
+                                    has_valid_annotation, has_pragma, offset);
   instructions += StoreLocal(position, LookupVariable(variable_offset));
   instructions += Drop();
   return instructions;
@@ -5441,7 +5467,10 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration() {
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     TokenPosition parent_position,
-    StringIndex name_index) {
+    StringIndex name_index,
+    bool has_valid_annotation,
+    bool has_pragma,
+    intptr_t func_decl_offset) {
   intptr_t offset = ReaderOffset();
 
   FunctionNodeHelper function_node_helper(this);
@@ -5498,6 +5527,13 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         } else {
           function = Function::NewClosureFunction(
               *name, parsed_function()->function(), position);
+        }
+
+        function.set_has_pragma(has_pragma);
+        if ((FLAG_enable_mirrors && has_valid_annotation) || has_pragma) {
+          auto& lib =
+              Library::Handle(Z, Class::Handle(Z, function.Owner()).library());
+          lib.AddMetadata(function, func_decl_offset);
         }
 
         function.set_is_debuggable(function_node_helper.dart_async_marker_ ==

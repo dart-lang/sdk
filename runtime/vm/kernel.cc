@@ -452,8 +452,16 @@ class MetadataEvaluator : public KernelReaderHelper {
       } else if (tag == kConstructor) {
         ConstructorHelper constructor_helper(this);
         constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
+      } else if (tag == kFunctionDeclaration) {
+        ReadTag();
+        ReadPosition();  // fileOffset
+        VariableDeclarationHelper variable_declaration_helper(this);
+        variable_declaration_helper.ReadUntilExcluding(
+            VariableDeclarationHelper::kAnnotations);
       } else {
-        FATAL("No support for metadata on this type of kernel node\n");
+        FATAL("No support for metadata on this type of kernel node: %" Pd32
+              "\n",
+              tag);
       }
     }
 

@@ -7,7 +7,6 @@ import '../../common_elements.dart' show ElementEnvironment;
 import '../../deferred_load.dart'
     show ImportDescription, OutputUnit, OutputUnitData, deferredPartFileName;
 import '../../elements/entities.dart';
-import '../../deferred_load.dart' show OutputUnit;
 import '../../js/js.dart' as js;
 import '../../options.dart';
 import '../model.dart';

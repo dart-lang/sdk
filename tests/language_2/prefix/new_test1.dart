@@ -6,7 +6,7 @@
 
 library PrefixTest1;
 
-import "test2.dart" as test2;
+import "new_test2.dart" as test2;
 
 class Prefix {
   static const int foo = 43;

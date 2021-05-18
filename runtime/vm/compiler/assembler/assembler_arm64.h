@@ -579,8 +579,11 @@ class Assembler : public AssemblerBase {
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
   }
-  void CompareWithCompressedFieldValue(Register value, FieldAddress address) {
-    CompareWithMemoryValue(value, address, kObjectBytes);
+  void CompareWithCompressedFieldFromOffset(Register value,
+                                            Register base,
+                                            int32_t offset) {
+    LoadCompressedFieldFromOffset(TMP, base, offset);
+    cmp(value, Operand(TMP));
   }
 
   void CompareWithMemoryValue(Register value,
@@ -1702,8 +1705,8 @@ class Assembler : public AssemblerBase {
   }
   void LoadCompressedFieldFromOffset(Register dest,
                                      Register base,
-                                     int32_t offset) {
-    LoadCompressed(dest, FieldAddress(base, offset));
+                                     int32_t offset) override {
+    LoadCompressedFromOffset(dest, base, offset - kHeapObjectTag);
   }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
@@ -1765,6 +1768,7 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadCompressed(Register dest, const Address& slot);
+  void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
   void LoadCompressedSmi(Register dest, const Address& slot);
 
   // Store into a heap object and apply the generational and incremental write
