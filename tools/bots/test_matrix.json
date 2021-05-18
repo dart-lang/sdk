@@ -3105,6 +3105,14 @@
           ]
         },
         {
+          "name": "analyze runtime/tests/concurrency/run_stress_test_shards.dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "runtime/tests/concurrency/run_stress_test_shards.dart"
+          ]
+        },
+        {
           "name": "analyze pkg/analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
