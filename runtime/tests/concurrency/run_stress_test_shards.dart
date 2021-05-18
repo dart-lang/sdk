@@ -116,7 +116,9 @@ final configurations = <TestRunner>[
 main(List<String> arguments) async {
   final parser = ArgParser()
     ..addOption('shards', help: 'number of shards used', defaultsTo: '1')
-    ..addOption('shard', help: 'shard id', defaultsTo: '1');
+    ..addOption('shard', help: 'shard id', defaultsTo: '1')
+    ..addOption('output-directory',
+        help: 'unused parameter to make sharding infra work', defaultsTo: '');
 
   final options = parser.parse(arguments);
   final shards = int.parse(options['shards']);
