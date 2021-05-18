@@ -409,8 +409,11 @@ class Assembler : public AssemblerBase {
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
   }
-  void CompareWithCompressedFieldValue(Register value, FieldAddress address) {
-    CompareWithMemoryValue(value, address);
+  void CompareWithCompressedFieldFromOffset(Register value,
+                                            Register base,
+                                            int32_t offset) {
+    LoadCompressedFieldFromOffset(TMP, base, offset);
+    cmp(value, Operand(TMP));
   }
 
   void CompareWithMemoryValue(Register value, Address address) {
@@ -953,8 +956,13 @@ class Assembler : public AssemblerBase {
   }
   void LoadCompressedFieldFromOffset(Register reg,
                                      Register base,
+                                     int32_t offset) override {
+    LoadCompressedFieldFromOffset(reg, base, offset, kFourBytes, AL);
+  }
+  void LoadCompressedFieldFromOffset(Register reg,
+                                     Register base,
                                      int32_t offset,
-                                     OperandSize type = kFourBytes,
+                                     OperandSize type,
                                      Condition cond = AL) {
     LoadFieldFromOffset(reg, base, offset, type, cond);
   }

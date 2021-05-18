@@ -612,7 +612,7 @@ class Assembler : public AssemblerBase {
   }
   void LoadCompressedFieldFromOffset(Register reg,
                                      Register base,
-                                     int32_t offset) {
+                                     int32_t offset) override {
     LoadFieldFromOffset(reg, base, offset);
   }
   void LoadIndexedPayload(Register dst,

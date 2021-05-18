@@ -499,16 +499,14 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, &is_dynamic);
 
-    __ LoadCompressedField(
+    __ LoadCompressedFieldFromOffset(
+        TTSInternalRegs::kScratchReg, kTypeArgumentsReg,
+        compiler::target::TypeArguments::type_at_offset(type_param.index()));
+    __ CompareWithCompressedFieldFromOffset(
         TTSInternalRegs::kScratchReg,
-        compiler::FieldAddress(kTypeArgumentsReg,
-                               compiler::target::TypeArguments::type_at_offset(
-                                   type_param.index())));
-    __ CompareWithCompressedFieldValue(
-        TTSInternalRegs::kScratchReg,
-        compiler::FieldAddress(TTSInternalRegs::kInstanceTypeArgumentsReg,
-                               compiler::target::TypeArguments::type_at_offset(
-                                   type_param_value_offset_i)));
+        TTSInternalRegs::kInstanceTypeArgumentsReg,
+        compiler::target::TypeArguments::type_at_offset(
+            type_param_value_offset_i));
     __ BranchIf(NOT_EQUAL, check_failed);
   } else {
     const Class& type_class = Class::Handle(type_arg.type_class());
@@ -518,15 +516,14 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
                                   /*include_abstract=*/true,
                                   /*exclude_null=*/!null_is_assignable);
 
-    __ LoadCompressedField(
+    __ LoadCompressedFieldFromOffset(
         TTSInternalRegs::kScratchReg,
-        compiler::FieldAddress(TTSInternalRegs::kInstanceTypeArgumentsReg,
-                               compiler::target::TypeArguments::type_at_offset(
-                                   type_param_value_offset_i)));
-    __ LoadCompressedField(
-        TTSInternalRegs::kScratchReg,
-        compiler::FieldAddress(TTSInternalRegs::kScratchReg,
-                               compiler::target::Type::type_class_id_offset()));
+        TTSInternalRegs::kInstanceTypeArgumentsReg,
+        compiler::target::TypeArguments::type_at_offset(
+            type_param_value_offset_i));
+    __ LoadCompressedFieldFromOffset(
+        TTSInternalRegs::kScratchReg, TTSInternalRegs::kScratchReg,
+        compiler::target::Type::type_class_id_offset());
 
     compiler::Label is_subtype;
     __ SmiUntag(TTSInternalRegs::kScratchReg);
@@ -550,12 +547,11 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
       // and avoid reloading it.
-      __ LoadCompressedField(
+      __ LoadCompressedFieldFromOffset(
           TTSInternalRegs::kScratchReg,
-          compiler::FieldAddress(
-              TTSInternalRegs::kInstanceTypeArgumentsReg,
-              compiler::target::TypeArguments::type_at_offset(
-                  type_param_value_offset_i)));
+          TTSInternalRegs::kInstanceTypeArgumentsReg,
+          compiler::target::TypeArguments::type_at_offset(
+              type_param_value_offset_i));
       __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
                                     compiler::target::Nullability::kNullable);
       __ BranchIf(EQUAL, check_failed);
