@@ -9,13 +9,15 @@ import "package:expect/expect.dart";
 
 main() {
   String a = "a";
-  for (; a.length < 256 * 1024 * 1024;) a = a + a;
 
   var exception_thrown = false;
   try {
-    var concat = "$a$a$a$a$a$a$a$a";
+    while (true) {
+      a = "$a$a";
+    }
   } on OutOfMemoryError catch (exc) {
     exception_thrown = true;
   }
   Expect.isTrue(exception_thrown);
+  Expect.isTrue(a.startsWith('aaaaa') && a.length > 1024);
 }
