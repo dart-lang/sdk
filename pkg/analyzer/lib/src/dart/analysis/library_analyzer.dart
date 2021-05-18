@@ -299,6 +299,8 @@ class LibraryAnalyzer {
       verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
+      verifier.generateUnnecessaryImportHints(
+          errorReporter, _usedImportedElementsList);
     }
 
     // Unused local elements.

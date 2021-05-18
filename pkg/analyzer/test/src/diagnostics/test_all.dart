@@ -34,6 +34,8 @@ import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'avoid_types_as_parameter_names_test.dart'
+    as avoid_types_as_parameter_names;
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
@@ -646,6 +648,7 @@ import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
+import 'unnecessary_import_test.dart' as unnecessary_import;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
@@ -709,6 +712,7 @@ main() {
     assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
+    avoid_types_as_parameter_names.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
     binary_operator_written_out.main();
@@ -1115,6 +1119,7 @@ main() {
     undefined_setter.main();
     undefined_shown_name.main();
     unignorable_ignore.main();
+    unnecessary_import.main();
     unnecessary_cast.main();
     unnecessary_ignore.main();
     unnecessary_no_such_method.main();

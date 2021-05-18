@@ -2684,6 +2684,12 @@ class HintCode extends AnalyzerErrorCode {
           "Try removing the name from the list, or removing the whole comment "
           "if this is the only name in the list.");
 
+  static const HintCode UNNECESSARY_IMPORT = HintCode(
+      'UNNECESSARY_IMPORT',
+      "The import of '{0}' is unnecessary as all of the used elements are also "
+          "provided by the import of '{1}'.",
+      correction: 'Try removing the import directive.');
+
   /**
    * Unnecessary `noSuchMethod` declaration.
    */

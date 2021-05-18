@@ -24,7 +24,7 @@ class CreateCommand extends DartdevCommand {
       generators.map((generator) => generator.id).toList();
 
   CreateCommand({bool verbose = false})
-      : super(cmdName, 'Create a new Dart project.') {
+      : super(cmdName, 'Create a new Dart project.', verbose) {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds,

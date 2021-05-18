@@ -19,6 +19,9 @@ const String _analyzeDescriptionText = 'Analyze Dart code in a directory.';
 const String _analyzeUsageText =
     'Usage: dart analyze [arguments] [<directory>]';
 
+const String _analyzeVerboseUsageText =
+    'Usage: dart [vm-options] analyze [arguments] [<directory>]';
+
 const String _unusedImportAnalysisOptions = '''
 analyzer:
   errors:
@@ -70,6 +73,16 @@ void defineAnalyze() {
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains(_analyzeDescriptionText));
     expect(result.stdout, contains(_analyzeUsageText));
+  });
+
+  test('--help --verbose', () {
+    p = project();
+    var result = p.runSync(['analyze', '--help', '--verbose']);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(_analyzeDescriptionText));
+    expect(result.stdout, contains(_analyzeVerboseUsageText));
   });
 
   test('multiple directories', () {

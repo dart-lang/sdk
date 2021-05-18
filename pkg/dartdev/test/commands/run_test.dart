@@ -28,6 +28,28 @@ void run() {
 
     expect(result.stdout, contains('Run a Dart program.'));
     expect(result.stdout, contains('Debugging options:'));
+    expect(
+      result.stdout,
+      contains(
+        'Usage: dart run [arguments] [<dart-file|package-target> [args]]',
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('--help --verbose', () {
+    p = project();
+    var result = p.runSync(['run', '--help', '--verbose']);
+
+    expect(result.stdout, contains('Run a Dart program.'));
+    expect(result.stdout, contains('Debugging options:'));
+    expect(
+      result.stdout,
+      contains(
+        'Usage: dart [vm-options] run [arguments] [<dart-file|package-target> [args]]',
+      ),
+    );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });

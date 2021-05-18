@@ -922,7 +922,8 @@ class _ElementWriter {
       }
     }
 
-    if (e.enclosingElement is ClassElement) {
+    if (e.enclosingElement is ClassElement ||
+        e.enclosingElement is ExtensionElement) {
       writeDocumentation(e, '  ');
       writeMetadata(e, '  ', '\n');
 

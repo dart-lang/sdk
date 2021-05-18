@@ -13106,6 +13106,21 @@ final C<B> c;
 ''');
   }
 
+  test_type_inference_using_extension_getter() async {
+    var library = await checkLibrary('''
+extension on String {
+  int get foo => 0;
+}
+var v = 'a'.foo;
+''');
+    checkElementText(library, '''
+extension  on String {
+  int get foo {}
+}
+int v;
+''');
+  }
+
   test_type_invalid_topLevelVariableElement_asType() async {
     var library = await checkLibrary('''
 class C<T extends V> {}

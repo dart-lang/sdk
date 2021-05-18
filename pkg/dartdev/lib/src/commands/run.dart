@@ -41,6 +41,7 @@ class RunCommand extends DartdevCommand {
       : super(
           cmdName,
           'Run a Dart program.',
+          verbose,
         ) {
     // NOTE: When updating this list of flags, be sure to add any VM flags to
     // the list of flags in Options::ProcessVMDebuggingOptions in
@@ -167,7 +168,8 @@ class RunCommand extends DartdevCommand {
   }
 
   @override
-  String get invocation => '${super.invocation} <dart file | package target>';
+  String get invocation =>
+      '${super.invocation} [<dart-file|package-target> [args]]';
 
   @override
   FutureOr<int> run() async {

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-11T11:47:02.674706",
+  "generated": "2021-05-17T10:34:01.378194",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -409,6 +409,12 @@
     {
       "name": "linter",
       "rootUri": "../third_party/pkg/linter",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "lints",
+      "rootUri": "../third_party/pkg/lints",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },

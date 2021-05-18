@@ -219,7 +219,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
-    element.hasImplicitType = node.type == null && node.parameters == null;
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/46039
+    // element.hasImplicitType = node.type == null && node.parameters == null;
+    element.hasImplicitType = false;
+
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
@@ -631,18 +635,31 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     required PropertyAccessorElementImpl accessorElement,
   }) {
     var enclosingRef = _enclosingContext.reference;
-    var isTopLevel = enclosingRef.isUnit;
-    var containerName = isTopLevel ? '@variable' : '@field';
-    var containerRef = enclosingRef.getChild(containerName);
+    var enclosingElement = _enclosingContext.element;
 
-    var propertyRef = containerRef.getChild(name);
-    var property = propertyRef.element as PropertyInducingElementImpl?;
-    if (property == null) {
-      var variable = TopLevelVariableElementImpl(name, -1);
-      variable.isSynthetic = true;
-      variable.isFinal = accessorElement.isGetter;
-      property = variable;
-      _enclosingContext.addTopLevelVariable(name, variable);
+    PropertyInducingElementImpl? property;
+    if (enclosingElement is CompilationUnitElement) {
+      var containerRef = enclosingRef.getChild('@variable');
+      var propertyRef = containerRef.getChild(name);
+      property = propertyRef.element as PropertyInducingElementImpl?;
+      if (property == null) {
+        var variable = TopLevelVariableElementImpl(name, -1);
+        variable.isSynthetic = true;
+        variable.isFinal = accessorElement.isGetter;
+        _enclosingContext.addTopLevelVariable(name, variable);
+        property = variable;
+      }
+    } else {
+      var containerRef = enclosingRef.getChild('@field');
+      var propertyRef = containerRef.getChild(name);
+      property = propertyRef.element as PropertyInducingElementImpl?;
+      if (property == null) {
+        var field = FieldElementImpl(name, -1);
+        field.isSynthetic = true;
+        field.isFinal = accessorElement.isGetter;
+        _enclosingContext.addField(name, field);
+        property = field;
+      }
     }
 
     accessorElement.variable = property;

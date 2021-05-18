@@ -26,7 +26,7 @@ This tool looks for and fixes analysis issues that have associated automated fix
 
 To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed changes for a project, or ['dart fix --apply'] to apply the changes.''';
 
-  FixCommand({bool verbose = false}) : super(cmdName, cmdDescription) {
+  FixCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag('dry-run',
         abbr: 'n',
         defaultsTo: false,

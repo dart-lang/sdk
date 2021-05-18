@@ -33,7 +33,6 @@ class AddMissingRequiredArgumentTest extends FixProcessorTest {
   Future<void> test_constructor_flutter_children() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required List<Widget> children});
@@ -45,7 +44,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required List<Widget> children});
@@ -60,7 +58,6 @@ build() {
   Future<void> test_constructor_flutter_hasTrailingComma() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required int a, @required int b});
@@ -72,7 +69,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required int a, @required int b});
@@ -335,7 +331,6 @@ main() {
   Future<void> test_param_child() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required Widget child});
@@ -349,7 +344,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required Widget child});
@@ -367,7 +361,6 @@ build() {
   Future<void> test_param_children() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required List<Widget> children});
@@ -381,7 +374,6 @@ build() {
 ''');
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
   MyWidget({@required String foo, @required List<Widget> children});
