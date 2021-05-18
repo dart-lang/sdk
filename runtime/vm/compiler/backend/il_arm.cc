@@ -6438,6 +6438,17 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, CS);
   }
 }
+  
+static bool CanBePairOfImmediateOperands(Value* value,
+                                         compiler::Operand* low,
+                                         compiler::Operand* high) {
+  int64_t imm;
+  if (value->BindsToConstant() && compiler::HasIntegerValue(value->BoundConstant(), &imm)) {
+    return compiler::Operand::CanHold(Utils::Low32Bits(imm), low) &&
+      compiler::Operand::CanHold(Utils::High32Bits(imm), high);
+  }
+  return false;
+}
 
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
@@ -6447,8 +6458,17 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                    Location::RequiresRegister()));
+
+  compiler::Operand o;
+  if (CanBePairOfImmediateOperands(right(), &o, &o) &&
+      (op_kind() == Token::kBIT_AND || op_kind() == Token::kBIT_OR ||
+       op_kind() == Token::kBIT_XOR || op_kind() == Token::kADD ||
+       op_kind() == Token::kSUB)) {
+    summary->set_in(1, Location::Constant(right()->definition()->AsConstant()));
+  } else {
+    summary->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                      Location::RequiresRegister()));
+  }
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
   if (op_kind() == Token::kMUL) {
@@ -6461,14 +6481,21 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
-  PairLocation* right_pair = locs()->in(1).AsPairLocation();
-  Register right_lo = right_pair->At(0).reg();
-  Register right_hi = right_pair->At(1).reg();
   PairLocation* out_pair = locs()->out(0).AsPairLocation();
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
   ASSERT(!can_overflow());
   ASSERT(!CanDeoptimize());
+
+  compiler::Operand right_lo, right_hi;
+  if (locs()->in(1).IsConstant()) {
+    const bool ok = CanBePairOfImmediateOperands(right(), &right_lo, &right_hi);
+    RELEASE_ASSERT(ok);
+  } else {
+    PairLocation* right_pair = locs()->in(1).AsPairLocation();
+    right_lo = compiler::Operand(right_pair->At(0).reg());
+    right_hi = compiler::Operand(right_pair->At(1).reg());
+  }
 
   switch (op_kind()) {
     case Token::kBIT_AND: {
@@ -6497,12 +6524,15 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMUL: {
+      PairLocation* right_pair = locs()->in(1).AsPairLocation();
+      Register right_lo_reg = right_pair->At(0).reg();
+      Register right_hi_reg = right_pair->At(1).reg();
       // Compute 64-bit a * b as:
       //     a_l * b_l + (a_h * b_l + a_l * b_h) << 32
       Register temp = locs()->temp(0).reg();
-      __ mul(temp, left_lo, right_hi);
-      __ mla(out_hi, left_hi, right_lo, temp);
-      __ umull(out_lo, temp, left_lo, right_lo);
+      __ mul(temp, left_lo, right_hi_reg);
+      __ mla(out_hi, left_hi, right_lo_reg, temp);
+      __ umull(out_lo, temp, left_lo, right_lo_reg);
       __ add(out_hi, out_hi, compiler::Operand(temp));
       break;
     }

@@ -2947,12 +2947,12 @@ class TypeInferrerImpl implements TypeInferrer {
       expression ??= new FunctionInvocation(
           target.isNullableCallFunction
               ? FunctionAccessKind.Nullable
-              : (inferredFunctionType == unknownFunction
+              : (identical(inferredFunctionType, unknownFunction)
                   ? FunctionAccessKind.Function
                   : FunctionAccessKind.FunctionType),
           receiver,
           arguments,
-          functionType: inferredFunctionType == unknownFunction
+          functionType: identical(inferredFunctionType, unknownFunction)
               ? null
               : inferredFunctionType)
         ..fileOffset = fileOffset;

@@ -51,7 +51,7 @@ class SyntaxTracker {
       '(${[x, y].where((v) => v is! Absent).join(', ')})';
 
   static String typeArgs(Type T, Type U) =>
-      T.toString() == 'dynamic' ? '' : '<${syntax(T)}, ${syntax(U)}>';
+      T == dynamic && U == dynamic ? '' : '<${syntax(T)}, ${syntax(U)}>';
 
   /// Simple objects with known syntactic representations.  Tests can add to
   /// this map.

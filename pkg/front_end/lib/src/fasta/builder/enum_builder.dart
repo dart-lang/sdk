@@ -16,6 +16,8 @@ import 'package:kernel/ast.dart'
         Expression,
         Field,
         FieldInitializer,
+        InstanceAccessKind,
+        InstanceGet,
         IntLiteral,
         InterfaceType,
         ListLiteral,
@@ -436,8 +438,15 @@ class EnumBuilder extends SourceClassBuilder {
     nameFieldBuilder.build(libraryBuilder);
     Field nameField = nameFieldBuilder.field;
     ProcedureBuilder toStringBuilder = firstMemberNamed("toString");
-    toStringBuilder.body = new ReturnStatement(
-        new PropertyGet(new ThisExpression(), nameField.name, nameField));
+    if (libraryBuilder
+        .loader.target.backendTarget.supportsNewMethodInvocationEncoding) {
+      toStringBuilder.body = new ReturnStatement(new InstanceGet(
+          InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+          interfaceTarget: nameField, resultType: nameField.type));
+    } else {
+      toStringBuilder.body = new ReturnStatement(
+          new PropertyGet(new ThisExpression(), nameField.name, nameField));
+    }
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo enumConstantInfo in enumConstantInfos) {
