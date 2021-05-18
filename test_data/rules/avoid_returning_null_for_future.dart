@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N avoid_returning_null_for_future`
 
+// @dart=2.8
+
 import 'dart:async';
 
 Future f1() => null; // LINT

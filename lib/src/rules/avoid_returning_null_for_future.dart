@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -30,9 +31,13 @@ class AvoidReturningNullForFuture extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addExpressionFunctionBody(this, visitor);
-    registry.addReturnStatement(this, visitor);
+    // In a Null Safety library, this lint is covered by other formal static
+    // analysis.
+    if (!context.isEnabled(Feature.non_nullable)) {
+      var visitor = _Visitor(this);
+      registry.addExpressionFunctionBody(this, visitor);
+      registry.addReturnStatement(this, visitor);
+    }
   }
 }
 
