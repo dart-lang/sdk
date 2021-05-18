@@ -413,8 +413,8 @@ class StaticError implements Comparable<StaticError> {
       }
 
       if (actual.length != null && length != actual.length) {
-        expectedMismatches.add("length $column");
-        actualMismatches.add("length ${actual.column}");
+        expectedMismatches.add("length $length");
+        actualMismatches.add("length ${actual.length}");
       }
     }
 

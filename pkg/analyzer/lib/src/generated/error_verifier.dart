@@ -1812,7 +1812,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (error is IncompatibleInterfacesClassHierarchyError) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-          node,
+          node.name,
           [
             _enclosingClass!.name,
             error.first.getDisplayString(withNullability: true),

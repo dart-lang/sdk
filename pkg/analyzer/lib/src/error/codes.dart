@@ -1655,7 +1655,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class I<T> {}
   // class A implements I<int> {}
   // class B implements I<String> {}
-  // [!class C extends A implements B {}!]
+  // class [!C!] extends A implements B {}
   // ```
   //
   // #### Common fixes
