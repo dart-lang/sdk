@@ -280,7 +280,7 @@ Future<void> testAOT(String dillPath,
 
       // Not every byte is accounted for by the snapshot profile, and data and
       // instruction segments are padded to an alignment boundary.
-      final tolerance = 0.03 * actualSize + 2 * segmentAlignment;
+      final tolerance = 0.04 * actualSize + 2 * segmentAlignment;
 
       Expect.approxEquals(
           expectedSize,
