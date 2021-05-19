@@ -11054,6 +11054,96 @@ const int a;
         withFullyResolvedAst: true);
   }
 
+  test_metadata_inAliasedElement_formalParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function(@a int first)
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int first);
+  aliasedElement
+    parameters
+      first
+        metadata
+          Annotation
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_formalParameter2() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function(int foo(@a int bar))
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int Function(int) foo);
+  aliasedElement
+    parameters
+      foo
+          parameters
+            bar
+              metadata
+                Annotation
+                  element: self::@getter::a
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::a
+                    staticType: null
+                    token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_typeParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function<@a T>(int first)
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int first);
+  aliasedElement
+    typeParameters
+      T
+        bound: null
+        defaultType: null
+        metadata
+          Annotation
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a
+    parameters
+      first
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_metadata_invalid_classDeclaration() async {
     var library = await checkLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
