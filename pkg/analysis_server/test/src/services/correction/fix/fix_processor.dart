@@ -232,6 +232,22 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     expect(resultCode, expected);
   }
 
+  /// Computes an error from [errorFilter], and verifies that
+  /// [expectedNumberOfFixesForKind] fixes of the appropriate kind are found,
+  /// and that they have messages equal to [matchFixMessages].
+  Future<void> assertHasFixesWithoutApplying({
+    bool Function(AnalysisError)? errorFilter,
+    required int expectedNumberOfFixesForKind,
+    required List<String> matchFixMessages,
+  }) async {
+    var error = await _findErrorToFix(errorFilter: errorFilter);
+    await _assertHasFixes(
+      error,
+      expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
+      matchFixMessages: matchFixMessages,
+    );
+  }
+
   Future<void> assertHasFixWithoutApplying(
       {bool Function(AnalysisError)? errorFilter}) async {
     var error = await _findErrorToFix(errorFilter: errorFilter);
@@ -283,9 +299,14 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     useLineEndingsForPlatform = true;
   }
 
-  /// Computes fixes and verifies that there is a fix for the given [error] of the appropriate kind.
-  /// Optionally, if a [matchFixMessage] is passed, then the kind as well as the fix message must
-  /// match to be returned.
+  /// Computes fixes, verifies that there is a fix for the given [error] of
+  /// the appropriate kind, and returns the fix.
+  ///
+  /// If a [matchFixMessage] is passed, then the kind as well as the fix message
+  /// must match to be returned.
+  ///
+  /// If [expectedNumberOfFixesForKind] is non-null, then the number of fixes
+  /// for [kind] is verified to be [expectedNumberOfFixesForKind].
   Future<Fix> _assertHasFix(AnalysisError error,
       {int? expectedNumberOfFixesForKind,
       String? matchFixMessage,
@@ -294,16 +315,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     var fixes = await _computeFixes(error);
 
     if (expectedNumberOfFixesForKind != null) {
-      var actualNumberOfFixesForKind = 0;
-      for (var fix in fixes) {
-        if (fix.kind == kind) {
-          actualNumberOfFixesForKind++;
-        }
-      }
-      if (actualNumberOfFixesForKind != expectedNumberOfFixesForKind) {
-        fail('Expected $expectedNumberOfFixesForKind fixes of kind $kind,'
-            ' but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}');
-      }
+      _assertNumberOfFixesForKind(fixes, expectedNumberOfFixesForKind);
     }
 
     // If a matchFixMessage was provided,
@@ -364,6 +376,21 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     return foundFix;
   }
 
+  /// Computes fixes and verifies that there are [expectedNumberOfFixesForKind]
+  /// fixes for the given [error] of the appropriate kind, and that the messages
+  /// of the fixes are equal to [matchFixMessages].
+  Future<void> _assertHasFixes(
+    AnalysisError error, {
+    required int expectedNumberOfFixesForKind,
+    required List<String> matchFixMessages,
+  }) async {
+    // Compute the fixes for this AnalysisError
+    var fixes = await _computeFixes(error);
+    _assertNumberOfFixesForKind(fixes, expectedNumberOfFixesForKind);
+    var actualFixMessages = [for (var fix in fixes) fix.change.message];
+    expect(actualFixMessages, containsAllInOrder(matchFixMessages));
+  }
+
   Future<void> _assertNoFix(AnalysisError error) async {
     var fixes = await _computeFixes(error);
     for (var fix in fixes) {
@@ -383,6 +410,16 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       if (fix.kind == kind && fix.isFixAllFix()) {
         fail('Unexpected fix $kind in\n${fixes.join('\n')}');
       }
+    }
+  }
+
+  void _assertNumberOfFixesForKind(
+      List<Fix> fixes, int expectedNumberOfFixesForKind) {
+    var actualNumberOfFixesForKind =
+        fixes.where((fix) => fix.kind == kind).length;
+    if (actualNumberOfFixesForKind != expectedNumberOfFixesForKind) {
+      fail('Expected $expectedNumberOfFixesForKind fixes of kind $kind,'
+          ' but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}');
     }
   }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -172,6 +173,12 @@ main() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
         matchFixMessage: "Import library 'a.dart'");
+    await assertHasFixesWithoutApplying(
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessages: [
+          "Import library 'package:test/a.dart'",
+          "Import library 'a.dart'",
+        ]);
   }
 
   Future<void> test_relativeDirective_downOneDirectory() async {
@@ -188,6 +195,29 @@ main() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
         matchFixMessage: "Import library 'dir/a.dart'");
+  }
+
+  Future<void> test_relativeDirective_preferRelativeImports() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_relative_imports]);
+    addSource('/home/test/lib/a.dart', '''
+class Foo {}
+''');
+    await resolveTestCode('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'a.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'a.dart'");
+    await assertHasFixesWithoutApplying(
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessages: [
+          "Import library 'a.dart'",
+          "Import library 'package:test/a.dart'",
+        ]);
   }
 
   Future<void> test_relativeDirective_upOneDirectory() async {
