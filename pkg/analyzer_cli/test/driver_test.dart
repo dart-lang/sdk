@@ -470,6 +470,22 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
 
+  Future<void> test_multiple_inputs_two_directories() async {
+    await driveMany([
+      'data/multiple_inputs_two_directories/bin',
+      'data/multiple_inputs_two_directories/lib',
+    ]);
+    expect(outSink.toString(), contains('2 errors found.'));
+  }
+
+  Future<void> test_multiple_inputs_two_files() async {
+    await driveMany([
+      'data/multiple_inputs_two_directories/bin/a.dart',
+      'data/multiple_inputs_two_directories/lib/b.dart',
+    ]);
+    expect(outSink.toString(), contains('2 errors found.'));
+  }
+
   Future<void> test_todo() async {
     await drive('data/file_with_todo.dart');
     expect(outSink.toString().contains('[info]'), isFalse);
