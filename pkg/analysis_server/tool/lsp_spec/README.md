@@ -89,6 +89,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/references | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/documentHighlight | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/documentSymbol | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/selectionRanges | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (refactors) | ✅ | ✅ | | ✅ | ✅ |

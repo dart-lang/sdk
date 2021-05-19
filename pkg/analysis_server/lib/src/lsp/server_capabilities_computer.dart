@@ -37,6 +37,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_codeAction,
     Method.textDocument_rename,
     Method.textDocument_foldingRange,
+    Method.textDocument_selectionRange,
     // workspace.fileOperations covers all file operation methods but we only
     // support this one.
     Method.workspace_willRenameFiles,
@@ -91,6 +92,9 @@ class ClientDynamicRegistrations {
 
   bool get rename =>
       _capabilities.textDocument?.rename?.dynamicRegistration ?? false;
+
+  bool get selectionRange =>
+      _capabilities.textDocument?.selectionRange?.dynamicRegistration ?? false;
 
   bool get semanticTokens =>
       _capabilities.textDocument?.semanticTokens?.dynamicRegistration ?? false;
@@ -231,6 +235,10 @@ class ServerCapabilitiesComputer {
               FoldingRangeRegistrationOptions>.t1(
               true,
             ),
+      selectionRangeProvider: dynamicRegistrations.selectionRange
+          ? null
+          : Either3<bool, SelectionRangeOptions,
+              SelectionRangeRegistrationOptions>.t1(true),
       semanticTokensProvider: dynamicRegistrations.semanticTokens
           ? null
           : Either2<SemanticTokensOptions,
@@ -455,6 +463,13 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.didChangeConfiguration,
       Method.workspace_didChangeConfiguration,
+    );
+    register(
+      dynamicRegistrations.selectionRange,
+      Method.textDocument_selectionRange,
+      SelectionRangeRegistrationOptions(
+        documentSelector: [dartFiles],
+      ),
     );
     register(
       dynamicRegistrations.semanticTokens,
