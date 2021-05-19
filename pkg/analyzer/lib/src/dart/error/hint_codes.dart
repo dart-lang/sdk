@@ -96,6 +96,37 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Replace the '.' with a '?.' in the invocation.");
 
   /**
+   * Generate a hint for method, property or function annotated with
+   * `@useResult` whose invocation is unchecked.
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   */
+  static const HintCode UNUSED_RESULT = HintCode(
+      'UNUSED_RESULT', "'{0}' should be used.",
+      correction:
+          "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+      hasPublishedDocs: false);
+
+  /**
+   * Generate a hint for method, property or function annotated with
+   * `@useResult` whose invocation is unchecked.
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   * 1: message details
+   */
+  static const HintCode UNUSED_RESULT_WITH_MESSAGE = HintCode(
+    'UNUSED_RESULT',
+    "'{0}' should be used. {1}.",
+    // todo(pq): consider passing in correction details: https://github.com/dart-lang/sdk/issues/46066
+    correction:
+        "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+    hasPublishedDocs: false,
+    uniqueName: 'HintCode.UNUSED_RESULT_WITH_MESSAGE',
+  );
+
+  /**
    * Dead code is code that is never reached, this can happen for instance if a
    * statement follows a return statement.
    *

@@ -2006,6 +2006,13 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// specific set of target element kinds.
   static const String _TARGET_CLASS_NAME = 'Target';
 
+  /// The name of the class used to mark a returned element as requiring use.
+  static const String _USE_RESULT_CLASS_NAME = "UseResult";
+
+  /// The name of the top-level variable used to mark a returned element as
+  /// requiring use.
+  static const String _USE_RESULT_VARIABLE_NAME = "useResult";
+
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
   static const String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME =
@@ -2117,6 +2124,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isTarget => _isConstructor(
       libraryName: _META_META_LIB_NAME, className: _TARGET_CLASS_NAME);
+
+  @override
+  bool get isUseResult =>
+      _isConstructor(
+          libraryName: _META_LIB_NAME, className: _USE_RESULT_CLASS_NAME) ||
+      _isPackageMetaGetter(_USE_RESULT_VARIABLE_NAME);
 
   @override
   bool get isVisibleForTemplate => _isTopGetter(
@@ -2491,6 +2504,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isSealed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasUseResult {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isUseResult) {
         return true;
       }
     }
@@ -4869,6 +4894,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasSealed => false;
+
+  @override
+  bool get hasUseResult => false;
 
   @override
   bool get hasVisibleForTemplate => false;
