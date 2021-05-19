@@ -4,21 +4,16 @@
 
 part of js_ast;
 
-typedef String Renamer(Name name);
-
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
-  final Renamer renamerForNames;
 
-  const JavaScriptPrintingOptions(
-      {this.shouldCompressOutput: false,
-      this.minifyLocalVariables: false,
-      this.preferSemicolonToNewlineInMinifiedOutput: false,
-      this.renamerForNames: identityRenamer});
-
-  static String identityRenamer(Name name) => name.name;
+  const JavaScriptPrintingOptions({
+    this.shouldCompressOutput: false,
+    this.minifyLocalVariables: false,
+    this.preferSemicolonToNewlineInMinifiedOutput: false,
+  });
 }
 
 /// An environment in which JavaScript printing is done.  Provides emitting of
@@ -1148,7 +1143,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitName(Name node) {
-    out(options.renamerForNames(node));
+    out(node.name);
   }
 
   @override
