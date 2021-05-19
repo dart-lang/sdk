@@ -7,6 +7,7 @@ library js_ast;
 import 'dart:collection' show IterableBase;
 import 'src/precedence.dart';
 import 'src/characters.dart' as charCodes;
+import 'src/strings.dart';
 
 part 'src/nodes.dart';
 part 'src/builder.dart';

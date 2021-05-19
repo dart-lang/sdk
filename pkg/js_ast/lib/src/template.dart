@@ -268,7 +268,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
-      if (value is String) return new LiteralString('"$value"');
+      if (value is String) return LiteralString(value);
       throw error(
           'Interpolated value #$nameOrPosition is not a selector: $value');
     };
