@@ -20,9 +20,7 @@ testExpression(String expression, [String expect = ""]) {
 
 testError(String expression, [String expect = ""]) {
   bool doCheck(exception) {
-    final exceptionText = '$exception';
-    Expect.isTrue(exceptionText.contains(expect),
-        'Missing "$expect" in "$exceptionText"');
+    Expect.isTrue(exception.toString().contains(expect));
     return true;
   }
 
@@ -67,9 +65,9 @@ void main() {
   // String literal with \n.
   testExpression(r'var x = "\n"');
   // String literal with escaped quote.
-  testExpression(r'''var x = "\""''', r"""var x = '"'""");
+  testExpression(r'var x = "\""');
   // *No clever escapes.
-  testError(r'var x = "\x42"', 'Hex escapes not supported');
+  testError(r'var x = "\x42"', 'escapes are not allowed in literals');
   // Operator new.
   testExpression('new Foo()');
   // New with dotted access.
@@ -170,7 +168,7 @@ void main() {
   testExpression("x << y + 1");
   testExpression("x <<= y + 1");
   // Array initializers.
-  testExpression('x = ["foo", "bar", x[4]]');
+  testExpression("x = ['foo', 'bar', x[4]]");
   testExpression("[]");
   testError("[42 42]");
   testExpression('beebop([1, 2, 3])');

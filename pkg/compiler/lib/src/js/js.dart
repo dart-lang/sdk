@@ -157,7 +157,7 @@ class UnparsedNode extends DeferredString implements AstContainer {
           }
         }
       }
-      _cachedLiteral = js.string(text);
+      _cachedLiteral = js.escapedString(text);
     }
     return _cachedLiteral;
   }

@@ -5,16 +5,14 @@
 part of js_ast;
 
 class JavaScriptPrintingOptions {
-  final bool utf8;
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
 
   const JavaScriptPrintingOptions({
-    this.utf8 = false,
-    this.shouldCompressOutput = false,
-    this.minifyLocalVariables = false,
-    this.preferSemicolonToNewlineInMinifiedOutput = false,
+    this.shouldCompressOutput: false,
+    this.minifyLocalVariables: false,
+    this.preferSemicolonToNewlineInMinifiedOutput: false,
   });
 }
 
@@ -58,10 +56,11 @@ class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
   String getText() => buffer.toString();
 }
 
-String DebugPrint(Node node, {bool utf8 = false}) {
-  JavaScriptPrintingOptions options = JavaScriptPrintingOptions(utf8: utf8);
-  SimpleJavaScriptPrintingContext context = SimpleJavaScriptPrintingContext();
-  Printer printer = Printer(options, context);
+String DebugPrint(Node node) {
+  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
+  SimpleJavaScriptPrintingContext context =
+      new SimpleJavaScriptPrintingContext();
+  Printer printer = new Printer(options, context);
   printer.visit(node);
   return context.getText();
 }
@@ -84,8 +83,8 @@ class Printer implements NodeVisitor {
   // A cache of all indentation strings used so far.
   List<String> _indentList = <String>[""];
 
-  static final identifierCharacterRegExp = RegExp(r'^[a-zA-Z_0-9$]');
-  static final expressionContinuationRegExp = RegExp(r'^[-+([]');
+  static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
+  static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
 
   Printer(JavaScriptPrintingOptions options, JavaScriptPrintingContext context)
       : options = options,
@@ -727,10 +726,10 @@ class Printer implements NodeVisitor {
       if (value is This) return true;
       if (value is LiteralNull) return true;
       if (value is LiteralNumber) return true;
-      if (value is LiteralString && value.value.length <= 6) return true;
+      if (value is LiteralString && value.value.length <= 8) return true;
       if (value is ObjectInitializer && value.properties.isEmpty) return true;
       if (value is ArrayInitializer && value.elements.isEmpty) return true;
-      if (value is Name && value.name.length <= 6) return true;
+      if (value is Name && value.name.length <= 8) return true;
     }
     return false;
   }
@@ -1019,24 +1018,24 @@ class Printer implements NodeVisitor {
   }
 
   bool isValidJavaScriptId(String field) {
-    if (field.length == 0) return false;
+    if (field.length < 3) return false;
     // Ignore the leading and trailing string-delimiter.
-    for (int i = 0; i < field.length; i++) {
+    for (int i = 1; i < field.length - 1; i++) {
       // TODO(floitsch): allow more characters.
       int charCode = field.codeUnitAt(i);
       if (!(charCodes.$a <= charCode && charCode <= charCodes.$z ||
           charCodes.$A <= charCode && charCode <= charCodes.$Z ||
           charCode == charCodes.$$ ||
           charCode == charCodes.$_ ||
-          i > 0 && isDigit(charCode))) {
+          i != 1 && isDigit(charCode))) {
         return false;
       }
     }
     // TODO(floitsch): normally we should also check that the field is not a
     // reserved word.  We don't generate fields with reserved word names except
     // for 'super'.
-    if (field == 'super') return false;
-    if (field == 'catch') return false;
+    if (field == '"super"') return false;
+    if (field == '"catch"') return false;
     return true;
   }
 
@@ -1044,41 +1043,35 @@ class Printer implements NodeVisitor {
   void visitAccess(PropertyAccess access) {
     visitNestedExpression(access.receiver, CALL,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
-
     Node selector = undefer(access.selector);
     if (selector is LiteralString) {
-      _dotString(access.selector, access.receiver, selector.value);
-      return;
-    } else if (selector is StringConcatenation) {
-      _dotString(access.selector, access.receiver,
-          _StringContentsCollector().collect(selector));
-      return;
+      String fieldWithQuotes = selector.value;
+      if (isValidJavaScriptId(fieldWithQuotes)) {
+        if (access.receiver is LiteralNumber &&
+            lastCharCode != charCodes.$CLOSE_PAREN) {
+          out(" ", isWhitespace: true);
+        }
+        out(".");
+        startNode(access.selector);
+        out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
+        endNode(access.selector);
+        return;
+      }
     } else if (selector is Name) {
-      _dotString(access.selector, access.receiver, selector.name);
+      Node receiver = undefer(access.receiver);
+      if (receiver is LiteralNumber && lastCharCode != charCodes.$CLOSE_PAREN) {
+        out(" ", isWhitespace: true);
+      }
+      out(".");
+      startNode(access.selector);
+      selector.accept(this);
+      endNode(access.selector);
       return;
     }
-
-    out('[');
+    out("[");
     visitNestedExpression(access.selector, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
-    out(']');
-  }
-
-  void _dotString(Node selector, Node receiver, String selectorValue) {
-    if (isValidJavaScriptId(selectorValue)) {
-      if (undefer(receiver) is LiteralNumber &&
-          lastCharCode != charCodes.$CLOSE_PAREN) {
-        out(' ', isWhitespace: true);
-      }
-      out('.');
-      startNode(selector);
-      out(selectorValue);
-      endNode(selector);
-    } else {
-      out('[');
-      _handleString(selectorValue);
-      out(']');
-    }
+    out("]");
   }
 
   @override
@@ -1140,25 +1133,12 @@ class Printer implements NodeVisitor {
 
   @override
   void visitLiteralString(LiteralString node) {
-    _handleString(node.value);
+    out(node.value);
   }
 
   @override
   visitStringConcatenation(StringConcatenation node) {
-    _handleString(_StringContentsCollector().collect(node));
-  }
-
-  void _handleString(String value) {
-    final kind = StringToSource.analyze(value, utf8: options.utf8);
-    out(kind.quote);
-    if (kind.simple) {
-      out(value);
-    } else {
-      final sb = StringBuffer();
-      StringToSource.writeString(sb, value, kind, utf8: options.utf8);
-      out(sb.toString());
-    }
-    out(kind.quote);
+    node.visitChildren(this);
   }
 
   @override
@@ -1255,29 +1235,24 @@ class Printer implements NodeVisitor {
     startNode(node.name);
     Node name = undefer(node.name);
     if (name is LiteralString) {
-      _outPropertyName(name.value);
+      String text = name.value;
+      if (isValidJavaScriptId(text)) {
+        out(text.substring(1, text.length - 1));
+      } else {
+        out(text);
+      }
     } else if (name is Name) {
-      _outPropertyName(name.name);
-    } else if (name is LiteralNumber) {
-      out(name.value);
+      node.name.accept(this);
     } else {
-      // TODO(sra): Handle StringConcatenation.
-      // TODO(sra): Handle general expressions, .e.g. `{[x]: 1}`.
-      throw StateError('Unexpected Property name: $name');
+      assert(name is LiteralNumber);
+      LiteralNumber nameNumber = node.name;
+      out(nameNumber.value);
     }
     endNode(node.name);
     out(":");
     spaceOut();
     visitNestedExpression(node.value, ASSIGNMENT,
         newInForInit: false, newAtStatementBegin: false);
-  }
-
-  void _outPropertyName(String name) {
-    if (isValidJavaScriptId(name)) {
-      out(name);
-    } else {
-      _handleString(name);
-    }
   }
 
   @override
@@ -1343,44 +1318,6 @@ class Printer implements NodeVisitor {
   void visitAwait(Await node) {
     out("await ");
     visit(node.expression);
-  }
-}
-
-class _StringContentsCollector extends BaseVisitor<void> {
-  final StringBuffer _buffer = StringBuffer();
-
-  String collect(Node node) {
-    node.accept(this);
-    return _buffer.toString();
-  }
-
-  void _add(String value) {
-    _buffer.write(value);
-  }
-
-  @override
-  void visitNode(Node node) {
-    throw StateError('Node should not be part of StringConcatenation: $node');
-  }
-
-  @override
-  void visitLiteralString(LiteralString node) {
-    _add(node.value);
-  }
-
-  @override
-  void visitLiteralNumber(LiteralNumber node) {
-    _add(node.value);
-  }
-
-  @override
-  void visitName(Name node) {
-    _add(node.name);
-  }
-
-  @override
-  void visitStringConcatenation(StringConcatenation node) {
-    node.visitChildren(this);
   }
 }
 

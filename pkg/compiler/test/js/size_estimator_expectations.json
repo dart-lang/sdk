@@ -102,8 +102,8 @@
     },
     {
       "original": "x = ['a', 'b', 'c']",
-      "expected": "#=[\"a\",\"b\",\"c\"]",
-      "minified": "x=[\"a\",\"b\",\"c\"]"
+      "expected": "#=['a','b','c']",
+      "minified": "x=['a','b','c']"
     },
     {
       "original": "a = {'b': 1, 'c': 2}",
@@ -154,8 +154,8 @@
     },
     {
       "original": "if (x == true) { return true; } else if (y < 3 || z > 5) { return l != null ? 'a' : 4; } else { foo(); return; }",
-      "expected": "if(#==!0)return !0;else if(#<3||#>5)return #!=null?\"a\":4;else{#();return;}",
-      "minified": "if(x==true)return true;else if(y<3||z>5)return l!=null?\"a\":4;else{foo();return}"
+      "expected": "if(#==!0)return !0;else if(#<3||#>5)return #!=null?'a':4;else{#();return;}",
+      "minified": "if(x==true)return true;else if(y<3||z>5)return l!=null?'a':4;else{foo();return}"
     },
     {
       "original": "for (var a = 0; a < 10; a++) { foo(a); }",
@@ -179,8 +179,8 @@
     },
     {
       "original": "switch (foo) { case 'a': case 'b': bar(); break; case 'c': 1; break; default: boo(); }",
-      "expected": "switch(#){case \"a\":case \"b\":#();break;case \"c\":1;break;default:#();}",
-      "minified": "switch(foo){case\"a\":case\"b\":bar();break;case\"c\":1;break;default:boo()}"
+      "expected": "switch(#){case 'a':case 'b':#();break;case 'c':1;break;default:#();}",
+      "minified": "switch(foo){case'a':case'b':bar();break;case'c':1;break;default:boo()}"
     },
     {
       "original": "foo.prototype.Goo = function(a) { return a.bar(); }",
