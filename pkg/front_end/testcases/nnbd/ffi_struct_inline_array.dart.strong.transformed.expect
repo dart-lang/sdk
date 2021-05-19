@@ -10,22 +10,24 @@ import "package:ffi/ffi.dart";
 
 @#C8
 class StructInlineArray extends ffi::Struct {
-  static final field core::int* #sizeOf = (#C9).{core::List::[]}(ffi::_abi())/*isLegacy*/;
   synthetic constructor •() → self::StructInlineArray
     : super ffi::Struct::•()
     ;
   constructor #fromTypedDataBase(core::Object #typedDataBase) → self::StructInlineArray
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
-  @#C10
+  @#C9
   get a0() → ffi::Array<ffi::Uint8>
     return new ffi::Array::_<ffi::Uint8>( block {
       core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase};
-      core::int #offset = (#C12).{core::List::[]}(ffi::_abi());
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C9).{core::List::[]}(ffi::_abi())), #C3, #C13);
-  @#C10
+      core::int #offset = (#C11).{core::List::[]}(ffi::_abi());
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C12).{core::List::[]}(ffi::_abi())), #C3, #C13);
+  @#C9
   set a0(ffi::Array<ffi::Uint8> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C11, (#C9).{core::List::[]}(ffi::_abi()));
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}, (#C11).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C10, (#C12).{core::List::[]}(ffi::_abi()));
+  @#C15
+  static get #sizeOf() → core::int*
+    return (#C12).{core::List::[]}(ffi::_abi());
 }
 static method main() → dynamic {}
 
@@ -38,11 +40,13 @@ constants  {
   #C6 = null
   #C7 = ffi::_FfiStructLayout {fieldTypes:#C5, packing:#C6}
   #C8 = core::pragma {name:#C1, options:#C7}
-  #C9 = <core::int*>[#C3, #C3, #C3]
-  #C10 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3, dimension2:#C6, dimension3:#C6, dimension4:#C6, dimension5:#C6, dimensions:#C6}
-  #C11 = 0
-  #C12 = <core::int*>[#C11, #C11, #C11]
+  #C9 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3, dimension2:#C6, dimension3:#C6, dimension4:#C6, dimension5:#C6, dimensions:#C6}
+  #C10 = 0
+  #C11 = <core::int*>[#C10, #C10, #C10]
+  #C12 = <core::int*>[#C3, #C3, #C3]
   #C13 = <core::int*>[]
+  #C14 = "vm:prefer-inline"
+  #C15 = core::pragma {name:#C14, options:#C6}
 }
 
 

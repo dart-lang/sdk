@@ -23,7 +23,6 @@ library from "org-dartlang-test:///structs.dart" as str {
 
   @#C6
   class A extends dart.ffi::Struct {
-    static final field dart.core::int* #sizeOf = (#C8).{dart.core::List::[]}(dart.ffi::_abi())/*isLegacy*/;
     synthetic constructor •() → str::A
       : super dart.ffi::Struct::•()
       ;
@@ -37,9 +36,11 @@ library from "org-dartlang-test:///structs.dart" as str {
       } =>#typedDataBase is dart.ffi::Pointer<dynamic> ?{dart.core::Object} dart.ffi::_fromAddress<str::Y>(#typedDataBase.{dart.ffi::Pointer::address}.{dart.core::num::+}(#offset)) : let dart.typed_data::TypedData #typedData = dart._internal::unsafeCast<dart.typed_data::TypedData>(#typedDataBase) in #typedData.{dart.typed_data::TypedData::buffer}.{dart.typed_data::ByteBuffer::asUint8List}(#typedData.{dart.typed_data::TypedData::offsetInBytes}.{dart.core::num::+}(#offset), (#C8).{dart.core::List::[]}(dart.ffi::_abi())));
     set yy(str::Y #externalFieldValue) → void
       return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()), #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}, #C7, (#C8).{dart.core::List::[]}(dart.ffi::_abi()));
+    @#C10
+    static get #sizeOf() → dart.core::int*
+      return (#C8).{dart.core::List::[]}(dart.ffi::_abi());
   }
   class Y extends dart.ffi::Struct {
-    static final field dart.core::int* #sizeOf = (#C8).{dart.core::List::[]}(dart.ffi::_abi())/*isLegacy*/;
     synthetic constructor •() → str::Y
       : super dart.ffi::Struct::•()
       ;
@@ -48,6 +49,9 @@ library from "org-dartlang-test:///structs.dart" as str {
       ;
     external get zz() → invalid-type;
     external set zz(invalid-type #externalFieldValue) → void;
+    @#C10
+    static get #sizeOf() → dart.core::int*
+      return (#C8).{dart.core::List::[]}(dart.ffi::_abi());
   }
 }
 constants  {
@@ -59,4 +63,6 @@ constants  {
   #C6 = dart.core::pragma {name:#C1, options:#C5}
   #C7 = 0
   #C8 = <dart.core::int*>[#C7, #C7, #C7]
+  #C9 = "vm:prefer-inline"
+  #C10 = dart.core::pragma {name:#C9, options:#C4}
 }
