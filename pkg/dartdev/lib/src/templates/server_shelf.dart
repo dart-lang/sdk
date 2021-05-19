@@ -25,8 +25,14 @@ class ServerShelfGenerator extends DefaultGenerator {
   }
 
   @override
-  String getInstallInstructions() => '${super.getInstallInstructions()}\n'
-      'run your app using `dart run ${entrypoint.path}`.';
+  String getInstallInstructions(
+    String directory,
+    String scriptName,
+  ) =>
+      super.getInstallInstructions(
+        directory,
+        'bin/server',
+      );
 }
 
 final String _pubspec = '''

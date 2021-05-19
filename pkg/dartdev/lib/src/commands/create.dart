@@ -138,8 +138,10 @@ class CreateCommand extends DartdevCommand {
         'Created project $projectName in ${p.relative(dir)}! In order to get '
         'started, run the following commands:');
     log.stdout('');
-    log.stdout(log.ansi.emphasized('  cd ${p.relative(dir)}'));
-    log.stdout(log.ansi.emphasized('  dart run'));
+    log.stdout(generator.getInstallInstructions(
+      dir,
+      projectName,
+    ));
     log.stdout('');
 
     return 0;
