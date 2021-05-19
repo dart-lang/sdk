@@ -1,0 +1,5 @@
+name: sample_project
+dependencies:
+  meta: any
+dev_dependencies:
+  test: any

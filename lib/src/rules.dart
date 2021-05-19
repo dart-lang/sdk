@@ -61,6 +61,7 @@ import 'rules/comment_references.dart';
 import 'rules/constant_identifier_names.dart';
 import 'rules/control_flow_in_finally.dart';
 import 'rules/curly_braces_in_flow_control_structures.dart';
+import 'rules/depend_on_referenced_packages.dart';
 import 'rules/deprecated_consistency.dart';
 import 'rules/diagnostic_describe_all_properties.dart';
 import 'rules/directives_ordering.dart';
@@ -257,6 +258,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(ConstantIdentifierNames())
     ..register(ControlFlowInFinally())
     ..register(CurlyBracesInFlowControlStructures())
+    ..register(DependOnReferencedPackages())
     ..register(DeprecatedConsistency())
     ..register(DiagnosticsDescribeAllProperties())
     ..register(DirectivesOrdering())
