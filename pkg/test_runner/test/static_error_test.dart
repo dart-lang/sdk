@@ -121,7 +121,7 @@ void testValidate() {
   Expected column 2 but was column 9.
 
 - Wrong error location line 2, column 2, length 3: ERR.B
-  Expected length 2 but was length 2.
+  Expected length 3 but was length 9.
 
 - Wrong message at line 3, column 2, length 3: ERR.Z
   Expected: ERR.C""");

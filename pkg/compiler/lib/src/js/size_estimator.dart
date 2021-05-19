@@ -886,8 +886,6 @@ class SizeEstimator implements NodeVisitor {
   @override
   visitName(Name node) {
     // For simplicity and stability we use a constant name size estimate.
-    // In production this is:
-    // '${options.renamerForNames(node)}'
     out(sizeEstimate(node));
   }
 

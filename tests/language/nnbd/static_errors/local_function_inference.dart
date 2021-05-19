@@ -24,6 +24,6 @@ void main() {
     }
   }
   //  ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] undefined
+  // [cfe] undefined
 }

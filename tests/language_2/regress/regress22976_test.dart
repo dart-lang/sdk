@@ -11,7 +11,7 @@ class A<T> {}
 class B<T> implements A<T> {}
 
 class C<S, T> implements B<S>, A<T> {}
-// [error line 13, column 1, length 38]
+// [error line 13, column 7, length 1]
 // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_GENERIC_INTERFACES
 //    ^
 // [cfe] 'C' can't implement both 'A<S>' and 'A<T>'

@@ -103,11 +103,7 @@ class CodeEmitterTask extends CompilerTask {
           this,
           _generateSourceMap);
       metadataCollector = new MetadataCollector(
-          _compiler.options,
-          _compiler.reporter,
-          _emitter,
-          codegen.rtiRecipeEncoder,
-          closedWorld.elementEnvironment);
+          _compiler.reporter, _emitter, codegen.rtiRecipeEncoder);
       typeTestRegistry = new TypeTestRegistry(
           _compiler.options, closedWorld.elementEnvironment);
     });

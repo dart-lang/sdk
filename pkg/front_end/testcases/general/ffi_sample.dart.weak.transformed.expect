@@ -8,7 +8,6 @@ import "package:ffi/ffi.dart";
 
 @#C7
 class Coordinate extends ffi::Struct {
-  static final field core::int* #sizeOf = (#C10).{core::List::[]}(ffi::_abi());
   constructor #fromTypedDataBase(core::Object #typedDataBase) → self::Coordinate
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
@@ -30,20 +29,23 @@ class Coordinate extends ffi::Struct {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  @#C11
+  @#C8
   get x() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C10).{core::List::[]}(ffi::_abi()));
   set x(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()), #v);
-  @#C11
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C10).{core::List::[]}(ffi::_abi()), #v);
+  @#C8
   get y() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()));
   set y(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
+  @#C16
+  static get /*isNonNullableByDefault*/ #sizeOf() → core::int*
+    return (#C19).{core::List::[]}(ffi::_abi());
 }
 static method main() → dynamic {}
 
@@ -55,16 +57,18 @@ constants  {
   #C5 = null
   #C6 = ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
   #C7 = core::pragma {name:#C1, options:#C6}
-  #C8 = 24
-  #C9 = 20
-  #C10 = <core::int*>[#C8, #C9, #C8]
-  #C11 = ffi::Double {}
-  #C12 = 0
-  #C13 = <core::int*>[#C12, #C12, #C12]
-  #C14 = 8
-  #C15 = <core::int*>[#C14, #C14, #C14]
-  #C16 = 16
-  #C17 = <core::int*>[#C16, #C16, #C16]
+  #C8 = ffi::Double {}
+  #C9 = 0
+  #C10 = <core::int*>[#C9, #C9, #C9]
+  #C11 = 8
+  #C12 = <core::int*>[#C11, #C11, #C11]
+  #C13 = 16
+  #C14 = <core::int*>[#C13, #C13, #C13]
+  #C15 = "vm:prefer-inline"
+  #C16 = core::pragma {name:#C15, options:#C5}
+  #C17 = 24
+  #C18 = 20
+  #C19 = <core::int*>[#C17, #C18, #C17]
 }
 
 

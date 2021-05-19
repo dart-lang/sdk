@@ -2308,6 +2308,8 @@ abstract class ModularNamer {
         return className(_commonElements.objectClass);
       case JsGetName.FUTURE_CLASS_TYPE_NAME:
         return className(_commonElements.futureClass);
+      case JsGetName.LIST_CLASS_TYPE_NAME:
+        return className(_commonElements.listClass);
       case JsGetName.RTI_FIELD_AS:
         return instanceFieldPropertyName(_commonElements.rtiAsField);
       case JsGetName.RTI_FIELD_IS:

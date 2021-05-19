@@ -218,6 +218,9 @@ enum JsGetName {
   /// String representation of the type of the object class.
   OBJECT_CLASS_TYPE_NAME,
 
+  /// String representation of the type of the List class.
+  LIST_CLASS_TYPE_NAME,
+
   /// Property name for Rti._as field.
   RTI_FIELD_AS,
 

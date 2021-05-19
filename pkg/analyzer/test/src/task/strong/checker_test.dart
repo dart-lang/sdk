@@ -2180,11 +2180,11 @@ class F extends D with M<int> {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 180, 42),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 180, 42),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 186, 1),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 186, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 218, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 226, 42),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 226, 42),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 232, 1),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 232, 1),
     ]);
   }
 

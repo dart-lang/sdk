@@ -171,7 +171,8 @@ class Driver implements CommandLineStarter {
 
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
-    var defaultSeverityProcessor = (AnalysisError error) {
+    SeverityProcessor defaultSeverityProcessor;
+    defaultSeverityProcessor = (AnalysisError error) {
       return determineProcessedSeverity(
           error, options, analysisDriver.analysisOptions);
     };

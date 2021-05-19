@@ -1817,8 +1817,6 @@ class FragmentEmitter {
     }
 
     var mainUnit = program.mainFragment.outputUnit;
-    js.Expression metadata = program.metadataForOutputUnit(mainUnit);
-    metadataGlobals.add(createGlobal(metadata, METADATA));
     js.Expression types = program.metadataTypesForOutputUnit(mainUnit);
     metadataGlobals.add(createGlobal(types, TYPES));
 
@@ -2027,13 +2025,6 @@ class FragmentEmitter {
   }
 
   /// Emits data needed for native classes.
-  ///
-  /// We don't try to reduce the size of the native data, but rather build
-  /// JavaScript object literals that contain all the information directly.
-  /// This means that the output size is bigger, but that the startup is faster.
-  ///
-  /// This function is the static equivalent of
-  /// [NativeGenerator.buildNativeInfoHandler].
   js.Statement emitNativeSupport(Fragment fragment) {
     List<js.Statement> statements = [];
 

@@ -384,9 +384,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final NativeType nt = getType(nativeClass);
     if (nt == null) {
       // User-defined compounds.
-      Field sizeOfField = nativeClass.fields
-          .firstWhere((field) => field.name == Name('#sizeOf'));
-      return StaticGet(sizeOfField);
+      final Procedure sizeOfGetter = nativeClass.procedures
+          .firstWhere((function) => function.name == Name('#sizeOf'));
+      return StaticGet(sizeOfGetter);
     }
     final int size = nativeTypeSizes[nt.index];
     if (size == WORD_SIZE) {

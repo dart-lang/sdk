@@ -45,7 +45,7 @@ import 'ffi.dart';
 ///   @Double()
 ///   double y;
 ///
-///   Coord next;
+///   Pointer<Coord> next;
 /// }
 ///
 /// Output:
@@ -58,10 +58,10 @@ import 'ffi.dart';
 ///   set y(double v) => ...;
 ///   double get y => ...;
 ///
-///   set next(Coordinate v) => ...;
-///   Coordinate get next => ...;
+///   set next(Pointer<Coord> v) => ...;
+///   Pointer<Coord> get next => ...;
 ///
-///   static final int #sizeOf = 24;
+///   static int get #sizeOf => (const [24, 20, 24])[_abi()];
 /// }
 void transformLibraries(
     Component component,
@@ -739,7 +739,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   /// Sample output:
-  /// final int #sizeOf = [24,24,16][_abi()];
+  /// int get #sizeOf => (const [24,24,16])[_abi()];
   ///
   /// If sizes are not supplied still emits a field so that the use site
   /// transformer can still rewrite to it.
@@ -748,17 +748,26 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (sizes == null) {
       sizes = Map.fromEntries(Abi.values.map((abi) => MapEntry(abi, 0)));
     }
-    var name = Name("#sizeOf");
-    var getterReference = indexedClass?.lookupGetterReference(name);
-    final Field sizeOf = Field.immutable(name,
-        isStatic: true,
-        isFinal: true,
-        initializer: runtimeBranchOnLayout(sizes),
-        type: InterfaceType(intClass, Nullability.legacy),
+    final name = Name("#sizeOf");
+    final getterReference = indexedClass?.lookupGetterReference(name);
+
+    final Procedure getter = Procedure(
+        name,
+        ProcedureKind.Getter,
+        FunctionNode(ReturnStatement(runtimeBranchOnLayout(sizes)),
+            returnType: InterfaceType(intClass, Nullability.legacy)),
         fileUri: compound.fileUri,
-        getterReference: getterReference)
-      ..fileOffset = compound.fileOffset;
-    compound.addField(sizeOf);
+        reference: getterReference,
+        isStatic: true)
+      ..fileOffset = compound.fileOffset
+      ..isNonNullableByDefault = true
+      ..addAnnotation(ConstantExpression(InstanceConstant(pragmaClass.reference,
+          /*type_arguments=*/ [], {
+        pragmaName.getterReference: StringConstant("vm:prefer-inline"),
+        pragmaOptions.getterReference: NullConstant(),
+      })));
+
+    compound.addProcedure(getter);
   }
 
   NativeType _getFieldType(Class c) {

@@ -194,7 +194,8 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler::Address(dest_reg, element_size_, compiler::Address::PostIndex);
 
   // Untag length and skip copy if length is zero.
-  __ adds(length_reg, ZR, compiler::Operand(length_reg, ASR, 1));
+  __ adds(length_reg, ZR, compiler::Operand(length_reg, ASR, 1),
+          compiler::kObjectBytes);
   __ b(&done, ZERO);
 
   __ Bind(&loop);
@@ -268,9 +269,16 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   }
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) - 1;
   if (shift < 0) {
+#if defined(DART_COMPRESSED_POINTERS)
+    __ sxtw(start_reg, start_reg);
+#endif
     __ add(array_reg, array_reg, compiler::Operand(start_reg, ASR, -shift));
   } else {
+#if !defined(DART_COMPRESSED_POINTERS)
     __ add(array_reg, array_reg, compiler::Operand(start_reg, LSL, shift));
+#else
+    __ add(array_reg, array_reg, compiler::Operand(start_reg, SXTW, shift));
+#endif
   }
 }
 

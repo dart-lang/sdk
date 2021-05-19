@@ -17,10 +17,6 @@ import "package:expect/expect.dart";
 import 'built_in_prefix_library_async.dart' as async;
 import 'built_in_prefix_library_await.dart' as await;
 import 'built_in_prefix_library_hide.dart' as hide;
-import 'built_in_prefix_library_library.dart' as library;
-//                                               ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
-// [cfe] Can't use 'library' as a name here.
 import 'built_in_prefix_library_of.dart' as of;
 import 'built_in_prefix_library_on.dart' as on;
 import 'built_in_prefix_library_show.dart' as show;
@@ -28,42 +24,42 @@ import 'built_in_prefix_library_sync.dart' as sync;
 import 'built_in_prefix_library_yield.dart' as yield;
 
 async<dynamic> _async = new async.A();
-// [error line 30, column 1, length 5]
+// [error line 26, column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'async' isn't a type.
 // [cfe] Expected 0 type arguments.
 await<dynamic> _await = new await.A();
-// [error line 35, column 1, length 5]
+// [error line 31, column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'await' isn't a type.
 // [cfe] Expected 0 type arguments.
 hide<dynamic> _hide = new hide.A();
-// [error line 40, column 1, length 4]
+// [error line 36, column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'hide' isn't a type.
 // [cfe] Expected 0 type arguments.
 of<dynamic> _of = new of.A();
-// [error line 45, column 1, length 2]
+// [error line 41, column 1, length 2]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'of' isn't a type.
 // [cfe] Expected 0 type arguments.
 on<dynamic> _on = new on.A();
-// [error line 50, column 1, length 2]
+// [error line 46, column 1, length 2]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'on' isn't a type.
 // [cfe] Expected 0 type arguments.
 show<dynamic> _show = new show.A();
-// [error line 55, column 1, length 4]
+// [error line 51, column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'show' isn't a type.
 // [cfe] Expected 0 type arguments.
 sync<dynamic> _sync = new sync.A();
-// [error line 60, column 1, length 4]
+// [error line 56, column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sync' isn't a type.
 // [cfe] Expected 0 type arguments.
 yield<dynamic> _yield = new yield.A();
-// [error line 65, column 1, length 5]
+// [error line 61, column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'yield' isn't a type.
 // [cfe] Expected 0 type arguments.
