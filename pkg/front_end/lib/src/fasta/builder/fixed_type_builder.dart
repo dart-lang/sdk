@@ -7,6 +7,7 @@
 import 'package:kernel/ast.dart';
 
 import '../problems.dart';
+import '../source/source_library_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -18,7 +19,12 @@ class FixedTypeBuilder extends TypeBuilder {
 
   const FixedTypeBuilder(this.type, this.fileUri, this.charOffset);
 
-  TypeBuilder clone(List<TypeBuilder> newTypes) => this;
+  TypeBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
+    return this;
+  }
 
   Object get name => null;
 

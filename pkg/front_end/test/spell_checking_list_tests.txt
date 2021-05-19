@@ -165,6 +165,7 @@ contract
 conversion
 conversions
 coo
+corge
 corners
 costly
 cov
@@ -358,6 +359,7 @@ getter1e
 goo
 google
 graphic
+grault
 greeting
 gtgt
 gulp
