@@ -35,6 +35,7 @@ import 'pub_package_service_test.dart' as pub_package_service;
 import 'reanalyze_test.dart' as reanalyze;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
+import 'selection_range_test.dart' as selection_range;
 import 'semantic_tokens_test.dart' as semantic_tokens;
 import 'server_test.dart' as server;
 import 'signature_help_test.dart' as signature_help;
@@ -76,6 +77,7 @@ void main() {
     reanalyze.main();
     references.main();
     rename.main();
+    selection_range.main();
     semantic_tokens.main();
     server.main();
     signature_help.main();

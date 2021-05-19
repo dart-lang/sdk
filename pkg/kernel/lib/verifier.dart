@@ -262,7 +262,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     assert(state == null);
     typedefState[node] = TypedefState.BeingChecked;
     Set<TypeParameter> savedTypeParameters = typeParametersInScope;
-    typeParametersInScope = node.typeParameters.toSet();
+    typeParametersInScope = node.typeParameters.toSet()
+      ..addAll(node.typeParametersOfFunctionType);
     TreeNode? savedParent = currentParent;
     currentParent = node;
     // Visit children without checking the parent pointer on the typedef itself
@@ -540,7 +541,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         !(parent is ForStatement && parent.body != node) &&
         !(parent is ForInStatement && parent.body != node) &&
         parent is! Let &&
-        parent is! LocalInitializer) {
+        parent is! LocalInitializer &&
+        parent is! Typedef) {
       problem(
           node,
           "VariableDeclaration must be a direct child of a Block, "

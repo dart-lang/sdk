@@ -201,7 +201,7 @@ class Driver implements ServerStarter {
     final crashReportSender =
         CrashReportSender.prod(crashProductId, shouldSendCallback);
 
-    if (telemetry.SHOW_ANALYTICS_UI) {
+    if (telemetry.showAnalyticsUI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
         analytics.enabled = results[ANALYTICS_FLAG];
         print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
@@ -537,7 +537,7 @@ class Driver implements ServerStarter {
     print('Supported flags are:');
     print(parser.usage);
 
-    if (telemetry.SHOW_ANALYTICS_UI) {
+    if (telemetry.showAnalyticsUI) {
       // Print analytics status and information.
       if (fromHelp) {
         print('');
@@ -648,11 +648,11 @@ class Driver implements ServerStarter {
     //
     parser.addFlag(ANALYTICS_FLAG,
         help: 'enable or disable sending analytics information to Google',
-        hide: !telemetry.SHOW_ANALYTICS_UI);
+        hide: !telemetry.showAnalyticsUI);
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
         negatable: false,
         help: 'suppress analytics for this session',
-        hide: !telemetry.SHOW_ANALYTICS_UI);
+        hide: !telemetry.showAnalyticsUI);
 
     //
     // Hidden; these are for internal development.

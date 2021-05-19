@@ -406,12 +406,16 @@ class NamedTypeBuilder extends TypeBuilder {
     return this;
   }
 
-  NamedTypeBuilder clone(List<TypeBuilder> newTypes) {
+  NamedTypeBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
     List<TypeBuilder> clonedArguments;
     if (arguments != null) {
       clonedArguments = new List<TypeBuilder>.filled(arguments.length, null);
       for (int i = 0; i < clonedArguments.length; i++) {
-        clonedArguments[i] = arguments[i].clone(newTypes);
+        clonedArguments[i] =
+            arguments[i].clone(newTypes, contextLibrary, contextDeclaration);
       }
     }
     NamedTypeBuilder newType = new NamedTypeBuilder(

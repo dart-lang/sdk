@@ -13,6 +13,7 @@ main() {
   });
 }
 
+/// todo(pq): add tests for topLevelVariables: https://dart-review.googlesource.com/c/sdk/+/200301
 @reflectiveTest
 class InvalidAnnotationTargetTest extends PubPackageResolutionTest {
   void test_classType_class() async {

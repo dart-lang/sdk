@@ -15,7 +15,7 @@ class ThrottlingBucket {
   final Duration replenishDuration;
 
   late int _drops = bucketSize;
-  late int _lastReplenish = new DateTime.now().millisecondsSinceEpoch;
+  late int _lastReplenish = DateTime.now().millisecondsSinceEpoch;
 
   ThrottlingBucket(this.bucketSize, this.replenishDuration);
 
@@ -31,7 +31,7 @@ class ThrottlingBucket {
   }
 
   void _checkReplenish() {
-    int now = new DateTime.now().millisecondsSinceEpoch;
+    int now = DateTime.now().millisecondsSinceEpoch;
 
     int replenishMillis = replenishDuration.inMilliseconds;
 

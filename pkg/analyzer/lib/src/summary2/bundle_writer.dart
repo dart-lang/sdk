@@ -630,7 +630,7 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeTypeParameters(element.typeParameters, () {
         _writeFormalParameters(element.parameters, withAnnotations: true);
         writeType(element.returnType);
-      });
+      }, withAnnotations: true);
     } else {
       throw UnimplementedError('${element.runtimeType}');
     }
@@ -665,7 +665,7 @@ class ResolutionSink extends _SummaryDataWriter {
           parameter.parameters,
           withAnnotations: withAnnotations,
         );
-      });
+      }, withAnnotations: withAnnotations);
       if (withAnnotations) {
         _writeAnnotationList(parameter.metadata);
       }
@@ -680,7 +680,7 @@ class ResolutionSink extends _SummaryDataWriter {
     _writeTypeParameters(type.typeFormals, () {
       writeType(type.returnType);
       _writeFormalParameters(type.parameters, withAnnotations: false);
-    });
+    }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
 
@@ -736,8 +736,9 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void _writeTypeParameters(
     List<TypeParameterElement> typeParameters,
-    void Function() f,
-  ) {
+    void Function() f, {
+    required bool withAnnotations,
+  }) {
     localElements.pushScope();
     localElements.declareAll(typeParameters);
     try {
@@ -747,6 +748,9 @@ class ResolutionSink extends _SummaryDataWriter {
       }
       for (var typeParameter in typeParameters) {
         writeType(typeParameter.bound);
+        if (withAnnotations) {
+          _writeAnnotationList(typeParameter.metadata);
+        }
       }
       f();
     } finally {

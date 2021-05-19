@@ -254,6 +254,20 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
         // Otherwise call the map function
         : f(result);
   }
+
+  /// Converts a [List<ErrorOr<T>>] into an [ErrorOr<List<T>>]. If any of the
+  /// items represents an error, that error will be returned. Otherwise, the
+  /// list of results will be returned in a success response.
+  static ErrorOr<List<T>> all<T>(Iterable<ErrorOr<T>> items) {
+    final results = <T>[];
+    for (final item in items) {
+      if (item.isError) {
+        return failure(item);
+      }
+      results.add(item.result);
+    }
+    return success(results);
+  }
 }
 
 /// A base class containing the fields common to RequestMessage and

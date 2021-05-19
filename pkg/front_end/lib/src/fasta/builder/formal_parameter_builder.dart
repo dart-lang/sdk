@@ -29,7 +29,7 @@ import '../modifier.dart';
 
 import '../scope.dart' show Scope;
 
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart';
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -141,12 +141,21 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     return variable;
   }
 
-  FormalParameterBuilder clone(List<TypeBuilder> newTypes) {
+  FormalParameterBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
     // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
     // how it should be cloned.  Consider cloning it instead of reusing it.
     return new FormalParameterBuilder(
-        metadata, modifiers, type?.clone(newTypes), name, parent, charOffset,
-        fileUri: fileUri, isExtensionThis: isExtensionThis)
+        metadata,
+        modifiers,
+        type?.clone(newTypes, contextLibrary, contextDeclaration),
+        name,
+        parent,
+        charOffset,
+        fileUri: fileUri,
+        isExtensionThis: isExtensionThis)
       ..kind = kind;
   }
 

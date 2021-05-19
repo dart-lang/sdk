@@ -1457,7 +1457,7 @@ class ResolutionReader {
     if (tag == AliasedElementTag.nothing) {
       return null;
     } else if (tag == AliasedElementTag.genericFunctionElement) {
-      var typeParameters = _readTypeParameters();
+      var typeParameters = _readTypeParameters(unitElement);
       var formalParameters = _readFormalParameters(unitElement);
       var returnType = readRequiredType();
 
@@ -1536,7 +1536,7 @@ class ResolutionReader {
       var kindIndex = _reader.readByte();
       var kind = _formalParameterKind(kindIndex);
       var isInitializingFormal = _reader.readBool();
-      var typeParameters = _readTypeParameters();
+      var typeParameters = _readTypeParameters(unitElement);
       var type = readRequiredType();
       var name = readStringReference();
       if (kind.isRequiredPositional) {
@@ -1577,7 +1577,7 @@ class ResolutionReader {
   /// TODO(scheglov) Optimize for write/read of types without type parameters.
   FunctionType _readFunctionType() {
     // TODO(scheglov) reuse for formal parameters
-    var typeParameters = _readTypeParameters();
+    var typeParameters = _readTypeParameters(null);
     var returnType = readRequiredType();
     var formalParameters = _readFormalParameters(null);
 
@@ -1666,7 +1666,9 @@ class ResolutionReader {
     return types;
   }
 
-  List<TypeParameterElementImpl> _readTypeParameters() {
+  List<TypeParameterElementImpl> _readTypeParameters(
+    CompilationUnitElementImpl? unitElement,
+  ) {
     var typeParameterCount = _reader.readUInt30();
     var typeParameters = List.generate(typeParameterCount, (_) {
       var name = readStringReference();
@@ -1677,6 +1679,9 @@ class ResolutionReader {
 
     for (var typeParameter in typeParameters) {
       typeParameter.bound = readType();
+      if (unitElement != null) {
+        typeParameter.metadata = _readAnnotationList(unitElement: unitElement);
+      }
     }
     return typeParameters;
   }

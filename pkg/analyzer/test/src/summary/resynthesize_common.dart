@@ -7921,6 +7921,33 @@ int Function(int, String) v;
 ''');
   }
 
+  test_genericFunction_boundOf_typeParameter_ofMixin() async {
+    var library = await checkLibrary(r'''
+mixin B<X extends void Function()> {}
+''');
+    checkElementText(library, r'''
+mixin B<X extends void Function() = void Function()> on Object {
+}
+''');
+  }
+
+  test_genericFunction_typeArgument_ofSuperclass_ofClassAlias() async {
+    var library = await checkLibrary(r'''
+class A<T> {}
+mixin M {}
+class B = A<void Function()> with M;
+''');
+    checkElementText(library, r'''
+class A<T> {
+}
+class alias B extends A<void Function()> with M {
+  synthetic B() : super();
+}
+mixin M on Object {
+}
+''');
+  }
+
   test_genericFunction_typeParameter_asTypedefArgument() async {
     var library = await checkLibrary(r'''
 typedef F1 = Function<V1>(F2<V1>);
@@ -11022,6 +11049,96 @@ const int a;
   constantInitializer
     IntegerLiteral
       literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_formalParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function(@a int first)
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int first);
+  aliasedElement
+    parameters
+      first
+        metadata
+          Annotation
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_formalParameter2() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function(int foo(@a int bar))
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int Function(int) foo);
+  aliasedElement
+    parameters
+      foo
+          parameters
+            bar
+              metadata
+                Annotation
+                  element: self::@getter::a
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::a
+                    staticType: null
+                    token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_inAliasedElement_typeParameter() async {
+    var library = await checkLibrary('''
+const a = 42;
+typedef F = void Function<@a T>(int first)
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function(int first);
+  aliasedElement
+    typeParameters
+      T
+        bound: null
+        defaultType: null
+        metadata
+          Annotation
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a
+    parameters
+      first
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
       staticType: int
 ''',
         withFullyResolvedAst: true);

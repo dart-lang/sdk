@@ -25,8 +25,14 @@ class PackageSimpleGenerator extends DefaultGenerator {
   }
 
   @override
-  String getInstallInstructions() => '${super.getInstallInstructions()}\n'
-      'run your app using `dart ${entrypoint.path}`.';
+  String getInstallInstructions(
+    String directory,
+    String projectName,
+  ) =>
+      super.getInstallInstructions(
+        directory,
+        'example/${projectName}_example',
+      );
 }
 
 final String _gitignore = '''

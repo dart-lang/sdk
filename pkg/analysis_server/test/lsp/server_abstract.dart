@@ -254,6 +254,7 @@ mixin ClientCapabilitiesHelperMixin {
       'codeAction': {'dynamicRegistration': true},
       'rename': {'dynamicRegistration': true},
       'foldingRange': {'dynamicRegistration': true},
+      'selectionRange': {'dynamicRegistration': true},
       'semanticTokens': SemanticTokensClientCapabilities(
           dynamicRegistration: true,
           requests: SemanticTokensClientCapabilitiesRequests(),
@@ -1132,6 +1133,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     expect(completion, isNotNull);
 
     return resolveCompletion(completion);
+  }
+
+  Future<List<SelectionRange>?> getSelectionRanges(
+      Uri uri, List<Position> positions) {
+    final request = makeRequest(
+      Method.textDocument_selectionRange,
+      SelectionRangeParams(
+          textDocument: TextDocumentIdentifier(uri: uri.toString()),
+          positions: positions),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(SelectionRange.fromJson));
   }
 
   Future<SemanticTokens> getSemanticTokens(Uri uri) {

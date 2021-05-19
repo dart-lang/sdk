@@ -10,6 +10,7 @@ import 'highlights_computer_test.dart' as highlights_computer;
 import 'import_elements_computer_test.dart' as import_elements_computer;
 import 'imported_elements_computer_test.dart' as imported_elements_computer;
 import 'outline_computer_test.dart' as outline_computer;
+import 'selection_range_computer_test.dart' as selection_range;
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,5 +20,6 @@ void main() {
     import_elements_computer.main();
     imported_elements_computer.main();
     outline_computer.main();
+    selection_range.main();
   });
 }

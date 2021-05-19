@@ -95,7 +95,7 @@ void defineCreateTests() {
     expect(result.exitCode, 73);
   });
 
-  test('create project in current directory', () {
+  test('project in current directory', () {
     p = project();
     final projectDir = Directory('foo')..createSync();
     final result = p.runSync(
@@ -107,7 +107,7 @@ void defineCreateTests() {
     expect(result.exitCode, 0);
   });
 
-  test('create project with normalized package name', () {
+  test('project with normalized package name', () {
     p = project();
     final result = p.runSync(['create', 'requires-normalization']);
     expect(result.stderr, isEmpty);
@@ -118,7 +118,7 @@ void defineCreateTests() {
     expect(result.exitCode, 0);
   });
 
-  test('create project with an invalid package name', () {
+  test('project with an invalid package name', () {
     p = project();
     final result = p.runSync(['create', 'bad-package^name']);
     expect(
@@ -141,7 +141,7 @@ void defineCreateTests() {
 
   // Create tests for each template.
   for (String templateId in CreateCommand.legalTemplateIds) {
-    test('create $templateId', () {
+    test('$templateId', () {
       p = project();
       const projectName = 'template_project';
       ProcessResult result = p.runSync([
@@ -160,6 +160,36 @@ void defineCreateTests() {
 
       expect(entryFile.existsSync(), true,
           reason: 'File not found: ${entryFile.path}');
+    });
+  }
+
+  for (final generator in templates.generators) {
+    test('${generator.id} getting started message', () {
+      const dir = 'foo';
+      const projectName = dir;
+      final lines = generator
+          .getInstallInstructions(dir, projectName)
+          .split('\n')
+          .map((e) => e.trim())
+          .toList();
+      if (generator.categories.contains('web')) {
+        expect(lines.length, 3);
+        expect(lines[0], 'cd $dir');
+        expect(lines[1], 'dart pub global activate webdev');
+        expect(lines[2], 'webdev serve');
+      } else if (generator.categories.contains('console')) {
+        expect(lines.length, 2);
+        expect(lines[0], 'cd $dir');
+        expect(lines[1], 'dart run');
+      } else if (generator.categories.contains('server')) {
+        expect(lines.length, 2);
+        expect(lines[0], 'cd $dir');
+        expect(lines[1], 'dart run bin/server.dart');
+      } else {
+        expect(lines.length, 2);
+        expect(lines[0], 'cd $dir');
+        expect(lines[1], 'dart run example/${projectName}_example.dart');
+      }
     });
   }
 }

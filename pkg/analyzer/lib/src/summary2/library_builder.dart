@@ -263,6 +263,7 @@ class LibraryBuilder {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);
       var resolver = ReferenceResolver(
+        linker,
         nodesToBuildType,
         linker.elementFactory,
         element,

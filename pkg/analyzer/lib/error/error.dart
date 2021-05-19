@@ -607,6 +607,8 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNUSED_IMPORT,
   HintCode.UNUSED_LABEL,
   HintCode.UNUSED_LOCAL_VARIABLE,
+  HintCode.UNUSED_RESULT,
+  HintCode.UNUSED_RESULT_WITH_MESSAGE,
   HintCode.UNUSED_SHOWN_NAME,
   LanguageCode.IMPLICIT_DYNAMIC_FIELD,
   LanguageCode.IMPLICIT_DYNAMIC_FUNCTION,

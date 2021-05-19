@@ -253,6 +253,20 @@ const Required required = Required();
 ///   `C` and `D` are declared in different packages.
 const _Sealed sealed = _Sealed();
 
+/// Used to annotate a method, field, or getter within a class, mixin, or
+/// extension, or a or top-level getter, variable or function to indicate that
+/// the value obtained by invoking it should be use. A value is considered used
+/// if it is assigned to a variable, passed to a function, or used as the target
+/// of an invocation, or invoked (if the result is itself a function).
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than a method, field or
+///   getter, top-level variable, getter or function or
+/// * the value obtained by a method, field, getter or top-level getter,
+///   variable or function annotated with `@useResult` is not used.
+const UseResult useResult = UseResult();
+
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
 ///
 /// Deprecated: Most of strong mode is now the default in 2.0, but the notion of
@@ -312,6 +326,23 @@ class Required {
 
   /// Initialize a newly created instance to have the given [reason].
   const Required([this.reason = '']);
+}
+
+/// See [useResult] for more details.
+@Target({
+  TargetKind.field,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.topLevelVariable,
+})
+class UseResult {
+  /// A human-readable explanation of the reason why the value returned by
+  /// accessing this member should be checked.
+  final String reason;
+
+  /// Initialize a newly created instance to have the given [reason].
+  const UseResult([this.reason = '']);
 }
 
 class _AlwaysThrows {

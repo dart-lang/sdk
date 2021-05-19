@@ -18,20 +18,21 @@ void main() {
     late Request request;
 
     setUp(() {
-      mockClient = new MockClient((Request r) async {
+      mockClient = MockClient((Request r) async {
         request = r;
-        return new Response('crash-report-001', 200);
+        return Response('crash-report-001', 200);
       });
 
-      analytics = new AnalyticsMock()..enabled = true;
+      analytics = AnalyticsMock()..enabled = true;
     });
 
-    EnablementCallback shouldSend = () {
+    EnablementCallback shouldSend;
+    shouldSend = () {
       return true;
     };
 
     test('general', () async {
-      CrashReportSender sender = new CrashReportSender.prod(
+      CrashReportSender sender = CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -43,7 +44,7 @@ void main() {
     });
 
     test('reportsSent', () async {
-      CrashReportSender sender = new CrashReportSender.prod(
+      CrashReportSender sender = CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -59,7 +60,7 @@ void main() {
     });
 
     test('contains message', () async {
-      CrashReportSender sender = new CrashReportSender.prod(
+      CrashReportSender sender = CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -73,7 +74,7 @@ void main() {
     });
 
     test('has attachments', () async {
-      CrashReportSender sender = new CrashReportSender.prod(
+      CrashReportSender sender = CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
@@ -94,7 +95,7 @@ void main() {
     });
 
     test('has ptime', () async {
-      CrashReportSender sender = new CrashReportSender.prod(
+      CrashReportSender sender = CrashReportSender.prod(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 

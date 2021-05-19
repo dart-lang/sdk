@@ -9,6 +9,7 @@ library fasta.type_builder;
 import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
 
 import '../scope.dart';
+import '../source/source_library_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_declaration_builder.dart';
@@ -61,7 +62,10 @@ abstract class TypeBuilder {
   /// existing declaration or type variable builders.  All newly built types
   /// are added to [newTypes], so that they can be added to a proper scope and
   /// resolved later.
-  TypeBuilder clone(List<TypeBuilder> newTypes);
+  TypeBuilder clone(
+      List<TypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration);
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 

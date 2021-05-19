@@ -96,7 +96,7 @@ import '../kernel/type_algorithms.dart'
         NonSimplicityIssue,
         calculateBounds,
         computeTypeVariableBuilderVariance,
-        findGenericFunctionTypes,
+        findUnaliasedGenericFunctionTypes,
         getInboundReferenceIssuesInType,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
@@ -1473,13 +1473,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (TypeVariableBuilder type in typeVariables) {
       if (type.name == "Function") {
         addProblem(messageFunctionAsTypeParameter, type.charOffset,
-          type.name.length, type.fileUri);
+            type.name.length, type.fileUri);
       }
     }
   }
 
-  void _checkBadFunctionDeclUse(String className, TypeParameterScopeKind kind,
-      int charOffset) {
+  void _checkBadFunctionDeclUse(
+      String className, TypeParameterScopeKind kind, int charOffset) {
     String decType;
     switch (kind) {
       case TypeParameterScopeKind.classDeclaration:
@@ -2068,12 +2068,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             List<TypeBuilder> newTypes = <TypeBuilder>[];
             if (supertype is NamedTypeBuilder && supertype.arguments != null) {
               for (int i = 0; i < supertype.arguments.length; ++i) {
-                supertype.arguments[i] = supertype.arguments[i].clone(newTypes);
+                supertype.arguments[i] = supertype.arguments[i]
+                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
             if (mixin is NamedTypeBuilder && mixin.arguments != null) {
               for (int i = 0; i < mixin.arguments.length; ++i) {
-                mixin.arguments[i] = mixin.arguments[i].clone(newTypes);
+                mixin.arguments[i] = mixin.arguments[i]
+                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
             for (TypeBuilder newType in newTypes) {
@@ -2953,7 +2955,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (TypeVariableBuilder variable in original) {
       TypeVariableBuilder newVariable = new TypeVariableBuilder(
           variable.name, this, variable.charOffset, variable.fileUri,
-          bound: variable.bound?.clone(newTypes),
+          bound: variable.bound?.clone(newTypes, this, declaration),
           isExtensionTypeParameter: isExtensionTypeParameter,
           variableVariance:
               variable.parameter.isLegacyCovariant ? null : variable.variance);
@@ -3070,6 +3072,91 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
+  /// Reports an error on generic function types used as bounds
+  ///
+  /// The function recursively searches for all generic function types in
+  /// [typeVariable.bound] and checks the bounds of type variables of the found
+  /// types for being generic function types.  Additionally, the function checks
+  /// [typeVariable.bound] for being a generic function type.  Returns `true` if
+  /// any errors were reported.
+  bool _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
+      TypeVariableBuilder typeVariable) {
+    if (enableGenericMetadataInLibrary) return false;
+
+    bool hasReportedErrors = false;
+    hasReportedErrors =
+        _reportGenericFunctionTypeAsBoundIfNeeded(typeVariable) ||
+            hasReportedErrors;
+    hasReportedErrors = _recursivelyReportGenericFunctionTypesAsBoundsForType(
+            typeVariable.bound) ||
+        hasReportedErrors;
+    return hasReportedErrors;
+  }
+
+  /// Reports an error on generic function types used as bounds
+  ///
+  /// The function recursively searches for all generic function types in
+  /// [typeBuilder] and checks the bounds of type variables of the found types
+  /// for being generic function types.  Returns `true` if any errors were
+  /// reported.
+  bool _recursivelyReportGenericFunctionTypesAsBoundsForType(
+      TypeBuilder typeBuilder) {
+    if (enableGenericMetadataInLibrary) return false;
+
+    List<FunctionTypeBuilder> genericFunctionTypeBuilders =
+        <FunctionTypeBuilder>[];
+    findUnaliasedGenericFunctionTypes(typeBuilder,
+        result: genericFunctionTypeBuilders);
+    bool hasReportedErrors = false;
+    for (FunctionTypeBuilder genericFunctionTypeBuilder
+        in genericFunctionTypeBuilders) {
+      assert(
+          genericFunctionTypeBuilder.typeVariables != null,
+          "Function 'findUnaliasedGenericFunctionTypes' "
+          "returned a function type without type variables.");
+      for (TypeVariableBuilder typeVariable
+          in genericFunctionTypeBuilder.typeVariables) {
+        hasReportedErrors =
+            _reportGenericFunctionTypeAsBoundIfNeeded(typeVariable) ||
+                hasReportedErrors;
+      }
+    }
+    return hasReportedErrors;
+  }
+
+  /// Reports an error if [typeVariable.bound] is a generic function type
+  ///
+  /// Returns `true` if any errors were reported.
+  bool _reportGenericFunctionTypeAsBoundIfNeeded(
+      TypeVariableBuilder typeVariable) {
+    if (enableGenericMetadataInLibrary) return false;
+
+    TypeBuilder bound = typeVariable.bound;
+    bool isUnaliasedGenericFunctionType = bound is FunctionTypeBuilder &&
+        bound.typeVariables != null &&
+        bound.typeVariables.isNotEmpty;
+    bool isAliasedGenericFunctionType = false;
+    if (bound is NamedTypeBuilder) {
+      TypeDeclarationBuilder declaration = bound.declaration;
+      // TODO(dmitryas): Unalias beyond the first layer for the check.
+      if (declaration is TypeAliasBuilder) {
+        TypeBuilder rhsType = declaration.type;
+        if (rhsType is FunctionTypeBuilder &&
+            rhsType.typeVariables != null &&
+            rhsType.typeVariables.isNotEmpty) {
+          isAliasedGenericFunctionType = true;
+        }
+      }
+    }
+
+    if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
+      addProblem(messageGenericFunctionTypeInBound, typeVariable.charOffset,
+          typeVariable.name.length, typeVariable.fileUri);
+      return true;
+    }
+    return false;
+  }
+
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
@@ -3081,16 +3168,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool haveErroneousBounds = false;
       if (!inErrorRecovery) {
         if (!enableGenericMetadataInLibrary) {
-          for (int i = 0; i < variables.length; ++i) {
-            TypeVariableBuilder variable = variables[i];
-            List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
-            findGenericFunctionTypes(variable.bound,
-                result: genericFunctionTypes);
-            if (genericFunctionTypes.length > 0) {
-              haveErroneousBounds = true;
-              addProblem(messageGenericFunctionTypeInBound, variable.charOffset,
-                  variable.name.length, variable.fileUri);
-            }
+          for (TypeVariableBuilder variable in variables) {
+            haveErroneousBounds =
+                _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
+                        variable) ||
+                    haveErroneousBounds;
           }
         }
 
@@ -3160,9 +3242,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
             if (formals != null && formals.isNotEmpty) {
               for (FormalParameterBuilder formal in formals) {
-                List<Object> issues =
+                List<NonSimplicityIssue> issues =
                     getInboundReferenceIssuesInType(formal.type);
                 reportIssues(issues);
+                _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                    formal.type);
               }
             }
           });
@@ -3174,10 +3258,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (member.formals != null && member.formals.isNotEmpty) {
               for (FormalParameterBuilder formal in member.formals) {
                 issues.addAll(getInboundReferenceIssuesInType(formal.type));
+                _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                    formal.type);
               }
             }
             if (member.returnType != null) {
               issues.addAll(getInboundReferenceIssuesInType(member.returnType));
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                  member.returnType);
             }
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
@@ -3189,27 +3277,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (fieldType != null) {
               List<Object> issues = getInboundReferenceIssuesInType(fieldType);
               reportIssues(issues);
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
             }
           }
         });
       } else if (declaration is TypeAliasBuilder) {
-        List<Object> issues = getNonSimplicityIssuesForDeclaration(declaration,
+        List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
+            declaration,
             performErrorRecovery: true);
         issues.addAll(getInboundReferenceIssuesInType(declaration.type));
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
+        _recursivelyReportGenericFunctionTypesAsBoundsForType(declaration.type);
       } else if (declaration is FunctionBuilder) {
         List<Object> issues =
             getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
         if (declaration.formals != null && declaration.formals.isNotEmpty) {
           for (FormalParameterBuilder formal in declaration.formals) {
             issues.addAll(getInboundReferenceIssuesInType(formal.type));
+            _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
           }
         }
         if (declaration.returnType != null) {
           issues
               .addAll(getInboundReferenceIssuesInType(declaration.returnType));
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(
+              declaration.returnType);
         }
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeVariables,
@@ -3230,16 +3324,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (member.formals != null && member.formals.isNotEmpty) {
               for (FormalParameterBuilder formal in member.formals) {
                 issues.addAll(getInboundReferenceIssuesInType(formal.type));
+                _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                    formal.type);
               }
             }
             if (member.returnType != null) {
               issues.addAll(getInboundReferenceIssuesInType(member.returnType));
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                  member.returnType);
             }
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
+          } else if (member is FieldBuilder) {
+            if (member.type != null) {
+              _recursivelyReportGenericFunctionTypesAsBoundsForType(
+                  member.type);
+            }
           } else {
-            assert(member is FieldBuilder,
+            throw new StateError(
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
@@ -3248,6 +3351,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           List<Object> issues =
               getInboundReferenceIssuesInType(declaration.type);
           reportIssues(issues);
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(
+              declaration.type);
         }
       } else {
         assert(
@@ -3268,6 +3373,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           declaration.formals.isNotEmpty) {
         for (FormalParameterBuilder formal in declaration.formals) {
           reportIssues(getInboundReferenceIssuesInType(formal.type));
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
         }
       }
     }

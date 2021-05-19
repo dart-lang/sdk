@@ -1084,6 +1084,21 @@ class _ElementWriter {
     }
 
     buffer.writeln(';');
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeResolvedTypeParameters(e.typeParameters);
+        var aliasedElement = e.aliasedElement;
+        if (aliasedElement is GenericFunctionTypeElement) {
+          _writelnWithIndent('aliasedElement');
+          _withIndent(() {
+            _writeResolvedTypeParameters(aliasedElement.typeParameters);
+            _writeResolvedParameterElements(aliasedElement.parameters);
+          });
+        }
+      });
+    }
   }
 
   void writeTypeInferenceError(Element e) {
@@ -1317,6 +1332,37 @@ class _ElementWriter {
         withNullability: true,
       ),
     );
+  }
+
+  void _writeResolvedParameterElements(
+    List<ParameterElement> parameters, {
+    String enclosingNames = '',
+  }) {
+    if (parameters.isNotEmpty) {
+      _writelnWithIndent('parameters');
+      _withIndent(() {
+        var index = 0;
+        for (var formalParameter in parameters) {
+          var metadata = formalParameter.metadata;
+          var name = formalParameter.name;
+          if (name.isEmpty) {
+            name = '$index';
+          }
+          _writelnWithIndent(name);
+          _withIndent(() {
+            _writeResolvedMetadata(metadata);
+            var subParameters = formalParameter.parameters;
+            _withIndent(() {
+              _writeResolvedParameterElements(
+                subParameters,
+                enclosingNames: enclosingNames + name + '::',
+              );
+            });
+          });
+          index++;
+        }
+      });
+    }
   }
 
   void _writeResolvedTypeParameters(List<TypeParameterElement> elements) {

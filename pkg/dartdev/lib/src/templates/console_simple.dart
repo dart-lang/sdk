@@ -22,8 +22,11 @@ class ConsoleSimpleGenerator extends DefaultGenerator {
   }
 
   @override
-  String getInstallInstructions() => '${super.getInstallInstructions()}\n'
-      'run your app using `dart ${entrypoint.path}`.';
+  String getInstallInstructions(
+    String directory,
+    String scriptName,
+  ) =>
+      super.getInstallInstructions(directory, null);
 }
 
 final String _pubspec = '''

@@ -73,6 +73,10 @@ enum TargetKind {
   /// at the top-level of a library.
   setter,
 
+  /// Indicates that an annotation is valid on any top-level variable
+  /// declaration.
+  topLevelVariable,
+
   /// Indicates that an annotation is valid on any declaration that introduces a
   /// type. This includes classes, enums, mixins and typedefs, but does not
   /// include extensions because extensions don't introduce a type.

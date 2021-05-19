@@ -98,7 +98,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required DeclaredVariables declaredVariables,
     required AnalysisOptions analysisOptions,
     required WorkspacePackage? workspacePackage,
-  })   : _nullType = typeProvider.nullType,
+  })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
         _strictInference =
@@ -2007,6 +2007,8 @@ extension on TargetKind {
         return 'parameters';
       case TargetKind.setter:
         return 'setters';
+      case TargetKind.topLevelVariable:
+        return 'top-level variables';
       case TargetKind.type:
         return 'types (classes, enums, mixins, or typedefs)';
       case TargetKind.typedefType:

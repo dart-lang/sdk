@@ -824,7 +824,7 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
-  // The following two fields describe parameters of the underlying type when
+  // The following fields describe parameters of the underlying type when
   // that is a function type.  They are needed to keep such attributes as names
   // and annotations. When the underlying type is not a function type, they are
   // empty.
@@ -849,6 +849,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         super(reference) {
     setParents(this.typeParameters, this);
+    setParents(this.typeParametersOfFunctionType, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -864,6 +867,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     visitList(annotations, v);
     visitList(typeParameters, v);
     type?.accept(v);
+    visitList(typeParametersOfFunctionType, v);
+    visitList(positionalParameters, v);
+    visitList(namedParameters, v);
   }
 
   @override
@@ -873,6 +879,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     if (type != null) {
       type = v.visitDartType(type!);
     }
+    v.transformList(typeParametersOfFunctionType, this);
+    v.transformList(positionalParameters, this);
+    v.transformList(namedParameters, this);
   }
 
   @override
@@ -887,6 +896,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         type = newType;
       }
     }
+    v.transformTypeParameterList(typeParametersOfFunctionType, this);
+    v.transformVariableDeclarationList(positionalParameters, this);
+    v.transformVariableDeclarationList(namedParameters, this);
   }
 
   @override
@@ -4021,6 +4033,7 @@ class InstanceGet extends Expression {
     receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
+    resultType.accept(v);
   }
 
   @override
@@ -4030,6 +4043,10 @@ class InstanceGet extends Expression {
       receiver = v.transform(receiver);
       receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType);
+    }
   }
 
   @override
@@ -4038,6 +4055,10 @@ class InstanceGet extends Expression {
     if (receiver != null) {
       receiver = v.transform(receiver);
       receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType, cannotRemoveSentinel);
     }
   }
 
@@ -4168,6 +4189,7 @@ class InstanceTearOff extends Expression {
     receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
+    resultType.accept(v);
   }
 
   @override
@@ -4177,6 +4199,10 @@ class InstanceTearOff extends Expression {
       receiver = v.transform(receiver);
       receiver.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType);
+    }
   }
 
   @override
@@ -4185,6 +4211,10 @@ class InstanceTearOff extends Expression {
     if (receiver != null) {
       receiver = v.transform(receiver);
       receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (resultType != null) {
+      resultType = v.visitDartType(resultType, cannotRemoveSentinel);
     }
   }
 
@@ -5284,6 +5314,7 @@ class InstanceInvocation extends InvocationExpression {
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
+    functionType.accept(v);
   }
 
   @override
@@ -5298,6 +5329,10 @@ class InstanceInvocation extends InvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType) as FunctionType;
+    }
   }
 
   @override
@@ -5311,6 +5346,11 @@ class InstanceInvocation extends InvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -5589,6 +5629,7 @@ class FunctionInvocation extends InvocationExpression {
     receiver.accept(v);
     name.accept(v);
     arguments.accept(v);
+    functionType?.accept(v);
   }
 
   @override
@@ -5603,6 +5644,10 @@ class FunctionInvocation extends InvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    FunctionType? type = functionType;
+    if (type != null) {
+      functionType = v.visitDartType(type) as FunctionType;
+    }
   }
 
   @override
@@ -5616,6 +5661,11 @@ class FunctionInvocation extends InvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    FunctionType? type = functionType;
+    if (type != null) {
+      functionType =
+          v.visitDartType(type, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -5682,6 +5732,7 @@ class LocalFunctionInvocation extends InvocationExpression {
   @override
   void visitChildren(Visitor v) {
     arguments.accept(v);
+    functionType.accept(v);
   }
 
   @override
@@ -5691,6 +5742,10 @@ class LocalFunctionInvocation extends InvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType) as FunctionType;
+    }
   }
 
   @override
@@ -5699,6 +5754,11 @@ class LocalFunctionInvocation extends InvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -5832,6 +5892,7 @@ class EqualsCall extends Expression {
     left.accept(v);
     interfaceTarget.acceptReference(v);
     right.accept(v);
+    functionType.accept(v);
   }
 
   @override
@@ -5846,6 +5907,10 @@ class EqualsCall extends Expression {
       right = v.transform(right);
       right.parent = this;
     }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType) as FunctionType;
+    }
   }
 
   @override
@@ -5859,6 +5924,11 @@ class EqualsCall extends Expression {
     if (right != null) {
       right = v.transform(right);
       right.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
     }
   }
 

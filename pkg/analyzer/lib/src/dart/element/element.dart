@@ -2006,6 +2006,13 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// specific set of target element kinds.
   static const String _TARGET_CLASS_NAME = 'Target';
 
+  /// The name of the class used to mark a returned element as requiring use.
+  static const String _USE_RESULT_CLASS_NAME = "UseResult";
+
+  /// The name of the top-level variable used to mark a returned element as
+  /// requiring use.
+  static const String _USE_RESULT_VARIABLE_NAME = "useResult";
+
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
   static const String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME =
@@ -2117,6 +2124,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isTarget => _isConstructor(
       libraryName: _META_META_LIB_NAME, className: _TARGET_CLASS_NAME);
+
+  @override
+  bool get isUseResult =>
+      _isConstructor(
+          libraryName: _META_LIB_NAME, className: _USE_RESULT_CLASS_NAME) ||
+      _isPackageMetaGetter(_USE_RESULT_VARIABLE_NAME);
 
   @override
   bool get isVisibleForTemplate => _isTopGetter(
@@ -2491,6 +2504,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isSealed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasUseResult {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isUseResult) {
         return true;
       }
     }
@@ -3668,21 +3693,13 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   DartType? _returnType;
 
   /// The elements representing the parameters of the function.
-  List<ParameterElement> _parameters = _Sentinel.parameterElement;
+  List<ParameterElement> _parameters = const [];
 
   /// Is `true` if the type has the question mark, so is nullable.
-  bool _isNullable = false;
+  bool isNullable = false;
 
   /// The type defined by this element.
   FunctionType? _type;
-
-  GenericFunctionTypeElementImpl.forLinkedNode(
-      ElementImpl enclosingElement, AstNode linkedNode)
-      : super.forLinkedNode(enclosingElement, null, linkedNode) {
-    if (linkedNode is GenericFunctionTypeImpl) {
-      linkedNode.declaredElement = this;
-    }
-  }
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
@@ -3692,41 +3709,11 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   @override
   String get identifier => '-';
 
-  bool get isNullable {
-    if (linkedNode != null) {
-      var node = linkedNode;
-      if (node is GenericFunctionType) {
-        return _isNullable = node.question != null;
-      } else {
-        return _isNullable = false;
-      }
-    }
-    return _isNullable;
-  }
-
-  set isNullable(bool isNullable) {
-    _isNullable = isNullable;
-  }
-
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
   @override
   List<ParameterElement> get parameters {
-    if (!identical(_parameters, _Sentinel.parameterElement)) {
-      return _parameters;
-    }
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      return _parameters = ParameterElementImpl.forLinkedNodeList(
-        this,
-        context,
-        null,
-        context.getFormalParameters(linkedNode!),
-      );
-    }
-
     return _parameters;
   }
 
@@ -3752,12 +3739,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
   @override
   DartType get returnTypeInternal {
-    if (_returnType == null) {
-      if (linkedNode != null) {
-        var context = enclosingUnit.linkedContext!;
-        return _returnType = context.getReturnType(linkedNode!);
-      }
-    }
     return _returnType!;
   }
 
@@ -3786,12 +3767,8 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (linkedNode != null) {
-      if (linkedNode is FunctionTypeAlias) {
-        return const <TypeParameterElement>[];
-      }
-    }
-    return super.typeParameters;
+    // TODO(scheglov) remove the method
+    return _typeParameterElements;
   }
 
   /// Set the type parameters defined by this function type element to the given
@@ -4919,6 +4896,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasSealed => false;
 
   @override
+  bool get hasUseResult => false;
+
+  @override
   bool get hasVisibleForTemplate => false;
 
   @override
@@ -5960,7 +5940,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   ElementLinkedData? linkedData;
 
-  bool _isAliasedElementReady = false;
   ElementImpl? _aliasedElement;
   DartType? _aliasedType;
 
@@ -6002,12 +5981,11 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   @override
   ElementImpl? get aliasedElement {
-    _ensureAliasedElement();
+    linkedData?.read(this);
     return _aliasedElement;
   }
 
   set aliasedElement(ElementImpl? aliasedElement) {
-    _isAliasedElementReady = true;
     _aliasedElement = aliasedElement;
     aliasedElement?.enclosingElement = this;
   }
@@ -6016,8 +5994,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   DartType get aliasedType {
     linkedData?.read(this);
     if (_aliasedType != null) return _aliasedType!;
-
-    _ensureAliasedElement();
 
     final linkedNode = this.linkedNode;
     if (linkedNode is GenericTypeAlias) {
@@ -6160,44 +6136,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     reference.element = this;
 
     this.linkedData = linkedData;
-  }
-
-  void _ensureAliasedElement() {
-    if (_isAliasedElementReady) return;
-    _isAliasedElementReady = true;
-
-    linkedData?.read(this);
-
-    final linkedNode = this.linkedNode;
-    if (linkedNode != null) {
-      if (linkedNode is GenericTypeAlias) {
-        var type = linkedNode.type;
-        if (type is GenericFunctionTypeImpl) {
-          _aliasedElement =
-              type.declaredElement as GenericFunctionTypeElementImpl?;
-          // TODO(scheglov) Do we need this?
-          // We probably should set it when linking and when applying.
-          _aliasedElement ??= GenericFunctionTypeElementImpl.forLinkedNode(
-            this,
-            type,
-          );
-        } else if (isNonFunctionTypeAliasesEnabled) {
-          // No element for `typedef A<T> = List<T>;`
-        } else {
-          _aliasedElement = GenericFunctionTypeElementImpl.forOffset(-1)
-            ..enclosingElement = this
-            ..typeParameters = const <TypeParameterElement>[]
-            ..parameters = const <ParameterElement>[]
-            ..returnType = DynamicTypeImpl.instance;
-        }
-      } else {
-        // TODO(scheglov) Same as above.
-        _aliasedElement = GenericFunctionTypeElementImpl.forLinkedNode(
-          this,
-          linkedNode,
-        );
-      }
-    }
   }
 
   FunctionTypeImpl _errorFunctionType(NullabilitySuffix nullabilitySuffix) {

@@ -519,6 +519,9 @@ abstract class Member implements Element {
   bool get hasSealed => _declaration.hasSealed;
 
   @override
+  bool get hasUseResult => _declaration.hasUseResult;
+
+  @override
   bool get hasVisibleForTemplate => _declaration.hasVisibleForTemplate;
 
   @override

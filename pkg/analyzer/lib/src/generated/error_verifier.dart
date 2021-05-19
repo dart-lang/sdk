@@ -759,7 +759,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction(node.name);
     _checkForTypeAliasCannotReferenceItself(
-        node, node.declaredElement as TypeAliasElementImpl);
+        node.name, node.declaredElement as TypeAliasElementImpl);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -794,7 +794,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction(node.name);
     _checkForTypeAliasCannotReferenceItself(
-        node, node.declaredElement as TypeAliasElementImpl);
+        node.name, node.declaredElement as TypeAliasElementImpl);
     super.visitGenericTypeAlias(node);
   }
 
@@ -3962,13 +3962,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
   void _checkForTypeAliasCannotReferenceItself(
-    AstNode node,
+    SimpleIdentifier nameNode,
     TypeAliasElementImpl element,
   ) {
     if (element.hasSelfReference) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-        node,
+        nameNode,
       );
     }
   }

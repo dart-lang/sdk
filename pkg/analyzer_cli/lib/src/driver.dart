@@ -519,12 +519,15 @@ class _AnalysisContextProvider {
   }
 
   void configureForPath(String path) {
-    var parentFolder = _resourceProvider.getFile(path).parent2;
+    var folder = _resourceProvider.getFolder(path);
+    if (!folder.exists) {
+      folder = _resourceProvider.getFile(path).parent2;
+    }
 
     // In batch mode we are given separate file paths to analyze.
     // All files of a folder have the same configuration.
     // So, reuse the corresponding analysis context.
-    _analysisContext = _folderContexts[parentFolder];
+    _analysisContext = _folderContexts[folder];
     if (_analysisContext != null) {
       return;
     }
@@ -550,7 +553,7 @@ class _AnalysisContextProvider {
     );
 
     _setContextForPath(path);
-    _folderContexts[parentFolder] = _analysisContext;
+    _folderContexts[folder] = _analysisContext;
   }
 
   void setCommandLineOptions(
