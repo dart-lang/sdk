@@ -875,6 +875,10 @@ bool _installSpecializedIsTest(Object? object) {
       String propertyName =
           '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
       Rti._setSpecializedTestResource(testRti, propertyName);
+      if (name == JS_GET_NAME(JsGetName.LIST_CLASS_TYPE_NAME)) {
+        return _finishIsFn(
+            testRti, object, RAW_DART_FUNCTION_REF(_isListTestViaProperty));
+      }
       return _finishIsFn(
           testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
     }
@@ -974,6 +978,27 @@ bool _isTestViaProperty(Object? object) {
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
   if (object == null) return _nullIs(testRti);
+  var tag = Rti._getSpecializedTestResource(testRti);
+
+  // This test is redundant with getInterceptor below, but getInterceptor does
+  // the tests in the wrong order for most tags, so it is usually faster to have
+  // this check.
+  if (_isDartObject(object)) {
+    return JS('bool', '!!#[#]', object, tag);
+  }
+
+  var interceptor = getInterceptor(object);
+  return JS('bool', '!!#[#]', interceptor, tag);
+}
+
+/// Specialized version of [_isTestViaProperty] with faster path for Arrays.
+/// Called from generated code.
+bool _isListTestViaProperty(Object? object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _Utils.asRti(JS('', 'this'));
+  if (object == null) return _nullIs(testRti);
+  if (_Utils.isArray(object)) return true;
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
