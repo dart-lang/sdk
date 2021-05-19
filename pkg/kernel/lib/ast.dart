@@ -824,7 +824,7 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
-  // The following two fields describe parameters of the underlying type when
+  // The following fields describe parameters of the underlying type when
   // that is a function type.  They are needed to keep such attributes as names
   // and annotations. When the underlying type is not a function type, they are
   // empty.
@@ -849,6 +849,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         super(reference) {
     setParents(this.typeParameters, this);
+    setParents(this.typeParametersOfFunctionType, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -864,6 +867,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     visitList(annotations, v);
     visitList(typeParameters, v);
     type?.accept(v);
+    visitList(typeParametersOfFunctionType, v);
+    visitList(positionalParameters, v);
+    visitList(namedParameters, v);
   }
 
   @override
@@ -873,6 +879,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     if (type != null) {
       type = v.visitDartType(type!);
     }
+    v.transformList(typeParametersOfFunctionType, this);
+    v.transformList(positionalParameters, this);
+    v.transformList(namedParameters, this);
   }
 
   @override
@@ -887,6 +896,9 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         type = newType;
       }
     }
+    v.transformTypeParameterList(typeParametersOfFunctionType, this);
+    v.transformVariableDeclarationList(positionalParameters, this);
+    v.transformVariableDeclarationList(namedParameters, this);
   }
 
   @override

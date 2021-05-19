@@ -142,15 +142,6 @@ class CleanupAnnotations extends RecursiveVisitor {
     super.defaultNode(node);
   }
 
-  @override
-  visitTypedef(Typedef node) {
-    super.visitTypedef(node);
-    // These sub-nodes can have annotations but are not visited by
-    // Typedef.visitChildren.
-    visitList(node.positionalParameters, this);
-    visitList(node.namedParameters, this);
-  }
-
   void _cleanupAnnotations(Node node, List<Expression> annotations) {
     if (node is VariableDeclaration ||
         node is Member ||
