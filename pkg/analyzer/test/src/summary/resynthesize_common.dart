@@ -7921,6 +7921,33 @@ int Function(int, String) v;
 ''');
   }
 
+  test_genericFunction_boundOf_typeParameter_ofMixin() async {
+    var library = await checkLibrary(r'''
+mixin B<X extends void Function()> {}
+''');
+    checkElementText(library, r'''
+mixin B<X extends void Function() = void Function()> on Object {
+}
+''');
+  }
+
+  test_genericFunction_typeArgument_ofSuperclass_ofClassAlias() async {
+    var library = await checkLibrary(r'''
+class A<T> {}
+mixin M {}
+class B = A<void Function()> with M;
+''');
+    checkElementText(library, r'''
+class A<T> {
+}
+class alias B extends A<void Function()> with M {
+  synthetic B() : super();
+}
+mixin M on Object {
+}
+''');
+  }
+
   test_genericFunction_typeParameter_asTypedefArgument() async {
     var library = await checkLibrary(r'''
 typedef F1 = Function<V1>(F2<V1>);

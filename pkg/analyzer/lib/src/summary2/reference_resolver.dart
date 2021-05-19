@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
+  final Linker linker;
   final TypeSystemImpl _typeSystem;
   final NodesToBuildType nodesToBuildType;
   final LinkedElementFactory elementFactory;
@@ -40,6 +42,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   Scope scope;
 
   ReferenceResolver(
+    this.linker,
     this.nodesToBuildType,
     this.elementFactory,
     LibraryElementImpl libraryElement,
@@ -253,13 +256,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var nodeImpl = node as GenericFunctionTypeImpl;
     var outerScope = scope;
 
-    var element = GenericFunctionTypeElementImpl.forLinkedNode(
-      unitReference.element as CompilationUnitElementImpl,
-      node,
-    );
-    element.parameters; // create elements
-
-    _createTypeParameterElements(element, node.typeParameters);
+    var element = node.declaredElement as GenericFunctionTypeElementImpl;
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
     node.returnType?.accept(this);
@@ -423,7 +420,15 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    node.bound?.accept(this);
+    var bound = node.bound;
+    if (bound != null) {
+      bound.accept(this);
+      var element = node.declaredElement as TypeParameterElementImpl;
+      element.bound = bound.type;
+      // TODO(scheglov) We should not need to do it here.
+      // Only in the element builder, eventually.z
+      linker.elementNodes[element] = node;
+    }
   }
 
   @override

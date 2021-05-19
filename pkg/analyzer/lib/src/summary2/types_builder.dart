@@ -48,18 +48,22 @@ class TypesBuilder {
       builder.build();
     }
 
-    _MixinsInference().perform(nodes.declarations);
-
     for (var declaration in nodes.declarations) {
       _declaration(declaration);
     }
 
     // TODO(scheglov) generalize
     _linker.elementNodes.forEach((element, node) {
+      if (element is GenericFunctionTypeElementImpl &&
+          node is GenericFunctionType) {
+        element.returnType = node.returnType?.type ?? _dynamicType;
+      }
       if (element is TypeParameterElementImpl && node is TypeParameter) {
         element.bound = node.bound?.type;
       }
     });
+
+    _MixinsInference().perform(nodes.declarations);
   }
 
   FunctionType _buildFunctionType(

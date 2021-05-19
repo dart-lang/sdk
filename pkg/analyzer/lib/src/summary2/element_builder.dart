@@ -36,17 +36,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   Linker get _linker => _libraryBuilder.linker;
 
   void buildDeclarationElements(CompilationUnit unit) {
-    // TODO(scheglov) Use `unit.accept` when all nodes handled.
-    for (var declaration in unit.declarations) {
-      if (declaration is ClassDeclaration ||
-          declaration is EnumDeclaration ||
-          declaration is ExtensionDeclaration ||
-          declaration is FunctionDeclaration ||
-          declaration is MixinDeclaration ||
-          declaration is TopLevelVariableDeclaration) {
-        declaration.accept(this);
-      }
-    }
+    unit.declarations.accept(this);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.functions = _enclosingContext.functions;
@@ -74,7 +64,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    node.typeParameters?.accept(this);
+    node.extendsClause?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
     _buildClassOrMixin(node);
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    node.typeParameters?.accept(this);
+    node.superclass.accept(this);
+    node.withClause.accept(this);
+    node.implementsClause?.accept(this);
   }
 
   @override
@@ -139,12 +141,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtendsClause(ExtendsClause node) {
+    node.superclass.accept(this);
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var element = node.declaredElement as ExtensionElementImpl;
     var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
+
+    node.extendedType.accept(this);
   }
 
   @override
@@ -197,6 +206,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _enclosingContext.addSetter(name, setter);
       }
     }
+    _buildType(node.fields.type);
   }
 
   @override
@@ -247,6 +257,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element.typeParameters = holder.typeParameters;
       }
     });
+
+    _buildType(node.type);
   }
 
   @override
@@ -310,6 +322,27 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     } else {
       localScope.declare(name, reference);
     }
+
+    _buildType(node.returnType);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    node.returnType?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+
+    var element = node.declaredElement as TypeAliasElementImpl;
+
+    var aliasedElement = GenericFunctionTypeElementImpl.forOffset(
+      node.name.offset,
+    );
+    // TODO(scheglov) Use enclosing context?
+    aliasedElement.parameters = node.parameters.parameters
+        .map((parameterNode) => parameterNode.declaredElement!)
+        .toList();
+
+    element.aliasedElement = aliasedElement;
   }
 
   @override
@@ -353,6 +386,51 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element.typeParameters = holder.typeParameters;
       }
     });
+
+    _buildType(node.returnType);
+  }
+
+  @override
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
+    var element = GenericFunctionTypeElementImpl.forOffset(node.offset);
+    _unitElement.encloseElement(element);
+
+    node.declaredElement = element;
+    _linker.elementNodes[element] = node;
+
+    var fakeReference = Reference.root();
+    var holder = _EnclosingContext(fakeReference, element);
+    _withEnclosing(holder, () {
+      var formalParameters = node.parameters;
+      formalParameters.accept(this);
+      element.parameters = holder.parameters;
+
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
+    _buildType(node.returnType);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    node.typeParameters?.accept(this);
+    node.type.accept(this);
+
+    var typeNode = node.type;
+    if (typeNode is GenericFunctionTypeImpl) {
+      var element = node.declaredElement as TypeAliasElementImpl;
+      element.aliasedElement =
+          typeNode.declaredElement as GenericFunctionTypeElementImpl;
+    }
+  }
+
+  @override
+  void visitImplementsClause(ImplementsClause node) {
+    node.interfaces.accept(this);
   }
 
   @override
@@ -448,11 +526,21 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       formalParameters: node.parameters,
       typeParameters: node.typeParameters,
     );
+
+    _buildType(node.returnType);
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    node.typeParameters?.accept(this);
+    node.onClause?.accept(this);
+    node.implementsClause?.accept(this);
     _buildClassOrMixin(node);
+  }
+
+  @override
+  void visitOnClause(OnClause node) {
+    node.superclassConstraints.accept(this);
   }
 
   @override
@@ -494,6 +582,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredElement = element;
     nameNode?.staticElement = element;
+
+    _buildType(node.type);
   }
 
   @override
@@ -546,6 +636,18 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         localScope.declare('$name=', setter.reference!);
       }
     }
+
+    _buildType(node.variables.type);
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    node.arguments.accept(this);
+  }
+
+  @override
+  void visitTypeName(TypeName node) {
+    node.typeArguments?.accept(this);
   }
 
   @override
@@ -556,13 +658,21 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = TypeParameterElementImpl(name, nameNode.offset);
     element.metadata = _buildAnnotations(node.metadata);
 
+    nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
     _enclosingContext.addTypeParameter(name, element);
+
+    _buildType(node.bound);
   }
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.typeParameters.accept(this);
+  }
+
+  @override
+  void visitWithClause(WithClause node) {
+    node.mixinTypes.accept(this);
   }
 
   List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {
@@ -668,6 +778,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     } else {
       property.setter = accessorElement;
     }
+  }
+
+  /// TODO(scheglov) Maybe inline?
+  void _buildType(TypeAnnotation? node) {
+    node?.accept(this);
   }
 
   Uri? _selectAbsoluteUri(NamespaceDirective directive) {
@@ -892,9 +1007,9 @@ class _EnclosingContext {
     return _bindReference('@variable', name, element);
   }
 
-  Reference addTypeParameter(String name, TypeParameterElementImpl element) {
+  void addTypeParameter(String name, TypeParameterElementImpl element) {
     typeParameters.add(element);
-    return _bindReference('@typeParameter', name, element);
+    this.element.encloseElement(element);
   }
 
   Reference _bindReference(
