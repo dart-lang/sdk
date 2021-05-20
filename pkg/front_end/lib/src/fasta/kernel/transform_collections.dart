@@ -596,22 +596,23 @@ class CollectionTransformer extends Transformer {
     VariableDeclaration variable;
     Statement loopBody;
     if (!typeMatches) {
-      variable = _createForInVariable(
-          entry.fileOffset,
-          new InterfaceType(_mapEntryClass, _currentLibrary.nonNullable,
-              <DartType>[const DynamicType(), const DynamicType()]));
+      final InterfaceType variableType = new InterfaceType(
+          _mapEntryClass,
+          _currentLibrary.nonNullable,
+          <DartType>[const DynamicType(), const DynamicType()]);
+      variable = _createForInVariable(entry.fileOffset, variableType);
       VariableDeclaration keyVar = _createVariable(
           _createImplicitAs(
               entry.expression.fileOffset,
               _createGetKey(entry.expression.fileOffset,
-                  _createVariableGet(variable), entryType),
+                  _createVariableGet(variable), variableType),
               keyType),
           keyType);
       VariableDeclaration valueVar = _createVariable(
           _createImplicitAs(
               entry.expression.fileOffset,
               _createGetValue(entry.expression.fileOffset,
-                  _createVariableGet(variable), entryType),
+                  _createVariableGet(variable), variableType),
               valueType),
           valueType);
       loopBody = _createBlock(<Statement>[
