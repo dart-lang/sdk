@@ -85,9 +85,7 @@ class LibraryBuilder {
   void addLocalDeclarations() {
     for (var linkingUnit in context.units) {
       var unitRef = reference.getChild('@unit').getChild(linkingUnit.uriStr);
-      var extensionRef = unitRef.getChild('@extension');
       var typeAliasRef = unitRef.getChild('@typeAlias');
-      var nextUnnamedExtensionId = 0;
       for (var node in linkingUnit.unit.declarations) {
         if (node is ast.ClassDeclaration) {
           // Handled in ElementBuilder.
@@ -96,20 +94,7 @@ class LibraryBuilder {
         } else if (node is ast.EnumDeclarationImpl) {
           // Handled in ElementBuilder.
         } else if (node is ast.ExtensionDeclarationImpl) {
-          var name = node.name?.name;
-          var refName = name ?? 'extension-${nextUnnamedExtensionId++}';
-
-          var reference = extensionRef.getChild(refName);
-          reference.node ??= node;
-
-          if (name != null) {
-            localScope.declare(name, reference);
-          }
-
-          ExtensionElementImpl.forLinkedNode(
-              linkingUnit.reference.element as CompilationUnitElementImpl,
-              reference,
-              node);
+          // Handled in ElementBuilder.
         } else if (node is ast.FunctionDeclarationImpl) {
           // Handled in ElementBuilder.
         } else if (node is ast.FunctionTypeAlias) {

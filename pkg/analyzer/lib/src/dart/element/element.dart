@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -957,7 +956,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
-  List<ExtensionElement> _extensions = _Sentinel.extensionElement;
+  List<ExtensionElement> _extensions = const [];
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
@@ -1035,29 +1034,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ExtensionElement> get extensions {
-    if (!identical(_extensions, _Sentinel.extensionElement)) {
-      return _extensions;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@extension');
-      _extensions = <ExtensionElement>[];
-      var nextUnnamedExtensionId = 0;
-      for (var node in _linkedUnitDeclarations) {
-        if (node is ExtensionDeclarationImpl) {
-          var nameIdentifier = node.name;
-          var refName = nameIdentifier != null
-              ? nameIdentifier.name
-              : 'extension-${nextUnnamedExtensionId++}';
-          var reference = containerRef.getChild(refName);
-          var element = node.declaredElement;
-          element ??= ExtensionElementImpl.forLinkedNode(this, reference, node);
-          _extensions.add(element);
-        }
-      }
-      return _extensions;
-    }
-
     return _extensions;
   }
 
@@ -3112,13 +3088,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   /// element.
   ExtensionElementImpl(String? name, int nameOffset) : super(name, nameOffset);
 
-  /// Initialize using the given linked information.
-  ExtensionElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
-      Reference reference, ExtensionDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    linkedNode.declaredElement = this;
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
     return _accessors;
@@ -3149,13 +3118,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   DartType get extendedTypeInternal {
     linkedData?.read(this);
-    if (_extendedType != null) return _extendedType!;
-
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as ExtensionDeclaration;
-      return _extendedType = linkedNode.extendedType.typeOrThrow;
-    }
-
     return _extendedType!;
   }
 
@@ -3173,10 +3135,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   String get identifier {
-    if (linkedData != null) {
-      return linkedData!.reference.name;
-    }
-    if (linkedNode != null) {
+    if (reference != null) {
       return reference!.name;
     }
     return super.identifier;
@@ -3205,23 +3164,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
       (method as MethodElementImpl).enclosingElement = this;
     }
     _methods = methods;
-  }
-
-  @override
-  String? get name {
-    if (linkedNode != null) {
-      return (linkedNode as ExtensionDeclaration).name?.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   @override
@@ -6133,7 +6075,6 @@ class _Sentinel {
   static final List<ElementAnnotation> elementAnnotation =
       List.unmodifiable([]);
   static final List<ExportElement> exportElement = List.unmodifiable([]);
-  static final List<ExtensionElement> extensionElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
   @Deprecated('Use TypeAliasElement instead')
   static final List<FunctionTypeAliasElement> functionTypeAliasElement =

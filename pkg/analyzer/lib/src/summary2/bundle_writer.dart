@@ -195,9 +195,12 @@ class BundleWriter {
   }
 
   void _writeExtensionElement(ExtensionElement element) {
+    element as ExtensionElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeOptionalStringReference(element.name);
+    _sink._writeStringReference(element.reference!.name);
+
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {

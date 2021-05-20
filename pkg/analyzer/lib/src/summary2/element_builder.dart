@@ -22,6 +22,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   var _hasCoreImport = false;
 
   _EnclosingContext _enclosingContext;
+  var _nextUnnamedExtensionId = 0;
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
@@ -39,6 +40,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     unit.declarations.accept(this);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.enums = _enclosingContext.enums;
+    _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
     _unitElement.mixins = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.properties
@@ -193,12 +195,40 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    var element = node.declaredElement as ExtensionElementImpl;
-    var holder = _buildClassMembers(element, node.members);
-    element.accessors = holder.propertyAccessors;
-    element.fields = holder.properties.whereType<FieldElement>().toList();
-    element.methods = holder.methods;
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+    var nodeName = node.name;
+    var name = nodeName?.name;
+    var nameOffset = nodeName?.offset ?? -1;
+
+    var element = ExtensionElementImpl(name, nameOffset);
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    node.declaredElement = element;
+    _linker.elementNodes[element] = node;
+
+    var refName = name ?? 'extension-${_nextUnnamedExtensionId++}';
+    var reference = _enclosingContext.addExtension(refName, element);
+
+    if (name != null) {
+      _libraryBuilder.localScope.declare(name, reference);
+    }
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
+    {
+      var holder = _buildClassMembers(element, node.members);
+      element.accessors = holder.propertyAccessors;
+      element.fields = holder.properties.whereType<FieldElement>().toList();
+      element.methods = holder.methods;
+    }
 
     node.extendedType.accept(this);
   }
@@ -1014,6 +1044,7 @@ class _EnclosingContext {
   final List<ClassElementImpl> classes = [];
   final List<ConstructorElementImpl> constructors = [];
   final List<EnumElementImpl> enums = [];
+  final List<ExtensionElementImpl> extensions = [];
   final List<FunctionElementImpl> functions = [];
   final List<MethodElementImpl> methods = [];
   final List<MixinElementImpl> mixins = [];
@@ -1042,6 +1073,11 @@ class _EnclosingContext {
   Reference addEnum(String name, EnumElementImpl element) {
     enums.add(element);
     return _bindReference('@enum', name, element);
+  }
+
+  Reference addExtension(String name, ExtensionElementImpl element) {
+    extensions.add(element);
+    return _bindReference('@extension', name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {

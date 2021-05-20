@@ -218,7 +218,10 @@ class TypesBuilder {
     }
   }
 
-  void _extensionDeclaration(ExtensionDeclaration node) {}
+  void _extensionDeclaration(ExtensionDeclaration node) {
+    var element = node.declaredElement as ExtensionElementImpl;
+    element.extendedType = node.extendedType.typeOrThrow;
+  }
 
   void _fieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredElement as FieldFormalParameterElementImpl;

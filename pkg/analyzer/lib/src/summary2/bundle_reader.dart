@@ -402,7 +402,6 @@ class LibraryReader {
   int _classMembersLengthsIndex = 0;
 
   late List<Reference> exports;
-  var nextUnnamedExtensionId = 0;
 
   LibraryReader._({
     required LinkedElementFactory elementFactory,
@@ -655,7 +654,7 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var name = _reader.readOptionalStringReference();
-    var refName = name ?? 'extension-${nextUnnamedExtensionId++}';
+    var refName = _reader.readStringReference();
     var reference = unitReference.getChild('@extension').getChild(refName);
 
     var element = ExtensionElementImpl(name, -1);
@@ -1189,7 +1188,6 @@ class LibraryReader {
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
 
-    nextUnnamedExtensionId = 0;
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
