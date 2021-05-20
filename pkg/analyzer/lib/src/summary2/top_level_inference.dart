@@ -21,10 +21,6 @@ import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:collection/collection.dart';
 
-AstNode _getLinkedNode(Element element) {
-  return (element as ElementImpl).linkedNode!;
-}
-
 /// Resolver for typed constant top-level variables and fields initializers.
 ///
 /// Initializers of untyped variables are resolved during [TopLevelInference].
@@ -57,7 +53,7 @@ class ConstantInitializersResolver {
     _enclosingClassHasConstConstructor =
         class_.constructors.any((c) => c.isConst);
 
-    var node = _getLinkedNode(class_);
+    var node = linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     for (var element in class_.fields) {
       _resolveVariable(element);
@@ -66,7 +62,7 @@ class ConstantInitializersResolver {
   }
 
   void _resolveExtensionFields(ExtensionElement extension_) {
-    var node = _getLinkedNode(extension_);
+    var node = linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
     for (var element in extension_.fields) {
       _resolveVariable(element);
@@ -296,7 +292,7 @@ class _InitializerInference {
   }
 
   void _addClassElementFields(ClassElement class_) {
-    var node = _getLinkedNode(class_);
+    var node = _linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     for (var element in class_.fields) {
       _addVariableNode(element);
@@ -304,7 +300,7 @@ class _InitializerInference {
   }
 
   void _addExtensionElementFields(ExtensionElement extension_) {
-    var node = _getLinkedNode(extension_);
+    var node = _linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
     for (var element in extension_.fields) {
       _addVariableNode(element);

@@ -85,32 +85,14 @@ class LibraryBuilder {
   void addLocalDeclarations() {
     for (var linkingUnit in context.units) {
       var unitRef = reference.getChild('@unit').getChild(linkingUnit.uriStr);
-      var classRef = unitRef.getChild('@class');
       var extensionRef = unitRef.getChild('@extension');
-      var mixinRef = unitRef.getChild('@mixin');
       var typeAliasRef = unitRef.getChild('@typeAlias');
       var nextUnnamedExtensionId = 0;
       for (var node in linkingUnit.unit.declarations) {
         if (node is ast.ClassDeclaration) {
-          var name = node.name.name;
-          var reference = classRef.getChild(name);
-          reference.node ??= node;
-          localScope.declare(name, reference);
-
-          ClassElementImpl.forLinkedNode(
-              linkingUnit.reference.element as CompilationUnitElementImpl,
-              reference,
-              node);
+          // Handled in ElementBuilder.
         } else if (node is ast.ClassTypeAlias) {
-          var name = node.name.name;
-          var reference = classRef.getChild(name);
-          reference.node ??= node;
-          localScope.declare(name, reference);
-
-          ClassElementImpl.forLinkedNode(
-              linkingUnit.reference.element as CompilationUnitElementImpl,
-              reference,
-              node);
+          // Handled in ElementBuilder.
         } else if (node is ast.EnumDeclarationImpl) {
           // Handled in ElementBuilder.
         } else if (node is ast.ExtensionDeclarationImpl) {
@@ -153,15 +135,7 @@ class LibraryBuilder {
               reference,
               node);
         } else if (node is ast.MixinDeclarationImpl) {
-          var name = node.name.name;
-          var reference = mixinRef.getChild(name);
-          reference.node ??= node;
-          localScope.declare(name, reference);
-
-          MixinElementImpl.forLinkedNode(
-              linkingUnit.reference.element as CompilationUnitElementImpl,
-              reference,
-              node);
+          // Handled in ElementBuilder.
         } else if (node is ast.TopLevelVariableDeclaration) {
           // Handled in ElementBuilder.
         } else {

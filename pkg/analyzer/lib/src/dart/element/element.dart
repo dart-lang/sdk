@@ -428,11 +428,11 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
-  List<InterfaceType> _mixins = _Sentinel.interfaceType;
+  List<InterfaceType> _mixins = const [];
 
   /// A list containing all of the interfaces that are implemented by this
   /// class.
-  List<InterfaceType> _interfaces = _Sentinel.interfaceType;
+  List<InterfaceType> _interfaces = const [];
 
   /// For classes which are not mixin applications, a list containing all of the
   /// constructors contained in this class, or `null` if the list of
@@ -448,7 +448,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool hasBeenInferred = false;
 
   /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceType>? Function(ClassElementImpl)? linkedMixinInferenceCallback;
+  List<InterfaceType>? Function(ClassElementImpl)? mixinInferenceCallback;
 
   /// TODO(scheglov) implement as modifier
   bool _isSimplyBounded = true;
@@ -458,17 +458,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(String name, int offset) : super(name, offset);
-
-  ClassElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
-      Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    if (linkedNode is ClassDeclarationImpl) {
-      linkedNode.name.staticElement = this;
-    } else if (linkedNode is ClassTypeAliasImpl) {
-      linkedNode.name.staticElement = this;
-    }
-    hasBeenInferred = !linkedContext!.isLinking;
-  }
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -613,31 +602,11 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   List<InterfaceType> get interfacesInternal {
     linkedData?.read(this);
-    if (!identical(_interfaces, _Sentinel.interfaceType)) {
-      return _interfaces;
-    }
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var implementsClause = context.getImplementsClause(linkedNode!);
-      if (implementsClause != null) {
-        return _interfaces = implementsClause.interfaces
-            .map((node) => node.type)
-            .whereType<InterfaceType>()
-            .where(_isInterfaceTypeInterface)
-            .toList();
-      } else {
-        return _interfaces = const [];
-      }
-    }
     return _interfaces;
   }
 
   @override
   bool get isAbstract {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isAbstract(linkedNode!);
-    }
     return hasModifier(Modifier.ABSTRACT);
   }
 
@@ -651,9 +620,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isMixinApplication {
-    if (linkedNode != null) {
-      return linkedNode is ClassTypeAlias;
-    }
     return hasModifier(Modifier.MIXIN_APPLICATION);
   }
 
@@ -722,32 +688,14 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get mixins {
-    if (linkedMixinInferenceCallback != null) {
-      var mixins = linkedMixinInferenceCallback!(this);
+    if (mixinInferenceCallback != null) {
+      var mixins = mixinInferenceCallback!(this);
       if (mixins != null) {
         return _mixins = mixins;
       }
     }
 
     linkedData?.read(this);
-    if (!identical(_mixins, _Sentinel.interfaceType)) {
-      return _mixins;
-    }
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var withClause = context.getWithClause(linkedNode!);
-      if (withClause != null) {
-        return _mixins = withClause.mixinTypes
-            .map((node) => node.type)
-            .whereType<InterfaceType>()
-            .where(_isInterfaceTypeInterface)
-            .toList();
-      } else {
-        return _mixins = const [];
-      }
-    }
-
     return _mixins;
   }
 
@@ -757,23 +705,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   String get name {
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      return linkedData.reference.name;
-    }
-
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-    return super.nameOffset;
   }
 
   /// Names of methods, getters, setters, and operators that this mixin
@@ -790,17 +722,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       return null;
     }
 
-    if (linkedNode != null) {
-      var type = linkedContext!.getSuperclass(linkedNode!)?.type;
-      if (_isInterfaceTypeClass(type)) {
-        return _supertype = type as InterfaceType;
-      }
-      if (library.isDartCore && name == 'Object') {
-        setModifier(Modifier.DART_CORE_OBJECT, true);
-        return null;
-      }
-      return _supertype = library.typeProvider.objectType;
-    }
     return _supertype;
   }
 
@@ -841,11 +762,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   ConstructorElement? getNamedConstructor(String name) =>
       getNamedConstructorFromList(name, constructors);
-
-  void resetAfterMixinInference() {
-    linkedMixinInferenceCallback = null;
-    _mixins = _Sentinel.interfaceType;
-  }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
@@ -1000,43 +916,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }).toList(growable: false);
   }
 
-  /// Return `true` if the given [type] is an [InterfaceType] that can be used
-  /// as a class.
-  bool _isInterfaceTypeClass(DartType? type) {
-    if (type is InterfaceType) {
-      var element = type.element;
-      if (element.isEnum || element.isMixin) {
-        return false;
-      }
-      if (type.isDartCoreFunction || type.isDartCoreNull) {
-        return false;
-      }
-      if (type.nullabilitySuffix == NullabilitySuffix.question) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [type] is an [InterfaceType] that can be used
-  /// as an interface or a mixin.
-  bool _isInterfaceTypeInterface(DartType type) {
-    if (type is InterfaceType) {
-      if (type.element.isEnum) {
-        return false;
-      }
-      if (type.isDartCoreFunction || type.isDartCoreNull) {
-        return false;
-      }
-      if (type.nullabilitySuffix == NullabilitySuffix.question) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
   static ConstructorElement? getNamedConstructorFromList(
       String name, List<ConstructorElement> constructors) {
     for (ConstructorElement element in constructors) {
@@ -1085,7 +964,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<FunctionElement> _functions = const [];
 
   /// A list containing all of the mixins contained in this compilation unit.
-  List<ClassElement> _mixins = _Sentinel.classElement;
+  List<ClassElement> _mixins = const [];
 
   /// A list containing all of the function type aliases contained in this
   /// compilation unit.
@@ -1098,7 +977,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TypeAliasElement> _typeAliases = _Sentinel.typeAliasElement;
 
   /// A list containing all of the classes contained in this compilation unit.
-  List<ClassElement> _types = _Sentinel.classElement;
+  List<ClassElement> _types = const [];
 
   /// A list containing all of the variables contained in this compilation unit.
   List<TopLevelVariableElement> _variables = const [];
@@ -1252,23 +1131,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get mixins {
-    if (!identical(_mixins, _Sentinel.classElement)) {
-      return _mixins;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@mixin');
-      var declarations = _linkedUnitDeclarations;
-      return _mixins =
-          declarations.whereType<MixinDeclarationImpl>().map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as MixinElementImpl?;
-        element ??= MixinElementImpl.forLinkedNode(this, reference, node);
-        return element;
-      }).toList();
-    }
-
     return _mixins;
   }
 
@@ -1340,32 +1202,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get types {
-    if (!identical(_types, _Sentinel.classElement)) {
-      return _types;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@class');
-      _types = <ClassElement>[];
-      var declarations = _linkedUnitDeclarations;
-      for (var node in declarations) {
-        if (node is ClassDeclaration) {
-          var name = node.name.name;
-          var reference = containerRef.getChild(name);
-          var element = node.declaredElement;
-          element ??= ClassElementImpl.forLinkedNode(this, reference, node);
-          _types.add(element);
-        } else if (node is ClassTypeAlias) {
-          var name = node.name.name;
-          var reference = containerRef.getChild(name);
-          var element = node.declaredElement;
-          element ??= ClassElementImpl.forLinkedNode(this, reference, node);
-          _types.add(element);
-        }
-      }
-      return _types;
-    }
-
     return _types;
   }
 
@@ -4575,7 +4411,7 @@ class MixinElementImpl extends ClassElementImpl {
 
   /// A list containing all of the superclass constraints that are defined for
   /// the mixin.
-  List<InterfaceType> _superclassConstraints = _Sentinel.interfaceType;
+  List<InterfaceType> _superclassConstraints = const [];
 
   @override
   late List<String> superInvokedNames;
@@ -4583,12 +4419,6 @@ class MixinElementImpl extends ClassElementImpl {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(String name, int offset) : super(name, offset);
-
-  MixinElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
-      Reference reference, MixinDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
 
   @override
   bool get isAbstract => true;
@@ -4602,27 +4432,6 @@ class MixinElementImpl extends ClassElementImpl {
   @override
   List<InterfaceType> get superclassConstraints {
     linkedData?.read(this);
-    if (!identical(_superclassConstraints, _Sentinel.interfaceType)) {
-      return _superclassConstraints;
-    }
-
-    final linkedNode = this.linkedNode;
-    if (linkedNode is MixinDeclaration) {
-      List<InterfaceType>? constraints;
-      var onClause = linkedNode.onClause;
-      if (onClause != null) {
-        constraints = onClause.superclassConstraints
-            .map((node) => node.type)
-            .whereType<InterfaceType>()
-            .where(_isInterfaceTypeInterface)
-            .toList();
-      }
-      if (constraints == null || constraints.isEmpty) {
-        constraints = [library.typeProvider.objectType];
-      }
-      return _superclassConstraints = constraints;
-    }
-
     return _superclassConstraints;
   }
 
@@ -6319,7 +6128,6 @@ mixin _HasLibraryMixin on ElementImpl {
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
 class _Sentinel {
-  static final List<ClassElement> classElement = List.unmodifiable([]);
   static final List<ConstructorElement> constructorElement =
       List.unmodifiable([]);
   static final List<ElementAnnotation> elementAnnotation =
@@ -6331,7 +6139,6 @@ class _Sentinel {
   static final List<FunctionTypeAliasElement> functionTypeAliasElement =
       List.unmodifiable([]);
   static final List<ImportElement> importElement = List.unmodifiable([]);
-  static final List<InterfaceType> interfaceType = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
       List.unmodifiable([]);

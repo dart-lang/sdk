@@ -40,9 +40,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.functions = _enclosingContext.functions;
+    _unitElement.mixins = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.properties
         .whereType<TopLevelVariableElementImpl>()
         .toList();
+    _unitElement.types = _enclosingContext.classes;
   }
 
   /// This method should be invoked after visiting directive nodes, it
@@ -63,8 +65,30 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    node.typeParameters?.accept(this);
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+    var nameNode = node.name;
+    var name = nameNode.name;
+
+    var element = ClassElementImpl(name, nameNode.offset);
+    element.isAbstract = node.isAbstract;
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addClass(name, element);
+    _libraryBuilder.localScope.declare(name, reference);
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -72,8 +96,31 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    node.typeParameters?.accept(this);
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+    var nameNode = node.name;
+    var name = nameNode.name;
+
+    var element = ClassElementImpl(name, nameNode.offset);
+    element.isAbstract = node.isAbstract;
+    element.isMixinApplication = true;
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addClass(name, element);
+    _libraryBuilder.localScope.declare(name, reference);
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
     node.superclass.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
@@ -531,8 +578,29 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
-    node.typeParameters?.accept(this);
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+    var nameNode = node.name;
+    var name = nameNode.name;
+
+    var element = MixinElementImpl(name, nameNode.offset);
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addMixin(name, element);
+    _libraryBuilder.localScope.declare(name, reference);
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
     _buildClassOrMixin(node);
@@ -943,10 +1011,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 class _EnclosingContext {
   final Reference reference;
   final ElementImpl element;
+  final List<ClassElementImpl> classes = [];
   final List<ConstructorElementImpl> constructors = [];
   final List<EnumElementImpl> enums = [];
   final List<FunctionElementImpl> functions = [];
   final List<MethodElementImpl> methods = [];
+  final List<MixinElementImpl> mixins = [];
   final List<ParameterElementImpl> parameters = [];
   final List<PropertyInducingElementImpl> properties = [];
   final List<PropertyAccessorElementImpl> propertyAccessors = [];
@@ -958,6 +1028,11 @@ class _EnclosingContext {
     this.element, {
     this.hasConstConstructor = false,
   });
+
+  Reference addClass(String name, ClassElementImpl element) {
+    classes.add(element);
+    return _bindReference('@class', name, element);
+  }
 
   Reference addConstructor(String name, ConstructorElementImpl element) {
     constructors.add(element);
@@ -987,6 +1062,11 @@ class _EnclosingContext {
   Reference addMethod(String name, MethodElementImpl element) {
     methods.add(element);
     return _bindReference('@method', name, element);
+  }
+
+  Reference addMixin(String name, MixinElementImpl element) {
+    mixins.add(element);
+    return _bindReference('@mixin', name, element);
   }
 
   Reference? addParameter(String? name, ParameterElementImpl element) {

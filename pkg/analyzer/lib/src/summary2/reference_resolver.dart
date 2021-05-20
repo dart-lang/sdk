@@ -63,7 +63,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     element.constructors; // create elements
     element.methods; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
@@ -86,7 +85,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ClassElementImpl;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
@@ -328,7 +326,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     element.constructors; // create elements
     element.methods; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
