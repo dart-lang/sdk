@@ -5024,7 +5024,7 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   compiler->EmitDispatchTableCall(selector()->offset, arguments_descriptor);
   compiler->EmitCallsiteMetadata(source(), DeoptId::kNone,
-                                 UntaggedPcDescriptors::kOther, locs());
+                                 UntaggedPcDescriptors::kOther, locs(), env());
   if (selector()->called_on_null && !selector()->on_null_interface) {
     Value* receiver = ArgumentValueAt(FirstArgIndex());
     if (receiver->Type()->is_nullable()) {

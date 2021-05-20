@@ -805,7 +805,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter(intptr_t edge_id);
 
-  void RecordCatchEntryMoves(Environment* env = NULL,
+  void RecordCatchEntryMoves(Environment* env,
                              intptr_t try_index = kInvalidTryIndex);
 
   void EmitCallToStub(const Code& stub);
@@ -824,7 +824,7 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t deopt_id,
                             UntaggedPcDescriptors::Kind kind,
                             LocationSummary* locs,
-                            Environment* env = nullptr);
+                            Environment* env);
 
   void EmitYieldPositionMetadata(const InstructionSource& source,
                                  intptr_t yield_index);
@@ -882,8 +882,7 @@ class FlowGraphCompiler : public ValueObject {
                                 ICData::DeoptReasonId reason,
                                 uint32_t flags = 0);
 
-  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id,
-                                         Environment* env = nullptr);
+  CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id, Environment* env);
   CompilerDeoptInfo* AddSlowPathDeoptInfo(intptr_t deopt_id, Environment* env);
 
   void AddSlowPathCode(SlowPathCode* slow_path);

@@ -1031,7 +1031,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label get_pc;
   __ call(&get_pc);
   compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
-                                 UntaggedPcDescriptors::Kind::kOther, locs());
+                                 UntaggedPcDescriptors::Kind::kOther, locs(),
+                                 env());
   __ Bind(&get_pc);
   __ popl(temp);
   __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), temp);
@@ -2782,7 +2783,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // deoptimization stub.
     const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
     if (compiler->is_optimizing()) {
-      compiler->AddDeoptIndexAtCall(deopt_id);
+      compiler->AddDeoptIndexAtCall(deopt_id, env());
     } else {
       compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id,
                                      InstructionSource());
@@ -2857,7 +2858,7 @@ class CheckStackOverflowSlowPath
     __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
     compiler->EmitCallsiteMetadata(
         instruction()->source(), instruction()->deopt_id(),
-        UntaggedPcDescriptors::kOther, instruction()->locs());
+        UntaggedPcDescriptors::kOther, instruction()->locs(), env);
 
     if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
@@ -6601,7 +6602,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorl(ECX, ECX);
   __ call(EBX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
-                                 UntaggedPcDescriptors::kOther, locs());
+                                 UntaggedPcDescriptors::kOther, locs(), env());
   __ Drop(argument_count);
 }
 

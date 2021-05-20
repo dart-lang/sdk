@@ -445,7 +445,6 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
 void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
                                               intptr_t try_index) {
 #if defined(DART_PRECOMPILER)
-  env = env != nullptr ? env : pending_deoptimization_env_;
   try_index = try_index != kInvalidTryIndex ? try_index : CurrentTryIndex();
   if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
@@ -903,9 +902,6 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   ASSERT(!FLAG_precompiled_mode);
-  if (env == nullptr) {
-    env = pending_deoptimization_env_;
-  }
   if (env != nullptr) {
     env = env->GetLazyDeoptEnv(zone());
   }

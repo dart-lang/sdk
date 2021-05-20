@@ -427,7 +427,8 @@ void FlowGraphCompiler::GeneratePatchableCall(const InstructionSource& source,
                                               UntaggedPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
   __ BranchLinkPatchable(stub);
-  EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs);
+  EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs,
+                       pending_deoptimization_env_);
 }
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
@@ -438,7 +439,8 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
   __ BranchLinkPatchable(stub, entry_kind);
-  EmitCallsiteMetadata(source, deopt_id, kind, locs);
+  EmitCallsiteMetadata(source, deopt_id, kind, locs,
+                       pending_deoptimization_env_);
 }
 
 void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
@@ -451,7 +453,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   if (CanPcRelativeCall(target)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallTarget(target, entry_kind);
-    EmitCallsiteMetadata(source, deopt_id, kind, locs);
+    EmitCallsiteMetadata(source, deopt_id, kind, locs,
+                         pending_deoptimization_env_);
   } else {
     ASSERT(is_optimizing());
     // Call sites to the same target can share object pool entries. These
@@ -460,7 +463,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
     // instead.
     const auto& stub = StubCode::CallStaticFunction();
     __ BranchLinkWithEquivalence(stub, target, entry_kind);
-    EmitCallsiteMetadata(source, deopt_id, kind, locs);
+    EmitCallsiteMetadata(source, deopt_id, kind, locs,
+                         pending_deoptimization_env_);
     AddStaticCallTarget(target, entry_kind);
   }
 }
@@ -531,7 +535,8 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
           : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
   __ Call(compiler::FieldAddress(CODE_REG, entry_point_offset));
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kIcCall, locs);
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kIcCall, locs,
+                       pending_deoptimization_env_);
   __ Drop(ic_data.SizeWithTypeArgs());
 }
 
@@ -589,7 +594,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
                   DeoptId::kNone, source, try_index);
   } else if (is_optimizing()) {
     AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-    AddDeoptIndexAtCall(deopt_id_after);
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
   } else {
     AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
     // Add deoptimization continuation point after the call and before the
@@ -642,7 +647,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   CLOBBERS_LR(__ blx(LR));
 
   EmitCallsiteMetadata(source, DeoptId::kNone, UntaggedPcDescriptors::kOther,
-                       locs);
+                       locs, pending_deoptimization_env_);
   __ Drop(ic_data.SizeWithTypeArgs());
 }
 
