@@ -14560,6 +14560,19 @@ notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 ''');
   }
 
+  test_typedef_parameter_hasImplicitType() async {
+    var library = await checkLibrary(r'''
+typedef void F(int a, b, [int c, d]);
+''');
+    var F = library.definingCompilationUnit.typeAliases.single;
+    var function = F.aliasedElement as GenericFunctionTypeElement;
+    // TODO(scheglov) Use better textual presentation with all information.
+    expect(function.parameters[0].hasImplicitType, false);
+    expect(function.parameters[1].hasImplicitType, true);
+    expect(function.parameters[2].hasImplicitType, false);
+    expect(function.parameters[3].hasImplicitType, true);
+  }
+
   test_typedef_parameter_parameters() async {
     var library = await checkLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''

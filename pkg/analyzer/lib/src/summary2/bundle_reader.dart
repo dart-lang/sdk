@@ -1535,6 +1535,7 @@ class ResolutionReader {
     return List.generate(formalParameterCount, (_) {
       var kindIndex = _reader.readByte();
       var kind = _formalParameterKind(kindIndex);
+      var hasImplicitType = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var typeParameters = _readTypeParameters(unitElement);
       var type = readRequiredType();
@@ -1550,6 +1551,7 @@ class ResolutionReader {
             ..parameterKind = kind
             ..type = type;
         }
+        element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
         element.parameters = _readFormalParameters(unitElement);
         // TODO(scheglov) reuse for formal parameters
@@ -1562,6 +1564,7 @@ class ResolutionReader {
         var element = DefaultParameterElementImpl(name, -1)
           ..parameterKind = kind
           ..type = type;
+        element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
         element.parameters = _readFormalParameters(unitElement);
         // TODO(scheglov) reuse for formal parameters
