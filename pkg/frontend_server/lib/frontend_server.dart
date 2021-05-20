@@ -141,6 +141,13 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false)
+  ..addMultiOption(
+    'delete-tostring-package-uri',
+    help: 'Replaces implementations of `toString` with `super.toString()` for '
+        'specified package',
+    valueHelp: 'dart:ui',
+    defaultsTo: const <String>[],
+  )
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
@@ -531,6 +538,7 @@ class FrontendCompiler implements CompilerInterface {
       results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           includePlatform: options['link-platform'],
+          deleteToStringPackageUris: options['delete-tostring-package-uri'],
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,

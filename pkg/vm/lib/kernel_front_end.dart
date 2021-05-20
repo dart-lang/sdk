@@ -65,6 +65,7 @@ import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
 import 'transformations/deferred_loading.dart' as deferred_loading;
+import 'transformations/to_string_transformer.dart' as to_string_transformer;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -129,6 +130,13 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false);
+  args.addMultiOption(
+    'delete-tostring-package-uri',
+    help: 'Replaces implementations of `toString` with `super.toString()` for '
+        'specified package',
+    valueHelp: 'dart:ui',
+    defaultsTo: const <String>[],
+  );
   args.addOption('invocation-modes',
       help: 'Provides information to the front end about how it is invoked.',
       defaultsTo: '');
@@ -258,6 +266,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final results = await compileToKernel(mainUri, compilerOptions,
       includePlatform: additionalDills.isNotEmpty,
+      deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
@@ -324,6 +333,7 @@ class KernelCompilationResults {
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
     {bool includePlatform: false,
+    List<String> deleteToStringPackageUris: const <String>[],
     bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
@@ -353,6 +363,11 @@ Future<KernelCompilationResults> compileToKernel(
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
       includePlatform: includePlatform);
+
+  if (deleteToStringPackageUris.isNotEmpty && component != null) {
+    to_string_transformer.transformComponent(
+        component, deleteToStringPackageUris);
+  }
 
   // Run global transformations only if component is correct.
   if ((aot || minimalKernel) && component != null) {

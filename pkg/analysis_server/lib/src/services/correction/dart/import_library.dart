@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -110,26 +111,44 @@ class ImportLibrary extends MultiCorrectionProducer {
     return false;
   }
 
-  /// Return the relative uri from the passed [library] to the given [path].
-  /// If the [path] is not in the LibraryElement, `null` is returned.
-  String? _getRelativeURIFromLibrary(LibraryElement library, String path) {
+  /// Returns the relative URI from the passed [library] to the given [path].
+  ///
+  /// If the [path] is not in the [library]'s directory, `null` is returned.
+  String? _getRelativeUriFromLibrary(LibraryElement library, String path) {
     var librarySource = library.librarySource;
-    var pathCtx = resourceProvider.pathContext;
-    var libraryDirectory = pathCtx.dirname(librarySource.fullName);
-    var sourceDirectory = pathCtx.dirname(path);
-    if (pathCtx.isWithin(libraryDirectory, path) ||
-        pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
-      var relativeFile = pathCtx.relative(path, from: libraryDirectory);
-      return pathCtx.split(relativeFile).join('/');
+    var pathContext = resourceProvider.pathContext;
+    var libraryDirectory = pathContext.dirname(librarySource.fullName);
+    var sourceDirectory = pathContext.dirname(path);
+    if (pathContext.isWithin(libraryDirectory, path) ||
+        pathContext.isWithin(sourceDirectory, libraryDirectory)) {
+      var relativeFile = pathContext.relative(path, from: libraryDirectory);
+      return pathContext.split(relativeFile).join('/');
     }
     return null;
   }
 
+  /// Returns a list of one or two import corrections.
+  ///
+  /// If [relativeUri] is `null`, only one correction, with an absolute import
+  /// path, is returned. Otherwise, a correction with an absolute import path
+  /// and a correction with a relative path are returned. If the
+  /// `prefer_relative_imports` lint rule is enabled, the relative path is
+  /// returned first.
   Iterable<CorrectionProducer> _importLibrary(FixKind fixKind, Uri library,
-      [String? relativeURI]) sync* {
-    yield _ImportAbsoluteLibrary(fixKind, library);
-    if (relativeURI != null && relativeURI.isNotEmpty) {
-      yield _ImportRelativeLibrary(fixKind, relativeURI);
+      [String? relativeUri]) {
+    if (relativeUri == null || relativeUri.isEmpty) {
+      return [_ImportAbsoluteLibrary(fixKind, library)];
+    }
+    if (isLintEnabled(LintNames.prefer_relative_imports)) {
+      return [
+        _ImportRelativeLibrary(fixKind, relativeUri),
+        _ImportAbsoluteLibrary(fixKind, library),
+      ];
+    } else {
+      return [
+        _ImportAbsoluteLibrary(fixKind, library),
+        _ImportRelativeLibrary(fixKind, relativeUri),
+      ];
     }
   }
 
@@ -215,9 +234,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
       }
       // Add the fix.
-      var relativeURI =
-          _getRelativeURIFromLibrary(libraryElement, declaration.path);
-      yield* _importLibrary(fixKind, declaration.uri, relativeURI);
+      var relativeUri =
+          _getRelativeUriFromLibrary(libraryElement, declaration.path);
+      yield* _importLibrary(fixKind, declaration.uri, relativeUri);
     }
   }
 
