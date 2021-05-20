@@ -45,7 +45,7 @@ vars = {
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
   "co19_rev": "055b5c984613ec1b8ef76516db3ea99fee63acb9",
-  "co19_2_rev": "f7f583366396cb1457e58c9bfb6d6e53dc21d741",
+  "co19_2_rev": "1c2e425f461bfae7de6db7014fc44a58fc72b4a8",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
