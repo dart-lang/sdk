@@ -1865,10 +1865,6 @@ class DefaultFieldFormalParameterElementImpl
   /// [nameOffset].
   DefaultFieldFormalParameterElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
-
-  DefaultFieldFormalParameterElementImpl.forLinkedNode(ElementImpl enclosing,
-      Reference? reference, FormalParameterImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
 }
 
 /// A [ParameterElement] for parameters that have an initializer.
@@ -1878,10 +1874,6 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   /// [nameOffset].
   DefaultParameterElementImpl(String? name, int nameOffset)
       : super(name, nameOffset);
-
-  DefaultParameterElementImpl.forLinkedNode(ElementImpl enclosing,
-      Reference? reference, FormalParameterImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
 
   @override
   String? get defaultValueCode {
@@ -3050,7 +3042,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
-  List<ParameterElement> _parameters = _Sentinel.parameterElement;
+  List<ParameterElement> _parameters = const [];
 
   /// The inferred return type of this executable element.
   DartType? _returnType;
@@ -3535,44 +3527,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
 /// [FieldElement] associated with the parameter.
 class FieldFormalParameterElementImpl extends ParameterElementImpl
     implements FieldFormalParameterElement {
-  /// The field associated with this field formal parameter.
-  FieldElement? _field;
+  @override
+  FieldElement? field;
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FieldFormalParameterElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
-
-  FieldFormalParameterElementImpl.forLinkedNode(ElementImpl enclosing,
-      Reference? reference, FormalParameterImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  @override
-  FieldElement? get field {
-    if (_field == null) {
-      String? fieldName;
-      if (linkedNode != null) {
-        fieldName = linkedContext!.getFieldFormalParameterName(linkedNode!);
-      }
-      if (fieldName != null) {
-        Element enclosingConstructor = enclosingElement!;
-        if (enclosingConstructor is ConstructorElement) {
-          Element enclosingClass = enclosingConstructor.enclosingElement;
-          if (enclosingClass is ClassElement) {
-            var field = enclosingClass.getField(fieldName);
-            if (field != null && !field.isSynthetic) {
-              _field = field;
-            }
-          }
-        }
-      }
-    }
-    return _field;
-  }
-
-  set field(FieldElement? field) {
-    _field = field;
-  }
 
   /// Initializing formals are visible only in the "formal parameter
   /// initializer scope", which is the current scope of the initializer list
@@ -5070,12 +5031,12 @@ class ParameterElementImpl extends VariableElementImpl
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
   /// parameter.
-  List<ParameterElement> _parameters = _Sentinel.parameterElement;
+  List<ParameterElement> _parameters = const [];
 
   /// A list containing all of the type parameters defined for this parameter
   /// element. There will only be parameters if this parameter is a function
   /// typed parameter.
-  List<TypeParameterElement> _typeParameters = _Sentinel.typeParameterElement;
+  List<TypeParameterElement> _typeParameters = const [];
 
   /// The kind of this parameter.
   ParameterKind? _parameterKind;
@@ -5092,29 +5053,6 @@ class ParameterElementImpl extends VariableElementImpl
   /// [nameOffset].
   ParameterElementImpl(String? name, int nameOffset) : super(name, nameOffset);
 
-  ParameterElementImpl.forLinkedNode(ElementImpl enclosing,
-      Reference? reference, FormalParameterImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    assert(linkedNode.isNamed || reference == null);
-    FormalParameterImpl.setDeclaredElement(linkedNode, this);
-  }
-
-  factory ParameterElementImpl.forLinkedNodeFactory(
-      ElementImpl enclosing, Reference? reference, FormalParameterImpl node) {
-    if (node is FieldFormalParameter) {
-      return FieldFormalParameterElementImpl.forLinkedNode(
-        enclosing,
-        reference,
-        node,
-      );
-    } else if (node is FunctionTypedFormalParameter ||
-        node is SimpleFormalParameter) {
-      return ParameterElementImpl.forLinkedNode(enclosing, reference, node);
-    } else {
-      throw UnimplementedError('${node.runtimeType}');
-    }
-  }
-
   /// Creates a synthetic parameter with [name], [type] and [kind].
   factory ParameterElementImpl.synthetic(
       String? name, DartType type, ParameterKind kind) {
@@ -5130,11 +5068,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   String? get defaultValueCode {
-    final linkedNode = this.linkedNode;
-    if (linkedNode is DefaultFormalParameter) {
-      return linkedNode.defaultValue?.toSource();
-    }
-
     return _defaultValueCode;
   }
 
@@ -5151,14 +5084,6 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  bool get hasImplicitType {
-    if (linkedNode != null) {
-      return linkedContext!.hasImplicitType(linkedNode!);
-    }
-    return super.hasImplicitType;
-  }
-
-  @override
   bool get isCovariant {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
@@ -5168,9 +5093,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Return true if this parameter is explicitly marked as being covariant.
   bool get isExplicitlyCovariant {
-    if (linkedNode != null) {
-      return linkedContext!.isExplicitlyCovariant(linkedNode!);
-    }
     return hasModifier(Modifier.COVARIANT);
   }
 
@@ -5178,15 +5100,6 @@ class ParameterElementImpl extends VariableElementImpl
   /// covariant.
   set isExplicitlyCovariant(bool isCovariant) {
     setModifier(Modifier.COVARIANT, isCovariant);
-  }
-
-  @override
-  bool get isFinal {
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as FormalParameter;
-      return linkedNode.isFinal;
-    }
-    return super.isFinal;
   }
 
   @override
@@ -5199,31 +5112,8 @@ class ParameterElementImpl extends VariableElementImpl
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  String get name {
-    if (linkedNode != null) {
-      return linkedContext!
-          .getFormalParameterName(linkedNode as FormalParameter);
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
-  }
-
-  @override
   ParameterKind get parameterKind {
     if (_parameterKind != null) return _parameterKind!;
-
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as FormalParameterImpl;
-      return linkedNode.kind;
-    }
 
     // TODO(migration): Make it impossible by construction.
     throw StateError('The kind must set.');
@@ -5235,25 +5125,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (!identical(_parameters, _Sentinel.parameterElement)) {
-      return _parameters;
-    }
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext!;
-      var formalParameters = context.getFormalParameters(linkedNode!);
-      if (formalParameters != null) {
-        return _parameters = ParameterElementImpl.forLinkedNodeList(
-          this,
-          context,
-          null,
-          formalParameters,
-        );
-      } else {
-        return _parameters;
-      }
-    }
-
     return _parameters;
   }
 
@@ -5268,24 +5139,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (!identical(_typeParameters, _Sentinel.typeParameterElement)) {
-      return _typeParameters;
-    }
-
-    if (linkedNode != null) {
-      var typeParameters = linkedContext!.getTypeParameters2(linkedNode!);
-      if (typeParameters == null) {
-        return _typeParameters = const [];
-      }
-      return _typeParameters = typeParameters.typeParameters
-          .cast<TypeParameterImpl>()
-          .map<TypeParameterElement>((node) {
-        var element = node.declaredElement;
-        element ??= TypeParameterElementImpl.forLinkedNode(this, node);
-        return element;
-      }).toList();
-    }
-
     return _typeParameters;
   }
 
@@ -5311,52 +5164,6 @@ class ParameterElementImpl extends VariableElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
-  }
-
-  /// TODO(scheglov) Do we need this method at all?
-  /// We should create all parameter elements during applying resolution.
-  /// Or when we build elements before linking.
-  static List<ParameterElement> forLinkedNodeList(
-      ElementImpl enclosing,
-      LinkedUnitContext context,
-      Reference? containerRef,
-      List<FormalParameter>? formalParameters) {
-    if (formalParameters == null) {
-      return const [];
-    }
-
-    return formalParameters.map((node) {
-      var element = node.declaredElement;
-      if (element != null) {
-        return element;
-      }
-
-      if (node is DefaultFormalParameterImpl) {
-        NormalFormalParameter parameterNode = node.parameter;
-        Reference? reference;
-        if (node.isNamed) {
-          var name = parameterNode.identifier?.name ?? '';
-          reference = containerRef?.getChild(name);
-          reference?.node = node;
-        }
-        if (parameterNode is FieldFormalParameter) {
-          return DefaultFieldFormalParameterElementImpl.forLinkedNode(
-            enclosing,
-            reference,
-            node,
-          );
-        } else {
-          return DefaultParameterElementImpl.forLinkedNode(
-            enclosing,
-            reference,
-            node,
-          );
-        }
-      } else {
-        return ParameterElementImpl.forLinkedNodeFactory(
-            enclosing, null, node as FormalParameterImpl);
-      }
-    }).toList();
   }
 }
 
@@ -5709,7 +5516,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   List<ParameterElement> get parametersInternal {
-    if (!identical(_parameters, _Sentinel.parameterElement)) {
+    if (_parameters.isNotEmpty) {
       return _parameters;
     }
 
@@ -6374,16 +6181,7 @@ abstract class VariableElementImpl extends ElementImpl
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  VariableElementImpl(String? name, int offset, {Reference? reference})
-      : super(name, offset, reference: reference);
-
-  VariableElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference? reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize using the given serialized information.
-  VariableElementImpl.forSerialized(ElementImpl enclosingElement)
-      : super.forSerialized(enclosingElement);
+  VariableElementImpl(String? name, int offset) : super(name, offset);
 
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
@@ -6535,7 +6333,6 @@ class _Sentinel {
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<InterfaceType> interfaceType = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
-  static final List<ParameterElement> parameterElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
       List.unmodifiable([]);
   static final List<TypeAliasElement> typeAliasElement = List.unmodifiable([]);
