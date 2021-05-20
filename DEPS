@@ -174,6 +174,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "6448ce532445a8a458fa191d9346df071ae0acad",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
+  "webdev_rev": "b0aae7b6944d484722e6af164abedd864a2a0afa",
   "webkit_inspection_protocol_rev": "6b15729292d030f2e5c5861022da4c5a4c11961c",
   "yaml_rev": "b4c4411631bda556ce9a45af1ab0eecaf9f3ac53",
   "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
@@ -481,6 +482,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_components":
       Var("dart_git") + "web-components.git" +
       "@" + Var("web_components_rev"),
+  Var("dart_root") + "/third_party/pkg/webdev":
+      Var("dart_git") + "webdev.git" + "@" + Var("webdev_rev"),
   Var("dart_root") + "/third_party/pkg/webdriver":
       Var("dart_git") + "external/github.com/google/webdriver.dart.git" +
       "@" + Var("webdriver_rev"),
