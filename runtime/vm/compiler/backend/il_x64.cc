@@ -1218,7 +1218,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // 'movq'.
   __ leaq(TMP, compiler::Address::AddressRIPRelative(0));
   compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
-                                 UntaggedPcDescriptors::Kind::kOther, locs());
+                                 UntaggedPcDescriptors::Kind::kOther, locs(),
+                                 env());
   __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
@@ -3198,7 +3199,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // deoptimization stub.
     const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
     if (compiler->is_optimizing()) {
-      compiler->AddDeoptIndexAtCall(deopt_id);
+      compiler->AddDeoptIndexAtCall(deopt_id, env());
     } else {
       compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id,
                                      InstructionSource());
@@ -3281,7 +3282,7 @@ class CheckStackOverflowSlowPath
               instruction()->locs()->live_registers()->FpuRegisterCount() > 0);
       __ call(compiler::Address(THR, entry_point_offset));
       compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
-      compiler->RecordCatchEntryMoves();
+      compiler->RecordCatchEntryMoves(env);
       compiler->AddDescriptor(
           UntaggedPcDescriptors::kOther, compiler->assembler()->CodeSize(),
           instruction()->deopt_id(), instruction()->source(),
@@ -3290,7 +3291,7 @@ class CheckStackOverflowSlowPath
       __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
-          UntaggedPcDescriptors::kOther, instruction()->locs());
+          UntaggedPcDescriptors::kOther, instruction()->locs(), env);
     }
 
     if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&
@@ -6904,7 +6905,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ call(RCX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
-                                 UntaggedPcDescriptors::kOther, locs());
+                                 UntaggedPcDescriptors::kOther, locs(), env());
   __ Drop(argument_count);
 }
 

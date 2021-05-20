@@ -544,7 +544,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ blr(R2);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
-                                 UntaggedPcDescriptors::kOther, locs());
+                                 UntaggedPcDescriptors::kOther, locs(), env());
   __ Drop(argument_count);
 }
 
@@ -1257,8 +1257,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // ADR loads relative to itself, so add kInstrSize to point to the next
   // instruction.
   __ adr(temp, compiler::Immediate(Instr::kInstrSize));
-  compiler->EmitCallsiteMetadata(source(), deopt_id(),
-                                 UntaggedPcDescriptors::Kind::kOther, locs());
+  compiler->EmitCallsiteMetadata(
+      source(), deopt_id(), UntaggedPcDescriptors::Kind::kOther, locs(), env());
 
   __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
@@ -3093,7 +3093,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // deoptimization stub.
     const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
     if (compiler->is_optimizing()) {
-      compiler->AddDeoptIndexAtCall(deopt_id);
+      compiler->AddDeoptIndexAtCall(deopt_id, env());
     } else {
       compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id,
                                      InstructionSource());
@@ -3189,7 +3189,7 @@ class CheckStackOverflowSlowPath
         __ Call(compiler::Address(THR, entry_point_offset));
       }
       compiler->RecordSafepoint(locs, kNumSlowPathArgs);
-      compiler->RecordCatchEntryMoves();
+      compiler->RecordCatchEntryMoves(env);
       compiler->AddDescriptor(
           UntaggedPcDescriptors::kOther, compiler->assembler()->CodeSize(),
           instruction()->deopt_id(), instruction()->source(),
@@ -3198,7 +3198,7 @@ class CheckStackOverflowSlowPath
       __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
-          UntaggedPcDescriptors::kOther, instruction()->locs());
+          UntaggedPcDescriptors::kOther, instruction()->locs(), env);
     }
 
     if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&

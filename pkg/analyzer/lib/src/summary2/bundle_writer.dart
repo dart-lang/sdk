@@ -657,6 +657,7 @@ class ResolutionSink extends _SummaryDataWriter {
     writeUInt30(parameters.length);
     for (var parameter in parameters) {
       _writeFormalParameterKind(parameter);
+      writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
       _writeTypeParameters(parameter.typeParameters, () {
         writeType(parameter.type);

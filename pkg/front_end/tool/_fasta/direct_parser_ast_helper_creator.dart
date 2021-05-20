@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -12,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-StringSink out;
+late StringSink out;
 
 main(List<String> args) {
   if (args.contains("--stdout")) {
@@ -61,8 +59,8 @@ import 'package:front_end/src/fasta/messages.dart';
 abstract class DirectParserASTContent {
   final String what;
   final DirectParserASTType type;
-  Map<String, Object> get deprecatedArguments;
-  List<DirectParserASTContent> children;
+  Map<String, Object?> get deprecatedArguments;
+  List<DirectParserASTContent>? children;
 
   DirectParserASTContent(this.what, this.type);
 
@@ -98,13 +96,13 @@ abstract class AbstractDirectParserASTListener implements Listener {
 
 class ParserCreatorListener extends Listener {
   bool insideListenerClass = false;
-  String currentMethodName;
-  String latestSeenParameterTypeToken;
-  List<String> parameters = <String>[];
-  List<String> parameterTypes = <String>[];
-  StringBuffer newClasses = new StringBuffer();
+  String? currentMethodName;
+  String? latestSeenParameterTypeToken;
+  String? latestSeenParameterTypeTokenQuestion;
+  final List<Parameter> parameters = <Parameter>[];
+  final StringBuffer newClasses = new StringBuffer();
 
-  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
@@ -112,27 +110,31 @@ class ParserCreatorListener extends Listener {
     insideListenerClass = false;
   }
 
-  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token getOrSet, Token name) {
+  void beginMethod(
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? varFinalOrConst,
+      Token? getOrSet,
+      Token name) {
     currentMethodName = name.lexeme;
   }
 
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     void end() {
       parameters.clear();
-      parameterTypes.clear();
       currentMethodName = null;
     }
 
     if (insideListenerClass &&
-        (currentMethodName.startsWith("begin") ||
-            currentMethodName.startsWith("end") ||
-            currentMethodName.startsWith("handle"))) {
+        (currentMethodName!.startsWith("begin") ||
+            currentMethodName!.startsWith("end") ||
+            currentMethodName!.startsWith("handle"))) {
       StringBuffer sb = new StringBuffer();
       sb.write("  ");
       Token token = beginToken;
-      Token latestToken;
+      Token? latestToken;
       while (true) {
         if (latestToken != null && latestToken.charEnd < token.charOffset) {
           sb.write(" ");
@@ -147,7 +149,7 @@ class ParserCreatorListener extends Listener {
           throw token.runtimeType;
         }
         latestToken = token;
-        token = token.next;
+        token = token.next!;
       }
 
       if (token is SimpleToken && token.type == TokenType.FUNCTION) {
@@ -157,18 +159,18 @@ class ParserCreatorListener extends Listener {
         String typeString;
         String typeStringCamel;
         String name;
-        if (currentMethodName.startsWith("begin")) {
+        if (currentMethodName!.startsWith("begin")) {
           typeString = "BEGIN";
           typeStringCamel = "Begin";
-          name = currentMethodName.substring("begin".length);
-        } else if (currentMethodName.startsWith("end")) {
+          name = currentMethodName!.substring("begin".length);
+        } else if (currentMethodName!.startsWith("end")) {
           typeString = "END";
           typeStringCamel = "End";
-          name = currentMethodName.substring("end".length);
-        } else if (currentMethodName.startsWith("handle")) {
+          name = currentMethodName!.substring("end".length);
+        } else if (currentMethodName!.startsWith("handle")) {
           typeString = "HANDLE";
           typeStringCamel = "Handle";
-          name = currentMethodName.substring("handle".length);
+          name = currentMethodName!.substring("handle".length);
         } else {
           throw "Unexpected.";
         }
@@ -178,10 +180,11 @@ class ParserCreatorListener extends Listener {
         sb.write("DirectParserASTType.");
         sb.write(typeString);
         for (int i = 0; i < parameters.length; i++) {
+          Parameter param = parameters[i];
           sb.write(', ');
-          sb.write(parameters[i]);
+          sb.write(param.name);
           sb.write(': ');
-          sb.write(parameters[i]);
+          sb.write(param.name);
         }
 
         sb.write(");");
@@ -194,10 +197,12 @@ class ParserCreatorListener extends Listener {
                 "extends DirectParserASTContent {\n");
 
         for (int i = 0; i < parameters.length; i++) {
+          Parameter param = parameters[i];
           newClasses.write("  final ");
-          newClasses.write(parameterTypes[i]);
+          newClasses.write(param.type);
+          newClasses.write(param.hasQuestion ? '?' : '');
           newClasses.write(' ');
-          newClasses.write(parameters[i]);
+          newClasses.write(param.name);
           newClasses.write(';\n');
         }
         newClasses.write('\n');
@@ -205,21 +210,26 @@ class ParserCreatorListener extends Listener {
             "(DirectParserASTType type");
         String separator = ", {";
         for (int i = 0; i < parameters.length; i++) {
+          Parameter param = parameters[i];
           newClasses.write(separator);
+          if (!param.hasQuestion) {
+            newClasses.write('required ');
+          }
           newClasses.write('this.');
-          newClasses.write(parameters[i]);
+          newClasses.write(param.name);
           separator = ", ";
         }
         if (parameters.isNotEmpty) {
           newClasses.write('}');
         }
         newClasses.write(') : super("$name", type);\n\n');
-        newClasses.write("Map<String, Object> get deprecatedArguments => {");
+        newClasses.write("Map<String, Object?> get deprecatedArguments => {");
         for (int i = 0; i < parameters.length; i++) {
+          Parameter param = parameters[i];
           newClasses.write('"');
-          newClasses.write(parameters[i]);
+          newClasses.write(param.name);
           newClasses.write('": ');
-          newClasses.write(parameters[i]);
+          newClasses.write(param.name);
           newClasses.write(',');
         }
         newClasses.write("};\n");
@@ -237,21 +247,33 @@ class ParserCreatorListener extends Listener {
   @override
   void handleNoType(Token lastConsumed) {
     latestSeenParameterTypeToken = null;
+    latestSeenParameterTypeTokenQuestion = null;
   }
 
-  void handleType(Token beginToken, Token questionMark) {
+  void handleType(Token beginToken, Token? questionMark) {
     latestSeenParameterTypeToken = beginToken.lexeme;
+    latestSeenParameterTypeTokenQuestion = questionMark?.lexeme;
   }
 
   void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
+      Token? thisKeyword,
+      Token? periodAfterThis,
       Token nameToken,
-      Token initializerStart,
-      Token initializerEnd,
+      Token? initializerStart,
+      Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
-    parameters.add(nameToken.lexeme);
-    parameterTypes.add(latestSeenParameterTypeToken);
+    parameters.add(new Parameter(
+        nameToken.lexeme,
+        latestSeenParameterTypeToken ?? 'dynamic',
+        latestSeenParameterTypeTokenQuestion == null ? false : true));
   }
+}
+
+class Parameter {
+  final String name;
+  final String type;
+  final bool hasQuestion;
+
+  Parameter(this.name, this.type, this.hasQuestion);
 }

@@ -484,7 +484,8 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
   __ Call(stub, /*moveable_target=*/false, entry_kind);
-  EmitCallsiteMetadata(source, deopt_id, kind, locs);
+  EmitCallsiteMetadata(source, deopt_id, kind, locs,
+                       pending_deoptimization_env_);
 }
 
 void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
@@ -496,7 +497,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   ASSERT(CanCallDart());
   const auto& stub = StubCode::CallStaticFunction();
   __ Call(stub, /*movable_target=*/true, entry_kind);
-  EmitCallsiteMetadata(source, deopt_id, kind, locs);
+  EmitCallsiteMetadata(source, deopt_id, kind, locs,
+                       pending_deoptimization_env_);
   AddStaticCallTarget(target, entry_kind);
 }
 
@@ -574,7 +576,8 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
           : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
   __ call(compiler::FieldAddress(CODE_REG, entry_point_offset));
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kIcCall, locs);
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kIcCall, locs,
+                       pending_deoptimization_env_);
   __ Drop(ic_data.SizeWithTypeArgs());
 }
 
@@ -607,7 +610,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Precompilation not implemented on ia32 platform.
   ASSERT(!FLAG_precompiled_mode);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.

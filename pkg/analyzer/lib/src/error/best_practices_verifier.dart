@@ -1584,6 +1584,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } else if (target is FunctionTypeAlias || target is GenericTypeAlias) {
       return kinds.contains(TargetKind.typedefType) ||
           kinds.contains(TargetKind.type);
+    } else if (target is TopLevelVariableDeclaration) {
+      return kinds.contains(TargetKind.topLevelVariable);
     }
     return false;
   }

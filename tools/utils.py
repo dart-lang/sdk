@@ -825,13 +825,13 @@ class BaseCoreDumpArchiver(object):
             self._upload(files)
 
         if missing:
-            self._report_missing_crashes(missing, throw=True)
+            self._report_missing_crashes(missing, throw=False)
 
     # todo(athom): move the logic to decide where to copy core dumps into the recipes.
     def _is_shard(self):
         return 'BUILDBOT_BUILDERNAME' not in os.environ
 
-    def _report_missing_crashes(self, missing, throw=True):
+    def _report_missing_crashes(self, missing, throw=False):
         missing_as_string = ', '.join([str(c) for c in missing])
         other_files = list(glob.glob(os.path.join(self._search_dir, '*')))
         sys.stderr.write(
@@ -1071,7 +1071,7 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
         if crash.pid in self._dumps_by_pid:
             return self._dumps_by_pid[crash.pid]
 
-    def _report_missing_crashes(self, missing, throw=True):
+    def _report_missing_crashes(self, missing, throw=False):
         # Let's only print the debugging information and not throw. We'll do more
         # validation for werfault.exe and throw afterwards.
         super(WindowsCoreDumpArchiver, self)._report_missing_crashes(
