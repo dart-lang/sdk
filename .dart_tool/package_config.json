@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-20T07:53:18.817456",
+  "generated": "2021-05-20T11:33:30.068787",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -779,7 +779,7 @@
       "name": "wasm",
       "rootUri": "../pkg/wasm",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "watcher",

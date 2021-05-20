@@ -12,7 +12,6 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
-import 'package:path/path.dart' as path;
 import 'wasmer_api.dart';
 
 class WasmImportDescriptor {
@@ -161,37 +160,28 @@ class WasmRuntime {
     throw Exception("Wasm not currently supported on this platform");
   }
 
-  static String _getLibDir() {
-    // The common case, and how cli_util.dart computes the Dart SDK directory,
-    // path.dirname called twice on Platform.resolvedExecutable.
-    var commonLibDir = path.join(
-        path.absolute(path.dirname(path.dirname(Platform.resolvedExecutable))),
-        'bin',
-        'third_party',
-        'wasmer');
-    if (Directory(commonLibDir).existsSync()) {
-      return commonLibDir;
-    }
-
-    // This is the less common case where the user is in the checked out Dart
-    // SDK, and is executing dart via:
-    // ./out/ReleaseX64/dart ...
-    var checkedOutLibDir = path.join(
-        path.absolute(path.dirname(Platform.resolvedExecutable)),
-        'dart-sdk',
-        'bin',
-        'third_party',
-        'wasmer');
-    if (Directory(checkedOutLibDir).existsSync()) {
-      return checkedOutLibDir;
-    }
-
-    // If neither returned above, we return the common case:
-    return commonLibDir;
+  static String? _getLibPathFrom(Uri root) {
+    // The dynamic library created by pub run wasm:setup is located relative to
+    // the package_config.json file, so walk up from the script directory until
+    // we find it.
+    do {
+      if (File.fromUri(root.resolve('.dart_tool/package_config.json'))
+          .existsSync()) {
+        return root.resolve('.dart_tool/wasm/' + _getLibName()).path;
+      }
+    } while (root != (root = root.resolve('..')));
+    return null;
   }
 
-  WasmRuntime._init()
-      : _lib = DynamicLibrary.open(path.join(_getLibDir(), _getLibName())) {
+  static String _getLibPath() {
+    var path = _getLibPathFrom(Platform.script.resolve('./'));
+    if (path != null) return path;
+    path = _getLibPathFrom(Directory.current.uri);
+    if (path != null) return path;
+    throw Exception("Wasm library not found. Did you `pub run wasm:setup`?");
+  }
+
+  WasmRuntime._init() : _lib = DynamicLibrary.open(_getLibPath()) {
     _Dart_InitializeApiDL = _lib.lookupFunction<
         NativeWasmerDartInitializeApiDLFn,
         WasmerDartInitializeApiDLFn>('Dart_InitializeApiDL');
