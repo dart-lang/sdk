@@ -7,15 +7,15 @@ import 'package:js_ast/js_ast.dart';
 
 main() {
   Map<Expression, DeferredExpression> map = {};
-  VariableUse variableUse = new VariableUse('variable');
+  VariableUse variableUse = VariableUse('variable');
   DeferredExpression deferred =
-      map[variableUse] = new _DeferredExpression(variableUse);
-  VariableUse variableUseAlias = new VariableUse('variable');
-  map[variableUseAlias] = new _DeferredExpression(variableUseAlias);
+      map[variableUse] = _DeferredExpression(variableUse);
+  VariableUse variableUseAlias = VariableUse('variable');
+  map[variableUseAlias] = _DeferredExpression(variableUseAlias);
 
-  map[deferred] = new _DeferredExpression(deferred);
-  Literal literal = new LiteralString('"literal"');
-  map[literal] = new _DeferredExpression(literal);
+  map[deferred] = _DeferredExpression(deferred);
+  Literal literal = LiteralString('literal');
+  map[literal] = _DeferredExpression(literal);
 
   test(map, '#', [variableUse], 'variable');
   test(map, '#', [deferred], 'variable');
@@ -54,18 +54,18 @@ void test(Map<Expression, DeferredExpression> map, String template,
     List<Expression> arguments, String expectedOutput) {
   Expression directExpression =
       js.expressionTemplateFor(template).instantiate(arguments);
-  _Context directContext = new _Context();
+  _Context directContext = _Context();
   Printer directPrinter =
-      new Printer(const JavaScriptPrintingOptions(), directContext);
+      Printer(const JavaScriptPrintingOptions(), directContext);
   directPrinter.visit(directExpression);
   Expect.equals(expectedOutput, directContext.text);
 
   Expression deferredExpression = js
       .expressionTemplateFor(template)
       .instantiate(arguments.map((e) => map[e]).toList());
-  _Context deferredContext = new _Context();
+  _Context deferredContext = _Context();
   Printer deferredPrinter =
-      new Printer(const JavaScriptPrintingOptions(), deferredContext);
+      Printer(const JavaScriptPrintingOptions(), deferredContext);
   deferredPrinter.visit(deferredExpression);
   Expect.equals(expectedOutput, deferredContext.text);
 
@@ -121,7 +121,7 @@ class _DeferredExpression extends DeferredExpression {
 }
 
 class _Context implements JavaScriptPrintingContext {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   List<String> errors = [];
   Map<Node, int> enterPositions = {};
   Map<Node, _Position> exitPositions = {};
@@ -140,7 +140,7 @@ class _Context implements JavaScriptPrintingContext {
   void exitNode(
       Node node, int startPosition, int endPosition, int closingPosition) {
     exitPositions[node] =
-        new _Position(startPosition, endPosition, closingPosition);
+        _Position(startPosition, endPosition, closingPosition);
     Expect.equals(enterPositions[node], startPosition);
   }
 
