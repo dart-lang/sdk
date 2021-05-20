@@ -705,11 +705,11 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       if (onError == null) {
         return;
       }
-      if (onError is void Function(Object)) {
-        onError(e);
-      } else {
-        assert(onError is void Function(Object, StackTrace));
+      if (onError is void Function(Object, StackTrace)) {
         onError(e, st);
+      } else {
+        assert(onError is void Function(Object));
+        onError(e);
       }
     }, onDone: () {
       _profileData?.finishResponse();
@@ -784,15 +784,16 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           return new Future.value(false);
         }
         var proxy = _httpRequest._proxy;
-        return authenticateProxy(
-            proxy.host, proxy.port, scheme.toString(), realm);
-      } else {
-        var authenticate = _httpClient._authenticate;
-        if (authenticate == null) {
-          return new Future.value(false);
+        if (!proxy.isDirect) {
+          return authenticateProxy(
+              proxy.host!, proxy.port!, scheme.toString(), realm);
         }
-        return authenticate(_httpRequest.uri, scheme.toString(), realm);
       }
+      var authenticate = _httpClient._authenticate;
+      if (authenticate == null) {
+        return new Future.value(false);
+      }
+      return authenticate(_httpRequest.uri, scheme.toString(), realm);
     }
 
     List<String> challenge = authChallenge()!;
@@ -2499,9 +2500,10 @@ class _HttpClient implements HttpClient {
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
   final SecurityContext? _context;
-  Function? _authenticate;
-  Function? _authenticateProxy;
-  Function? _findProxy = HttpClient.findProxyFromEnvironment;
+  Future<bool> Function(Uri, String scheme, String? realm)? _authenticate;
+  Future<bool> Function(String host, int port, String scheme, String? realm)?
+      _authenticateProxy;
+  String Function(Uri)? _findProxy = HttpClient.findProxyFromEnvironment;
   Duration _idleTimeout = const Duration(seconds: 15);
   BadCertificateCallback? _badCertificateCallback;
 
@@ -2600,7 +2602,7 @@ class _HttpClient implements HttpClient {
         !force || !_connectionTargets.values.any((s) => s._active.isNotEmpty));
   }
 
-  set authenticate(Future<bool> f(Uri url, String scheme, String realm)?) {
+  set authenticate(Future<bool> f(Uri url, String scheme, String? realm)?) {
     _authenticate = f;
   }
 
@@ -2610,7 +2612,7 @@ class _HttpClient implements HttpClient {
   }
 
   set authenticateProxy(
-      Future<bool> f(String host, int port, String scheme, String realm)?) {
+      Future<bool> f(String host, int port, String scheme, String? realm)?) {
     _authenticateProxy = f;
   }
 

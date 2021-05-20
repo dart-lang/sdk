@@ -14,6 +14,12 @@
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
+#### `dart:io`
+
+*   BREAKING CHANGE (for pre-migrated null safe code):
+    `HttpClient`'s `.authenticate`  and `.authenticateProxy` setter callbacks
+    must now accept a nullable `realm` argument.
+
 #### `dart:typed_data`
 
 *   **BREAKING CHANGE** (https://github.com/dart-lang/sdk/issues/45115)
