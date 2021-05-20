@@ -6438,12 +6438,13 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, CS);
   }
 }
-  
+
 static bool CanBePairOfImmediateOperands(Value* value,
                                          compiler::Operand* low,
                                          compiler::Operand* high) {
   int64_t imm;
-  if (value->BindsToConstant() && compiler::HasIntegerValue(value->BoundConstant(), &imm)) {
+  if (value->BindsToConstant() &&
+      compiler::HasIntegerValue(value->BoundConstant(), &imm)) {
     return compiler::Operand::CanHold(Utils::Low32Bits(imm), low) &&
       compiler::Operand::CanHold(Utils::High32Bits(imm), high);
   }
