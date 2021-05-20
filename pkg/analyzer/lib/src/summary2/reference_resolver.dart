@@ -216,7 +216,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as TypeAliasElementImpl;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
     node.returnType?.accept(this);
@@ -275,7 +274,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as TypeAliasElementImpl;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
     node.typeParameters?.accept(this);
@@ -405,6 +403,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       );
     } else {
       var builder = NamedTypeBuilder.of(
+        linker,
         _typeSystem,
         node,
         element,

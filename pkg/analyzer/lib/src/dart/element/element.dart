@@ -973,7 +973,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
-  List<TypeAliasElement> _typeAliases = _Sentinel.typeAliasElement;
+  List<TypeAliasElement> _typeAliases = const [];
 
   /// A list containing all of the classes contained in this compilation unit.
   List<ClassElement> _types = const [];
@@ -1137,31 +1137,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TypeAliasElement> get typeAliases {
-    if (!identical(_typeAliases, _Sentinel.typeAliasElement)) {
-      return _typeAliases;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@typeAlias');
-      _typeAliases = <TypeAliasElement>[];
-      for (var node in _linkedUnitDeclarations) {
-        String name;
-        if (node is FunctionTypeAlias) {
-          name = node.name.name;
-        } else if (node is GenericTypeAlias) {
-          name = node.name.name;
-        } else {
-          continue;
-        }
-
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as TypeAliasElement?;
-        element ??= TypeAliasElementImpl.forLinkedNodeFactory(
-            this, reference, node as TypeAlias);
-        _typeAliases.add(element);
-      }
-    }
-
     return _typeAliases;
   }
 
@@ -1193,10 +1168,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     _types = types;
-  }
-
-  List<CompilationUnitMember> get _linkedUnitDeclarations {
-    return linkedContext!.unit.declarations;
   }
 
   @override
@@ -3375,12 +3346,6 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
   FunctionTypeAliasElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
 
-  FunctionTypeAliasElementImpl.forLinkedNode(
-    CompilationUnitElementImpl enclosingUnit,
-    Reference reference,
-    TypeAlias linkedNode,
-  ) : super.forLinkedNode(enclosingUnit, reference, linkedNode);
-
   @Deprecated('Use aliasedElement instead')
   @override
   GenericFunctionTypeElementImpl get function {
@@ -5503,40 +5468,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   TypeAliasElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
-  TypeAliasElementImpl.forLinkedNode(
-    CompilationUnitElementImpl enclosingUnit,
-    Reference reference,
-    TypeAlias linkedNode,
-  ) : super.forLinkedNode(enclosingUnit, reference, linkedNode) {
-    var nameNode = linkedNode is FunctionTypeAliasImpl
-        ? linkedNode.name
-        : (linkedNode as GenericTypeAliasImpl).name;
-    nameNode.staticElement = this;
-  }
-
-  factory TypeAliasElementImpl.forLinkedNodeFactory(
-    CompilationUnitElementImpl enclosingUnit,
-    Reference reference,
-    TypeAlias linkedNode,
-  ) {
-    if (linkedNode is FunctionTypeAlias) {
-      // ignore: deprecated_member_use_from_same_package
-      return FunctionTypeAliasElementImpl.forLinkedNode(
-          enclosingUnit, reference, linkedNode);
-    } else {
-      var aliasedType = (linkedNode as GenericTypeAlias).type;
-      if (aliasedType is GenericFunctionType ||
-          !enclosingUnit.isNonFunctionTypeAliasesEnabled) {
-        // ignore: deprecated_member_use_from_same_package
-        return FunctionTypeAliasElementImpl.forLinkedNode(
-            enclosingUnit, reference, linkedNode);
-      } else {
-        return TypeAliasElementImpl.forLinkedNode(
-            enclosingUnit, reference, linkedNode);
-      }
-    }
-  }
-
   @override
   ElementImpl? get aliasedElement {
     linkedData?.read(this);
@@ -5551,24 +5482,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   DartType get aliasedType {
     linkedData?.read(this);
-    if (_aliasedType != null) return _aliasedType!;
-
-    final linkedNode = this.linkedNode;
-    if (linkedNode is GenericTypeAlias) {
-      var typeNode = linkedNode.type;
-      if (isNonFunctionTypeAliasesEnabled) {
-        _aliasedType = typeNode.type;
-        assert(_aliasedType != null);
-      } else if (typeNode is GenericFunctionType) {
-        _aliasedType = typeNode.type;
-        assert(_aliasedType != null);
-      } else {
-        _aliasedType = _errorFunctionType(NullabilitySuffix.none);
-      }
-    } else if (linkedNode is FunctionTypeAlias) {
-      _aliasedType = (_aliasedElement as GenericFunctionTypeElementImpl).type;
-    }
-
     return _aliasedType!;
   }
 
@@ -5600,19 +5513,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   @override
   String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   @override
@@ -6083,7 +5984,6 @@ class _Sentinel {
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
       List.unmodifiable([]);
-  static final List<TypeAliasElement> typeAliasElement = List.unmodifiable([]);
   static final List<TypeParameterElement> typeParameterElement =
       List.unmodifiable([]);
 }

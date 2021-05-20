@@ -84,8 +84,6 @@ class LibraryBuilder {
   /// Add top-level declaration of the library units to the local scope.
   void addLocalDeclarations() {
     for (var linkingUnit in context.units) {
-      var unitRef = reference.getChild('@unit').getChild(linkingUnit.uriStr);
-      var typeAliasRef = unitRef.getChild('@typeAlias');
       for (var node in linkingUnit.unit.declarations) {
         if (node is ast.ClassDeclaration) {
           // Handled in ElementBuilder.
@@ -98,27 +96,9 @@ class LibraryBuilder {
         } else if (node is ast.FunctionDeclarationImpl) {
           // Handled in ElementBuilder.
         } else if (node is ast.FunctionTypeAlias) {
-          var name = node.name.name;
-          var reference = typeAliasRef.getChild(name);
-          reference.node ??= node;
-          localScope.declare(name, reference);
-
-          var element = TypeAliasElementImpl.forLinkedNodeFactory(
-              linkingUnit.reference.element as CompilationUnitElementImpl,
-              reference,
-              node);
-          element.isFunctionTypeAliasBased = true;
+          // Handled in ElementBuilder.
         } else if (node is ast.GenericTypeAlias) {
-          var name = node.name.name;
-          var reference = typeAliasRef.getChild(name);
-          reference.node ??= node;
-
-          localScope.declare(name, reference);
-
-          TypeAliasElementImpl.forLinkedNodeFactory(
-              linkingUnit.reference.element as CompilationUnitElementImpl,
-              reference,
-              node);
+          // Handled in ElementBuilder.
         } else if (node is ast.MixinDeclarationImpl) {
           // Handled in ElementBuilder.
         } else if (node is ast.TopLevelVariableDeclaration) {
