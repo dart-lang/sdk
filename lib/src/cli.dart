@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:args/args.dart';
 

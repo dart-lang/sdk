@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/cli.dart' as cli;
 import 'package:linter/src/rules.dart';

@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:linter/src/analyzer.dart';
 

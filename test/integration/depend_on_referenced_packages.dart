@@ -26,67 +26,70 @@ void main() {
     });
 
     test('lints files under bin', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
         '--packages',
-        packagesFilePath,
+        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/bin',
         '--rules=depend_on_referenced_packages'
       ]);
+      var output = collectingOut.trim();
       expect(
-          collectingOut.trim(),
+          output,
           stringContainsInOrder([
             "Depend on referenced packages.",
-            "import 'package:test/test.dart'; // LINT",
+            "import 'package:private_dep/private_dep.dart'; // LINT",
             "Depend on referenced packages.",
-            "import 'package:matcher/matcher.dart'; // LINT",
+            "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
             "Depend on referenced packages.",
-            "export 'package:test/test.dart'; // LINT",
+            "export 'package:private_dep/private_dep.dart'; // LINT",
             "Depend on referenced packages.",
-            "export 'package:matcher/matcher.dart'; // LINT",
+            "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
+      expect(output, isNot(contains('// OK')));
       expect(exitCode, 1);
     });
 
     test('lints files under lib', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
         '--packages',
-        packagesFilePath,
+        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/lib',
         '--rules=depend_on_referenced_packages'
       ]);
+      var output = collectingOut.trim();
       expect(
-          collectingOut.trim(),
+          output,
           stringContainsInOrder([
             "Depend on referenced packages.",
-            "import 'package:test/test.dart'; // LINT",
+            "import 'package:private_dep/private_dep.dart'; // LINT",
             "Depend on referenced packages.",
-            "import 'package:matcher/matcher.dart'; // LINT",
+            "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
             "Depend on referenced packages.",
-            "export 'package:test/test.dart'; // LINT",
+            "export 'package:private_dep/private_dep.dart'; // LINT",
             "Depend on referenced packages.",
-            "export 'package:matcher/matcher.dart'; // LINT",
+            "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
+      expect(output, isNot(contains('// OK')));
       expect(exitCode, 1);
     });
 
     test('lints files under test', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
         '--packages',
-        packagesFilePath,
+        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/test',
         '--rules=depend_on_referenced_packages'
       ]);
+      var output = collectingOut.trim();
       expect(
-          collectingOut.trim(),
+          output,
           stringContainsInOrder([
             "Depend on referenced packages.",
-            "import 'package:matcher/matcher.dart'; // LINT",
+            "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
             "Depend on referenced packages.",
-            "export 'package:matcher/matcher.dart'; // LINT",
+            "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
+      expect(output, isNot(contains('// OK')));
       expect(exitCode, 1);
     });
   });

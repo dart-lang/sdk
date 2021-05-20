@@ -9,13 +9,13 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
 import 'package:analyzer/src/lint/io.dart' show errorSink;
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart' as util;
 import 'package:analyzer/src/services/lint.dart' as lint_service;
 
-import 'analyzer.dart';
 import 'version.dart';
 
 export 'package:analyzer/dart/element/type_system.dart';

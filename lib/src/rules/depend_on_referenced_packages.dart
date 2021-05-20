@@ -61,10 +61,13 @@ class DependOnReferencedPackages extends LintRule implements NodeLintRule {
     if (package is! PubWorkspacePackage) return;
     var pubspec = package.pubspec;
     if (pubspec == null) return;
+    var name = pubspec.name?.value.text;
+    if (name == null) return;
 
     var dependencies = pubspec.dependencies;
     var devDependencies = pubspec.devDependencies;
     var availableDeps = [
+      name,
       if (dependencies != null)
         for (var dep in dependencies)
           if (dep.name?.text != null) dep.name!.text!,

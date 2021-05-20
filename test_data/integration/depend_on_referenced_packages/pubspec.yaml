@@ -1,5 +1,5 @@
 name: sample_project
 dependencies:
-  meta: any
+  public_dep: any
 dev_dependencies:
-  test: any
+  private_dep: any
