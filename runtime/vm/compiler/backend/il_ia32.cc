@@ -6593,8 +6593,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // EBX: Code (compiled code or lazy compile stub).
   ASSERT(locs()->in(0).reg() == EAX);
-  __ movl(EBX, compiler::FieldAddress(
-                   EAX, Function::entry_point_offset(entry_kind())));
+  __ movl(EBX, compiler::FieldAddress(EAX, Function::entry_point_offset()));
 
   // EAX: Function.
   // EDX: Arguments descriptor array.

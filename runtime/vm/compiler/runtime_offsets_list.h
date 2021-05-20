@@ -37,6 +37,7 @@
 //
 // COMMON_OFFSETS_LIST is for declarations that are valid in all contexts.
 // JIT_OFFSETS_LIST is for declarations that are only valid in JIT mode.
+// AOT_OFFSETS_LIST is for declarations that are only valid in AOT mode.
 // A declaration that is not valid in product mode can be wrapped with
 // NOT_IN_PRODUCT().
 //
@@ -408,5 +409,9 @@
                          RANGE, CONSTANT)                                      \
   FIELD(Function, usage_counter_offset)                                        \
   FIELD(ICData, receivers_static_type_offset)
+
+#define AOT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
+                         RANGE, CONSTANT)                                      \
+  FIELD(Closure, entry_point_offset)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

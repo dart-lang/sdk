@@ -6494,6 +6494,8 @@ static constexpr dart::compiler::target::word
 #if !defined(PRODUCT)
 
 #if defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    28;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     12;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 4;
@@ -7000,7 +7002,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 12;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 8;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 92;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 28;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 8;
 static constexpr dart::compiler::target::word
@@ -7095,6 +7097,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -7605,7 +7609,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 160;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
@@ -7703,6 +7707,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -8214,7 +8220,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 160;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
@@ -8309,6 +8315,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -8819,7 +8827,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 96;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
@@ -8914,6 +8922,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -9425,7 +9435,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 96;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
@@ -9522,6 +9532,8 @@ static constexpr dart::compiler::target::word
 #else  // !defined(PRODUCT)
 
 #if defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    28;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     12;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 4;
@@ -10021,7 +10033,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 12;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 8;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 80;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 28;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 8;
 static constexpr dart::compiler::target::word
@@ -10116,6 +10128,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -10619,7 +10633,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 136;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
@@ -10717,6 +10731,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_IA32) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -11221,7 +11237,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 136;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
@@ -11316,6 +11332,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -11819,7 +11837,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 88;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word
@@ -11914,6 +11932,8 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_X64) && defined(DART_COMPRESSED_POINTERS)
 
 #if defined(TARGET_ARCH_ARM64) && defined(DART_COMPRESSED_POINTERS)
+static constexpr dart::compiler::target::word AOT_Closure_entry_point_offset =
+    56;
 static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
     24;
 static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
@@ -12418,7 +12438,7 @@ static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 88;
-static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 64;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_CodeSourceMap_HeaderSize = 16;
 static constexpr dart::compiler::target::word

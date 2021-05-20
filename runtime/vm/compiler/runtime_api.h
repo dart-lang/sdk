@@ -1301,6 +1301,7 @@ class Closure : public AllStatic {
  public:
   static word context_offset();
   static word delayed_type_arguments_offset();
+  static word entry_point_offset();
   static word function_offset();
   static word function_type_arguments_offset();
   static word instantiator_type_arguments_offset();

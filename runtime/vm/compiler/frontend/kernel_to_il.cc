@@ -2974,10 +2974,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   }
 
   if (is_closure_call) {
-    // Lookup the function in the closure.
     body += LoadLocal(closure);
-    body += LoadNativeField(Slot::Closure_function());
-
+    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+      // Lookup the function in the closure.
+      body += LoadNativeField(Slot::Closure_function());
+    }
     body += ClosureCall(TokenPosition::kNoSource, descriptor.TypeArgsLen(),
                         descriptor.Count(), *argument_names);
   } else {

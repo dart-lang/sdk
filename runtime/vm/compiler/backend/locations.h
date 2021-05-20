@@ -81,6 +81,16 @@ struct RepresentationUtils : AllStatic {
   static compiler::OperandSize OperandSize(Representation rep);
 };
 
+// The representation for word-sized unboxed fields.
+static constexpr Representation kUnboxedWord =
+    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
+// The representation for unsigned word-sized unboxed fields.
+//
+// Note: kUnboxedUword is identical to kUnboxedWord until range analysis can
+// handle unsigned 64-bit ranges. This means that range analysis will give
+// signed results for unboxed uword field values.
+static constexpr Representation kUnboxedUword = kUnboxedWord;
+
 // 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
 // On a 32-bit platform, it's an unsigned 32-bit int because it should be
 // zero-extended to 64-bits, not sign-extended (pointers are inherently
@@ -92,8 +102,7 @@ static constexpr Representation kUnboxedFfiIntPtr =
 
 // The representation which can be used for native pointers. We use signed 32/64
 // bit representation to be able to do arithmetic on pointers.
-static constexpr Representation kUnboxedIntPtr =
-    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
+static constexpr Representation kUnboxedIntPtr = kUnboxedWord;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding

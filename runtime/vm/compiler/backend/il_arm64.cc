@@ -522,17 +522,22 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
   __ LoadObject(R4, arguments_descriptor);
 
-  // R4: Arguments descriptor.
-  // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
-  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    // R0: Closure with a cached entry point.
+    __ LoadFieldFromOffset(R2, R0,
+                           compiler::target::Closure::entry_point_offset());
+  } else {
+    // R0: Function.
     __ LoadCompressedFieldFromOffset(CODE_REG, R0,
                                      compiler::target::Function::code_offset());
+    // Closure functions only have one entry point.
+    __ LoadFieldFromOffset(R2, R0,
+                           compiler::target::Function::entry_point_offset());
   }
-  __ LoadFieldFromOffset(
-      R2, R0, compiler::target::Function::entry_point_offset(entry_kind()));
 
-  // R2: instructions.
+  // R4: Arguments descriptor array.
+  // R2: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
     __ LoadImmediate(R5, 0);

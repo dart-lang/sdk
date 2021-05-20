@@ -475,15 +475,16 @@ void AssertBooleanInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void ClosureCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->AddString(" function=");
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    f->AddString(" closure=");
+  } else {
+    f->AddString(" function=");
+  }
   InputAt(InputCount() - 1)->PrintTo(f);
   f->Printf("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->AddString(", ");
     ArgumentValueAt(i)->PrintTo(f);
-  }
-  if (entry_kind() == Code::EntryKind::kUnchecked) {
-    f->AddString(" using unchecked entrypoint");
   }
 }
 

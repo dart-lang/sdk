@@ -1106,7 +1106,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
     return Drop();
   }
   auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).ptr());
-  LocalVariable* entry_point_num = MakeTemporary();
+  LocalVariable* entry_point_num = MakeTemporary("entry_point_num");
 
   auto& function_name = String::ZoneHandle(
       Z, String::New(function.ToLibNamePrefixedQualifiedCString(), Heap::kOld));
@@ -1123,27 +1123,30 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   call_hook += Constant(closure);
   call_hook += Constant(function_name);
   call_hook += LoadLocal(entry_point_num);
-  call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    call_hook += Constant(closure);
+  } else {
+    call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
+  }
   call_hook += ClosureCall(TokenPosition::kNoSource,
                            /*type_args_len=*/0, /*argument_count=*/3,
                            /*argument_names=*/Array::ZoneHandle(Z));
-  call_hook += Drop();  // result of closure call
-  call_hook += Drop();  // entrypoint number
+  call_hook += Drop();                           // result of closure call
+  call_hook += DropTemporary(&entry_point_num);  // entrypoint number
   return call_hook;
 }
 
 Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                            intptr_t type_args_len,
                                            intptr_t argument_count,
-                                           const Array& argument_names,
-                                           bool is_statically_checked) {
-  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0) + 1;
+                                           const Array& argument_names) {
+  const intptr_t total_count =
+      (type_args_len > 0 ? 1 : 0) + argument_count +
+      /*closure (bare instructions) or function (otherwise)*/ 1;
   InputsArray* arguments = GetArguments(total_count);
-  ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(arguments, type_args_len, argument_names,
-                       InstructionSource(position), GetNextDeoptId(),
-                       is_statically_checked ? Code::EntryKind::kUnchecked
-                                             : Code::EntryKind::kNormal);
+  ClosureCallInstr* call =
+      new (Z) ClosureCallInstr(arguments, type_args_len, argument_names,
+                               InstructionSource(position), GetNextDeoptId());
   Push(call);
   return Fragment(call);
 }

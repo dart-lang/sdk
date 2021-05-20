@@ -160,6 +160,10 @@ static void CheckOffsets() {
       CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_ARRAY_SIZEOF,
       CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
+  ONLY_IN_PRECOMPILED(AOT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                                       CHECK_ARRAY_SIZEOF, CHECK_PAYLOAD_SIZEOF,
+                                       CHECK_RANGE, CHECK_CONSTANT))
+
   if (!ok) {
     FATAL(
         "CheckOffsets failed. Try updating offsets by running "

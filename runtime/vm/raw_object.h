@@ -1408,7 +1408,7 @@ class UntaggedClosureData : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(FunctionPtr, parent_function)
 #endif
   // Closure object for static implicit closures.
-  COMPRESSED_POINTER_FIELD(InstancePtr, closure)
+  COMPRESSED_POINTER_FIELD(ClosurePtr, closure)
   VISIT_TO(closure)
 
   enum class DefaultTypeArgumentsKind : uint8_t {
@@ -1434,6 +1434,7 @@ class UntaggedClosureData : public UntaggedObject {
   DefaultTypeArgumentsKind default_type_arguments_kind_;
 
   friend class Function;
+  friend class UnitDeserializationRoots;
 };
 
 class UntaggedFfiTrampolineData : public UntaggedObject {
@@ -2720,6 +2721,12 @@ class UntaggedClosure : public UntaggedInstance {
   POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
 
+  // We have an extra word in the object due to alignment rounding, so use it in
+  // bare instructions mode to cache the entry point from the closure function
+  // to avoid an extra redirection on call. Closure functions only have
+  // one entry point, as dynamic calls use dynamic closure call dispatchers.
+  ONLY_IN_PRECOMPILED(uword entry_point_);
+
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Note that instantiator_type_arguments_, function_type_arguments_ and
@@ -2744,6 +2751,8 @@ class UntaggedClosure : public UntaggedInstance {
   // Object::empty_type_arguments(), the types in this vector will be passed as
   // type arguments to the closure when invoked. In this case there may not be
   // any type arguments passed directly (or NSM will be invoked instead).
+
+  friend class UnitDeserializationRoots;
 };
 
 class UntaggedNumber : public UntaggedInstance {

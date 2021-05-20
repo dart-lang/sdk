@@ -6881,20 +6881,23 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
   __ LoadObject(R10, arguments_descriptor);
 
-  // Function in RAX.
   ASSERT(locs()->in(0).reg() == RAX);
-  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    // RAX: Closure with cached entry point.
+    __ movq(RCX, compiler::FieldAddress(
+                     RAX, compiler::target::Closure::entry_point_offset()));
+  } else {
+    // RAX: Function.
     __ LoadCompressed(
         CODE_REG,
         compiler::FieldAddress(RAX, compiler::target::Function::code_offset()));
+    // Closure functions only have one entry point.
+    __ movq(RCX, compiler::FieldAddress(
+                     RAX, compiler::target::Function::entry_point_offset()));
   }
-  __ movq(
-      RCX,
-      compiler::FieldAddress(
-          RAX, compiler::target::Function::entry_point_offset(entry_kind())));
 
-  // RAX: Function.
   // R10: Arguments descriptor array.
+  // RCX: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
     __ xorq(RBX, RBX);

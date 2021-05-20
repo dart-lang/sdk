@@ -402,13 +402,13 @@ class BaseFlowGraphBuilder {
   Fragment BuildEntryPointsIntrospection();
 
   // Builds closure call with given number of arguments. Target closure
-  // function is taken from top of the stack.
+  // (in bare instructions mode) or closure function (otherwise) is taken from
+  // top of the stack.
   // PushArgument instructions should be already added for arguments.
   Fragment ClosureCall(TokenPosition position,
                        intptr_t type_args_len,
                        intptr_t argument_count,
-                       const Array& argument_names,
-                       bool use_unchecked_entry = false);
+                       const Array& argument_names);
 
   // Builds StringInterpolate instruction, an equivalent of
   // _StringBase._interpolate call.

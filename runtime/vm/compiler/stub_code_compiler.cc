@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/runtime_api.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 
 // For `StubCodeCompiler::GenerateAllocateUnhandledExceptionStub`
@@ -804,6 +805,24 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_hash());
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+    if (FLAG_precompiled_mode) {
+      // Set the closure entry point in precompiled mode, either to the function
+      // entry point in bare instructions mode or to 0 otherwise (to catch
+      // misuse). This overwrites the scratch register, but there are no more
+      // boxed fields.
+      if (FLAG_use_bare_instructions) {
+        __ LoadFromSlot(AllocateClosureABI::kScratchReg,
+                        AllocateClosureABI::kFunctionReg,
+                        Slot::Function_entry_point());
+      } else {
+        __ LoadImmediate(AllocateClosureABI::kScratchReg, 0);
+      }
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_entry_point());
+    }
+#endif
 
     // AllocateClosureABI::kResultReg: new object.
     __ Ret();

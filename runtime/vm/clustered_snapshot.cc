@@ -1109,14 +1109,13 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       Function& func = Function::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        ASSERT(func.ptr()->untag()->code()->IsCode());
-        if (!Code::IsUnknownDartCode(func.ptr()->untag()->code())) {
-          uword entry_point =
-              func.ptr()->untag()->code()->untag()->entry_point_;
+        auto const code = func.ptr()->untag()->code();
+        ASSERT(code->IsCode());
+        if (!Code::IsUnknownDartCode(code)) {
+          uword entry_point = code->untag()->entry_point_;
           ASSERT(entry_point != 0);
           func.ptr()->untag()->entry_point_ = entry_point;
-          uword unchecked_entry_point =
-              func.ptr()->untag()->code()->untag()->unchecked_entry_point_;
+          uword unchecked_entry_point = code->untag()->unchecked_entry_point_;
           ASSERT(unchecked_entry_point != 0);
           func.ptr()->untag()->unchecked_entry_point_ = unchecked_entry_point;
         }
@@ -1222,7 +1221,7 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
             static_cast<ContextScopePtr>(d->ReadRef());
       }
       data->untag()->parent_function_ = static_cast<FunctionPtr>(d->ReadRef());
-      data->untag()->closure_ = static_cast<InstancePtr>(d->ReadRef());
+      data->untag()->closure_ = static_cast<ClosurePtr>(d->ReadRef());
       data->untag()->default_type_arguments_kind_ =
           static_cast<ClosureData::DefaultTypeArgumentsKind>(d->ReadUnsigned());
     }
@@ -4464,7 +4463,28 @@ class ClosureDeserializationCluster
                                      Closure::InstanceSize(),
                                      primary && is_canonical());
       ReadFromTo(closure);
+#if defined(DART_PRECOMPILED_RUNTIME)
+      closure->untag()->entry_point_ = 0;
+#endif
     }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // We only cache the entry point in bare instructions mode (as we need
+    // to load the function anyway otherwise).
+    if (d->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions) {
+      auto& closure = Closure::Handle(d->zone());
+      auto& func = Function::Handle(d->zone());
+      for (intptr_t i = start_index_; i < stop_index_; i++) {
+        closure ^= refs.At(i);
+        func = closure.function();
+        uword entry_point = func.entry_point();
+        ASSERT(entry_point != 0);
+        closure.ptr()->untag()->entry_point_ = entry_point;
+      }
+    }
+#endif
   }
 };
 
@@ -6121,6 +6141,20 @@ class UnitDeserializationRoots : public DeserializationRoots {
         uword unchecked_entry_point = code->untag()->unchecked_entry_point_;
         ASSERT(unchecked_entry_point != 0);
         func->untag()->unchecked_entry_point_ = unchecked_entry_point;
+#if defined(DART_PRECOMPILED_RUNTIME)
+        if (FLAG_use_bare_instructions &&
+            func->untag()->data()->IsHeapObject() &&
+            func->untag()->data()->IsClosureData()) {
+          // For closure functions in bare instructions mode, also update the
+          // cache inside the static implicit closure object, if any.
+          auto data = static_cast<ClosureDataPtr>(func->untag()->data());
+          if (data->untag()->closure() != Closure::null()) {
+            // Closure functions only have one entry point.
+            ASSERT_EQUAL(entry_point, unchecked_entry_point);
+            data->untag()->closure()->untag()->entry_point_ = entry_point;
+          }
+        }
+#endif
       }
       if (!FLAG_use_bare_instructions) {
         code->untag()->object_pool_ = static_cast<ObjectPoolPtr>(d->ReadRef());
@@ -7064,48 +7098,57 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
 
   GrowableArray<SerializationCluster*> clusters;
   // The order that PostLoad runs matters for some classes because of
-  // assumptions during canonicalization of some classes about what is already
-  // canonical. Explicitly place these clusters first, then add the rest
-  // ordered by class id.
-#define ADD_NEXT(cid)                                                          \
+  // assumptions during canonicalization, read filling, or post-load filling of
+  // some classes about what has already been read and/or canonicalized.
+  // Explicitly add these clusters first, then add the rest ordered by class id.
+#define ADD_CANONICAL_NEXT(cid)                                                \
   if (auto const cluster = canonical_clusters_by_cid_[cid]) {                  \
     clusters.Add(cluster);                                                     \
     canonical_clusters_by_cid_[cid] = nullptr;                                 \
   }
-  ADD_NEXT(kOneByteStringCid)
-  ADD_NEXT(kTwoByteStringCid)
-  ADD_NEXT(kMintCid)
-  ADD_NEXT(kDoubleCid)
-  ADD_NEXT(kTypeParameterCid)
-  ADD_NEXT(kTypeCid)
-  ADD_NEXT(kTypeArgumentsCid)
-  ADD_NEXT(kClosureCid)
-#undef ADD_NEXT
+#define ADD_NON_CANONICAL_NEXT(cid)                                            \
+  if (auto const cluster = clusters_by_cid_[cid]) {                            \
+    clusters.Add(cluster);                                                     \
+    clusters_by_cid_[cid] = nullptr;                                           \
+  }
+  ADD_CANONICAL_NEXT(kOneByteStringCid)
+  ADD_CANONICAL_NEXT(kTwoByteStringCid)
+  ADD_CANONICAL_NEXT(kStringCid)
+  ADD_CANONICAL_NEXT(kMintCid)
+  ADD_CANONICAL_NEXT(kDoubleCid)
+  ADD_CANONICAL_NEXT(kTypeParameterCid)
+  ADD_CANONICAL_NEXT(kTypeCid)
+  ADD_CANONICAL_NEXT(kTypeArgumentsCid)
+  // Code cluster should be deserialized before Function as
+  // FunctionDeserializationCluster::ReadFill uses instructions table
+  // which is filled in CodeDeserializationCluster::ReadFill.
+  ADD_NON_CANONICAL_NEXT(kCodeCid)
+  // The function cluster should be deserialized before any closures, as
+  // PostLoad for closures caches the entry point found in the function.
+  ADD_NON_CANONICAL_NEXT(kFunctionCid)
+  ADD_CANONICAL_NEXT(kClosureCid)
+#undef ADD_CANONICAL_NEXT
+#undef ADD_NON_CANONICAL_NEXT
   const intptr_t out_of_order_clusters = clusters.length();
   for (intptr_t cid = 0; cid < num_cids_; cid++) {
     if (auto const cluster = canonical_clusters_by_cid_[cid]) {
       clusters.Add(cluster);
     }
   }
-  // Put these back so they'll show up in PrintSnapshotSizes.
-  for (intptr_t i = 0; i < out_of_order_clusters; i++) {
-    auto const cluster = clusters.At(i);
-    canonical_clusters_by_cid_[cluster->cid()] = cluster;
-  }
-  // Code cluster should be deserialized before Function as
-  // FunctionDeserializationCluster::ReadFill uses instructions table
-  // which is filled in CodeDeserializationCluster::ReadFill.
-  if (auto const cluster = clusters_by_cid_[kCodeCid]) {
-    clusters.Add(cluster);
-    clusters_by_cid_[kCodeCid] = nullptr;
-  }
   for (intptr_t cid = 0; cid < num_cids_; cid++) {
     if (auto const cluster = clusters_by_cid_[cid]) {
       clusters.Add(clusters_by_cid_[cid]);
     }
   }
-  // Put this back so it'll show up in PrintSnapshotSizes if present.
-  clusters_by_cid_[kCodeCid] = code_cluster_;
+  // Put back any taken out temporarily to avoid re-adding them during the loop.
+  for (intptr_t i = 0; i < out_of_order_clusters; i++) {
+    const auto& cluster = clusters.At(i);
+    const intptr_t cid = cluster->cid();
+    auto const cid_clusters =
+        cluster->is_canonical() ? canonical_clusters_by_cid_ : clusters_by_cid_;
+    ASSERT(cid_clusters[cid] == nullptr);
+    cid_clusters[cid] = cluster;
+  }
 
   instructions_table_len_ = PrepareInstructions();
 
