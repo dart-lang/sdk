@@ -9367,7 +9367,11 @@ void FunctionType::Print(NameVisibility name_visibility,
   PrintParameters(thread, zone, name_visibility, printer);
   printer->AddString(") => ");
   const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-  res_type.PrintName(name_visibility, printer);
+  if (!res_type.IsNull()) {
+    res_type.PrintName(name_visibility, printer);
+  } else {
+    printer->AddString("null");
+  }
 }
 
 bool Function::HasInstantiatedSignature(Genericity genericity,
@@ -17953,7 +17957,7 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
 }
 
 void SubtypeTestCache::AddCheck(
-    const Object& instance_class_id_or_function,
+    const Object& instance_class_id_or_signature,
     const AbstractType& destination_type,
     const TypeArguments& instance_type_arguments,
     const TypeArguments& instantiator_type_arguments,
@@ -17973,8 +17977,8 @@ void SubtypeTestCache::AddCheck(
 
   SubtypeTestCacheTable entries(data);
   auto entry = entries[old_num];
-  ASSERT(entry.Get<kInstanceClassIdOrFunction>() == Object::null());
-  entry.Set<kInstanceClassIdOrFunction>(instance_class_id_or_function);
+  ASSERT(entry.Get<kInstanceCidOrSignature>() == Object::null());
+  entry.Set<kInstanceCidOrSignature>(instance_class_id_or_signature);
   entry.Set<kDestinationType>(destination_type);
   entry.Set<kInstanceTypeArguments>(instance_type_arguments);
   entry.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
@@ -17992,7 +17996,7 @@ void SubtypeTestCache::AddCheck(
 
 void SubtypeTestCache::GetCheck(
     intptr_t ix,
-    Object* instance_class_id_or_function,
+    Object* instance_class_id_or_signature,
     AbstractType* destination_type,
     TypeArguments* instance_type_arguments,
     TypeArguments* instantiator_type_arguments,
@@ -18004,7 +18008,7 @@ void SubtypeTestCache::GetCheck(
              ->isolate_group()
              ->subtype_test_cache_mutex()
              ->IsOwnedByCurrentThread());
-  GetCurrentCheck(ix, instance_class_id_or_function, destination_type,
+  GetCurrentCheck(ix, instance_class_id_or_signature, destination_type,
                   instance_type_arguments, instantiator_type_arguments,
                   function_type_arguments,
                   instance_parent_function_type_arguments,
@@ -18013,7 +18017,7 @@ void SubtypeTestCache::GetCheck(
 
 void SubtypeTestCache::GetCurrentCheck(
     intptr_t ix,
-    Object* instance_class_id_or_function,
+    Object* instance_class_id_or_signature,
     AbstractType* destination_type,
     TypeArguments* instance_type_arguments,
     TypeArguments* instantiator_type_arguments,
@@ -18024,7 +18028,7 @@ void SubtypeTestCache::GetCurrentCheck(
   Array& data = Array::Handle(cache());
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
-  *instance_class_id_or_function = entry.Get<kInstanceClassIdOrFunction>();
+  *instance_class_id_or_signature = entry.Get<kInstanceCidOrSignature>();
   *destination_type = entry.Get<kDestinationType>();
   *instance_type_arguments = entry.Get<kInstanceTypeArguments>();
   *instantiator_type_arguments = entry.Get<kInstantiatorTypeArguments>();
@@ -18037,7 +18041,7 @@ void SubtypeTestCache::GetCurrentCheck(
 }
 
 bool SubtypeTestCache::HasCheck(
-    const Object& instance_class_id_or_function,
+    const Object& instance_class_id_or_signature,
     const AbstractType& destination_type,
     const TypeArguments& instance_type_arguments,
     const TypeArguments& instantiator_type_arguments,
@@ -18056,8 +18060,8 @@ bool SubtypeTestCache::HasCheck(
   SubtypeTestCacheTable entries(data);
   for (intptr_t i = 0; i < last_index; i++) {
     const auto entry = entries[i];
-    if (entry.Get<kInstanceClassIdOrFunction>() ==
-            instance_class_id_or_function.ptr() &&
+    if (entry.Get<kInstanceCidOrSignature>() ==
+            instance_class_id_or_signature.ptr() &&
         entry.Get<kDestinationType>() == destination_type.ptr() &&
         entry.Get<kInstanceTypeArguments>() == instance_type_arguments.ptr() &&
         entry.Get<kInstantiatorTypeArguments>() ==
@@ -18097,7 +18101,7 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
     const char* line_prefix) const {
   const char* separator =
       line_prefix == nullptr ? ", " : OS::SCreate(zone, "\n%s", line_prefix);
-  auto& instance_class_id_or_function = Object::Handle(zone);
+  auto& instance_class_id_or_signature = Object::Handle(zone);
   auto& destination_type = AbstractType::Handle(zone);
   auto& instance_type_arguments = TypeArguments::Handle(zone);
   auto& instantiator_type_arguments = TypeArguments::Handle(zone);
@@ -18105,7 +18109,7 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
   auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
   auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
   auto& result = Bool::Handle(zone);
-  GetCurrentCheck(index, &instance_class_id_or_function, &destination_type,
+  GetCurrentCheck(index, &instance_class_id_or_signature, &destination_type,
                   &instance_type_arguments, &instantiator_type_arguments,
                   &function_type_arguments,
                   &instance_parent_function_type_arguments,
@@ -18114,7 +18118,7 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
   buffer->Printf(
       "[ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
       ", %#" Px " ]",
-      static_cast<uword>(instance_class_id_or_function.ptr()),
+      static_cast<uword>(instance_class_id_or_signature.ptr()),
       static_cast<uword>(destination_type.ptr()),
       static_cast<uword>(instance_type_arguments.ptr()),
       static_cast<uword>(instantiator_type_arguments.ptr()),
@@ -18122,14 +18126,14 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
       static_cast<uword>(instance_parent_function_type_arguments.ptr()),
       static_cast<uword>(instance_delayed_type_arguments.ptr()),
       static_cast<uword>(result.ptr()));
-  if (instance_class_id_or_function.IsSmi()) {
+  if (instance_class_id_or_signature.IsSmi()) {
     buffer->Printf("%sclass id: %" Pd "", separator,
-                   Smi::Cast(instance_class_id_or_function).Value());
+                   Smi::Cast(instance_class_id_or_signature).Value());
   } else {
-    ASSERT(instance_class_id_or_function.IsFunction());
-    buffer->Printf("%sfunction: %s", separator,
-                   Function::Cast(instance_class_id_or_function)
-                       .ToFullyQualifiedCString());
+    ASSERT(instance_class_id_or_signature.IsFunctionType());
+    buffer->Printf(
+        "%sfunction: %s", separator,
+        FunctionType::Cast(instance_class_id_or_signature).ToCString());
   }
   if (!destination_type.IsNull()) {
     buffer->Printf("%sdestination type: %s", separator,
@@ -18147,11 +18151,11 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
     }
   }
   if (!instance_type_arguments.IsNull()) {
-    if (instance_class_id_or_function.IsSmi()) {
+    if (instance_class_id_or_signature.IsSmi()) {
       buffer->Printf("%sinstance type arguments: %s", separator,
                      instance_type_arguments.ToCString());
     } else {
-      ASSERT(instance_class_id_or_function.IsFunction());
+      ASSERT(instance_class_id_or_signature.IsFunctionType());
       buffer->Printf("%sclosure instantiator function type arguments: %s",
                      separator, instance_type_arguments.ToCString());
     }
@@ -18165,12 +18169,12 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
                    function_type_arguments.ToCString());
   }
   if (!instance_parent_function_type_arguments.IsNull()) {
-    ASSERT(instance_class_id_or_function.IsFunction());
+    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf("%sclosure parent function type arguments: %s", separator,
                    instance_parent_function_type_arguments.ToCString());
   }
   if (!instance_delayed_type_arguments.IsNull()) {
-    ASSERT(instance_class_id_or_function.IsFunction());
+    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf("%sclosure delayed function type arguments: %s", separator,
                    instance_delayed_type_arguments.ToCString());
   }
@@ -24972,6 +24976,10 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         const Function& function,
                         const Context& context,
                         Heap::Space space) {
+  ASSERT(instantiator_type_arguments.IsCanonical());
+  ASSERT(function_type_arguments.IsCanonical());
+  ASSERT(delayed_type_arguments.IsCanonical());
+  ASSERT(FunctionType::Handle(function.signature()).IsCanonical());
   Closure& result = Closure::Handle();
   {
     ObjectPtr raw =

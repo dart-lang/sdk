@@ -183,13 +183,13 @@ struct TTSInternalRegs {
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of subtype test cache stubs that are _not_ preserved.
 struct STCInternalRegs {
-  static const Register kInstanceCidOrFunctionReg = R6;
+  static const Register kInstanceCidOrSignatureReg = R6;
   static const Register kInstanceInstantiatorTypeArgumentsReg = R5;
   static const Register kInstanceParentFunctionTypeArgumentsReg = R9;
   static const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
 
   static const intptr_t kInternalRegisters =
-      (1 << kInstanceCidOrFunctionReg) |
+      (1 << kInstanceCidOrSignatureReg) |
       (1 << kInstanceInstantiatorTypeArgumentsReg) |
       (1 << kInstanceParentFunctionTypeArgumentsReg) |
       (1 << kInstanceDelayedFunctionTypeArgumentsReg);

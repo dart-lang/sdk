@@ -2791,20 +2791,23 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrSignatureReg,
                            TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrSignatureReg,
                    TypeTestABI::kInstanceReg);
   }
-  __ cmpq(STCInternalRegs::kInstanceCidOrFunctionReg, Immediate(kClosureCid));
+  __ cmpq(STCInternalRegs::kInstanceCidOrSignatureReg, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movq(STCInternalRegs::kInstanceCidOrFunctionReg,
+    __ movq(STCInternalRegs::kInstanceCidOrSignatureReg,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
+    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
+                      FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
+                                   target::Function::signature_offset()));
     if (n >= 3) {
       __ movq(
           STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
@@ -2828,7 +2831,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+      __ LoadClassById(kScratchReg,
+                       STCInternalRegs::kInstanceCidOrSignatureReg);
       __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ movl(
           kScratchReg,
@@ -2846,7 +2850,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
     }
-    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrSignatureReg);
   }
 
   Label found, not_found, next_iteration;
@@ -2856,10 +2860,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movq(kScratchReg,
           Address(STCInternalRegs::kCacheEntryReg,
                   target::kWordSize *
-                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
+                      target::SubtypeTestCache::kInstanceCidOrSignature));
   __ cmpq(kScratchReg, kNullReg);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpq(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+  __ cmpq(kScratchReg, STCInternalRegs::kInstanceCidOrSignatureReg);
   if (n == 1) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {

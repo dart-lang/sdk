@@ -2252,7 +2252,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Other values are stored in non-kInstanceReg registers from TypeTestABI.
   const Register kCacheArrayReg = TypeTestABI::kInstantiatorTypeArgumentsReg;
   const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
-  const Register kInstanceCidOrFunction =
+  const Register kInstanceCidOrSignature =
       TypeTestABI::kFunctionTypeArgumentsReg;
   const Register kInstanceInstantiatorTypeArgumentsReg =
       TypeTestABI::kDstTypeReg;
@@ -2286,18 +2286,21 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassIdMayBeSmi(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassId(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
   }
-  __ cmpl(kInstanceCidOrFunction, Immediate(kClosureCid));
+  __ cmpl(kInstanceCidOrSignature, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movl(kInstanceCidOrFunction,
+    __ movl(kInstanceCidOrSignature,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
+    __ movl(kInstanceCidOrSignature,
+            FieldAddress(kInstanceCidOrSignature,
+                         target::Function::signature_offset()));
     if (n >= 3) {
       __ movl(
           kInstanceInstantiatorTypeArgumentsReg,
@@ -2320,7 +2323,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
+      __ LoadClassById(kScratchReg, kInstanceCidOrSignature);
       __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
       __ movl(
           kScratchReg,
@@ -2338,7 +2341,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ pushl(raw_null);  // function.
       }
     }
-    __ SmiTag(kInstanceCidOrFunction);
+    __ SmiTag(kInstanceCidOrSignature);
   }
 
   if (n >= 7) {
@@ -2358,10 +2361,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movl(kScratchReg,
           Address(kCacheArrayReg,
                   target::kWordSize *
-                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
+                      target::SubtypeTestCache::kInstanceCidOrSignature));
   __ cmpl(kScratchReg, raw_null);
   __ j(EQUAL, &done, Assembler::kNearJump);
-  __ cmpl(kScratchReg, kInstanceCidOrFunction);
+  __ cmpl(kScratchReg, kInstanceCidOrSignature);
   if (n == 1) {
     __ j(EQUAL, &done, Assembler::kNearJump);
   } else {

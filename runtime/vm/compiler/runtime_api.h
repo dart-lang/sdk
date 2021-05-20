@@ -1268,7 +1268,7 @@ class SubtypeTestCache : public AllStatic {
   static word cache_offset();
 
   static const word kTestEntryLength;
-  static const word kInstanceClassIdOrFunction;
+  static const word kInstanceCidOrSignature;
   static const word kDestinationType;
   static const word kInstanceTypeArguments;
   static const word kInstantiatorTypeArguments;

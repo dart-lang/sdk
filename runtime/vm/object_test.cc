@@ -2644,7 +2644,7 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   const Context& context = Context::Handle(Context::New(0));
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   parent = Function::New(signature, parent_name,
                          UntaggedFunction::kRegularFunction, false, false,
                          false, false, false, cls, TokenPosition::kMinSource);
@@ -2652,12 +2652,17 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     cls.SetFunctions(functions);
+    cls.Finalize();
   }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
+  signature = function.signature();
+  signature.set_result_type(Object::dynamic_type());
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  function.set_signature(signature);
   const Closure& closure = Closure::Handle(
       Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
                    function, context));

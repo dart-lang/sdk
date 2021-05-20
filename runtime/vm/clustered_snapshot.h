@@ -182,7 +182,7 @@ class DeserializationRoots {
   // Returns true if these roots are the first snapshot loaded into a heap, and
   // so can assume any canonical objects don't already exist. Returns false if
   // some other snapshot may be loaded before these roots, and so written
-  // canonical objects need to run canoncalization during load.
+  // canonical objects need to run canonicalization during load.
   virtual bool AddBaseObjects(Deserializer* deserializer) = 0;
   virtual void ReadRoots(Deserializer* deserializer) = 0;
   virtual void PostLoad(Deserializer* deserializer, const Array& refs) = 0;

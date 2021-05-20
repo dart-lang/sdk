@@ -78,7 +78,7 @@
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
-  CONSTANT(SubtypeTestCache, kInstanceClassIdOrFunction)                       \
+  CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
   CONSTANT(SubtypeTestCache, kDestinationType)                                 \
   CONSTANT(SubtypeTestCache, kInstanceDelayedFunctionTypeArguments)            \
   CONSTANT(SubtypeTestCache, kInstanceParentFunctionTypeArguments)             \
