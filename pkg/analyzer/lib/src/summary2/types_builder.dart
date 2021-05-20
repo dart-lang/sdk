@@ -81,10 +81,6 @@ class TypesBuilder {
       builder.build();
     }
 
-    for (var declaration in nodes.declarations) {
-      _declaration(declaration);
-    }
-
     // TODO(scheglov) generalize
     _linker.elementNodes.forEach((element, node) {
       if (element is GenericFunctionTypeElementImpl &&
@@ -95,6 +91,10 @@ class TypesBuilder {
         element.bound = node.bound?.type;
       }
     });
+
+    for (var declaration in nodes.declarations) {
+      _declaration(declaration);
+    }
 
     _MixinsInference(_linker).perform(nodes.declarations);
   }

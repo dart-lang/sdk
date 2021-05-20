@@ -3469,12 +3469,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     );
   }
 
-  @override
-  List<TypeParameterElement> get typeParameters {
-    // TODO(scheglov) remove the method
-    return _typeParameterElements;
-  }
-
   /// Set the type parameters defined by this function type element to the given
   /// [typeParameters].
   set typeParameters(List<TypeParameterElement> typeParameters) {
@@ -5627,12 +5621,6 @@ class TypeParameterElementImpl extends ElementImpl
   /// [offset].
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
 
-  TypeParameterElementImpl.forLinkedNode(
-      ElementImpl enclosing, TypeParameterImpl linkedNode)
-      : super.forLinkedNode(enclosing, null, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
-
   /// Initialize a newly created synthetic type parameter element to have the
   /// given [name], and with [synthetic] set to true.
   TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
@@ -5648,13 +5636,6 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   DartType? get boundInternal {
-    if (_bound != null) return _bound;
-
-    final linkedNode = this.linkedNode;
-    if (linkedNode is TypeParameter) {
-      return _bound = linkedNode.bound?.type;
-    }
-
     return _bound;
   }
 
@@ -5673,20 +5654,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   String get name {
-    if (linkedNode != null) {
-      var node = linkedNode as TypeParameter;
-      return node.name.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   Variance get variance {
@@ -5732,35 +5700,15 @@ class TypeParameterElementImpl extends ElementImpl
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedElementMixin
     implements _ExistingElementImpl, TypeParameterizedElement {
-  /// A cached list containing the type parameters declared by this element
-  /// directly, or `null` if the elements have not been created yet. This does
-  /// not include type parameters that are declared by any enclosing elements.
-  List<TypeParameterElement> _typeParameterElements =
-      _Sentinel.typeParameterElement;
+  /// The type parameters declared by this element directly. This does not
+  /// include type parameters that are declared by any enclosing elements.
+  List<TypeParameterElement> _typeParameterElements = const [];
 
   @override
   bool get isSimplyBounded => true;
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (!identical(_typeParameterElements, _Sentinel.typeParameterElement)) {
-      return _typeParameterElements;
-    }
-
-    if (linkedNode != null) {
-      var typeParameters = linkedContext!.getTypeParameters2(linkedNode!);
-      if (typeParameters == null) {
-        return _typeParameterElements = const [];
-      }
-      return _typeParameterElements = typeParameters.typeParameters
-          .cast<TypeParameterImpl>()
-          .map<TypeParameterElement>((node) {
-        var element = node.declaredElement;
-        element ??= TypeParameterElementImpl.forLinkedNode(this, node);
-        return element;
-      }).toList();
-    }
-
     return _typeParameterElements;
   }
 
@@ -5983,7 +5931,5 @@ class _Sentinel {
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
-      List.unmodifiable([]);
-  static final List<TypeParameterElement> typeParameterElement =
       List.unmodifiable([]);
 }

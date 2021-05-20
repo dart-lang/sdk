@@ -140,7 +140,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ExtensionElementImpl;
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
@@ -167,7 +166,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as FieldFormalParameterElementImpl;
     element.parameters; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.type?.accept(this);
@@ -190,10 +188,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as ExecutableElementImpl;
     element.parameters; // create elements
 
-    _createTypeParameterElements(
-      element,
-      node.functionExpression.typeParameters,
-    );
     scope = TypeParameterScope(outerScope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
@@ -237,7 +231,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as ParameterElementImpl;
     element.parameters; // create elements
 
-    _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.returnType?.accept(this);
@@ -301,8 +294,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = node.declaredElement as ExecutableElementImpl;
     element.parameters; // create elements
-
-    _createTypeParameterElements(element, node.typeParameters);
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -421,9 +412,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       bound.accept(this);
       var element = node.declaredElement as TypeParameterElementImpl;
       element.bound = bound.type;
-      // TODO(scheglov) We should not need to do it here.
-      // Only in the element builder, eventually.z
-      linker.elementNodes[element] = node;
     }
   }
 
@@ -441,29 +429,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     node.mixinTypes.accept(this);
-  }
-
-  void _createTypeParameterElement(
-    ElementImpl enclosingElement,
-    TypeParameterImpl node,
-  ) {
-    var element = TypeParameterElementImpl.forLinkedNode(
-      enclosingElement,
-      node,
-    );
-    node.name.staticElement = element;
-  }
-
-  void _createTypeParameterElements(
-    ElementImpl enclosingElement,
-    TypeParameterList? typeParameterList,
-  ) {
-    if (typeParameterList == null) return;
-
-    for (var typeParameter in typeParameterList.typeParameters) {
-      typeParameter as TypeParameterImpl;
-      _createTypeParameterElement(enclosingElement, typeParameter);
-    }
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
