@@ -714,7 +714,7 @@ class DartMetadata(object):
 
         if _monitor_type_metadata:
             monitored_interfaces = {}
-            for interface_id, interface_data in self._types.iteritems():
+            for interface_id, interface_data in self._types.items():
                 monitored_interface = interface_data.copy()
                 monitored_interface['members'] = monitored.Dict(
                     'dartmetadata.%s' % interface_id, interface_data['members'])

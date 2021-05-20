@@ -57,7 +57,7 @@ def ParseDepsFile(deps_file):
     # Extract the deps and filter.
     deps = local_scope.get('deps', {})
     filtered_deps = {}
-    for k, v in deps.iteritems():
+    for k, v in deps.items():
         if 'sdk/third_party/pkg' in k:
             new_key = k.replace('sdk', 'third_party/dart', 1)
             filtered_deps[new_key] = v
@@ -80,7 +80,7 @@ def WriteManifest(deps, manifest_file):
         manifest.write(warning)
         manifest.write('<manifest>\n')
         manifest.write('  <projects>\n')
-        for path, remote in sorted(deps.iteritems()):
+        for path, remote in sorted(deps.items()):
             remote_components = remote.split('@')
             remote_url = remote_components[0]
             remote_version = remote_components[1]

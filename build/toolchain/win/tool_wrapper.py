@@ -225,7 +225,7 @@ class WinTool(object):
         env = self._GetEnv(arch)
         # TODO(scottmg): This is a temporary hack to get some specific variables
         # through to actions that are set after GN-time. http://crbug.com/333738.
-        for k, v in os.environ.iteritems():
+        for k, v in os.environ.items():
             if k not in env:
                 env[k] = v
         args = open(rspfile).read()

@@ -243,7 +243,7 @@ def Compare(symbols1, symbols2):
     # We have now analyzed all symbols that are in cache1 and removed all of
     # the encountered symbols from cache2. What's left in cache2 is the new
     # symbols.
-    for key, bucket2 in cache2.iteritems():
+    for key, bucket2 in cache2.items():
         file_path, symbol_type = key
         for symbol_name, symbol_size_list in bucket2.items():
             for (symbol_size, shared) in symbol_size_list:
@@ -401,8 +401,9 @@ def CrunchStats(added, removed, changed, unchanged, showsources, showsymbols):
         growth = size_data['plus'] - size_data['minus']
         return growth
 
-    for path, size_data in sorted(
-            delta_by_path.iteritems(), key=delta_sort_key, reverse=True):
+    for path, size_data in sorted(delta_by_path.items(),
+                                  key=delta_sort_key,
+                                  reverse=True):
         gain = size_data['plus']
         loss = size_data['minus']
         delta = size_data['plus'] - size_data['minus']
