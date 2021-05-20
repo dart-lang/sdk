@@ -39,3 +39,6 @@ $dart --enable-asserts dev/bots/analyze.dart --dart-sdk $sdk
 pushd packages/flutter/test_fixes
 ../../../bin/dart fix --compare-to-golden
 popd
+
+# Analyze the sample code in dartdoc snippets.
+./bin/dart dev/bots/analyze_sample_code.dart
