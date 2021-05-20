@@ -2836,9 +2836,9 @@ class Function : public Object {
 
   // Return the closure implicitly created for this function.
   // If none exists yet, create one and remember it.
-  InstancePtr ImplicitStaticClosure() const;
+  ClosurePtr ImplicitStaticClosure() const;
 
-  InstancePtr ImplicitInstanceClosure(const Instance& receiver) const;
+  ClosurePtr ImplicitInstanceClosure(const Instance& receiver) const;
 
   // Returns the target of the implicit closure or null if the target is now
   // invalid (e.g., mismatched argument shapes after a reload).
@@ -3771,8 +3771,8 @@ class Function : public Object {
   void set_parent_function(const Function& value) const;
   FunctionPtr implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
-  InstancePtr implicit_static_closure() const;
-  void set_implicit_static_closure(const Instance& closure) const;
+  ClosurePtr implicit_static_closure() const;
+  void set_implicit_static_closure(const Closure& closure) const;
   ScriptPtr eval_script() const;
   void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
@@ -3823,10 +3823,10 @@ class ClosureData : public Object {
   void set_parent_function(const Function& value) const;
 #endif
 
-  InstancePtr implicit_static_closure() const {
+  ClosurePtr implicit_static_closure() const {
     return untag()->closure<std::memory_order_acquire>();
   }
-  void set_implicit_static_closure(const Instance& closure) const;
+  void set_implicit_static_closure(const Closure& closure) const;
 
   DefaultTypeArgumentsKind default_type_arguments_kind() const;
   void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
@@ -10937,6 +10937,16 @@ class LinkedHashMap : public Instance {
 
 class Closure : public Instance {
  public:
+#if defined(DART_PRECOMPILED_RUNTIME)
+  uword entry_point() const { return untag()->entry_point_; }
+  void set_entry_point(uword entry_point) const {
+    StoreNonPointer(&untag()->entry_point_, entry_point);
+  }
+  static intptr_t entry_point_offset() {
+    return OFFSET_OF(UntaggedClosure, entry_point_);
+  }
+#endif
+
   TypeArgumentsPtr instantiator_type_arguments() const {
     return untag()->instantiator_type_arguments();
   }

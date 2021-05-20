@@ -110,6 +110,15 @@ class ParsedFunction;
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
   V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
 
+// Only define AOT-only unboxed native slots when in the precompiler. See
+// UNBOXED_NATIVE_SLOTS_LIST for the format.
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+#define AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                  \
+  V(Closure, UntaggedClosure, entry_point, Uword, FINAL)
+#else
+#define AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)
+#endif
+
 // List of slots that correspond to unboxed fields of native objects in the
 // following format:
 //
@@ -125,9 +134,14 @@ class ParsedFunction;
 //   that) or like a non-final field.
 //
 // Note: As the underlying field is unboxed, these slots cannot be nullable.
+//
+// Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
+// unboxed slots represent length loads.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
+  AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
   V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
     FINAL)                                                                     \
+  V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
   V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \

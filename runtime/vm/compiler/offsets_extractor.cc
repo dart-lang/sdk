@@ -96,6 +96,10 @@ class OffsetsExtractor : public AllStatic {
                "_" #Name " = "                                                 \
             << Class::Name << ";\n";
 
+    AOT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
+                     PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
+                     PRINT_CONSTANT)
+
 #else  // defined(DART_PRECOMPILED_RUNTIME)
 
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \

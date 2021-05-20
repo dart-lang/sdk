@@ -3215,14 +3215,15 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   if (is_unchecked_closure_call) {
     // Lookup the function in the closure.
     instructions += LoadLocal(receiver_temp);
-    instructions += LoadNativeField(Slot::Closure_function());
+    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+      instructions += LoadNativeField(Slot::Closure_function());
+    }
     if (parsed_function()->function().is_debuggable()) {
       ASSERT(!parsed_function()->function().is_native());
       instructions += DebugStepCheck(position);
     }
     instructions +=
-        B->ClosureCall(position, type_args_len, argument_count, argument_names,
-                       /*use_unchecked_entry=*/true);
+        B->ClosureCall(position, type_args_len, argument_count, argument_names);
   } else if (!direct_call_target->IsNull()) {
     // Even if TFA infers a concrete receiver type, the static type of the
     // call-site may still be dynamic and we need to call the dynamic invocation
@@ -3303,14 +3304,15 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
 
   // Lookup the function in the closure.
   instructions += LoadLocal(variable);
-  instructions += LoadNativeField(Slot::Closure_function());
+  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    instructions += LoadNativeField(Slot::Closure_function());
+  }
   if (parsed_function()->function().is_debuggable()) {
     ASSERT(!parsed_function()->function().is_native());
     instructions += DebugStepCheck(position);
   }
   instructions +=
-      B->ClosureCall(position, type_args_len, argument_count, argument_names,
-                     /*use_unchecked_entry=*/true);
+      B->ClosureCall(position, type_args_len, argument_count, argument_names);
   return instructions;
 }
 
@@ -3365,14 +3367,15 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
                               /*clear_temp=*/false);
     // Lookup the function in the closure.
     instructions += LoadLocal(receiver_temp);
-    instructions += LoadNativeField(Slot::Closure_function());
+    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+      instructions += LoadNativeField(Slot::Closure_function());
+    }
     if (parsed_function()->function().is_debuggable()) {
       ASSERT(!parsed_function()->function().is_native());
       instructions += DebugStepCheck(position);
     }
     instructions +=
-        B->ClosureCall(position, type_args_len, argument_count, argument_names,
-                       /*use_unchecked_entry=*/true);
+        B->ClosureCall(position, type_args_len, argument_count, argument_names);
   } else {
     instructions += InstanceCall(
         position, Symbols::DynamicCall(), Token::kILLEGAL, type_args_len,

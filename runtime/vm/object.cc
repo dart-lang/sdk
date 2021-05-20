@@ -7266,16 +7266,16 @@ void Function::set_context_scope(const ContextScope& value) const {
   UNREACHABLE();
 }
 
-InstancePtr Function::implicit_static_closure() const {
+ClosurePtr Function::implicit_static_closure() const {
   if (IsImplicitStaticClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).implicit_static_closure();
   }
-  return Instance::null();
+  return Closure::null();
 }
 
-void Function::set_implicit_static_closure(const Instance& closure) const {
+void Function::set_implicit_static_closure(const Closure& closure) const {
   if (IsImplicitStaticClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
@@ -9277,30 +9277,30 @@ void FunctionType::PrintParameters(Thread* thread,
   }
 }
 
-InstancePtr Function::ImplicitStaticClosure() const {
+ClosurePtr Function::ImplicitStaticClosure() const {
   ASSERT(IsImplicitStaticClosureFunction());
-  if (implicit_static_closure() != Instance::null()) {
+  if (implicit_static_closure() != Closure::null()) {
     return implicit_static_closure();
   }
 
   auto thread = Thread::Current();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
-  if (implicit_static_closure() != Instance::null()) {
+  if (implicit_static_closure() != Closure::null()) {
     return implicit_static_closure();
   }
 
   Zone* zone = thread->zone();
   const auto& null_context = Context::Handle(zone);
   const auto& closure =
-      Instance::Handle(zone, Closure::New(Object::null_type_arguments(),
-                                          Object::null_type_arguments(), *this,
-                                          null_context, Heap::kOld));
+      Closure::Handle(zone, Closure::New(Object::null_type_arguments(),
+                                         Object::null_type_arguments(), *this,
+                                         null_context, Heap::kOld));
   set_implicit_static_closure(closure);
   return implicit_static_closure();
 }
 
-InstancePtr Function::ImplicitInstanceClosure(const Instance& receiver) const {
+ClosurePtr Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(IsImplicitClosureFunction());
   Zone* zone = Thread::Current()->zone();
   const Context& context = Context::Handle(zone, Context::New(1));
@@ -10267,9 +10267,9 @@ void ClosureData::set_context_scope(const ContextScope& value) const {
   untag()->set_context_scope(value.ptr());
 }
 
-void ClosureData::set_implicit_static_closure(const Instance& closure) const {
+void ClosureData::set_implicit_static_closure(const Closure& closure) const {
   ASSERT(!closure.IsNull());
-  ASSERT(untag()->closure() == Instance::null());
+  ASSERT(untag()->closure() == Closure::null());
   untag()->set_closure<std::memory_order_release>(closure.ptr());
 }
 
@@ -24985,6 +24985,10 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
     result.untag()->set_delayed_type_arguments(delayed_type_arguments.ptr());
     result.untag()->set_function(function.ptr());
     result.untag()->set_context(context.ptr());
+#if defined(DART_PRECOMPILED_RUNTIME)
+    result.set_entry_point(FLAG_use_bare_instructions ? function.entry_point()
+                                                      : 0);
+#endif
   }
   return result.ptr();
 }

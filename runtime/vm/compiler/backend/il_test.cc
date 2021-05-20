@@ -169,7 +169,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
                             /*expected_stores=*/{"g"});
   RunInitializingStoresTest(root_library, "f3", CompilerPass::kJIT,
                             /*expected_stores=*/
-                            {"Closure.function"});
+                            {"Closure.function", "Closure.entry_point"});
 
   // Note that in JIT mode we lower context allocation in a way that hinders
   // removal of initializing moves so there would be some redundant stores of

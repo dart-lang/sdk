@@ -613,7 +613,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_FIELD(clazz, name)                                          \
   word clazz::name() {                                                         \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use JIT-only field %s in precompiled mode", #clazz "::" #name);  \
+      FATAL("Use of JIT-only field %s in precompiled mode",                    \
+            #clazz "::" #name);                                                \
     }                                                                          \
     return clazz##_##name;                                                     \
   }
@@ -621,8 +622,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_ARRAY(clazz, name)                                          \
   word clazz::name(intptr_t index) {                                           \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use of JIT-only array %s in precompiled mode",                   \
-             #clazz "::" #name);                                               \
+      FATAL("Use of JIT-only array %s in precompiled mode",                    \
+            #clazz "::" #name);                                                \
     }                                                                          \
     return clazz##_elements_start_offset + index * clazz##_element_size;       \
   }
@@ -630,8 +631,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_SIZEOF(clazz, name, what)                                   \
   word clazz::name() {                                                         \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use of JIT-only sizeof %s in precompiled mode",                  \
-             #clazz "::" #name);                                               \
+      FATAL("Use of JIT-only sizeof %s in precompiled mode",                   \
+            #clazz "::" #name);                                                \
     }                                                                          \
     return clazz##_##name;                                                     \
   }
@@ -639,8 +640,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #define DEFINE_JIT_RANGE(Class, Getter, Type, First, Last, Filter)             \
   word Class::Getter(Type index) {                                             \
     if (FLAG_precompiled_mode) {                                               \
-      FATAL1("Use of JIT-only range %s in precompiled mode",                   \
-             #Class "::" #Getter);                                             \
+      FATAL("Use of JIT-only range %s in precompiled mode",                    \
+            #Class "::" #Getter);                                              \
     }                                                                          \
     return Class##_##Getter[static_cast<intptr_t>(index) -                     \
                             static_cast<intptr_t>(First)];                     \
@@ -658,6 +659,68 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 #undef DEFINE_JIT_ARRAY
 #undef DEFINE_JIT_SIZEOF
 #undef DEFINE_JIT_RANGE
+
+#if defined(DART_PRECOMPILER)
+// The following could check FLAG_precompiled_mode for more safety, but that
+// causes problems for defining things like native Slots, where the definition
+// cannot be based on a runtime flag. Instead, we limit the visibility of these
+// definitions using DART_PRECOMPILER.
+
+#define DEFINE_AOT_FIELD(clazz, name)                                          \
+  word clazz::name() { return AOT_##clazz##_##name; }
+
+#define DEFINE_AOT_ARRAY(clazz, name)                                          \
+  word clazz::name(intptr_t index) {                                           \
+    return AOT_##clazz##_elements_start_offset +                               \
+           index * AOT_##clazz##_element_size;                                 \
+  }
+
+#define DEFINE_AOT_SIZEOF(clazz, name, what)                                   \
+  word clazz::name() { return AOT_##clazz##_##name; }
+
+#define DEFINE_AOT_RANGE(Class, Getter, Type, First, Last, Filter)             \
+  word Class::Getter(Type index) {                                             \
+    return AOT_##Class##_##Getter[static_cast<intptr_t>(index) -               \
+                                  static_cast<intptr_t>(First)];               \
+  }
+#else
+#define DEFINE_AOT_FIELD(clazz, name)                                          \
+  word clazz::name() {                                                         \
+    FATAL("Use of AOT-only field %s outside of the precompiler",               \
+          #clazz "::" #name);                                                  \
+  }
+
+#define DEFINE_AOT_ARRAY(clazz, name)                                          \
+  word clazz::name(intptr_t index) {                                           \
+    FATAL("Use of AOT-only array %s outside of the precompiler",               \
+          #clazz "::" #name);                                                  \
+  }
+
+#define DEFINE_AOT_SIZEOF(clazz, name, what)                                   \
+  word clazz::name() {                                                         \
+    FATAL("Use of AOT-only sizeof %s outside of the precompiler",              \
+          #clazz "::" #name);                                                  \
+  }
+
+#define DEFINE_AOT_RANGE(Class, Getter, Type, First, Last, Filter)             \
+  word Class::Getter(Type index) {                                             \
+    FATAL("Use of AOT-only range %s outside of the precompiler",               \
+          #Class "::" #Getter);                                                \
+  }
+#endif  // defined(DART_PRECOMPILER)
+
+AOT_OFFSETS_LIST(DEFINE_AOT_FIELD,
+                 DEFINE_AOT_ARRAY,
+                 DEFINE_AOT_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
+                 DEFINE_PAYLOAD_SIZEOF,
+                 DEFINE_AOT_RANGE,
+                 DEFINE_CONSTANT)
+
+#undef DEFINE_AOT_FIELD
+#undef DEFINE_AOT_ARRAY
+#undef DEFINE_AOT_SIZEOF
+#undef DEFINE_AOT_RANGE
 
 #define DEFINE_FIELD(clazz, name)                                              \
   word clazz::name() {                                                         \

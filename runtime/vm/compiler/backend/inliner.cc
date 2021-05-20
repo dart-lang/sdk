@@ -1051,7 +1051,7 @@ class CallSiteInliner : public ValueObject {
                        call_data->call->AsPolymorphicInstanceCall()) {
           entry_kind = instr->entry_kind();
         } else if (ClosureCallInstr* instr = call_data->call->AsClosureCall()) {
-          entry_kind = instr->entry_kind();
+          // Closure functions only have one entry point.
         }
         kernel::FlowGraphBuilder builder(
             parsed_function, ic_data_array, /* not building var desc */ NULL,

@@ -497,8 +497,8 @@ void Class::MigrateImplicitStaticClosures(ProgramReloadContext* irc,
   Function& old_func = Function::Handle();
   String& selector = String::Handle();
   Function& new_func = Function::Handle();
-  Instance& old_closure = Instance::Handle();
-  Instance& new_closure = Instance::Handle();
+  Closure& old_closure = Closure::Handle();
+  Closure& new_closure = Closure::Handle();
   for (intptr_t i = 0; i < funcs.Length(); i++) {
     old_func ^= funcs.At(i);
     if (old_func.is_static() && old_func.HasImplicitClosureFunction()) {
