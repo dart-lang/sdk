@@ -2480,7 +2480,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   final ErrorReporter errorReporter;
 
   /// The scope used to resolve identifiers.
-  late Scope nameScope;
+  Scope nameScope;
 
   /// The scope used to resolve unlabeled `break` and `continue` statements.
   ImplicitLabelScope _implicitLabelScope = ImplicitLabelScope.ROOT;
@@ -2518,13 +2518,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
           errorListener,
           source,
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
-        ) {
-    if (nameScope == null) {
-      this.nameScope = LibraryScope(definingLibrary);
-    } else {
-      this.nameScope = nameScope;
-    }
-  }
+        ),
+        nameScope = nameScope ?? LibraryScope(definingLibrary);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
