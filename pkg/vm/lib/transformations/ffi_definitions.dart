@@ -125,6 +125,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   ///
   /// Works both for transformed and non-transformed compound classes.
   Set<Class> _compoundClassDependencies(Class node) {
+    final fieldTypes = _compoundAnnotatedFields(node);
+    if (fieldTypes != null) {
+      // Transformed classes.
+      return _compoundAnnotatedDependencies(fieldTypes);
+    }
+
+    // Non-tranformed classes.
     final dependencies = <Class>{};
     final membersWithAnnotations =
         _compoundFieldMembers(node, includeSetters: false);
@@ -199,20 +206,25 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       } else {
         // Only visit the ones without cycles.
         final clazz = component.single;
-        final compoundData = _findFields(clazz);
-        final compoundType = compoundData.compoundType;
-        compoundCache[clazz] = compoundType;
-        final indexedClass = indexedCompoundClasses[clazz];
-        if (transformCompounds.contains(clazz) &&
-            compoundType is! InvalidNativeTypeCfe) {
-          // Only visit if it has not been transformed yet, and its fields
-          // are valid.
-
-          _replaceFields(clazz, indexedClass, compoundData);
-          _addSizeOfField(clazz, indexedClass, compoundType.size);
+        final mustBeTransformed = (transformCompoundsInvalid.contains(clazz) ||
+            transformCompounds.contains(clazz));
+        if (!mustBeTransformed) {
+          compoundCache[clazz] = _compoundAnnotatedNativeTypeCfe(clazz);
+        } else {
+          final compoundData = _findFields(clazz);
+          final compoundType = compoundData.compoundType;
+          compoundCache[clazz] = compoundType;
+          final indexedClass = indexedCompoundClasses[clazz];
+          if (transformCompounds.contains(clazz) &&
+              compoundType is! InvalidNativeTypeCfe) {
+            // Only replace fields if valid.
+            _replaceFields(clazz, indexedClass, compoundData);
+            _addSizeOfField(clazz, indexedClass, compoundType.size);
+          } else {
+            // Do add a sizeOf field even if invalid.
+            _addSizeOfField(clazz, indexedClass);
+          }
           changedStructureNotifier?.registerClassMemberChange(clazz);
-        } else if (transformCompoundsInvalid.contains(clazz)) {
-          _addSizeOfField(clazz, indexedClass);
         }
       }
     });
@@ -310,13 +322,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   /// Note that getters and setters that originate from an external field have
   /// the same `fileOffset`, we always returns getters first.
   ///
-  /// This works for both transformed and non-transformed structs.
-  List<Member> _compoundFieldMembers(Class node,
-      {bool possiblyAlreadyTransformed = true, bool includeSetters = true}) {
+  /// This works only for non-transformed compounds.
+  List<Member> _compoundFieldMembers(Class node, {bool includeSetters = true}) {
+    assert(_compoundAnnotatedFields(node) == null);
     final getterSetters = node.procedures.where((p) {
-      if (!possiblyAlreadyTransformed && !p.isExternal) {
-        // If a struct has not been transformed yet, we have the guarantee
-        // that getters and setters corresponding to native fields are external.
+      if (!p.isExternal) {
+        // Getters and setters corresponding to native fields are external.
         return false;
       }
       if (p.isSetter && includeSetters) {
@@ -350,8 +361,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   bool _checkFieldAnnotations(Class node, int packing) {
     bool success = true;
-    final membersWithAnnotations = _compoundFieldMembers(node,
-        possiblyAlreadyTransformed: false, includeSetters: false);
+    final membersWithAnnotations =
+        _compoundFieldMembers(node, includeSetters: false);
     for (final Member f in membersWithAnnotations) {
       if (f is Field) {
         if (f.initializer is! NullLiteral) {
@@ -541,6 +552,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     node.addConstructor(ctor);
   }
 
+  // Works only for non-transformed classes.
   CompoundData _findFields(Class node) {
     final types = <NativeTypeCfe>[];
     final fields = <int, Field>{};
@@ -672,6 +684,75 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
   }
 
+  static const vmFfiStructFields = "vm:ffi:struct-fields";
+
+  // return value is nullable.
+  InstanceConstant _compoundAnnotatedFields(Class node) {
+    for (final annotation in node.annotations) {
+      if (annotation is ConstantExpression) {
+        final constant = annotation.constant;
+        if (constant is InstanceConstant &&
+            constant.classNode == pragmaClass &&
+            constant.fieldValues[pragmaName.getterReference] ==
+                StringConstant(vmFfiStructFields)) {
+          return constant.fieldValues[pragmaOptions.getterReference];
+        }
+      }
+    }
+    return null;
+  }
+
+  Set<Class> _compoundAnnotatedDependencies(InstanceConstant layoutConstant) {
+    final fieldTypes = layoutConstant
+        .fieldValues[ffiStructLayoutTypesField.getterReference] as ListConstant;
+    final result = <Class>{};
+    for (final fieldType in fieldTypes.entries) {
+      if (fieldType is TypeLiteralConstant) {
+        final type = fieldType.type;
+        if (isCompoundSubtype(type)) {
+          final clazz = (type as InterfaceType).classNode;
+          result.add(clazz);
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Must only be called if all the depencies are already in the cache.
+  CompoundNativeTypeCfe _compoundAnnotatedNativeTypeCfe(Class compoundClass) {
+    final layoutConstant = _compoundAnnotatedFields(compoundClass);
+    final fieldTypes = layoutConstant
+        .fieldValues[ffiStructLayoutTypesField.getterReference] as ListConstant;
+    final members = <NativeTypeCfe>[];
+    for (final fieldType in fieldTypes.entries) {
+      if (fieldType is TypeLiteralConstant) {
+        final dartType = fieldType.type;
+        members.add(NativeTypeCfe(this, dartType));
+      } else if (fieldType is InstanceConstant) {
+        final singleElementConstant = fieldType
+                .fieldValues[ffiInlineArrayElementTypeField.getterReference]
+            as TypeLiteralConstant;
+        final singleElementType =
+            NativeTypeCfe(this, singleElementConstant.type);
+        final arrayLengthConstant =
+            fieldType.fieldValues[ffiInlineArrayLengthField.getterReference]
+                as IntConstant;
+        final arrayLength = arrayLengthConstant.value;
+        members.add(ArrayNativeTypeCfe(singleElementType, arrayLength));
+      }
+    }
+    if (compoundClass.superclass == structClass) {
+      final packingConstant = layoutConstant
+          .fieldValues[ffiStructLayoutPackingField.getterReference];
+      if (packingConstant is IntConstant) {
+        return StructNativeTypeCfe(compoundClass, members,
+            packing: packingConstant.value);
+      }
+      return StructNativeTypeCfe(compoundClass, members);
+    }
+    return UnionNativeTypeCfe(compoundClass, members);
+  }
+
   // packing is `int?`.
   void _annoteCompoundWithFields(
       Class node, List<NativeTypeCfe> types, int packing) {
@@ -680,7 +761,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     node.addAnnotation(ConstantExpression(
         InstanceConstant(pragmaClass.reference, [], {
-          pragmaName.getterReference: StringConstant("vm:ffi:struct-fields"),
+          pragmaName.getterReference: StringConstant(vmFfiStructFields),
           pragmaOptions.getterReference:
               InstanceConstant(ffiStructLayoutClass.reference, [], {
             ffiStructLayoutTypesField.getterReference: ListConstant(
