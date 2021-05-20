@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart';
@@ -29,8 +27,8 @@ import 'package:front_end/src/fasta/messages.dart';
 abstract class DirectParserASTContent {
   final String what;
   final DirectParserASTType type;
-  Map<String, Object> get deprecatedArguments;
-  List<DirectParserASTContent> children;
+  Map<String, Object?> get deprecatedArguments;
+  List<DirectParserASTContent>? children;
 
   DirectParserASTContent(this.what, this.type);
 
@@ -58,7 +56,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleAsyncModifier(Token asyncToken, Token starToken) {
+  void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     DirectParserASTContentAsyncModifierHandle data =
         new DirectParserASTContentAsyncModifierHandle(
             DirectParserASTType.HANDLE,
@@ -174,7 +172,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     DirectParserASTContentClassDeclarationBegin data =
         new DirectParserASTContentClassDeclarationBegin(
             DirectParserASTType.BEGIN,
@@ -184,7 +182,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleClassExtends(Token extendsKeyword, int typeCount) {
+  void handleClassExtends(Token? extendsKeyword, int typeCount) {
     DirectParserASTContentClassExtendsHandle data =
         new DirectParserASTContentClassExtendsHandle(DirectParserASTType.HANDLE,
             extendsKeyword: extendsKeyword, typeCount: typeCount);
@@ -192,7 +190,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void handleClassOrMixinImplements(
-      Token implementsKeyword, int interfacesCount) {
+      Token? implementsKeyword, int interfacesCount) {
     DirectParserASTContentClassOrMixinImplementsHandle data =
         new DirectParserASTContentClassOrMixinImplementsHandle(
             DirectParserASTType.HANDLE,
@@ -201,7 +199,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+  void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     DirectParserASTContentClassHeaderHandle data =
         new DirectParserASTContentClassHeaderHandle(DirectParserASTType.HANDLE,
             begin: begin, classKeyword: classKeyword, nativeToken: nativeToken);
@@ -231,7 +229,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleMixinOn(Token onKeyword, int typeCount) {
+  void handleMixinOn(Token? onKeyword, int typeCount) {
     DirectParserASTContentMixinOnHandle data =
         new DirectParserASTContentMixinOnHandle(DirectParserASTType.HANDLE,
             onKeyword: onKeyword, typeCount: typeCount);
@@ -275,7 +273,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void beginExtensionDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
     DirectParserASTContentExtensionDeclarationBegin data =
         new DirectParserASTContentExtensionDeclarationBegin(
             DirectParserASTType.BEGIN,
@@ -354,7 +352,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endConstructorReference(
-      Token start, Token periodBeforeName, Token endToken) {
+      Token start, Token? periodBeforeName, Token endToken) {
     DirectParserASTContentConstructorReferenceEnd data =
         new DirectParserASTContentConstructorReferenceEnd(
             DirectParserASTType.END,
@@ -462,7 +460,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void beginFactoryMethod(
-      Token lastConsumed, Token externalToken, Token constToken) {
+      Token lastConsumed, Token? externalToken, Token? constToken) {
     DirectParserASTContentFactoryMethodBegin data =
         new DirectParserASTContentFactoryMethodBegin(DirectParserASTType.BEGIN,
             lastConsumed: lastConsumed,
@@ -502,8 +500,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
-      Token covariantToken, Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
+      Token? covariantToken, Token? varFinalOrConst) {
     DirectParserASTContentFormalParameterBegin data =
         new DirectParserASTContentFormalParameterBegin(
             DirectParserASTType.BEGIN,
@@ -516,11 +514,11 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
+      Token? thisKeyword,
+      Token? periodAfterThis,
       Token nameToken,
-      Token initializerStart,
-      Token initializerEnd,
+      Token? initializerStart,
+      Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     DirectParserASTContentFormalParameterEnd data =
@@ -565,12 +563,12 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endClassFields(
-      Token abstractToken,
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token lateToken,
-      Token varFinalOrConst,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
       int count,
       Token beginToken,
       Token endToken) {
@@ -589,12 +587,12 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endMixinFields(
-      Token abstractToken,
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token lateToken,
-      Token varFinalOrConst,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
       int count,
       Token beginToken,
       Token endToken) {
@@ -613,12 +611,12 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endExtensionFields(
-      Token abstractToken,
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token lateToken,
-      Token varFinalOrConst,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
       int count,
       Token beginToken,
       Token endToken) {
@@ -702,7 +700,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleForInLoopParts(Token awaitToken, Token forToken,
+  void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token inKeyword) {
     DirectParserASTContentForInLoopPartsHandle data =
         new DirectParserASTContentForInLoopPartsHandle(
@@ -837,7 +835,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endFunctionTypeAlias(
-      Token typedefKeyword, Token equals, Token endToken) {
+      Token typedefKeyword, Token? equals, Token endToken) {
     DirectParserASTContentFunctionTypeAliasEnd data =
         new DirectParserASTContentFunctionTypeAliasEnd(DirectParserASTType.END,
             typedefKeyword: typedefKeyword, equals: equals, endToken: endToken);
@@ -860,7 +858,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void beginNamedMixinApplication(
-      Token begin, Token abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token name) {
     DirectParserASTContentNamedMixinApplicationBegin data =
         new DirectParserASTContentNamedMixinApplicationBegin(
             DirectParserASTType.BEGIN,
@@ -879,7 +877,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
-      Token implementsKeyword, Token endToken) {
+      Token? implementsKeyword, Token endToken) {
     DirectParserASTContentNamedMixinApplicationEnd data =
         new DirectParserASTContentNamedMixinApplicationEnd(
             DirectParserASTType.END,
@@ -934,7 +932,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endIfStatement(Token ifToken, Token elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken) {
     DirectParserASTContentIfStatementEnd data =
         new DirectParserASTContentIfStatementEnd(DirectParserASTType.END,
             ifToken: ifToken, elseToken: elseToken);
@@ -976,14 +974,14 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+  void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     DirectParserASTContentImportPrefixHandle data =
         new DirectParserASTContentImportPrefixHandle(DirectParserASTType.HANDLE,
             deferredKeyword: deferredKeyword, asKeyword: asKeyword);
     seen(data);
   }
 
-  void endImport(Token importKeyword, Token semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     DirectParserASTContentImportEnd data = new DirectParserASTContentImportEnd(
         DirectParserASTType.END,
         importKeyword: importKeyword,
@@ -991,7 +989,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleRecoverImport(Token semicolon) {
+  void handleRecoverImport(Token? semicolon) {
     DirectParserASTContentRecoverImportHandle data =
         new DirectParserASTContentRecoverImportHandle(
             DirectParserASTType.HANDLE,
@@ -1021,7 +1019,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token? equalSign) {
     DirectParserASTContentConditionalUriEnd data =
         new DirectParserASTContentConditionalUriEnd(DirectParserASTType.END,
             ifKeyword: ifKeyword, leftParen: leftParen, equalSign: equalSign);
@@ -1226,7 +1224,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleInterpolationExpression(Token leftBracket, Token rightBracket) {
+  void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
     DirectParserASTContentInterpolationExpressionHandle data =
         new DirectParserASTContentInterpolationExpressionHandle(
             DirectParserASTType.HANDLE,
@@ -1271,8 +1269,13 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token getOrSet, Token name) {
+  void beginMethod(
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? varFinalOrConst,
+      Token? getOrSet,
+      Token name) {
     DirectParserASTContentMethodBegin data =
         new DirectParserASTContentMethodBegin(DirectParserASTType.BEGIN,
             externalToken: externalToken,
@@ -1284,8 +1287,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     DirectParserASTContentClassMethodEnd data =
         new DirectParserASTContentClassMethodEnd(DirectParserASTType.END,
             getOrSet: getOrSet,
@@ -1296,8 +1299,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     DirectParserASTContentMixinMethodEnd data =
         new DirectParserASTContentMixinMethodEnd(DirectParserASTType.END,
             getOrSet: getOrSet,
@@ -1308,8 +1311,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     DirectParserASTContentExtensionMethodEnd data =
         new DirectParserASTContentExtensionMethodEnd(DirectParserASTType.END,
             getOrSet: getOrSet,
@@ -1320,8 +1323,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     DirectParserASTContentClassConstructorEnd data =
         new DirectParserASTContentClassConstructorEnd(DirectParserASTType.END,
             getOrSet: getOrSet,
@@ -1332,8 +1335,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     DirectParserASTContentMixinConstructorEnd data =
         new DirectParserASTContentMixinConstructorEnd(DirectParserASTType.END,
             getOrSet: getOrSet,
@@ -1344,8 +1347,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endExtensionConstructor(Token getOrSet, Token beginToken,
-      Token beginParam, Token beginInitializers, Token endToken) {
+  void endExtensionConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
     DirectParserASTContentExtensionConstructorEnd data =
         new DirectParserASTContentExtensionConstructorEnd(
             DirectParserASTType.END,
@@ -1378,7 +1381,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+  void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
     DirectParserASTContentMetadataEnd data =
         new DirectParserASTContentMetadataEnd(DirectParserASTType.END,
             beginToken: beginToken,
@@ -1499,7 +1502,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token? endToken) {
     DirectParserASTContentExpressionFunctionBodyHandle data =
         new DirectParserASTContentExpressionFunctionBodyHandle(
             DirectParserASTType.HANDLE,
@@ -1637,11 +1640,11 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endTopLevelFields(
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token lateToken,
-      Token varFinalOrConst,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
       int count,
       Token beginToken,
       Token endToken) {
@@ -1658,14 +1661,14 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+  void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
     DirectParserASTContentTopLevelMethodBegin data =
         new DirectParserASTContentTopLevelMethodBegin(DirectParserASTType.BEGIN,
             lastConsumed: lastConsumed, externalToken: externalToken);
     seen(data);
   }
 
-  void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
+  void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
     DirectParserASTContentTopLevelMethodEnd data =
         new DirectParserASTContentTopLevelMethodEnd(DirectParserASTType.END,
             beginToken: beginToken, getOrSet: getOrSet, endToken: endToken);
@@ -1700,7 +1703,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
+  void handleCatchBlock(Token? onKeyword, Token? catchKeyword, Token? comma) {
     DirectParserASTContentCatchBlockHandle data =
         new DirectParserASTContentCatchBlockHandle(DirectParserASTType.HANDLE,
             onKeyword: onKeyword, catchKeyword: catchKeyword, comma: comma);
@@ -1714,7 +1717,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
+  void endTryStatement(
+      int catchCount, Token tryKeyword, Token? finallyKeyword) {
     DirectParserASTContentTryStatementEnd data =
         new DirectParserASTContentTryStatementEnd(DirectParserASTType.END,
             catchCount: catchCount,
@@ -1723,7 +1727,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleType(Token beginToken, Token questionMark) {
+  void handleType(Token beginToken, Token? questionMark) {
     DirectParserASTContentTypeHandle data =
         new DirectParserASTContentTypeHandle(DirectParserASTType.HANDLE,
             beginToken: beginToken, questionMark: questionMark);
@@ -1752,7 +1756,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endFunctionType(Token functionToken, Token questionMark) {
+  void endFunctionType(Token functionToken, Token? questionMark) {
     DirectParserASTContentFunctionTypeEnd data =
         new DirectParserASTContentFunctionTypeEnd(DirectParserASTType.END,
             functionToken: functionToken, questionMark: questionMark);
@@ -1806,7 +1810,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endTypeVariable(
-      Token token, int index, Token extendsOrSuper, Token variance) {
+      Token token, int index, Token? extendsOrSuper, Token? variance) {
     DirectParserASTContentTypeVariableEnd data =
         new DirectParserASTContentTypeVariableEnd(DirectParserASTType.END,
             token: token,
@@ -1846,7 +1850,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void beginVariablesDeclaration(
-      Token token, Token lateToken, Token varFinalOrConst) {
+      Token token, Token? lateToken, Token? varFinalOrConst) {
     DirectParserASTContentVariablesDeclarationBegin data =
         new DirectParserASTContentVariablesDeclarationBegin(
             DirectParserASTType.BEGIN,
@@ -1856,7 +1860,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endVariablesDeclaration(int count, Token endToken) {
+  void endVariablesDeclaration(int count, Token? endToken) {
     DirectParserASTContentVariablesDeclarationEnd data =
         new DirectParserASTContentVariablesDeclarationEnd(
             DirectParserASTType.END,
@@ -1977,7 +1981,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void beginForControlFlow(Token awaitToken, Token forToken) {
+  void beginForControlFlow(Token? awaitToken, Token forToken) {
     DirectParserASTContentForControlFlowBegin data =
         new DirectParserASTContentForControlFlowBegin(DirectParserASTType.BEGIN,
             awaitToken: awaitToken, forToken: forToken);
@@ -2051,7 +2055,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endFunctionTypedFormalParameter(Token nameToken, Token question) {
+  void endFunctionTypedFormalParameter(Token nameToken, Token? question) {
     DirectParserASTContentFunctionTypedFormalParameterEnd data =
         new DirectParserASTContentFunctionTypedFormalParameterEnd(
             DirectParserASTType.END,
@@ -2068,7 +2072,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void handleIndexedExpression(
-      Token question, Token openSquareBracket, Token closeSquareBracket) {
+      Token? question, Token openSquareBracket, Token closeSquareBracket) {
     DirectParserASTContentIndexedExpressionHandle data =
         new DirectParserASTContentIndexedExpressionHandle(
             DirectParserASTType.HANDLE,
@@ -2092,7 +2096,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void handleIsOperator(Token isOperator, Token not) {
+  void handleIsOperator(Token isOperator, Token? not) {
     DirectParserASTContentIsOperatorHandle data =
         new DirectParserASTContentIsOperatorHandle(DirectParserASTType.HANDLE,
             isOperator: isOperator, not: not);
@@ -2144,7 +2148,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token commaToken, Token semicolonToken) {
+      Token? commaToken, Token semicolonToken) {
     DirectParserASTContentAssertEnd data = new DirectParserASTContentAssertEnd(
         DirectParserASTType.END,
         assertKeyword: assertKeyword,
@@ -2171,7 +2175,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void handleLiteralList(
-      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
     DirectParserASTContentLiteralListHandle data =
         new DirectParserASTContentLiteralListHandle(DirectParserASTType.HANDLE,
             count: count,
@@ -2184,7 +2188,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   void handleLiteralSetOrMap(
     int count,
     Token leftBrace,
-    Token constKeyword,
+    Token? constKeyword,
     Token rightBrace,
     bool hasSetEntry,
   ) {
@@ -2347,8 +2351,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
   void endSwitchCase(
       int labelCount,
       int expressionCount,
-      Token defaultKeyword,
-      Token colonAfterDefault,
+      Token? defaultKeyword,
+      Token? colonAfterDefault,
       int statementCount,
       Token firstToken,
       Token endToken) {
@@ -2450,14 +2454,14 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
+  void endYieldStatement(Token yieldToken, Token? starToken, Token endToken) {
     DirectParserASTContentYieldStatementEnd data =
         new DirectParserASTContentYieldStatementEnd(DirectParserASTType.END,
             yieldToken: yieldToken, starToken: starToken, endToken: endToken);
     seen(data);
   }
 
-  void endInvalidYieldStatement(Token beginToken, Token starToken,
+  void endInvalidYieldStatement(Token beginToken, Token? starToken,
       Token endToken, MessageCode errorCode) {
     DirectParserASTContentInvalidYieldStatementEnd data =
         new DirectParserASTContentInvalidYieldStatementEnd(
@@ -2525,7 +2529,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   void handleCommentReference(
-      Token newKeyword, Token prefix, Token period, Token token) {
+      Token? newKeyword, Token? prefix, Token? period, Token token) {
     DirectParserASTContentCommentReferenceHandle data =
         new DirectParserASTContentCommentReferenceHandle(
             DirectParserASTType.HANDLE,
@@ -2547,10 +2551,11 @@ abstract class AbstractDirectParserASTListener implements Listener {
 class DirectParserASTContentArgumentsBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentArgumentsBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentArgumentsBegin(DirectParserASTType type,
+      {required this.token})
       : super("Arguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -2561,10 +2566,10 @@ class DirectParserASTContentArgumentsEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentArgumentsEnd(DirectParserASTType type,
-      {this.count, this.beginToken, this.endToken})
+      {required this.count, required this.beginToken, required this.endToken})
       : super("Arguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -2572,14 +2577,14 @@ class DirectParserASTContentArgumentsEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentAsyncModifierHandle extends DirectParserASTContent {
-  final Token asyncToken;
-  final Token starToken;
+  final Token? asyncToken;
+  final Token? starToken;
 
   DirectParserASTContentAsyncModifierHandle(DirectParserASTType type,
       {this.asyncToken, this.starToken})
       : super("AsyncModifier", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "asyncToken": asyncToken,
         "starToken": starToken,
       };
@@ -2590,10 +2595,10 @@ class DirectParserASTContentAwaitExpressionBegin
   final Token token;
 
   DirectParserASTContentAwaitExpressionBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("AwaitExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -2603,10 +2608,10 @@ class DirectParserASTContentAwaitExpressionEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentAwaitExpressionEnd(DirectParserASTType type,
-      {this.beginToken, this.endToken})
+      {required this.beginToken, required this.endToken})
       : super("AwaitExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
       };
@@ -2619,10 +2624,12 @@ class DirectParserASTContentInvalidAwaitExpressionEnd
   final MessageCode errorCode;
 
   DirectParserASTContentInvalidAwaitExpressionEnd(DirectParserASTType type,
-      {this.beginToken, this.endToken, this.errorCode})
+      {required this.beginToken,
+      required this.endToken,
+      required this.errorCode})
       : super("InvalidAwaitExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
         "errorCode": errorCode,
@@ -2634,10 +2641,10 @@ class DirectParserASTContentBlockBegin extends DirectParserASTContent {
   final BlockKind blockKind;
 
   DirectParserASTContentBlockBegin(DirectParserASTType type,
-      {this.token, this.blockKind})
+      {required this.token, required this.blockKind})
       : super("Block", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "blockKind": blockKind,
       };
@@ -2650,10 +2657,13 @@ class DirectParserASTContentBlockEnd extends DirectParserASTContent {
   final BlockKind blockKind;
 
   DirectParserASTContentBlockEnd(DirectParserASTType type,
-      {this.count, this.beginToken, this.endToken, this.blockKind})
+      {required this.count,
+      required this.beginToken,
+      required this.endToken,
+      required this.blockKind})
       : super("Block", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -2666,10 +2676,10 @@ class DirectParserASTContentInvalidTopLevelBlockHandle
   final Token token;
 
   DirectParserASTContentInvalidTopLevelBlockHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("InvalidTopLevelBlock", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -2677,10 +2687,11 @@ class DirectParserASTContentInvalidTopLevelBlockHandle
 class DirectParserASTContentCascadeBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentCascadeBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentCascadeBegin(DirectParserASTType type,
+      {required this.token})
       : super("Cascade", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -2689,17 +2700,17 @@ class DirectParserASTContentCascadeEnd extends DirectParserASTContent {
   DirectParserASTContentCascadeEnd(DirectParserASTType type)
       : super("Cascade", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentCaseExpressionBegin extends DirectParserASTContent {
   final Token caseKeyword;
 
   DirectParserASTContentCaseExpressionBegin(DirectParserASTType type,
-      {this.caseKeyword})
+      {required this.caseKeyword})
       : super("CaseExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "caseKeyword": caseKeyword,
       };
 }
@@ -2708,10 +2719,10 @@ class DirectParserASTContentCaseExpressionEnd extends DirectParserASTContent {
   final Token colon;
 
   DirectParserASTContentCaseExpressionEnd(DirectParserASTType type,
-      {this.colon})
+      {required this.colon})
       : super("CaseExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
       };
 }
@@ -2722,10 +2733,10 @@ class DirectParserASTContentClassOrMixinBodyBegin
   final Token token;
 
   DirectParserASTContentClassOrMixinBodyBegin(DirectParserASTType type,
-      {this.kind, this.token})
+      {required this.kind, required this.token})
       : super("ClassOrMixinBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "kind": kind,
         "token": token,
       };
@@ -2738,10 +2749,13 @@ class DirectParserASTContentClassOrMixinBodyEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentClassOrMixinBodyEnd(DirectParserASTType type,
-      {this.kind, this.memberCount, this.beginToken, this.endToken})
+      {required this.kind,
+      required this.memberCount,
+      required this.beginToken,
+      required this.endToken})
       : super("ClassOrMixinBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "kind": kind,
         "memberCount": memberCount,
         "beginToken": beginToken,
@@ -2755,10 +2769,10 @@ class DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin
 
   DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ClassOrNamedMixinApplicationPrelude", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -2766,14 +2780,14 @@ class DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin
 class DirectParserASTContentClassDeclarationBegin
     extends DirectParserASTContent {
   final Token begin;
-  final Token abstractToken;
+  final Token? abstractToken;
   final Token name;
 
   DirectParserASTContentClassDeclarationBegin(DirectParserASTType type,
-      {this.begin, this.abstractToken, this.name})
+      {required this.begin, this.abstractToken, required this.name})
       : super("ClassDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
         "name": name,
@@ -2781,14 +2795,14 @@ class DirectParserASTContentClassDeclarationBegin
 }
 
 class DirectParserASTContentClassExtendsHandle extends DirectParserASTContent {
-  final Token extendsKeyword;
+  final Token? extendsKeyword;
   final int typeCount;
 
   DirectParserASTContentClassExtendsHandle(DirectParserASTType type,
-      {this.extendsKeyword, this.typeCount})
+      {this.extendsKeyword, required this.typeCount})
       : super("ClassExtends", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "extendsKeyword": extendsKeyword,
         "typeCount": typeCount,
       };
@@ -2796,14 +2810,14 @@ class DirectParserASTContentClassExtendsHandle extends DirectParserASTContent {
 
 class DirectParserASTContentClassOrMixinImplementsHandle
     extends DirectParserASTContent {
-  final Token implementsKeyword;
+  final Token? implementsKeyword;
   final int interfacesCount;
 
   DirectParserASTContentClassOrMixinImplementsHandle(DirectParserASTType type,
-      {this.implementsKeyword, this.interfacesCount})
+      {this.implementsKeyword, required this.interfacesCount})
       : super("ClassOrMixinImplements", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "implementsKeyword": implementsKeyword,
         "interfacesCount": interfacesCount,
       };
@@ -2812,13 +2826,13 @@ class DirectParserASTContentClassOrMixinImplementsHandle
 class DirectParserASTContentClassHeaderHandle extends DirectParserASTContent {
   final Token begin;
   final Token classKeyword;
-  final Token nativeToken;
+  final Token? nativeToken;
 
   DirectParserASTContentClassHeaderHandle(DirectParserASTType type,
-      {this.begin, this.classKeyword, this.nativeToken})
+      {required this.begin, required this.classKeyword, this.nativeToken})
       : super("ClassHeader", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "classKeyword": classKeyword,
         "nativeToken": nativeToken,
@@ -2830,7 +2844,7 @@ class DirectParserASTContentRecoverClassHeaderHandle
   DirectParserASTContentRecoverClassHeaderHandle(DirectParserASTType type)
       : super("RecoverClassHeader", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentClassDeclarationEnd extends DirectParserASTContent {
@@ -2838,10 +2852,10 @@ class DirectParserASTContentClassDeclarationEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentClassDeclarationEnd(DirectParserASTType type,
-      {this.beginToken, this.endToken})
+      {required this.beginToken, required this.endToken})
       : super("ClassDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
       };
@@ -2853,24 +2867,24 @@ class DirectParserASTContentMixinDeclarationBegin
   final Token name;
 
   DirectParserASTContentMixinDeclarationBegin(DirectParserASTType type,
-      {this.mixinKeyword, this.name})
+      {required this.mixinKeyword, required this.name})
       : super("MixinDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "mixinKeyword": mixinKeyword,
         "name": name,
       };
 }
 
 class DirectParserASTContentMixinOnHandle extends DirectParserASTContent {
-  final Token onKeyword;
+  final Token? onKeyword;
   final int typeCount;
 
   DirectParserASTContentMixinOnHandle(DirectParserASTType type,
-      {this.onKeyword, this.typeCount})
+      {this.onKeyword, required this.typeCount})
       : super("MixinOn", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "onKeyword": onKeyword,
         "typeCount": typeCount,
       };
@@ -2880,10 +2894,10 @@ class DirectParserASTContentMixinHeaderHandle extends DirectParserASTContent {
   final Token mixinKeyword;
 
   DirectParserASTContentMixinHeaderHandle(DirectParserASTType type,
-      {this.mixinKeyword})
+      {required this.mixinKeyword})
       : super("MixinHeader", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "mixinKeyword": mixinKeyword,
       };
 }
@@ -2893,7 +2907,7 @@ class DirectParserASTContentRecoverMixinHeaderHandle
   DirectParserASTContentRecoverMixinHeaderHandle(DirectParserASTType type)
       : super("RecoverMixinHeader", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentMixinDeclarationEnd extends DirectParserASTContent {
@@ -2901,10 +2915,10 @@ class DirectParserASTContentMixinDeclarationEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentMixinDeclarationEnd(DirectParserASTType type,
-      {this.mixinKeyword, this.endToken})
+      {required this.mixinKeyword, required this.endToken})
       : super("MixinDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "mixinKeyword": mixinKeyword,
         "endToken": endToken,
       };
@@ -2916,10 +2930,10 @@ class DirectParserASTContentUncategorizedTopLevelDeclarationBegin
 
   DirectParserASTContentUncategorizedTopLevelDeclarationBegin(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("UncategorizedTopLevelDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -2930,10 +2944,10 @@ class DirectParserASTContentExtensionDeclarationPreludeBegin
 
   DirectParserASTContentExtensionDeclarationPreludeBegin(
       DirectParserASTType type,
-      {this.extensionKeyword})
+      {required this.extensionKeyword})
       : super("ExtensionDeclarationPrelude", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
       };
 }
@@ -2941,13 +2955,13 @@ class DirectParserASTContentExtensionDeclarationPreludeBegin
 class DirectParserASTContentExtensionDeclarationBegin
     extends DirectParserASTContent {
   final Token extensionKeyword;
-  final Token name;
+  final Token? name;
 
   DirectParserASTContentExtensionDeclarationBegin(DirectParserASTType type,
-      {this.extensionKeyword, this.name})
+      {required this.extensionKeyword, this.name})
       : super("ExtensionDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
         "name": name,
       };
@@ -2960,10 +2974,12 @@ class DirectParserASTContentExtensionDeclarationEnd
   final Token endToken;
 
   DirectParserASTContentExtensionDeclarationEnd(DirectParserASTType type,
-      {this.extensionKeyword, this.onKeyword, this.endToken})
+      {required this.extensionKeyword,
+      required this.onKeyword,
+      required this.endToken})
       : super("ExtensionDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
         "onKeyword": onKeyword,
         "endToken": endToken,
@@ -2973,10 +2989,11 @@ class DirectParserASTContentExtensionDeclarationEnd
 class DirectParserASTContentCombinatorsBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentCombinatorsBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentCombinatorsBegin(DirectParserASTType type,
+      {required this.token})
       : super("Combinators", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -2984,10 +3001,11 @@ class DirectParserASTContentCombinatorsBegin extends DirectParserASTContent {
 class DirectParserASTContentCombinatorsEnd extends DirectParserASTContent {
   final int count;
 
-  DirectParserASTContentCombinatorsEnd(DirectParserASTType type, {this.count})
+  DirectParserASTContentCombinatorsEnd(DirectParserASTType type,
+      {required this.count})
       : super("Combinators", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
 }
@@ -2997,10 +3015,10 @@ class DirectParserASTContentCompilationUnitBegin
   final Token token;
 
   DirectParserASTContentCompilationUnitBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("CompilationUnit", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3010,7 +3028,7 @@ class DirectParserASTContentDirectivesOnlyHandle
   DirectParserASTContentDirectivesOnlyHandle(DirectParserASTType type)
       : super("DirectivesOnly", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentCompilationUnitEnd extends DirectParserASTContent {
@@ -3018,10 +3036,10 @@ class DirectParserASTContentCompilationUnitEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentCompilationUnitEnd(DirectParserASTType type,
-      {this.count, this.token})
+      {required this.count, required this.token})
       : super("CompilationUnit", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "token": token,
       };
@@ -3031,10 +3049,10 @@ class DirectParserASTContentConstLiteralBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentConstLiteralBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ConstLiteral", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3042,10 +3060,11 @@ class DirectParserASTContentConstLiteralBegin extends DirectParserASTContent {
 class DirectParserASTContentConstLiteralEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentConstLiteralEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentConstLiteralEnd(DirectParserASTType type,
+      {required this.token})
       : super("ConstLiteral", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3055,10 +3074,10 @@ class DirectParserASTContentConstructorReferenceBegin
   final Token start;
 
   DirectParserASTContentConstructorReferenceBegin(DirectParserASTType type,
-      {this.start})
+      {required this.start})
       : super("ConstructorReference", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "start": start,
       };
 }
@@ -3066,14 +3085,14 @@ class DirectParserASTContentConstructorReferenceBegin
 class DirectParserASTContentConstructorReferenceEnd
     extends DirectParserASTContent {
   final Token start;
-  final Token periodBeforeName;
+  final Token? periodBeforeName;
   final Token endToken;
 
   DirectParserASTContentConstructorReferenceEnd(DirectParserASTType type,
-      {this.start, this.periodBeforeName, this.endToken})
+      {required this.start, this.periodBeforeName, required this.endToken})
       : super("ConstructorReference", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "start": start,
         "periodBeforeName": periodBeforeName,
         "endToken": endToken,
@@ -3085,10 +3104,10 @@ class DirectParserASTContentDoWhileStatementBegin
   final Token token;
 
   DirectParserASTContentDoWhileStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("DoWhileStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3099,10 +3118,12 @@ class DirectParserASTContentDoWhileStatementEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentDoWhileStatementEnd(DirectParserASTType type,
-      {this.doKeyword, this.whileKeyword, this.endToken})
+      {required this.doKeyword,
+      required this.whileKeyword,
+      required this.endToken})
       : super("DoWhileStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "doKeyword": doKeyword,
         "whileKeyword": whileKeyword,
         "endToken": endToken,
@@ -3114,10 +3135,10 @@ class DirectParserASTContentDoWhileStatementBodyBegin
   final Token token;
 
   DirectParserASTContentDoWhileStatementBodyBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("DoWhileStatementBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3127,10 +3148,10 @@ class DirectParserASTContentDoWhileStatementBodyEnd
   final Token token;
 
   DirectParserASTContentDoWhileStatementBodyEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("DoWhileStatementBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3140,10 +3161,10 @@ class DirectParserASTContentWhileStatementBodyBegin
   final Token token;
 
   DirectParserASTContentWhileStatementBodyBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("WhileStatementBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3153,10 +3174,10 @@ class DirectParserASTContentWhileStatementBodyEnd
   final Token token;
 
   DirectParserASTContentWhileStatementBodyEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("WhileStatementBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3164,10 +3185,11 @@ class DirectParserASTContentWhileStatementBodyEnd
 class DirectParserASTContentEnumBegin extends DirectParserASTContent {
   final Token enumKeyword;
 
-  DirectParserASTContentEnumBegin(DirectParserASTType type, {this.enumKeyword})
+  DirectParserASTContentEnumBegin(DirectParserASTType type,
+      {required this.enumKeyword})
       : super("Enum", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "enumKeyword": enumKeyword,
       };
 }
@@ -3178,10 +3200,10 @@ class DirectParserASTContentEnumEnd extends DirectParserASTContent {
   final int count;
 
   DirectParserASTContentEnumEnd(DirectParserASTType type,
-      {this.enumKeyword, this.leftBrace, this.count})
+      {required this.enumKeyword, required this.leftBrace, required this.count})
       : super("Enum", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "enumKeyword": enumKeyword,
         "leftBrace": leftBrace,
         "count": count,
@@ -3191,10 +3213,11 @@ class DirectParserASTContentEnumEnd extends DirectParserASTContent {
 class DirectParserASTContentExportBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentExportBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentExportBegin(DirectParserASTType type,
+      {required this.token})
       : super("Export", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3204,10 +3227,10 @@ class DirectParserASTContentExportEnd extends DirectParserASTContent {
   final Token semicolon;
 
   DirectParserASTContentExportEnd(DirectParserASTType type,
-      {this.exportKeyword, this.semicolon})
+      {required this.exportKeyword, required this.semicolon})
       : super("Export", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "exportKeyword": exportKeyword,
         "semicolon": semicolon,
       };
@@ -3219,10 +3242,10 @@ class DirectParserASTContentExtraneousExpressionHandle
   final Message message;
 
   DirectParserASTContentExtraneousExpressionHandle(DirectParserASTType type,
-      {this.token, this.message})
+      {required this.token, required this.message})
       : super("ExtraneousExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "message": message,
       };
@@ -3233,24 +3256,24 @@ class DirectParserASTContentExpressionStatementHandle
   final Token token;
 
   DirectParserASTContentExpressionStatementHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ExpressionStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
 
 class DirectParserASTContentFactoryMethodBegin extends DirectParserASTContent {
   final Token lastConsumed;
-  final Token externalToken;
-  final Token constToken;
+  final Token? externalToken;
+  final Token? constToken;
 
   DirectParserASTContentFactoryMethodBegin(DirectParserASTType type,
-      {this.lastConsumed, this.externalToken, this.constToken})
+      {required this.lastConsumed, this.externalToken, this.constToken})
       : super("FactoryMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
         "externalToken": externalToken,
         "constToken": constToken,
@@ -3264,10 +3287,12 @@ class DirectParserASTContentClassFactoryMethodEnd
   final Token endToken;
 
   DirectParserASTContentClassFactoryMethodEnd(DirectParserASTType type,
-      {this.beginToken, this.factoryKeyword, this.endToken})
+      {required this.beginToken,
+      required this.factoryKeyword,
+      required this.endToken})
       : super("ClassFactoryMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
@@ -3281,10 +3306,12 @@ class DirectParserASTContentMixinFactoryMethodEnd
   final Token endToken;
 
   DirectParserASTContentMixinFactoryMethodEnd(DirectParserASTType type,
-      {this.beginToken, this.factoryKeyword, this.endToken})
+      {required this.beginToken,
+      required this.factoryKeyword,
+      required this.endToken})
       : super("MixinFactoryMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
@@ -3298,10 +3325,12 @@ class DirectParserASTContentExtensionFactoryMethodEnd
   final Token endToken;
 
   DirectParserASTContentExtensionFactoryMethodEnd(DirectParserASTType type,
-      {this.beginToken, this.factoryKeyword, this.endToken})
+      {required this.beginToken,
+      required this.factoryKeyword,
+      required this.endToken})
       : super("ExtensionFactoryMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "factoryKeyword": factoryKeyword,
         "endToken": endToken,
@@ -3312,19 +3341,19 @@ class DirectParserASTContentFormalParameterBegin
     extends DirectParserASTContent {
   final Token token;
   final MemberKind kind;
-  final Token requiredToken;
-  final Token covariantToken;
-  final Token varFinalOrConst;
+  final Token? requiredToken;
+  final Token? covariantToken;
+  final Token? varFinalOrConst;
 
   DirectParserASTContentFormalParameterBegin(DirectParserASTType type,
-      {this.token,
-      this.kind,
+      {required this.token,
+      required this.kind,
       this.requiredToken,
       this.covariantToken,
       this.varFinalOrConst})
       : super("FormalParameter", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "kind": kind,
         "requiredToken": requiredToken,
@@ -3334,25 +3363,25 @@ class DirectParserASTContentFormalParameterBegin
 }
 
 class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
-  final Token thisKeyword;
-  final Token periodAfterThis;
+  final Token? thisKeyword;
+  final Token? periodAfterThis;
   final Token nameToken;
-  final Token initializerStart;
-  final Token initializerEnd;
+  final Token? initializerStart;
+  final Token? initializerEnd;
   final FormalParameterKind kind;
   final MemberKind memberKind;
 
   DirectParserASTContentFormalParameterEnd(DirectParserASTType type,
       {this.thisKeyword,
       this.periodAfterThis,
-      this.nameToken,
+      required this.nameToken,
       this.initializerStart,
       this.initializerEnd,
-      this.kind,
-      this.memberKind})
+      required this.kind,
+      required this.memberKind})
       : super("FormalParameter", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "thisKeyword": thisKeyword,
         "periodAfterThis": periodAfterThis,
         "nameToken": nameToken,
@@ -3369,10 +3398,10 @@ class DirectParserASTContentNoFormalParametersHandle
   final MemberKind kind;
 
   DirectParserASTContentNoFormalParametersHandle(DirectParserASTType type,
-      {this.token, this.kind})
+      {required this.token, required this.kind})
       : super("NoFormalParameters", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "kind": kind,
       };
@@ -3384,10 +3413,10 @@ class DirectParserASTContentFormalParametersBegin
   final MemberKind kind;
 
   DirectParserASTContentFormalParametersBegin(DirectParserASTType type,
-      {this.token, this.kind})
+      {required this.token, required this.kind})
       : super("FormalParameters", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "kind": kind,
       };
@@ -3400,10 +3429,13 @@ class DirectParserASTContentFormalParametersEnd extends DirectParserASTContent {
   final MemberKind kind;
 
   DirectParserASTContentFormalParametersEnd(DirectParserASTType type,
-      {this.count, this.beginToken, this.endToken, this.kind})
+      {required this.count,
+      required this.beginToken,
+      required this.endToken,
+      required this.kind})
       : super("FormalParameters", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -3412,12 +3444,12 @@ class DirectParserASTContentFormalParametersEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentClassFieldsEnd extends DirectParserASTContent {
-  final Token abstractToken;
-  final Token externalToken;
-  final Token staticToken;
-  final Token covariantToken;
-  final Token lateToken;
-  final Token varFinalOrConst;
+  final Token? abstractToken;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
   final int count;
   final Token beginToken;
   final Token endToken;
@@ -3429,12 +3461,12 @@ class DirectParserASTContentClassFieldsEnd extends DirectParserASTContent {
       this.covariantToken,
       this.lateToken,
       this.varFinalOrConst,
-      this.count,
-      this.beginToken,
-      this.endToken})
+      required this.count,
+      required this.beginToken,
+      required this.endToken})
       : super("ClassFields", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "abstractToken": abstractToken,
         "externalToken": externalToken,
         "staticToken": staticToken,
@@ -3448,12 +3480,12 @@ class DirectParserASTContentClassFieldsEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentMixinFieldsEnd extends DirectParserASTContent {
-  final Token abstractToken;
-  final Token externalToken;
-  final Token staticToken;
-  final Token covariantToken;
-  final Token lateToken;
-  final Token varFinalOrConst;
+  final Token? abstractToken;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
   final int count;
   final Token beginToken;
   final Token endToken;
@@ -3465,12 +3497,12 @@ class DirectParserASTContentMixinFieldsEnd extends DirectParserASTContent {
       this.covariantToken,
       this.lateToken,
       this.varFinalOrConst,
-      this.count,
-      this.beginToken,
-      this.endToken})
+      required this.count,
+      required this.beginToken,
+      required this.endToken})
       : super("MixinFields", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "abstractToken": abstractToken,
         "externalToken": externalToken,
         "staticToken": staticToken,
@@ -3484,12 +3516,12 @@ class DirectParserASTContentMixinFieldsEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentExtensionFieldsEnd extends DirectParserASTContent {
-  final Token abstractToken;
-  final Token externalToken;
-  final Token staticToken;
-  final Token covariantToken;
-  final Token lateToken;
-  final Token varFinalOrConst;
+  final Token? abstractToken;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
   final int count;
   final Token beginToken;
   final Token endToken;
@@ -3501,12 +3533,12 @@ class DirectParserASTContentExtensionFieldsEnd extends DirectParserASTContent {
       this.covariantToken,
       this.lateToken,
       this.varFinalOrConst,
-      this.count,
-      this.beginToken,
-      this.endToken})
+      required this.count,
+      required this.beginToken,
+      required this.endToken})
       : super("ExtensionFields", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "abstractToken": abstractToken,
         "externalToken": externalToken,
         "staticToken": staticToken,
@@ -3525,10 +3557,10 @@ class DirectParserASTContentForInitializerEmptyStatementHandle
 
   DirectParserASTContentForInitializerEmptyStatementHandle(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForInitializerEmptyStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3540,11 +3572,11 @@ class DirectParserASTContentForInitializerExpressionStatementHandle
 
   DirectParserASTContentForInitializerExpressionStatementHandle(
       DirectParserASTType type,
-      {this.token,
-      this.forIn})
+      {required this.token,
+      required this.forIn})
       : super("ForInitializerExpressionStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "forIn": forIn,
       };
@@ -3557,11 +3589,11 @@ class DirectParserASTContentForInitializerLocalVariableDeclarationHandle
 
   DirectParserASTContentForInitializerLocalVariableDeclarationHandle(
       DirectParserASTType type,
-      {this.token,
-      this.forIn})
+      {required this.token,
+      required this.forIn})
       : super("ForInitializerLocalVariableDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "forIn": forIn,
       };
@@ -3571,10 +3603,10 @@ class DirectParserASTContentForStatementBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentForStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3586,13 +3618,13 @@ class DirectParserASTContentForLoopPartsHandle extends DirectParserASTContent {
   final int updateExpressionCount;
 
   DirectParserASTContentForLoopPartsHandle(DirectParserASTType type,
-      {this.forKeyword,
-      this.leftParen,
-      this.leftSeparator,
-      this.updateExpressionCount})
+      {required this.forKeyword,
+      required this.leftParen,
+      required this.leftSeparator,
+      required this.updateExpressionCount})
       : super("ForLoopParts", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "forKeyword": forKeyword,
         "leftParen": leftParen,
         "leftSeparator": leftSeparator,
@@ -3604,10 +3636,10 @@ class DirectParserASTContentForStatementEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentForStatementEnd(DirectParserASTType type,
-      {this.endToken})
+      {required this.endToken})
       : super("ForStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
 }
@@ -3617,10 +3649,10 @@ class DirectParserASTContentForStatementBodyBegin
   final Token token;
 
   DirectParserASTContentForStatementBodyBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForStatementBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3629,26 +3661,29 @@ class DirectParserASTContentForStatementBodyEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentForStatementBodyEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForStatementBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
 
 class DirectParserASTContentForInLoopPartsHandle
     extends DirectParserASTContent {
-  final Token awaitToken;
+  final Token? awaitToken;
   final Token forToken;
   final Token leftParenthesis;
   final Token inKeyword;
 
   DirectParserASTContentForInLoopPartsHandle(DirectParserASTType type,
-      {this.awaitToken, this.forToken, this.leftParenthesis, this.inKeyword})
+      {this.awaitToken,
+      required this.forToken,
+      required this.leftParenthesis,
+      required this.inKeyword})
       : super("ForInLoopParts", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "awaitToken": awaitToken,
         "forToken": forToken,
         "leftParenthesis": leftParenthesis,
@@ -3659,10 +3694,11 @@ class DirectParserASTContentForInLoopPartsHandle
 class DirectParserASTContentForInEnd extends DirectParserASTContent {
   final Token endToken;
 
-  DirectParserASTContentForInEnd(DirectParserASTType type, {this.endToken})
+  DirectParserASTContentForInEnd(DirectParserASTType type,
+      {required this.endToken})
       : super("ForIn", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
 }
@@ -3672,10 +3708,10 @@ class DirectParserASTContentForInExpressionBegin
   final Token token;
 
   DirectParserASTContentForInExpressionBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForInExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3684,10 +3720,10 @@ class DirectParserASTContentForInExpressionEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentForInExpressionEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForInExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3695,10 +3731,11 @@ class DirectParserASTContentForInExpressionEnd extends DirectParserASTContent {
 class DirectParserASTContentForInBodyBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentForInBodyBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentForInBodyBegin(DirectParserASTType type,
+      {required this.token})
       : super("ForInBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3706,10 +3743,11 @@ class DirectParserASTContentForInBodyBegin extends DirectParserASTContent {
 class DirectParserASTContentForInBodyEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentForInBodyEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentForInBodyEnd(DirectParserASTType type,
+      {required this.token})
       : super("ForInBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3719,10 +3757,10 @@ class DirectParserASTContentNamedFunctionExpressionBegin
   final Token token;
 
   DirectParserASTContentNamedFunctionExpressionBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NamedFunctionExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3732,10 +3770,10 @@ class DirectParserASTContentNamedFunctionExpressionEnd
   final Token endToken;
 
   DirectParserASTContentNamedFunctionExpressionEnd(DirectParserASTType type,
-      {this.endToken})
+      {required this.endToken})
       : super("NamedFunctionExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
 }
@@ -3745,10 +3783,10 @@ class DirectParserASTContentLocalFunctionDeclarationBegin
   final Token token;
 
   DirectParserASTContentLocalFunctionDeclarationBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("LocalFunctionDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3758,10 +3796,10 @@ class DirectParserASTContentLocalFunctionDeclarationEnd
   final Token endToken;
 
   DirectParserASTContentLocalFunctionDeclarationEnd(DirectParserASTType type,
-      {this.endToken})
+      {required this.endToken})
       : super("LocalFunctionDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
 }
@@ -3771,10 +3809,10 @@ class DirectParserASTContentBlockFunctionBodyBegin
   final Token token;
 
   DirectParserASTContentBlockFunctionBodyBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("BlockFunctionBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3786,10 +3824,10 @@ class DirectParserASTContentBlockFunctionBodyEnd
   final Token endToken;
 
   DirectParserASTContentBlockFunctionBodyEnd(DirectParserASTType type,
-      {this.count, this.beginToken, this.endToken})
+      {required this.count, required this.beginToken, required this.endToken})
       : super("BlockFunctionBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -3801,10 +3839,10 @@ class DirectParserASTContentNoFunctionBodyHandle
   final Token token;
 
   DirectParserASTContentNoFunctionBodyHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NoFunctionBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3815,10 +3853,10 @@ class DirectParserASTContentFunctionBodySkippedHandle
   final bool isExpressionBody;
 
   DirectParserASTContentFunctionBodySkippedHandle(DirectParserASTType type,
-      {this.token, this.isExpressionBody})
+      {required this.token, required this.isExpressionBody})
       : super("FunctionBodySkipped", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "isExpressionBody": isExpressionBody,
       };
@@ -3828,10 +3866,10 @@ class DirectParserASTContentFunctionNameBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentFunctionNameBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("FunctionName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3841,10 +3879,10 @@ class DirectParserASTContentFunctionNameEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentFunctionNameEnd(DirectParserASTType type,
-      {this.beginToken, this.token})
+      {required this.beginToken, required this.token})
       : super("FunctionName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "token": token,
       };
@@ -3855,10 +3893,10 @@ class DirectParserASTContentFunctionTypeAliasBegin
   final Token token;
 
   DirectParserASTContentFunctionTypeAliasBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("FunctionTypeAlias", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -3866,14 +3904,14 @@ class DirectParserASTContentFunctionTypeAliasBegin
 class DirectParserASTContentFunctionTypeAliasEnd
     extends DirectParserASTContent {
   final Token typedefKeyword;
-  final Token equals;
+  final Token? equals;
   final Token endToken;
 
   DirectParserASTContentFunctionTypeAliasEnd(DirectParserASTType type,
-      {this.typedefKeyword, this.equals, this.endToken})
+      {required this.typedefKeyword, this.equals, required this.endToken})
       : super("FunctionTypeAlias", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "typedefKeyword": typedefKeyword,
         "equals": equals,
         "endToken": endToken,
@@ -3885,10 +3923,10 @@ class DirectParserASTContentClassWithClauseHandle
   final Token withKeyword;
 
   DirectParserASTContentClassWithClauseHandle(DirectParserASTType type,
-      {this.withKeyword})
+      {required this.withKeyword})
       : super("ClassWithClause", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
 }
@@ -3898,20 +3936,20 @@ class DirectParserASTContentClassNoWithClauseHandle
   DirectParserASTContentClassNoWithClauseHandle(DirectParserASTType type)
       : super("ClassNoWithClause", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentNamedMixinApplicationBegin
     extends DirectParserASTContent {
   final Token begin;
-  final Token abstractToken;
+  final Token? abstractToken;
   final Token name;
 
   DirectParserASTContentNamedMixinApplicationBegin(DirectParserASTType type,
-      {this.begin, this.abstractToken, this.name})
+      {required this.begin, this.abstractToken, required this.name})
       : super("NamedMixinApplication", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
         "name": name,
@@ -3924,10 +3962,10 @@ class DirectParserASTContentNamedMixinApplicationWithClauseHandle
 
   DirectParserASTContentNamedMixinApplicationWithClauseHandle(
       DirectParserASTType type,
-      {this.withKeyword})
+      {required this.withKeyword})
       : super("NamedMixinApplicationWithClause", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
 }
@@ -3937,18 +3975,18 @@ class DirectParserASTContentNamedMixinApplicationEnd
   final Token begin;
   final Token classKeyword;
   final Token equals;
-  final Token implementsKeyword;
+  final Token? implementsKeyword;
   final Token endToken;
 
   DirectParserASTContentNamedMixinApplicationEnd(DirectParserASTType type,
-      {this.begin,
-      this.classKeyword,
-      this.equals,
+      {required this.begin,
+      required this.classKeyword,
+      required this.equals,
       this.implementsKeyword,
-      this.endToken})
+      required this.endToken})
       : super("NamedMixinApplication", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "classKeyword": classKeyword,
         "equals": equals,
@@ -3960,10 +3998,11 @@ class DirectParserASTContentNamedMixinApplicationEnd
 class DirectParserASTContentHideBegin extends DirectParserASTContent {
   final Token hideKeyword;
 
-  DirectParserASTContentHideBegin(DirectParserASTType type, {this.hideKeyword})
+  DirectParserASTContentHideBegin(DirectParserASTType type,
+      {required this.hideKeyword})
       : super("Hide", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "hideKeyword": hideKeyword,
       };
 }
@@ -3971,10 +4010,11 @@ class DirectParserASTContentHideBegin extends DirectParserASTContent {
 class DirectParserASTContentHideEnd extends DirectParserASTContent {
   final Token hideKeyword;
 
-  DirectParserASTContentHideEnd(DirectParserASTType type, {this.hideKeyword})
+  DirectParserASTContentHideEnd(DirectParserASTType type,
+      {required this.hideKeyword})
       : super("Hide", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "hideKeyword": hideKeyword,
       };
 }
@@ -3984,10 +4024,10 @@ class DirectParserASTContentIdentifierListHandle
   final int count;
 
   DirectParserASTContentIdentifierListHandle(DirectParserASTType type,
-      {this.count})
+      {required this.count})
       : super("IdentifierList", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
 }
@@ -3995,10 +4035,11 @@ class DirectParserASTContentIdentifierListHandle
 class DirectParserASTContentTypeListBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentTypeListBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentTypeListBegin(DirectParserASTType type,
+      {required this.token})
       : super("TypeList", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4006,10 +4047,11 @@ class DirectParserASTContentTypeListBegin extends DirectParserASTContent {
 class DirectParserASTContentTypeListEnd extends DirectParserASTContent {
   final int count;
 
-  DirectParserASTContentTypeListEnd(DirectParserASTType type, {this.count})
+  DirectParserASTContentTypeListEnd(DirectParserASTType type,
+      {required this.count})
       : super("TypeList", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
 }
@@ -4017,23 +4059,24 @@ class DirectParserASTContentTypeListEnd extends DirectParserASTContent {
 class DirectParserASTContentIfStatementBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentIfStatementBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentIfStatementBegin(DirectParserASTType type,
+      {required this.token})
       : super("IfStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
 
 class DirectParserASTContentIfStatementEnd extends DirectParserASTContent {
   final Token ifToken;
-  final Token elseToken;
+  final Token? elseToken;
 
   DirectParserASTContentIfStatementEnd(DirectParserASTType type,
-      {this.ifToken, this.elseToken})
+      {required this.ifToken, this.elseToken})
       : super("IfStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "ifToken": ifToken,
         "elseToken": elseToken,
       };
@@ -4043,10 +4086,10 @@ class DirectParserASTContentThenStatementBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentThenStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ThenStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4054,10 +4097,11 @@ class DirectParserASTContentThenStatementBegin extends DirectParserASTContent {
 class DirectParserASTContentThenStatementEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentThenStatementEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentThenStatementEnd(DirectParserASTType type,
+      {required this.token})
       : super("ThenStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4066,10 +4110,10 @@ class DirectParserASTContentElseStatementBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentElseStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ElseStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4077,10 +4121,11 @@ class DirectParserASTContentElseStatementBegin extends DirectParserASTContent {
 class DirectParserASTContentElseStatementEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentElseStatementEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentElseStatementEnd(DirectParserASTType type,
+      {required this.token})
       : super("ElseStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4089,23 +4134,23 @@ class DirectParserASTContentImportBegin extends DirectParserASTContent {
   final Token importKeyword;
 
   DirectParserASTContentImportBegin(DirectParserASTType type,
-      {this.importKeyword})
+      {required this.importKeyword})
       : super("Import", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "importKeyword": importKeyword,
       };
 }
 
 class DirectParserASTContentImportPrefixHandle extends DirectParserASTContent {
-  final Token deferredKeyword;
-  final Token asKeyword;
+  final Token? deferredKeyword;
+  final Token? asKeyword;
 
   DirectParserASTContentImportPrefixHandle(DirectParserASTType type,
       {this.deferredKeyword, this.asKeyword})
       : super("ImportPrefix", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "deferredKeyword": deferredKeyword,
         "asKeyword": asKeyword,
       };
@@ -4113,26 +4158,26 @@ class DirectParserASTContentImportPrefixHandle extends DirectParserASTContent {
 
 class DirectParserASTContentImportEnd extends DirectParserASTContent {
   final Token importKeyword;
-  final Token semicolon;
+  final Token? semicolon;
 
   DirectParserASTContentImportEnd(DirectParserASTType type,
-      {this.importKeyword, this.semicolon})
+      {required this.importKeyword, this.semicolon})
       : super("Import", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "importKeyword": importKeyword,
         "semicolon": semicolon,
       };
 }
 
 class DirectParserASTContentRecoverImportHandle extends DirectParserASTContent {
-  final Token semicolon;
+  final Token? semicolon;
 
   DirectParserASTContentRecoverImportHandle(DirectParserASTType type,
       {this.semicolon})
       : super("RecoverImport", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "semicolon": semicolon,
       };
 }
@@ -4142,10 +4187,10 @@ class DirectParserASTContentConditionalUrisBegin
   final Token token;
 
   DirectParserASTContentConditionalUrisBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ConditionalUris", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4154,10 +4199,10 @@ class DirectParserASTContentConditionalUrisEnd extends DirectParserASTContent {
   final int count;
 
   DirectParserASTContentConditionalUrisEnd(DirectParserASTType type,
-      {this.count})
+      {required this.count})
       : super("ConditionalUris", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
 }
@@ -4166,10 +4211,10 @@ class DirectParserASTContentConditionalUriBegin extends DirectParserASTContent {
   final Token ifKeyword;
 
   DirectParserASTContentConditionalUriBegin(DirectParserASTType type,
-      {this.ifKeyword})
+      {required this.ifKeyword})
       : super("ConditionalUri", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "ifKeyword": ifKeyword,
       };
 }
@@ -4177,13 +4222,13 @@ class DirectParserASTContentConditionalUriBegin extends DirectParserASTContent {
 class DirectParserASTContentConditionalUriEnd extends DirectParserASTContent {
   final Token ifKeyword;
   final Token leftParen;
-  final Token equalSign;
+  final Token? equalSign;
 
   DirectParserASTContentConditionalUriEnd(DirectParserASTType type,
-      {this.ifKeyword, this.leftParen, this.equalSign})
+      {required this.ifKeyword, required this.leftParen, this.equalSign})
       : super("ConditionalUri", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "ifKeyword": ifKeyword,
         "leftParen": leftParen,
         "equalSign": equalSign,
@@ -4195,10 +4240,10 @@ class DirectParserASTContentDottedNameHandle extends DirectParserASTContent {
   final Token firstIdentifier;
 
   DirectParserASTContentDottedNameHandle(DirectParserASTType type,
-      {this.count, this.firstIdentifier})
+      {required this.count, required this.firstIdentifier})
       : super("DottedName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "firstIdentifier": firstIdentifier,
       };
@@ -4210,10 +4255,10 @@ class DirectParserASTContentImplicitCreationExpressionBegin
 
   DirectParserASTContentImplicitCreationExpressionBegin(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ImplicitCreationExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4223,10 +4268,10 @@ class DirectParserASTContentImplicitCreationExpressionEnd
   final Token token;
 
   DirectParserASTContentImplicitCreationExpressionEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ImplicitCreationExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4236,10 +4281,10 @@ class DirectParserASTContentInitializedIdentifierBegin
   final Token token;
 
   DirectParserASTContentInitializedIdentifierBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("InitializedIdentifier", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4249,10 +4294,10 @@ class DirectParserASTContentInitializedIdentifierEnd
   final Token nameToken;
 
   DirectParserASTContentInitializedIdentifierEnd(DirectParserASTType type,
-      {this.nameToken})
+      {required this.nameToken})
       : super("InitializedIdentifier", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "nameToken": nameToken,
       };
 }
@@ -4262,10 +4307,10 @@ class DirectParserASTContentFieldInitializerBegin
   final Token token;
 
   DirectParserASTContentFieldInitializerBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("FieldInitializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4275,10 +4320,10 @@ class DirectParserASTContentFieldInitializerEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentFieldInitializerEnd(DirectParserASTType type,
-      {this.assignment, this.token})
+      {required this.assignment, required this.token})
       : super("FieldInitializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "assignment": assignment,
         "token": token,
       };
@@ -4289,10 +4334,10 @@ class DirectParserASTContentNoFieldInitializerHandle
   final Token token;
 
   DirectParserASTContentNoFieldInitializerHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NoFieldInitializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4302,10 +4347,10 @@ class DirectParserASTContentVariableInitializerBegin
   final Token token;
 
   DirectParserASTContentVariableInitializerBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("VariableInitializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4315,10 +4360,10 @@ class DirectParserASTContentVariableInitializerEnd
   final Token assignmentOperator;
 
   DirectParserASTContentVariableInitializerEnd(DirectParserASTType type,
-      {this.assignmentOperator})
+      {required this.assignmentOperator})
       : super("VariableInitializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "assignmentOperator": assignmentOperator,
       };
 }
@@ -4328,10 +4373,10 @@ class DirectParserASTContentNoVariableInitializerHandle
   final Token token;
 
   DirectParserASTContentNoVariableInitializerHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NoVariableInitializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4339,10 +4384,11 @@ class DirectParserASTContentNoVariableInitializerHandle
 class DirectParserASTContentInitializerBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentInitializerBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentInitializerBegin(DirectParserASTType type,
+      {required this.token})
       : super("Initializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4350,10 +4396,11 @@ class DirectParserASTContentInitializerBegin extends DirectParserASTContent {
 class DirectParserASTContentInitializerEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentInitializerEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentInitializerEnd(DirectParserASTType type,
+      {required this.token})
       : super("Initializer", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4362,10 +4409,10 @@ class DirectParserASTContentInitializersBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentInitializersBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("Initializers", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4376,10 +4423,10 @@ class DirectParserASTContentInitializersEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentInitializersEnd(DirectParserASTType type,
-      {this.count, this.beginToken, this.endToken})
+      {required this.count, required this.beginToken, required this.endToken})
       : super("Initializers", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -4391,7 +4438,7 @@ class DirectParserASTContentNoInitializersHandle
   DirectParserASTContentNoInitializersHandle(DirectParserASTType type)
       : super("NoInitializers", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentInvalidExpressionHandle
@@ -4399,10 +4446,10 @@ class DirectParserASTContentInvalidExpressionHandle
   final Token token;
 
   DirectParserASTContentInvalidExpressionHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("InvalidExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4412,10 +4459,10 @@ class DirectParserASTContentInvalidFunctionBodyHandle
   final Token token;
 
   DirectParserASTContentInvalidFunctionBodyHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("InvalidFunctionBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4425,10 +4472,10 @@ class DirectParserASTContentInvalidTypeReferenceHandle
   final Token token;
 
   DirectParserASTContentInvalidTypeReferenceHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("InvalidTypeReference", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4436,10 +4483,11 @@ class DirectParserASTContentInvalidTypeReferenceHandle
 class DirectParserASTContentLabelHandle extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentLabelHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentLabelHandle(DirectParserASTType type,
+      {required this.token})
       : super("Label", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4450,10 +4498,10 @@ class DirectParserASTContentLabeledStatementBegin
   final int labelCount;
 
   DirectParserASTContentLabeledStatementBegin(DirectParserASTType type,
-      {this.token, this.labelCount})
+      {required this.token, required this.labelCount})
       : super("LabeledStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "labelCount": labelCount,
       };
@@ -4463,10 +4511,10 @@ class DirectParserASTContentLabeledStatementEnd extends DirectParserASTContent {
   final int labelCount;
 
   DirectParserASTContentLabeledStatementEnd(DirectParserASTType type,
-      {this.labelCount})
+      {required this.labelCount})
       : super("LabeledStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
       };
 }
@@ -4474,10 +4522,11 @@ class DirectParserASTContentLabeledStatementEnd extends DirectParserASTContent {
 class DirectParserASTContentLibraryNameBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentLibraryNameBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentLibraryNameBegin(DirectParserASTType type,
+      {required this.token})
       : super("LibraryName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4487,10 +4536,10 @@ class DirectParserASTContentLibraryNameEnd extends DirectParserASTContent {
   final Token semicolon;
 
   DirectParserASTContentLibraryNameEnd(DirectParserASTType type,
-      {this.libraryKeyword, this.semicolon})
+      {required this.libraryKeyword, required this.semicolon})
       : super("LibraryName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "libraryKeyword": libraryKeyword,
         "semicolon": semicolon,
       };
@@ -4502,10 +4551,10 @@ class DirectParserASTContentLiteralMapEntryHandle
   final Token endToken;
 
   DirectParserASTContentLiteralMapEntryHandle(DirectParserASTType type,
-      {this.colon, this.endToken})
+      {required this.colon, required this.endToken})
       : super("LiteralMapEntry", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
         "endToken": endToken,
       };
@@ -4515,10 +4564,10 @@ class DirectParserASTContentLiteralStringBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentLiteralStringBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("LiteralString", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4526,13 +4575,13 @@ class DirectParserASTContentLiteralStringBegin extends DirectParserASTContent {
 class DirectParserASTContentInterpolationExpressionHandle
     extends DirectParserASTContent {
   final Token leftBracket;
-  final Token rightBracket;
+  final Token? rightBracket;
 
   DirectParserASTContentInterpolationExpressionHandle(DirectParserASTType type,
-      {this.leftBracket, this.rightBracket})
+      {required this.leftBracket, this.rightBracket})
       : super("InterpolationExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "leftBracket": leftBracket,
         "rightBracket": rightBracket,
       };
@@ -4543,10 +4592,10 @@ class DirectParserASTContentLiteralStringEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentLiteralStringEnd(DirectParserASTType type,
-      {this.interpolationCount, this.endToken})
+      {required this.interpolationCount, required this.endToken})
       : super("LiteralString", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "interpolationCount": interpolationCount,
         "endToken": endToken,
       };
@@ -4558,10 +4607,10 @@ class DirectParserASTContentStringJuxtapositionHandle
   final int literalCount;
 
   DirectParserASTContentStringJuxtapositionHandle(DirectParserASTType type,
-      {this.startToken, this.literalCount})
+      {required this.startToken, required this.literalCount})
       : super("StringJuxtaposition", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "startToken": startToken,
         "literalCount": literalCount,
       };
@@ -4571,17 +4620,17 @@ class DirectParserASTContentMemberBegin extends DirectParserASTContent {
   DirectParserASTContentMemberBegin(DirectParserASTType type)
       : super("Member", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentInvalidMemberHandle extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentInvalidMemberHandle(DirectParserASTType type,
-      {this.endToken})
+      {required this.endToken})
       : super("InvalidMember", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
 }
@@ -4590,15 +4639,15 @@ class DirectParserASTContentMemberEnd extends DirectParserASTContent {
   DirectParserASTContentMemberEnd(DirectParserASTType type)
       : super("Member", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentMethodBegin extends DirectParserASTContent {
-  final Token externalToken;
-  final Token staticToken;
-  final Token covariantToken;
-  final Token varFinalOrConst;
-  final Token getOrSet;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? varFinalOrConst;
+  final Token? getOrSet;
   final Token name;
 
   DirectParserASTContentMethodBegin(DirectParserASTType type,
@@ -4607,10 +4656,10 @@ class DirectParserASTContentMethodBegin extends DirectParserASTContent {
       this.covariantToken,
       this.varFinalOrConst,
       this.getOrSet,
-      this.name})
+      required this.name})
       : super("Method", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "externalToken": externalToken,
         "staticToken": staticToken,
         "covariantToken": covariantToken,
@@ -4621,21 +4670,21 @@ class DirectParserASTContentMethodBegin extends DirectParserASTContent {
 }
 
 class DirectParserASTContentClassMethodEnd extends DirectParserASTContent {
-  final Token getOrSet;
+  final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
-  final Token beginInitializers;
+  final Token? beginInitializers;
   final Token endToken;
 
   DirectParserASTContentClassMethodEnd(DirectParserASTType type,
       {this.getOrSet,
-      this.beginToken,
-      this.beginParam,
+      required this.beginToken,
+      required this.beginParam,
       this.beginInitializers,
-      this.endToken})
+      required this.endToken})
       : super("ClassMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
         "beginParam": beginParam,
@@ -4645,21 +4694,21 @@ class DirectParserASTContentClassMethodEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentMixinMethodEnd extends DirectParserASTContent {
-  final Token getOrSet;
+  final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
-  final Token beginInitializers;
+  final Token? beginInitializers;
   final Token endToken;
 
   DirectParserASTContentMixinMethodEnd(DirectParserASTType type,
       {this.getOrSet,
-      this.beginToken,
-      this.beginParam,
+      required this.beginToken,
+      required this.beginParam,
       this.beginInitializers,
-      this.endToken})
+      required this.endToken})
       : super("MixinMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
         "beginParam": beginParam,
@@ -4669,21 +4718,21 @@ class DirectParserASTContentMixinMethodEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentExtensionMethodEnd extends DirectParserASTContent {
-  final Token getOrSet;
+  final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
-  final Token beginInitializers;
+  final Token? beginInitializers;
   final Token endToken;
 
   DirectParserASTContentExtensionMethodEnd(DirectParserASTType type,
       {this.getOrSet,
-      this.beginToken,
-      this.beginParam,
+      required this.beginToken,
+      required this.beginParam,
       this.beginInitializers,
-      this.endToken})
+      required this.endToken})
       : super("ExtensionMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
         "beginParam": beginParam,
@@ -4693,21 +4742,21 @@ class DirectParserASTContentExtensionMethodEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentClassConstructorEnd extends DirectParserASTContent {
-  final Token getOrSet;
+  final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
-  final Token beginInitializers;
+  final Token? beginInitializers;
   final Token endToken;
 
   DirectParserASTContentClassConstructorEnd(DirectParserASTType type,
       {this.getOrSet,
-      this.beginToken,
-      this.beginParam,
+      required this.beginToken,
+      required this.beginParam,
       this.beginInitializers,
-      this.endToken})
+      required this.endToken})
       : super("ClassConstructor", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
         "beginParam": beginParam,
@@ -4717,21 +4766,21 @@ class DirectParserASTContentClassConstructorEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentMixinConstructorEnd extends DirectParserASTContent {
-  final Token getOrSet;
+  final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
-  final Token beginInitializers;
+  final Token? beginInitializers;
   final Token endToken;
 
   DirectParserASTContentMixinConstructorEnd(DirectParserASTType type,
       {this.getOrSet,
-      this.beginToken,
-      this.beginParam,
+      required this.beginToken,
+      required this.beginParam,
       this.beginInitializers,
-      this.endToken})
+      required this.endToken})
       : super("MixinConstructor", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
         "beginParam": beginParam,
@@ -4742,21 +4791,21 @@ class DirectParserASTContentMixinConstructorEnd extends DirectParserASTContent {
 
 class DirectParserASTContentExtensionConstructorEnd
     extends DirectParserASTContent {
-  final Token getOrSet;
+  final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
-  final Token beginInitializers;
+  final Token? beginInitializers;
   final Token endToken;
 
   DirectParserASTContentExtensionConstructorEnd(DirectParserASTType type,
       {this.getOrSet,
-      this.beginToken,
-      this.beginParam,
+      required this.beginToken,
+      required this.beginParam,
       this.beginInitializers,
-      this.endToken})
+      required this.endToken})
       : super("ExtensionConstructor", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
         "beginParam": beginParam,
@@ -4769,10 +4818,10 @@ class DirectParserASTContentMetadataStarBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentMetadataStarBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("MetadataStar", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4780,10 +4829,11 @@ class DirectParserASTContentMetadataStarBegin extends DirectParserASTContent {
 class DirectParserASTContentMetadataStarEnd extends DirectParserASTContent {
   final int count;
 
-  DirectParserASTContentMetadataStarEnd(DirectParserASTType type, {this.count})
+  DirectParserASTContentMetadataStarEnd(DirectParserASTType type,
+      {required this.count})
       : super("MetadataStar", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
 }
@@ -4791,24 +4841,25 @@ class DirectParserASTContentMetadataStarEnd extends DirectParserASTContent {
 class DirectParserASTContentMetadataBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentMetadataBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentMetadataBegin(DirectParserASTType type,
+      {required this.token})
       : super("Metadata", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
 
 class DirectParserASTContentMetadataEnd extends DirectParserASTContent {
   final Token beginToken;
-  final Token periodBeforeName;
+  final Token? periodBeforeName;
   final Token endToken;
 
   DirectParserASTContentMetadataEnd(DirectParserASTType type,
-      {this.beginToken, this.periodBeforeName, this.endToken})
+      {required this.beginToken, this.periodBeforeName, required this.endToken})
       : super("Metadata", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "periodBeforeName": periodBeforeName,
         "endToken": endToken,
@@ -4820,10 +4871,10 @@ class DirectParserASTContentOptionalFormalParametersBegin
   final Token token;
 
   DirectParserASTContentOptionalFormalParametersBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("OptionalFormalParameters", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4835,10 +4886,10 @@ class DirectParserASTContentOptionalFormalParametersEnd
   final Token endToken;
 
   DirectParserASTContentOptionalFormalParametersEnd(DirectParserASTType type,
-      {this.count, this.beginToken, this.endToken})
+      {required this.count, required this.beginToken, required this.endToken})
       : super("OptionalFormalParameters", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -4848,10 +4899,11 @@ class DirectParserASTContentOptionalFormalParametersEnd
 class DirectParserASTContentPartBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentPartBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentPartBegin(DirectParserASTType type,
+      {required this.token})
       : super("Part", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4861,10 +4913,10 @@ class DirectParserASTContentPartEnd extends DirectParserASTContent {
   final Token semicolon;
 
   DirectParserASTContentPartEnd(DirectParserASTType type,
-      {this.partKeyword, this.semicolon})
+      {required this.partKeyword, required this.semicolon})
       : super("Part", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "partKeyword": partKeyword,
         "semicolon": semicolon,
       };
@@ -4873,10 +4925,11 @@ class DirectParserASTContentPartEnd extends DirectParserASTContent {
 class DirectParserASTContentPartOfBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentPartOfBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentPartOfBegin(DirectParserASTType type,
+      {required this.token})
       : super("PartOf", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4888,10 +4941,13 @@ class DirectParserASTContentPartOfEnd extends DirectParserASTContent {
   final bool hasName;
 
   DirectParserASTContentPartOfEnd(DirectParserASTType type,
-      {this.partKeyword, this.ofKeyword, this.semicolon, this.hasName})
+      {required this.partKeyword,
+      required this.ofKeyword,
+      required this.semicolon,
+      required this.hasName})
       : super("PartOf", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "partKeyword": partKeyword,
         "ofKeyword": ofKeyword,
         "semicolon": semicolon,
@@ -4904,10 +4960,10 @@ class DirectParserASTContentRedirectingFactoryBodyBegin
   final Token token;
 
   DirectParserASTContentRedirectingFactoryBodyBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("RedirectingFactoryBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4918,10 +4974,10 @@ class DirectParserASTContentRedirectingFactoryBodyEnd
   final Token endToken;
 
   DirectParserASTContentRedirectingFactoryBodyEnd(DirectParserASTType type,
-      {this.beginToken, this.endToken})
+      {required this.beginToken, required this.endToken})
       : super("RedirectingFactoryBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
       };
@@ -4932,10 +4988,10 @@ class DirectParserASTContentReturnStatementBegin
   final Token token;
 
   DirectParserASTContentReturnStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ReturnStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -4946,10 +5002,10 @@ class DirectParserASTContentNativeFunctionBodyHandle
   final Token semicolon;
 
   DirectParserASTContentNativeFunctionBodyHandle(DirectParserASTType type,
-      {this.nativeToken, this.semicolon})
+      {required this.nativeToken, required this.semicolon})
       : super("NativeFunctionBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
       };
@@ -4962,11 +5018,11 @@ class DirectParserASTContentNativeFunctionBodyIgnoredHandle
 
   DirectParserASTContentNativeFunctionBodyIgnoredHandle(
       DirectParserASTType type,
-      {this.nativeToken,
-      this.semicolon})
+      {required this.nativeToken,
+      required this.semicolon})
       : super("NativeFunctionBodyIgnored", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
       };
@@ -4979,11 +5035,11 @@ class DirectParserASTContentNativeFunctionBodySkippedHandle
 
   DirectParserASTContentNativeFunctionBodySkippedHandle(
       DirectParserASTType type,
-      {this.nativeToken,
-      this.semicolon})
+      {required this.nativeToken,
+      required this.semicolon})
       : super("NativeFunctionBodySkipped", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
       };
@@ -4994,10 +5050,10 @@ class DirectParserASTContentEmptyFunctionBodyHandle
   final Token semicolon;
 
   DirectParserASTContentEmptyFunctionBodyHandle(DirectParserASTType type,
-      {this.semicolon})
+      {required this.semicolon})
       : super("EmptyFunctionBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "semicolon": semicolon,
       };
 }
@@ -5005,13 +5061,13 @@ class DirectParserASTContentEmptyFunctionBodyHandle
 class DirectParserASTContentExpressionFunctionBodyHandle
     extends DirectParserASTContent {
   final Token arrowToken;
-  final Token endToken;
+  final Token? endToken;
 
   DirectParserASTContentExpressionFunctionBodyHandle(DirectParserASTType type,
-      {this.arrowToken, this.endToken})
+      {required this.arrowToken, this.endToken})
       : super("ExpressionFunctionBody", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "arrowToken": arrowToken,
         "endToken": endToken,
       };
@@ -5023,10 +5079,12 @@ class DirectParserASTContentReturnStatementEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentReturnStatementEnd(DirectParserASTType type,
-      {this.hasExpression, this.beginToken, this.endToken})
+      {required this.hasExpression,
+      required this.beginToken,
+      required this.endToken})
       : super("ReturnStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "hasExpression": hasExpression,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -5038,10 +5096,10 @@ class DirectParserASTContentSendHandle extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentSendHandle(DirectParserASTType type,
-      {this.beginToken, this.endToken})
+      {required this.beginToken, required this.endToken})
       : super("Send", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
       };
@@ -5050,10 +5108,11 @@ class DirectParserASTContentSendHandle extends DirectParserASTContent {
 class DirectParserASTContentShowBegin extends DirectParserASTContent {
   final Token showKeyword;
 
-  DirectParserASTContentShowBegin(DirectParserASTType type, {this.showKeyword})
+  DirectParserASTContentShowBegin(DirectParserASTType type,
+      {required this.showKeyword})
       : super("Show", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "showKeyword": showKeyword,
       };
 }
@@ -5061,10 +5120,11 @@ class DirectParserASTContentShowBegin extends DirectParserASTContent {
 class DirectParserASTContentShowEnd extends DirectParserASTContent {
   final Token showKeyword;
 
-  DirectParserASTContentShowEnd(DirectParserASTType type, {this.showKeyword})
+  DirectParserASTContentShowEnd(DirectParserASTType type,
+      {required this.showKeyword})
       : super("Show", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "showKeyword": showKeyword,
       };
 }
@@ -5074,10 +5134,10 @@ class DirectParserASTContentSwitchStatementBegin
   final Token token;
 
   DirectParserASTContentSwitchStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("SwitchStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5087,10 +5147,10 @@ class DirectParserASTContentSwitchStatementEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentSwitchStatementEnd(DirectParserASTType type,
-      {this.switchKeyword, this.endToken})
+      {required this.switchKeyword, required this.endToken})
       : super("SwitchStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "switchKeyword": switchKeyword,
         "endToken": endToken,
       };
@@ -5099,10 +5159,11 @@ class DirectParserASTContentSwitchStatementEnd extends DirectParserASTContent {
 class DirectParserASTContentSwitchBlockBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentSwitchBlockBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentSwitchBlockBegin(DirectParserASTType type,
+      {required this.token})
       : super("SwitchBlock", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5113,10 +5174,12 @@ class DirectParserASTContentSwitchBlockEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentSwitchBlockEnd(DirectParserASTType type,
-      {this.caseCount, this.beginToken, this.endToken})
+      {required this.caseCount,
+      required this.beginToken,
+      required this.endToken})
       : super("SwitchBlock", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "caseCount": caseCount,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -5127,10 +5190,10 @@ class DirectParserASTContentLiteralSymbolBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentLiteralSymbolBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("LiteralSymbol", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5140,10 +5203,10 @@ class DirectParserASTContentLiteralSymbolEnd extends DirectParserASTContent {
   final int identifierCount;
 
   DirectParserASTContentLiteralSymbolEnd(DirectParserASTType type,
-      {this.hashToken, this.identifierCount})
+      {required this.hashToken, required this.identifierCount})
       : super("LiteralSymbol", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "hashToken": hashToken,
         "identifierCount": identifierCount,
       };
@@ -5155,10 +5218,10 @@ class DirectParserASTContentThrowExpressionHandle
   final Token endToken;
 
   DirectParserASTContentThrowExpressionHandle(DirectParserASTType type,
-      {this.throwToken, this.endToken})
+      {required this.throwToken, required this.endToken})
       : super("ThrowExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "throwToken": throwToken,
         "endToken": endToken,
       };
@@ -5169,10 +5232,10 @@ class DirectParserASTContentRethrowStatementBegin
   final Token token;
 
   DirectParserASTContentRethrowStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("RethrowStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5182,10 +5245,10 @@ class DirectParserASTContentRethrowStatementEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentRethrowStatementEnd(DirectParserASTType type,
-      {this.rethrowToken, this.endToken})
+      {required this.rethrowToken, required this.endToken})
       : super("RethrowStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "rethrowToken": rethrowToken,
         "endToken": endToken,
       };
@@ -5196,10 +5259,10 @@ class DirectParserASTContentTopLevelDeclarationEnd
   final Token nextToken;
 
   DirectParserASTContentTopLevelDeclarationEnd(DirectParserASTType type,
-      {this.nextToken})
+      {required this.nextToken})
       : super("TopLevelDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "nextToken": nextToken,
       };
 }
@@ -5210,10 +5273,10 @@ class DirectParserASTContentInvalidTopLevelDeclarationHandle
 
   DirectParserASTContentInvalidTopLevelDeclarationHandle(
       DirectParserASTType type,
-      {this.endToken})
+      {required this.endToken})
       : super("InvalidTopLevelDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
 }
@@ -5222,10 +5285,10 @@ class DirectParserASTContentTopLevelMemberBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentTopLevelMemberBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("TopLevelMember", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5234,20 +5297,20 @@ class DirectParserASTContentFieldsBegin extends DirectParserASTContent {
   final Token lastConsumed;
 
   DirectParserASTContentFieldsBegin(DirectParserASTType type,
-      {this.lastConsumed})
+      {required this.lastConsumed})
       : super("Fields", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
       };
 }
 
 class DirectParserASTContentTopLevelFieldsEnd extends DirectParserASTContent {
-  final Token externalToken;
-  final Token staticToken;
-  final Token covariantToken;
-  final Token lateToken;
-  final Token varFinalOrConst;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
   final int count;
   final Token beginToken;
   final Token endToken;
@@ -5258,12 +5321,12 @@ class DirectParserASTContentTopLevelFieldsEnd extends DirectParserASTContent {
       this.covariantToken,
       this.lateToken,
       this.varFinalOrConst,
-      this.count,
-      this.beginToken,
-      this.endToken})
+      required this.count,
+      required this.beginToken,
+      required this.endToken})
       : super("TopLevelFields", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "externalToken": externalToken,
         "staticToken": staticToken,
         "covariantToken": covariantToken,
@@ -5277,13 +5340,13 @@ class DirectParserASTContentTopLevelFieldsEnd extends DirectParserASTContent {
 
 class DirectParserASTContentTopLevelMethodBegin extends DirectParserASTContent {
   final Token lastConsumed;
-  final Token externalToken;
+  final Token? externalToken;
 
   DirectParserASTContentTopLevelMethodBegin(DirectParserASTType type,
-      {this.lastConsumed, this.externalToken})
+      {required this.lastConsumed, this.externalToken})
       : super("TopLevelMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
         "externalToken": externalToken,
       };
@@ -5291,14 +5354,14 @@ class DirectParserASTContentTopLevelMethodBegin extends DirectParserASTContent {
 
 class DirectParserASTContentTopLevelMethodEnd extends DirectParserASTContent {
   final Token beginToken;
-  final Token getOrSet;
+  final Token? getOrSet;
   final Token endToken;
 
   DirectParserASTContentTopLevelMethodEnd(DirectParserASTType type,
-      {this.beginToken, this.getOrSet, this.endToken})
+      {required this.beginToken, this.getOrSet, required this.endToken})
       : super("TopLevelMethod", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "getOrSet": getOrSet,
         "endToken": endToken,
@@ -5309,10 +5372,10 @@ class DirectParserASTContentTryStatementBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentTryStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("TryStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5322,10 +5385,10 @@ class DirectParserASTContentCaseMatchHandle extends DirectParserASTContent {
   final Token colon;
 
   DirectParserASTContentCaseMatchHandle(DirectParserASTType type,
-      {this.caseKeyword, this.colon})
+      {required this.caseKeyword, required this.colon})
       : super("CaseMatch", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "caseKeyword": caseKeyword,
         "colon": colon,
       };
@@ -5334,10 +5397,11 @@ class DirectParserASTContentCaseMatchHandle extends DirectParserASTContent {
 class DirectParserASTContentCatchClauseBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentCatchClauseBegin(DirectParserASTType type, {this.token})
+  DirectParserASTContentCatchClauseBegin(DirectParserASTType type,
+      {required this.token})
       : super("CatchClause", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5345,24 +5409,25 @@ class DirectParserASTContentCatchClauseBegin extends DirectParserASTContent {
 class DirectParserASTContentCatchClauseEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentCatchClauseEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentCatchClauseEnd(DirectParserASTType type,
+      {required this.token})
       : super("CatchClause", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
 
 class DirectParserASTContentCatchBlockHandle extends DirectParserASTContent {
-  final Token onKeyword;
-  final Token catchKeyword;
-  final Token comma;
+  final Token? onKeyword;
+  final Token? catchKeyword;
+  final Token? comma;
 
   DirectParserASTContentCatchBlockHandle(DirectParserASTType type,
       {this.onKeyword, this.catchKeyword, this.comma})
       : super("CatchBlock", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "onKeyword": onKeyword,
         "catchKeyword": catchKeyword,
         "comma": comma,
@@ -5373,10 +5438,10 @@ class DirectParserASTContentFinallyBlockHandle extends DirectParserASTContent {
   final Token finallyKeyword;
 
   DirectParserASTContentFinallyBlockHandle(DirectParserASTType type,
-      {this.finallyKeyword})
+      {required this.finallyKeyword})
       : super("FinallyBlock", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "finallyKeyword": finallyKeyword,
       };
 }
@@ -5384,13 +5449,13 @@ class DirectParserASTContentFinallyBlockHandle extends DirectParserASTContent {
 class DirectParserASTContentTryStatementEnd extends DirectParserASTContent {
   final int catchCount;
   final Token tryKeyword;
-  final Token finallyKeyword;
+  final Token? finallyKeyword;
 
   DirectParserASTContentTryStatementEnd(DirectParserASTType type,
-      {this.catchCount, this.tryKeyword, this.finallyKeyword})
+      {required this.catchCount, required this.tryKeyword, this.finallyKeyword})
       : super("TryStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "catchCount": catchCount,
         "tryKeyword": tryKeyword,
         "finallyKeyword": finallyKeyword,
@@ -5399,13 +5464,13 @@ class DirectParserASTContentTryStatementEnd extends DirectParserASTContent {
 
 class DirectParserASTContentTypeHandle extends DirectParserASTContent {
   final Token beginToken;
-  final Token questionMark;
+  final Token? questionMark;
 
   DirectParserASTContentTypeHandle(DirectParserASTType type,
-      {this.beginToken, this.questionMark})
+      {required this.beginToken, this.questionMark})
       : super("Type", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "questionMark": questionMark,
       };
@@ -5416,10 +5481,10 @@ class DirectParserASTContentNonNullAssertExpressionHandle
   final Token bang;
 
   DirectParserASTContentNonNullAssertExpressionHandle(DirectParserASTType type,
-      {this.bang})
+      {required this.bang})
       : super("NonNullAssertExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "bang": bang,
       };
 }
@@ -5427,10 +5492,11 @@ class DirectParserASTContentNonNullAssertExpressionHandle
 class DirectParserASTContentNoNameHandle extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentNoNameHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentNoNameHandle(DirectParserASTType type,
+      {required this.token})
       : super("NoName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5439,23 +5505,23 @@ class DirectParserASTContentFunctionTypeBegin extends DirectParserASTContent {
   final Token beginToken;
 
   DirectParserASTContentFunctionTypeBegin(DirectParserASTType type,
-      {this.beginToken})
+      {required this.beginToken})
       : super("FunctionType", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
       };
 }
 
 class DirectParserASTContentFunctionTypeEnd extends DirectParserASTContent {
   final Token functionToken;
-  final Token questionMark;
+  final Token? questionMark;
 
   DirectParserASTContentFunctionTypeEnd(DirectParserASTType type,
-      {this.functionToken, this.questionMark})
+      {required this.functionToken, this.questionMark})
       : super("FunctionType", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "functionToken": functionToken,
         "questionMark": questionMark,
       };
@@ -5465,10 +5531,10 @@ class DirectParserASTContentTypeArgumentsBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentTypeArgumentsBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("TypeArguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5479,10 +5545,10 @@ class DirectParserASTContentTypeArgumentsEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentTypeArgumentsEnd(DirectParserASTType type,
-      {this.count, this.beginToken, this.endToken})
+      {required this.count, required this.beginToken, required this.endToken})
       : super("TypeArguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
@@ -5494,10 +5560,10 @@ class DirectParserASTContentInvalidTypeArgumentsHandle
   final Token token;
 
   DirectParserASTContentInvalidTypeArgumentsHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("InvalidTypeArguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5507,10 +5573,10 @@ class DirectParserASTContentNoTypeArgumentsHandle
   final Token token;
 
   DirectParserASTContentNoTypeArgumentsHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NoTypeArguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5519,10 +5585,10 @@ class DirectParserASTContentTypeVariableBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentTypeVariableBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("TypeVariable", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5533,10 +5599,10 @@ class DirectParserASTContentTypeVariablesDefinedHandle
   final int count;
 
   DirectParserASTContentTypeVariablesDefinedHandle(DirectParserASTType type,
-      {this.token, this.count})
+      {required this.token, required this.count})
       : super("TypeVariablesDefined", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "count": count,
       };
@@ -5545,14 +5611,17 @@ class DirectParserASTContentTypeVariablesDefinedHandle
 class DirectParserASTContentTypeVariableEnd extends DirectParserASTContent {
   final Token token;
   final int index;
-  final Token extendsOrSuper;
-  final Token variance;
+  final Token? extendsOrSuper;
+  final Token? variance;
 
   DirectParserASTContentTypeVariableEnd(DirectParserASTType type,
-      {this.token, this.index, this.extendsOrSuper, this.variance})
+      {required this.token,
+      required this.index,
+      this.extendsOrSuper,
+      this.variance})
       : super("TypeVariable", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "index": index,
         "extendsOrSuper": extendsOrSuper,
@@ -5564,10 +5633,10 @@ class DirectParserASTContentTypeVariablesBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentTypeVariablesBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("TypeVariables", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5577,10 +5646,10 @@ class DirectParserASTContentTypeVariablesEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentTypeVariablesEnd(DirectParserASTType type,
-      {this.beginToken, this.endToken})
+      {required this.beginToken, required this.endToken})
       : super("TypeVariables", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
       };
@@ -5591,10 +5660,10 @@ class DirectParserASTContentFunctionExpressionBegin
   final Token token;
 
   DirectParserASTContentFunctionExpressionBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("FunctionExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5605,10 +5674,10 @@ class DirectParserASTContentFunctionExpressionEnd
   final Token token;
 
   DirectParserASTContentFunctionExpressionEnd(DirectParserASTType type,
-      {this.beginToken, this.token})
+      {required this.beginToken, required this.token})
       : super("FunctionExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "token": token,
       };
@@ -5617,14 +5686,14 @@ class DirectParserASTContentFunctionExpressionEnd
 class DirectParserASTContentVariablesDeclarationBegin
     extends DirectParserASTContent {
   final Token token;
-  final Token lateToken;
-  final Token varFinalOrConst;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
 
   DirectParserASTContentVariablesDeclarationBegin(DirectParserASTType type,
-      {this.token, this.lateToken, this.varFinalOrConst})
+      {required this.token, this.lateToken, this.varFinalOrConst})
       : super("VariablesDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "lateToken": lateToken,
         "varFinalOrConst": varFinalOrConst,
@@ -5634,13 +5703,13 @@ class DirectParserASTContentVariablesDeclarationBegin
 class DirectParserASTContentVariablesDeclarationEnd
     extends DirectParserASTContent {
   final int count;
-  final Token endToken;
+  final Token? endToken;
 
   DirectParserASTContentVariablesDeclarationEnd(DirectParserASTType type,
-      {this.count, this.endToken})
+      {required this.count, this.endToken})
       : super("VariablesDeclaration", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "endToken": endToken,
       };
@@ -5650,10 +5719,10 @@ class DirectParserASTContentWhileStatementBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentWhileStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("WhileStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5663,10 +5732,10 @@ class DirectParserASTContentWhileStatementEnd extends DirectParserASTContent {
   final Token endToken;
 
   DirectParserASTContentWhileStatementEnd(DirectParserASTType type,
-      {this.whileKeyword, this.endToken})
+      {required this.whileKeyword, required this.endToken})
       : super("WhileStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "whileKeyword": whileKeyword,
         "endToken": endToken,
       };
@@ -5676,10 +5745,10 @@ class DirectParserASTContentAsOperatorTypeBegin extends DirectParserASTContent {
   final Token operator;
 
   DirectParserASTContentAsOperatorTypeBegin(DirectParserASTType type,
-      {this.operator})
+      {required this.operator})
       : super("AsOperatorType", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
 }
@@ -5688,10 +5757,10 @@ class DirectParserASTContentAsOperatorTypeEnd extends DirectParserASTContent {
   final Token operator;
 
   DirectParserASTContentAsOperatorTypeEnd(DirectParserASTType type,
-      {this.operator})
+      {required this.operator})
       : super("AsOperatorType", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
 }
@@ -5700,10 +5769,10 @@ class DirectParserASTContentAsOperatorHandle extends DirectParserASTContent {
   final Token operator;
 
   DirectParserASTContentAsOperatorHandle(DirectParserASTType type,
-      {this.operator})
+      {required this.operator})
       : super("AsOperator", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
 }
@@ -5713,10 +5782,10 @@ class DirectParserASTContentAssignmentExpressionHandle
   final Token token;
 
   DirectParserASTContentAssignmentExpressionHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("AssignmentExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5726,10 +5795,10 @@ class DirectParserASTContentBinaryExpressionBegin
   final Token token;
 
   DirectParserASTContentBinaryExpressionBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("BinaryExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5738,10 +5807,10 @@ class DirectParserASTContentBinaryExpressionEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentBinaryExpressionEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("BinaryExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5751,10 +5820,10 @@ class DirectParserASTContentEndingBinaryExpressionHandle
   final Token token;
 
   DirectParserASTContentEndingBinaryExpressionHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("EndingBinaryExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5764,10 +5833,10 @@ class DirectParserASTContentConditionalExpressionBegin
   final Token question;
 
   DirectParserASTContentConditionalExpressionBegin(DirectParserASTType type,
-      {this.question})
+      {required this.question})
       : super("ConditionalExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "question": question,
       };
 }
@@ -5778,7 +5847,7 @@ class DirectParserASTContentConditionalExpressionColonHandle
       DirectParserASTType type)
       : super("ConditionalExpressionColon", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentConditionalExpressionEnd
@@ -5787,10 +5856,10 @@ class DirectParserASTContentConditionalExpressionEnd
   final Token colon;
 
   DirectParserASTContentConditionalExpressionEnd(DirectParserASTType type,
-      {this.question, this.colon})
+      {required this.question, required this.colon})
       : super("ConditionalExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "question": question,
         "colon": colon,
       };
@@ -5801,10 +5870,10 @@ class DirectParserASTContentConstExpressionBegin
   final Token constKeyword;
 
   DirectParserASTContentConstExpressionBegin(DirectParserASTType type,
-      {this.constKeyword})
+      {required this.constKeyword})
       : super("ConstExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
 }
@@ -5813,10 +5882,10 @@ class DirectParserASTContentConstExpressionEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentConstExpressionEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ConstExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5825,23 +5894,23 @@ class DirectParserASTContentConstFactoryHandle extends DirectParserASTContent {
   final Token constKeyword;
 
   DirectParserASTContentConstFactoryHandle(DirectParserASTType type,
-      {this.constKeyword})
+      {required this.constKeyword})
       : super("ConstFactory", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
 }
 
 class DirectParserASTContentForControlFlowBegin extends DirectParserASTContent {
-  final Token awaitToken;
+  final Token? awaitToken;
   final Token forToken;
 
   DirectParserASTContentForControlFlowBegin(DirectParserASTType type,
-      {this.awaitToken, this.forToken})
+      {this.awaitToken, required this.forToken})
       : super("ForControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "awaitToken": awaitToken,
         "forToken": forToken,
       };
@@ -5851,10 +5920,10 @@ class DirectParserASTContentForControlFlowEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentForControlFlowEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5863,10 +5932,10 @@ class DirectParserASTContentForInControlFlowEnd extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentForInControlFlowEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ForInControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5875,10 +5944,10 @@ class DirectParserASTContentIfControlFlowBegin extends DirectParserASTContent {
   final Token ifToken;
 
   DirectParserASTContentIfControlFlowBegin(DirectParserASTType type,
-      {this.ifToken})
+      {required this.ifToken})
       : super("IfControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "ifToken": ifToken,
       };
 }
@@ -5888,10 +5957,10 @@ class DirectParserASTContentThenControlFlowHandle
   final Token token;
 
   DirectParserASTContentThenControlFlowHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ThenControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5901,10 +5970,10 @@ class DirectParserASTContentElseControlFlowHandle
   final Token elseToken;
 
   DirectParserASTContentElseControlFlowHandle(DirectParserASTType type,
-      {this.elseToken})
+      {required this.elseToken})
       : super("ElseControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "elseToken": elseToken,
       };
 }
@@ -5912,10 +5981,11 @@ class DirectParserASTContentElseControlFlowHandle
 class DirectParserASTContentIfControlFlowEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentIfControlFlowEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentIfControlFlowEnd(DirectParserASTType type,
+      {required this.token})
       : super("IfControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5925,10 +5995,10 @@ class DirectParserASTContentIfElseControlFlowEnd
   final Token token;
 
   DirectParserASTContentIfElseControlFlowEnd(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("IfElseControlFlow", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5938,10 +6008,10 @@ class DirectParserASTContentSpreadExpressionHandle
   final Token spreadToken;
 
   DirectParserASTContentSpreadExpressionHandle(DirectParserASTType type,
-      {this.spreadToken})
+      {required this.spreadToken})
       : super("SpreadExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "spreadToken": spreadToken,
       };
 }
@@ -5952,10 +6022,10 @@ class DirectParserASTContentFunctionTypedFormalParameterBegin
 
   DirectParserASTContentFunctionTypedFormalParameterBegin(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("FunctionTypedFormalParameter", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -5963,15 +6033,15 @@ class DirectParserASTContentFunctionTypedFormalParameterBegin
 class DirectParserASTContentFunctionTypedFormalParameterEnd
     extends DirectParserASTContent {
   final Token nameToken;
-  final Token question;
+  final Token? question;
 
   DirectParserASTContentFunctionTypedFormalParameterEnd(
       DirectParserASTType type,
-      {this.nameToken,
+      {required this.nameToken,
       this.question})
       : super("FunctionTypedFormalParameter", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "nameToken": nameToken,
         "question": question,
       };
@@ -5982,10 +6052,10 @@ class DirectParserASTContentIdentifierHandle extends DirectParserASTContent {
   final IdentifierContext context;
 
   DirectParserASTContentIdentifierHandle(DirectParserASTType type,
-      {this.token, this.context})
+      {required this.token, required this.context})
       : super("Identifier", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
       };
@@ -5993,15 +6063,17 @@ class DirectParserASTContentIdentifierHandle extends DirectParserASTContent {
 
 class DirectParserASTContentIndexedExpressionHandle
     extends DirectParserASTContent {
-  final Token question;
+  final Token? question;
   final Token openSquareBracket;
   final Token closeSquareBracket;
 
   DirectParserASTContentIndexedExpressionHandle(DirectParserASTType type,
-      {this.question, this.openSquareBracket, this.closeSquareBracket})
+      {this.question,
+      required this.openSquareBracket,
+      required this.closeSquareBracket})
       : super("IndexedExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "question": question,
         "openSquareBracket": openSquareBracket,
         "closeSquareBracket": closeSquareBracket,
@@ -6012,10 +6084,10 @@ class DirectParserASTContentIsOperatorTypeBegin extends DirectParserASTContent {
   final Token operator;
 
   DirectParserASTContentIsOperatorTypeBegin(DirectParserASTType type,
-      {this.operator})
+      {required this.operator})
       : super("IsOperatorType", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
 }
@@ -6024,23 +6096,23 @@ class DirectParserASTContentIsOperatorTypeEnd extends DirectParserASTContent {
   final Token operator;
 
   DirectParserASTContentIsOperatorTypeEnd(DirectParserASTType type,
-      {this.operator})
+      {required this.operator})
       : super("IsOperatorType", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
 }
 
 class DirectParserASTContentIsOperatorHandle extends DirectParserASTContent {
   final Token isOperator;
-  final Token not;
+  final Token? not;
 
   DirectParserASTContentIsOperatorHandle(DirectParserASTType type,
-      {this.isOperator, this.not})
+      {required this.isOperator, this.not})
       : super("IsOperator", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "isOperator": isOperator,
         "not": not,
       };
@@ -6050,10 +6122,10 @@ class DirectParserASTContentLiteralBoolHandle extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentLiteralBoolHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("LiteralBool", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6065,10 +6137,12 @@ class DirectParserASTContentBreakStatementHandle
   final Token endToken;
 
   DirectParserASTContentBreakStatementHandle(DirectParserASTType type,
-      {this.hasTarget, this.breakKeyword, this.endToken})
+      {required this.hasTarget,
+      required this.breakKeyword,
+      required this.endToken})
       : super("BreakStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "hasTarget": hasTarget,
         "breakKeyword": breakKeyword,
         "endToken": endToken,
@@ -6082,10 +6156,12 @@ class DirectParserASTContentContinueStatementHandle
   final Token endToken;
 
   DirectParserASTContentContinueStatementHandle(DirectParserASTType type,
-      {this.hasTarget, this.continueKeyword, this.endToken})
+      {required this.hasTarget,
+      required this.continueKeyword,
+      required this.endToken})
       : super("ContinueStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "hasTarget": hasTarget,
         "continueKeyword": continueKeyword,
         "endToken": endToken,
@@ -6097,10 +6173,10 @@ class DirectParserASTContentEmptyStatementHandle
   final Token token;
 
   DirectParserASTContentEmptyStatementHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("EmptyStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6110,10 +6186,10 @@ class DirectParserASTContentAssertBegin extends DirectParserASTContent {
   final Assert kind;
 
   DirectParserASTContentAssertBegin(DirectParserASTType type,
-      {this.assertKeyword, this.kind})
+      {required this.assertKeyword, required this.kind})
       : super("Assert", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "assertKeyword": assertKeyword,
         "kind": kind,
       };
@@ -6123,18 +6199,18 @@ class DirectParserASTContentAssertEnd extends DirectParserASTContent {
   final Token assertKeyword;
   final Assert kind;
   final Token leftParenthesis;
-  final Token commaToken;
+  final Token? commaToken;
   final Token semicolonToken;
 
   DirectParserASTContentAssertEnd(DirectParserASTType type,
-      {this.assertKeyword,
-      this.kind,
-      this.leftParenthesis,
+      {required this.assertKeyword,
+      required this.kind,
+      required this.leftParenthesis,
       this.commaToken,
-      this.semicolonToken})
+      required this.semicolonToken})
       : super("Assert", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "assertKeyword": assertKeyword,
         "kind": kind,
         "leftParenthesis": leftParenthesis,
@@ -6147,10 +6223,10 @@ class DirectParserASTContentLiteralDoubleHandle extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentLiteralDoubleHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("LiteralDouble", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6158,10 +6234,11 @@ class DirectParserASTContentLiteralDoubleHandle extends DirectParserASTContent {
 class DirectParserASTContentLiteralIntHandle extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentLiteralIntHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentLiteralIntHandle(DirectParserASTType type,
+      {required this.token})
       : super("LiteralInt", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6169,14 +6246,17 @@ class DirectParserASTContentLiteralIntHandle extends DirectParserASTContent {
 class DirectParserASTContentLiteralListHandle extends DirectParserASTContent {
   final int count;
   final Token leftBracket;
-  final Token constKeyword;
+  final Token? constKeyword;
   final Token rightBracket;
 
   DirectParserASTContentLiteralListHandle(DirectParserASTType type,
-      {this.count, this.leftBracket, this.constKeyword, this.rightBracket})
+      {required this.count,
+      required this.leftBracket,
+      this.constKeyword,
+      required this.rightBracket})
       : super("LiteralList", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "leftBracket": leftBracket,
         "constKeyword": constKeyword,
@@ -6188,19 +6268,19 @@ class DirectParserASTContentLiteralSetOrMapHandle
     extends DirectParserASTContent {
   final int count;
   final Token leftBrace;
-  final Token constKeyword;
+  final Token? constKeyword;
   final Token rightBrace;
   final bool hasSetEntry;
 
   DirectParserASTContentLiteralSetOrMapHandle(DirectParserASTType type,
-      {this.count,
-      this.leftBrace,
+      {required this.count,
+      required this.leftBrace,
       this.constKeyword,
-      this.rightBrace,
-      this.hasSetEntry})
+      required this.rightBrace,
+      required this.hasSetEntry})
       : super("LiteralSetOrMap", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "leftBrace": leftBrace,
         "constKeyword": constKeyword,
@@ -6213,10 +6293,10 @@ class DirectParserASTContentLiteralNullHandle extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentLiteralNullHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("LiteralNull", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6226,10 +6306,10 @@ class DirectParserASTContentNativeClauseHandle extends DirectParserASTContent {
   final bool hasName;
 
   DirectParserASTContentNativeClauseHandle(DirectParserASTType type,
-      {this.nativeToken, this.hasName})
+      {required this.nativeToken, required this.hasName})
       : super("NativeClause", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "hasName": hasName,
       };
@@ -6239,10 +6319,10 @@ class DirectParserASTContentNamedArgumentHandle extends DirectParserASTContent {
   final Token colon;
 
   DirectParserASTContentNamedArgumentHandle(DirectParserASTType type,
-      {this.colon})
+      {required this.colon})
       : super("NamedArgument", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
       };
 }
@@ -6251,10 +6331,10 @@ class DirectParserASTContentNewExpressionBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentNewExpressionBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NewExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6262,10 +6342,11 @@ class DirectParserASTContentNewExpressionBegin extends DirectParserASTContent {
 class DirectParserASTContentNewExpressionEnd extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentNewExpressionEnd(DirectParserASTType type, {this.token})
+  DirectParserASTContentNewExpressionEnd(DirectParserASTType type,
+      {required this.token})
       : super("NewExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6274,10 +6355,10 @@ class DirectParserASTContentNoArgumentsHandle extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentNoArgumentsHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NoArguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6288,10 +6369,10 @@ class DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArguments
 
   DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NoConstructorReferenceContinuationAfterTypeArguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6300,10 +6381,10 @@ class DirectParserASTContentNoTypeHandle extends DirectParserASTContent {
   final Token lastConsumed;
 
   DirectParserASTContentNoTypeHandle(DirectParserASTType type,
-      {this.lastConsumed})
+      {required this.lastConsumed})
       : super("NoType", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
       };
 }
@@ -6313,10 +6394,10 @@ class DirectParserASTContentNoTypeVariablesHandle
   final Token token;
 
   DirectParserASTContentNoTypeVariablesHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("NoTypeVariables", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6324,10 +6405,11 @@ class DirectParserASTContentNoTypeVariablesHandle
 class DirectParserASTContentOperatorHandle extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentOperatorHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentOperatorHandle(DirectParserASTType type,
+      {required this.token})
       : super("Operator", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6335,10 +6417,11 @@ class DirectParserASTContentOperatorHandle extends DirectParserASTContent {
 class DirectParserASTContentSymbolVoidHandle extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentSymbolVoidHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentSymbolVoidHandle(DirectParserASTType type,
+      {required this.token})
       : super("SymbolVoid", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6348,10 +6431,10 @@ class DirectParserASTContentOperatorNameHandle extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentOperatorNameHandle(DirectParserASTType type,
-      {this.operatorKeyword, this.token})
+      {required this.operatorKeyword, required this.token})
       : super("OperatorName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "operatorKeyword": operatorKeyword,
         "token": token,
       };
@@ -6363,10 +6446,10 @@ class DirectParserASTContentInvalidOperatorNameHandle
   final Token token;
 
   DirectParserASTContentInvalidOperatorNameHandle(DirectParserASTType type,
-      {this.operatorKeyword, this.token})
+      {required this.operatorKeyword, required this.token})
       : super("InvalidOperatorName", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "operatorKeyword": operatorKeyword,
         "token": token,
       };
@@ -6377,10 +6460,10 @@ class DirectParserASTContentParenthesizedConditionHandle
   final Token token;
 
   DirectParserASTContentParenthesizedConditionHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ParenthesizedCondition", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6390,10 +6473,10 @@ class DirectParserASTContentParenthesizedExpressionHandle
   final Token token;
 
   DirectParserASTContentParenthesizedExpressionHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("ParenthesizedExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6401,10 +6484,11 @@ class DirectParserASTContentParenthesizedExpressionHandle
 class DirectParserASTContentQualifiedHandle extends DirectParserASTContent {
   final Token period;
 
-  DirectParserASTContentQualifiedHandle(DirectParserASTType type, {this.period})
+  DirectParserASTContentQualifiedHandle(DirectParserASTType type,
+      {required this.period})
       : super("Qualified", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "period": period,
       };
 }
@@ -6412,10 +6496,11 @@ class DirectParserASTContentQualifiedHandle extends DirectParserASTContent {
 class DirectParserASTContentStringPartHandle extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentStringPartHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentStringPartHandle(DirectParserASTType type,
+      {required this.token})
       : super("StringPart", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6426,10 +6511,10 @@ class DirectParserASTContentSuperExpressionHandle
   final IdentifierContext context;
 
   DirectParserASTContentSuperExpressionHandle(DirectParserASTType type,
-      {this.token, this.context})
+      {required this.token, required this.context})
       : super("SuperExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
       };
@@ -6441,10 +6526,12 @@ class DirectParserASTContentSwitchCaseBegin extends DirectParserASTContent {
   final Token firstToken;
 
   DirectParserASTContentSwitchCaseBegin(DirectParserASTType type,
-      {this.labelCount, this.expressionCount, this.firstToken})
+      {required this.labelCount,
+      required this.expressionCount,
+      required this.firstToken})
       : super("SwitchCase", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
         "expressionCount": expressionCount,
         "firstToken": firstToken,
@@ -6454,23 +6541,23 @@ class DirectParserASTContentSwitchCaseBegin extends DirectParserASTContent {
 class DirectParserASTContentSwitchCaseEnd extends DirectParserASTContent {
   final int labelCount;
   final int expressionCount;
-  final Token defaultKeyword;
-  final Token colonAfterDefault;
+  final Token? defaultKeyword;
+  final Token? colonAfterDefault;
   final int statementCount;
   final Token firstToken;
   final Token endToken;
 
   DirectParserASTContentSwitchCaseEnd(DirectParserASTType type,
-      {this.labelCount,
-      this.expressionCount,
+      {required this.labelCount,
+      required this.expressionCount,
       this.defaultKeyword,
       this.colonAfterDefault,
-      this.statementCount,
-      this.firstToken,
-      this.endToken})
+      required this.statementCount,
+      required this.firstToken,
+      required this.endToken})
       : super("SwitchCase", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
         "expressionCount": expressionCount,
         "defaultKeyword": defaultKeyword,
@@ -6487,10 +6574,10 @@ class DirectParserASTContentThisExpressionHandle
   final IdentifierContext context;
 
   DirectParserASTContentThisExpressionHandle(DirectParserASTType type,
-      {this.token, this.context})
+      {required this.token, required this.context})
       : super("ThisExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
       };
@@ -6502,10 +6589,10 @@ class DirectParserASTContentUnaryPostfixAssignmentExpressionHandle
 
   DirectParserASTContentUnaryPostfixAssignmentExpressionHandle(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("UnaryPostfixAssignmentExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6515,10 +6602,10 @@ class DirectParserASTContentUnaryPrefixExpressionHandle
   final Token token;
 
   DirectParserASTContentUnaryPrefixExpressionHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("UnaryPrefixExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6529,10 +6616,10 @@ class DirectParserASTContentUnaryPrefixAssignmentExpressionHandle
 
   DirectParserASTContentUnaryPrefixAssignmentExpressionHandle(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("UnaryPrefixAssignmentExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6543,7 +6630,7 @@ class DirectParserASTContentFormalParameterDefaultValueExpressionBegin
       DirectParserASTType type)
       : super("FormalParameterDefaultValueExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentFormalParameterDefaultValueExpressionEnd
@@ -6552,7 +6639,7 @@ class DirectParserASTContentFormalParameterDefaultValueExpressionEnd
       DirectParserASTType type)
       : super("FormalParameterDefaultValueExpression", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class DirectParserASTContentValuedFormalParameterHandle
@@ -6561,10 +6648,10 @@ class DirectParserASTContentValuedFormalParameterHandle
   final Token token;
 
   DirectParserASTContentValuedFormalParameterHandle(DirectParserASTType type,
-      {this.equals, this.token})
+      {required this.equals, required this.token})
       : super("ValuedFormalParameter", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "equals": equals,
         "token": token,
       };
@@ -6576,10 +6663,10 @@ class DirectParserASTContentFormalParameterWithoutValueHandle
 
   DirectParserASTContentFormalParameterWithoutValueHandle(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("FormalParameterWithoutValue", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6588,10 +6675,10 @@ class DirectParserASTContentVoidKeywordHandle extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentVoidKeywordHandle(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("VoidKeyword", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6602,10 +6689,10 @@ class DirectParserASTContentVoidKeywordWithTypeArgumentsHandle
 
   DirectParserASTContentVoidKeywordWithTypeArgumentsHandle(
       DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("VoidKeywordWithTypeArguments", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6614,24 +6701,24 @@ class DirectParserASTContentYieldStatementBegin extends DirectParserASTContent {
   final Token token;
 
   DirectParserASTContentYieldStatementBegin(DirectParserASTType type,
-      {this.token})
+      {required this.token})
       : super("YieldStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
 
 class DirectParserASTContentYieldStatementEnd extends DirectParserASTContent {
   final Token yieldToken;
-  final Token starToken;
+  final Token? starToken;
   final Token endToken;
 
   DirectParserASTContentYieldStatementEnd(DirectParserASTType type,
-      {this.yieldToken, this.starToken, this.endToken})
+      {required this.yieldToken, this.starToken, required this.endToken})
       : super("YieldStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "yieldToken": yieldToken,
         "starToken": starToken,
         "endToken": endToken,
@@ -6641,15 +6728,18 @@ class DirectParserASTContentYieldStatementEnd extends DirectParserASTContent {
 class DirectParserASTContentInvalidYieldStatementEnd
     extends DirectParserASTContent {
   final Token beginToken;
-  final Token starToken;
+  final Token? starToken;
   final Token endToken;
   final MessageCode errorCode;
 
   DirectParserASTContentInvalidYieldStatementEnd(DirectParserASTType type,
-      {this.beginToken, this.starToken, this.endToken, this.errorCode})
+      {required this.beginToken,
+      this.starToken,
+      required this.endToken,
+      required this.errorCode})
       : super("InvalidYieldStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "starToken": starToken,
         "endToken": endToken,
@@ -6664,10 +6754,10 @@ class DirectParserASTContentRecoverableErrorHandle
   final Token endToken;
 
   DirectParserASTContentRecoverableErrorHandle(DirectParserASTType type,
-      {this.message, this.startToken, this.endToken})
+      {required this.message, required this.startToken, required this.endToken})
       : super("RecoverableError", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "message": message,
         "startToken": startToken,
         "endToken": endToken,
@@ -6677,10 +6767,11 @@ class DirectParserASTContentRecoverableErrorHandle
 class DirectParserASTContentErrorTokenHandle extends DirectParserASTContent {
   final ErrorToken token;
 
-  DirectParserASTContentErrorTokenHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentErrorTokenHandle(DirectParserASTType type,
+      {required this.token})
       : super("ErrorToken", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6692,10 +6783,13 @@ class DirectParserASTContentUnescapeErrorHandle extends DirectParserASTContent {
   final int length;
 
   DirectParserASTContentUnescapeErrorHandle(DirectParserASTType type,
-      {this.message, this.location, this.stringOffset, this.length})
+      {required this.message,
+      required this.location,
+      required this.stringOffset,
+      required this.length})
       : super("UnescapeError", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "message": message,
         "location": location,
         "stringOffset": stringOffset,
@@ -6709,10 +6803,10 @@ class DirectParserASTContentInvalidStatementHandle
   final Message message;
 
   DirectParserASTContentInvalidStatementHandle(DirectParserASTType type,
-      {this.token, this.message})
+      {required this.token, required this.message})
       : super("InvalidStatement", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "message": message,
       };
@@ -6721,10 +6815,11 @@ class DirectParserASTContentInvalidStatementHandle
 class DirectParserASTContentScriptHandle extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentScriptHandle(DirectParserASTType type, {this.token})
+  DirectParserASTContentScriptHandle(DirectParserASTType type,
+      {required this.token})
       : super("Script", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
 }
@@ -6735,10 +6830,10 @@ class DirectParserASTContentCommentReferenceTextHandle
   final int referenceOffset;
 
   DirectParserASTContentCommentReferenceTextHandle(DirectParserASTType type,
-      {this.referenceSource, this.referenceOffset})
+      {required this.referenceSource, required this.referenceOffset})
       : super("CommentReferenceText", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "referenceSource": referenceSource,
         "referenceOffset": referenceOffset,
       };
@@ -6746,16 +6841,16 @@ class DirectParserASTContentCommentReferenceTextHandle
 
 class DirectParserASTContentCommentReferenceHandle
     extends DirectParserASTContent {
-  final Token newKeyword;
-  final Token prefix;
-  final Token period;
+  final Token? newKeyword;
+  final Token? prefix;
+  final Token? period;
   final Token token;
 
   DirectParserASTContentCommentReferenceHandle(DirectParserASTType type,
-      {this.newKeyword, this.prefix, this.period, this.token})
+      {this.newKeyword, this.prefix, this.period, required this.token})
       : super("CommentReference", type);
 
-  Map<String, Object> get deprecatedArguments => {
+  Map<String, Object?> get deprecatedArguments => {
         "newKeyword": newKeyword,
         "prefix": prefix,
         "period": period,
@@ -6768,5 +6863,5 @@ class DirectParserASTContentNoCommentReferenceHandle
   DirectParserASTContentNoCommentReferenceHandle(DirectParserASTType type)
       : super("NoCommentReference", type);
 
-  Map<String, Object> get deprecatedArguments => {};
+  Map<String, Object?> get deprecatedArguments => {};
 }
