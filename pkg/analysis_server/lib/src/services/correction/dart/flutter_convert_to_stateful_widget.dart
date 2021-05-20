@@ -57,7 +57,9 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     }
 
     var widgetName = widgetClassElement.displayName;
-    var stateName = '_${widgetName}State';
+    var stateName = widgetClassElement.isPrivate
+        ? '${widgetName}State'
+        : '_${widgetName}State';
 
     // Find fields assigned in constructors.
     var visitor = _FieldFinder();

@@ -310,6 +310,34 @@ class _MyWidgetState extends State<MyWidget> {
 ''');
   }
 
+  Future<void> test_noExtraUnderscore() async {
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/_MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+    await assertHasAssist(r'''
+import 'package:flutter/material.dart';
+
+class _MyWidget extends StatefulWidget {
+  @override
+  State<_MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<_MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+  }
+
   Future<void> test_notClass() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
