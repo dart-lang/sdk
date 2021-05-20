@@ -38,7 +38,8 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target target,
     bool enableSuperMixins = false,
     List<String> experimentalFlags,
-    Map<String, String> environmentDefines}) async {
+    Map<String, String> environmentDefines,
+    Uri packagesFileUri}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   target ??= new TestingVmTarget(new TargetFlags())
@@ -48,6 +49,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     ..target = target
     ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = environmentDefines
+    ..packagesFileUri = packagesFileUri
     ..explicitExperimentalFlags =
         parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
             onError: (String message) {
