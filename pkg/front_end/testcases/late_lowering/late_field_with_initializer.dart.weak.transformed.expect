@@ -45,47 +45,47 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     self::expect(43, self::Class::lateStaticField2);
   }
   get lateInstanceField() → core::int {
-    if(!this.{self::Class::_#Class#lateInstanceField#isSet}) {
+    if(!this.{self::Class::_#Class#lateInstanceField#isSet}{core::bool}) {
       this.{self::Class::_#Class#lateInstanceField} = 16;
       this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     }
-    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5{core::int};
+    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField}{core::int?} in #t5{core::int};
   }
   set lateInstanceField(core::int #t6) → void {
     this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateInstanceField} = #t6;
   }
   get lateGenericField1() → self::Class::T% {
-    if(!this.{self::Class::_#Class#lateGenericField1#isSet}) {
-      this.{self::Class::_#Class#lateGenericField1} = this.{self::Class::field};
+    if(!this.{self::Class::_#Class#lateGenericField1#isSet}{core::bool}) {
+      this.{self::Class::_#Class#lateGenericField1} = this.{self::Class::field}{self::Class::T%};
       this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     }
-    return let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericField1} in #t7{self::Class::T%};
+    return let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericField1}{self::Class::T?} in #t7{self::Class::T%};
   }
   set lateGenericField1(generic-covariant-impl self::Class::T% #t8) → void {
     this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     this.{self::Class::_#Class#lateGenericField1} = #t8;
   }
   get lateGenericField2() → self::Class::T% {
-    if(!this.{self::Class::_#Class#lateGenericField2#isSet}) {
-      this.{self::Class::_#Class#lateGenericField2} = this.{self::Class::field};
+    if(!this.{self::Class::_#Class#lateGenericField2#isSet}{core::bool}) {
+      this.{self::Class::_#Class#lateGenericField2} = this.{self::Class::field}{self::Class::T%};
       this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     }
-    return let final self::Class::T? #t9 = this.{self::Class::_#Class#lateGenericField2} in #t9{self::Class::T%};
+    return let final self::Class::T? #t9 = this.{self::Class::_#Class#lateGenericField2}{self::Class::T?} in #t9{self::Class::T%};
   }
   set lateGenericField2(generic-covariant-impl self::Class::T% #t10) → void {
     this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     this.{self::Class::_#Class#lateGenericField2} = #t10;
   }
   method instanceMethod(generic-covariant-impl self::Class::T% value) → dynamic {
-    self::expect(16, this.{self::Class::lateInstanceField});
+    self::expect(16, this.{self::Class::lateInstanceField}{core::int});
     this.{self::Class::lateInstanceField} = 17;
-    self::expect(17, this.{self::Class::lateInstanceField});
-    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericField1});
+    self::expect(17, this.{self::Class::lateInstanceField}{core::int});
+    self::expect(this.{self::Class::field}{self::Class::T%}, this.{self::Class::lateGenericField1}{self::Class::T%});
     this.{self::Class::lateGenericField1} = value;
-    self::expect(value, this.{self::Class::lateGenericField1});
+    self::expect(value, this.{self::Class::lateGenericField1}{self::Class::T%});
     this.{self::Class::lateGenericField2} = value;
-    self::expect(value, this.{self::Class::lateGenericField2});
+    self::expect(value, this.{self::Class::lateGenericField2}{self::Class::T%});
   }
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
@@ -151,13 +151,13 @@ static method main() → dynamic {
   self::Class::lateStaticField1 = 88;
   self::expect(88, self::Class::lateStaticField1);
   self::Class::staticMethod();
-  new self::Class::•<core::int>(0).{self::Class::instanceMethod}(42);
+  new self::Class::•<core::int>(0).{self::Class::instanceMethod}(42){(core::int) → dynamic};
   self::expect(87, self::Extension|lateExtensionField1);
   self::Extension|lateExtensionField1 = 88;
   self::expect(88, self::Extension|lateExtensionField1);
   self::Extension|staticMethod();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

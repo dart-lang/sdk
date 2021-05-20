@@ -14,7 +14,7 @@ class UnusedEnum extends core::Object /*isEnum*/  {
     : self::UnusedEnum::index = index, self::UnusedEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self::UnusedEnum::_name};
+    return this.{self::UnusedEnum::_name}{core::String};
 }
 class UsedEnum extends core::Object /*isEnum*/  {
   final field core::int index;
@@ -26,7 +26,7 @@ class UsedEnum extends core::Object /*isEnum*/  {
     : self::UsedEnum::index = index, self::UsedEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self::UsedEnum::_name};
+    return this.{self::UsedEnum::_name}{core::String};
 }
 class UnusedInterface extends core::Object {
   field core::int? usedInterfaceField;
@@ -64,7 +64,7 @@ class ConstEnum extends core::Object /*isEnum*/  {
     : self2::ConstEnum::index = index, self2::ConstEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self2::ConstEnum::_name};
+    return this.{self2::ConstEnum::_name}{core::String};
 }
 class ConstClass extends core::Object {
   synthetic constructor •() → self2::ConstClass

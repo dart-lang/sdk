@@ -28,7 +28,7 @@ class A extends core::Object {
     ;
   @#C1
   get instanceField() → core::int
-    return this.{self::A::_#A#instanceField#isSet} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#instanceField} in #t1{core::int} : throw new _in::LateError::fieldNI("instanceField");
+    return this.{self::A::_#A#instanceField#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#instanceField}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("instanceField");
   @#C1
   set instanceField(core::int #t2) → void {
     this.{self::A::_#A#instanceField#isSet} = true;
@@ -36,10 +36,10 @@ class A extends core::Object {
   }
   @#C1
   get finalInstanceField() → core::int
-    return this.{self::A::_#A#finalInstanceField#isSet} ?{core::int} let final core::int? #t3 = this.{self::A::_#A#finalInstanceField} in #t3{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
+    return this.{self::A::_#A#finalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t3 = this.{self::A::_#A#finalInstanceField}{core::int?} in #t3{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
   @#C1
   set finalInstanceField(core::int #t4) → void
-    if(this.{self::A::_#A#finalInstanceField#isSet})
+    if(this.{self::A::_#A#finalInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("finalInstanceField");
     else {
       this.{self::A::_#A#finalInstanceField#isSet} = true;
@@ -47,18 +47,18 @@ class A extends core::Object {
     }
   @#C1
   get finalInstanceFieldWithInitializer() → core::int {
-    if(!this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet}) {
+    if(!this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet}{core::bool}) {
       final core::int #t5 = 0;
-      if(this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet})
+      if(this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet}{core::bool})
         throw new _in::LateError::fieldADI("finalInstanceFieldWithInitializer");
       this.{self::A::_#A#finalInstanceFieldWithInitializer} = #t5;
       this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet} = true;
     }
-    return let final core::int? #t6 = this.{self::A::_#A#finalInstanceFieldWithInitializer} in #t6{core::int};
+    return let final core::int? #t6 = this.{self::A::_#A#finalInstanceFieldWithInitializer}{core::int?} in #t6{core::int};
   }
   @#C1
   get covariantInstanceField() → core::num
-    return this.{self::A::_#A#covariantInstanceField#isSet} ?{core::num} let final core::num? #t7 = this.{self::A::_#A#covariantInstanceField} in #t7{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
+    return this.{self::A::_#A#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t7 = this.{self::A::_#A#covariantInstanceField}{core::num?} in #t7{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
   @#C1
   set covariantInstanceField(covariant core::num #t8) → void {
     this.{self::A::_#A#covariantInstanceField#isSet} = true;
@@ -112,7 +112,7 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   static field core::bool _#finalStaticFieldWithInitializer#isSet = false;
   @#C1
   get instanceField() → core::int
-    return this.{self::B::_#B#instanceField#isSet} ?{core::int} let final core::int? #t15 = this.{self::B::_#B#instanceField} in #t15{core::int} : throw new _in::LateError::fieldNI("instanceField");
+    return this.{self::B::_#B#instanceField#isSet}{core::bool} ?{core::int} let final core::int? #t15 = this.{self::B::_#B#instanceField}{core::int?} in #t15{core::int} : throw new _in::LateError::fieldNI("instanceField");
   @#C1
   set instanceField(core::int #t16) → void {
     this.{self::B::_#B#instanceField#isSet} = true;
@@ -120,10 +120,10 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   }
   @#C1
   get finalInstanceField() → core::int
-    return this.{self::B::_#B#finalInstanceField#isSet} ?{core::int} let final core::int? #t17 = this.{self::B::_#B#finalInstanceField} in #t17{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
+    return this.{self::B::_#B#finalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t17 = this.{self::B::_#B#finalInstanceField}{core::int?} in #t17{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
   @#C1
   set finalInstanceField(core::int #t18) → void
-    if(this.{self::B::_#B#finalInstanceField#isSet})
+    if(this.{self::B::_#B#finalInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("finalInstanceField");
     else {
       this.{self::B::_#B#finalInstanceField#isSet} = true;
@@ -131,18 +131,18 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
     }
   @#C1
   get finalInstanceFieldWithInitializer() → core::int {
-    if(!this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet}) {
+    if(!this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet}{core::bool}) {
       final core::int #t19 = 0;
-      if(this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet})
+      if(this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet}{core::bool})
         throw new _in::LateError::fieldADI("finalInstanceFieldWithInitializer");
       this.{self::B::_#B#finalInstanceFieldWithInitializer} = #t19;
       this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet} = true;
     }
-    return let final core::int? #t20 = this.{self::B::_#B#finalInstanceFieldWithInitializer} in #t20{core::int};
+    return let final core::int? #t20 = this.{self::B::_#B#finalInstanceFieldWithInitializer}{core::int?} in #t20{core::int};
   }
   @#C1
   get covariantInstanceField() → core::num
-    return this.{self::B::_#B#covariantInstanceField#isSet} ?{core::num} let final core::num? #t21 = this.{self::B::_#B#covariantInstanceField} in #t21{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
+    return this.{self::B::_#B#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t21 = this.{self::B::_#B#covariantInstanceField}{core::num?} in #t21{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
   @#C1
   set covariantInstanceField(covariant core::num #t22) → void {
     this.{self::B::_#B#covariantInstanceField#isSet} = true;

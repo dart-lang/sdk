@@ -13,7 +13,7 @@ static method main() → void {
   self::expect(self::isLegacySubtyping2a, #C1);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 

@@ -20,23 +20,23 @@ class Complex extends core::Object /*hasConstConstructor*/  {
     : self::Complex::real = real, self::Complex::imaginary = imaginary, super core::Object::•()
     ;
   method add(self::Complex* other) → self::Complex* {
-    return new self::Complex::•(this.{self::Complex::real}.{core::double::+}(other.{self::Complex::real}), this.{self::Complex::imaginary}.{core::double::+}(other.{self::Complex::imaginary}));
+    return new self::Complex::•(this.{self::Complex::real}{core::double*}.{core::double::+}(other.{self::Complex::real}{core::double*}){(core::num*) →* core::double*}, this.{self::Complex::imaginary}{core::double*}.{core::double::+}(other.{self::Complex::imaginary}{core::double*}){(core::num*) →* core::double*});
   }
   method sub(self::Complex* other) → self::Complex* {
-    return new self::Complex::•(this.{self::Complex::real}.{core::double::-}(other.{self::Complex::real}), this.{self::Complex::imaginary}.{core::double::-}(other.{self::Complex::imaginary}));
+    return new self::Complex::•(this.{self::Complex::real}{core::double*}.{core::double::-}(other.{self::Complex::real}{core::double*}){(core::num*) →* core::double*}, this.{self::Complex::imaginary}{core::double*}.{core::double::-}(other.{self::Complex::imaginary}{core::double*}){(core::num*) →* core::double*});
   }
   method negate() → self::Complex* {
-    return new self::Complex::•(this.{self::Complex::real}.{core::double::unary-}(), this.{self::Complex::imaginary}.{core::double::unary-}());
+    return new self::Complex::•(this.{self::Complex::real}{core::double*}.{core::double::unary-}(){() →* core::double*}, this.{self::Complex::imaginary}{core::double*}.{core::double::unary-}(){() →* core::double*});
   }
   get hashCode() → core::int*
-    return this.{self::Complex::real}.{core::num::hashCode}.{core::num::*}(13).{core::num::+}(this.{self::Complex::imaginary}.{core::num::hashCode}.{core::num::*}(19));
+    return this.{self::Complex::real}{core::double*}.{core::num::hashCode}{core::int*}.{core::num::*}(13){(core::num*) →* core::int*}.{core::num::+}(this.{self::Complex::imaginary}{core::double*}.{core::num::hashCode}{core::int*}.{core::num::*}(19){(core::num*) →* core::int*}){(core::num*) →* core::int*};
   operator ==(core::Object* other) → core::bool* {
     if(core::identical(this, other))
       return true;
-    return other is self::Complex* && this.{self::Complex::real}.{core::num::==}(other{self::Complex*}.{self::Complex::real}) && this.{self::Complex::imaginary}.{core::num::==}(other{self::Complex*}.{self::Complex::imaginary});
+    return other is self::Complex* && this.{self::Complex::real}{core::double*} =={core::num::==}{(core::Object*) →* core::bool*} other{self::Complex*}.{self::Complex::real}{core::double*} && this.{self::Complex::imaginary}{core::double*} =={core::num::==}{(core::Object*) →* core::bool*} other{self::Complex*}.{self::Complex::imaginary}{core::double*};
   }
   method toString() → core::String*
-    return "Complex(${this.{self::Complex::real}},${this.{self::Complex::imaginary}})";
+    return "Complex(${this.{self::Complex::real}{core::double*}},${this.{self::Complex::imaginary}{core::double*}})";
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -51,11 +51,11 @@ extension Operators on self::Complex* {
   operator unary- = self::Operators|unary-;
 }
 static method Operators|+(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
-  return #this.{self::Complex::add}(other);
+  return #this.{self::Complex::add}(other){(self::Complex*) →* self::Complex*};
 static method Operators|-(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
-  return #this.{self::Complex::sub}(other);
+  return #this.{self::Complex::sub}(other){(self::Complex*) →* self::Complex*};
 static method Operators|unary-(lowered final self::Complex* #this) → self::Complex*
-  return #this.{self::Complex::negate}();
+  return #this.{self::Complex::negate}(){() →* self::Complex*};
 static method main() → dynamic {
   self::implicit();
   self::explicit();
@@ -135,13 +135,13 @@ static method explicit() → dynamic {
 static method errors(self::Complex* c) → void {
   invalid-expression "pkg/front_end/testcases/extensions/operators.dart:125:3: Error: Explicit extension application cannot be used as an expression.
   Operators(c) == c;
-  ^^^^^^^^^".{core::Object::==}(c);
-  !invalid-expression "pkg/front_end/testcases/extensions/operators.dart:126:3: Error: Explicit extension application cannot be used as an expression.
+  ^^^^^^^^^" =={core::Object::==}{(core::Object*) →* core::bool*} c;
+  !(invalid-expression "pkg/front_end/testcases/extensions/operators.dart:126:3: Error: Explicit extension application cannot be used as an expression.
   Operators(c) != c;
-  ^^^^^^^^^".{core::Object::==}(c);
+  ^^^^^^^^^" =={core::Object::==}{(core::Object*) →* core::bool*} c);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual)) {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }

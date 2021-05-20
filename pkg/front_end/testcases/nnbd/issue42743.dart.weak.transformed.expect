@@ -15,7 +15,7 @@ static method main() → dynamic /* originally async */ {
     try {
       #L1:
       {
-        core::bool b = (() → core::bool => true).call();
+        core::bool b = (() → core::bool => true)(){() → core::bool};
         (dynamic _) → core::int? {
           if(b)
             return 42;

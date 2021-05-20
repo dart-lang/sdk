@@ -103,7 +103,7 @@ class G extends self::_G&Object&A&F {
     ;
 }
 static method main() → dynamic {
-  core::print(new self::C::•().{self::_C&Object&A&B::method}(0));
+  core::print(new self::C::•().{self::_C&Object&A&B::method}(0){(core::num*) →* core::String*});
 }
 
 library;

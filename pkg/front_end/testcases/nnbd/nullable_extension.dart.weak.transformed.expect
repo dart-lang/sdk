@@ -18,6 +18,6 @@ static method main() → void {
   self::expect("Lily was here", self::_extension#0|get#text(a));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

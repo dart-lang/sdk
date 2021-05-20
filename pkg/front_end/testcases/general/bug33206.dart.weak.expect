@@ -12,7 +12,7 @@ class X extends core::Object {
     : self::X::x = x, self::X::y = y, super core::Object::•()
     ;
   method toString() → core::String*
-    return "X(${this.{self::X::x}}, ${this.{self::X::y}})";
+    return "X(${this.{self::X::x}{dynamic}}, ${this.{self::X::y}{dynamic}})";
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -49,8 +49,8 @@ static method f3() → asy::Future<core::Object*>* async {
 }
 static method foo() → asy::Future<self::X*>* async {
   return new self::X::•(let final self::Y* #t1 = new self::Y::•() in block {
-    #t1.{self::Y::f}(await self::f1());
-    #t1.{self::Y::f}(self::f2());
+    #t1.{self::Y::f}(await self::f1()){(dynamic) →* dynamic};
+    #t1.{self::Y::f}(self::f2()){(dynamic) →* dynamic};
   } =>#t1, await self::f3());
 }
 static method main() → asy::Future<void>* async {

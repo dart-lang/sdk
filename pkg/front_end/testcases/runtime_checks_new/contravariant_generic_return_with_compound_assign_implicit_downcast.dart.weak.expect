@@ -27,7 +27,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     : self::C::plusResult = plusResult, super core::Object::•()
     ;
   operator +(core::int* i) → (self::C::T*) →* core::num*
-    return this.{self::C::plusResult};
+    return this.{self::C::plusResult}{(self::C::T*) →* core::num*};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -46,7 +46,7 @@ class D extends core::Object {
     : self::D::getValue = getValue, super core::Object::•()
     ;
   get value() → self::C<core::num*>*
-    return this.{self::D::getValue};
+    return this.{self::D::getValue}{self::C<core::num*>*};
   set value((core::int*) →* core::int* value) → void {
     this.{self::D::setValue} = value;
   }
@@ -63,14 +63,14 @@ class D extends core::Object {
 }
 static method expectTypeError(() →* void callback) → void {
   try {
-    callback.call();
+    callback(){() →* void};
     throw "Expected TypeError, did not occur";
   }
   on core::TypeError* catch(no-exception-var) {
   }
 }
 static method expect(core::Object* value, core::Object* expected) → void {
-  if(!value.{core::Object::==}(expected)) {
+  if(!(value =={core::Object::==}{(core::Object*) →* core::bool*} expected)) {
     throw "Expected ${expected}, got ${value}";
   }
 }
@@ -82,15 +82,15 @@ static method main() → void {
   self::D* d = new self::D::•(new self::C::•<core::num*>(#C1));
   let final self::D* #t1 = d in #t1.{self::D::value} = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:46: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
   d.value /*@ checkReturn=(num*) ->* num* */ += 1;
-                                             ^" in (#t1.{self::D::value}.{self::C::+}(1) as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
-  self::expect(let final self::D* #t3 = d in let final core::int* #t4 = 0 in #t3.{self::D::setValue}.call(#t4), 1);
+                                             ^" in (#t1.{self::D::value}{self::C<core::num*>*}.{self::C::+}(1){(core::int*) →* (core::num*) →* core::num*} as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
+  self::expect(let final self::D* #t3 = d in let final core::int* #t4 = 0 in #t3.{self::D::setValue}{(core::int*) →* core::int*}(#t4){(core::int*) →* core::int*}, 1);
   d = new self::D::•(new self::C::•<core::num*>(#C2));
   self::expectTypeError(() → Null {
     let final self::D* #t5 = d in #t5.{self::D::value} = let final Never* #t6 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:48: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
     d.value /*@ checkReturn=(num*) ->* num* */ += 1;
-                                               ^" in (#t5.{self::D::value}.{self::C::+}(1) as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
+                                               ^" in (#t5.{self::D::value}{self::C<core::num*>*}.{self::C::+}(1){(core::int*) →* (core::num*) →* core::num*} as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
   });
-  self::expect(d.{self::D::setValue}, null);
+  self::expect(d.{self::D::setValue}{(core::int*) →* core::int*}, null);
 }
 
 constants  {

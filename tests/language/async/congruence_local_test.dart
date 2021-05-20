@@ -101,7 +101,7 @@ main() {
     Future<int> v2 = f_inferred_futureObject();
     //               ^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    //                                      ^
+    //               ^
     // [cfe] A value of type 'Future<Object>' can't be assigned to a variable of type 'Future<int>'.
 
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
@@ -111,7 +111,7 @@ main() {
     Future<B> v4 = f_inferred_A();
     //             ^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    //                         ^
+    //             ^
     // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<B>'.
   }
 

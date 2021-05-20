@@ -6,7 +6,7 @@ import "issue42003_lib.dart" as iss;
 import "org-dartlang-testcase:///issue42003_lib.dart";
 
 static method main() → dynamic {
-  let final core::String* #t1 = iss::returnString() in #t1.{core::String::==}(null) ?{core::int?} null : #t1{core::String}.{core::String::length};
+  let final core::String* #t1 = iss::returnString() in #t1 == null ?{core::int?} null : #t1{core::String}.{core::String::length}{core::int};
 }
 
 library;

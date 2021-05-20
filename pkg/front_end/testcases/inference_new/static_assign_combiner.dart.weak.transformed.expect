@@ -108,15 +108,15 @@ static get target() → self::A*
   return null;
 static set target(self::B* value) → void {}
 static method test1() → void {
-  self::target = self::target.{self::A::*}(self::f<self::D*>());
-  self::C* x = self::target = self::target.{self::A::*}(self::f<self::D*>());
+  self::target = self::target.{self::A::*}(self::f<self::D*>()){(self::D*) →* self::C*};
+  self::C* x = self::target = self::target.{self::A::*}(self::f<self::D*>()){(self::D*) →* self::C*};
 }
 static method test2() → void {
-  self::target = self::target.{self::A::+}(1);
-  self::C* x = self::target = self::target.{self::A::+}(1);
+  self::target = self::target.{self::A::+}(1){(core::int*) →* self::C*};
+  self::C* x = self::target = self::target.{self::A::+}(1){(core::int*) →* self::C*};
 }
 static method test3() → void {
-  self::target = self::target.{self::A::+}(1);
-  self::A* x = let final self::A* #t1 = self::target in let final self::C* #t2 = self::target = #t1.{self::A::+}(1) in #t1;
+  self::target = self::target.{self::A::+}(1){(core::int*) →* self::C*};
+  self::A* x = let final self::A* #t1 = self::target in let final self::C* #t2 = self::target = #t1.{self::A::+}(1){(core::int*) →* self::C*} in #t1;
 }
 static method main() → dynamic {}

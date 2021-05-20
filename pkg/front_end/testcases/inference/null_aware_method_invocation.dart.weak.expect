@@ -20,7 +20,7 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method g(self::C* c) → dynamic {
-  core::int* x = let final self::C* #t1 = c in #t1.{self::C::==}(null) ?{core::int*} null : #t1.{self::C::f}();
-  let final self::C* #t2 = c in #t2.{self::C::==}(null) ?{core::int*} null : #t2.{self::C::f}();
+  core::int* x = let final self::C* #t1 = c in #t1 == null ?{core::int*} null : #t1.{self::C::f}(){() →* core::int*};
+  let final self::C* #t2 = c in #t2 == null ?{core::int*} null : #t2.{self::C::f}(){() →* core::int*};
 }
 static method main() → dynamic {}

@@ -7,7 +7,7 @@ static method test() → dynamic {
     yield 1;
     yield*<core::num*>[3, 4.0];
   };
-  core::Iterable<core::num*>* g = f.call();
-  core::Iterable<core::int*>* h = f.call() as{TypeError} core::Iterable<core::int*>*;
+  core::Iterable<core::num*>* g = f(){() →* core::Iterable<core::num*>*};
+  core::Iterable<core::int*>* h = f(){() →* core::Iterable<core::num*>*} as{TypeError} core::Iterable<core::int*>*;
 }
 static method main() → dynamic {}

@@ -26,7 +26,7 @@ abstract class UsedAsBaseClass extends core::Object {
     core::print("Unused");
   }
   method calledFromB() → void {
-    this.{self::UsedAsBaseClass::calledFromSubclass}();
+    this.{self::UsedAsBaseClass::calledFromSubclass}(){() →* void};
   }
   method calledFromSubclass() → void {
     core::print("Unused");
@@ -92,21 +92,21 @@ class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, sel
     ;
   method usedInSubclass() → void {
     core::print("B");
-    this.{self::UsedAsBaseClass::calledFromB}();
+    this.{self::UsedAsBaseClass::calledFromB}(){() →* void};
   }
   method calledFromSubclass() → void {}
 }
 static method baseClassCall(self::UsedAsBaseClass* object) → void {
-  object.{self::UsedAsBaseClass::usedInSubclass}();
+  object.{self::UsedAsBaseClass::usedInSubclass}(){() →* void};
 }
 static method interfaceCall(self::UsedAsInterface* object) → void {
-  object.{self::UsedAsInterface::usedInSubclass}();
+  object.{self::UsedAsInterface::usedInSubclass}(){() →* void};
 }
 static method exactCallA(self::ClassA* object) → void {
-  object.{self::ClassA::usedInSubclass}();
+  object.{self::ClassA::usedInSubclass}(){() →* void};
 }
 static method exactCallB(self::ClassB* object) → void {
-  object.{self::ClassB::usedInSubclass}();
+  object.{self::ClassB::usedInSubclass}(){() →* void};
 }
 static method unusedTopLevel() → dynamic {
   core::print("Unused");

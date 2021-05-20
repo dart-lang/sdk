@@ -21,5 +21,5 @@ class C extends core::Object {
 }
 static method main() → dynamic {
   self::C* c = new self::C::•();
-  core::bool* x = c.{self::C::[]}(0);
+  core::bool* x = c.{self::C::[]}(0){(core::int*) →* core::bool*};
 }

@@ -120,29 +120,29 @@ class D<T extends core::Object* = dynamic> extends core::Object /*hasConstConstr
 }
 static method main() → dynamic {
   self::C<core::int*>* c1 = new self::C::bar<core::int*>();
-  c1.{self::C::toString}();
+  c1.{self::C::toString}(){() →* core::String*};
   self::C<core::int*>* c2 = new self::C::bar<core::int*>();
-  c2.{self::C::toString}();
+  c2.{self::C::toString}(){() →* core::String*};
   self::C<core::String*>* c3 = new self::C::bar<core::String*>();
-  c3.{self::C::toString}();
+  c3.{self::C::toString}(){() →* core::String*};
   self::C<core::String*>* c4 = new self::C::bar<core::String*>();
-  c4.{self::C::toString}();
-  (#C1).{self::D::toString}();
-  (#C1).{self::D::toString}();
-  (#C2).{self::D::toString}();
-  (#C2).{self::D::toString}();
+  c4.{self::C::toString}(){() →* core::String*};
+  (#C1).{self::D::toString}(){() →* core::String*};
+  (#C1).{self::D::toString}(){() →* core::String*};
+  (#C2).{self::D::toString}(){() →* core::String*};
+  (#C2).{self::D::toString}(){() →* core::String*};
   iss::E<core::int*>* e1 = new iss::E::bar<core::int*>();
-  e1.{iss::E::toString}();
+  e1.{iss::E::toString}(){() →* core::String*};
   iss::E<dynamic>* e2 = new iss::E::bar<dynamic>();
-  e2.{iss::E::toString}();
+  e2.{iss::E::toString}(){() →* core::String*};
   iss::E<core::String*>* e3 = new iss::E::bar<core::String*>();
-  e3.{iss::E::toString}();
+  e3.{iss::E::toString}(){() →* core::String*};
   iss::E<core::String*>* e4 = new iss::E::bar<core::String*>();
-  e4.{iss::E::toString}();
-  (#C3).{iss::F::toString}();
-  (#C4).{iss::F::toString}();
-  (#C5).{iss::F::toString}();
-  (#C5).{iss::F::toString}();
+  e4.{iss::E::toString}(){() →* core::String*};
+  (#C3).{iss::F::toString}(){() →* core::String*};
+  (#C4).{iss::F::toString}(){() →* core::String*};
+  (#C5).{iss::F::toString}(){() →* core::String*};
+  (#C5).{iss::F::toString}(){() →* core::String*};
 }
 
 library;

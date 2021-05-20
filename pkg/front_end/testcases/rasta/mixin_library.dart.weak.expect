@@ -18,7 +18,7 @@ class Mixin<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method foo() → dynamic
-    return super.foo().+(self::f());
+    return super.foo(){dynamic}.+(self::f());
   method g(generic-covariant-impl self::Mixin::T* a) → self::Mixin::T*
     return null;
   method h() → dynamic
@@ -28,7 +28,7 @@ class Mixin<T extends core::Object* = dynamic> extends core::Object {
   method _privateMethod() → dynamic
     return 49;
   method publicMethod() → dynamic
-    return this.{self::Mixin::_privateMethod}();
+    return this.{self::Mixin::_privateMethod}(){() →* dynamic};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -47,4 +47,4 @@ static method V() → dynamic
 static method _private() → dynamic
   return 117;
 static method foo(dynamic m) → dynamic
-  return m._privateMethod();
+  return m{dynamic}._privateMethod();

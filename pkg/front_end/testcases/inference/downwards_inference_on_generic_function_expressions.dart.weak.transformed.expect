@@ -118,7 +118,7 @@ static method test() → void {
       return null;
     <S extends core::Object* = dynamic>(core::int*) →* core::int* x = int2int;
     x = <T extends core::Object* = dynamic>(core::int* x) → core::int* => x;
-    x = <T extends core::Object* = dynamic>(core::int* x) → core::int* => x.{core::num::+}(1);
+    x = <T extends core::Object* = dynamic>(core::int* x) → core::int* => x.{core::num::+}(1){(core::num*) →* core::int*};
     <T extends core::Object* = dynamic>(core::int*) →* core::String* y = int2String;
     y = <T extends core::Object* = dynamic>(core::int* x) → core::String* => let final Never* #t10 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:64:9: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
         x;
@@ -128,7 +128,7 @@ Try correcting the name to the name of an existing method, or defining a method 
         .substring(3);
          ^^^^^^^^^";
     <T extends core::Object* = dynamic>(core::String*) →* core::String* z = string2String;
-    z = <T extends core::Object* = dynamic>(core::String* x) → core::String* => x.{core::String::substring}(3);
+    z = <T extends core::Object* = dynamic>(core::String* x) → core::String* => x.{core::String::substring}(3){(core::int*, [core::int*]) →* core::String*};
   }
 }
 static method main() → dynamic {}

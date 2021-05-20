@@ -41,7 +41,7 @@ class Simple extends core::Object /*hasConstConstructor*/  {
   final field core::String name;
   const constructor •(core::String name) → self::Simple
     : self::Simple::name = name, super core::Object::•() {
-    assert(!this.{self::Simple::name}.{core::String::==}(#C1));
+    assert(!(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} (#C1)));
   }
 }
 class Simple2 extends core::Object /*hasConstConstructor*/  {
@@ -57,7 +57,7 @@ Try removing the return type.
 class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•() {
-    assert(1.{core::num::==}(2));
+    assert(1 =={core::num::==}{(core::Object) → core::bool} 2);
   }
 }
 class B extends self::A /*hasConstConstructor*/  {
@@ -89,7 +89,7 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_const_ctor_error.dart:33:14 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///const_functions_const_ctor_error.dart:33:14 -> BoolConstant(false)
 Extra constant evaluation: evaluated: 7, effectively constant: 1
 
 

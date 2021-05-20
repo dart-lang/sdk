@@ -34,5 +34,5 @@ class Bar extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method baz(pub::Bar* bar) → void {
-  core::print("${bar.{pub::Bar::f}.{core::Object::runtimeType}}");
+  core::print("${bar.{pub::Bar::f}{() →* void}.{core::Object::runtimeType}{core::Type*}}");
 }

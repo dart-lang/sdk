@@ -10,7 +10,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     ;
   method f1(generic-covariant-impl self::C::T* x) → void {}
   method f2(generic-covariant-impl core::List<self::C::T*>* x) → self::C::T*
-    return x.{core::Iterable::first};
+    return x.{core::Iterable::first}{self::C::T*};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -23,18 +23,18 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method g1(self::C<core::num*>* c) → (core::num*) →* void {
-  return c.{self::C::f1};
+  return c.{self::C::f1}{(core::num*) →* void};
 }
 static method g2(self::C<core::int*>* c, core::Object* x) → void {
   (core::Object*) →* void f = self::g1(c) as (core::Object*) →* void;
-  f.call(x);
+  f(x){(core::Object*) →* void};
 }
 static method g3(self::C<core::num*>* c) → (core::List<core::num*>*) →* core::num* {
-  return c.{self::C::f2};
+  return c.{self::C::f2}{(core::List<core::num*>*) →* core::num*};
 }
 static method test() → void {
   (core::num*) →* void x = self::g1(new self::C::•<core::int*>());
-  x.call(1.5);
+  x(1.5){(core::num*) →* void};
   self::g3(new self::C::•<core::int*>());
 }
 static method main() → dynamic {}

@@ -13,7 +13,7 @@ class Class<A extends core::Object? = dynamic> extends core::Object {
   }
 }
 static method main() → dynamic {
-  new self::Class::•<core::int>().{self::Class::method}();
+  new self::Class::•<core::int>().{self::Class::method}(){() → dynamic};
 }
 
 constants  {
