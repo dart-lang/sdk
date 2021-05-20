@@ -18,7 +18,7 @@ abstract class A extends core::Object {
       #L1:
       case #C1:
         {
-          this.{self::A::neverReturn}();
+          this.{self::A::neverReturn}(){() → Never};
         }
       #L2:
       default:

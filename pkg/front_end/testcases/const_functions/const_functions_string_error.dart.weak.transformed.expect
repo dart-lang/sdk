@@ -49,17 +49,17 @@ static const field dynamic var5 = invalid-expression "pkg/front_end/testcases/co
              ^";
 static method fn() → dynamic {
   core::String s = "str";
-  return (#C1).{core::String::[]}(1.{core::int::unary-}());
+  return (#C1).{core::String::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::String};
 }
 static method fn2() → dynamic {
   core::String s = "str";
-  return (#C1).{core::String::[]}(3);
+  return (#C1).{core::String::[]}(3){(core::int) → core::String};
 }
 static method fn3() → dynamic {
   core::String s = "str";
   return (#C1).{core::String::[]}(let final Never #t1 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   return str[1.1];
-             ^" in 1.1 as{TypeError,ForNonNullableByDefault} core::int);
+             ^" in 1.1 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::String};
 }
 static method main() → void {}
 
@@ -68,5 +68,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_string_error.dart:16:14 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///const_functions_string_error.dart:16:14 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 6, effectively constant: 1

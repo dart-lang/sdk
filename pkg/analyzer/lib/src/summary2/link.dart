@@ -217,7 +217,7 @@ class Linker {
       library.resolveTypes(nodesToBuildType);
     }
     VarianceBuilder().perform(this);
-    computeSimplyBounded(builders.values);
+    computeSimplyBounded(this);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder(this).build(nodesToBuildType);
   }

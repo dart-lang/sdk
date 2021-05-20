@@ -26,10 +26,10 @@ class D extends self::C<core::num*> {
   method f1(covariant generic-covariant-impl core::int* x) → void {}
 }
 static method g1(dynamic d) → void {
-  d.f1(1.5);
+  d{dynamic}.f1(1.5);
 }
 static method g2(dynamic d) → void {
-  d.f2(1.5);
+  d{dynamic}.f2(1.5);
 }
 static method test() → void {
   self::g1(new self::C::•<core::int*>());

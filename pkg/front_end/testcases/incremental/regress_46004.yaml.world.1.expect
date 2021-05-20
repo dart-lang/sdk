@@ -16,7 +16,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     set lpVtbl(dart.ffi::Pointer<dart.ffi::IntPtr> #externalFieldValue) → void
       return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()), #externalFieldValue.{dart.ffi::Pointer::address});
     get vtable() → dart.ffi::Pointer<dart.ffi::IntPtr>
-      return dart.ffi::Pointer::fromAddress<dart.ffi::IntPtr>(dart.ffi::IntPtrPointer|get#value(this.{lib::COMObject::lpVtbl}));
+      return dart.ffi::Pointer::fromAddress<dart.ffi::IntPtr>(dart.ffi::IntPtrPointer|get#value(this.{lib::COMObject::lpVtbl}{dart.ffi::Pointer<dart.ffi::IntPtr>}));
     @#C10
     static get #sizeOf() → dart.core::int*
       return (#C13).{dart.core::List::[]}(dart.ffi::_abi());

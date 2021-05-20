@@ -273,8 +273,7 @@ int f() {
       'correction':
           "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
       'code': 'referenced_before_declaration',
-      'url':
-          'https:://dart.dev/tools/diagnostic-messages#referenced_before_declaration',
+      'url': 'https:://dart.dev/diagnostics/referenced_before_declaration',
       'contextMessages': [
         {
           'message': "The declaration of 's' is on line 3.",
@@ -343,7 +342,7 @@ int f() {
             '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
             '"message":"The declaration of \'s\' is on line 3."}],'
             '"documentation":'
-            '"https:://dart.dev/tools/diagnostic-messages#referenced_before_declaration"}]}');
+            '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}');
       });
     });
 

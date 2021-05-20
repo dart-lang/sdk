@@ -20,11 +20,11 @@ class Foo extends core::Object {
   method bar() → void {
     @#C17
     function bazz() → void {}
-    [@vm.call-site-attributes.metadata=receiverType:void Function()*] bazz.call();
+    [@vm.call-site-attributes.metadata=receiverType:void Function()*] bazz(){() →* void};
   }
 }
 static method main() → dynamic {
-  [@vm.direct-call.metadata=#lib::Foo.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::Foo::•().{self::Foo::bar}();
+  [@vm.direct-call.metadata=#lib::Foo.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::Foo::•().{self::Foo::bar}(){() →* void};
 }
 constants  {
   #C1 = "test1"

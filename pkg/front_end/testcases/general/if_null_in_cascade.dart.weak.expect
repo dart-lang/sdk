@@ -21,7 +21,7 @@ class Class extends core::Object {
 static method main() → dynamic {
   self::Class* a;
   self::Class* b = new self::Class::•();
-  let final self::Class* #t1 = let final self::Class* #t2 = a in #t2.{self::Class::==}(null) ?{self::Class*} b : #t2 in block {
-    #t1.{self::Class::method}();
+  let final self::Class* #t1 = let final self::Class* #t2 = a in #t2 == null ?{self::Class*} b : #t2 in block {
+    #t1.{self::Class::method}(){() →* dynamic};
   } =>#t1;
 }

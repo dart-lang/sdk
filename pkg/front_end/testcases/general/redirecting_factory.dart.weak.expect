@@ -158,7 +158,7 @@ class Mix<M extends core::Object* = dynamic> = self::Base<self::Mix::M*> with se
     ;
 }
 static method main() → dynamic {
-  core::print(new self::Bar::•<core::String*, core::double*>(4).{self::FooBase::x});
+  core::print(new self::Bar::•<core::String*, core::double*>(4).{self::FooBase::x}{core::int*});
   new self::SimpleCaseImpl2::•<core::int*, core::double*>();
   new self::Mix::•<core::double*>();
 }

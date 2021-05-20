@@ -60,40 +60,40 @@ class Class extends core::Object {
     return let final core::int? #t8 = self::Class::_#initializedFinalStaticField in #t8{core::int};
   }
   get uninitializedNonFinalInstanceField() → core::int
-    return this.{self::Class::_#Class#uninitializedNonFinalInstanceField#isSet} ?{core::int} let final core::int? #t9 = this.{self::Class::_#Class#uninitializedNonFinalInstanceField} in #t9{core::int} : throw new _in::LateError::fieldNI("uninitializedNonFinalInstanceField");
+    return this.{self::Class::_#Class#uninitializedNonFinalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t9 = this.{self::Class::_#Class#uninitializedNonFinalInstanceField}{core::int?} in #t9{core::int} : throw new _in::LateError::fieldNI("uninitializedNonFinalInstanceField");
   set uninitializedNonFinalInstanceField(core::int #t10) → void {
     this.{self::Class::_#Class#uninitializedNonFinalInstanceField#isSet} = true;
     this.{self::Class::_#Class#uninitializedNonFinalInstanceField} = #t10;
   }
   get uninitializedFinalInstanceField() → core::int
-    return this.{self::Class::_#Class#uninitializedFinalInstanceField#isSet} ?{core::int} let final core::int? #t11 = this.{self::Class::_#Class#uninitializedFinalInstanceField} in #t11{core::int} : throw new _in::LateError::fieldNI("uninitializedFinalInstanceField");
+    return this.{self::Class::_#Class#uninitializedFinalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t11 = this.{self::Class::_#Class#uninitializedFinalInstanceField}{core::int?} in #t11{core::int} : throw new _in::LateError::fieldNI("uninitializedFinalInstanceField");
   set uninitializedFinalInstanceField(core::int #t12) → void
-    if(this.{self::Class::_#Class#uninitializedFinalInstanceField#isSet})
+    if(this.{self::Class::_#Class#uninitializedFinalInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("uninitializedFinalInstanceField");
     else {
       this.{self::Class::_#Class#uninitializedFinalInstanceField#isSet} = true;
       this.{self::Class::_#Class#uninitializedFinalInstanceField} = #t12;
     }
   get initializedNonFinalInstanceField() → core::int {
-    if(!this.{self::Class::_#Class#initializedNonFinalInstanceField#isSet}) {
+    if(!this.{self::Class::_#Class#initializedNonFinalInstanceField#isSet}{core::bool}) {
       this.{self::Class::_#Class#initializedNonFinalInstanceField} = 0;
       this.{self::Class::_#Class#initializedNonFinalInstanceField#isSet} = true;
     }
-    return let final core::int? #t13 = this.{self::Class::_#Class#initializedNonFinalInstanceField} in #t13{core::int};
+    return let final core::int? #t13 = this.{self::Class::_#Class#initializedNonFinalInstanceField}{core::int?} in #t13{core::int};
   }
   set initializedNonFinalInstanceField(core::int #t14) → void {
     this.{self::Class::_#Class#initializedNonFinalInstanceField#isSet} = true;
     this.{self::Class::_#Class#initializedNonFinalInstanceField} = #t14;
   }
   get initializedFinalInstanceField() → core::int {
-    if(!this.{self::Class::_#Class#initializedFinalInstanceField#isSet}) {
+    if(!this.{self::Class::_#Class#initializedFinalInstanceField#isSet}{core::bool}) {
       final core::int #t15 = 0;
-      if(this.{self::Class::_#Class#initializedFinalInstanceField#isSet})
+      if(this.{self::Class::_#Class#initializedFinalInstanceField#isSet}{core::bool})
         throw new _in::LateError::fieldADI("initializedFinalInstanceField");
       this.{self::Class::_#Class#initializedFinalInstanceField} = #t15;
       this.{self::Class::_#Class#initializedFinalInstanceField#isSet} = true;
     }
-    return let final core::int? #t16 = this.{self::Class::_#Class#initializedFinalInstanceField} in #t16{core::int};
+    return let final core::int? #t16 = this.{self::Class::_#Class#initializedFinalInstanceField}{core::int?} in #t16{core::int};
   }
 }
 static field core::int? _#uninitializedNonFinalTopLevelField = null;

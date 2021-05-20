@@ -15,7 +15,7 @@ class UnusedEnum extends core::Object /*isEnum*/  {
     : self::UnusedEnum::index = index, self::UnusedEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self::UnusedEnum::_name};
+    return this.{self::UnusedEnum::_name}{core::String};
 }
 class UsedEnum extends core::Object /*isEnum*/  {
   final field core::int index;
@@ -27,7 +27,7 @@ class UsedEnum extends core::Object /*isEnum*/  {
     : self::UsedEnum::index = index, self::UsedEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self::UsedEnum::_name};
+    return this.{self::UsedEnum::_name}{core::String};
 }
 class UnusedInterface extends core::Object {
   field core::int? usedInterfaceField;
@@ -49,17 +49,17 @@ class UnusedClass extends core::Object {
     ;
 }
 static method usedMethod(self::UnusedInterface c) → dynamic {
-  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField};
+  c.{self::UnusedInterface::usedInterfaceField} = c.{self::UnusedInterface::usedInterfaceField}{core::int?};
 }
 static method unusedMethod() → dynamic {}
 static method main() → dynamic {
   self::usedMethod(let final self::UsedClass #t1 = new self::UsedClass::•() in block {
-    #t1.{self::UsedClass::usedField};
+    #t1.{self::UsedClass::usedField}{core::int?};
   } =>#t1);
   #C11;
   core::List<self::UnusedEnum> list = <self::UnusedEnum>[];
-  if(list.{core::Iterable::isNotEmpty}) {
-    new mai::ConstClass::•().{mai::ConstClass::method}((null as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} mai::ConstEnum);
+  if(list.{core::Iterable::isNotEmpty}{core::bool}) {
+    new mai::ConstClass::•().{mai::ConstClass::method}((null as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} mai::ConstEnum){(mai::ConstEnum) → core::int};
   }
 }
 
@@ -76,14 +76,14 @@ class ConstEnum extends core::Object /*isEnum*/  {
     : mai::ConstEnum::index = index, mai::ConstEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{mai::ConstEnum::_name};
+    return this.{mai::ConstEnum::_name}{core::String};
 }
 class ConstClass extends core::Object {
   synthetic constructor •() → mai::ConstClass
     : super core::Object::•()
     ;
   method method(mai::ConstEnum e) → core::int
-    return e.{mai::ConstEnum::index};
+    return e.{mai::ConstEnum::index}{core::int};
 }
 
 constants  {

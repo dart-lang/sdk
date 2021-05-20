@@ -8,7 +8,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     : self::C::t = t, super core::Object::•()
     ;
   constructor named(core::List<self::C::T*>* t) → self::C<self::C::T*>*
-    : this self::C::•(t.{core::List::[]}(0))
+    : this self::C::•(t.{core::List::[]}(0){(core::int*) →* self::C::T*})
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

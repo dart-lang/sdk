@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-19T20:22:15.931476",
+  "generated": "2021-05-20T07:53:18.817456",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -316,6 +316,12 @@
       "rootUri": "../pkg/frontend_server",
       "packageUri": "lib/",
       "languageVersion": "2.7"
+    },
+    {
+      "name": "frontend_server_client",
+      "rootUri": "../third_party/pkg/webdev/frontend_server_client",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "glob",

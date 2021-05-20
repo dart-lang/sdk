@@ -69,7 +69,7 @@ class Enum extends core::Object /*isEnum*/  {
     : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self::Enum::_name};
+    return this.{self::Enum::_name}{core::String};
 }
 static method returnImplicit() → core::String {
   core::print("foo");
@@ -616,13 +616,13 @@ static method localFunctions() → dynamic {
   core::int? local1 = (() → core::int? {
     if(b)
       return 0;
-  }).call();
+  })(){() → core::int?};
   core::int? local2 = (() → core::int? {
     if(b)
       return null;
     if(!b)
       return 0;
-  }).call();
+  })(){() → core::int?};
 }
 static method main() → dynamic {}
 

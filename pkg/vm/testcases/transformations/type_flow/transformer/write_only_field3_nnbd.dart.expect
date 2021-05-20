@@ -22,8 +22,8 @@ class B extends core::Object {
 }
 [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] [@vm.unboxing-info.metadata=(i)->i]late static final [setter] field core::int staticLateB;
 static method main() → void {
-  [@vm.direct-call.metadata=#lib::A.use] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::use}();
-  [@vm.direct-call.metadata=#lib::B.use] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::use}();
+  [@vm.direct-call.metadata=#lib::A.use] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::use}(){() → dynamic};
+  [@vm.direct-call.metadata=#lib::B.use] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::use}(){() → dynamic};
   4;
   self::staticLateB = 4;
 }

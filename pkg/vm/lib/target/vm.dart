@@ -63,7 +63,7 @@ class VmTarget extends Target {
       !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => false;
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   String get name => 'vm';

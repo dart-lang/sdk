@@ -86,7 +86,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
+      URL: 'https://dart.dev/diagnostics/ambiguous_export',
       CONTEXT_MESSAGES: [
         {
           MESSAGE: 'context',
@@ -130,7 +130,7 @@ class AnalysisErrorTest {
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
       CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
+      URL: 'https://dart.dev/diagnostics/ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -214,7 +214,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
+      URL: 'https://dart.dev/diagnostics/ambiguous_export',
       HAS_FIX: false
     });
   }

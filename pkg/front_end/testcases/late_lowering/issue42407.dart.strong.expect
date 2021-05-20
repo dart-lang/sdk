@@ -10,7 +10,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   get x() → self::A::T%
-    return this.{self::A::_#A#x#isSet} ?{self::A::T%} let final self::A::T? #t1 = this.{self::A::_#A#x} in #t1{self::A::T%} : throw new _in::LateError::fieldNI("x");
+    return this.{self::A::_#A#x#isSet}{core::bool} ?{self::A::T%} let final self::A::T? #t1 = this.{self::A::_#A#x}{self::A::T?} in #t1{self::A::T%} : throw new _in::LateError::fieldNI("x");
   set x(generic-covariant-impl self::A::T% #t2) → void {
     this.{self::A::_#A#x#isSet} = true;
     this.{self::A::_#A#x} = #t2;
@@ -22,7 +22,7 @@ class B<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   get y() → self::B::T?
-    return this.{self::B::_y};
+    return this.{self::B::_y}{self::B::T?};
   set y(generic-covariant-impl self::B::T? val) → void {
     this.{self::B::_y} = val;
   }
@@ -36,12 +36,12 @@ static method main() → dynamic {
   self::throws(() → void => b.{self::B::y} = 0.5);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 static method throws(() → void f) → dynamic {
   try {
-    f.call();
+    f(){() → void};
   }
   on core::Object catch(final core::Object _) {
     return;

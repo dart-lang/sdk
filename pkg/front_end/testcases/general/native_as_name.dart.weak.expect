@@ -78,12 +78,12 @@ class Z extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  core::print(new self::W::•().{self::W::native});
-  core::print(new self::X::•().{self::X::native}());
-  core::print(new self::Y2::•().{self::Y2::native});
+  core::print(new self::W::•().{self::W::native}{core::String*});
+  core::print(new self::X::•().{self::X::native}(){() →* core::String*});
+  core::print(new self::Y2::•().{self::Y2::native}{core::String*});
   core::print((let final self::Z* #t1 = new self::Z::•() in block {
     #t1.{self::Z::native} = "setter";
-  } =>#t1).{self::Z::f});
+  } =>#t1).{self::Z::f}{core::String*});
 }
 
 constants  {

@@ -13,7 +13,7 @@ static method fact4() → dynamic {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::int* n = :sync-for-iterator.{core::Iterator::current};
       {
-        f = f.{core::num::*}(n);
+        f = f.{core::num::*}(n){(core::num*) →* core::int*};
       }
     }
   }
@@ -28,7 +28,7 @@ static method fact5() → dynamic {
       final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
       {
         n = #t1;
-        f = f.{core::num::*}(n as{TypeError,ForDynamic} core::num*) as{TypeError} core::int*;
+        f = f.{core::num::*}(n as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*} as{TypeError} core::int*;
       }
     }
   }
@@ -42,14 +42,14 @@ static method fact6() → dynamic {
       final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
       {
         self::global = #t2;
-        f = f.{core::num::*}(self::global as{TypeError,ForDynamic} core::num*) as{TypeError} core::int*;
+        f = f.{core::num::*}(self::global as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*} as{TypeError} core::int*;
       }
     }
   }
   return f;
 }
 static method main() → dynamic {
-  exp::Expect::isTrue(self::fact4().{core::Object::==}(24));
-  exp::Expect::isTrue(self::fact5().{core::Object::==}(120));
-  exp::Expect::isTrue(self::fact6().{core::Object::==}(720));
+  exp::Expect::isTrue(self::fact4() =={core::Object::==}{(core::Object*) →* core::bool*} 24);
+  exp::Expect::isTrue(self::fact5() =={core::Object::==}{(core::Object*) →* core::bool*} 120);
+  exp::Expect::isTrue(self::fact6() =={core::Object::==}{(core::Object*) →* core::bool*} 720);
 }

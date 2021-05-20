@@ -167,8 +167,8 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
     return super.{mix::Mixin::publicMethod}();
 }
 static method main() → dynamic {
-  core::print(new self::C::•<dynamic>().{self::_C&Super&Mixin::foo}());
-  core::print(new self::C2::•<dynamic>().{self::C2::foo}());
+  core::print(new self::C::•<dynamic>().{self::_C&Super&Mixin::foo}(){() →* dynamic});
+  core::print(new self::C2::•<dynamic>().{self::C2::foo}(){() →* dynamic});
 }
 
 library test.mixin_library;
@@ -191,7 +191,7 @@ class Mixin<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method foo() → dynamic
-    return super.foo().+(mix::f());
+    return super.foo(){dynamic}.+(mix::f());
   method g(generic-covariant-impl mix::Mixin::T* a) → mix::Mixin::T*
     return null;
   method h() → dynamic
@@ -201,7 +201,7 @@ class Mixin<T extends core::Object* = dynamic> extends core::Object {
   method _privateMethod() → dynamic
     return 49;
   method publicMethod() → dynamic
-    return this.{mix::Mixin::_privateMethod}();
+    return this.{mix::Mixin::_privateMethod}(){() →* dynamic};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -220,4 +220,4 @@ static method V() → dynamic
 static method _private() → dynamic
   return 117;
 static method foo(dynamic m) → dynamic
-  return m._privateMethod();
+  return m{dynamic}._privateMethod();

@@ -23,12 +23,12 @@ static method identity(dynamic x) → dynamic
 static method use(dynamic x) → void {}
 static method main(core::List<core::String*>* args) → dynamic {
   dynamic foo = self::identity(new self::Foo::•());
-  if(args.{core::List::length}.{core::num::>}(1)) {
-    foo.field = "string";
-    dynamic first = foo.field;
+  if(args.{core::List::length}{core::int*}.{core::num::>}(1){(core::num*) →* core::bool*}) {
+    foo{dynamic}.field = "string";
+    dynamic first = foo{dynamic}.field;
     self::use(first);
-    foo.noField = "string";
-    dynamic second = foo.noField;
+    foo{dynamic}.noField = "string";
+    dynamic second = foo{dynamic}.noField;
     self::use(second);
   }
 }

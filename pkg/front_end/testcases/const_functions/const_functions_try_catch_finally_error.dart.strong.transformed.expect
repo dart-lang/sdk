@@ -49,7 +49,7 @@ static const field core::int var4 = invalid-expression "Unhandled exception: \"s
 static const field core::int var5 = invalid-expression "Unhandled exception: \"a\"";
 static method finallyThrow(core::int x) → core::int {
   try {
-    if(x.{core::num::==}(1)) {
+    if(x =={core::num::==}{(core::Object) → core::bool} 1) {
       throw x;
     }
     else {
@@ -70,8 +70,8 @@ static method unhandledThrow(dynamic x) → core::int {
 }
 static method unhandledThrow2() → core::int {
   core::int count = 0;
-  for (core::int i = 0; i.{core::num::<}(1); throw "a") {
-    count = count.{core::num::+}(i);
+  for (core::int i = 0; i.{core::num::<}(1){(core::num) → core::bool}; throw "a") {
+    count = count.{core::num::+}(i){(core::num) → core::int};
   }
   return 0;
 }

@@ -92,21 +92,21 @@ static field core::List<self::B*>* xs;
 static field core::List<core::List<self::B*>*>* xss;
 static method main() → void {
   self::throws(() → Null {
-    new self::Class::•<self::A*>().{self::Class::method2a}(new self::B::•());
-    core::print(self::xs.{core::Object::runtimeType});
+    new self::Class::•<self::A*>().{self::Class::method2a}(new self::B::•()){(self::A*) →* void};
+    core::print(self::xs.{core::Object::runtimeType}{core::Type*});
   });
   self::throws(() → Null {
-    new self::Class::•<self::A*>().{self::Class::method2b}(new self::B::•());
-    core::print(self::xs.{core::Object::runtimeType});
+    new self::Class::•<self::A*>().{self::Class::method2b}(new self::B::•()){(self::A*) →* void};
+    core::print(self::xs.{core::Object::runtimeType}{core::Type*});
   });
 }
 static method errors() → void {
-  new self::Class::•<self::A*>().{self::Class::method1a}(new self::B::•());
-  new self::Class::•<self::A*>().{self::Class::method1b}(new self::B::•());
+  new self::Class::•<self::A*>().{self::Class::method1a}(new self::B::•()){(self::A*) →* void};
+  new self::Class::•<self::A*>().{self::Class::method1b}(new self::B::•()){(self::A*) →* void};
 }
 static method throws(() →* void f) → void {
   try {
-    f.call();
+    f(){() →* void};
   }
   on dynamic catch(final dynamic e) {
     core::print(e);

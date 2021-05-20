@@ -30,7 +30,7 @@ class FooEnum extends core::Object /*isEnum*/  {
     : self::FooEnum::index = index, self::FooEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{self::FooEnum::_name};
+    return this.{self::FooEnum::_name}{core::String};
 }
 class Keep extends core::Object {
   synthetic constructor •() → self::Keep
@@ -46,9 +46,9 @@ static method toString() → core::String
   return "I am static";
 static method main() → void {
   final self::IFoo foo = new self::Foo::•();
-  core::print(foo.{self::IFoo::toString}());
-  core::print(new self::Keep::•().{self::Keep::toString}());
-  core::print((#C7).{self::FooEnum::toString}());
+  core::print(foo.{self::IFoo::toString}(){() → core::String});
+  core::print(new self::Keep::•().{self::Keep::toString}(){() → core::String});
+  core::print((#C7).{self::FooEnum::toString}(){() → core::String});
 }
 constants  {
   #C1 = core::_Override {}

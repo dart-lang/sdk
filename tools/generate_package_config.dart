@@ -60,6 +60,7 @@ void main(List<String> args) {
     packageDirectory('third_party/devtools/devtools_server'),
     packageDirectory('third_party/devtools/devtools_shared'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
+    packageDirectory('third_party/pkg/webdev/frontend_server_client'),
     packageDirectory('tools/package_deps'),
   ];
 

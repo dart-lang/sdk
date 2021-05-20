@@ -101,8 +101,8 @@ static method main() → dynamic {
   new lib::C::•<core::String*>();
   new lib::C::a<core::String*>();
   new lib::C::a<core::String*>();
-  new self::WithMixin::•().{lib::Supertype::supertypeMethod}();
-  new self::WithMixin::•().{self::_WithMixin&Supertype&Mixin::foo}();
+  new self::WithMixin::•().{lib::Supertype::supertypeMethod}(){() →* dynamic};
+  new self::WithMixin::•().{self::_WithMixin&Supertype&Mixin::foo}(){() →* dynamic};
   new self::IllegalSupertype::•();
 }
 

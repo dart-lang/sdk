@@ -29,6 +29,6 @@ static method E|get#two(lowered final self::C* #this) → core::int*
   return 2;
 static method main() → dynamic {
   self::C* c = new self::C::•();
-  core::int* result = c.{self::C::one}.{core::num::+}(self::E|get#two(c));
+  core::int* result = c.{self::C::one}{core::int*}.{core::num::+}(self::E|get#two(c)){(core::num*) →* core::int*};
   exp::Expect::equals(result, 3);
 }

@@ -32,10 +32,10 @@ class E extends self::D {
   method f(covariant core::int* x) → void {}
 }
 static method g1(self::C* c) → void {
-  c.{self::C::f}(1.5);
+  c.{self::C::f}(1.5){(core::num*) →* void};
 }
 static method g2(self::C* c) → (core::num*) →* dynamic {
-  return c.{self::C::f};
+  return c.{self::C::f}{(core::num*) →* void};
 }
 static method test() → dynamic {
   self::g1(new self::D::•());

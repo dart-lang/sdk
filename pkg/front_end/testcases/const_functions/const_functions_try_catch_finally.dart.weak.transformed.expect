@@ -43,7 +43,7 @@ static method fn1(dynamic error) → core::int {
 static method finallyReturn(dynamic error) → core::int {
   try
     try {
-      if(!error.{core::Object::==}(1))
+      if(!(error =={core::Object::==}{(core::Object) → core::bool} 1))
         throw error;
     }
     on core::int catch(final core::int e) {
@@ -58,7 +58,7 @@ static method finallyReturn(dynamic error) → core::int {
 }
 static method finallyReturn1(core::int x) → core::int {
   try {
-    if(x.{core::num::==}(1)) {
+    if(x =={core::num::==}{(core::Object) → core::bool} 1) {
       throw x;
     }
     else {
@@ -75,7 +75,7 @@ static method finallyMutate() → core::int {
     return x;
   }
   finally {
-    x = x.{core::num::+}(1);
+    x = x.{core::num::+}(1){(core::num) → core::int};
   }
 }
 static method subtypeFn() → core::int {
@@ -90,21 +90,21 @@ static method orderFn() → core::String {
   core::String x = "st";
   try
     try {
-      x = x.{core::String::+}("ri");
+      x = x.{core::String::+}("ri"){(core::String) → core::String};
       throw 2;
     }
     on core::Object catch(final core::Object e) {
-      x = x.{core::String::+}("n");
+      x = x.{core::String::+}("n"){(core::String) → core::String};
     }
   finally {
-    return x.{core::String::+}("g");
+    return x.{core::String::+}("g"){(core::String) → core::String};
   }
 }
 static method notThrowStatement() → core::int {
   core::int count = 0;
   try {
-    for (core::int i = 0; i.{core::num::<}(1); throw "a") {
-      count = count.{core::num::+}(i);
+    for (core::int i = 0; i.{core::num::<}(1){(core::num) → core::bool}; throw "a") {
+      count = count.{core::num::+}(i){(core::num) → core::int};
     }
   }
   on core::Object catch(final core::Object e) {

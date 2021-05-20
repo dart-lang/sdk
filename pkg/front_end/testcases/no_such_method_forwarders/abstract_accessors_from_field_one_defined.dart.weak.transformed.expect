@@ -41,7 +41,7 @@ class C extends self::B {
     : super self::B::•()
     ;
   no-such-method-forwarder set foo(core::int* value) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
 }
 abstract class D extends core::Object implements self::A {
   synthetic constructor •() → self::D*
@@ -65,11 +65,11 @@ class E extends self::D {
     : super self::D::•()
     ;
   no-such-method-forwarder get foo() → core::int*
-    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::int*;
 }
 static method expectTypeError(() →* dynamic callback) → void {
   try {
-    callback.call();
+    callback(){() →* dynamic};
     throw "Expected TypeError, did not occur";
   }
   on core::TypeError* catch(no-exception-var) {
@@ -77,9 +77,9 @@ static method expectTypeError(() →* dynamic callback) → void {
 }
 static method main() → dynamic {
   self::C* c = new self::C::•();
-  self::expectTypeError(() → core::String* => (c as dynamic).foo = "bar");
+  self::expectTypeError(() → core::String* => (c as dynamic){dynamic}.foo = "bar");
   self::E* e = new self::E::•();
-  self::expectTypeError(() → core::int* => e.{self::A::foo});
+  self::expectTypeError(() → core::int* => e.{self::A::foo}{core::int*});
 }
 
 constants  {
