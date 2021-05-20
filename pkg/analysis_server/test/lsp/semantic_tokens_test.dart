@@ -465,7 +465,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_keywords() async {
     // "control" keywords should be tagged with a modifier so the client
-    // can colour them differently to other keywords.
+    // can color them differently to other keywords.
     final content = r'''
     void main() async {
       var a = new Object();
@@ -804,7 +804,7 @@ class MyClass {}
     final content = '''
 String foo(String c) => c;
 const string1 = 'test';
-const string2 = 'test1 \$string1 test2 \${foo('test3')}';
+const string2 = 'test1 \$string1 test2 \${foo('a' + 'b')}';
 const string3 = r'\$string1 \${string1.length}';
 const string4 = \'\'\'
 multi
@@ -821,25 +821,40 @@ multi
       _Token('c', SemanticTokenTypes.parameter,
           [SemanticTokenModifiers.declaration]),
       _Token('c', SemanticTokenTypes.parameter),
+
       _Token('const', SemanticTokenTypes.keyword),
       _Token('string1', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token("'test'", SemanticTokenTypes.string),
+
       _Token('const', SemanticTokenTypes.keyword),
       _Token('string2', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token(r"'test1 ", SemanticTokenTypes.string),
+      _Token(r'$', CustomSemanticTokenTypes.source,
+          [CustomSemanticTokenModifiers.interpolation]),
       _Token('string1', SemanticTokenTypes.property),
       _Token(' test2 ', SemanticTokenTypes.string),
+      _Token(r'${', CustomSemanticTokenTypes.source,
+          [CustomSemanticTokenModifiers.interpolation]),
       _Token('foo', SemanticTokenTypes.function),
-      _Token("'test3'", SemanticTokenTypes.string),
+      _Token('(', CustomSemanticTokenTypes.source,
+          [CustomSemanticTokenModifiers.interpolation]),
+      _Token("'a'", SemanticTokenTypes.string),
+      _Token(' + ', CustomSemanticTokenTypes.source,
+          [CustomSemanticTokenModifiers.interpolation]),
+      _Token("'b'", SemanticTokenTypes.string),
+      _Token(')}', CustomSemanticTokenTypes.source,
+          [CustomSemanticTokenModifiers.interpolation]),
       _Token("'", SemanticTokenTypes.string),
-      _Token('const', SemanticTokenTypes.keyword),
+
       // string3 is raw and should be treated as a single string.
+      _Token('const', SemanticTokenTypes.keyword),
       _Token('string3', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token(r"r'$string1 ${string1.length}'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
+
       _Token('string4', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token("'''\n", SemanticTokenTypes.string),

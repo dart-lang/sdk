@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/characters.dart' as char;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
     show SemanticTokenTypes, SemanticTokenModifiers;
 import 'package:analysis_server/src/lsp/constants.dart'
-    show CustomSemanticTokenModifiers;
+    show CustomSemanticTokenModifiers, CustomSemanticTokenTypes;
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart'
     show SemanticTokenInfo;
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart'
@@ -816,6 +816,31 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitIntegerLiteral(IntegerLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_INTEGER);
     super.visitIntegerLiteral(node);
+  }
+
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    if (computer._computeSemanticTokens) {
+      // Interpolation expressions may include uncolored code, but clients may
+      // be providing their own basic coloring for strings that would leak
+      // into those uncolored parts so we mark them up to allow the client to
+      // reset the coloring if required.
+      //
+      // Using the String token type with a modifier would work for VS Code but
+      // would cause other editors that don't know about the modifier (and also
+      // do not have their own local coloring) to color the tokens as a string,
+      // which is exactly what we'd like to avoid).
+
+      computer._addRegion_node(
+        node,
+        // The HighlightRegionType here is not used because of the
+        // computer._computeSemanticTokens check above.
+        HighlightRegionType.LITERAL_STRING,
+        semanticTokenType: CustomSemanticTokenTypes.source,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.interpolation},
+      );
+    }
+    super.visitInterpolationExpression(node);
   }
 
   @override
