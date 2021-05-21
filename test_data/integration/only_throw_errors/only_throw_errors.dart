@@ -61,15 +61,34 @@ Exception returnException() => new Exception('oh!');
 // TODO: Even though in the test this does not get linted, it does while
 // analyzing the SDK code. Find out why.
 dynamic noSuchMethod(Invocation invocation) {
-  throw new NoSuchMethodError(
-      new Object(),
-      invocation.memberName,
-      invocation.positionalArguments,
-      invocation.namedArguments);
+  throw new NoSuchMethodError(new Object(), invocation.memberName,
+      invocation.positionalArguments, invocation.namedArguments);
 }
 
-class E extends Object with Exception {
+class Err extends Object with Exception {
   static throws() {
-    throw new E(); // OK
+    throw new Err(); // OK
+  }
+}
+
+void throwsDynamicPromotedToNonError(dynamic error) {
+  if (error is String) {
+    throw error; // LINT
+  }
+}
+
+void throwsPromotedObject(Object error) {
+  if (error is Error) {
+    throw error; // OK
+  }
+}
+
+void throwsBoundTypeVariable<E extends Exception>(E error) {
+  throw error; // OK
+}
+
+throwsPromotedTypeVariable<E>(E error) {
+  if (error is Error) {
+    throw error; // OK
   }
 }

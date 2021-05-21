@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -199,15 +200,16 @@ class DartTypeUtilities {
 
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {
-    if (type is! InterfaceType) {
+    bool isAnyInterface(InterfaceType i) =>
+        definitions.any((d) => isInterface(i, d.name, d.library));
+
+    if (type is InterfaceType) {
+      var element = type.element;
+      return isAnyInterface(type) ||
+          !element.isSynthetic && element.allSupertypes.any(isAnyInterface);
+    } else {
       return false;
     }
-    var interfaceType = type;
-    bool predicate(InterfaceType i) =>
-        definitions.any((d) => isInterface(i, d.name, d.library));
-    var element = interfaceType.element;
-    return predicate(interfaceType) ||
-        !element.isSynthetic && element.allSupertypes.any(predicate);
   }
 
   static bool implementsInterface(
@@ -558,5 +560,26 @@ class InterfaceTypeDefinition {
     return other is InterfaceTypeDefinition &&
         name == other.name &&
         library == other.library;
+  }
+}
+
+extension DartTypeExtensions on DartType {
+  /// Returns the type which should be used when conducting "interface checks"
+  /// on `this`.
+  ///
+  /// If `this` is a type variable, then the type-for-interface-check of its
+  /// promoted bound or bound is returned. Otherwise, `this` is returned.
+  DartType get typeForInterfaceCheck {
+    if (this is TypeParameterType) {
+      if (this is TypeParameterTypeImpl) {
+        var promotedType = (this as TypeParameterTypeImpl).promotedBound;
+        if (promotedType != null) {
+          return promotedType.typeForInterfaceCheck;
+        }
+      }
+      return (this as TypeParameterType).bound.typeForInterfaceCheck;
+    } else {
+      return this;
+    }
   }
 }

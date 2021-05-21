@@ -45,15 +45,20 @@ const _errorClassName = 'Error';
 const _exceptionClassName = 'Exception';
 
 const _library = 'dart.core';
+
 final LinkedHashSet<InterfaceTypeDefinition> _interfaceDefinitions =
-    LinkedHashSet<InterfaceTypeDefinition>.from([
+    LinkedHashSet.of([
   InterfaceTypeDefinition(_exceptionClassName, _library),
-  InterfaceTypeDefinition(_errorClassName, _library)
+  InterfaceTypeDefinition(_errorClassName, _library),
 ]);
-bool _isThrowable(DartType? type) =>
-    type == null ||
-    type.isDynamic ||
-    DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);
+
+bool _isThrowable(DartType? type) {
+  var typeForInterfaceCheck = type?.typeForInterfaceCheck;
+  return typeForInterfaceCheck == null ||
+      typeForInterfaceCheck.isDynamic ||
+      DartTypeUtilities.implementsAnyInterface(
+          typeForInterfaceCheck, _interfaceDefinitions);
+}
 
 class OnlyThrowErrors extends LintRule implements NodeLintRule {
   OnlyThrowErrors()

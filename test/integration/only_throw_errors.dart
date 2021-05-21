@@ -38,7 +38,8 @@ void main() {
             'throw 7; // LINT',
             'throw new Object(); // LINT',
             'throw returnString(); // LINT',
-            '1 file analyzed, 5 issues found, in'
+            'throw error; // LINT',
+            '1 file analyzed, 6 issues found, in'
           ]));
       expect(exitCode, 1);
     });
