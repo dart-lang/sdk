@@ -1994,27 +1994,32 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is AbortConstant) return receiver;
-    final List<Constant>? arguments =
+    final List<Constant>? positionalArguments =
         _evaluatePositionalArguments(node.arguments);
 
-    if (arguments == null) {
+    if (positionalArguments == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
       return error;
     }
     assert(_gotError == null);
     // ignore: unnecessary_null_comparison
-    assert(arguments != null);
+    assert(positionalArguments != null);
 
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new DynamicInvocation(node.kind, extract(receiver), node.name,
-              unevaluatedArguments(arguments, {}, node.arguments.types))
+          new DynamicInvocation(
+              node.kind,
+              extract(receiver),
+              node.name,
+              unevaluatedArguments(
+                  positionalArguments, {}, node.arguments.types))
             ..fileOffset = node.fileOffset);
     }
 
-    return _handleInvocation(node, node.name, receiver, arguments);
+    return _handleInvocation(node, node.name, receiver, positionalArguments,
+        arguments: node.arguments);
   }
 
   @override
@@ -2033,30 +2038,35 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is AbortConstant) return receiver;
-    final List<Constant>? arguments =
+    final List<Constant>? positionalArguments =
         _evaluatePositionalArguments(node.arguments);
 
-    if (arguments == null) {
+    if (positionalArguments == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
       return error;
     }
     assert(_gotError == null);
     // ignore: unnecessary_null_comparison
-    assert(arguments != null);
+    assert(positionalArguments != null);
 
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new InstanceInvocation(node.kind, extract(receiver), node.name,
-              unevaluatedArguments(arguments, {}, node.arguments.types),
+          new InstanceInvocation(
+              node.kind,
+              extract(receiver),
+              node.name,
+              unevaluatedArguments(
+                  positionalArguments, {}, node.arguments.types),
               functionType: node.functionType,
               interfaceTarget: node.interfaceTarget)
             ..fileOffset = node.fileOffset
             ..flags = node.flags);
     }
 
-    return _handleInvocation(node, node.name, receiver, arguments);
+    return _handleInvocation(node, node.name, receiver, positionalArguments,
+        arguments: node.arguments);
   }
 
   @override
@@ -2181,9 +2191,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
   }
 
-  Constant _handleInvocation(
-      Expression node, Name name, Constant receiver, List<Constant> arguments,
-      {List<DartType>? typeArguments, Map<String, Constant>? namedArguments}) {
+  Constant _handleInvocation(Expression node, Name name, Constant receiver,
+      List<Constant> positionalArguments,
+      {required Arguments arguments}) {
     final String op = name.text;
 
     // TODO(kallentu): Handle all constant toString methods.
@@ -2195,15 +2205,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     // Handle == and != first (it's common between all types). Since `a != b` is
     // parsed as `!(a == b)` it is handled implicitly through ==.
-    if (arguments.length == 1 && op == '==') {
-      final Constant right = arguments[0];
+    if (positionalArguments.length == 1 && op == '==') {
+      final Constant right = positionalArguments[0];
       return _handleEquals(node, receiver, right);
     }
 
     // This is a white-listed set of methods we need to support on constants.
     if (receiver is StringConstant) {
-      if (arguments.length == 1) {
-        final Constant other = arguments[0];
+      if (positionalArguments.length == 1) {
+        final Constant other = positionalArguments[0];
         switch (op) {
           case '+':
             if (other is StringConstant) {
@@ -2240,10 +2250,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
       }
     } else if (intFolder.isInt(receiver)) {
-      if (arguments.length == 0) {
+      if (positionalArguments.length == 0) {
         return canonicalize(intFolder.foldUnaryOperator(node, op, receiver));
-      } else if (arguments.length == 1) {
-        final Constant other = arguments[0];
+      } else if (positionalArguments.length == 1) {
+        final Constant other = positionalArguments[0];
         if (intFolder.isInt(other)) {
           return canonicalize(
               intFolder.foldBinaryOperator(node, op, receiver, other));
@@ -2284,13 +2294,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 receiver.getType(_staticTypeContext!),
                 isNonNullableByDefault));
       }
-      if (arguments.length == 0) {
+      if (positionalArguments.length == 0) {
         switch (op) {
           case 'unary-':
             return canonicalize(new DoubleConstant(-receiver.value));
         }
-      } else if (arguments.length == 1) {
-        final Constant other = arguments[0];
+      } else if (positionalArguments.length == 1) {
+        final Constant other = positionalArguments[0];
 
         if (other is IntConstant || other is DoubleConstant) {
           final num value = (other as PrimitiveConstant<num>).value;
@@ -2307,8 +2317,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 isNonNullableByDefault));
       }
     } else if (receiver is BoolConstant) {
-      if (arguments.length == 1) {
-        final Constant other = arguments[0];
+      if (positionalArguments.length == 1) {
+        final Constant other = positionalArguments[0];
         if (other is BoolConstant) {
           switch (op) {
             case '|':
@@ -2326,8 +2336,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
     } else if (receiver is ListConstant && enableConstFunctions) {
-      if (arguments.length == 1) {
-        final Constant other = arguments[0];
+      if (positionalArguments.length == 1) {
+        final Constant other = positionalArguments[0];
         switch (op) {
           case '[]':
             int? index = intFolder.asInt(other);
@@ -2355,8 +2365,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
       }
     } else if (receiver is MapConstant && enableConstFunctions) {
-      if (arguments.length == 1) {
-        final Constant other = arguments[0];
+      if (positionalArguments.length == 1) {
+        final Constant other = positionalArguments[0];
         switch (op) {
           case '[]':
             for (ConstantMapEntry entry in receiver.entries) {
@@ -2367,41 +2377,70 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             return new NullConstant();
         }
       }
-    } else if (receiver is InstanceConstant && enableConstFunctions) {
-      final Class instanceClass = receiver.classNode;
-      assert(typeEnvironment.hierarchy is ClassHierarchy);
-      final Member member = (typeEnvironment.hierarchy as ClassHierarchy)
-          .getDispatchTarget(instanceClass, name)!;
-      final FunctionNode? function = member.function;
-
-      // TODO(kallentu): Implement [Object] class methods which have backend
-      // specific functions that cannot be run by the constant evaluator.
-      final bool isObjectMember = member.enclosingClass != null &&
-          member.enclosingClass!.name == "Object";
-      if (function != null && !isObjectMember) {
-        // TODO(johnniwinther): Make [typeArguments] and [namedArguments]
-        // required and non-nullable.
-        return withNewInstanceBuilder(instanceClass, typeArguments!, () {
-          final EvaluationEnvironment newEnv = new EvaluationEnvironment();
-          for (int i = 0; i < instanceClass.typeParameters.length; i++) {
-            newEnv.addTypeParameterValue(
-                instanceClass.typeParameters[i], receiver.typeArguments[i]);
-          }
-
-          // Ensure that fields are visible for instance access.
-          receiver.fieldValues.forEach((Reference fieldRef, Constant value) =>
-              instanceBuilder!.setFieldValue(fieldRef.asField, value));
-          return _handleFunctionInvocation(
-              function, receiver.typeArguments, arguments, namedArguments!,
-              functionEnvironment: newEnv);
-        });
+    } else if (enableConstFunctions) {
+      // Evaluate type arguments of the method invoked.
+      List<DartType>? typeArguments = _evaluateTypeArguments(node, arguments);
+      if (typeArguments == null) {
+        AbortConstant error = _gotError!;
+        _gotError = null;
+        return error;
       }
+      assert(_gotError == null);
+      // ignore: unnecessary_null_comparison
+      assert(typeArguments != null);
 
-      switch (op) {
-        case 'toString':
-          // Default value for toString() of instances.
-          return new StringConstant(
-              "Instance of '${receiver.classReference.toStringInternal()}'");
+      // Evaluate named arguments of the method invoked.
+      final Map<String, Constant>? namedArguments =
+          _evaluateNamedArguments(arguments);
+      if (namedArguments == null) {
+        AbortConstant error = _gotError!;
+        _gotError = null;
+        return error;
+      }
+      assert(_gotError == null);
+      // ignore: unnecessary_null_comparison
+      assert(namedArguments != null);
+
+      if (receiver is FunctionValue && name == Name.callName) {
+        return _handleFunctionInvocation(receiver.function, typeArguments,
+            positionalArguments, namedArguments,
+            functionEnvironment: receiver.environment);
+      } else if (receiver is InstanceConstant) {
+        final Class instanceClass = receiver.classNode;
+        assert(typeEnvironment.hierarchy is ClassHierarchy);
+        final Member member = (typeEnvironment.hierarchy as ClassHierarchy)
+            .getDispatchTarget(instanceClass, name)!;
+        final FunctionNode? function = member.function;
+
+        // TODO(kallentu): Implement [Object] class methods which have backend
+        // specific functions that cannot be run by the constant evaluator.
+        final bool isObjectMember = member.enclosingClass != null &&
+            member.enclosingClass!.name == "Object";
+        if (function != null && !isObjectMember) {
+          // TODO(johnniwinther): Make [typeArguments] and [namedArguments]
+          // required and non-nullable.
+          return withNewInstanceBuilder(instanceClass, typeArguments, () {
+            final EvaluationEnvironment newEnv = new EvaluationEnvironment();
+            for (int i = 0; i < instanceClass.typeParameters.length; i++) {
+              newEnv.addTypeParameterValue(
+                  instanceClass.typeParameters[i], receiver.typeArguments[i]);
+            }
+
+            // Ensure that fields are visible for instance access.
+            receiver.fieldValues.forEach((Reference fieldRef, Constant value) =>
+                instanceBuilder!.setFieldValue(fieldRef.asField, value));
+            return _handleFunctionInvocation(function, receiver.typeArguments,
+                positionalArguments, namedArguments,
+                functionEnvironment: newEnv);
+          });
+        }
+
+        switch (op) {
+          case 'toString':
+            // Default value for toString() of instances.
+            return new StringConstant(
+                "Instance of '${receiver.classReference.toStringInternal()}'");
+        }
       }
     }
 
@@ -2428,51 +2467,17 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is AbortConstant) return receiver;
 
-    final List<Constant>? arguments =
+    final List<Constant>? positionalArguments =
         _evaluatePositionalArguments(node.arguments);
 
-    if (arguments == null) {
+    if (positionalArguments == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
       return error;
     }
     assert(_gotError == null);
     // ignore: unnecessary_null_comparison
-    assert(arguments != null);
-
-    if (enableConstFunctions) {
-      // Evaluate type arguments of the method invoked.
-      List<DartType>? types = _evaluateTypeArguments(node, node.arguments);
-      if (types == null) {
-        AbortConstant error = _gotError!;
-        _gotError = null;
-        return error;
-      }
-      assert(_gotError == null);
-      // ignore: unnecessary_null_comparison
-      assert(types != null);
-
-      // Evaluate named arguments of the method invoked.
-      final Map<String, Constant>? named =
-          _evaluateNamedArguments(node.arguments);
-      if (named == null) {
-        AbortConstant error = _gotError!;
-        _gotError = null;
-        return error;
-      }
-      assert(_gotError == null);
-      // ignore: unnecessary_null_comparison
-      assert(named != null);
-
-      if (receiver is FunctionValue) {
-        return _handleFunctionInvocation(
-            receiver.function, types, arguments, named,
-            functionEnvironment: receiver.environment);
-      }
-
-      return _handleInvocation(node, node.name, receiver, arguments,
-          typeArguments: types, namedArguments: named);
-    }
+    assert(positionalArguments != null);
 
     if (shouldBeUnevaluated) {
       return unevaluated(
@@ -2480,13 +2485,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new MethodInvocation(
               extract(receiver),
               node.name,
-              unevaluatedArguments(arguments, {}, node.arguments.types),
+              unevaluatedArguments(
+                  positionalArguments, {}, node.arguments.types),
               node.interfaceTarget)
             ..fileOffset = node.fileOffset
             ..flags = node.flags);
     }
 
-    return _handleInvocation(node, node.name, receiver, arguments);
+    return _handleInvocation(node, node.name, receiver, positionalArguments,
+        arguments: node.arguments);
   }
 
   @override

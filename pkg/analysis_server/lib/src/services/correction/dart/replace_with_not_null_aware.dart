@@ -21,6 +21,9 @@ class ReplaceWithNotNullAware extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NOT_NULL_AWARE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_NOT_NULL_AWARE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = coveredNode;
     if (node is MethodInvocation) {

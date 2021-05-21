@@ -76,6 +76,6 @@ constants  {
   #C2 = TypeLiteralConstant(<T extends core::Object? = dynamic>() →* void)
   #C3 = TypeLiteralConstant(<T extends core::Object? = dynamic>() →* T*)
   #C4 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T*) →* void)
-  #C5 = TypeLiteralConstant(<T extends <S extends core::Object? = dynamic>(S*) →* S*>(T*) →* T*)
-  #C6 = TypeLiteralConstant(<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T*, S*, <V extends S*, U extends core::Object? = dynamic>(T*, U*, V*, core::Map<S*, U*>*) →* V*) →* T*)
+  #C5 = TypeLiteralConstant(<T extends <S extends core::Object? = dynamic>(S*) →* S* = dynamic>(T*) →* T*)
+  #C6 = TypeLiteralConstant(<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T*, S*, <V extends S* = dynamic, U extends core::Object? = dynamic>(T*, U*, V*, core::Map<S*, U*>*) →* V*) →* T*)
 }
