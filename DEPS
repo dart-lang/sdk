@@ -85,7 +85,7 @@ vars = {
   "chrome_rev" : "19997",
   "cli_util_rev" : "8c504de5deb08fe32ecf51f9662bb37d8c708e57",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
-  "collection_rev": "ae0725c97130756d59d8b9b87c0bb0e3e9f3eada",
+  "collection_rev": "9967dcd3d7645db6de48d5abfab3018bb0c84236",
   "convert_rev": "a60156c6efd653657c8926b5788219ed609917d7",
   "crypto_rev": "1c8ccc07b83b100216dc6dede767371043385648",
   "csslib_rev": "e411d862fd8cc50415c1badf2632e017373b3f47",
