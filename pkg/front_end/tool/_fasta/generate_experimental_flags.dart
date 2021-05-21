@@ -4,7 +4,7 @@
 
 // @dart=2.9
 
-import 'dart:io' show File, Platform;
+import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $A, $MINUS, $a, $z;
@@ -15,35 +15,35 @@ import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
+import '../../test/utils/io_utils.dart' show computeRepoDirUri;
+
 main(List<String> arguments) {
-  new File.fromUri(computeCfeGeneratedFile())
-      .writeAsStringSync(generateCfeFile(), flush: true);
-  new File.fromUri(computeKernelGeneratedFile())
-      .writeAsStringSync(generateKernelFile(), flush: true);
+  final Uri repoDir = computeRepoDirUri();
+  new File.fromUri(computeCfeGeneratedFile(repoDir))
+      .writeAsStringSync(generateCfeFile(repoDir), flush: true);
+  new File.fromUri(computeKernelGeneratedFile(repoDir))
+      .writeAsStringSync(generateKernelFile(repoDir), flush: true);
 }
 
-Uri computeCfeGeneratedFile() {
-  return Platform.script
-      .resolve("../../lib/src/api_prototype/experimental_flags_generated.dart");
+Uri computeCfeGeneratedFile(Uri repoDir) {
+  return repoDir.resolve(
+      "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart");
 }
 
-Uri computeKernelGeneratedFile() {
-  return Platform.script
-      .resolve("../../../kernel/lib/default_language_version.dart");
+Uri computeKernelGeneratedFile(Uri repoDir) {
+  return repoDir.resolve("pkg/kernel/lib/default_language_version.dart");
 }
 
-Uri computeYamlFile() {
-  return Platform.script
-      .resolve("../../../../tools/experimental_features.yaml");
+Uri computeYamlFile(Uri repoDir) {
+  return repoDir.resolve("tools/experimental_features.yaml");
 }
 
-Uri computeAllowListFile() {
-  return Platform.script
-      .resolve("../../../../sdk/lib/_internal/allowed_experiments.json");
+Uri computeAllowListFile(Uri repoDir) {
+  return repoDir.resolve("sdk/lib/_internal/allowed_experiments.json");
 }
 
-String generateKernelFile() {
-  Uri yamlFile = computeYamlFile();
+String generateKernelFile(Uri repoDir) {
+  Uri yamlFile = computeYamlFile(repoDir);
   Map<dynamic, dynamic> yaml =
       loadYaml(new File.fromUri(yamlFile).readAsStringSync());
 
@@ -76,8 +76,8 @@ Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVer
   return new DartFormatter().format("$sb");
 }
 
-String generateCfeFile() {
-  Uri yamlFile = computeYamlFile();
+String generateCfeFile(Uri repoDir) {
+  Uri yamlFile = computeYamlFile(repoDir);
   Map<dynamic, dynamic> yaml =
       loadYaml(new File.fromUri(yamlFile).readAsStringSync());
 
@@ -237,7 +237,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   
 ''');
 
-  Uri allowListFile = computeAllowListFile();
+  Uri allowListFile = computeAllowListFile(repoDir);
   AllowedExperiments allowedExperiments = parseAllowedExperiments(
       new File.fromUri(allowListFile).readAsStringSync());
 

@@ -4,9 +4,7 @@
 
 // @dart=2.9
 
-import 'dart:io';
-
-import 'dart:isolate';
+import 'dart:io' show File, exitCode;
 
 import "package:_fe_analyzer_shared/src/messages/severity.dart"
     show severityEnumNames;
@@ -15,30 +13,31 @@ import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'package:yaml/yaml.dart' show loadYaml;
 
-main(List<String> arguments) async {
-  var port = new ReceivePort();
-  Messages message = await generateMessagesFiles();
+import '../../test/utils/io_utils.dart' show computeRepoDirUri;
+
+main(List<String> arguments) {
+  final Uri repoDir = computeRepoDirUri();
+  Messages message = generateMessagesFiles(repoDir);
   if (message.sharedMessages.trim().isEmpty ||
       message.cfeMessages.trim().isEmpty) {
     print("Bailing because of errors: "
         "Refusing to overwrite with empty file!");
   } else {
-    await new File.fromUri(await computeSharedGeneratedFile())
-        .writeAsString(message.sharedMessages, flush: true);
-    await new File.fromUri(await computeCfeGeneratedFile())
-        .writeAsString(message.cfeMessages, flush: true);
+    new File.fromUri(computeSharedGeneratedFile(repoDir))
+        .writeAsStringSync(message.sharedMessages, flush: true);
+    new File.fromUri(computeCfeGeneratedFile(repoDir))
+        .writeAsStringSync(message.cfeMessages, flush: true);
   }
-  port.close();
 }
 
-Future<Uri> computeSharedGeneratedFile() {
-  return Isolate.resolvePackageUri(Uri.parse(
-      'package:_fe_analyzer_shared/src/messages/codes_generated.dart'));
+Uri computeSharedGeneratedFile(Uri repoDir) {
+  return repoDir
+      .resolve("pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart");
 }
 
-Future<Uri> computeCfeGeneratedFile() {
-  return Isolate.resolvePackageUri(
-      Uri.parse('package:front_end/src/fasta/fasta_codes_cfe_generated.dart'));
+Uri computeCfeGeneratedFile(Uri repoDir) {
+  return repoDir
+      .resolve("pkg/front_end/lib/src/fasta/fasta_codes_cfe_generated.dart");
 }
 
 class Messages {
@@ -48,10 +47,10 @@ class Messages {
   Messages(this.sharedMessages, this.cfeMessages);
 }
 
-Future<Messages> generateMessagesFiles() async {
-  Uri messagesFile = Platform.script.resolve("../../messages.yaml");
+Messages generateMessagesFiles(Uri repoDir) {
+  Uri messagesFile = repoDir.resolve("pkg/front_end/messages.yaml");
   Map<dynamic, dynamic> yaml =
-      loadYaml(await new File.fromUri(messagesFile).readAsStringSync());
+      loadYaml(new File.fromUri(messagesFile).readAsStringSync());
   StringBuffer sharedMessages = new StringBuffer();
   StringBuffer cfeMessages = new StringBuffer();
 
