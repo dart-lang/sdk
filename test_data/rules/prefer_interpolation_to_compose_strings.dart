@@ -31,3 +31,10 @@ issue2490() {
   final String foo = 'Hello';
   final String bar = foo + r' /world\'; // OK
 }
+
+class Issue792 {
+  Issue792 operator +(String other) => this;
+  f() {
+    var a = this + ' '; // OK
+  }
+}

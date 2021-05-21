@@ -75,8 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (leftOperand is StringLiteral && rightOperand is StringLiteral) {
         return;
       }
-      if ((leftOperand.staticType?.isDartCoreString ?? false) ||
-          (rightOperand.staticType?.isDartCoreString ?? false)) {
+      if (leftOperand.staticType?.isDartCoreString ?? false) {
         DartTypeUtilities.traverseNodesInDFS(node).forEach(skippedNodes.add);
         rule.reportLint(node);
       }
