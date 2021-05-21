@@ -109,6 +109,13 @@ DART_EXPORT void Regress37069(uint64_t a,
   Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
 
+DART_EXPORT uint8_t IsThreadInGenerated() {
+  return Dart_ExecuteInternalCommand("is-thread-in-generated", nullptr) !=
+                 nullptr
+             ? 1
+             : 0;
+}
+
 #if !defined(HOST_OS_WINDOWS)
 DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
                                            std::condition_variable* var,
@@ -274,6 +281,35 @@ DART_EXPORT intptr_t TestCallbackOutsideIsolate(void (*fn)()) {
 
 DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
   return ExpectAbort(fn);
+}
+
+DART_EXPORT intptr_t TestCallbackLeaf(void (*fn)()) {
+#if defined(DEBUG)
+  // Calling a callback from a leaf call will crash on T->IsAtSafepoint().
+  return ExpectAbort(fn);
+#else
+  // The above will only crash in debug as ASSERTS are disabled in all other
+  // build modes.
+  return 0;
+#endif
+}
+
+void CallDebugName() {
+  Dart_DebugName();
+}
+
+DART_EXPORT intptr_t TestLeafCallApi(void (*fn)()) {
+  // This should be fine since it's a simple function that returns a const
+  // string. Though any API call should be considered unsafe from leaf calls.
+  Dart_VersionString();
+#if defined(DEBUG)
+  // This will fail because it requires running in DARTSCOPE.
+  return ExpectAbort(&CallDebugName);
+#else
+  // The above will only crash in debug as ASSERTS are disabled in all other
+  // build modes.
+  return 0;
+#endif
 }
 
 #endif  // defined(TARGET_OS_LINUX)

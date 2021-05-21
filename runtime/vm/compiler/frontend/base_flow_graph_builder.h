@@ -362,7 +362,8 @@ class BaseFlowGraphBuilder {
   // Builds the graph for an invocation of '_asFunctionInternal'.
   //
   // 'signatures' contains the pair [<dart signature>, <native signature>].
-  Fragment BuildFfiAsFunctionInternalCall(const TypeArguments& signatures);
+  Fragment BuildFfiAsFunctionInternalCall(const TypeArguments& signatures,
+                                          bool is_leaf);
 
   Fragment AllocateObject(TokenPosition position,
                           const Class& klass,

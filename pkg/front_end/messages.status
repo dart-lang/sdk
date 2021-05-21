@@ -326,6 +326,7 @@ FfiDartTypeMismatch/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail
+FfiExpectedConstantArg/analyzerCode: Fail
 FfiExpectedExceptionalReturn/analyzerCode: Fail
 FfiExpectedNoExceptionalReturn/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
@@ -334,6 +335,8 @@ FfiFieldCyclic/analyzerCode: Fail
 FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldNull/analyzerCode: Fail
+FfiLeafCallMustNotReturnHandle/analyzerCode: Fail
+FfiLeafCallMustNotTakeHandle/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail

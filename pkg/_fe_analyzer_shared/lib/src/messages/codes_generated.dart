@@ -3779,6 +3779,27 @@ const MessageCode messageFfiExpectedConstant = const MessageCode(
     message: r"""Exceptional return value must be a constant.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateFfiExpectedConstantArg =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Argument '#name' must be a constant.""",
+        withArguments: _withArgumentsFfiExpectedConstantArg);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiExpectedConstantArg =
+    const Code<Message Function(String name)>(
+  "FfiExpectedConstantArg",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExpectedConstantArg(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiExpectedConstantArg,
+      message: """Argument '${name}' must be a constant.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateFfiExtendsOrImplementsSealedClass =
     const Template<Message Function(String name)>(
@@ -3930,6 +3951,24 @@ Message _withArgumentsFfiFieldNull(String name) {
           """Field '${name}' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiLeafCallMustNotReturnHandle =
+    messageFfiLeafCallMustNotReturnHandle;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiLeafCallMustNotReturnHandle = const MessageCode(
+    "FfiLeafCallMustNotReturnHandle",
+    message: r"""FFI leaf call must not have Handle return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiLeafCallMustNotTakeHandle =
+    messageFfiLeafCallMustNotTakeHandle;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
+    "FfiLeafCallMustNotTakeHandle",
+    message: r"""FFI leaf call must not have Handle argument types.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

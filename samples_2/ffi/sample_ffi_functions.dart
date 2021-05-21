@@ -93,6 +93,16 @@ main() {
   }
 
   {
+    // As a leaf call.
+    BinaryOp sumPlus42Leaf = ffiTestFunctions
+        .lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42", isLeaf: true);
+
+    final result = sumPlus42Leaf(3, 17);
+    print(result);
+    print(result.runtimeType);
+  }
+
+  {
     // Various size arguments.
     QuadOp intComputation = ffiTestFunctions
         .lookupFunction<NativeQuadOpSigned, QuadOp>("IntComputation");

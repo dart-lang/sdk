@@ -6435,24 +6435,30 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
 
 #define Z zone_
 
-LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
-                                                   bool is_optimizing) const {
+LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
+    Zone* zone,
+    bool is_optimizing,
+    const Register temp) const {
   // The temporary register needs to be callee-saved and not an argument
   // register.
   ASSERT(((1 << CallingConventions::kFfiAnyNonAbiRegister) &
           CallingConventions::kArgumentRegisters) == 0);
 
-  constexpr intptr_t kNumTemps = 2;
+  // TODO(dartbug.com/45468): Investigate whether we can avoid spilling
+  // registers across ffi leaf calls by not using `kCall` here.
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, /*num_inputs=*/InputCount(),
+      /*num_temps=*/temp == kNoRegister ? 2 : 3, LocationSummary::kCall);
 
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, /*num_inputs=*/InputCount(),
-                      /*num_temps=*/kNumTemps, LocationSummary::kCall);
-
-  const Register temp0 = CallingConventions::kSecondNonArgumentRegister;
-  const Register temp1 = CallingConventions::kFfiAnyNonAbiRegister;
+  const Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
+  const Register temp1 = CallingConventions::kSecondNonArgumentRegister;
   ASSERT(temp0 != temp1);
   summary->set_temp(0, Location::RegisterLocation(temp0));
   summary->set_temp(1, Location::RegisterLocation(temp1));
+
+  if (temp != kNoRegister) {
+    summary->set_temp(2, Location::RegisterLocation(temp));
+  }
 
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
@@ -6476,13 +6482,12 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler) {
+void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
+                                  const Register saved_fp,
+                                  const Register temp) {
   if (compiler::Assembler::EmittingComments()) {
     __ Comment("EmitParamMoves");
   }
-
-  const Register saved_fp = locs()->temp(0).reg();
-  const Register temp = locs()->temp(1).reg();
 
   // Moves for return pointer.
   const auto& return_location =
@@ -6591,7 +6596,9 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler) {
   }
 }
 
-void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
+void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
+                                   const Register temp0,
+                                   const Register temp1) {
   __ Comment("EmitReturnMoves");
 
   const auto& returnLocation =
@@ -6611,16 +6618,17 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
     ASSERT(returnLocation.payload_type().IsCompound());
     ASSERT(marshaller_.PassTypedData());
 
-    const Register temp0 = TMP != kNoRegister ? TMP : locs()->temp(0).reg();
-    const Register temp1 = locs()->temp(1).reg();
-    ASSERT(temp0 != temp1);
-
     // Get the typed data pointer which we have pinned to a stack slot.
     const Location typed_data_loc = locs()->in(TypedDataIndex());
     ASSERT(typed_data_loc.IsStackSlot());
     ASSERT(typed_data_loc.base_reg() == FPREG);
-    __ LoadMemoryValue(temp0, FPREG, 0);
-    __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
+    // If this is a leaf call there is no extra call frame to step through.
+    if (is_leaf_) {
+      __ LoadMemoryValue(temp0, FPREG, typed_data_loc.ToStackSlotOffset());
+    } else {
+      __ LoadMemoryValue(temp0, FPREG, 0);
+      __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
+    }
     __ LoadField(
         temp0,
         compiler::FieldAddress(

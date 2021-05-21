@@ -17,6 +17,7 @@ import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'annotation_syntax_test.dart' as annotation_syntax;
+import 'argument_must_be_a_constant_test.dart' as argument_must_be_a_constant;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'argument_type_not_assignable_to_error_handler_test.dart'
     as argument_type_not_assignable_to_error_handler;
@@ -188,6 +189,8 @@ import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
 import 'ffi_array_multi_non_positive_input_test.dart'
     as ffi_array_multi_non_positive_input_test;
+import 'ffi_leaf_call_must_not_use_handle_test.dart'
+    as ffi_leaf_call_must_not_use_handle;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
@@ -700,6 +703,7 @@ main() {
     ambiguous_set_or_map_literal.main();
     annotation_on_pointer_field.main();
     annotation_syntax.main();
+    argument_must_be_a_constant.main();
     argument_type_not_assignable.main();
     argument_type_not_assignable_to_error_handler.main();
     assert_in_redirecting_constructor.main();
@@ -816,6 +820,7 @@ main() {
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
     ffi_array_multi_non_positive_input_test.main();
+    ffi_leaf_call_must_not_use_handle.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();

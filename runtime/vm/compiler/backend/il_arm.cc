@@ -1402,85 +1402,114 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  return MakeLocationSummaryInternal(zone, is_optimizing, R0);
+}
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register saved_fp = locs()->temp(0).reg();
-  const Register temp = locs()->temp(1).reg();
+  // For regular calls, this holds the FP for rebasing the original locations
+  // during EmitParamMoves.
+  // For leaf calls, this holds the SP used to restore the pre-aligned SP after
+  // the call.
+  const Register saved_fp_or_sp = locs()->temp(0).reg();
+  RELEASE_ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
+                  (1 << saved_fp_or_sp)) != 0);
+  const Register temp1 = locs()->temp(1).reg();
+  const Register temp2 = locs()->temp(2).reg();
   const Register branch = locs()->in(TargetAddressIndex()).reg();
 
-  // Save frame pointer because we're going to update it when we enter the exit
-  // frame.
-  __ mov(saved_fp, compiler::Operand(FPREG));
+  // Ensure these are callee-saved register and are preserved across the call.
+  ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
+          (1 << saved_fp_or_sp)) != 0);
+  // temp doesn't need to be preserved.
 
-  // Make a space to put the return address.
-  __ PushImmediate(0);
+  __ mov(saved_fp_or_sp,
+         is_leaf_ ? compiler::Operand(SPREG) : compiler::Operand(FPREG));
 
-  // We need to create a dummy "exit frame". It will have a null code object.
-  __ LoadObject(CODE_REG, Object::null_object());
-  __ set_constant_pool_allowed(false);
-  __ EnterDartFrame(0, /*load_pool_pointer=*/false);
+  if (!is_leaf_) {
+    // Make a space to put the return address.
+    __ PushImmediate(0);
 
-  // Reserve space for arguments and align frame before entering C++ world.
+    // We need to create a dummy "exit frame". It will have a null code object.
+    __ LoadObject(CODE_REG, Object::null_object());
+    __ set_constant_pool_allowed(false);
+    __ EnterDartFrame(0, /*load_pool_pointer=*/false);
+  }
+
+  // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
-  EmitParamMoves(compiler);
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1);
 
   if (compiler::Assembler::EmittingComments()) {
-    __ Comment("Call");
+    __ Comment(is_leaf_ ? "Leaf Call" : "Call");
   }
-  // We need to copy the return address up into the dummy stack frame so the
-  // stack walker will know which safepoint to use.
-  __ mov(TMP, compiler::Operand(PC));
-  __ str(TMP, compiler::Address(FPREG, kSavedCallerPcSlotFromFp *
-                                           compiler::target::kWordSize));
 
-  // For historical reasons, the PC on ARM points 8 bytes past the current
-  // instruction. Therefore we emit the metadata here, 8 bytes (2 instructions)
-  // after the original mov.
-  compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
-                                 UntaggedPcDescriptors::Kind::kOther, locs(),
-                                 env());
-
-  // Update information in the thread object and enter a safepoint.
-  if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ LoadImmediate(temp, compiler::target::Thread::exit_through_ffi());
-    __ TransitionGeneratedToNative(branch, FPREG, temp, saved_fp,
-                                   /*enter_safepoint=*/true);
-
+  if (is_leaf_) {
     __ blx(branch);
-
-    // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated(saved_fp, temp, /*leave_safepoint=*/true);
   } else {
-    // We cannot trust that this code will be executable within a safepoint.
-    // Therefore we delegate the responsibility of entering/exiting the
-    // safepoint to a stub which in the VM isolate's heap, which will never lose
-    // execute permission.
-    __ ldr(TMP,
-           compiler::Address(
-               THR, compiler::target::Thread::
-                        call_native_through_safepoint_entry_point_offset()));
+    // We need to copy the return address up into the dummy stack frame so the
+    // stack walker will know which safepoint to use.
+    __ mov(temp1, compiler::Operand(PC));
+    __ str(temp1, compiler::Address(FPREG, kSavedCallerPcSlotFromFp *
+                                               compiler::target::kWordSize));
 
-    // Calls R8 in a safepoint and clobbers R4 and NOTFP.
-    ASSERT(branch == R8 && temp == R4);
-    static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
-                  "NOTFP should be a reserved register");
-    __ blx(TMP);
+    // For historical reasons, the PC on ARM points 8 bytes past the current
+    // instruction. Therefore we emit the metadata here, 8 bytes
+    // (2 instructions) after the original mov.
+    compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
+                                   UntaggedPcDescriptors::Kind::kOther, locs(),
+                                   env());
+
+    // Update information in the thread object and enter a safepoint.
+    if (CanExecuteGeneratedCodeInSafepoint()) {
+      __ LoadImmediate(temp1, compiler::target::Thread::exit_through_ffi());
+      __ TransitionGeneratedToNative(branch, FPREG, temp1, saved_fp_or_sp,
+                                     /*enter_safepoint=*/true);
+
+      __ blx(branch);
+
+      // Update information in the thread object and leave the safepoint.
+      __ TransitionNativeToGenerated(saved_fp_or_sp, temp1,
+                                     /*leave_safepoint=*/true);
+    } else {
+      // We cannot trust that this code will be executable within a safepoint.
+      // Therefore we delegate the responsibility of entering/exiting the
+      // safepoint to a stub which in the VM isolate's heap, which will never
+      // lose execute permission.
+      __ ldr(temp1,
+             compiler::Address(
+                 THR, compiler::target::Thread::
+                          call_native_through_safepoint_entry_point_offset()));
+
+      // Calls R8 in a safepoint and clobbers R4 and NOTFP.
+      ASSERT(branch == R8);
+      static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
+                    "NOTFP should be a reserved register");
+      __ blx(temp1);
+    }
+
+    // Restore the global object pool after returning from runtime (old space is
+    // moving, so the GOP could have been relocated).
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      __ SetupGlobalPoolAndDispatchTable();
+    }
   }
 
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ SetupGlobalPoolAndDispatchTable();
+  EmitReturnMoves(compiler, temp1, temp2);
+
+  if (is_leaf_) {
+    // Restore the pre-aligned SP.
+    __ mov(SPREG, compiler::Operand(saved_fp_or_sp));
+  } else {
+    // Leave dummy exit frame.
+    __ LeaveDartFrame();
+    __ set_constant_pool_allowed(true);
+
+    // Instead of returning to the "fake" return address, we just pop it.
+    __ PopRegister(temp1);
   }
-
-  EmitReturnMoves(compiler);
-
-  // Leave dummy exit frame.
-  __ LeaveDartFrame();
-  __ set_constant_pool_allowed(true);
-
-  // Instead of returning to the "fake" return address, we just pop it.
-  __ PopRegister(TMP);
 }
 
 // Keep in sync with NativeEntryInstr::EmitNativeCode.

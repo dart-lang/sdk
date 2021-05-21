@@ -5106,12 +5106,14 @@ class FfiCallInstr : public Definition {
  public:
   FfiCallInstr(Zone* zone,
                intptr_t deopt_id,
-               const compiler::ffi::CallMarshaller& marshaller)
+               const compiler::ffi::CallMarshaller& marshaller,
+               bool is_leaf)
       : Definition(deopt_id),
         zone_(zone),
         marshaller_(marshaller),
         inputs_(marshaller.NumDefinitions() + 1 +
-                (marshaller.PassTypedData() ? 1 : 0)) {
+                (marshaller.PassTypedData() ? 1 : 0)),
+        is_leaf_(is_leaf) {
     inputs_.FillWith(
         nullptr, 0,
         marshaller.NumDefinitions() + 1 + (marshaller.PassTypedData() ? 1 : 0));
@@ -5162,13 +5164,26 @@ class FfiCallInstr : public Definition {
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
-  void EmitParamMoves(FlowGraphCompiler* compiler);
-  void EmitReturnMoves(FlowGraphCompiler* compiler);
+  LocationSummary* MakeLocationSummaryInternal(Zone* zone,
+                                               bool is_optimizing,
+                                               const Register temp) const;
+
+  // Clobbers both given registers.
+  // `saved_fp` is used as the frame base to rebase off of.
+  void EmitParamMoves(FlowGraphCompiler* compiler,
+                      const Register saved_fp,
+                      const Register temp);
+  // Clobbers both given temp registers.
+  void EmitReturnMoves(FlowGraphCompiler* compiler,
+                       const Register temp0,
+                       const Register temp1);
 
   Zone* const zone_;
   const compiler::ffi::CallMarshaller& marshaller_;
 
   GrowableArray<Value*> inputs_;
+
+  bool is_leaf_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };

@@ -23,6 +23,15 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the argument
+   */
+  static const FfiCode ARGUMENT_MUST_BE_A_CONSTANT = FfiCode(
+      name: 'ARGUMENT_MUST_BE_A_CONSTANT',
+      message: "Argument '{0}' must be a constant.",
+      correction: "Try replacing the value with a literal or const.");
+
+  /**
+   * Parameters:
    * 0: the name of the struct class
    */
   static const FfiCode EMPTY_STRUCT = FfiCode(
@@ -102,6 +111,22 @@ class FfiCode extends AnalyzerErrorCode {
       correction:
           "Try using 'int', 'double', 'Array', 'Pointer', or subtype of "
           "'Struct' or 'Union'.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode LEAF_CALL_MUST_NOT_RETURN_HANDLE = FfiCode(
+      name: 'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
+      message: "FFI leaf call must not return a Handle.",
+      correction: "Try changing the return type to primitive or struct.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode LEAF_CALL_MUST_NOT_TAKE_HANDLE = FfiCode(
+      name: 'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
+      message: "FFI leaf call must not take arguments of type Handle.",
+      correction: "Try changing the argument type to primitive or struct.");
 
   /**
    * No parameters.

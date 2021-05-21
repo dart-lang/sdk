@@ -15,7 +15,8 @@ namespace ffi {
 
 // TODO(dartbug.com/36607): Cache the trampolines.
 FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
-                               const FunctionType& c_signature) {
+                               const FunctionType& c_signature,
+                               bool is_leaf) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   String& name = String::Handle(zone, Symbols::New(thread, "FfiTrampoline"));
@@ -53,6 +54,8 @@ FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
   function.SetFfiCSignature(c_signature);
   signature ^= ClassFinalizer::FinalizeType(signature);
   function.set_signature(signature);
+
+  function.SetFfiIsLeaf(is_leaf);
 
   return function.ptr();
 }

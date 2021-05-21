@@ -8,7 +8,10 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
+        messageFfiLeafCallMustNotReturnHandle,
+        messageFfiLeafCallMustNotTakeHandle,
         templateFfiDartTypeMismatch,
+        templateFfiExpectedConstantArg,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
@@ -176,12 +179,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           }
         }
       } else if (target == lookupFunctionMethod) {
-        final DartType nativeType = InterfaceType(
+        final nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureIsLeafIsConst(node);
+        _ensureLeafCallDoesNotUseHandles(nativeType, node);
 
         final replacement = _replaceLookupFunction(node);
 
@@ -197,20 +202,27 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         }
         return replacement;
       } else if (target == asFunctionMethod) {
-        final DartType dartType = node.arguments.types[1];
+        final dartType = node.arguments.types[1];
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureIsLeafIsConst(node);
+        _ensureLeafCallDoesNotUseHandles(nativeType, node);
 
         final DartType nativeSignature =
             (nativeType as InterfaceType).typeArguments[0];
 
+        bool isLeaf = _getIsLeafBoolean(node);
+        if (isLeaf == null) {
+          isLeaf = false;
+        }
+
         // Inline function body to make all type arguments instatiated.
         final replacement = StaticInvocation(
             asFunctionInternal,
-            Arguments([node.arguments.positional[0]],
+            Arguments([node.arguments.positional[0], BoolLiteral(isLeaf)],
                 types: [dartType, nativeSignature]));
 
         if (dartType is FunctionType) {
@@ -411,12 +423,12 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   Expression _replaceLookupFunction(StaticInvocation node) {
     // The generated code looks like:
     //
-    // _asFunctionInternal<DS, NS>(lookup<NativeFunction<NS>>(symbolName))
-
+    // _asFunctionInternal<DS, NS>(lookup<NativeFunction<NS>>(symbolName),
+    //     isLeaf)
     final DartType nativeSignature = node.arguments.types[0];
     final DartType dartSignature = node.arguments.types[1];
 
-    final Arguments args = Arguments([
+    final Arguments lookupArgs = Arguments([
       node.arguments.positional[1]
     ], types: [
       InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeSignature])
@@ -425,11 +437,18 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final Expression lookupResult = MethodInvocation(
         node.arguments.positional[0],
         Name("lookup"),
-        args,
+        lookupArgs,
         libraryLookupMethod);
 
-    return StaticInvocation(asFunctionInternal,
-        Arguments([lookupResult], types: [dartSignature, nativeSignature]));
+    bool isLeaf = _getIsLeafBoolean(node);
+    if (isLeaf == null) {
+      isLeaf = false;
+    }
+
+    return StaticInvocation(
+        asFunctionInternal,
+        Arguments([lookupResult, BoolLiteral(isLeaf)],
+            types: [dartSignature, nativeSignature]));
   }
 
   // We need to rewrite calls to 'fromFunction' into two calls, representing the
@@ -816,6 +835,72 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           1,
           klass.location.file);
       throw _FfiStaticTypeError();
+    }
+  }
+
+  // Returns
+  // - `true` if leaf
+  // - `false` if not leaf
+  // - `null` if the expression is not valid (e.g. non-const bool, null)
+  bool _getIsLeafBoolean(StaticInvocation node) {
+    for (final named in node.arguments.named) {
+      if (named.name == 'isLeaf') {
+        final expr = named.value;
+        if (expr is BoolLiteral) {
+          return expr.value;
+        } else if (expr is ConstantExpression) {
+          final constant = expr.constant;
+          if (constant is BoolConstant) {
+            return constant.value;
+          }
+        }
+        // isLeaf is passed some invalid value.
+        return null;
+      }
+    }
+    // isLeaf defaults to false.
+    return false;
+  }
+
+  void _ensureIsLeafIsConst(StaticInvocation node) {
+    final isLeaf = _getIsLeafBoolean(node);
+    if (isLeaf == null) {
+      diagnosticReporter.report(
+          templateFfiExpectedConstantArg.withArguments('isLeaf'),
+          node.fileOffset,
+          1,
+          node.location.file);
+      // Throw so we don't get another error about not replacing
+      // `lookupFunction`, which will shadow the above error.
+      throw _FfiStaticTypeError();
+    }
+  }
+
+  void _ensureLeafCallDoesNotUseHandles(
+      InterfaceType nativeType, StaticInvocation node) {
+    // Handles are only disallowed for leaf calls.
+    final isLeaf = _getIsLeafBoolean(node);
+    if (isLeaf == null || isLeaf == false) {
+      return;
+    }
+
+    // Check if return type is Handle.
+    final functionType = nativeType.typeArguments[0];
+    if (functionType is FunctionType) {
+      final returnType = functionType.returnType;
+      if (returnType is InterfaceType) {
+        if (returnType.classNode == handleClass) {
+          diagnosticReporter.report(messageFfiLeafCallMustNotReturnHandle,
+              node.fileOffset, 1, node.location.file);
+        }
+      }
+      // Check if any of the argument types are Handle.
+      for (InterfaceType param in functionType.positionalParameters) {
+        if (param.classNode == handleClass) {
+          diagnosticReporter.report(messageFfiLeafCallMustNotTakeHandle,
+              node.fileOffset, 1, node.location.file);
+        }
+      }
     }
   }
 }

@@ -149,7 +149,8 @@ extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   /// Convert to Dart function, automatically marshalling the arguments
   /// and return value.
-  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>();
+  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>(
+      {bool isLeaf: false});
 }
 
 //

@@ -246,6 +246,12 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     IsolateGroup::Current()->heap()->CollectAllGarbage();
     return nullptr;
 
+  } else if (strcmp(command, "is-thread-in-generated") == 0) {
+    if (Thread::Current()->execution_state() == Thread::kThreadInGenerated) {
+      return reinterpret_cast<void*>(1);
+    }
+    return nullptr;
+
   } else if (strcmp(command, "is-mutator-in-native") == 0) {
     Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
     if (isolate->mutator_thread()->execution_state_cross_thread_for_testing() ==
