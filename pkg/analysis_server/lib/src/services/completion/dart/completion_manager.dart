@@ -91,6 +91,7 @@ class DartCompletionManager {
   Future<List<CompletionSuggestion>> computeSuggestions(
     OperationPerformanceImpl performance,
     CompletionRequest request, {
+    bool enableImportedReferenceContributor = true,
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
     CompletionPreference? completionPreference,
@@ -129,6 +130,7 @@ class DartCompletionManager {
       CombinatorContributor(),
       ExtensionMemberContributor(),
       FieldFormalContributor(),
+      if (enableImportedReferenceContributor) ImportedReferenceContributor(),
       KeywordContributor(),
       LabelContributor(),
       LibraryMemberContributor(),
@@ -146,8 +148,6 @@ class DartCompletionManager {
     if (includedElementKinds != null) {
       _addIncludedElementKinds(dartRequest);
       _addIncludedSuggestionRelevanceTags(dartRequest);
-    } else {
-      contributors.add(ImportedReferenceContributor());
     }
 
     try {
