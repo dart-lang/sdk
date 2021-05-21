@@ -368,6 +368,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
+    _checkForUseOfNativeExtension(node);
     super.visitExportDirective(node);
   }
 
@@ -521,6 +522,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     _invalidAccessVerifier.verifyImport(node);
     _checkForImportOfLegacyLibraryIntoNullSafe(node);
+    _checkForUseOfNativeExtension(node);
     super.visitImportDirective(node);
   }
 
@@ -1387,6 +1389,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  void _checkForUseOfNativeExtension(UriBasedDirective node) {
+    var uri = node.uriContent;
+    if (uri == null) {
+      return;
+    }
+    if (uri.startsWith('dart-ext:')) {
+      _errorReporter.reportErrorForNode(HintCode.USE_OF_NATIVE_EXTENSION, node);
+    }
   }
 
   void _checkRequiredParameter(FormalParameterList node) {
