@@ -148,7 +148,7 @@ class ModularConstantEmitter
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
     String value = constant.stringValue;
     if (value.length < StringReferencePolicy.minimumLength) {
-      return js.string(value);
+      return js.escapedString(value, ascii: true);
     }
     return StringReference(constant);
   }
@@ -288,7 +288,8 @@ class ConstantEmitter extends ModularConstantEmitter {
         }
 
         // Keys in literal maps must be emitted in place.
-        jsAst.Literal keyExpression = js.string(key.stringValue);
+        jsAst.Literal keyExpression =
+            js.escapedString(key.stringValue, ascii: true);
         jsAst.Expression valueExpression =
             _constantReferenceGenerator(constant.values[i]);
         properties.add(new jsAst.Property(keyExpression, valueExpression));

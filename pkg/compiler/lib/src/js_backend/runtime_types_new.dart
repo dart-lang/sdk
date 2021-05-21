@@ -109,7 +109,9 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       return _finishEncoding(js.string(String.fromCharCodes(_codes)));
     }
     _flushCodes();
-    return _finishEncoding(jsAst.StringConcatenation(_fragments));
+    jsAst.LiteralString quote = jsAst.LiteralString('"');
+    return _finishEncoding(
+        jsAst.StringConcatenation([quote, ..._fragments, quote]));
   }
 
   void _start(TypeRecipe recipe) {
@@ -485,13 +487,13 @@ class RulesetEncoder {
   CommonElements get _commonElements => _dartTypes.commonElements;
   ClassEntity get _objectClass => _commonElements.objectClass;
 
-  final _leftBrace = js.string('{');
-  final _rightBrace = js.string('}');
-  final _leftBracket = js.string('[');
-  final _rightBracket = js.string(']');
-  final _colon = js.string(':');
-  final _comma = js.string(',');
-  final _doubleQuote = js.string('"');
+  final _leftBrace = js.stringPart('{');
+  final _rightBrace = js.stringPart('}');
+  final _leftBracket = js.stringPart('[');
+  final _rightBracket = js.stringPart(']');
+  final _colon = js.stringPart(':');
+  final _comma = js.stringPart(',');
+  final _quote = js.stringPart("'");
 
   bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
 
@@ -520,32 +522,28 @@ class RulesetEncoder {
 
   jsAst.StringConcatenation _encodeRuleset(Ruleset ruleset) =>
       js.concatenateStrings([
+        _quote,
         _leftBrace,
         ...js.joinLiterals([
           ...ruleset._redirections.entries.map(_encodeRedirection),
           ...ruleset._entries.entries.map(_encodeEntry),
         ], _comma),
         _rightBrace,
+        _quote,
       ]);
 
   jsAst.StringConcatenation _encodeRedirection(
           MapEntry<ClassEntity, ClassEntity> redirection) =>
       js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(redirection.key),
-        _doubleQuote,
+        js.quoteName(_emitter.typeAccessNewRti(redirection.key)),
         _colon,
-        _doubleQuote,
-        _emitter.typeAccessNewRti(redirection.value),
-        _doubleQuote,
+        js.quoteName(_emitter.typeAccessNewRti(redirection.value)),
       ]);
 
   jsAst.StringConcatenation _encodeEntry(
           MapEntry<InterfaceType, _RulesetEntry> entry) =>
       js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(entry.key.element),
-        _doubleQuote,
+        js.quoteName(_emitter.typeAccessNewRti(entry.key.element)),
         _colon,
         _leftBrace,
         ...js.joinLiterals([
@@ -560,9 +558,7 @@ class RulesetEncoder {
   jsAst.StringConcatenation _encodeSupertype(
           InterfaceType targetType, InterfaceType supertype) =>
       js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(supertype.element),
-        _doubleQuote,
+        js.quoteName(_emitter.typeAccessNewRti(supertype.element)),
         _colon,
         _leftBracket,
         ...js.joinLiterals(
@@ -575,36 +571,30 @@ class RulesetEncoder {
   jsAst.StringConcatenation _encodeTypeVariable(InterfaceType targetType,
           TypeVariableType typeVariable, DartType supertypeArgument) =>
       js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeVariableAccessNewRti(typeVariable.element),
-        _doubleQuote,
+        js.quoteName(_emitter.typeVariableAccessNewRti(typeVariable.element)),
         _colon,
         _encodeSupertypeArgument(targetType, supertypeArgument),
       ]);
 
   jsAst.Literal _encodeSupertypeArgument(
           InterfaceType targetType, DartType supertypeArgument) =>
-      js.concatenateStrings([
-        _doubleQuote,
-        _recipeEncoder.encodeMetadataRecipe(
-            _emitter, targetType, supertypeArgument),
-        _doubleQuote
-      ]);
+      _recipeEncoder.encodeMetadataRecipe(
+          _emitter, targetType, supertypeArgument);
 
   jsAst.StringConcatenation encodeErasedTypes(
           Map<ClassEntity, int> erasedTypes) =>
       js.concatenateStrings([
+        _quote,
         _leftBrace,
         ...js.joinLiterals(erasedTypes.entries.map(encodeErasedType), _comma),
         _rightBrace,
+        _quote,
       ]);
 
   jsAst.StringConcatenation encodeErasedType(
           MapEntry<ClassEntity, int> entry) =>
       js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(entry.key),
-        _doubleQuote,
+        js.quoteName(_emitter.typeAccessNewRti(entry.key)),
         _colon,
         js.number(entry.value),
       ]);
@@ -612,20 +602,20 @@ class RulesetEncoder {
   jsAst.StringConcatenation encodeTypeParameterVariances(
           Map<ClassEntity, List<Variance>> typeParameterVariances) =>
       js.concatenateStrings([
+        _quote,
         _leftBrace,
         ...js.joinLiterals(
             typeParameterVariances.entries
                 .map(_encodeTypeParameterVariancesForClass),
             _comma),
         _rightBrace,
+        _quote,
       ]);
 
   jsAst.StringConcatenation _encodeTypeParameterVariancesForClass(
           MapEntry<ClassEntity, List<Variance>> classEntry) =>
       js.concatenateStrings([
-        _doubleQuote,
-        _emitter.typeAccessNewRti(classEntry.key),
-        _doubleQuote,
+        js.quoteName(_emitter.typeAccessNewRti(classEntry.key)),
         _colon,
         _leftBracket,
         ...js.joinLiterals(

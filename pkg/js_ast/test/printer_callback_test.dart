@@ -170,6 +170,9 @@ class FixedName extends Name {
   String get key => name;
 
   FixedName(this.name);
+
+  @override
+  int compareTo(other) => 0;
 }
 
 void check(TestCase testCase) {

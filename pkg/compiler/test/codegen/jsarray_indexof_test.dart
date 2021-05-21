@@ -67,7 +67,7 @@ runTest(List<String> options) async {
         "${js.nodeToString(method.code, pretty: true)}");
   }, onPropertyAccess: (js.PropertyAccess node) {
     js.Node selector = node.selector;
-    if (selector is js.LiteralString && selector.value == 'length') {
+    if (selector is js.LiteralString && selector.value == '"length"') {
       lengthCount++;
     }
   });

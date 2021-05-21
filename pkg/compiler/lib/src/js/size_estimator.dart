@@ -749,24 +749,24 @@ class SizeEstimator implements NodeVisitor {
   }
 
   bool isValidJavaScriptId(String field) {
-    if (field.length == 0) return false;
+    if (field.length < 3) return false;
     // Ignore the leading and trailing string-delimiter.
-    for (int i = 0; i < field.length; i++) {
+    for (int i = 1; i < field.length - 1; i++) {
       // TODO(floitsch): allow more characters.
       int charCode = field.codeUnitAt(i);
       if (!(charCodes.$a <= charCode && charCode <= charCodes.$z ||
           charCodes.$A <= charCode && charCode <= charCodes.$Z ||
           charCode == charCodes.$$ ||
           charCode == charCodes.$_ ||
-          i > 0 && isDigit(charCode))) {
+          i != 1 && isDigit(charCode))) {
         return false;
       }
     }
     // TODO(floitsch): normally we should also check that the field is not a
     // reserved word.  We don't generate fields with reserved word names except
     // for 'super'.
-    if (field == 'super') return false;
-    if (field == 'catch') return false;
+    if (field == '"super"') return false;
+    if (field == '"catch"') return false;
     return true;
   }
 
@@ -776,17 +776,16 @@ class SizeEstimator implements NodeVisitor {
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     Node selector = access.selector;
     if (selector is LiteralString) {
-      String field = literalStringToString(selector);
-      if (isValidJavaScriptId(field)) {
+      String fieldWithQuotes = literalStringToString(selector);
+      if (isValidJavaScriptId(fieldWithQuotes)) {
         if (access.receiver is LiteralNumber) {
           // We can eliminate the space in some cases, but for simplicity we
           // always assume it is necessary.
           out(' '); // ' '
         }
 
-        // '.${field}'
-        out('.');
-        out(field);
+        // '.${fieldWithQuotes.substring(1, fieldWithQuotes.length - 1)}'
+        out('.${fieldWithQuotes.substring(1, fieldWithQuotes.length - 1)}');
         return;
       }
     } else if (selector is Name) {
@@ -876,9 +875,7 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitLiteralString(LiteralString node) {
-    out('"');
     out(literalStringToString(node));
-    out('"');
   }
 
   @override
@@ -971,12 +968,10 @@ class SizeEstimator implements NodeVisitor {
     if (name is LiteralString) {
       String text = literalStringToString(name);
       if (isValidJavaScriptId(text)) {
-        out(text);
+        // '${text.substring(1, text.length - 1)}
+        out('${text.substring(1, text.length - 1)}');
       } else {
-        // Approximation to `_handleString(text)`.
-        out('"');
-        out(text);
-        out('"');
+        out(text); // '$text'
       }
     } else if (name is Name) {
       node.name.accept(this);
