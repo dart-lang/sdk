@@ -109,10 +109,10 @@ static void WriteDepsFile(Dart_Isolate isolate) {
               Options::depfile());
   }
   bool success = true;
-  if (Options::snapshot_filename() != NULL) {
-    success &= file->Print("%s: ", Options::snapshot_filename());
-  } else {
+  if (Options::depfile_output_filename() != NULL) {
     success &= file->Print("%s: ", Options::depfile_output_filename());
+  } else {
+    success &= file->Print("%s: ", Options::snapshot_filename());
   }
   if (kernel_isolate_is_running) {
     Dart_KernelCompilationResult result = Dart_KernelListDependencies();
