@@ -4,20 +4,18 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-testing-pragmas --enable-isolate-groups --experimental-enable-isolate-groups-jit
-// VMOptions=--enable-testing-pragmas --no-enable-isolate-groups
-//
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
-// VMOptions=--enable-testing-pragmas
-// VMOptions=--enable-testing-pragmas --stacktrace-every=100
-// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code
-// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
-// VMOptions=--use-slow-path --enable-testing-pragmas
-// VMOptions=--use-slow-path --enable-testing-pragmas --stacktrace-every=100
-// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code
-// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--no-enable-isolate-groups
+// VMOptions=--stacktrace-every=100
+// VMOptions=--use-slow-path
+// VMOptions=--use-slow-path --stacktrace-every=100
+// VMOptions=--use-slow-path --write-protect-code --no-dual-map-code
+// VMOptions=--use-slow-path --write-protect-code --no-dual-map-code --stacktrace-every=100
+// VMOptions=--write-protect-code --no-dual-map-code
+// VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
 
 import 'dart:ffi';
 

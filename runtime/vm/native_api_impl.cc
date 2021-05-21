@@ -233,8 +233,6 @@ struct RunInSafepointAndRWCodeArgs {
 };
 
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
-  if (!FLAG_enable_testing_pragmas) return nullptr;
-
   if (strcmp(command, "gc-on-nth-allocation") == 0) {
     TransitionNativeToVM _(Thread::Current());
     intptr_t argument = reinterpret_cast<intptr_t>(arg);

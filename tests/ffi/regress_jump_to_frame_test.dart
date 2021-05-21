@@ -4,7 +4,7 @@
 
 // Check that JumpToFrame does not use LR clobbered by slow path of
 // TransitionNativeToGenerated.
-// VMOptions=--use-slow-path --enable-testing-pragmas
+// VMOptions=--use-slow-path
 
 import 'dart:ffi';
 
