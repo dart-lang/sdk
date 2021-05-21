@@ -77,8 +77,6 @@ Updated the Linter to `1.4.0`, which includes:
   * Global ignores are no longer taken into account.
   * Even packages that are not in git source control will have their
     `.gitignore` files respected.
-  * `.gitignore` and `.pubignore` is always case-insensitive on MacOs and
-    Windows (as is default for `git` repositories).
 
 * New flag `dart pub deps --json` gives a machine parsable overview of the
   current dependencies.
@@ -94,8 +92,6 @@ Updated the Linter to `1.4.0`, which includes:
   This should fix several issues we had with incompatibilities between different
   system `tar`s.
 * `PUB_HOSTED_URL` can now include a trailing slash.
-* Incremental compilation is now used for compilation of executables from
-  dependencies when using `dart run <package>:<command>`.
 
 ### Language
 
