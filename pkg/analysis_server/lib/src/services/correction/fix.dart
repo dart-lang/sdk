@@ -839,6 +839,10 @@ class DartFixKind {
       'dart.fix.replace.withNotNullAware',
       DartFixKindPriority.DEFAULT,
       "Replace with '{0}'");
+  static const REPLACE_WITH_NOT_NULL_AWARE_MULTI = FixKind(
+      'dart.fix.replace.withNotNullAware.multi',
+      DartFixKindPriority.IN_FILE,
+      'Replace with non-null-aware operator everywhere in file.');
   static const REPLACE_WITH_NULL_AWARE = FixKind(
       'dart.fix.replace.withNullAware',
       DartFixKindPriority.DEFAULT,

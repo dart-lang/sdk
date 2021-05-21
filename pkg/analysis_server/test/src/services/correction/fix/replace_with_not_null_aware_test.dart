@@ -7,12 +7,62 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../abstract_context.dart';
+import 'bulk/bulk_fix_processor.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceWithNotNullAwareBulkTest);
     defineReflectiveTests(ReplaceWithNotNullAwareTest);
   });
+}
+
+@reflectiveTest
+class ReplaceWithNotNullAwareBulkTest extends BulkFixProcessorTest
+    with WithNullSafetyMixin {
+  Future<void> test_notShortCircuit() async {
+    await resolveTestCode('''
+void f(A a) {
+  a?.b?.c;
+}
+class A {
+  A get b => this;
+  A get c => this;
+}
+''');
+    await assertHasFix('''
+void f(A a) {
+  a.b.c;
+}
+class A {
+  A get b => this;
+  A get c => this;
+}
+''');
+  }
+
+  Future<void> test_shortCircuit() async {
+    await resolveTestCode('''
+void f(A? a) {
+  a?.b?.c?.d;
+}
+class A {
+  A get b => this;
+  A get c => this;
+  A get d => this;
+}
+''');
+    await assertHasFix('''
+void f(A? a) {
+  a?.b.c.d;
+}
+class A {
+  A get b => this;
+  A get c => this;
+  A get d => this;
+}
+''');
+  }
 }
 
 @reflectiveTest

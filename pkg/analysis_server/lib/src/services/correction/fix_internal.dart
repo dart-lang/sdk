@@ -1690,10 +1690,22 @@ class FixProcessor extends BaseProcessor {
       FixInfo.single([RemoveDeadIfNull.newInstance]),
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
-      FixInfo.single([ReplaceWithNotNullAware.newInstance]),
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          ReplaceWithNotNullAware.newInstance,
+        ],
+      ),
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
-      FixInfo.single([ReplaceWithNotNullAware.newInstance]),
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          ReplaceWithNotNullAware.newInstance,
+        ],
+      ),
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       FixInfo.single([AddMissingEnumCaseClauses.newInstance]),
