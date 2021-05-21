@@ -28,5 +28,8 @@ dependencies:
   web_socket_channel: ^2.0.0
 
 dev_dependencies:
+  args: ^2.0.0
+  collection: ^1.15.0
+  http: ^0.13.0
   test: ^1.0.0
   webdriver: ^3.0.0
