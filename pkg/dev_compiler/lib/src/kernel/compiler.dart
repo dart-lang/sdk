@@ -94,6 +94,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The class that is emitting its signature information, otherwise null.
   Class _classEmittingSignatures;
 
+  /// True when a class is emitting a deferred class hierarchy.
+  bool _emittingDeferredType = false;
+
   /// The current element being loaded.
   /// We can use this to determine if we're loading top-level code or not:
   ///
@@ -859,22 +862,38 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return;
     }
 
-    js_ast.Expression emitDeferredType(DartType t) {
-      assert(isKnownDartTypeImplementor(t));
-      if (t is InterfaceType) {
-        _declareBeforeUse(t.classNode);
-        if (t.typeArguments.isNotEmpty) {
-          return _emitGenericClassType(
-              t, t.typeArguments.map(emitDeferredType));
+    js_ast.Expression emitDeferredType(DartType t,
+        {bool emitNullability = true}) {
+      js_ast.Expression _emitDeferredType(DartType t,
+          {bool emitNullability = true}) {
+        if (t is InterfaceType) {
+          _declareBeforeUse(t.classNode);
+          if (t.typeArguments.isNotEmpty) {
+            var typeRep = _emitGenericClassType(
+                t, t.typeArguments.map(_emitDeferredType));
+            return emitNullability
+                ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
+                : typeRep;
+          }
+          return _emitInterfaceType(t, emitNullability: emitNullability);
+        } else if (t is FutureOrType) {
+          _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
+          // TODO(45870) Add nullability wrappers to FutureOr.
+          return _emitFutureOrTypeWithArgument(
+              _emitDeferredType(t.typeArgument));
+        } else if (t is TypeParameterType) {
+          return _emitTypeParameterType(t, emitNullability: emitNullability);
         }
-        return _emitInterfaceType(t, emitNullability: false);
-      } else if (t is FutureOrType) {
-        _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
-        return _emitFutureOrTypeWithArgument(emitDeferredType(t.typeArgument));
-      } else if (t is TypeParameterType) {
-        return _emitTypeParameterType(t, emitNullability: false);
+        return _emitType(t);
       }
-      return _emitType(t);
+
+      assert(isKnownDartTypeImplementor(t));
+      var savedEmittingDeferredType = _emittingDeferredType;
+      _emittingDeferredType = true;
+      var deferredClassRep =
+          _emitDeferredType(t, emitNullability: emitNullability);
+      _emittingDeferredType = savedEmittingDeferredType;
+      return deferredClassRep;
     }
 
     bool shouldDefer(InterfaceType t) {
@@ -921,7 +940,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     js_ast.Expression getBaseClass(int count) {
       var base = emitDeferredType(
-          c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable));
+          c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable),
+          emitNullability: false);
       while (--count >= 0) {
         base = js.call('#.__proto__', [base]);
       }
@@ -995,7 +1015,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var originalSupertype = supertype;
       deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
             getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
-            emitDeferredType(originalSupertype),
+            emitDeferredType(originalSupertype, emitNullability: false),
           ]));
       // Refers to 'supertype' without type parameters. We remove these from
       // the 'extends' clause for generics for cyclic dependencies and append
@@ -1015,7 +1035,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var m = c.mixedInType.asInterfaceType;
       var deferMixin = shouldDefer(m);
-      var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
+      var mixinClass = deferMixin
+          ? emitDeferredType(m, emitNullability: false)
+          : emitClassRef(m);
       var classExpr = deferMixin ? getBaseClass(0) : className;
 
       var mixinApplication =
@@ -1087,7 +1109,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (shouldDefer(mixinType)) {
         deferredSupertypes.add(() => runtimeStatement('applyMixin(#, #)', [
               getBaseClass(mixinApplications.length - i),
-              emitDeferredType(mixinType)
+              emitDeferredType(mixinType, emitNullability: false)
             ]));
       } else {
         body.add(runtimeStatement(
@@ -2909,7 +2931,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _currentClass != null && identical(_currentClass, _classEmittingExtends);
 
   bool get _cacheTypes =>
-      !_emittingClassExtends && !_emittingClassSignatures ||
+      !_emittingDeferredType &&
+          !_emittingClassExtends &&
+          !_emittingClassSignatures ||
       _currentFunction != null;
 
   js_ast.Expression _emitGenericClassType(
