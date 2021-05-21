@@ -223,8 +223,8 @@ void StubCodeCompiler::GenerateSharedStub(
 // SP+0: The object from which we are tearing a method off.
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
-    const Object& closure_allocation_stub,
-    const Object& context_allocation_stub) {
+    const Code& closure_allocation_stub,
+    const Code& context_allocation_stub) {
   const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
 
   __ EnterStubFrame();

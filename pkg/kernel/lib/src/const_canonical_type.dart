@@ -12,7 +12,15 @@ import '../type_algebra.dart';
 ///
 /// The algorithm is specified at
 /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#constant-instances
-DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
+DartType? computeConstCanonicalType(DartType type, CoreTypes coreTypes,
+    {required bool isNonNullableByDefault}) {
+  // TODO(johnniwinther,dmitryas): Support returning `null` when the resulting
+  // type is the same as the input type.
+  return _computeConstCanonicalType(type, coreTypes,
+      isNonNullableByDefault: isNonNullableByDefault);
+}
+
+DartType _computeConstCanonicalType(DartType type, CoreTypes coreTypes,
     {required bool isNonNullableByDefault}) {
   // ignore: unnecessary_null_comparison
   assert(isNonNullableByDefault != null);
@@ -41,7 +49,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
       isTypeWithoutNullabilityMarker(type,
           isNonNullableByDefault: isNonNullableByDefault)) {
     return new FutureOrType(
-        computeConstCanonicalType(type.typeArgument, coreTypes,
+        _computeConstCanonicalType(type.typeArgument, coreTypes,
             isNonNullableByDefault: isNonNullableByDefault),
         Nullability.legacy);
   }
@@ -51,7 +59,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
   // if S is R* then R?
   // else S?
   if (isNullableTypeConstructorApplication(type)) {
-    return computeConstCanonicalType(
+    return _computeConstCanonicalType(
             computeTypeWithoutNullabilityMarker(type,
                 isNonNullableByDefault: isNonNullableByDefault),
             coreTypes,
@@ -62,7 +70,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
   // CONST_CANONICAL_TYPE(T*) = CONST_CANONICAL_TYPE(T)
   if (isLegacyTypeConstructorApplication(type,
       isNonNullableByDefault: isNonNullableByDefault)) {
-    return computeConstCanonicalType(
+    return _computeConstCanonicalType(
         computeTypeWithoutNullabilityMarker(type,
             isNonNullableByDefault: isNonNullableByDefault),
         coreTypes,
@@ -93,7 +101,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
       typeArguments =
           new List<DartType>.of(type.typeArguments, growable: false);
       for (int i = 0; i < typeArguments.length; ++i) {
-        typeArguments[i] = computeConstCanonicalType(
+        typeArguments[i] = _computeConstCanonicalType(
             typeArguments[i], coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
       }
@@ -121,7 +129,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
       substitution = freshTypeParameters.substitution;
       canonicalizedTypeParameters = freshTypeParameters.freshTypeParameters;
       for (TypeParameter parameter in canonicalizedTypeParameters) {
-        parameter.bound = computeConstCanonicalType(parameter.bound, coreTypes,
+        parameter.bound = _computeConstCanonicalType(parameter.bound, coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
       }
       List<DartType> defaultTypes = calculateBoundsInternal(
@@ -139,7 +147,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
       canonicalizedPositionalParameters =
           new List<DartType>.of(type.positionalParameters, growable: false);
       for (int i = 0; i < canonicalizedPositionalParameters.length; ++i) {
-        DartType canonicalized = computeConstCanonicalType(
+        DartType canonicalized = _computeConstCanonicalType(
             canonicalizedPositionalParameters[i], coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
         if (substitution != null) {
@@ -156,7 +164,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
       canonicalizedNamedParameters =
           new List<NamedType>.of(type.namedParameters, growable: false);
       for (int i = 0; i < canonicalizedNamedParameters.length; ++i) {
-        DartType canonicalized = computeConstCanonicalType(
+        DartType canonicalized = _computeConstCanonicalType(
             canonicalizedNamedParameters[i].type, coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
         if (substitution != null) {
@@ -168,7 +176,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
       }
     }
 
-    DartType canonicalizedReturnType = computeConstCanonicalType(
+    DartType canonicalizedReturnType = _computeConstCanonicalType(
         type.returnType, coreTypes,
         isNonNullableByDefault: isNonNullableByDefault);
     if (substitution != null) {
@@ -189,7 +197,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
         canonicalizedTypeArguments =
             new List<DartType>.of(typedefType.typeArguments, growable: false);
         for (int i = 0; i < canonicalizedTypeArguments.length; ++i) {
-          canonicalizedTypeArguments[i] = computeConstCanonicalType(
+          canonicalizedTypeArguments[i] = _computeConstCanonicalType(
               canonicalizedTypeArguments[i], coreTypes,
               isNonNullableByDefault: isNonNullableByDefault);
         }

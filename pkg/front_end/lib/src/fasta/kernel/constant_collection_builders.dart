@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of 'constant_evaluator.dart';
 
 abstract class _ListOrSetConstantBuilder<L extends Expression> {
@@ -23,7 +21,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
   ///
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant add(Expression element) {
+  AbortConstant? add(Expression element) {
     Constant constant = evaluator._evaluateSubexpression(element);
     if (constant is AbortConstant) return constant;
     if (evaluator.shouldBeUnevaluated) {
@@ -37,7 +35,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant addSpread(Expression spreadExpression) {
+  AbortConstant? addSpread(Expression spreadExpression) {
     Constant constant = evaluator._evaluateSubexpression(spreadExpression);
     if (constant is AbortConstant) return constant;
     Constant spread = evaluator.unlower(constant);
@@ -73,7 +71,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
             spreadExpression, messageConstEvalNotListOrSetInSpread);
       }
       for (Constant entry in entries) {
-        AbortConstant error = addConstant(entry, spreadExpression);
+        AbortConstant? error = addConstant(entry, spreadExpression);
         if (error != null) return error;
       }
     }
@@ -82,7 +80,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant addConstant(Constant constant, TreeNode context);
+  AbortConstant? addConstant(Constant constant, TreeNode context);
 
   Constant build();
 }
@@ -104,10 +102,10 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
       new ListLiteral(elements, isConst: true);
 
   @override
-  AbortConstant addConstant(Constant constant, TreeNode context) {
+  AbortConstant? addConstant(Constant constant, TreeNode context) {
     List<Constant> lastPart;
     if (parts.last is List<Constant>) {
-      lastPart = parts.last;
+      lastPart = parts.last as List<Constant>;
     } else {
       // Probably unreachable.
       parts.add(lastPart = <Constant>[]);
@@ -122,11 +120,12 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated
+      List<Constant> entries = parts.single as List<Constant>;
       if (isMutable) {
-        return new MutableListConstant(elementType, parts.single);
+        return new MutableListConstant(elementType, entries);
       }
       return evaluator
-          .lowerListConstant(new ListConstant(elementType, parts.single));
+          .lowerListConstant(new ListConstant(elementType, entries));
     }
     // TODO(kallentu): Handle partially evaluated [isMutable] lists.
     List<Expression> lists = <Expression>[];
@@ -158,7 +157,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       new SetLiteral(elements, isConst: true);
 
   @override
-  AbortConstant addConstant(Constant constant, TreeNode context) {
+  AbortConstant? addConstant(Constant constant, TreeNode context) {
     if (!evaluator.hasPrimitiveEqual(constant)) {
       return evaluator.createErrorConstant(
           context,
@@ -184,7 +183,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
 
     List<Constant> lastPart;
     if (parts.last is List<Constant>) {
-      lastPart = parts.last;
+      lastPart = parts.last as List<Constant>;
     } else {
       // Probably unreachable.
       parts.add(lastPart = <Constant>[]);
@@ -199,7 +198,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated
-      List<Constant> entries = parts.single;
+      List<Constant> entries = parts.single as List<Constant>;
       SetConstant result = new SetConstant(elementType, entries);
       return evaluator.lowerSetConstant(result);
     }
@@ -239,7 +238,7 @@ class MapConstantBuilder {
   ///
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant add(MapLiteralEntry element) {
+  AbortConstant? add(MapLiteralEntry element) {
     Constant key = evaluator._evaluateSubexpression(element.key);
     if (key is AbortConstant) return key;
     Constant value = evaluator._evaluateSubexpression(element.value);
@@ -259,7 +258,7 @@ class MapConstantBuilder {
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant addSpread(Expression spreadExpression) {
+  AbortConstant? addSpread(Expression spreadExpression) {
     Constant constant = evaluator._evaluateSubexpression(spreadExpression);
     if (constant is AbortConstant) return constant;
     Constant spread = evaluator.unlower(constant);
@@ -274,12 +273,12 @@ class MapConstantBuilder {
       // Fully evaluated spread
       if (spread is MapConstant) {
         for (ConstantMapEntry entry in spread.entries) {
-          AbortConstant error = addConstant(
+          AbortConstant? error = addConstant(
               entry.key, entry.value, spreadExpression, spreadExpression);
           if (error != null) return error;
         }
       } else if (evaluator.backend.isLoweredMapConstant(spread)) {
-        AbortConstant error;
+        AbortConstant? error;
         evaluator.backend.forEachLoweredMapConstantEntry(spread,
             (Constant key, Constant value) {
           error ??= addConstant(key, value, spreadExpression, spreadExpression);
@@ -296,11 +295,11 @@ class MapConstantBuilder {
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant addConstant(Constant key, Constant value, TreeNode keyContext,
+  AbortConstant? addConstant(Constant key, Constant value, TreeNode keyContext,
       TreeNode valueContext) {
     List<ConstantMapEntry> lastPart;
     if (parts.last is List<ConstantMapEntry>) {
-      lastPart = parts.last;
+      lastPart = parts.last as List<ConstantMapEntry>;
     } else {
       // Probably unreachable.
       parts.add(lastPart = <ConstantMapEntry>[]);
@@ -337,8 +336,9 @@ class MapConstantBuilder {
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated
+      List<ConstantMapEntry> entries = parts.single as List<ConstantMapEntry>;
       return evaluator
-          .lowerMapConstant(new MapConstant(keyType, valueType, parts.single));
+          .lowerMapConstant(new MapConstant(keyType, valueType, entries));
     }
     List<Expression> maps = <Expression>[];
     for (Object part in parts) {
