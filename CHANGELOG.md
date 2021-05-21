@@ -138,6 +138,16 @@ Updated the Linter to `1.4.0`, which includes:
     }
     ```
 
+## 2.13.1 - 2021-05-25
+
+This is a patch release that fixes:
+
+* incorrect behavior in CastMap (issue [#45473][]).
+* missing nullability from recursive type hierarchies in DDC (issue [#45767][]).
+
+[#45473]: https://github.com/dart-lang/sdk/issues/45473
+[#45767]: https://github.com/dart-lang/sdk/issues/45767
+
 ## 2.13.0 - 2021-05-18
 
 ### Language
