@@ -742,15 +742,7 @@ class CompletionMetricsComputer {
     }
   }
 
-  void printComparisons() {
-    printHeading(1, 'Comparison of experiments');
-    printMrrComparison();
-    printCounter(rankComparison);
-    printOtherMetrics();
-    printCompletionCounts();
-  }
-
-  void printCompletionCounts() {
+  void printComparisonOfCompletionCounts() {
     String toString(int count, int totalCount) {
       return '$count (${printPercentage(count / totalCount, 2)})';
     }
@@ -776,6 +768,70 @@ class CompletionMetricsComputer {
     printTable(table);
   }
 
+  void printComparisonOfOtherMetrics() {
+    List<String> toRow(Iterable<ArithmeticMeanComputer> sources) {
+      var computers = sources.toList();
+      var row = [computers.first.name];
+      for (var computer in computers) {
+        var min = computer.min;
+        var mean = computer.mean.toStringAsFixed(6);
+        var max = computer.max;
+        row.add('$min, $mean, $max');
+      }
+      return row;
+    }
+
+    var table = [
+      ['', for (var metrics in targetMetrics) metrics.name],
+      toRow(targetMetrics.map((metrics) => metrics.meanCompletionMS)),
+      toRow(targetMetrics.map((metrics) => metrics.charsBeforeTop)),
+      toRow(targetMetrics.map((metrics) => metrics.charsBeforeTopFive)),
+      toRow(targetMetrics.map((metrics) => metrics.insertionLengthTheoretical)),
+    ];
+    rightJustifyColumns(table, range(1, table[0].length));
+
+    printHeading(2, 'Comparison of other metrics');
+    printTable(table);
+
+    for (var metrics in targetMetrics) {
+      var distribution = metrics.distributionCompletionMS.displayString();
+      print('${metrics.name}: $distribution');
+    }
+    print('');
+  }
+
+  void printComparisons() {
+    printHeading(1, 'Comparison of experiments');
+    printMrrComparison();
+    printCounter(rankComparison);
+    printComparisonOfOtherMetrics();
+    printComparisonOfCompletionCounts();
+  }
+
+  void printCompletionCounts(CompletionMetrics metrics) {
+    String toString(int count, int totalCount) {
+      return '$count (${printPercentage(count / totalCount, 2)})';
+    }
+
+    var counter = metrics.completionCounter;
+    var table = [
+      ['', metrics.name],
+      ['total', counter.totalCount.toString()],
+      [
+        'successful',
+        toString(counter.getCountOf('successful'), counter.totalCount)
+      ],
+      [
+        'unsuccessful',
+        toString(counter.getCountOf('unsuccessful'), counter.totalCount)
+      ],
+    ];
+    rightJustifyColumns(table, range(1, table[0].length));
+
+    printHeading(2, 'Completion counts');
+    printTable(table);
+  }
+
   void printCounter(Counter counter) {
     var name = counter.name;
     var total = counter.totalCount;
@@ -796,9 +852,6 @@ class CompletionMetricsComputer {
       printCounter(metrics.completionKindCounter);
       printCounter(metrics.completionElementKindCounter);
     }
-
-    var distribution = metrics.distributionCompletionMS.displayString();
-    print('${metrics.name}: $distribution');
 
     List<String> toRow(MeanReciprocalRankComputer computer) {
       return [
@@ -851,6 +904,14 @@ class CompletionMetricsComputer {
         table.add([location, product, count, mrr, mrr_5]);
       }
       printTable(table);
+    }
+    //
+    // Print information that would normally appear in the comprison when there
+    // is no comparison section.
+    //
+    if (targetMetrics.length == 1) {
+      printOtherMetrics(metrics);
+      printCompletionCounts(metrics);
     }
   }
 
@@ -933,40 +994,33 @@ class CompletionMetricsComputer {
     printTable(table);
   }
 
-  void printOtherMetrics() {
-    List<String> toRow(Iterable<ArithmeticMeanComputer> sources) {
-      var computers = sources.toList();
-      var row = [computers.first.name];
-      for (var computer in computers) {
-        var min = computer.min;
-        var mean = computer.mean.toStringAsFixed(6);
-        var max = computer.max;
-        row.add('$min, $mean, $max');
-      }
-      return row;
+  void printOtherMetrics(CompletionMetrics metrics) {
+    List<String> toRow(ArithmeticMeanComputer computer) {
+      var min = computer.min;
+      var mean = computer.mean.toStringAsFixed(6);
+      var max = computer.max;
+      return [computer.name, '$min, $mean, $max'];
     }
 
     var table = [
-      ['', for (var metrics in targetMetrics) metrics.name],
-      toRow(targetMetrics.map((metrics) => metrics.meanCompletionMS)),
-      toRow(targetMetrics.map((metrics) => metrics.charsBeforeTop)),
-      toRow(targetMetrics.map((metrics) => metrics.charsBeforeTopFive)),
-      toRow(targetMetrics.map((metrics) => metrics.insertionLengthTheoretical)),
+      toRow(metrics.meanCompletionMS),
+      toRow(metrics.charsBeforeTop),
+      toRow(metrics.charsBeforeTopFive),
+      toRow(metrics.insertionLengthTheoretical),
     ];
     rightJustifyColumns(table, range(1, table[0].length));
 
-    printHeading(2, 'Comparison of other metrics');
+    printHeading(2, 'Other metrics');
     printTable(table);
 
-    for (var metrics in targetMetrics) {
-      var distribution = metrics.distributionCompletionMS.displayString();
-      print('${metrics.name}: $distribution');
-    }
+    var distribution = metrics.distributionCompletionMS.displayString();
+    print('${metrics.name}: $distribution');
+    print('');
   }
 
   void printResults() {
+    print('');
     if (targetMetrics.length > 1) {
-      print('');
       printComparisons();
     }
     var needsBlankLine = false;
