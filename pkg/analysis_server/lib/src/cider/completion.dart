@@ -99,6 +99,7 @@ class CiderCompletionComputer {
             return await manager.computeSuggestions(
               performance,
               completionRequest,
+              enableImportedReferenceContributor: false,
               enableOverrideContributor: false,
               enableUriContributor: false,
             );
