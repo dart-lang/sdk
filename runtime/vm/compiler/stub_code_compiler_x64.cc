@@ -400,8 +400,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 // RDX: The type_arguments_field_offset (or 0)
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
-    const Object& closure_allocation_stub,
-    const Object& context_allocation_stub) {
+    const Code& closure_allocation_stub,
+    const Code& context_allocation_stub) {
   const intptr_t kReceiverOffsetInWords =
       target::frame_layout.param_end_from_fp + 1;
 
