@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -957,7 +956,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
-  List<ExtensionElement> _extensions = _Sentinel.extensionElement;
+  List<ExtensionElement> _extensions = const [];
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
@@ -974,7 +973,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
-  List<TypeAliasElement> _typeAliases = _Sentinel.typeAliasElement;
+  List<TypeAliasElement> _typeAliases = const [];
 
   /// A list containing all of the classes contained in this compilation unit.
   List<ClassElement> _types = const [];
@@ -1035,29 +1034,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ExtensionElement> get extensions {
-    if (!identical(_extensions, _Sentinel.extensionElement)) {
-      return _extensions;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@extension');
-      _extensions = <ExtensionElement>[];
-      var nextUnnamedExtensionId = 0;
-      for (var node in _linkedUnitDeclarations) {
-        if (node is ExtensionDeclarationImpl) {
-          var nameIdentifier = node.name;
-          var refName = nameIdentifier != null
-              ? nameIdentifier.name
-              : 'extension-${nextUnnamedExtensionId++}';
-          var reference = containerRef.getChild(refName);
-          var element = node.declaredElement;
-          element ??= ExtensionElementImpl.forLinkedNode(this, reference, node);
-          _extensions.add(element);
-        }
-      }
-      return _extensions;
-    }
-
     return _extensions;
   }
 
@@ -1161,31 +1137,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TypeAliasElement> get typeAliases {
-    if (!identical(_typeAliases, _Sentinel.typeAliasElement)) {
-      return _typeAliases;
-    }
-
-    if (linkedNode != null) {
-      var containerRef = reference!.getChild('@typeAlias');
-      _typeAliases = <TypeAliasElement>[];
-      for (var node in _linkedUnitDeclarations) {
-        String name;
-        if (node is FunctionTypeAlias) {
-          name = node.name.name;
-        } else if (node is GenericTypeAlias) {
-          name = node.name.name;
-        } else {
-          continue;
-        }
-
-        var reference = containerRef.getChild(name);
-        var element = node.declaredElement as TypeAliasElement?;
-        element ??= TypeAliasElementImpl.forLinkedNodeFactory(
-            this, reference, node as TypeAlias);
-        _typeAliases.add(element);
-      }
-    }
-
     return _typeAliases;
   }
 
@@ -1217,10 +1168,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     _types = types;
-  }
-
-  List<CompilationUnitMember> get _linkedUnitDeclarations {
-    return linkedContext!.unit.declarations;
   }
 
   @override
@@ -3112,13 +3059,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   /// element.
   ExtensionElementImpl(String? name, int nameOffset) : super(name, nameOffset);
 
-  /// Initialize using the given linked information.
-  ExtensionElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
-      Reference reference, ExtensionDeclarationImpl linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode) {
-    linkedNode.declaredElement = this;
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
     return _accessors;
@@ -3149,13 +3089,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   DartType get extendedTypeInternal {
     linkedData?.read(this);
-    if (_extendedType != null) return _extendedType!;
-
-    if (linkedNode != null) {
-      final linkedNode = this.linkedNode as ExtensionDeclaration;
-      return _extendedType = linkedNode.extendedType.typeOrThrow;
-    }
-
     return _extendedType!;
   }
 
@@ -3173,10 +3106,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   String get identifier {
-    if (linkedData != null) {
-      return linkedData!.reference.name;
-    }
-    if (linkedNode != null) {
+    if (reference != null) {
       return reference!.name;
     }
     return super.identifier;
@@ -3205,23 +3135,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
       (method as MethodElementImpl).enclosingElement = this;
     }
     _methods = methods;
-  }
-
-  @override
-  String? get name {
-    if (linkedNode != null) {
-      return (linkedNode as ExtensionDeclaration).name?.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   @override
@@ -3433,12 +3346,6 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
   FunctionTypeAliasElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
 
-  FunctionTypeAliasElementImpl.forLinkedNode(
-    CompilationUnitElementImpl enclosingUnit,
-    Reference reference,
-    TypeAlias linkedNode,
-  ) : super.forLinkedNode(enclosingUnit, reference, linkedNode);
-
   @Deprecated('Use aliasedElement instead')
   @override
   GenericFunctionTypeElementImpl get function {
@@ -3560,12 +3467,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
           isNullable ? NullabilitySuffix.question : _noneOrStarSuffix,
       element: this,
     );
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    // TODO(scheglov) remove the method
-    return _typeParameterElements;
   }
 
   /// Set the type parameters defined by this function type element to the given
@@ -5561,40 +5462,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   TypeAliasElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
-  TypeAliasElementImpl.forLinkedNode(
-    CompilationUnitElementImpl enclosingUnit,
-    Reference reference,
-    TypeAlias linkedNode,
-  ) : super.forLinkedNode(enclosingUnit, reference, linkedNode) {
-    var nameNode = linkedNode is FunctionTypeAliasImpl
-        ? linkedNode.name
-        : (linkedNode as GenericTypeAliasImpl).name;
-    nameNode.staticElement = this;
-  }
-
-  factory TypeAliasElementImpl.forLinkedNodeFactory(
-    CompilationUnitElementImpl enclosingUnit,
-    Reference reference,
-    TypeAlias linkedNode,
-  ) {
-    if (linkedNode is FunctionTypeAlias) {
-      // ignore: deprecated_member_use_from_same_package
-      return FunctionTypeAliasElementImpl.forLinkedNode(
-          enclosingUnit, reference, linkedNode);
-    } else {
-      var aliasedType = (linkedNode as GenericTypeAlias).type;
-      if (aliasedType is GenericFunctionType ||
-          !enclosingUnit.isNonFunctionTypeAliasesEnabled) {
-        // ignore: deprecated_member_use_from_same_package
-        return FunctionTypeAliasElementImpl.forLinkedNode(
-            enclosingUnit, reference, linkedNode);
-      } else {
-        return TypeAliasElementImpl.forLinkedNode(
-            enclosingUnit, reference, linkedNode);
-      }
-    }
-  }
-
   @override
   ElementImpl? get aliasedElement {
     linkedData?.read(this);
@@ -5609,24 +5476,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   DartType get aliasedType {
     linkedData?.read(this);
-    if (_aliasedType != null) return _aliasedType!;
-
-    final linkedNode = this.linkedNode;
-    if (linkedNode is GenericTypeAlias) {
-      var typeNode = linkedNode.type;
-      if (isNonFunctionTypeAliasesEnabled) {
-        _aliasedType = typeNode.type;
-        assert(_aliasedType != null);
-      } else if (typeNode is GenericFunctionType) {
-        _aliasedType = typeNode.type;
-        assert(_aliasedType != null);
-      } else {
-        _aliasedType = _errorFunctionType(NullabilitySuffix.none);
-      }
-    } else if (linkedNode is FunctionTypeAlias) {
-      _aliasedType = (_aliasedElement as GenericFunctionTypeElementImpl).type;
-    }
-
     return _aliasedType!;
   }
 
@@ -5658,19 +5507,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   @override
   String get name {
-    if (linkedNode != null) {
-      return reference!.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   @override
@@ -5784,12 +5621,6 @@ class TypeParameterElementImpl extends ElementImpl
   /// [offset].
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
 
-  TypeParameterElementImpl.forLinkedNode(
-      ElementImpl enclosing, TypeParameterImpl linkedNode)
-      : super.forLinkedNode(enclosing, null, linkedNode) {
-    linkedNode.name.staticElement = this;
-  }
-
   /// Initialize a newly created synthetic type parameter element to have the
   /// given [name], and with [synthetic] set to true.
   TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
@@ -5805,13 +5636,6 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   DartType? get boundInternal {
-    if (_bound != null) return _bound;
-
-    final linkedNode = this.linkedNode;
-    if (linkedNode is TypeParameter) {
-      return _bound = linkedNode.bound?.type;
-    }
-
     return _bound;
   }
 
@@ -5830,20 +5654,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   String get name {
-    if (linkedNode != null) {
-      var node = linkedNode as TypeParameter;
-      return node.name.name;
-    }
     return super.name!;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.getNameOffset(linkedNode!);
-    }
-
-    return super.nameOffset;
   }
 
   Variance get variance {
@@ -5889,35 +5700,15 @@ class TypeParameterElementImpl extends ElementImpl
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedElementMixin
     implements _ExistingElementImpl, TypeParameterizedElement {
-  /// A cached list containing the type parameters declared by this element
-  /// directly, or `null` if the elements have not been created yet. This does
-  /// not include type parameters that are declared by any enclosing elements.
-  List<TypeParameterElement> _typeParameterElements =
-      _Sentinel.typeParameterElement;
+  /// The type parameters declared by this element directly. This does not
+  /// include type parameters that are declared by any enclosing elements.
+  List<TypeParameterElement> _typeParameterElements = const [];
 
   @override
   bool get isSimplyBounded => true;
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (!identical(_typeParameterElements, _Sentinel.typeParameterElement)) {
-      return _typeParameterElements;
-    }
-
-    if (linkedNode != null) {
-      var typeParameters = linkedContext!.getTypeParameters2(linkedNode!);
-      if (typeParameters == null) {
-        return _typeParameterElements = const [];
-      }
-      return _typeParameterElements = typeParameters.typeParameters
-          .cast<TypeParameterImpl>()
-          .map<TypeParameterElement>((node) {
-        var element = node.declaredElement;
-        element ??= TypeParameterElementImpl.forLinkedNode(this, node);
-        return element;
-      }).toList();
-    }
-
     return _typeParameterElements;
   }
 
@@ -6133,7 +5924,6 @@ class _Sentinel {
   static final List<ElementAnnotation> elementAnnotation =
       List.unmodifiable([]);
   static final List<ExportElement> exportElement = List.unmodifiable([]);
-  static final List<ExtensionElement> extensionElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
   @Deprecated('Use TypeAliasElement instead')
   static final List<FunctionTypeAliasElement> functionTypeAliasElement =
@@ -6141,8 +5931,5 @@ class _Sentinel {
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
-      List.unmodifiable([]);
-  static final List<TypeAliasElement> typeAliasElement = List.unmodifiable([]);
-  static final List<TypeParameterElement> typeParameterElement =
       List.unmodifiable([]);
 }

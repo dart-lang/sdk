@@ -160,11 +160,11 @@ struct TTSInternalRegs {
 // implementation of subtype test cache stubs that are _not_ preserved.
 struct STCInternalRegs {
   static const Register kCacheEntryReg = RDI;
-  static const Register kInstanceCidOrFunctionReg = R10;
+  static const Register kInstanceCidOrSignatureReg = R10;
   static const Register kInstanceInstantiatorTypeArgumentsReg = R13;
 
   static const intptr_t kInternalRegisters =
-      (1 << kCacheEntryReg) | (1 << kInstanceCidOrFunctionReg) |
+      (1 << kCacheEntryReg) | (1 << kInstanceCidOrSignatureReg) |
       (1 << kInstanceInstantiatorTypeArgumentsReg);
 };
 

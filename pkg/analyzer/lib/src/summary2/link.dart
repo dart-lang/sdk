@@ -216,7 +216,7 @@ class Linker {
     for (var library in builders.values) {
       library.resolveTypes(nodesToBuildType);
     }
-    VarianceBuilder().perform(this);
+    VarianceBuilder(this).perform();
     computeSimplyBounded(this);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder(this).build(nodesToBuildType);

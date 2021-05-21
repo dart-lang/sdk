@@ -77,7 +77,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -616,7 +616,7 @@ static constexpr dart::compiler::target::word String_kMaxElements =
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -1160,7 +1160,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -1696,7 +1696,7 @@ static constexpr dart::compiler::target::word String_kMaxElements =
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -2241,7 +2241,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -2785,7 +2785,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -3329,7 +3329,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -3862,7 +3862,7 @@ static constexpr dart::compiler::target::word String_kMaxElements =
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -4400,7 +4400,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -4930,7 +4930,7 @@ static constexpr dart::compiler::target::word String_kMaxElements =
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -5469,7 +5469,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -6007,7 +6007,7 @@ static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -6559,7 +6559,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -7163,7 +7163,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -7773,7 +7773,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -8381,7 +8381,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -8988,7 +8988,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -9594,7 +9594,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -10191,7 +10191,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -10794,7 +10794,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -11395,7 +11395,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word
@@ -11995,7 +11995,7 @@ static constexpr dart::compiler::target::word AOT_String_kMaxElements =
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+    AOT_SubtypeTestCache_kInstanceCidOrSignature = 1;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kDestinationType = 2;
 static constexpr dart::compiler::target::word

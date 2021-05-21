@@ -81,10 +81,6 @@ class TypesBuilder {
       builder.build();
     }
 
-    for (var declaration in nodes.declarations) {
-      _declaration(declaration);
-    }
-
     // TODO(scheglov) generalize
     _linker.elementNodes.forEach((element, node) {
       if (element is GenericFunctionTypeElementImpl &&
@@ -95,6 +91,10 @@ class TypesBuilder {
         element.bound = node.bound?.type;
       }
     });
+
+    for (var declaration in nodes.declarations) {
+      _declaration(declaration);
+    }
 
     _MixinsInference(_linker).perform(nodes.declarations);
   }
@@ -187,7 +187,7 @@ class TypesBuilder {
     } else if (node is FunctionTypedFormalParameter) {
       _functionTypedFormalParameter(node);
     } else if (node is GenericTypeAlias) {
-      // TODO(scheglov) ???
+      _genericTypeAlias(node);
     } else if (node is MethodDeclaration) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
@@ -218,7 +218,10 @@ class TypesBuilder {
     }
   }
 
-  void _extensionDeclaration(ExtensionDeclaration node) {}
+  void _extensionDeclaration(ExtensionDeclaration node) {
+    var element = node.declaredElement as ExtensionElementImpl;
+    element.extendedType = node.extendedType.typeOrThrow;
+  }
 
   void _fieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredElement as FieldFormalParameterElementImpl;
@@ -243,10 +246,10 @@ class TypesBuilder {
   }
 
   void _functionTypeAlias(FunctionTypeAlias node) {
-    var returnTypeNode = node.returnType;
-    var element = node.declaredElement as TypeAliasElement;
+    var element = node.declaredElement as TypeAliasElementImpl;
     var function = element.aliasedElement as GenericFunctionTypeElementImpl;
-    function.returnType = returnTypeNode?.type ?? _dynamicType;
+    function.returnType = node.returnType?.type ?? _dynamicType;
+    element.aliasedType = function.type;
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
@@ -258,6 +261,20 @@ class TypesBuilder {
     );
     var element = node.declaredElement as ParameterElementImpl;
     element.type = type;
+  }
+
+  void _genericTypeAlias(GenericTypeAlias node) {
+    var element = node.declaredElement as TypeAliasElementImpl;
+    var featureSet = element.library.featureSet;
+
+    var typeNode = node.type;
+    if (featureSet.isEnabled(Feature.nonfunction_type_aliases)) {
+      element.aliasedType = typeNode.typeOrThrow;
+    } else if (typeNode is GenericFunctionType) {
+      element.aliasedType = typeNode.typeOrThrow;
+    } else {
+      element.aliasedType = _errorFunctionType();
+    }
   }
 
   bool _isNonNullableByDefault(AstNode node) {
@@ -301,6 +318,17 @@ class TypesBuilder {
     return node.typeParameters
         .map<TypeParameterElement>((p) => p.declaredElement!)
         .toList();
+  }
+
+  /// The [FunctionType] to use when a function type is expected for a type
+  /// alias, but the actual provided type annotation is not a function type.
+  static FunctionTypeImpl _errorFunctionType() {
+    return FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: DynamicTypeImpl.instance,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   static InterfaceType _objectType(ClassElementImpl element) {

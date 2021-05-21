@@ -2116,7 +2116,7 @@ class FieldInvalidator {
         entries_(Array::Handle(zone)),
         instantiator_type_arguments_(TypeArguments::Handle(zone)),
         function_type_arguments_(TypeArguments::Handle(zone)),
-        instance_cid_or_function_(Object::Handle(zone)),
+        instance_cid_or_signature_(Object::Handle(zone)),
         instance_type_arguments_(TypeArguments::Handle(zone)),
         parent_function_type_arguments_(TypeArguments::Handle(zone)),
         delayed_function_type_arguments_(TypeArguments::Handle(zone)) {}
@@ -2215,7 +2215,7 @@ class FieldInvalidator {
     cls_ = value.clazz();
     const intptr_t cid = cls_.id();
     if (cid == kClosureCid) {
-      instance_cid_or_function_ = Closure::Cast(value).function();
+      instance_cid_or_signature_ = Closure::Cast(value).signature();
       instance_type_arguments_ =
           Closure::Cast(value).instantiator_type_arguments();
       parent_function_type_arguments_ =
@@ -2223,7 +2223,7 @@ class FieldInvalidator {
       delayed_function_type_arguments_ =
           Closure::Cast(value).delayed_type_arguments();
     } else {
-      instance_cid_or_function_ = Smi::New(cid);
+      instance_cid_or_signature_ = Smi::New(cid);
       if (cls_.NumTypeArguments() > 0) {
         instance_type_arguments_ = value_.GetTypeArguments();
       } else {
@@ -2243,8 +2243,8 @@ class FieldInvalidator {
     bool cache_hit = false;
     for (intptr_t i = 0; entries_.At(i) != Object::null();
          i += SubtypeTestCache::kTestEntryLength) {
-      if ((entries_.At(i + SubtypeTestCache::kInstanceClassIdOrFunction) ==
-           instance_cid_or_function_.ptr()) &&
+      if ((entries_.At(i + SubtypeTestCache::kInstanceCidOrSignature) ==
+           instance_cid_or_signature_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kDestinationType) ==
            type_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
@@ -2275,7 +2275,7 @@ class FieldInvalidator {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {
-        cache_.AddCheck(instance_cid_or_function_, type_,
+        cache_.AddCheck(instance_cid_or_signature_, type_,
                         instance_type_arguments_, instantiator_type_arguments_,
                         function_type_arguments_,
                         parent_function_type_arguments_,
@@ -2293,7 +2293,7 @@ class FieldInvalidator {
   Array& entries_;
   TypeArguments& instantiator_type_arguments_;
   TypeArguments& function_type_arguments_;
-  Object& instance_cid_or_function_;
+  Object& instance_cid_or_signature_;
   TypeArguments& instance_type_arguments_;
   TypeArguments& parent_function_type_arguments_;
   TypeArguments& delayed_function_type_arguments_;

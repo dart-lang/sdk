@@ -1201,11 +1201,6 @@ ConstantInstr::ConstantInstr(const Object& value,
   // them here.
   if (!value.IsNull() && !value.IsSmi() && value.IsInstance() &&
       !value.IsCanonical() && (value.ptr() != Object::sentinel().ptr())) {
-    // The only allowed type for which IsCanonical() never answers true is
-    // TypeParameter. (They are treated as canonical due to how they are
-    // created, but there is no way to canonicalize a new TypeParameter
-    // instance containing the same information as an existing instance.)
-    //
     // Arrays in ConstantInstrs are usually immutable and canonicalized, but
     // there are at least a couple of cases where one or both is not true:
     //
@@ -1224,8 +1219,7 @@ ConstantInstr::ConstantInstr(const Object& value,
     //
     // LibraryPrefixes are also never canonicalized since their equality is
     // their identity.
-    ASSERT(value.IsTypeParameter() || value.IsArray() || value.IsTypedData() ||
-           value.IsLibraryPrefix());
+    ASSERT(value.IsArray() || value.IsTypedData() || value.IsLibraryPrefix());
   }
 #endif
 }

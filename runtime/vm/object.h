@@ -6940,7 +6940,7 @@ class SubtypeTestCache : public Object {
  public:
   enum Entries {
     kTestResult = 0,
-    kInstanceClassIdOrFunction = 1,
+    kInstanceCidOrSignature = 1,
     kDestinationType = 2,
     kInstanceTypeArguments = 3,
     kInstantiatorTypeArguments = 4,
@@ -6951,7 +6951,7 @@ class SubtypeTestCache : public Object {
   };
 
   virtual intptr_t NumberOfChecks() const;
-  void AddCheck(const Object& instance_class_id_or_function,
+  void AddCheck(const Object& instance_class_id_or_signature,
                 const AbstractType& destination_type,
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
@@ -6960,7 +6960,7 @@ class SubtypeTestCache : public Object {
                 const TypeArguments& instance_delayed_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
-                Object* instance_class_id_or_function,
+                Object* instance_class_id_or_signature,
                 AbstractType* destination_type,
                 TypeArguments* instance_type_arguments,
                 TypeArguments* instantiator_type_arguments,
@@ -6972,7 +6972,7 @@ class SubtypeTestCache : public Object {
   // Like GetCheck(), but does not require the subtype test cache mutex and so
   // may see an outdated view of the cache.
   void GetCurrentCheck(intptr_t ix,
-                       Object* instance_class_id_or_function,
+                       Object* instance_class_id_or_signature,
                        AbstractType* destination_type,
                        TypeArguments* instance_type_arguments,
                        TypeArguments* instantiator_type_arguments,
@@ -6987,7 +6987,7 @@ class SubtypeTestCache : public Object {
   //
   // If [index] is not nullptr, then it is set to the matching entry's index.
   // If [result] is not nullptr, then it is set to the matching entry's result.
-  bool HasCheck(const Object& instance_class_id_or_function,
+  bool HasCheck(const Object& instance_class_id_or_signature,
                 const AbstractType& destination_type,
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
@@ -10980,6 +10980,10 @@ class Closure : public Instance {
   FunctionPtr function() const { return untag()->function(); }
   static intptr_t function_offset() {
     return OFFSET_OF(UntaggedClosure, function_);
+  }
+
+  FunctionTypePtr signature() const {
+    return untag()->function()->untag()->signature();
   }
 
   ContextPtr context() const { return untag()->context(); }

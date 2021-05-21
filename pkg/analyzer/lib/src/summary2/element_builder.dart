@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -22,6 +23,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   var _hasCoreImport = false;
 
   _EnclosingContext _enclosingContext;
+  var _nextUnnamedExtensionId = 0;
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
@@ -31,6 +33,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
 
+  bool get _isNonFunctionTypeAliasesEnabled {
+    return _libraryElement.featureSet.isEnabled(
+      Feature.nonfunction_type_aliases,
+    );
+  }
+
   LibraryElementImpl get _libraryElement => _libraryBuilder.element;
 
   Linker get _linker => _libraryBuilder.linker;
@@ -39,11 +47,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     unit.declarations.accept(this);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.enums = _enclosingContext.enums;
+    _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
     _unitElement.mixins = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.properties
         .whereType<TopLevelVariableElementImpl>()
         .toList();
+    _unitElement.typeAliases = _enclosingContext.typeAliases;
     _unitElement.types = _enclosingContext.classes;
   }
 
@@ -193,12 +203,40 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    var element = node.declaredElement as ExtensionElementImpl;
-    var holder = _buildClassMembers(element, node.members);
-    element.accessors = holder.propertyAccessors;
-    element.fields = holder.properties.whereType<FieldElement>().toList();
-    element.methods = holder.methods;
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+    var nodeName = node.name;
+    var name = nodeName?.name;
+    var nameOffset = nodeName?.offset ?? -1;
+
+    var element = ExtensionElementImpl(name, nameOffset);
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    node.declaredElement = element;
+    _linker.elementNodes[element] = node;
+
+    var refName = name ?? 'extension-${_nextUnnamedExtensionId++}';
+    var reference = _enclosingContext.addExtension(refName, element);
+
+    if (name != null) {
+      _libraryBuilder.localScope.declare(name, reference);
+    }
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
+    {
+      var holder = _buildClassMembers(element, node.members);
+      element.accessors = holder.propertyAccessors;
+      element.fields = holder.properties.whereType<FieldElement>().toList();
+      element.methods = holder.methods;
+    }
 
     node.extendedType.accept(this);
   }
@@ -374,21 +412,35 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    node.returnType?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters.accept(this);
+  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
+    var nameNode = node.name;
+    var name = nameNode.name;
 
-    var element = node.declaredElement as TypeAliasElementImpl;
+    // ignore: deprecated_member_use_from_same_package
+    var element = FunctionTypeAliasElementImpl(name, nameNode.offset);
+    element.isFunctionTypeAliasBased = true;
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addTypeAlias(name, element);
+    _libraryBuilder.localScope.declare(name, reference);
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      node.typeParameters?.accept(this);
+      node.returnType?.accept(this);
+      node.parameters.accept(this);
+    });
 
     var aliasedElement = GenericFunctionTypeElementImpl.forOffset(
       node.name.offset,
     );
-    // TODO(scheglov) Use enclosing context?
-    aliasedElement.parameters = node.parameters.parameters
-        .map((parameterNode) => parameterNode.declaredElement!)
-        .toList();
+    aliasedElement.parameters = holder.parameters;
 
+    element.typeParameters = holder.typeParameters;
     element.aliasedElement = aliasedElement;
   }
 
@@ -463,13 +515,38 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
-    node.typeParameters?.accept(this);
-    node.type.accept(this);
+  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
+    var nameNode = node.name;
+    var name = nameNode.name;
+
+    TypeAliasElementImpl element;
+    var aliasedType = node.type;
+    if (aliasedType is GenericFunctionType ||
+        !_isNonFunctionTypeAliasesEnabled) {
+      // ignore: deprecated_member_use_from_same_package
+      element = FunctionTypeAliasElementImpl(name, nameNode.offset);
+    } else {
+      element = TypeAliasElementImpl(name, nameNode.offset);
+    }
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+    _linker.elementNodes[element] = node;
+
+    var reference = _enclosingContext.addTypeAlias(name, element);
+    _libraryBuilder.localScope.declare(name, reference);
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      node.typeParameters?.accept(this);
+    });
+    element.typeParameters = holder.typeParameters;
 
     var typeNode = node.type;
+    typeNode.accept(this);
+
     if (typeNode is GenericFunctionTypeImpl) {
-      var element = node.declaredElement as TypeAliasElementImpl;
       element.aliasedElement =
           typeNode.declaredElement as GenericFunctionTypeElementImpl;
     }
@@ -1014,12 +1091,14 @@ class _EnclosingContext {
   final List<ClassElementImpl> classes = [];
   final List<ConstructorElementImpl> constructors = [];
   final List<EnumElementImpl> enums = [];
+  final List<ExtensionElementImpl> extensions = [];
   final List<FunctionElementImpl> functions = [];
   final List<MethodElementImpl> methods = [];
   final List<MixinElementImpl> mixins = [];
   final List<ParameterElementImpl> parameters = [];
   final List<PropertyInducingElementImpl> properties = [];
   final List<PropertyAccessorElementImpl> propertyAccessors = [];
+  final List<TypeAliasElementImpl> typeAliases = [];
   final List<TypeParameterElementImpl> typeParameters = [];
   final bool hasConstConstructor;
 
@@ -1042,6 +1121,11 @@ class _EnclosingContext {
   Reference addEnum(String name, EnumElementImpl element) {
     enums.add(element);
     return _bindReference('@enum', name, element);
+  }
+
+  Reference addExtension(String name, ExtensionElementImpl element) {
+    extensions.add(element);
+    return _bindReference('@extension', name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {
@@ -1085,6 +1169,11 @@ class _EnclosingContext {
       String name, TopLevelVariableElementImpl element) {
     properties.add(element);
     return _bindReference('@variable', name, element);
+  }
+
+  Reference addTypeAlias(String name, TypeAliasElementImpl element) {
+    typeAliases.add(element);
+    return _bindReference('@typeAlias', name, element);
   }
 
   void addTypeParameter(String name, TypeParameterElementImpl element) {

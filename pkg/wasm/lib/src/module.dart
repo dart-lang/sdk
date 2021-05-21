@@ -109,6 +109,8 @@ class _WasmFnImport extends Struct {
   }
 }
 
+class _WasmImportOwner {}
+
 /// WasmInstanceBuilder is used collect all the imports that a WasmModule
 /// requires before it is instantiated.
 class WasmInstanceBuilder {
@@ -117,7 +119,7 @@ class WasmInstanceBuilder {
   Map<String, int> _importIndex;
   Pointer<WasmerExternVec> _imports = calloc<WasmerExternVec>();
   Pointer<WasmerWasiEnv> _wasiEnv = nullptr;
-  Object _importOwner = Object();
+  _WasmImportOwner _importOwner = _WasmImportOwner();
 
   WasmInstanceBuilder(this._module) : _importIndex = {} {
     _importDescs = WasmRuntime().importDescriptors(_module._module);
@@ -215,7 +217,7 @@ class WasmInstance {
   Stream<List<int>>? _stdout;
   Stream<List<int>>? _stderr;
   Map<String, WasmFunction> _functions = {};
-  Object _importOwner;
+  _WasmImportOwner _importOwner;
 
   WasmInstance(this._module, Pointer<WasmerExternVec> imports, this._wasiEnv,
       this._importOwner) {

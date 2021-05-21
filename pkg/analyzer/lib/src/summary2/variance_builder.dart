@@ -13,11 +13,14 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 
 class VarianceBuilder {
+  final Linker _linker;
   final Set<TypeAlias> _pending = Set.identity();
   final Set<TypeAlias> _visit = Set.identity();
 
-  void perform(Linker linker) {
-    for (var builder in linker.builders.values) {
+  VarianceBuilder(this._linker);
+
+  void perform() {
+    for (var builder in _linker.builders.values) {
       for (var unitContext in builder.context.units) {
         for (var node in unitContext.unit.declarations) {
           if (node is FunctionTypeAlias) {
@@ -29,7 +32,7 @@ class VarianceBuilder {
       }
     }
 
-    for (var builder in linker.builders.values) {
+    for (var builder in _linker.builders.values) {
       for (var unitContext in builder.context.units) {
         for (var node in unitContext.unit.declarations) {
           if (node is ClassTypeAlias) {
@@ -217,7 +220,7 @@ class VarianceBuilder {
   }
 
   void _typeAliasElement(TypeAliasElementImpl element) {
-    var node = element.linkedNode;
+    var node = _linker.getLinkingNode(element);
     if (node == null) {
       // Not linking.
     } else if (node is GenericTypeAlias) {

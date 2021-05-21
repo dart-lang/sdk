@@ -14,7 +14,7 @@ Uri getSdkDir() {
   // The common case, and how cli_util.dart computes the Dart SDK directory,
   // path.dirname called twice on Platform.resolvedExecutable.
   final exe = Uri.file(Platform.resolvedExecutable);
-  final commonSdkDir = exe.resolve('../..');
+  final commonSdkDir = exe.resolve('../../dart-sdk/');
   if (Directory(commonSdkDir.path).existsSync()) {
     return commonSdkDir;
   }
@@ -22,13 +22,24 @@ Uri getSdkDir() {
   // This is the less common case where the user is in the checked out Dart
   // SDK, and is executing dart via:
   // ./out/ReleaseX64/dart ...
-  final checkedOutSdkDir = exe.resolve('../dart-sdk');
+  final checkedOutSdkDir = exe.resolve('../dart-sdk/');
   if (Directory(checkedOutSdkDir.path).existsSync()) {
     return checkedOutSdkDir;
   }
 
   // If neither returned above, we return the common case:
   return commonSdkDir;
+}
+
+Uri getOutDir(Uri root) {
+  // Traverse up until we see a `.dart_tool/package_config.json` file.
+  do {
+    if (File.fromUri(root.resolve('.dart_tool/package_config.json'))
+        .existsSync()) {
+      return root.resolve('.dart_tool/wasm/');
+    }
+  } while (root != (root = root.resolve('..')));
+  throw Exception(".dart_tool/package_config.json not found");
 }
 
 String getOutLib(String target) {
@@ -89,10 +100,12 @@ main(List<String> args) async {
   final target = args.length >= 1 ? args[0] : await getTargetTriple();
   final sdkDir = getSdkDir();
   final binDir = Platform.script;
-  final outLib = binDir.resolve('out/' + getOutLib(target)).path;
+  final outDir = getOutDir(binDir);
+  final outLib = outDir.resolve(getOutLib(target)).path;
 
   print('Dart SDK directory: ${sdkDir.path}');
   print('Script directory: ${binDir.path}');
+  print('Output directory: ${outDir.path}');
   print('Target: $target');
   print('Output library: $outLib');
 
@@ -102,11 +115,20 @@ main(List<String> args) async {
     '--target',
     target,
     '--target-dir',
-    binDir.resolve('out').path,
+    outDir.path,
     '--manifest-path',
     binDir.resolve('Cargo.toml').path,
     '--release'
   ]);
+
+  // Hack around a bug with dart_api_dl_impl.h include path in dart_api_dl.c.
+  if (!File.fromUri(sdkDir.resolve('include/internal/dart_api_dl_impl.h'))
+      .existsSync()) {
+    Directory(outDir.resolve('include/internal/').path)
+        .createSync(recursive: true);
+    File.fromUri(sdkDir.resolve('include/runtime/dart_api_dl_impl.h'))
+        .copy(outDir.resolve('include/internal/dart_api_dl_impl.h').path);
+  }
 
   // Build dart_api_dl.o.
   await run('clang', [
@@ -117,10 +139,14 @@ main(List<String> args) async {
     '-O3',
     '-target',
     target,
+    '-I',
+    sdkDir.resolve('include/').path,
+    '-I',
+    outDir.resolve('include/').path,
     '-c',
-    sdkDir.resolve('runtime/include/dart_api_dl.c').path,
+    sdkDir.resolve('include/dart_api_dl.c').path,
     '-o',
-    binDir.resolve('out/dart_api_dl.o').path
+    outDir.resolve('dart_api_dl.o').path
   ]);
 
   // Build finalizers.o.
@@ -135,11 +161,13 @@ main(List<String> args) async {
     '-target',
     target,
     '-I',
-    sdkDir.resolve('runtime').path,
+    sdkDir.path,
+    '-I',
+    outDir.resolve('include/').path,
     '-c',
     binDir.resolve('finalizers.cc').path,
     '-o',
-    binDir.resolve('out/finalizers.o').path
+    outDir.resolve('finalizers.o').path
   ]);
 
   // Link wasmer, dart_api_dl, and finalizers to create the output library.
@@ -156,9 +184,9 @@ main(List<String> args) async {
     '-Wl,--gc-sections',
     '-target',
     target,
-    binDir.resolve('out/dart_api_dl.o').path,
-    binDir.resolve('out/finalizers.o').path,
-    binDir.resolve('out/' + target + '/release/libwasmer.a').path,
+    outDir.resolve('dart_api_dl.o').path,
+    outDir.resolve('finalizers.o').path,
+    outDir.resolve('' + target + '/release/libwasmer.a').path,
     '-o',
     outLib
   ]);

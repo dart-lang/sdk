@@ -195,9 +195,12 @@ class BundleWriter {
   }
 
   void _writeExtensionElement(ExtensionElement element) {
+    element as ExtensionElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeOptionalStringReference(element.name);
+    _sink._writeStringReference(element.reference!.name);
+
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
@@ -790,16 +793,10 @@ class ResolutionSink extends _SummaryDataWriter {
 
   static FunctionType _toSyntheticFunctionType(FunctionType type) {
     var typeParameters = type.typeFormals;
-
     if (typeParameters.isEmpty) return type;
 
-    var onlySyntheticTypeParameters = typeParameters.every((e) {
-      return e is TypeParameterElementImpl && e.linkedNode == null;
-    });
-    if (onlySyntheticTypeParameters) return type;
-
-    var parameters = getFreshTypeParameters(typeParameters);
-    return parameters.applyToFunctionType(type);
+    var fresh = getFreshTypeParameters(typeParameters);
+    return fresh.applyToFunctionType(type);
   }
 }
 

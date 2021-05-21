@@ -103,6 +103,7 @@ class ReplacementVisitor
     }
 
     return NamedTypeBuilder(
+      type.linker,
       type.typeSystem,
       type.element,
       newTypeArguments ?? type.arguments,

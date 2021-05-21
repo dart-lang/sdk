@@ -65,6 +65,7 @@ front_end/tool/incremental_perf_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
+wasm/*: SkipByDesign # These can't be run without running wasm:setup first.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
@@ -95,6 +96,7 @@ status_file/test/repo_status_files_test: SkipByDesign # Uses dart:io
 telemetry/test/*: SkipByDesign # Only meant to run on vm
 test_runner/test/*: SkipByDesign # Only meant to run on vm
 testing/*: SkipByDesign # Only meant to run on vm
+wasm/*: SkipByDesign # Only meant to run on vm
 
 [ $mode == debug ]
 compiler/test/deferred/load_graph_segmentation_test: Slow, Pass
