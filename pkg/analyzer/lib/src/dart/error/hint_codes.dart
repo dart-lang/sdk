@@ -3197,6 +3197,15 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
+   * Users should not import or export Dart native extensions via 'dart-ext:'.
+   */
+  static const HintCode USE_OF_NATIVE_EXTENSION = HintCode(
+      'USE_OF_NATIVE_EXTENSION',
+      "Dart native extensions are deprecated and will not be available in Dart "
+          "2.15",
+      correction: "Try using dart:ffi for C interop.");
+
+  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the

@@ -243,7 +243,7 @@ import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'import_internal_library_test.dart' as import_internal_library;
 import 'import_of_legacy_library_into_null_safe_test.dart'
-    as mport_of_legacy_library_into_null_safe;
+    as import_of_legacy_library_into_null_safe;
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
@@ -669,6 +669,7 @@ import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_shown_name_test.dart' as unused_shown_name;
 import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
+import 'use_of_native_extension_test.dart' as use_of_native_extension;
 import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
@@ -848,7 +849,7 @@ main() {
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
-    mport_of_legacy_library_into_null_safe.main();
+    import_of_legacy_library_into_null_safe.main();
     import_of_non_library.main();
     inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();
@@ -1139,6 +1140,7 @@ main() {
     unused_shown_name.main();
     uri_does_not_exist.main();
     uri_with_interpolation.main();
+    use_of_native_extension.main();
     use_of_nullable_value_test.main();
     use_of_void_result.main();
     variable_type_mismatch.main();
