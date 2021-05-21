@@ -2555,6 +2555,12 @@ class Function : public Object {
   void SetFfiCallbackId(int32_t value) const;
 
   // Can only be called on FFI trampolines.
+  bool FfiIsLeaf() const;
+
+  // Can only be called on FFI trampolines.
+  void SetFfiIsLeaf(bool is_leaf) const;
+
+  // Can only be called on FFI trampolines.
   // Null for Dart -> native calls.
   FunctionPtr FfiCallbackTarget() const;
 
@@ -3868,6 +3874,9 @@ class FfiTrampolineData : public Object {
 
   int32_t callback_id() const { return untag()->callback_id_; }
   void set_callback_id(int32_t value) const;
+
+  bool is_leaf() const { return untag()->is_leaf_; }
+  void set_is_leaf(bool value) const;
 
   static FfiTrampolineDataPtr New();
 

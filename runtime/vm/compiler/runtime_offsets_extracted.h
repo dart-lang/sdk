@@ -489,7 +489,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
-    24;
+    28;
 static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
@@ -1569,7 +1569,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
-    24;
+    28;
 static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
@@ -3738,7 +3738,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
-    24;
+    28;
 static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
@@ -4806,7 +4806,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     12;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
-    24;
+    28;
 static constexpr dart::compiler::target::word Field_InstanceSize = 60;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
@@ -7018,7 +7018,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 12;
 static constexpr dart::compiler::target::word
-    AOT_FfiTrampolineData_InstanceSize = 24;
+    AOT_FfiTrampolineData_InstanceSize = 28;
 static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
@@ -10049,7 +10049,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 12;
 static constexpr dart::compiler::target::word
-    AOT_FfiTrampolineData_InstanceSize = 24;
+    AOT_FfiTrampolineData_InstanceSize = 28;
 static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;

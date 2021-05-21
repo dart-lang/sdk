@@ -527,6 +527,9 @@ def Update(force=False, no_download=False):
 
         get_toolchain_args = [
             # TODO(athom): use sys.executable (python3).
+            # Note: depot_tools contains python.bat not python.exe
+            # so for python to land on the first python in the PATH
+            # irrespective of its extension we pass shell=True below.
             'python',
             os.path.join(depot_tools_path, 'win_toolchain',
                          'get_toolchain_if_necessary.py'),
@@ -537,7 +540,7 @@ def Update(force=False, no_download=False):
             get_toolchain_args.append('--force')
         if no_download:
             get_toolchain_args.append('--no-download')
-        subprocess.check_call(get_toolchain_args)
+        subprocess.check_call(get_toolchain_args, shell=True)
 
     return 0
 

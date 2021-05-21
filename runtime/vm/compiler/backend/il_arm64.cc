@@ -1228,46 +1228,48 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  return MakeLocationSummaryInternal(zone, is_optimizing, R11);
+}
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register saved_fp = locs()->temp(0).reg();
-  const Register temp = locs()->temp(1).reg();
+  // For regular calls, this holds the FP for rebasing the original locations
+  // during EmitParamMoves.
+  // For leaf calls, this holds the SP used to restore the pre-aligned SP after
+  // the call.
+  const Register saved_fp_or_sp = locs()->temp(0).reg();
+  RELEASE_ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
+                  (1 << saved_fp_or_sp)) != 0);
+  const Register temp1 = locs()->temp(1).reg();
+  const Register temp2 = locs()->temp(2).reg();
   const Register branch = locs()->in(TargetAddressIndex()).reg();
 
-  // Save frame pointer because we're going to update it when we enter the exit
-  // frame.
-  __ mov(saved_fp, FPREG);
+  // Ensure these are callee-saved register and are preserved across the call.
+  ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
+          (1 << saved_fp_or_sp)) != 0);
+  // temps don't need to be preserved.
 
-  // We need to create a dummy "exit frame". It will share the same pool pointer
-  // but have a null code object.
-  __ LoadObject(CODE_REG, Object::null_object());
-  __ set_constant_pool_allowed(false);
-  __ EnterDartFrame(0, PP);
+  __ mov(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);
 
-  // Make space for arguments and align the frame.
+  if (!is_leaf_) {
+    // We need to create a dummy "exit frame". It will share the same pool
+    // pointer but have a null code object.
+    __ LoadObject(CODE_REG, Object::null_object());
+    __ set_constant_pool_allowed(false);
+    __ EnterDartFrame(0, PP);
+  }
+
+  // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
-  EmitParamMoves(compiler);
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1);
 
   if (compiler::Assembler::EmittingComments()) {
-    __ Comment("Call");
+    __ Comment(is_leaf_ ? "Leaf Call" : "Call");
   }
-  // We need to copy a dummy return address up into the dummy stack frame so the
-  // stack walker will know which safepoint to use.
-  //
-  // ADR loads relative to itself, so add kInstrSize to point to the next
-  // instruction.
-  __ adr(temp, compiler::Immediate(Instr::kInstrSize));
-  compiler->EmitCallsiteMetadata(
-      source(), deopt_id(), UntaggedPcDescriptors::Kind::kOther, locs(), env());
 
-  __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
-
-  if (CanExecuteGeneratedCodeInSafepoint()) {
-    // Update information in the thread object and enter a safepoint.
-    __ LoadImmediate(temp, compiler::target::Thread::exit_through_ffi());
-    __ TransitionGeneratedToNative(branch, FPREG, temp,
-                                   /*enter_safepoint=*/true);
-
+  if (is_leaf_) {
     // We are entering runtime code, so the C stack pointer must be restored
     // from the stack limit to the top of the stack.
     __ mov(R25, CSP);
@@ -1278,39 +1280,75 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Restore the Dart stack pointer.
     __ mov(SP, CSP);
     __ mov(CSP, R25);
-
-    // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated(temp, /*leave_safepoint=*/true);
   } else {
-    // We cannot trust that this code will be executable within a safepoint.
-    // Therefore we delegate the responsibility of entering/exiting the
-    // safepoint to a stub which in the VM isolate's heap, which will never lose
-    // execute permission.
-    __ ldr(TMP,
-           compiler::Address(
-               THR, compiler::target::Thread::
-                        call_native_through_safepoint_entry_point_offset()));
+    // We need to copy a dummy return address up into the dummy stack frame so
+    // the stack walker will know which safepoint to use.
+    //
+    // ADR loads relative to itself, so add kInstrSize to point to the next
+    // instruction.
+    __ adr(temp1, compiler::Immediate(Instr::kInstrSize));
+    compiler->EmitCallsiteMetadata(source(), deopt_id(),
+                                   UntaggedPcDescriptors::Kind::kOther, locs(),
+                                   env());
 
-    // Calls R9 and clobbers R19 (along with volatile registers).
-    ASSERT(branch == R9 && temp == R19);
-    __ blr(TMP);
+    __ StoreToOffset(temp1, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
+
+    if (CanExecuteGeneratedCodeInSafepoint()) {
+      // Update information in the thread object and enter a safepoint.
+      __ LoadImmediate(temp1, compiler::target::Thread::exit_through_ffi());
+      __ TransitionGeneratedToNative(branch, FPREG, temp1,
+                                     /*enter_safepoint=*/true);
+
+      // We are entering runtime code, so the C stack pointer must be restored
+      // from the stack limit to the top of the stack.
+      __ mov(R25, CSP);
+      __ mov(CSP, SP);
+
+      __ blr(branch);
+
+      // Restore the Dart stack pointer.
+      __ mov(SP, CSP);
+      __ mov(CSP, R25);
+
+      // Update information in the thread object and leave the safepoint.
+      __ TransitionNativeToGenerated(temp1, /*leave_safepoint=*/true);
+    } else {
+      // We cannot trust that this code will be executable within a safepoint.
+      // Therefore we delegate the responsibility of entering/exiting the
+      // safepoint to a stub which in the VM isolate's heap, which will never
+      // lose execute permission.
+      __ ldr(temp1,
+             compiler::Address(
+                 THR, compiler::target::Thread::
+                          call_native_through_safepoint_entry_point_offset()));
+
+      // Calls R9 and clobbers R19 (along with volatile registers).
+      ASSERT(branch == R9);
+      __ blr(temp1);
+    }
+
+    // Refresh pinned registers values (inc. write barrier mask and null
+    // object).
+    __ RestorePinnedRegisters();
   }
 
-  // Refresh pinned registers values (inc. write barrier mask and null object).
-  __ RestorePinnedRegisters();
+  EmitReturnMoves(compiler, temp1, temp2);
 
-  EmitReturnMoves(compiler);
+  if (is_leaf_) {
+    // Restore the pre-aligned SP.
+    __ mov(SPREG, saved_fp_or_sp);
+  } else {
+    // Although PP is a callee-saved register, it may have been moved by the GC.
+    __ LeaveDartFrame(compiler::kRestoreCallerPP);
 
-  // Although PP is a callee-saved register, it may have been moved by the GC.
-  __ LeaveDartFrame(compiler::kRestoreCallerPP);
+    // Restore the global object pool after returning from runtime (old space is
+    // moving, so the GOP could have been relocated).
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      __ SetupGlobalPoolAndDispatchTable();
+    }
 
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ SetupGlobalPoolAndDispatchTable();
+    __ set_constant_pool_allowed(true);
   }
-
-  __ set_constant_pool_allowed(true);
 }
 
 // Keep in sync with NativeEntryInstr::EmitNativeCode.

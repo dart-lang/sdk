@@ -19,18 +19,22 @@ import 'very_large_struct.dart';
 typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
 
 void main() {
-  testFunctionWithStruct();
-  testFunctionWithStructArray();
-  testFunctionWithVeryLargeStruct();
+  for (final isLeaf in [false, true]) {
+    testFunctionWithStruct(isLeaf: isLeaf);
+    testFunctionWithStructArray(isLeaf: isLeaf);
+    testFunctionWithVeryLargeStruct(isLeaf: isLeaf);
+  }
 }
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 /// pass a struct to a c function and get a struct as return value
-void testFunctionWithStruct() {
+void testFunctionWithStruct({bool isLeaf: false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("TransposeCoordinate");
-  NativeCoordinateOp f1 = p1.asFunction();
+  NativeCoordinateOp f1 =
+      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
+  ;
 
   final c1 = calloc<Coordinate>()
     ..ref.x = 10.0
@@ -54,10 +58,12 @@ void testFunctionWithStruct() {
 }
 
 /// pass an array of structs to a c funtion
-void testFunctionWithStructArray() {
+void testFunctionWithStructArray({bool isLeaf: false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("CoordinateElemAt1");
-  NativeCoordinateOp f1 = p1.asFunction();
+  NativeCoordinateOp f1 =
+      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
+  ;
 
   final coordinateArray = calloc<Coordinate>(3);
   Coordinate c1 = coordinateArray[0];
@@ -83,10 +89,12 @@ void testFunctionWithStructArray() {
 typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
 typedef NativeVeryLargeStructSum = Int64 Function(Pointer<VeryLargeStruct>);
 
-void testFunctionWithVeryLargeStruct() {
+void testFunctionWithVeryLargeStruct({bool isLeaf: false}) {
   Pointer<NativeFunction<NativeVeryLargeStructSum>> p1 =
       ffiTestFunctions.lookup("SumVeryLargeStruct");
-  VeryLargeStructSum f = p1.asFunction();
+  VeryLargeStructSum f =
+      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
+  ;
 
   final vlsArray = calloc<VeryLargeStruct>(2);
   VeryLargeStruct vls1 = vlsArray[0];

@@ -5667,20 +5667,32 @@ Fragment StreamingFlowGraphBuilder::BuildNativeEffect() {
 
 Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   const intptr_t argc = ReadUInt();               // Read argument count.
-  ASSERT(argc == 1);                              // Pointer.
+  ASSERT(argc == 2);                              // Pointer, isLeaf.
   const intptr_t list_length = ReadListLength();  // Read types list length.
-  ASSERT(list_length == 2);  // Dart signature, then native signature.
-  const TypeArguments& type_arguments =
-      T.BuildTypeArguments(list_length);  // Read types.
+  ASSERT(list_length == 2);  // Dart signature, then native signature
+  // Read types.
+  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
   Fragment code;
-  const intptr_t positional_count =
-      ReadListLength();  // Read positional argument count.
-  ASSERT(positional_count == 1);
+  // Read positional argument count.
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 2);
   code += BuildExpression();  // Build first positional argument (pointer).
-  const intptr_t named_args_len =
-      ReadListLength();  // Skip empty named arguments list.
+
+  // The second argument, `isLeaf`, is only used internally and dictates whether
+  // we can do a lightweight leaf function call.
+  bool is_leaf = false;
+  Fragment frag = BuildExpression();
+  ASSERT(frag.entry->IsConstant());
+  if (frag.entry->AsConstant()->value().ptr() == Object::bool_true().ptr()) {
+    is_leaf = true;
+  }
+  Pop();
+
+  // Skip (empty) named arguments list.
+  const intptr_t named_args_len = ReadListLength();
   ASSERT(named_args_len == 0);
-  code += B->BuildFfiAsFunctionInternalCall(type_arguments);
+
+  code += B->BuildFfiAsFunctionInternalCall(type_arguments, is_leaf);
   return code;
 }
 

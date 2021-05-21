@@ -384,7 +384,8 @@ Fragment FlowGraphBuilder::FfiCall(
   Fragment body;
 
   FfiCallInstr* const call =
-      new (Z) FfiCallInstr(Z, GetNextDeoptId(), marshaller);
+      new (Z) FfiCallInstr(Z, GetNextDeoptId(), marshaller,
+                           parsed_function_->function().FfiIsLeaf());
 
   for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
     call->SetInputAt(i, Pop());

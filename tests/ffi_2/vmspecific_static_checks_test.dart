@@ -63,6 +63,12 @@ void main() {
   testSizeOfHandle();
   testElementAtGeneric();
   testElementAtNativeType();
+  testLookupFunctionIsLeafMustBeConst();
+  testAsFunctionIsLeafMustBeConst();
+  testLookupFunctionTakesHandle();
+  testAsFunctionTakesHandle();
+  testLookupFunctionReturnsHandle();
+  testAsFunctionReturnsHandle();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -703,6 +709,44 @@ class TestStruct1405 extends Struct {
   Array<Array<Array<Uint8>>> a0; //# 1405: compile-time error
 
   Pointer<Uint8> notEmpty;
+}
+
+void testLookupFunctionIsLeafMustBeConst() {
+  bool notAConst = false;
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>("timesFour", isLeaf:notAConst); //# 1500: compile-time error
+}
+
+void testAsFunctionIsLeafMustBeConst() {
+  bool notAConst = false;
+  Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
+  IntUnOp f = p.asFunction(isLeaf:notAConst); //# 1501: compile-time error
+}
+
+typedef NativeTakesHandle = Void Function(Handle);
+typedef TakesHandle = void Function(Object);
+
+void testLookupFunctionTakesHandle() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  l.lookupFunction<NativeTakesHandle, TakesHandle>("takesHandle", isLeaf:true); //# 1502: compile-time error
+}
+
+void testAsFunctionTakesHandle() {
+  Pointer<NativeFunction<NativeTakesHandle>> p = Pointer.fromAddress(1337); //# 1503: compile-time error
+  TakesHandle f = p.asFunction(isLeaf:true); //# 1503: compile-time error
+}
+
+typedef NativeReturnsHandle = Handle Function();
+typedef ReturnsHandle = Object Function();
+
+void testLookupFunctionReturnsHandle() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  l.lookupFunction<NativeReturnsHandle, ReturnsHandle>("returnsHandle", isLeaf:true); //# 1504: compile-time error
+}
+
+void testAsFunctionReturnsHandle() {
+  Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337); //# 1505: compile-time error
+  ReturnsHandle f = p.asFunction(isLeaf:true); //# 1505: compile-time error
 }
 
 @Packed(1)

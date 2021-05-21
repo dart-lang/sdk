@@ -980,7 +980,8 @@ Fragment BaseFlowGraphBuilder::Box(Representation from) {
 }
 
 Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
-    const TypeArguments& signatures) {
+    const TypeArguments& signatures,
+    bool is_leaf) {
   ASSERT(signatures.IsInstantiated());
   ASSERT(signatures.Length() == 2);
 
@@ -990,7 +991,8 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
   const Function& target =
       Function::ZoneHandle(compiler::ffi::TrampolineFunction(
-          FunctionType::Cast(dart_type), FunctionType::Cast(native_type)));
+          FunctionType::Cast(dart_type), FunctionType::Cast(native_type),
+          is_leaf));
 
   Fragment code;
   // Store the pointer in the context, we cannot load the untagged address

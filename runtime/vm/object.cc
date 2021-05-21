@@ -7535,6 +7535,20 @@ void Function::SetFfiCallbackId(int32_t value) const {
   FfiTrampolineData::Cast(obj).set_callback_id(value);
 }
 
+bool Function::FfiIsLeaf() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(untag()->data());
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).is_leaf();
+}
+
+void Function::SetFfiIsLeaf(bool is_leaf) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(untag()->data());
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_is_leaf(is_leaf);
+}
+
 FunctionPtr Function::FfiCallbackTarget() const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(data());
@@ -10295,6 +10309,10 @@ void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
   StoreNonPointer(&untag()->callback_id_, callback_id);
 }
 
+void FfiTrampolineData::set_is_leaf(bool is_leaf) const {
+  StoreNonPointer(&untag()->is_leaf_, is_leaf);
+}
+
 void FfiTrampolineData::set_callback_exceptional_return(
     const Instance& value) const {
   untag()->set_callback_exceptional_return(value.ptr());
@@ -10307,6 +10325,7 @@ FfiTrampolineDataPtr FfiTrampolineData::New() {
       Heap::kOld, FfiTrampolineData::ContainsCompressedPointers());
   FfiTrampolineDataPtr data = static_cast<FfiTrampolineDataPtr>(raw);
   data->untag()->callback_id_ = 0;
+  data->untag()->is_leaf_ = false;
   return data;
 }
 

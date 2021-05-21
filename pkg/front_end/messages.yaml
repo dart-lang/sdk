@@ -4501,6 +4501,21 @@ FfiExceptionalReturnNull:
   template: "Exceptional return value must not be null."
   external: test/ffi_test.dart
 
+FfiExpectedConstantArg:
+  # Used by dart:ffi
+  template: "Argument '#name' must be a constant."
+  external: test/ffi_test.dart
+
+FfiLeafCallMustNotTakeHandle:
+  # Used by dart:ffi
+  template: "FFI leaf call must not have Handle argument types."
+  external: test/ffi_test.dart
+
+FfiLeafCallMustNotReturnHandle:
+  # Used by dart:ffi
+  template: "FFI leaf call must not have Handle return type."
+  external: test/ffi_test.dart
+
 SpreadTypeMismatch:
   template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
   script:

@@ -221,6 +221,7 @@ class FfiTransformer extends Transformer {
   final Library ffiLibrary;
   final Class allocatorClass;
   final Class nativeFunctionClass;
+  final Class handleClass;
   final Class opaqueClass;
   final Class arrayClass;
   final Class arraySizeClass;
@@ -324,6 +325,7 @@ class FfiTransformer extends Transformer {
         ffiLibrary = index.getLibrary('dart:ffi'),
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
+        handleClass = index.getClass('dart:ffi', 'Handle'),
         opaqueClass = index.getClass('dart:ffi', 'Opaque'),
         arrayClass = index.getClass('dart:ffi', 'Array'),
         arraySizeClass = index.getClass('dart:ffi', '_ArraySize'),

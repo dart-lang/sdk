@@ -164,7 +164,7 @@ namespace dart {
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b2bafab)               \
   V(::, _classRangeCheck, ClassRangeCheck, 0x00269620)                         \
   V(::, _abi, FfiAbi, 0x7c4ab775)                                              \
-  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0xbbcb235a)                \
+  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92ae104f)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3ff5ae9c)        \
   V(::, _nativeEffect, NativeEffect, 0x61e00b59)                               \
   V(::, _loadInt8, FfiLoadInt8, 0x0f04dfd6)                                    \

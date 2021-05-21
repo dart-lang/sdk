@@ -67,7 +67,7 @@ static method testLookupFunctionReturn() → void {
   final ffi::DynamicLibrary* dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary?] ffi::DynamicLibrary::executable();
   final () →* self::Struct1* function1 = block {
     _in::_nativeEffect(new self::Struct1::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C18)));
-  } =>ffi::_asFunctionInternal<() →* self::Struct1*, () →* self::Struct1*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<() →* self::Struct1*>*>("function1"));
+  } =>ffi::_asFunctionInternal<() →* self::Struct1*, () →* self::Struct1*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<() →* self::Struct1*>*>("function1"), false);
   final self::Struct1* struct1 = [@vm.call-site-attributes.metadata=receiverType:#lib::Struct1* Function()*] function1(){() →* self::Struct1*};
   core::print(struct1);
 }
@@ -75,7 +75,7 @@ static method testAsFunctionReturn() → void {
   final ffi::Pointer<ffi::NativeFunction<() →* self::Struct2*>*>* pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::Pointer::fromAddress<ffi::NativeFunction<() →* self::Struct2*>*>(3735928559);
   final () →* self::Struct2* function2 = block {
     _in::_nativeEffect(new self::Struct2::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C18)));
-  } =>ffi::_asFunctionInternal<() →* self::Struct2*, () →* self::Struct2*>(pointer);
+  } =>ffi::_asFunctionInternal<() →* self::Struct2*, () →* self::Struct2*>(pointer, false);
   final self::Struct2* struct2 = [@vm.call-site-attributes.metadata=receiverType:#lib::Struct2* Function()*] function2(){() →* self::Struct2*};
   core::print(struct2);
 }
@@ -90,12 +90,12 @@ static method testFromFunctionArgument() → void {
 }
 static method testLookupFunctionArgument() → void {
   final ffi::DynamicLibrary* dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary?] ffi::DynamicLibrary::executable();
-  final (self::Struct5*) →* void function5 = [@vm.inferred-type.metadata=dart.core::_Closure?] ffi::_asFunctionInternal<(self::Struct5*) →* void, (self::Struct5*) →* ffi::Void*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(self::Struct5*) →* ffi::Void*>*>("function5"));
+  final (self::Struct5*) →* void function5 = [@vm.inferred-type.metadata=dart.core::_Closure?] ffi::_asFunctionInternal<(self::Struct5*) →* void, (self::Struct5*) →* ffi::Void*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(self::Struct5*) →* ffi::Void*>*>("function5"), false);
   core::print(function5);
 }
 static method testAsFunctionArgument() → void {
   final ffi::Pointer<ffi::NativeFunction<(self::Struct6*) →* ffi::Void*>*>* pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::Pointer::fromAddress<ffi::NativeFunction<(self::Struct6*) →* ffi::Void*>*>(3735928559);
-  final (self::Struct6*) →* void function6 = [@vm.inferred-type.metadata=dart.core::_Closure?] ffi::_asFunctionInternal<(self::Struct6*) →* void, (self::Struct6*) →* ffi::Void*>(pointer);
+  final (self::Struct6*) →* void function6 = [@vm.inferred-type.metadata=dart.core::_Closure?] ffi::_asFunctionInternal<(self::Struct6*) →* void, (self::Struct6*) →* ffi::Void*>(pointer, false);
   core::print(function6);
 }
 static method returnStruct7() → self::Struct7* {

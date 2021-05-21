@@ -145,13 +145,15 @@ template("_application_snapshot") {
     dfe = "$_dart_root/pkg/vm/bin/kernel_service.dart"
 
     abs_depfile = rebase_path(depfile)
-    abs_output = rebase_path(output, root_build_dir)
+    abs_output = rebase_path(output)
+    rel_output = rebase_path(output, root_build_dir)
 
     vm_args = [
                 "--deterministic",
                 "--packages=$dot_packages",
                 "--snapshot=$abs_output",
                 "--snapshot-depfile=$abs_depfile",
+                "--depfile-output-filename=$rel_output",
               ] + snapshot_vm_args
 
     if (dart_snapshot_kind == "kernel") {

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 
@@ -20,6 +21,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocatorExtensionName = 'AllocatorAlloc';
   static const _arrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
+  static const _isLeafParamName = 'isLeaf';
   static const _opaqueClassName = 'Opaque';
 
   static const List<String> _primitiveIntegerNativeTypes = [
@@ -341,6 +343,26 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
+  // Get the const bool value of `expr` if it exists.
+  // Return null if it isn't a const bool.
+  bool? _maybeGetBoolConstValue(Expression expr) {
+    if (expr is BooleanLiteral) {
+      return expr.value;
+    } else if (expr is Identifier) {
+      final staticElm = expr.staticElement;
+      if (staticElm is ConstVariableElement) {
+        return staticElm.computeConstantValue()?.toBoolValue();
+      }
+      if (staticElm is PropertyAccessorElementImpl) {
+        final v = staticElm.variable;
+        if (v is ConstVariableElement) {
+          return v.computeConstantValue()?.toBoolValue();
+        }
+      }
+    }
+    return null;
+  }
+
   _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
     if (nativeType is InterfaceType) {
       final element = nativeType.element;
@@ -461,7 +483,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
+      _validateFfiLeafCallUsesNoHandles(node, TPrime, node);
     }
+    _validateIsLeafIsConst(node);
   }
 
   /// Validates that the given [nativeType] is, when native types are converted
@@ -547,6 +571,37 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final AstNode errorNode = node;
         _errorReporter.reportErrorForNode(
             FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['elementAt']);
+      }
+    }
+  }
+
+  void _validateFfiLeafCallUsesNoHandles(
+      MethodInvocation node, DartType nativeType, AstNode errorNode) {
+    final args = node.argumentList.arguments;
+    if (args.isNotEmpty) {
+      for (final arg in args) {
+        if (arg is NamedExpression) {
+          if (arg.element?.name == _isLeafParamName) {
+            // Handles are ok for regular (non-leaf) calls. Check `isLeaf:true`.
+            final bool? isLeaf = _maybeGetBoolConstValue(arg.expression);
+            if (isLeaf != null && isLeaf) {
+              if (nativeType is FunctionType) {
+                if (_primitiveNativeType(nativeType.returnType) ==
+                    _PrimitiveDartType.handle) {
+                  _errorReporter.reportErrorForNode(
+                      FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, errorNode);
+                }
+                for (final param in nativeType.normalParameterTypes) {
+                  if (_primitiveNativeType(param) ==
+                      _PrimitiveDartType.handle) {
+                    _errorReporter.reportErrorForNode(
+                        FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -654,6 +709,27 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _validateIsLeafIsConst(MethodInvocation node) {
+    // Ensure `isLeaf` is const as we need the value at compile time to know
+    // which trampoline to generate.
+    final args = node.argumentList.arguments;
+    if (args.isNotEmpty) {
+      for (final arg in args) {
+        if (arg is NamedExpression) {
+          if (arg.element?.name == _isLeafParamName) {
+            if (_maybeGetBoolConstValue(arg.expression) == null) {
+              final AstNode errorNode = node;
+              _errorReporter.reportErrorForNode(
+                  FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
+                  errorNode,
+                  [_isLeafParamName]);
+            }
+          }
+        }
+      }
+    }
+  }
+
   /// Validate the invocation of the instance method
   /// `DynamicLibrary.lookupFunction<S, F>()`.
   void _validateLookupFunction(MethodInvocation node) {
@@ -678,6 +754,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
+    _validateIsLeafIsConst(node);
+    _validateFfiLeafCallUsesNoHandles(node, S, typeArguments![0]);
   }
 
   /// Validate that none of the [annotations] are from `dart:ffi`.

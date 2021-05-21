@@ -537,7 +537,7 @@ extension on CompositeType {
 }
 
 extension on FunctionType {
-  String get dartCallCode {
+  String dartCallCode({bool isLeaf: false}) {
     final a = ArgumentValueAssigner();
     final assignValues = arguments.assignValueStatements(a);
     final argumentFrees = arguments.dartFreeStatements();
@@ -561,17 +561,19 @@ extension on FunctionType {
         break;
     }
 
+    final namePostfix = isLeaf ? "Leaf" : "";
     return """
-    final $dartName =
-      ffiTestFunctions.lookupFunction<$dartCType, $dartType>("$cName");
+    final $dartName$namePostfix =
+      ffiTestFunctions.lookupFunction<$dartCType, $dartType>(
+          "$cName"${isLeaf ? ", isLeaf:true" : ""});
 
     ${reason.makeDartDocComment()}
-    void $dartTestName() {
+    void $dartTestName$namePostfix() {
       ${arguments.dartAllocateStatements()}
 
       ${assignValues}
 
-      final result = $dartName($argumentNames);
+      final result = $dartName$namePostfix($argumentNames);
 
       print("result = \$result");
 
@@ -886,11 +888,13 @@ void writeDartCallTest() {
     void main() {
       for (int i = 0; i < 10; ++i) {
         ${functions.map((e) => "${e.dartTestName}();").join("\n")}
+        ${functions.map((e) => "${e.dartTestName}Leaf();").join("\n")}
       }
     }
     """);
     buffer.writeAll(compounds.map((e) => e.dartClass(nnbd)));
-    buffer.writeAll(functions.map((e) => e.dartCallCode));
+    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: false)));
+    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: true)));
 
     final path = callTestPath(nnbd);
     File(path).writeAsStringSync(buffer.toString());

@@ -38,7 +38,8 @@ Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 // this function.
 @pragma("vm:recognized", "other")
 DS _asFunctionInternal<DS extends Function, NS extends Function>(
-    Pointer<NativeFunction<NS>> ptr) native "Ffi_asFunctionInternal";
+    Pointer<NativeFunction<NS>> ptr,
+    bool isLeaf) native "Ffi_asFunctionInternal";
 
 dynamic _asExternalTypedData(Pointer ptr, int count)
     native "Ffi_asExternalTypedData";
@@ -336,7 +337,7 @@ Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   @patch
-  DF asFunction<DF extends Function>() =>
+  DF asFunction<DF extends Function>({bool isLeaf: false}) =>
       throw UnsupportedError("The body is inlined in the frontend.");
 }
 

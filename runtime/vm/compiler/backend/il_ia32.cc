@@ -999,57 +999,88 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  return MakeLocationSummaryInternal(zone, is_optimizing, kNoRegister);
+}
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register saved_fp = locs()->temp(0).reg();
+  // For regular calls, this holds the FP for rebasing the original locations
+  // during EmitParamMoves.
+  // For leaf calls, this holds the SP used to restore the pre-aligned SP after
+  // the call.
+  const Register saved_fp_or_sp = locs()->temp(0).reg();
   const Register temp = locs()->temp(1).reg();
   const Register branch = locs()->in(TargetAddressIndex()).reg();
 
-  // Save frame pointer because we're going to update it when we enter the exit
-  // frame.
-  __ movl(saved_fp, FPREG);
+  // Ensure these are callee-saved register and are preserved across the call.
+  ASSERT((CallingConventions::kCalleeSaveCpuRegisters &
+          (1 << saved_fp_or_sp)) != 0);
+  // temp doesn't need to be preserved.
 
-  // Make a space to put the return address.
-  __ pushl(compiler::Immediate(0));
+  __ movl(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);
 
-  // We need to create a dummy "exit frame". It will have a null code object.
-  __ LoadObject(CODE_REG, Object::null_object());
-  __ EnterDartFrame(marshaller_.RequiredStackSpaceInBytes());
+  intptr_t stack_required = marshaller_.RequiredStackSpaceInBytes();
 
-  // Align frame before entering C++ world.
-  if (OS::ActivationFrameAlignment() > 1) {
-    __ andl(SPREG, compiler::Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  if (is_leaf_) {
+    // For leaf calls we need to leave space at the bottom for the pre-align SP.
+    stack_required += compiler::target::kWordSize;
+  } else {
+    // Make a space to put the return address.
+    __ pushl(compiler::Immediate(0));
+
+    // We need to create a dummy "exit frame". It will have a null code object.
+    __ LoadObject(CODE_REG, Object::null_object());
+    __ EnterDartFrame(0);
   }
 
-  EmitParamMoves(compiler);
+  // Reserve space for the arguments that go on the stack (if any), then align.
+  __ ReserveAlignedFrameSpace(stack_required);
+
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp);
+
+  if (is_leaf_) {
+    // We store the pre-align SP at a fixed offset from the final SP.
+    // Pushing before alignment would mean its placement would vary with how
+    // much the frame was unaligned.
+    __ movl(compiler::Address(SPREG, marshaller_.RequiredStackSpaceInBytes()),
+            saved_fp_or_sp);
+  }
 
   if (compiler::Assembler::EmittingComments()) {
-    __ Comment("Call");
+    __ Comment(is_leaf_ ? "Leaf Call" : "Call");
   }
-  // We need to copy a dummy return address up into the dummy stack frame so the
-  // stack walker will know which safepoint to use. Unlike X64, there's no
-  // PC-relative 'leaq' available, so we have do a trick with 'call'.
-  compiler::Label get_pc;
-  __ call(&get_pc);
-  compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
-                                 UntaggedPcDescriptors::Kind::kOther, locs(),
-                                 env());
-  __ Bind(&get_pc);
-  __ popl(temp);
-  __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), temp);
 
-  ASSERT(!CanExecuteGeneratedCodeInSafepoint());
-  // We cannot trust that this code will be executable within a safepoint.
-  // Therefore we delegate the responsibility of entering/exiting the
-  // safepoint to a stub which in the VM isolate's heap, which will never lose
-  // execute permission.
-  __ movl(temp,
-          compiler::Address(
-              THR, compiler::target::Thread::
-                       call_native_through_safepoint_entry_point_offset()));
+  if (is_leaf_) {
+    __ call(branch);
+  } else {
+    // We need to copy a dummy return address up into the dummy stack frame so
+    // the stack walker will know which safepoint to use. Unlike X64, there's no
+    // PC-relative 'leaq' available, so we have do a trick with 'call'.
+    compiler::Label get_pc;
+    __ call(&get_pc);
+    compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
+                                   UntaggedPcDescriptors::Kind::kOther, locs(),
+                                   env());
+    __ Bind(&get_pc);
+    __ popl(temp);
+    __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize),
+            temp);
 
-  // Calls EAX within a safepoint and clobbers EBX.
-  ASSERT(temp == EBX && branch == EAX);
-  __ call(temp);
+    ASSERT(!CanExecuteGeneratedCodeInSafepoint());
+    // We cannot trust that this code will be executable within a safepoint.
+    // Therefore we delegate the responsibility of entering/exiting the
+    // safepoint to a stub which in the VM isolate's heap, which will never lose
+    // execute permission.
+    __ movl(temp,
+            compiler::Address(
+                THR, compiler::target::Thread::
+                         call_native_through_safepoint_entry_point_offset()));
+
+    // Calls EAX within a safepoint and clobbers EBX.
+    ASSERT(branch == EAX);
+    __ call(temp);
+  }
 
   // Restore the stack when a struct by value is returned into memory pointed
   // to by a pointer that is passed into the function.
@@ -1061,10 +1092,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ subl(SPREG, compiler::Immediate(compiler::target::kWordSize));
   }
 
-  // The x86 calling convention requires floating point values to be returned on
-  // the "floating-point stack" (aka. register ST0). We don't use the
-  // floating-point stack in Dart, so we need to move the return value back into
-  // an XMM register.
+  // The x86 calling convention requires floating point values to be returned
+  // on the "floating-point stack" (aka. register ST0). We don't use the
+  // floating-point stack in Dart, so we need to move the return value back
+  // into an XMM register.
   if (representation() == kUnboxedDouble) {
     __ fstpl(compiler::Address(SPREG, -kDoubleSize));
     __ movsd(XMM0, compiler::Address(SPREG, -kDoubleSize));
@@ -1073,13 +1104,20 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movss(XMM0, compiler::Address(SPREG, -kFloatSize));
   }
 
-  EmitReturnMoves(compiler);
+  // Pass both registers for use as clobbered temp registers.
+  EmitReturnMoves(compiler, saved_fp_or_sp, temp);
 
-  // Leave dummy exit frame.
-  __ LeaveFrame();
+  if (is_leaf_) {
+    // Restore pre-align SP. Was stored right before the first stack argument.
+    __ movl(SPREG,
+            compiler::Address(SPREG, marshaller_.RequiredStackSpaceInBytes()));
+  } else {
+    // Leave dummy exit frame.
+    __ LeaveFrame();
 
-  // Instead of returning to the "fake" return address, we just pop it.
-  __ popl(temp);
+    // Instead of returning to the "fake" return address, we just pop it.
+    __ popl(temp);
+  }
 }
 
 // Keep in sync with NativeReturnInstr::EmitNativeCode.

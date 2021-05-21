@@ -1188,82 +1188,118 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  // Use R10 as a temp register. We can't use RDI, RSI, RDX, R8, R9 as they are
+  // arg registers, and R11 is TMP.
+  return MakeLocationSummaryInternal(zone, is_optimizing, R10);
+}
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register saved_fp = locs()->temp(0).reg();
+  // For leaf calls, this holds the SP used to restore the pre-aligned SP after
+  // the call.
+  // Note: R12 doubles as CODE_REG, which gets clobbered during frame setup in
+  // regular calls.
+  const Register saved_sp = locs()->temp(0).reg();
+  // For regular calls, this holds the FP for rebasing the original locations
+  // during EmitParamMoves.
+  const Register saved_fp = locs()->temp(1).reg();
+  const Register temp = locs()->temp(2).reg();
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
 
-  // Save frame pointer because we're going to update it when we enter the exit
-  // frame.
-  __ movq(saved_fp, FPREG);
+  // Ensure these are callee-saved register and are preserved across the call.
+  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_sp)) != 0);
+  ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << saved_fp)) != 0);
+  // temp doesn't need to be preserved.
 
-  // Make a space to put the return address.
-  __ pushq(compiler::Immediate(0));
-
-  // We need to create a dummy "exit frame". It will share the same pool pointer
-  // but have a null code object.
-  __ LoadObject(CODE_REG, Object::null_object());
-  __ set_constant_pool_allowed(false);
-  __ EnterDartFrame(marshaller_.RequiredStackSpaceInBytes(), PP);
-
-  // Align frame before entering C++ world.
-  if (OS::ActivationFrameAlignment() > 1) {
-    __ andq(SPREG, compiler::Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  }
-
-  EmitParamMoves(compiler);
-
-  // We need to copy a dummy return address up into the dummy stack frame so the
-  // stack walker will know which safepoint to use. RIP points to the *next*
-  // instruction, so 'AddressRIPRelative' loads the address of the following
-  // 'movq'.
-  __ leaq(TMP, compiler::Address::AddressRIPRelative(0));
-  compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
-                                 UntaggedPcDescriptors::Kind::kOther, locs(),
-                                 env());
-  __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
-
-  if (CanExecuteGeneratedCodeInSafepoint()) {
-    // Update information in the thread object and enter a safepoint.
-    __ movq(TMP,
-            compiler::Immediate(compiler::target::Thread::exit_through_ffi()));
-    __ TransitionGeneratedToNative(target_address, FPREG, TMP,
-                                   /*enter_safepoint=*/true);
-
-    __ CallCFunction(target_address, /*restore_rsp=*/true);
-
-    // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+  if (is_leaf_) {
+    __ movq(saved_sp, SPREG);
   } else {
-    // We cannot trust that this code will be executable within a safepoint.
-    // Therefore we delegate the responsibility of entering/exiting the
-    // safepoint to a stub which in the VM isolate's heap, which will never lose
-    // execute permission.
-    __ movq(TMP,
-            compiler::Address(
-                THR, compiler::target::Thread::
-                         call_native_through_safepoint_entry_point_offset()));
+    __ movq(saved_fp, FPREG);
+    // Make a space to put the return address.
+    __ pushq(compiler::Immediate(0));
 
-    // Calls RBX within a safepoint.
-    ASSERT(saved_fp == RBX);
-    __ movq(RBX, target_address);
-    __ call(TMP);
+    // We need to create a dummy "exit frame". It will share the same pool
+    // pointer but have a null code object.
+    __ LoadObject(CODE_REG, Code::null_object());
+    __ set_constant_pool_allowed(false);
+    __ EnterDartFrame(0, PP);
   }
 
-  EmitReturnMoves(compiler);
+  // Reserve space for the arguments that go on the stack (if any), then align.
+  __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
-  // Although PP is a callee-saved register, it may have been moved by the GC.
-  __ LeaveDartFrame(compiler::kRestoreCallerPP);
-
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ movq(PP, compiler::Address(THR, Thread::global_object_pool_offset()));
+  if (is_leaf_) {
+    EmitParamMoves(compiler, FPREG, saved_fp);
+  } else {
+    EmitParamMoves(compiler, saved_fp, saved_sp);
   }
 
-  __ set_constant_pool_allowed(true);
+  if (compiler::Assembler::EmittingComments()) {
+    __ Comment(is_leaf_ ? "Leaf Call" : "Call");
+  }
 
-  // Instead of returning to the "fake" return address, we just pop it.
-  __ popq(TMP);
+  if (is_leaf_) {
+    __ CallCFunction(target_address, /*restore_rsp=*/true);
+  } else {
+    // We need to copy a dummy return address up into the dummy stack frame so
+    // the stack walker will know which safepoint to use. RIP points to the
+    // *next* instruction, so 'AddressRIPRelative' loads the address of the
+    // following 'movq'.
+    __ leaq(temp, compiler::Address::AddressRIPRelative(0));
+    compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
+                                   UntaggedPcDescriptors::Kind::kOther, locs(),
+                                   env());
+    __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize),
+            temp);
+
+    if (CanExecuteGeneratedCodeInSafepoint()) {
+      // Update information in the thread object and enter a safepoint.
+      __ movq(temp, compiler::Immediate(
+                        compiler::target::Thread::exit_through_ffi()));
+
+      __ TransitionGeneratedToNative(target_address, FPREG, temp,
+                                     /*enter_safepoint=*/true);
+
+      __ CallCFunction(target_address, /*restore_rsp=*/true);
+
+      // Update information in the thread object and leave the safepoint.
+      __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+    } else {
+      // We cannot trust that this code will be executable within a safepoint.
+      // Therefore we delegate the responsibility of entering/exiting the
+      // safepoint to a stub which is in the VM isolate's heap, which will never
+      // lose execute permission.
+      __ movq(temp,
+              compiler::Address(
+                  THR, compiler::target::Thread::
+                           call_native_through_safepoint_entry_point_offset()));
+
+      // Calls RBX within a safepoint. RBX and R12 are clobbered.
+      __ movq(RBX, target_address);
+      __ call(temp);
+    }
+  }
+
+  // Pass the `saved_fp` reg. as a temp to clobber since we're done with it.
+  EmitReturnMoves(compiler, temp, saved_fp);
+
+  if (is_leaf_) {
+    // Restore the pre-aligned SP.
+    __ movq(SPREG, saved_sp);
+  } else {
+    // Although PP is a callee-saved register, it may have been moved by the GC.
+    __ LeaveDartFrame(compiler::kRestoreCallerPP);
+    // Restore the global object pool after returning from runtime (old space is
+    // moving, so the GOP could have been relocated).
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      __ movq(PP, compiler::Address(THR, Thread::global_object_pool_offset()));
+    }
+    __ set_constant_pool_allowed(true);
+
+    // Instead of returning to the "fake" return address, we just pop it.
+    __ popq(temp);
+  }
 }
 
 // Keep in sync with NativeReturnInstr::EmitNativeCode.
