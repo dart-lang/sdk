@@ -857,6 +857,26 @@ static Condition TokenKindToIntCondition(Token::Kind kind) {
   }
 }
 
+static bool CanBePairOfImmediateOperands(const dart::Object& constant,
+                                         compiler::Operand* low,
+                                         compiler::Operand* high) {
+  int64_t imm;
+  if (!compiler::HasIntegerValue(constant, &imm)) {
+    return false;
+  }
+  return compiler::Operand::CanHold(Utils::Low32Bits(imm), low) &&
+         compiler::Operand::CanHold(Utils::High32Bits(imm), high);
+}
+
+static bool CanBePairOfImmediateOperands(Value* value,
+                                         compiler::Operand* low,
+                                         compiler::Operand* high) {
+  if (!value->BindsToConstant()) {
+    return false;
+  }
+  return CanBePairOfImmediateOperands(value->BoundConstant(), low, high);
+}
+
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -871,13 +891,24 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     return locs;
   }
   if (operation_cid() == kMintCid) {
+    compiler::Operand o;
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                   Location::RequiresRegister()));
-    locs->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                   Location::RequiresRegister()));
+    if (CanBePairOfImmediateOperands(left(), &o, &o)) {
+      locs->set_in(0, Location::Constant(left()->definition()->AsConstant()));
+      locs->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+    } else if (CanBePairOfImmediateOperands(right(), &o, &o)) {
+      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+      locs->set_in(1, Location::Constant(right()->definition()->AsConstant()));
+    } else {
+      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+      locs->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+    }
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -993,17 +1024,31 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
                                            LocationSummary* locs,
                                            Token::Kind kind) {
   ASSERT(Token::IsEqualityOperator(kind));
-  PairLocation* left_pair = locs->in(0).AsPairLocation();
+  PairLocation* left_pair;
+  compiler::Operand right_lo, right_hi;
+  if (locs->in(0).IsConstant()) {
+    const bool ok = CanBePairOfImmediateOperands(locs->in(0).constant(),
+                                                 &right_lo, &right_hi);
+    RELEASE_ASSERT(ok);
+    left_pair = locs->in(1).AsPairLocation();
+  } else if (locs->in(1).IsConstant()) {
+    const bool ok = CanBePairOfImmediateOperands(locs->in(1).constant(),
+                                                 &right_lo, &right_hi);
+    RELEASE_ASSERT(ok);
+    left_pair = locs->in(0).AsPairLocation();
+  } else {
+    left_pair = locs->in(0).AsPairLocation();
+    PairLocation* right_pair = locs->in(1).AsPairLocation();
+    right_lo = compiler::Operand(right_pair->At(0).reg());
+    right_hi = compiler::Operand(right_pair->At(1).reg());
+  }
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
-  PairLocation* right_pair = locs->in(1).AsPairLocation();
-  Register right_lo = right_pair->At(0).reg();
-  Register right_hi = right_pair->At(1).reg();
 
   // Compare lower.
-  __ cmp(left_lo, compiler::Operand(right_lo));
+  __ cmp(left_lo, right_lo);
   // Compare upper if lower is equal.
-  __ cmp(left_hi, compiler::Operand(right_hi), EQ);
+  __ cmp(left_hi, right_hi, EQ);
   return TokenKindToIntCondition(kind);
 }
 
@@ -1011,29 +1056,45 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              LocationSummary* locs,
                                              Token::Kind kind,
                                              BranchLabels labels) {
-  PairLocation* left_pair = locs->in(0).AsPairLocation();
+  PairLocation* left_pair;
+  compiler::Operand right_lo, right_hi;
+  Condition true_condition = TokenKindToIntCondition(kind);
+  if (locs->in(0).IsConstant()) {
+    const bool ok = CanBePairOfImmediateOperands(locs->in(0).constant(),
+                                                 &right_lo, &right_hi);
+    RELEASE_ASSERT(ok);
+    left_pair = locs->in(1).AsPairLocation();
+    true_condition = FlipCondition(true_condition);
+  } else if (locs->in(1).IsConstant()) {
+    const bool ok = CanBePairOfImmediateOperands(locs->in(1).constant(),
+                                                 &right_lo, &right_hi);
+    RELEASE_ASSERT(ok);
+    left_pair = locs->in(0).AsPairLocation();
+  } else {
+    left_pair = locs->in(0).AsPairLocation();
+    PairLocation* right_pair = locs->in(1).AsPairLocation();
+    right_lo = compiler::Operand(right_pair->At(0).reg());
+    right_hi = compiler::Operand(right_pair->At(1).reg());
+  }
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
-  PairLocation* right_pair = locs->in(1).AsPairLocation();
-  Register right_lo = right_pair->At(0).reg();
-  Register right_hi = right_pair->At(1).reg();
 
   // 64-bit comparison.
   Condition hi_cond, lo_cond;
-  switch (kind) {
-    case Token::kLT:
+  switch (true_condition) {
+    case LT:
       hi_cond = LT;
       lo_cond = CC;
       break;
-    case Token::kGT:
+    case GT:
       hi_cond = GT;
       lo_cond = HI;
       break;
-    case Token::kLTE:
+    case LE:
       hi_cond = LT;
       lo_cond = LS;
       break;
-    case Token::kGTE:
+    case GE:
       hi_cond = GT;
       lo_cond = CS;
       break;
@@ -1042,12 +1103,12 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
       hi_cond = lo_cond = VS;
   }
   // Compare upper halves first.
-  __ cmp(left_hi, compiler::Operand(right_hi));
+  __ cmp(left_hi, right_hi);
   __ b(labels.true_label, hi_cond);
   __ b(labels.false_label, FlipCondition(hi_cond));
 
   // If higher words are equal, compare lower words.
-  __ cmp(left_lo, compiler::Operand(right_lo));
+  __ cmp(left_lo, right_lo);
   return lo_cond;
 }
 
@@ -1233,13 +1294,24 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   if (operation_cid() == kMintCid) {
+    compiler::Operand o;
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                   Location::RequiresRegister()));
-    locs->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                   Location::RequiresRegister()));
+    if (CanBePairOfImmediateOperands(left(), &o, &o)) {
+      locs->set_in(0, Location::Constant(left()->definition()->AsConstant()));
+      locs->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+    } else if (CanBePairOfImmediateOperands(right(), &o, &o)) {
+      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+      locs->set_in(1, Location::Constant(right()->definition()->AsConstant()));
+    } else {
+      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+      locs->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+    }
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -6444,18 +6516,6 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-static bool CanBePairOfImmediateOperands(Value* value,
-                                         compiler::Operand* low,
-                                         compiler::Operand* high) {
-  int64_t imm;
-  if (value->BindsToConstant() &&
-      compiler::HasIntegerValue(value->BoundConstant(), &imm)) {
-    return compiler::Operand::CanHold(Utils::Low32Bits(imm), low) &&
-      compiler::Operand::CanHold(Utils::High32Bits(imm), high);
-  }
-  return false;
-}
-
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -6495,7 +6555,8 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Operand right_lo, right_hi;
   if (locs()->in(1).IsConstant()) {
-    const bool ok = CanBePairOfImmediateOperands(right(), &right_lo, &right_hi);
+    const bool ok = CanBePairOfImmediateOperands(locs()->in(1).constant(),
+                                                 &right_lo, &right_hi);
     RELEASE_ASSERT(ok);
   } else {
     PairLocation* right_pair = locs()->in(1).AsPairLocation();
