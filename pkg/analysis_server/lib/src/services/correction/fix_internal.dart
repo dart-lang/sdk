@@ -805,11 +805,9 @@ class FixProcessor extends BaseProcessor {
         ],
       )
     ],
-    // todo (pq): note this is not in lintProducerMap
     LintNames.prefer_is_not_operator: [
       FixInfo(
-        // todo (pq): consider enabling
-        canBeAppliedToFile: false,
+        canBeAppliedToFile: true,
         canBeBulkApplied: true,
         generators: [
           ConvertIntoIsNot.newInstance,

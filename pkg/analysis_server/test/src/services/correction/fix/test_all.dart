@@ -83,6 +83,7 @@ import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'fix_in_file_test.dart' as fix_in_file;
+import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
 import 'import_library_prefix_test.dart' as import_library_prefix;
@@ -250,6 +251,7 @@ void main() {
     extend_class_for_mixin.main();
     fix.main();
     fix_in_file.main();
+    fix_processor_map.main();
     import_async.main();
     import_library_prefix.main();
     import_library_project.main();
