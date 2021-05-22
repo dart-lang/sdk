@@ -43,7 +43,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
@@ -66,15 +65,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   AbstractClassElementImpl(String name, int offset) : super(name, offset);
-
-  AbstractClassElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize using the given serialized information.
-  AbstractClassElementImpl.forSerialized(
-      CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
 
   /// Set the accessors contained in this class to the given [accessors].
   set accessors(List<PropertyAccessorElement> accessors) {
@@ -928,9 +918,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 /// A concrete implementation of a [CompilationUnitElement].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
-  @override
-  final LinkedUnitContext? linkedContext;
-
   /// The source that corresponds to this compilation unit.
   @override
   late Source source;
@@ -984,9 +971,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// Initialize a newly created compilation unit element to have the given
   /// [name].
-  CompilationUnitElementImpl()
-      : linkedContext = null,
-        super(null, -1);
+  CompilationUnitElementImpl() : super(null, -1);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -1079,14 +1064,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   String get identifier => '${source.uri}';
-
-  @override
-  bool get isSynthetic {
-    if (linkedContext != null) {
-      return linkedContext!.isSynthetic;
-    }
-    return super.isSynthetic;
-  }
 
   @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
@@ -1592,23 +1569,9 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// initializers.  However, analyzer also needs to handle incorrect Dart code,
   /// in which case there might be some constant variables that lack
   /// initializers.
-  Expression? _constantInitializer;
+  Expression? constantInitializer;
 
   EvaluationResultImpl? _evaluationResult;
-
-  Expression? get constantInitializer {
-    if (_constantInitializer != null) return _constantInitializer!;
-
-    if (linkedNode != null) {
-      return _constantInitializer = linkedContext!.getInitializer(linkedNode!);
-    }
-
-    return _constantInitializer;
-  }
-
-  set constantInitializer(Expression? constantInitializer) {
-    _constantInitializer = constantInitializer;
-  }
 
   EvaluationResultImpl? get evaluationResult => _evaluationResult;
 
@@ -1985,7 +1948,6 @@ abstract class ElementImpl implements Element {
   ElementImpl? _enclosingElement;
 
   Reference? reference;
-  final AstNode? linkedNode;
 
   /// The name of this element.
   String? _name;
@@ -1998,7 +1960,7 @@ abstract class ElementImpl implements Element {
   int _modifiers = 0;
 
   /// A list containing all of the metadata associated with this element.
-  List<ElementAnnotation> _metadata = _Sentinel.elementAnnotation;
+  List<ElementAnnotation> _metadata = const [];
 
   /// A cached copy of the calculated hashCode for this element.
   int? _cachedHashCode;
@@ -2021,22 +1983,10 @@ abstract class ElementImpl implements Element {
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
-  ElementImpl(String? name, this._nameOffset, {this.reference})
-      : linkedNode = null {
+  ElementImpl(String? name, this._nameOffset, {this.reference}) {
     _name = name != null ? StringUtilities.intern(name) : null;
     reference?.element = this;
   }
-
-  /// Initialize from linked node.
-  ElementImpl.forLinkedNode(
-      this._enclosingElement, this.reference, this.linkedNode) {
-    reference?.element ??= this;
-  }
-
-  /// Initialize from serialized information.
-  ElementImpl.forSerialized(this._enclosingElement)
-      : reference = null,
-        linkedNode = null;
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
@@ -2335,9 +2285,6 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isSynthetic {
-    if (linkedNode != null) {
-      return linkedNode!.isSynthetic;
-    }
     return hasModifier(Modifier.SYNTHETIC);
   }
 
@@ -2352,10 +2299,6 @@ abstract class ElementImpl implements Element {
   @override
   Source? get librarySource => library?.source;
 
-  LinkedUnitContext? get linkedContext {
-    return (enclosingElement as ElementImpl).linkedContext;
-  }
-
   @override
   ElementLocation get location {
     return _cachedLocation ??= ElementLocationImpl.con1(this);
@@ -2363,15 +2306,6 @@ abstract class ElementImpl implements Element {
 
   @override
   List<ElementAnnotation> get metadata {
-    if (!identical(_metadata, _Sentinel.elementAnnotation)) {
-      return _metadata;
-    }
-
-    if (linkedNode != null) {
-      var metadata = linkedContext!.getMetadata(linkedNode!);
-      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
-    }
-
     return _metadata;
   }
 
@@ -2523,24 +2457,6 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
-  }
-
-  /// Return annotations for the given [nodeList] in the [unit].
-  List<ElementAnnotation> _buildAnnotations2(
-      CompilationUnitElementImpl unit, List<Annotation> nodeList) {
-    var length = nodeList.length;
-    if (length == 0) {
-      return const <ElementAnnotation>[];
-    }
-
-    var annotations = <ElementAnnotation>[];
-    for (int i = 0; i < length; i++) {
-      var ast = nodeList[i];
-      annotations.add(ElementAnnotationImpl(unit)
-        ..annotationAst = ast
-        ..element = ast.element);
-    }
-    return annotations;
   }
 }
 
@@ -3635,10 +3551,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
-  /// The context of the defining unit.
-  @override
-  final LinkedUnitContext? linkedContext;
-
   LibraryElementLinkedData? linkedData;
 
   @override
@@ -3689,8 +3601,7 @@ class LibraryElementImpl extends _ExistingElementImpl
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
       this.nameLength, this.featureSet)
-      : linkedContext = null,
-        linkedData = null,
+      : linkedData = null,
         super(name, offset);
 
   @override
@@ -3713,17 +3624,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   FunctionElement? get entryPoint {
     linkedData?.read(this);
-    if (_entryPoint != null) return _entryPoint!;
-
-    if (linkedContext != null) {
-      var namespace = library.exportNamespace;
-      var entryPoint = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
-      if (entryPoint is FunctionElement) {
-        return _entryPoint = entryPoint;
-      }
-      return null;
-    }
-
     return _entryPoint;
   }
 
@@ -5071,22 +4971,13 @@ class PropertyAccessorElementImpl_ImplicitGetter
 
   @override
   FunctionType get typeInternal {
-    if (_type != null) return _type!;
-
-    var type = FunctionTypeImpl(
+    return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: const <ParameterElement>[],
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
       element: this,
     );
-
-    // Don't cache, because types change during top-level inference.
-    if (linkedContext != null && !linkedContext!.isLinking) {
-      _type = type;
-    }
-
-    return type;
   }
 }
 
@@ -5144,22 +5035,13 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   FunctionType get typeInternal {
-    if (_type != null) return _type!;
-
-    var type = FunctionTypeImpl(
+    return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
       element: this,
     );
-
-    // Don't cache, because types change during top-level inference.
-    if (linkedContext != null && !linkedContext!.isLinking) {
-      _type = type;
-    }
-
-    return type;
   }
 }
 
@@ -5206,6 +5088,23 @@ abstract class PropertyInducingElementImpl
 
   @override
   DartType get type => ElementTypeProvider.current.getFieldType(this);
+
+  @override
+  set type(DartType type) {
+    super.type = type;
+    // Reset cached types of synthetic getters and setters.
+    // TODO(scheglov) Consider not caching these types.
+    if (!isSynthetic) {
+      var getter = this.getter;
+      if (getter is PropertyAccessorElementImpl_ImplicitGetter) {
+        getter._type = null;
+      }
+      var setter = this.setter;
+      if (setter is PropertyAccessorElementImpl_ImplicitSetter) {
+        setter._type = null;
+      }
+    }
+  }
 
   @override
   DartType get typeInternal {
@@ -5621,14 +5520,6 @@ abstract class UriReferencedElementImpl extends _ExistingElementImpl
   /// [offset]. The offset may be `-1` if the element is synthetic.
   UriReferencedElementImpl(String? name, int offset) : super(name, offset);
 
-  UriReferencedElementImpl.forLinkedNode(
-      ElementImpl enclosing, Reference? reference, AstNode? linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize using the given serialized information.
-  UriReferencedElementImpl.forSerialized(ElementImpl enclosingElement)
-      : super.forSerialized(enclosingElement);
-
   /// Return the URI that is specified by this directive.
   @override
   String? get uri => _uri;
@@ -5714,9 +5605,6 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   bool get isConst {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isConst(linkedNode!);
-    }
     return hasModifier(Modifier.CONST);
   }
 
@@ -5735,9 +5623,6 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   bool get isFinal {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext!.isFinal(linkedNode!);
-    }
     return hasModifier(Modifier.FINAL);
   }
 
@@ -5782,14 +5667,6 @@ abstract class VariableElementImpl extends ElementImpl
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
   _ExistingElementImpl(String? name, int offset, {Reference? reference})
       : super(name, offset, reference: reference);
-
-  _ExistingElementImpl.forLinkedNode(
-      ElementImpl? enclosingElement, Reference? reference, AstNode? linkedNode)
-      : super.forLinkedNode(enclosingElement, reference, linkedNode);
-
-  /// Initialize using the given serialized information.
-  _ExistingElementImpl.forSerialized(ElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
 }
 
 mixin _HasLibraryMixin on ElementImpl {
@@ -5807,8 +5684,6 @@ mixin _HasLibraryMixin on ElementImpl {
 /// must be not `null`, and not identical to `const <T>[]`.
 class _Sentinel {
   static final List<ConstructorElement> constructorElement =
-      List.unmodifiable([]);
-  static final List<ElementAnnotation> elementAnnotation =
       List.unmodifiable([]);
   static final List<ExportElement> exportElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
