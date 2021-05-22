@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -18,7 +17,6 @@ class LinkedElementFactory {
   final AnalysisContextImpl analysisContext;
   final AnalysisSessionImpl analysisSession;
   final Reference rootReference;
-  final Map<String, List<Reference>> linkingExports = {};
   final Map<String, LibraryReader> libraryReaders = {};
 
   bool isApplyingInformativeData = false;
@@ -80,7 +78,7 @@ class LinkedElementFactory {
     // The URI cannot be resolved, we don't know the library.
     if (librarySource == null) return null;
 
-    var definingUnitContext = libraryContext.units[0];
+    var definingUnitContext = libraryContext.definingUnit;
     var definingUnitNode = definingUnitContext.unit;
 
     // TODO(scheglov) Do we need this?
@@ -96,44 +94,39 @@ class LinkedElementFactory {
       }
     }
 
-    var libraryElement = LibraryElementImpl.forLinkedNode(
+    var libraryElement = LibraryElementImpl(
       analysisContext,
       analysisSession,
       name,
       nameOffset,
       nameLength,
-      definingUnitContext,
-      libraryContext.reference,
-      definingUnitNode,
       definingUnitNode.featureSet,
     );
+    libraryElement.isSynthetic = definingUnitContext.isSynthetic;
+    libraryElement.languageVersion = definingUnitNode.languageVersion!;
+    _bindReference(libraryContext.reference, libraryElement);
     _setLibraryTypeSystem(libraryElement);
 
     var units = <CompilationUnitElementImpl>[];
-    var unitContainerRef = libraryContext.reference.getChild('@unit');
     for (var unitContext in libraryContext.units) {
-      var unitNode = unitContext.unit as CompilationUnitImpl;
+      var unitNode = unitContext.unit;
 
       var unitSource = sourceFactory.forUri(unitContext.uriStr);
       if (unitSource == null) continue;
 
-      var unitElement = CompilationUnitElementImpl.forLinkedNode(
-        libraryElement,
-        unitContext,
-        unitContext.reference,
-        unitNode,
-      );
+      var unitElement = CompilationUnitElementImpl();
+      unitElement.isSynthetic = unitContext.isSynthetic;
+      unitElement.librarySource = librarySource;
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = unitSource;
-      unitElement.librarySource = librarySource;
       unitElement.uri = unitContext.partUriStr;
+      _bindReference(unitContext.reference, unitElement);
+
       units.add(unitElement);
-      unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
     }
 
     libraryElement.definingCompilationUnit = units[0];
     libraryElement.parts = units.skip(1).toList();
-    libraryContext.reference.element = libraryElement;
 
     return libraryElement;
   }
@@ -222,11 +215,6 @@ class LinkedElementFactory {
   }
 
   List<Reference> exportsOfLibrary(String uriStr) {
-    var linkingExportedReferences = linkingExports[uriStr];
-    if (linkingExportedReferences != null) {
-      return linkingExportedReferences;
-    }
-
     var library = libraryReaders[uriStr];
     if (library == null) return const [];
 
@@ -281,7 +269,6 @@ class LinkedElementFactory {
   void removeLibraries(Set<String> uriStrSet) {
     for (var uriStr in uriStrSet) {
       libraryReaders.remove(uriStr);
-      linkingExports.remove(uriStr);
       rootReference.removeChild(uriStr);
     }
 
@@ -313,5 +300,10 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
 
     libraryElement.createLoadLibraryFunction();
+  }
+
+  static void _bindReference(Reference reference, ElementImpl element) {
+    reference.element = element;
+    element.reference = reference;
   }
 }

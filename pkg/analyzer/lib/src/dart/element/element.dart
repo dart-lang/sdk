@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -988,13 +987,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   CompilationUnitElementImpl()
       : linkedContext = null,
         super(null, -1);
-
-  CompilationUnitElementImpl.forLinkedNode(LibraryElementImpl enclosingLibrary,
-      this.linkedContext, Reference reference, CompilationUnitImpl? linkedNode)
-      : super.forLinkedNode(enclosingLibrary, reference, linkedNode) {
-    _nameOffset = -1;
-    linkedNode?.declaredElement = this;
-  }
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -3701,22 +3693,6 @@ class LibraryElementImpl extends _ExistingElementImpl
         linkedData = null,
         super(name, offset);
 
-  LibraryElementImpl.forLinkedNode(
-    this.context,
-    this.session,
-    String name,
-    int offset,
-    this.nameLength,
-    this.linkedContext,
-    Reference reference,
-    CompilationUnit? linkedNode,
-    FeatureSet featureSet,
-  )   : featureSet = featureSet,
-        super.forLinkedNode(null, reference, linkedNode) {
-    _name = name;
-    _nameOffset = offset;
-  }
-
   @override
   CompilationUnitElement get definingCompilationUnit =>
       _definingCompilationUnit;
@@ -3777,11 +3753,6 @@ class LibraryElementImpl extends _ExistingElementImpl
       return _exportNamespace = elements.buildExportNamespace(source.uri);
     }
 
-    if (linkedNode != null) {
-      var elements = linkedContext!.elementFactory;
-      return _exportNamespace = elements.buildExportNamespace(source.uri);
-    }
-
     return _exportNamespace!;
   }
 
@@ -3792,18 +3763,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   List<ExportElement> get exports {
     linkedData?.read(this);
-    if (!identical(_exports, _Sentinel.exportElement)) {
-      return _exports;
-    }
-
-    if (linkedNode != null) {
-      var unit = linkedContext!.unit;
-      return _exports = unit.directives
-          .whereType<ExportDirective>()
-          .map((node) => node.element!)
-          .toList();
-    }
-
     return _exports;
   }
 
@@ -3822,22 +3781,6 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   bool get hasExtUri {
-    if (linkedNode != null) {
-      var unit = linkedContext!.unit;
-      for (var import in unit.directives) {
-        if (import is ImportDirective) {
-          var uriLiteral = import.uri;
-          if (uriLiteral is SimpleStringLiteral) {
-            var uriStr = uriLiteral.value;
-            if (DartUriResolver.isDartExtUri(uriStr)) {
-              return true;
-            }
-          }
-        }
-      }
-      return false;
-    }
-
     return hasModifier(Modifier.HAS_EXT_URI);
   }
 
@@ -3883,31 +3826,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   List<ImportElement> get imports {
     linkedData?.read(this);
-    if (!identical(_imports, _Sentinel.importElement)) {
-      return _imports;
-    }
-
-    if (linkedNode != null) {
-      var unit = linkedContext!.unit;
-      _imports = unit.directives
-          .whereType<ImportDirective>()
-          .map((node) => node.element!)
-          .toList();
-      var hasCore = _imports.any((import) {
-        return import.importedLibrary?.isDartCore ?? false;
-      });
-      if (!hasCore) {
-        var elements = linkedContext!.elementFactory;
-        _imports.add(
-          ImportElementImpl(-1)
-            ..importedLibrary = elements.libraryOfUri2('dart:core')
-            ..isSynthetic = true
-            ..uri = 'dart:core',
-        );
-      }
-      return _imports;
-    }
-
     return _imports;
   }
 
@@ -3980,31 +3898,14 @@ class LibraryElementImpl extends _ExistingElementImpl
   }
 
   @override
-  bool get isSynthetic {
-    if (linkedNode != null) {
-      return linkedContext!.isSynthetic;
-    }
-    return super.isSynthetic;
-  }
-
-  @override
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
   LibraryLanguageVersion get languageVersion {
-    if (_languageVersion != null) return _languageVersion!;
-
-    if (linkedNode != null) {
-      _languageVersion =
-          linkedContext!.getLanguageVersion(linkedNode as CompilationUnit);
-      return _languageVersion!;
-    }
-
-    _languageVersion = LibraryLanguageVersion(
+    return _languageVersion ??= LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,
       override: null,
     );
-    return _languageVersion!;
   }
 
   set languageVersion(LibraryLanguageVersion languageVersion) {
@@ -4022,15 +3923,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   List<ElementAnnotation> get metadata {
     linkedData?.read(this);
-    if (!identical(_metadata, _Sentinel.elementAnnotation)) {
-      return _metadata;
-    }
-
-    if (linkedNode != null) {
-      var metadata = linkedContext!.getLibraryMetadata();
-      return _metadata = _buildAnnotations2(_definingCompilationUnit, metadata);
-    }
-
     return super.metadata;
   }
 
@@ -4057,11 +3949,6 @@ class LibraryElementImpl extends _ExistingElementImpl
     if (_publicNamespace != null) return _publicNamespace!;
 
     if (linkedData != null) {
-      return _publicNamespace =
-          NamespaceBuilder().createPublicNamespaceForLibrary(this);
-    }
-
-    if (linkedNode != null) {
       return _publicNamespace =
           NamespaceBuilder().createPublicNamespaceForLibrary(this);
     }
