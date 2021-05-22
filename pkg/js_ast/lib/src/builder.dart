@@ -736,7 +736,7 @@ class MiniJsParser {
     '/': 5,
     '%': 5
   };
-  static final UNARY_OPERATORS = [
+  static final UNARY_OPERATORS = {
     '++',
     '--',
     '+',
@@ -747,10 +747,16 @@ class MiniJsParser {
     'void',
     'delete',
     'await'
-  ].toSet();
+  };
 
-  static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS =
-      ['typeof', 'void', 'delete', 'in', 'instanceof', 'await'].toSet();
+  static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS = {
+    'typeof',
+    'void',
+    'delete',
+    'in',
+    'instanceof',
+    'await'
+  };
 
   static int category(int code) {
     if (code >= CATEGORIES.length) return OTHER;
