@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-20T11:33:30.068787",
+  "generated": "2021-05-17T10:34:01.378194",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -387,7 +387,7 @@
       "name": "js_ast",
       "rootUri": "../pkg/js_ast",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.0"
     },
     {
       "name": "js_runtime",

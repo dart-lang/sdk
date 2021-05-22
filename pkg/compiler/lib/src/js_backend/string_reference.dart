@@ -256,7 +256,8 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
     for (_ReferenceSet referenceSet in _referencesByString.values) {
       if (referenceSet.generateAtUse) {
         StringConstantValue constant = referenceSet.constant;
-        js.Expression reference = js.string(constant.stringValue);
+        js.Expression reference =
+            js.js.escapedString(constant.stringValue, ascii: true);
         for (StringReference ref in referenceSet._references) {
           ref.value = reference;
         }
@@ -274,7 +275,8 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       String string = referenceSet.constant.stringValue;
       var propertyName = js.string(referenceSet.propertyName);
-      properties.add(js.Property(propertyName, js.string(string)));
+      properties.add(
+          js.Property(propertyName, js.js.escapedString(string, ascii: true)));
       var access = js.js('#.#', [holderLocalName, propertyName]);
       for (StringReference ref in referenceSet._references) {
         ref.value = access;
