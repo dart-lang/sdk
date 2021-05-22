@@ -1327,28 +1327,6 @@ void f(int i) {
 }
 {% endprettify %}
 
-### built_in_identifier_as_extension_name
-
-_The built-in identifier '{0}' can't be used as an extension name._
-
-#### Description
-
-The analyzer produces this diagnostic when the name of an extension is a
-built-in identifier. Built-in identifiers can’t be used as extension names.
-
-#### Examples
-
-The following code produces this diagnostic because `mixin` is a built-in
-identifier:
-
-{% prettify dart tag=pre+code %}
-extension [!mixin!] on int {}
-{% endprettify %}
-
-#### Common fixes
-
-Choose a different name for the extension.
-
 ### built_in_identifier_as_type
 
 _The built-in identifier '{0}' can't be used as a type._
@@ -1374,6 +1352,38 @@ Replace the built-in identifier with the name of a valid type:
 {% prettify dart tag=pre+code %}
 List<int> x;
 {% endprettify %}
+
+### built_in_identifier_in_declaration
+
+_The built-in identifier '{0}' can't be used as a prefix name._
+
+_The built-in identifier '{0}' can't be used as a type name._
+
+_The built-in identifier '{0}' can't be used as a type parameter name._
+
+_The built-in identifier '{0}' can't be used as a typedef name._
+
+_The built-in identifier '{0}' can't be used as an extension name._
+
+#### Description
+
+The analyzer produces this diagnostic when the name used in the declaration
+of a class, extension, mixin, typedef, type parameter, or import prefix is
+a built-in identifier. Built-in identifiers can’t be used to name any of
+these kinds of declarations.
+
+#### Example
+
+The following code produces this diagnostic because `mixin` is a built-in
+identifier:
+
+{% prettify dart tag=pre+code %}
+extension [!mixin!] on int {}
+{% endprettify %}
+
+#### Common fixes
+
+Choose a different name for the declaration.
 
 ### case_block_not_terminated
 
@@ -1706,6 +1716,47 @@ abstract class C {
   void m();
 }
 {% endprettify %}
+
+### conflicting_constructor_and_static_member
+
+_'{0}' can't be used to name both a constructor and a static field in this
+class._
+
+_'{0}' can't be used to name both a constructor and a static method in this
+class._
+
+#### Description
+
+The analyzer produces this diagnostic when a named constructor and either a
+static method or static field have the same name. Both are accessed using
+the name of the class, so having the same name makes the reference
+ambiguous.
+
+#### Example
+
+The following code produces this diagnostic because the static field `foo`
+and the named constructor `foo` have the same name:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.[!foo!]();
+  static int foo = 0;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the static method `foo`
+and the named constructor `foo` have the same name:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.[!foo!]();
+  static void foo() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rename either the member or the constructor.
 
 ### conflicting_generic_interfaces
 
@@ -3113,6 +3164,42 @@ int x = 0;
 int y = 1;
 {% endprettify %}
 
+### duplicate_field_formal_parameter
+
+_The field '{0}' can't be initialized by multiple parameters in the same
+constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when there's more than one field
+formal parameter for the same field in a constructor's parameter list. It
+isn't useful to assign a value that will immediately be overwritten.
+
+#### Example
+
+The following code produces this diagnostic because `this.f` appears twice
+in the parameter list:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f, this.[!f!]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove one of the field formal parameters:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f) {}
+}
+{% endprettify %}
+
 ### duplicate_hidden_name
 
 _Duplicate hidden name._
@@ -3596,6 +3683,28 @@ Remove all except two of the type arguments:
 {% prettify dart tag=pre+code %}
 var m = <int, String>{};
 {% endprettify %}
+
+### export_internal_library
+
+_The library '{0}' is internal and can't be exported._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds an export whose `dart:`
+URI references an internal library.
+
+#### Example
+
+The following code produces this diagnostic because `_interceptors` is an
+internal library:
+
+{% prettify dart tag=pre+code %}
+export [!'dart:_interceptors'!];
+{% endprettify %}
+
+#### Common fixes
+
+Remove the export directive.
 
 ### export_legacy_symbol
 
@@ -5278,6 +5387,63 @@ class C {
 }
 {% endprettify %}
 
+### initializer_for_static_field
+
+_'{0}' is a static field in the enclosing class. Fields initialized in a
+constructor can't be static._
+
+#### Description
+
+The analyzer produces this diagnostic when a static field is initialized in
+a constructor using either a field formal parameter or an assignment in the
+initializer list.
+
+#### Example
+
+The following code produces this diagnostic because the static field `a` is
+being initialized by the field formal parameter `this.a`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  static int? a;
+  C([!this.a!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field should be an instance field, then remove the keyword `static`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int? a;
+  C(this.a);
+}
+{% endprettify %}
+
+If you intended to initialize an instance field and typed the wrong name,
+then correct the name of the field being initialized:
+
+{% prettify dart tag=pre+code %}
+class C {
+  static int? a;
+  int? b;
+  C(this.b);
+}
+{% endprettify %}
+
+If you really want to initialize the static field, then move the
+initialization into the constructor body:
+
+{% prettify dart tag=pre+code %}
+class C {
+  static int? a;
+  C(int? c) {
+    a = c;
+  }
+}
+{% endprettify %}
+
 ### initializing_formal_for_non_existent_field
 
 _'{0}' isn't a field in the enclosing class._
@@ -6011,6 +6177,89 @@ annotation:
 
 {% prettify dart tag=pre+code %}
 var x;
+{% endprettify %}
+
+### invalid_modifier_on_constructor
+
+_The modifier '{0}' can't be applied to the body of a constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of a constructor is
+prefixed by one of the following modifiers: `async`, `async*`, or `sync*`.
+Constructor bodies must be synchronous.
+
+#### Example
+
+The following code produces this diagnostic because the body of the
+constructor for `C` is marked as being `async`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C() [!async!] {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the constructor can be synchronous, then remove the modifier:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C();
+}
+{% endprettify %}
+
+If the constructor can't be synchronous, then use a static method to create
+the instance instead:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C();
+  static Future<C> c() async {
+    return C();
+  }
+}
+{% endprettify %}
+
+### invalid_modifier_on_setter
+
+_The modifier '{0}' can't be applied to the body of a setter._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of a setter is prefixed
+by one of the following modifiers: `async`, `async*`, or `sync*`. Setter
+bodies must be synchronous.
+
+#### Example
+
+The following code produces this diagnostic because the body of the setter
+`x` is marked as being `async`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  set x(int i) [!async!] {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the setter can be synchronous, then remove the modifier:
+
+{% prettify dart tag=pre+code %}
+class C {
+  set x(int i) {}
+}
+{% endprettify %}
+
+If the setter can't be synchronous, then use a method to set the value
+instead:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void x(int i) async {}
+}
 {% endprettify %}
 
 ### invalid_null_aware_operator
@@ -7308,6 +7557,143 @@ int [!f!](int x) {
 Add a `return` statement that makes the return value explicit, even if
 `null` is the appropriate value.
 
+### mixin_application_concrete_super_invoked_member_type
+
+_The super-invoked member '{0}' has the type '{1}', and the concrete member in
+the class has the type '{2}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a mixin that invokes a method
+using `super` is used in a class where the concrete implementation of that
+method has a different signature than the signature defined for that method
+by the mixin's `on` type. The reason this is an error is because the
+invocation in the mixin might invoke the method in a way that's
+incompatible with the method that will actually be executed.
+
+#### Example
+
+The following code produces this diagnostic because the class `C` uses the
+mixin `M`, the mixin `M` invokes `foo` using `super`, and the abstract
+version of `foo` declared in `I` (the mixin's `on` type) doesn't have the
+same signature as the concrete version of `foo` declared in `A`:
+
+{% prettify dart tag=pre+code %}
+class I {
+  void foo([int? p]) {}
+}
+
+class A {
+  void foo(int p) {}
+}
+
+abstract class B extends A implements I {
+  @override
+  void foo([int? p]);
+}
+
+mixin M on I {
+  void bar() {
+    super.foo(42);
+  }
+}
+
+abstract class C extends B with [!M!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the class doesn't need to use the mixin, then remove it from the `with`
+clause:
+
+{% prettify dart tag=pre+code %}
+class I {
+  void foo([int? p]) {}
+}
+
+class A {
+  void foo(int? p) {}
+}
+
+abstract class B extends A implements I {
+  @override
+  void foo([int? p]);
+}
+
+mixin M on I {
+  void bar() {
+    super.foo(42);
+  }
+}
+
+abstract class C extends B {}
+{% endprettify %}
+
+If the class needs to use the mixin, then ensure that there's a concrete
+implementation of the method that conforms to the signature expected by the
+mixin:
+
+{% prettify dart tag=pre+code %}
+class I {
+  void foo([int? p]) {}
+}
+
+class A {
+  void foo(int? p) {}
+}
+
+abstract class B extends A implements I {
+  @override
+  void foo([int? p]) {
+    super.foo(p);
+  }
+}
+
+mixin M on I {
+  void bar() {
+    super.foo(42);
+  }
+}
+
+abstract class C extends B with M {}
+{% endprettify %}
+
+### mixin_application_not_implemented_interface
+
+_'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a mixin that has a superclass
+constraint is used in a [mixin application][] with a superclass that
+doesn't implement the required constraint.
+
+#### Example
+
+The following code produces this diagnostic because the mixin `M` requires
+isn't a subclass of `A`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+mixin M on A {}
+
+class X = Object with [!M!];
+{% endprettify %}
+
+#### Common fixes
+
+If you need to use the mixin, then change the superclass to be either the
+same as or a subclass of the superclass constraint:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+mixin M on A {}
+
+class X = A with M;
+{% endprettify %}
+
 ### mixin_application_no_concrete_super_invoked_member
 
 _The class doesn't have a concrete implementation of the super-invoked member
@@ -7379,6 +7765,120 @@ mixin M on A {
 }
 
 abstract class B extends A with M {}
+{% endprettify %}
+
+### mixin_class_declares_constructor
+
+_The class '{0}' can't be used as a mixin because it declares a constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a class is used as a mixin and
+the mixed-in class defines a constructor.
+
+#### Example
+
+The following code produces this diagnostic because the class `A`, which
+defines a constructor, is being used as a mixin:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A();
+}
+
+class B with [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If it's possible to convert the class to a mixin, then do so:
+
+{% prettify dart tag=pre+code %}
+mixin A {
+}
+
+class B with A {}
+{% endprettify %}
+
+If the class can't be a mixin and it's possible to remove the constructor,
+then do so:
+
+{% prettify dart tag=pre+code %}
+class A {
+}
+
+class B with A {}
+{% endprettify %}
+
+If the class can't be a mixin and you can't remove the constructor, then
+try extending or implementing the class rather than mixing it in:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A();
+}
+
+class B extends A {}
+{% endprettify %}
+
+### mixin_inherits_from_not_object
+
+_The class '{0}' can't be used as a mixin because it extends a class other than
+'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that extends a class
+other than `Object` is used as a mixin.
+
+#### Example
+
+The following code produces this diagnostic because the class `B`, which
+extends `A`, is being used as a mixin by `C`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A {}
+
+class C with [!B!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the class being used as a mixin can be changed to extend `Object`, then
+change it:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B {}
+
+class C with B {}
+{% endprettify %}
+
+If the class being used as a mixin can't be changed and the class that's
+using it extends `Object`, then extend the class being used as a mixin:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A {}
+
+class C extends B {}
+{% endprettify %}
+
+If the class doesn't extend `Object` or if you want to be able to mix in
+the behavior from `B` in other places, then create a real mixin:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+mixin M on A {}
+
+class B extends A with M {}
+
+class C extends A with M {}
 {% endprettify %}
 
 ### mixin_instantiate
@@ -7500,6 +8000,92 @@ If the type was intended to be a class but was mistyped, then replace the
 name.
 
 Otherwise, remove the type from the `on` clause.
+
+### multiple_super_initializers
+
+_A constructor can have at most one 'super' initializer._
+
+#### Description
+
+The analyzer produces this diagnostic when the initializer list of a
+constructor contains more than one invocation of a constructor from the
+superclass. The initializer list is required to have exactly one such call,
+which can either be explicit or implicit.
+
+#### Example
+
+The following code produces this diagnostic because the initializer list
+for `B`’s constructor invokes both the constructor `one` and the
+constructor `two` from the superclass `A`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int? x;
+  String? s;
+  A.one(this.x);
+  A.two(this.s);
+}
+
+class B extends A {
+  B() : super.one(0), [!super.two('')!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If one of the super constructors will initialize the instance fully, then
+remove the other:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int? x;
+  String? s;
+  A.one(this.x);
+  A.two(this.s);
+}
+
+class B extends A {
+  B() : super.one(0);
+}
+{% endprettify %}
+
+If the initialization achieved by one of the super constructors can be
+performed in the body of the constructor, then remove its super invocation
+and perform the initialization in the body:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int? x;
+  String? s;
+  A.one(this.x);
+  A.two(this.s);
+}
+
+class B extends A {
+  B() : super.one(0) {
+    s = '';
+  }
+}
+{% endprettify %}
+
+If the initialization can only be performed in a constructor in the
+superclass, then either add a new constructor or modify one of the existing
+constructors so there's a constructor that allows all the required
+initialization to occur in a single call:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int? x;
+  String? s;
+  A.one(this.x);
+  A.two(this.s);
+  A.three(this.x, this.s);
+}
+
+class B extends A {
+  B() : super.three(0, '');
+}
+{% endprettify %}
 
 ### must_be_immutable
 
@@ -8337,6 +8923,51 @@ class C {
 void f() => const C();
 {% endprettify %}
 
+### non_generative_constructor
+
+_The generative constructor '{0}' is expected, but a factory was found._
+
+#### Description
+
+The analyzer produces this diagnostic when the initializer list of a
+constructor invokes a constructor from the superclass, and the invoked
+constructor is a factory constructor. Only a generative constructor can be
+invoked in the initializer list.
+
+#### Example
+
+The following code produces this diagnostic because the invocation of the
+constructor `super.one()` is invoking a factory constructor:
+
+{% prettify dart tag=pre+code %}
+class A {
+  factory A.one() = B;
+  A.two();
+}
+
+class B extends A {
+  B() : [!super.one()!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the super invocation to invoke a generative constructor:
+
+{% prettify dart tag=pre+code %}
+class A {
+  factory A.one() = B;
+  A.two();
+}
+
+class B extends A {
+  B() : super.two();
+}
+{% endprettify %}
+
+If the generative constructor is the unnamed constructor, and if there are
+no arguments being passed to it, then you can remove the super invocation.
+
 ### non_sync_factory
 
 _Factory bodies can't use 'async', 'async*', or 'sync*'._
@@ -8451,6 +9082,66 @@ void f() {
   } on FormatException {
     // ...
   }
+}
+{% endprettify %}
+
+### non_void_return_for_operator
+
+_The return type of the operator []= must be 'void'._
+
+#### Description
+
+The analyzer produces this diagnostic when a declaration of the operator
+`[]=` has a return type other than `void`.
+
+#### Example
+
+The following code produces this diagnostic because the declaration of the
+operator `[]=` has a return type of `int`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  [!int!] operator []=(int index, int value) => 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the return type to `void`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void operator []=(int index, int value) => 0;
+}
+{% endprettify %}
+
+### non_void_return_for_setter
+
+_The return type of the setter must be 'void' or absent._
+
+#### Description
+
+The analyzer produces this diagnostic when a setter is defined with a
+return type other than `void`.
+
+#### Example
+
+The following code produces this diagnostic because the setter `p` has a
+return type of `int`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  [!int!] set p(int i) => 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the return type to `void` or omit the return type:
+
+{% prettify dart tag=pre+code %}
+class C {
+  set p(int i) => 0;
 }
 {% endprettify %}
 
@@ -9133,6 +9824,36 @@ class A {}
 class B {}
 {% endprettify %}
 
+### optional_parameter_in_operator
+
+_Optional parameters aren't allowed when defining an operator._
+
+#### Description
+
+The analyzer produces this diagnostic when one or more of the parameters in
+an operator declaration are optional.
+
+#### Example
+
+The following code produces this diagnostic because the parameter `other`
+is an optional parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C operator +([[!C? other!]]) => this;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Make all of the parameters be required parameters:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C operator +(C other) => this;
+}
+{% endprettify %}
+
 ### override_on_non_overriding_member
 
 _The field doesn't override an inherited getter or setter._
@@ -9253,6 +9974,43 @@ directive with an import directive:
 
 {% prettify dart tag=pre+code %}
 import 'a.dart';
+{% endprettify %}
+
+### part_of_unnamed_library
+
+_The library is unnamed. A URI is expected, not a library name '{0}', in the
+part-of directive._
+
+#### Description
+
+The analyzer produces this diagnostic when a library that doesn't have a
+`library` directive (and hence has no name) contains a `part` directive and
+the `part of` directive in the part file uses a name to specify the library
+that it's a part of.
+
+#### Example
+
+Given a part file named `part_file.dart` containing the following code:
+
+{% prettify dart tag=pre+code %}
+part of lib;
+{% endprettify %}
+
+The following code produces this diagnostic because the library including
+the part file doesn't have a name even though the part file uses a name to
+specify which library it's a part of:
+
+{% prettify dart tag=pre+code %}
+part [!'part_file.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+Change the `part of` directive in the part file to specify its library by
+URI:
+
+{% prettify dart tag=pre+code %}
+part of 'test.dart';
 {% endprettify %}
 
 ### prefix_collides_with_top_level_member
@@ -9482,6 +10240,38 @@ class B implements A {
   B.named();
 }
 {% endprettify %}
+
+### recursive_interface_inheritance
+
+_'{0}' can't be a superinterface of itself: {1}._
+
+_'{0}' can't extend itself._
+
+_'{0}' can't implement itself._
+
+_'{0}' can't use itself as a mixin._
+
+_'{0}' can't use itself as a superclass constraint._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a circularity in the
+type hierarchy. This happens when a type, either directly or indirectly,
+is declared to be a subtype of itself.
+
+#### Example
+
+The following code produces this diagnostic because the class `A` is
+declared to be a subtype of `B`, and `B` is a subtype of `A`:
+
+{% prettify dart tag=pre+code %}
+class [!A!] extends B {}
+class B implements A {}
+{% endprettify %}
+
+#### Common fixes
+
+Change the type hierarchy so that there's no circularity.
 
 ### redirect_generative_to_missing_constructor
 
@@ -9921,6 +10711,48 @@ class C {
   static C _instance = C._();
 
   C._();
+}
+{% endprettify %}
+
+### return_in_generator
+
+_Can't return a value from a generator function (using the '{0}' modifier)._
+
+#### Description
+
+The analyzer produces this diagnostic when a generator function (one whose
+body is marked with either `async*` or `sync*`) uses a `return` statement
+to return a value. In both cases, they should use `yield` instead of
+`return`.
+
+#### Example
+
+The following code produces this diagnostic because the method `f` is a
+generator and is using `return` to return a value:
+
+{% prettify dart tag=pre+code %}
+Iterable<int> f() sync* {
+  [!return 3!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the method is intended to be a generator, then use `yield` to return a
+value:
+
+{% prettify dart tag=pre+code %}
+Iterable<int> f() sync* {
+  yield 3;
+}
+{% endprettify %}
+
+If the method isn't intended to be a generator, then remove the modifier
+from the body (or use `async` if you're returning a future):
+
+{% prettify dart tag=pre+code %}
+int f() {
+  return 3;
 }
 {% endprettify %}
 
@@ -10539,6 +11371,40 @@ const a = [1, 2];
 var b = [...a];
 {% endprettify %}
 
+### set_element_type_not_assignable
+
+_The element type '{0}' can't be assigned to the set type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an element in a set literal has
+a type that isn't assignable to the element type of the set.
+
+#### Example
+
+The following code produces this diagnostic because the type of the string
+literal `'0'` is `String`, which isn't assignable to `int`, the element
+type of the set:
+
+{% prettify dart tag=pre+code %}
+var s = <int>{[!'0'!]};
+{% endprettify %}
+
+#### Common fixes
+
+If the element type of the set literal is wrong, then change the element
+type of the set:
+
+{% prettify dart tag=pre+code %}
+var s = <String>{'0'};
+{% endprettify %}
+
+If the type of the element is wrong, then change the element:
+
+{% prettify dart tag=pre+code %}
+var s = <int>{'0'.length};
+{% endprettify %}
+
 ### shared_deferred_prefix
 
 _The prefix of a deferred import can't be used in other import directives._
@@ -10745,6 +11611,45 @@ type, and possibly the whole clause:
 class B {}
 {% endprettify %}
 
+### supertype_expands_to_type_parameter
+
+_A type alias that expands to a type parameter can't be implemented._
+
+_A type alias that expands to a type parameter can't be mixed in._
+
+_A type alias that expands to a type parameter can't be used as a superclass
+constraint._
+
+_A type alias that expands to a type parameter can't be used as a superclass._
+
+#### Description
+
+The analyzer produces this diagnostic when a type alias that expands to a
+type parameter is used in an `extends`, `implements`, `with`, or `on`
+clause.
+
+#### Example
+
+The following code produces this diagnostic because the type alias `T`,
+which expands to the type parameter `S`, is used in the `extends` clause of
+the class `C`:
+
+{% prettify dart tag=pre+code %}
+typedef T<S> = S;
+
+class C extends [!T!]<Object> {}
+{% endprettify %}
+
+#### Common fixes
+
+Use the value of the type argument directly:
+
+{% prettify dart tag=pre+code %}
+typedef T<S> = S;
+
+class C extends Object {}
+{% endprettify %}
+
 ### super_in_extension
 
 _The 'super' keyword can't be used in an extension because an extension doesn't
@@ -10917,6 +11822,51 @@ void f(String? s) {
 }
 {% endprettify %}
 
+### top_level_cycle
+
+_The type of '{0}' can't be inferred because it depends on itself through the
+cycle: {1}._
+
+#### Description
+
+The analyzer produces this diagnostic when a top-level variable has no type
+annotation and the variable's initializer refers to the variable, either
+directly or indirectly.
+
+#### Example
+
+The following code produces this diagnostic because the variables `x` and
+`y` are defined in terms of each other, and neither has an explicit type,
+so the type of the other can't be inferred:
+
+{% prettify dart tag=pre+code %}
+var x = y;
+var y = [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+If the two variables don't need to refer to each other, then break the
+cycle:
+
+{% prettify dart tag=pre+code %}
+var x = 0;
+var y = x;
+{% endprettify %}
+
+If the two variables need to refer to each other, then give at least one of
+them an explicit type:
+
+{% prettify dart tag=pre+code %}
+int x = y;
+var y = x;
+{% endprettify %}
+
+Note, however, that while this code doesn't produce any diagnostics, it
+will produce a stack overflow at runtime unless at least one of the
+variables is assigned a value that doesn't depend on the other variables
+before any of the variables in the cycle are referenced.
+
 ### type_annotation_deferred_class
 
 _The deferred type '{0}' can't be used in a declaration, cast, or type test._
@@ -11028,6 +11978,57 @@ class C<T> {
 
 Note, however, that there isn’t a relationship between `T` and `S`, so this
 second option changes the semantics from what was likely to be intended.
+
+### type_test_with_non_type
+
+_The name '{0}' isn't a type and can't be used in an 'is' expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the right-hand side of an `is`
+or `is!` test isn't a type.
+
+#### Example
+
+The following code produces this diagnostic because the right-hand side is
+a parameter, not a type:
+
+{% prettify dart tag=pre+code %}
+typedef B = int Function(int);
+
+void f(Object a, B b) {
+  if (a is [!b!]) {
+    return;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you intended to use a type test, then replace the right-hand side with a
+type:
+
+{% prettify dart tag=pre+code %}
+typedef B = int Function(int);
+
+void f(Object a, B b) {
+  if (a is B) {
+    return;
+  }
+}
+{% endprettify %}
+
+If you intended to use a different kind of test, then change the test:
+
+{% prettify dart tag=pre+code %}
+typedef B = int Function(int);
+
+void f(Object a, B b) {
+  if (a == b) {
+    return;
+  }
+}
+{% endprettify %}
 
 ### type_test_with_undefined_name
 
@@ -11508,6 +12509,51 @@ extension F on String {
 void f() {
   E('c').b();
 }
+{% endprettify %}
+
+### undefined_extension_operator
+
+_The operator '{0}' isn't defined for the extension '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an operator is invoked on a
+specific extension when that extension doesn't implement the operator.
+
+#### Example
+
+The following code produces this diagnostic because the extension `E`
+doesn't define the operator `*`:
+
+{% prettify dart tag=pre+code %}
+var x = E('') [!*!] 4;
+
+extension E on String {}
+{% endprettify %}
+
+#### Common fixes
+
+If the extension is expected to implement the operator, then add an
+implementation of the operator to the extension:
+
+{% prettify dart tag=pre+code %}
+var x = E('') * 4;
+
+extension E on String {
+  int operator *(int multiplier) => length * multiplier;
+}
+{% endprettify %}
+
+If the operator is defined by a different extension, then change the name
+of the extension to the name of the one that defines the operator.
+
+If the operator is defined on the argument of the extension override, then
+remove the extension override:
+
+{% prettify dart tag=pre+code %}
+var x = '' * 4;
+
+extension E on String {}
 {% endprettify %}
 
 ### undefined_extension_setter
