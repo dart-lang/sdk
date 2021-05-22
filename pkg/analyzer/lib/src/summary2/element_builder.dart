@@ -9,10 +9,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
@@ -21,6 +23,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   final _exports = <ExportElement>[];
   final _imports = <ImportElement>[];
   var _hasCoreImport = false;
+  var _hasExtUri = false;
+  var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
   var _nextUnnamedExtensionId = 0;
@@ -57,9 +61,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.types = _enclosingContext.classes;
   }
 
-  /// This method should be invoked after visiting directive nodes, it
-  /// will set created exports and imports into [_libraryElement].
-  void setExportsImports() {
+  /// Build exports and imports, metadata into [_libraryElement].
+  void buildLibraryElementChildren(CompilationUnit unit) {
+    unit.directives.accept(this);
+
     _libraryElement.exports = _exports;
 
     if (!_hasCoreImport) {
@@ -72,6 +77,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
     }
     _libraryElement.imports = _imports;
+    _libraryElement.hasExtUri = _hasExtUri;
+
+    var firstDirective = unit.directives.firstOrNull;
+    if (firstDirective != null) {
+      _libraryElement.metadata = _buildAnnotations(firstDirective.metadata);
+    }
   }
 
   @override
@@ -559,12 +570,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
+    var uriStr = node.uri.stringValue;
+
     var element = ImportElementImpl(node.keyword.offset);
     element.combinators = _buildCombinators(node.combinators);
     element.importedLibrary = _selectLibrary(node);
     element.isDeferred = node.deferredKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
-    element.uri = node.uri.stringValue;
+    element.uri = uriStr;
 
     var prefixNode = node.prefix;
     if (prefixNode != null) {
@@ -580,10 +593,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.element = element;
 
     _imports.add(element);
-    if (!_hasCoreImport) {
-      if (node.uri.stringValue == 'dart:core') {
-        _hasCoreImport = true;
-      }
+
+    if (uriStr == 'dart:core') {
+      _hasCoreImport = true;
+    } else if (DartUriResolver.isDartExtUri(uriStr)) {
+      _hasExtUri = true;
     }
   }
 
@@ -689,7 +703,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPartDirective(PartDirective node) {}
+  void visitPartDirective(PartDirective node) {
+    var index = _partDirectiveIndex++;
+    // TODO(scheglov) With invalid URIs we will associate metadata incorrectly
+    if (index < _libraryElement.parts.length) {
+      var partElement = _libraryElement.parts[index];
+      partElement as CompilationUnitElementImpl;
+      partElement.metadata = _buildAnnotations(node.metadata);
+    }
+  }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {

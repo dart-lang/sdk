@@ -67,8 +67,7 @@ class Linker {
   /// If the [element] is part of a library being linked, return the node
   /// from which it was created.
   ast.AstNode? getLinkingNode(Element element) {
-    var node = elementNodes[element];
-    return node ?? (element as ElementImpl).linkedNode;
+    return elementNodes[element];
   }
 
   void link(List<LinkInputLibrary> inputLibraries) {

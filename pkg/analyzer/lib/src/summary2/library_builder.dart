@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
@@ -142,8 +143,7 @@ class LibraryBuilder {
         unitElement: unitContext.element,
       );
       if (unitContext.indexInLibrary == 0) {
-        unitContext.unit.directives.accept(elementBuilder);
-        elementBuilder.setExportsImports();
+        elementBuilder.buildLibraryElementChildren(unitContext.unit);
       }
       elementBuilder.buildDeclarationElements(unitContext.unit);
     }
@@ -190,10 +190,11 @@ class LibraryBuilder {
   }
 
   void resolveMetadata() {
-    for (var unit in element.units) {
-      var unitImpl = unit as CompilationUnitElementImpl;
-      var resolver = MetadataResolver(linker, scope, unit);
-      unitImpl.linkedNode!.accept(resolver);
+    for (var unitContext in context.units) {
+      var unitElement =
+          unitContext.reference.element as CompilationUnitElementImpl;
+      var resolver = MetadataResolver(linker, scope, unitElement);
+      unitContext.unit.accept(resolver);
     }
   }
 
@@ -216,13 +217,22 @@ class LibraryBuilder {
 
   void storeExportScope() {
     exports = exportScope.map.values.toList();
-    linker.elementFactory.linkingExports['$uri'] = exports;
 
-    // TODO(scheglov) store for serialization
-    // for (var reference in exportScope.map.values) {
-    //   var index = linkingBundleContext.indexOfReference(reference);
-    //   context.exports.add(index);
-    // }
+    var definedNames = <String, Element>{};
+    for (var entry in exportScope.map.entries) {
+      var element = linker.elementFactory.elementOfReference(entry.value);
+      if (element != null) {
+        definedNames[entry.key] = element;
+      }
+    }
+
+    var namespace = Namespace(definedNames);
+    element.exportNamespace = namespace;
+
+    var entryPoint = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
+    if (entryPoint is FunctionElement) {
+      element.entryPoint = entryPoint;
+    }
   }
 
   static void build(Linker linker, LinkInputLibrary inputLibrary) {
@@ -245,7 +255,7 @@ class LibraryBuilder {
           uriStr,
           reference,
           inputUnit.isSynthetic,
-          unit: inputUnit.unit,
+          unit: inputUnit.unit as ast.CompilationUnitImpl,
         ),
       );
     }

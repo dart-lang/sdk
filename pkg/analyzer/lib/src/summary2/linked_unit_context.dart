@@ -21,7 +21,7 @@ class LinkedUnitContext {
   final String uriStr;
   final Reference reference;
   final bool isSynthetic;
-  final CompilationUnit unit;
+  final CompilationUnitImpl unit;
 
   LinkedUnitContext(this.libraryContext, this.indexInLibrary, this.partUriStr,
       this.uriStr, this.reference, this.isSynthetic,

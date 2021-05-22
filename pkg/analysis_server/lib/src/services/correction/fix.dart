@@ -311,6 +311,10 @@ class DartFixKind {
       'dart.fix.convert.toIntLiteral.multi',
       DartFixKindPriority.IN_FILE,
       'Convert to int literals everywhere in file');
+  static const CONVERT_TO_IS_NOT = FixKind(
+      'dart.fix.convert.isNot', DartFixKindPriority.DEFAULT, 'Convert to is!');
+  static const CONVERT_TO_IS_NOT_MULTI = FixKind('dart.fix.convert.isNot.multi',
+      DartFixKindPriority.IN_FILE, 'Convert to is! everywhere in file');
   static const CONVERT_TO_LINE_COMMENT = FixKind(
       'dart.fix.convert.toLineComment',
       DartFixKindPriority.DEFAULT,
