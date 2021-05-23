@@ -25,6 +25,8 @@ class LintNames {
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
+  static const String avoid_returning_null_for_void =
+      'avoid_returning_null_for_void';
   static const String avoid_single_cascade_in_expression_statements =
       'avoid_single_cascade_in_expression_statements';
   static const String avoid_types_as_parameter_names =

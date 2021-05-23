@@ -621,6 +621,12 @@ class DartFixKind {
       'dart.fix.remove.questionMark.multi',
       DartFixKindPriority.IN_FILE,
       'Remove unnecessary question marks in file');
+  static const REMOVE_RETURNED_VALUE = FixKind('dart.fix.remove.returnedValue',
+      DartFixKindPriority.DEFAULT, 'Remove invalid returned value');
+  static const REMOVE_RETURNED_VALUE_MULTI = FixKind(
+      'dart.fix.remove.returnedValue.multi',
+      DartFixKindPriority.IN_FILE,
+      'Remove invalid returned values in file');
   static const REMOVE_THIS_EXPRESSION = FixKind(
       'dart.fix.remove.thisExpression',
       DartFixKindPriority.DEFAULT,
