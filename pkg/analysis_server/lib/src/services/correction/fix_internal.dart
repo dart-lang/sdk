@@ -109,6 +109,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_operator.dar
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
@@ -455,6 +456,15 @@ class FixProcessor extends BaseProcessor {
         generators: [
           AddAsync.newInstance,
           WrapInFuture.newInstance,
+        ],
+      )
+    ],
+    LintNames.avoid_returning_null_for_void: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          RemoveReturnedValue.newInstance,
         ],
       )
     ],
