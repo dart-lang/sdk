@@ -32,7 +32,7 @@ create_timestamp_file("sdk_lib_files") {
   output = "$target_gen_dir/sdk_lib_files.stamp"
 }
 
-dart_action("generate_summary_strong") {
+prebuilt_dart_action("generate_summary_strong") {
   deps = [
     ":sdk_lib_files",
     "../../sdk:copy_libraries",
