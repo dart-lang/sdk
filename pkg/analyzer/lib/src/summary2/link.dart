@@ -119,7 +119,6 @@ class Linker {
     }
 
     for (var library in builders.values) {
-      library.addLocalDeclarations();
       library.buildElements();
     }
 

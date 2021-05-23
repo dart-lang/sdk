@@ -82,39 +82,6 @@ class LibraryBuilder {
     }
   }
 
-  /// Add top-level declaration of the library units to the local scope.
-  void addLocalDeclarations() {
-    for (var linkingUnit in context.units) {
-      for (var node in linkingUnit.unit.declarations) {
-        if (node is ast.ClassDeclaration) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.ClassTypeAlias) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.EnumDeclarationImpl) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.ExtensionDeclarationImpl) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.FunctionDeclarationImpl) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.FunctionTypeAlias) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.GenericTypeAlias) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.MixinDeclarationImpl) {
-          // Handled in ElementBuilder.
-        } else if (node is ast.TopLevelVariableDeclaration) {
-          // Handled in ElementBuilder.
-        } else {
-          throw UnimplementedError('${node.runtimeType}');
-        }
-      }
-    }
-    if ('$uri' == 'dart:core') {
-      localScope.declare('dynamic', reference.getChild('dynamic'));
-      localScope.declare('Never', reference.getChild('Never'));
-    }
-  }
-
   /// Return `true` if the export scope was modified.
   bool addToExportScope(String name, Reference reference) {
     if (name.startsWith('_')) return false;
@@ -135,6 +102,8 @@ class LibraryBuilder {
         as LibraryElementImpl;
   }
 
+  /// Build elements for declarations in the library units, add top-level
+  /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
     for (var unitContext in context.units) {
       var elementBuilder = ElementBuilder(
@@ -146,6 +115,10 @@ class LibraryBuilder {
         elementBuilder.buildLibraryElementChildren(unitContext.unit);
       }
       elementBuilder.buildDeclarationElements(unitContext.unit);
+    }
+    if ('$uri' == 'dart:core') {
+      localScope.declare('dynamic', reference.getChild('dynamic'));
+      localScope.declare('Never', reference.getChild('Never'));
     }
   }
 
