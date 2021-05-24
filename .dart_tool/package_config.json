@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-21T16:08:02.444059",
+  "generated": "2021-05-24T09:58:37.618570",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -253,16 +253,10 @@
       "languageVersion": "2.3"
     },
     {
-      "name": "devtools_server",
-      "rootUri": "../third_party/devtools/devtools_server",
-      "packageUri": "lib/",
-      "languageVersion": "2.6"
-    },
-    {
       "name": "devtools_shared",
       "rootUri": "../third_party/devtools/devtools_shared",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "diagnostic",

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -28,7 +26,7 @@ Future<void> main(List<String> args) async {
   final remoteVmServiceUri = Uri.parse(args.first);
 
   // Resolve the address which is potentially provided by the user.
-  InternetAddress address;
+  late InternetAddress address;
   final addresses = await InternetAddress.lookup(args[1]);
   // Prefer IPv4 addresses.
   for (int i = 0; i < addresses.length; i++) {
@@ -43,7 +41,7 @@ Future<void> main(List<String> args) async {
   final disableServiceAuthCodes = args[3] == 'true';
 
   final startDevTools = args[4] == 'true';
-  Uri devToolsBuildDirectory;
+  Uri? devToolsBuildDirectory;
   if (args[5].isNotEmpty) {
     devToolsBuildDirectory = Uri.file(args[5]);
   }
@@ -55,7 +53,7 @@ Future<void> main(List<String> args) async {
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
-      devToolsConfiguration: startDevTools
+      devToolsConfiguration: startDevTools && devToolsBuildDirectory != null
           ? DevToolsConfiguration(
               enable: startDevTools,
               customBuildDirectoryPath: devToolsBuildDirectory,
