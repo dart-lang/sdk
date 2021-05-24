@@ -63,8 +63,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/prebuilts
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "7e9747b50bcb1be28d4a3236571e8050835497a6",
-  "gn_revision": "1e3fd10c5df6b704fc764ee388149e4f32862823",
+  "clang_revision": "3dc24bc31edbc01dea085b24a6a6b024d7ae531c",
+  "gn_revision": "39a87c0b36310bdf06b692c098f199a0d97fc810",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
