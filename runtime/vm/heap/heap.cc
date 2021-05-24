@@ -163,6 +163,9 @@ void Heap::AllocatedExternal(intptr_t size, Space space) {
   }
 
   if (old_space_.ReachedHardThreshold()) {
+    if (last_gc_was_old_space_) {
+      CollectNewSpaceGarbage(Thread::Current(), kFull);
+    }
     CollectGarbage(kMarkSweep, kExternal);
   } else {
     CheckStartConcurrentMarking(Thread::Current(), kExternal);

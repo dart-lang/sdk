@@ -1689,7 +1689,7 @@ TransferableTypedDataPtr TransferableTypedData::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != nullptr);
 
   ASSERT(!Snapshot::IsFull(kind));
-  const intptr_t length = reader->Read<int32_t>();
+  const intptr_t length = reader->Read<int64_t>();
 
   const FinalizableData finalizable_data =
       static_cast<MessageSnapshotReader*>(reader)->finalizable_data()->Take();
@@ -1726,7 +1726,7 @@ void UntaggedTransferableTypedData::WriteTo(SnapshotWriter* writer,
 
   writer->WriteIndexedObject(GetClassId());
   writer->WriteTags(writer->GetObjectTags(this));
-  writer->Write<int32_t>(length);
+  writer->Write<int64_t>(length);
 
   static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
       length, data, tpeer,

@@ -24851,8 +24851,7 @@ static void TransferableTypedDataFinalizer(void* isolate_callback_data,
 }
 
 TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
-                                                    intptr_t length,
-                                                    Heap::Space space) {
+                                                    intptr_t length) {
   TransferableTypedDataPeer* peer = new TransferableTypedDataPeer(data, length);
 
   Thread* thread = Thread::Current();
@@ -24860,7 +24859,8 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
   {
     ObjectPtr raw = Object::Allocate(
         TransferableTypedData::kClassId, TransferableTypedData::InstanceSize(),
-        space, TransferableTypedData::ContainsCompressedPointers());
+        thread->heap()->SpaceForExternal(length),
+        TransferableTypedData::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     thread->heap()->SetPeer(raw, peer);
     result ^= raw;
