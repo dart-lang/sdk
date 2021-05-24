@@ -167,7 +167,8 @@ class FileResolver {
 
     // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
-      removedCacheIds.add(removedFile.id);
+      removedCacheIds.add(removedFile.unlinkedId);
+      removedCacheIds.add(removedFile.informativeId);
     }
 
     // Remove libraries represented by removed files.
@@ -406,7 +407,8 @@ class FileResolver {
   void removeFilesNotNecessaryForAnalysisOf(List<String> files) {
     var removedFiles = fsState!.removeUnusedFiles(files);
     for (var removedFile in removedFiles) {
-      removedCacheIds.add(removedFile.id);
+      removedCacheIds.add(removedFile.unlinkedId);
+      removedCacheIds.add(removedFile.informativeId);
     }
   }
 

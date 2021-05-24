@@ -5,9 +5,8 @@
 library dart2js.util;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB, Link, LinkBuilder;
+    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB, Link;
 
-export 'emptyset.dart';
 export 'maplet.dart';
 export 'setlet.dart';
 
@@ -88,7 +87,7 @@ class Hashing {
   /// [existing].
   static int unorderedMapHash(Map map, [int existing = 0]) {
     if (map.length == 0) return existing;
-    List<int> hashCodes = List.filled(map.length, null);
+    List<int> hashCodes = List.filled(map.length, 0);
     int i = 0;
     for (var entry in map.entries) {
       hashCodes[i++] = objectHash(entry.key, objectHash(entry.value));
@@ -241,29 +240,6 @@ int computeHashCode(part1, [part2, part3, part4, part5]) {
           part4.hashCode ^
           part5.hashCode) &
       0x3fffffff;
-}
-
-String modifiersToString(
-    {bool isStatic: false,
-    bool isAbstract: false,
-    bool isFinal: false,
-    bool isVar: false,
-    bool isConst: false,
-    bool isFactory: false,
-    bool isExternal: false,
-    bool isCovariant: false}) {
-  LinkBuilder<String> builder = new LinkBuilder<String>();
-  if (isStatic) builder.addLast('static');
-  if (isAbstract) builder.addLast('abstract');
-  if (isFinal) builder.addLast('final');
-  if (isVar) builder.addLast('var');
-  if (isConst) builder.addLast('const');
-  if (isFactory) builder.addLast('factory');
-  if (isExternal) builder.addLast('external');
-  if (isCovariant) builder.addLast('covariant');
-  StringBuffer buffer = new StringBuffer();
-  builder.toLink(const Link<String>()).printOn(buffer, ', ');
-  return buffer.toString();
 }
 
 class Pair<A, B> {

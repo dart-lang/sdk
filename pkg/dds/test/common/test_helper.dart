@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-Uri remoteVmServiceUri;
+import 'package:vm_service/vm_service.dart';
+
+late Uri remoteVmServiceUri;
 
 Future<Process> spawnDartProcess(
   String script, {
@@ -40,4 +41,21 @@ Future<Process> spawnDartProcess(
   final infoJson = json.decode(content);
   remoteVmServiceUri = Uri.parse(infoJson['uri']);
   return process;
+}
+
+Future<void> executeUntilNextPause(VmService service) async {
+  final vm = await service.getVM();
+  final isolate = await service.getIsolate(vm.isolates!.first.id!);
+
+  final completer = Completer<void>();
+  late StreamSubscription sub;
+  sub = service.onDebugEvent.listen((event) async {
+    if (event.kind == EventKind.kPauseBreakpoint) {
+      completer.complete();
+      await sub.cancel();
+    }
+  });
+  await service.streamListen(EventStreams.kDebug);
+  await service.resume(isolate.id!);
+  await completer.future;
 }

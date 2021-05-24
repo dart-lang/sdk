@@ -1586,6 +1586,7 @@ class ElementKind implements Enum {
 ///   FUNCTION_BODY
 ///   INVOCATION
 ///   LITERAL
+///   PARAMETERS
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1611,6 +1612,8 @@ class FoldingKind implements Enum {
 
   static const FoldingKind LITERAL = FoldingKind._('LITERAL');
 
+  static const FoldingKind PARAMETERS = FoldingKind._('PARAMETERS');
+
   /// A list containing all of the enum values that are defined.
   static const List<FoldingKind> VALUES = <FoldingKind>[
     ANNOTATIONS,
@@ -1622,7 +1625,8 @@ class FoldingKind implements Enum {
     FILE_HEADER,
     FUNCTION_BODY,
     INVOCATION,
-    LITERAL
+    LITERAL,
+    PARAMETERS
   ];
 
   @override
@@ -1652,6 +1656,8 @@ class FoldingKind implements Enum {
         return INVOCATION;
       case 'LITERAL':
         return LITERAL;
+      case 'PARAMETERS':
+        return PARAMETERS;
     }
     throw Exception('Illegal enum value: $name');
   }

@@ -533,14 +533,8 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
         element ^= ptr;
         intptr_t entry = -1;
         const bool present = table.FindKeyOrDeletedOrUnused(element, &entry);
-        if (!present) {
-          table.InsertKey(entry, element);
-        } else {
-          // Two recursive types with different topology (and hashes)
-          // may be equal.
-          ASSERT(element.IsRecursive());
-          objects_[num_occupied++] = ptr;
-        }
+        ASSERT(!present);
+        table.InsertKey(entry, element);
       } else {
         objects_[num_occupied++] = ptr;
       }

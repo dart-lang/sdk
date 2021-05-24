@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -23,12 +21,12 @@ import 'common/test_helper.dart';
 // environment variables.
 
 void main() {
-  Process chromeDriver;
-  DartDevelopmentService dds;
-  SseHandler handler;
-  Process process;
-  HttpServer server;
-  WebDriver webdriver;
+  late Process chromeDriver;
+  late DartDevelopmentService dds;
+  late SseHandler handler;
+  Process? process;
+  late HttpServer server;
+  late WebDriver webdriver;
 
   setUpAll(() async {
     final chromedriverUri = Platform.script.resolveUri(
@@ -74,11 +72,10 @@ void main() {
     });
 
     tearDown(() async {
-      await dds?.shutdown();
+      await dds.shutdown();
       process?.kill();
       await webdriver.quit();
       await server.close();
-      dds = null;
       process = null;
     });
 
@@ -97,11 +94,11 @@ void main() {
 
           // Replace the sse scheme with http as sse isn't supported for CORS.
           testeeConnection.sink
-              .add(dds.sseUri.replace(scheme: 'http').toString());
+              .add(dds.sseUri!.replace(scheme: 'http').toString());
           final response = json.decode(await testeeConnection.stream.first);
-          final version = service.Version.parse(response);
-          expect(version.major > 0, isTrue);
-          expect(version.minor >= 0, isTrue);
+          final version = service.Version.parse(response)!;
+          expect(version.major! > 0, isTrue);
+          expect(version.minor! >= 0, isTrue);
         },
       );
     }

@@ -81,7 +81,7 @@ class TokenScope {
   List<int> _nextName = [$a];
   final Set<String> illegalNames;
 
-  TokenScope([this.illegalNames = const ImmutableEmptySet()]);
+  TokenScope([this.illegalNames = const {}]);
 
   /// Increments the letter at [pos] in the current name. Also takes care of
   /// overflows to the left. Returns the carry bit, i.e., it returns `true`
