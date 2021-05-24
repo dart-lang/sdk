@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -107,6 +108,28 @@ main() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_lint_sortConstructorsFirst() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await resolveTestCode('''
+class Test {
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''');
+    await assertHasFix('''
+class Test {
+  Test(this.a, this.c);
+
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
   }
 
   Future<void> test_simple() async {

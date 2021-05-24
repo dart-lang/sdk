@@ -86,8 +86,8 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare location
-    var targetLocation =
-        CorrectionUtils(targetUnit).prepareNewConstructorLocation(targetNode);
+    var targetLocation = CorrectionUtils(targetUnit)
+        .prepareNewConstructorLocation(resolvedResult.session, targetNode);
     if (targetLocation == null) {
       return;
     }
@@ -141,8 +141,8 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare location
-    var targetLocation =
-        CorrectionUtils(targetUnit).prepareNewConstructorLocation(targetNode);
+    var targetLocation = CorrectionUtils(targetUnit)
+        .prepareNewConstructorLocation(resolvedResult.session, targetNode);
     if (targetLocation == null) {
       return;
     }

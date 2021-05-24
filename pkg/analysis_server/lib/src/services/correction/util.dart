@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -937,11 +938,16 @@ class CorrectionUtils {
   }
 
   ClassMemberLocation? prepareNewConstructorLocation(
-      ClassDeclaration classDeclaration) {
-    return prepareNewClassMemberLocation(
-        classDeclaration,
-        (member) =>
-            member is FieldDeclaration || member is ConstructorDeclaration);
+      AnalysisSession session, ClassDeclaration classDeclaration) {
+    final sortConstructorsFirst = session.analysisContext.analysisOptions
+        .isLintEnabled(LintNames.sort_constructors_first);
+    // If sort_constructors_first is enabled, don't skip over the fields.
+    final shouldSkip = sortConstructorsFirst
+        ? (member) => member is ConstructorDeclaration
+        : (member) =>
+            member is FieldDeclaration || member is ConstructorDeclaration;
+
+    return prepareNewClassMemberLocation(classDeclaration, shouldSkip);
   }
 
   ClassMemberLocation? prepareNewFieldLocation(
