@@ -496,6 +496,31 @@ main() {/*1:INC*/
     _compareRegions(regions, content);
   }
 
+  Future<void> test_parameters_function() async {
+    var content = '''
+foo(/*1:INC*/
+  String aaaaa,
+  String bbbbb, {
+  String ccccc,
+  }/*1:INC:PARAMETERS*/) {}
+''';
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  Future<void> test_parameters_method() async {
+    var content = '''
+class C {/*1:INC*/
+  C(/*2:INC*/
+    String aaaaa,
+    String bbbbb,
+  /*2:INC:PARAMETERS*/) : super();
+/*1:INC:CLASS_BODY*/}
+''';
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   Future<void> test_single_import_directives() async {
     var content = """
 import 'dart:async';

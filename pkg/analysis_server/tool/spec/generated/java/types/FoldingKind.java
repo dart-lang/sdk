@@ -35,4 +35,6 @@ public class FoldingKind {
 
   public static final String LITERAL = "LITERAL";
 
+  public static final String PARAMETERS = "PARAMETERS";
+
 }

@@ -261,6 +261,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterList(FormalParameterList node) {
+    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
+        FoldingKind.PARAMETERS);
+    super.visitFormalParameterList(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     super.visitFunctionDeclaration(node);

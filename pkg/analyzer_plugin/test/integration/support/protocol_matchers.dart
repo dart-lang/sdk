@@ -320,6 +320,7 @@ final Matcher isFilePath = isString;
 ///   FUNCTION_BODY
 ///   INVOCATION
 ///   LITERAL
+///   PARAMETERS
 /// }
 final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
@@ -331,7 +332,8 @@ final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'FILE_HEADER',
   'FUNCTION_BODY',
   'INVOCATION',
-  'LITERAL'
+  'LITERAL',
+  'PARAMETERS'
 ]);
 
 /// FoldingRegion
