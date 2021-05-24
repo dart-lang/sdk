@@ -792,6 +792,63 @@ var foo = 0;
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
+  test_nameOffset_class_method_fromBytes() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+class A {
+  void foo() {}
+}
+''');
+
+    addTestFile(r'''
+import 'a.dart';
+
+void f(A a) {
+  a.foo();
+}
+''');
+
+    await resolveTestFile();
+    {
+      var element = findNode.simple('foo();').staticElement!;
+      expect(element.nameOffset, 17);
+    }
+
+    // New resolver.
+    // Element models will be loaded from the cache.
+    createFileResolver();
+    await resolveTestFile();
+    {
+      var element = findNode.simple('foo();').staticElement!;
+      expect(element.nameOffset, 17);
+    }
+  }
+
+  test_nameOffset_unit_variable_fromBytes() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+var a = 0;
+''');
+
+    addTestFile(r'''
+import 'a.dart';
+var b = a;
+''');
+
+    await resolveTestFile();
+    {
+      var element = findNode.simple('a;').staticElement!;
+      expect(element.nameOffset, 4);
+    }
+
+    // New resolver.
+    // Element models will be loaded from the cache.
+    createFileResolver();
+    await resolveTestFile();
+    {
+      var element = findNode.simple('a;').staticElement!;
+      expect(element.nameOffset, 4);
+    }
+  }
+
   test_nullSafety_enabled() async {
     typeToStringWithNullability = true;
 

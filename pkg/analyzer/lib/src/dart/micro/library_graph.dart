@@ -91,8 +91,13 @@ class FileState {
   Uint8List? informativeBytes;
   LibraryCycle? _libraryCycle;
 
-  /// id of the cache entry.
-  late int id;
+  /// id of the cache entry with unlinked data.
+  late int unlinkedId;
+
+  /// id of the cache entry with informative data.
+  /// We use a separate entry because there is no good way to efficiently
+  /// store a raw byte array.
+  late int informativeId;
 
   FileState._(
     this._fsState,
@@ -225,16 +230,23 @@ class FileState {
       _exists = _digest.isNotEmpty;
     });
 
-    String unlinkedKey = path;
+    String unlinkedKey = '$path.unlinked';
+    String informativeKey = '$path.informative';
 
     // Prepare bytes of the unlinked bundle - existing or new.
     // TODO(migration): should not be nullable
-    List<int>? bytes;
+    List<int>? unlinkedBytes;
+    List<int>? informativeBytes;
     {
-      var cacheData = _fsState._byteStore.get(unlinkedKey, _digest);
-      bytes = cacheData?.bytes;
+      var unlinkedData = _fsState._byteStore.get(unlinkedKey, _digest);
+      var informativeData = _fsState._byteStore.get(informativeKey, _digest);
+      unlinkedBytes = unlinkedData?.bytes;
+      informativeBytes = informativeData?.bytes;
 
-      if (bytes == null || bytes.isEmpty) {
+      if (unlinkedBytes == null ||
+          unlinkedBytes.isEmpty ||
+          informativeBytes == null ||
+          informativeBytes.isEmpty) {
         var content = performance.run('content', (_) {
           return getContent();
         });
@@ -245,26 +257,36 @@ class FileState {
           return parse(AnalysisErrorListener.NULL_LISTENER, content);
         });
 
-        informativeBytes = writeUnitInformative(unit);
-
         performance.run('unlinked', (performance) {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
-          bytes = unlinkedBuilder.toBuffer();
-          performance.getDataInt('length').add(bytes!.length);
-          cacheData = _fsState._byteStore.putGet(unlinkedKey, _digest, bytes!);
-          bytes = cacheData!.bytes;
+          unlinkedBytes = unlinkedBuilder.toBuffer();
+          performance.getDataInt('length').add(unlinkedBytes!.length);
+          unlinkedData =
+              _fsState._byteStore.putGet(unlinkedKey, _digest, unlinkedBytes!);
+          unlinkedBytes = unlinkedData!.bytes;
+        });
+
+        performance.run('informative', (performance) {
+          informativeBytes = writeUnitInformative(unit);
+          performance.getDataInt('length').add(informativeBytes!.length);
+          informativeData = _fsState._byteStore
+              .putGet(informativeKey, _digest, informativeBytes!);
+          informativeBytes = informativeData!.bytes;
         });
 
         performance.run('prefetch', (_) {
-          unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes!).unlinkedUnit!;
+          var decoded = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!);
+          unlinked2 = decoded.unlinkedUnit!;
           _prefetchDirectReferences(unlinked2);
         });
       }
-      id = cacheData!.id;
+      unlinkedId = unlinkedData!.id;
+      informativeId = informativeData!.id;
+      this.informativeBytes = Uint8List.fromList(informativeBytes!);
     }
 
     // Read the unlinked bundle.
-    unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes!).unlinkedUnit!;
+    unlinked2 = CiderUnlinkedUnit.fromBuffer(unlinkedBytes!).unlinkedUnit!;
     _apiSignature = Uint8List.fromList(unlinked2.apiSignature);
 
     // Build the graph.
@@ -570,8 +592,12 @@ class FileSystemState {
   /// Clears all the cached files. Returns the list of ids of all the removed
   /// files.
   Set<int> collectSharedDataIdentifiers() {
-    var files = _pathToFile.values.map((file) => file.id).toSet();
-    return files;
+    var result = <int>{};
+    for (var file in _pathToFile.values) {
+      result.add(file.unlinkedId);
+      result.add(file.informativeId);
+    }
+    return result;
   }
 
   FeatureSet contextFeatureSet(
