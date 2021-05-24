@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -10,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/linked_library_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 class LinkedElementFactory {
@@ -68,69 +66,6 @@ class LinkedElementFactory {
     return Namespace(exportedNames);
   }
 
-  LibraryElementImpl? createLibraryElementForLinking(
-    LinkedLibraryContext libraryContext,
-  ) {
-    var sourceFactory = analysisContext.sourceFactory;
-    var libraryUriStr = libraryContext.uriStr;
-    var librarySource = sourceFactory.forUri(libraryUriStr);
-
-    // The URI cannot be resolved, we don't know the library.
-    if (librarySource == null) return null;
-
-    var definingUnitContext = libraryContext.definingUnit;
-    var definingUnitNode = definingUnitContext.unit;
-
-    // TODO(scheglov) Do we need this?
-    var name = '';
-    var nameOffset = -1;
-    var nameLength = 0;
-    for (var directive in definingUnitNode.directives) {
-      if (directive is LibraryDirective) {
-        name = directive.name.components.map((e) => e.name).join('.');
-        nameOffset = directive.name.offset;
-        nameLength = directive.name.length;
-        break;
-      }
-    }
-
-    var libraryElement = LibraryElementImpl(
-      analysisContext,
-      analysisSession,
-      name,
-      nameOffset,
-      nameLength,
-      definingUnitNode.featureSet,
-    );
-    libraryElement.isSynthetic = definingUnitContext.isSynthetic;
-    libraryElement.languageVersion = definingUnitNode.languageVersion!;
-    _bindReference(libraryContext.reference, libraryElement);
-    _setLibraryTypeSystem(libraryElement);
-
-    var units = <CompilationUnitElementImpl>[];
-    for (var unitContext in libraryContext.units) {
-      var unitNode = unitContext.unit;
-
-      var unitSource = sourceFactory.forUri(unitContext.uriStr);
-      if (unitSource == null) continue;
-
-      var unitElement = CompilationUnitElementImpl();
-      unitElement.isSynthetic = unitContext.isSynthetic;
-      unitElement.librarySource = librarySource;
-      unitElement.lineInfo = unitNode.lineInfo;
-      unitElement.source = unitSource;
-      unitElement.uri = unitContext.partUriStr;
-      _bindReference(unitContext.reference, unitElement);
-
-      units.add(unitElement);
-    }
-
-    libraryElement.definingCompilationUnit = units[0];
-    libraryElement.parts = units.skip(1).toList();
-
-    return libraryElement;
-  }
-
   LibraryElementImpl? createLibraryElementForReading(String uriStr) {
     var sourceFactory = analysisContext.sourceFactory;
     var librarySource = sourceFactory.forUri(uriStr);
@@ -149,7 +84,7 @@ class LinkedElementFactory {
     var libraryElement = reader.readElement(
       librarySource: librarySource,
     );
-    _setLibraryTypeSystem(libraryElement);
+    setLibraryTypeSystem(libraryElement);
     return libraryElement;
   }
 
@@ -179,7 +114,7 @@ class LinkedElementFactory {
     for (var reference in rootReference.children) {
       var libraryElement = reference.element as LibraryElementImpl?;
       if (libraryElement != null && !libraryElement.hasTypeProviderSystemSet) {
-        _setLibraryTypeSystem(libraryElement);
+        setLibraryTypeSystem(libraryElement);
       }
     }
   }
@@ -276,13 +211,7 @@ class LinkedElementFactory {
     analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
   }
 
-  void _declareDartCoreDynamicNever() {
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
-  }
-
-  void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
+  void setLibraryTypeSystem(LibraryElementImpl libraryElement) {
     // During linking we create libraries when typeProvider is not ready.
     // And if we link dart:core and dart:async, we cannot create it.
     // We will set typeProvider later, during [createTypeProviders].
@@ -302,8 +231,9 @@ class LinkedElementFactory {
     libraryElement.createLoadLibraryFunction();
   }
 
-  static void _bindReference(Reference reference, ElementImpl element) {
-    reference.element = element;
-    element.reference = reference;
+  void _declareDartCoreDynamicNever() {
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
   }
 }
