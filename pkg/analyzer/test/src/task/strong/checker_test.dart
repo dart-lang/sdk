@@ -3697,79 +3697,6 @@ void f<T extends num>(T x, T y) {
     ]);
   }
 
-  test_typeSubtyping_assigningClass() async {
-    await assertErrorsInCode('''
-class A {}
-class B extends A {}
-
-void main() {
-   dynamic y;
-   Object o;
-   int i = 0;
-   double d = 0.0;
-   num n;
-   A a;
-   B b;
-   y = a;
-   o = a;
-   i = a;
-   d = a;
-   n = a;
-   a = a;
-   b = a;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 98, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 114, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 130, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 160, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 170, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 180, 1),
-    ]);
-  }
-
-  test_typeSubtyping_assigningSubclass() async {
-    await assertErrorsInCode('''
-class A {}
-class B extends A {}
-class C extends A {}
-
-void main() {
-   dynamic y;
-   Object o;
-   int i = 0;
-   double d = 0.0;
-   num n;
-   A a;
-   B b;
-   C c;
-   y = b;
-   o = b;
-   i = b;
-   d = b;
-   n = b;
-   a = b;
-   b = b;
-   c = b;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 79, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 135, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 143, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 159, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 189, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 199, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 209, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 239, 1),
-    ]);
-  }
-
   test_typeSubtyping_dynamicDowncasts() async {
     await assertErrorsInCode('''
 class A {}
@@ -3822,49 +3749,6 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
-  }
-
-  test_typeSubtyping_interfaces() async {
-    await assertErrorsInCode('''
-class A {}
-class B extends A {}
-class C extends A {}
-class D extends B implements C {}
-
-void main() {
-   A top;
-   B left;
-   C right;
-   D bot;
-   {
-     top = top;
-     top = left;
-     top = right;
-     top = bot;
-   }
-   {
-     left = top;
-     left = left;
-     left = right;
-     left = bot;
-   }
-   {
-     right = top;
-     right = left;
-     right = right;
-     right = bot;
-   }
-   {
-     bot = top;
-     bot = left;
-     bot = right;
-     bot = bot;
-   }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 274, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 339, 4),
     ]);
   }
 
@@ -3921,18 +3805,6 @@ test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 201, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 1),
       error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 280, 1),
-    ]);
-  }
-
-  test_unboundRedirectingConstructor() async {
-    // This is a regression test for https://github.com/dart-lang/sdk/issues/25071
-    await assertErrorsInCode('''
-class Foo {
-  Foo() : this.init();
-}
- ''', [
-      error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 22,
-          11),
     ]);
   }
 
