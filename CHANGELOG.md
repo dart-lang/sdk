@@ -50,7 +50,15 @@
 
 #### Dart command line
 
-- The `dart create` command has been updated to create projects that use the new
+*   **Breaking Change** [#46100][]: The standalone `dart2native` has been marked
+deprecated, and now prints a warning message. It's replacement is the `dart
+compile exe` and `dart compile aot-snapshot` commands, which offer the same
+functionality. The `dart2native` tool will be discontinued (removed from the
+Dart SDK) in Dart 2.15.
+
+https://github.com/dart-lang/sdk/issues/46100
+
+* The `dart create` command has been updated to create projects that use the new
   'core' set of lints from `package:lints`. See https://dart.dev/go/core-lints
   for more information about these lints.
 
