@@ -45,7 +45,6 @@ import 'package:pub_semver/pub_semver.dart';
 var counterFileStateRefresh = 0;
 var counterUnlinkedBytes = 0;
 var counterUnlinkedLinkedBytes = 0;
-int fileObjectId = 0;
 var timerFileStateRefresh = Stopwatch();
 
 /// A library from [SummaryDataStore].
@@ -116,9 +115,6 @@ class FileState {
 
   /// The language version for the package that contains this file.
   final Version packageLanguageVersion;
-
-  int id = fileObjectId++;
-  int? refreshId;
 
   bool? _exists;
   String? _content;
@@ -417,7 +413,6 @@ class FileState {
   /// Return `true` if the API signature changed since the last refresh.
   bool refresh({bool allowCached = false}) {
     counterFileStateRefresh++;
-    refreshId = fileObjectId++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
     if (!timerWasRunning) {
@@ -515,7 +510,7 @@ class FileState {
 
   @override
   String toString() {
-    return '[id: $id][rid: $refreshId]$uri = $path';
+    return '$uri = $path';
   }
 
   /// Return the [FileState] for the given [relativeUri], or `null` if the
