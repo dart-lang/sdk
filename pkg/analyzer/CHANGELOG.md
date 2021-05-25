@@ -1,4 +1,4 @@
-## 1.6.0-dev
+## 1.6.0
 * Deprecated `AnalysisDriver` default constructor.  Added `tmp1`. The goal
   is to allow deprecating and removing unused  parameters.
 * Added AST structures and visit methods to support the upcoming "constructor
