@@ -93,6 +93,7 @@ class DevCompilerTarget extends Target {
         'dart:collection',
         'dart:html',
         'dart:indexed_db',
+        'dart:js',
         'dart:js_util',
         'dart:math',
         'dart:svg',
