@@ -18134,14 +18134,17 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
-  static Future<HttpRequest> request(String url,
-      {String? method,
-      bool? withCredentials,
-      String? responseType,
-      String? mimeType,
-      Map<String, String>? requestHeaders,
-      sendData,
-      void onProgress(ProgressEvent e)?}) {
+  static Future<HttpRequest> request(
+    String url, {
+    String? method,
+    bool? withCredentials,
+    String? responseType,
+    String? mimeType,
+    Map<String, String>? requestHeaders,
+    sendData,
+    void onProgress(ProgressEvent e)?,
+    void onUploadProgress(ProgressEvent e)?,
+  }) {
     var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();
@@ -18170,6 +18173,10 @@ class HttpRequest extends HttpRequestEventTarget {
 
     if (onProgress != null) {
       xhr.onProgress.listen(onProgress);
+    }
+
+    if (onUploadProgress != null) {
+      xhr.upload.onProgress.listen(onUploadProgress);
     }
 
     xhr.onLoad.listen((e) {
