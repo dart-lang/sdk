@@ -9,14 +9,20 @@ import 'dart:io' show File;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageCodeObject;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-import 'package:front_end/src/api_unstable/bazel_worker.dart';
+
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -36,6 +42,8 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
+
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
 import 'package:kernel/kernel.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;

@@ -4,11 +4,17 @@
 
 // @dart = 2.9
 
-import 'dart:io';
+import 'dart:io' show File, Platform;
 
-import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:front_end/src/fasta/incremental_compiler.dart';
-import 'package:kernel/ast.dart';
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
+
+import 'package:kernel/ast.dart' show Component;
 
 import 'incremental_suite.dart' show getOptions;
 

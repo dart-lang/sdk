@@ -23,7 +23,9 @@ import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
+
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag, experimentEnabledVersion;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
@@ -46,20 +48,23 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-import 'package:kernel/class_hierarchy.dart';
+
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClosedWorldClassHierarchy, ForTestingClassInfo;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, LateLowering, Target, TargetFlags;
 
-import 'package:kernel/text/ast_to_text.dart' show Printer, componentToString;
+import 'package:kernel/text/ast_to_text.dart'
+    show NameSystem, Printer, componentToString;
 
 import "package:testing/testing.dart"
     show Chain, ChainContext, Expectation, Result, Step, TestDescription, runMe;
