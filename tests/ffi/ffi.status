@@ -5,6 +5,9 @@
 [ $builder_tag == msan ]
 vmspecific_handle_test: Skip # https://dartbug.com/42314
 
+[ $compiler == app_jitk ]
+vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to generate.
+
 [ $mode == debug ]
 function_callbacks_structs_by_value_generated_test: Pass, Slow
 
