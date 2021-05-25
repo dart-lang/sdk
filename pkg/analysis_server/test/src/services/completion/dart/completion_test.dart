@@ -10,6 +10,7 @@ import '../../../../completion_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorCompletionTest);
+    defineReflectiveTests(ExtensionCompletionTest);
     defineReflectiveTests(PropertyAccessorCompletionTest);
   });
 }
@@ -28,6 +29,142 @@ abstract class C {
 ''');
     await getSuggestions();
     assertHasNoCompletion('C.c');
+  }
+}
+
+@reflectiveTest
+class ExtensionCompletionTest extends CompletionTestCase {
+  Future<void> test_explicitTarget_getter_sameUnit() async {
+    addTestFile('''
+void f(String s) {
+  s.^;
+}
+extension E on String {
+  int get g => length;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_explicitTarget_method_imported() async {
+    newFile(convertPath('/project/bin/lib.dart'), content: '''
+extension E on String {
+  void m() {}
+}
+''');
+    addTestFile('''
+import 'lib.dart';
+void f(String s) {
+  s.^;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('m');
+  }
+
+  Future<void> test_explicitTarget_method_inLibrary() async {
+    newFile(convertPath('/project/bin/lib.dart'), content: '''
+part 'test.dart';
+extension E on String {
+  void m() {}
+}
+''');
+    addTestFile('''
+part of 'lib.dart';
+void f(String s) {
+  s.^;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('m');
+  }
+
+  Future<void> test_explicitTarget_method_inPart() async {
+    newFile(convertPath('/project/bin/part.dart'), content: '''
+extension E on String {
+  void m() {}
+}
+''');
+    addTestFile('''
+part 'part.dart';
+void f(String s) {
+  s.^;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('m');
+  }
+
+  @failingTest
+  Future<void> test_explicitTarget_method_notImported() async {
+    // Available suggestions data doesn't yet have information about extension
+    // methods.
+    newFile(convertPath('/project/bin/lib.dart'), content: '''
+extension E on String {
+  void m() {}
+}
+''');
+    addTestFile('''
+void f(String s) {
+  s.^;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('m');
+  }
+
+  Future<void> test_explicitTarget_method_sameUnit() async {
+    addTestFile('''
+void f(String s) {
+  s.^;
+}
+extension E on String {
+  void m() {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('m');
+  }
+
+  Future<void> test_explicitTarget_setter_sameUnit() async {
+    addTestFile('''
+void f(String s) {
+  s.^;
+}
+extension E on String {
+  set e(int v) {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('e');
+  }
+
+  Future<void> test_implicitTarget_inClass_method_sameUnit() async {
+    addTestFile('''
+class C {
+  void c() {
+    ^
+  }
+}
+extension E on C {
+  void m() {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('m');
+  }
+
+  Future<void> test_implicitTarget_inExtension_method_sameUnit() async {
+    addTestFile('''
+extension E on String {
+  void m() {
+    ^
+  }
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('m');
   }
 }
 
