@@ -238,7 +238,13 @@ class LinkInputLibrary {
   final Source source;
   final List<LinkInputUnit> units;
 
+  @Deprecated('Use LinkInputLibrary.tmp1() with instead')
   LinkInputLibrary(this.source, this.units);
+
+  LinkInputLibrary.tmp1({
+    required this.source,
+    required this.units,
+  });
 
   Uri get uri => source.uri;
 
@@ -246,21 +252,31 @@ class LinkInputLibrary {
 }
 
 class LinkInputUnit {
+  final int? partDirectiveIndex;
   final String? partUriStr;
   final Source source;
   final bool isSynthetic;
   final ast.CompilationUnit unit;
 
+  @Deprecated('Use LinkInputUnit.tmp1() with instead')
   LinkInputUnit(
     this.partUriStr,
     this.source,
     this.isSynthetic,
     this.unit,
-  );
+  ) : partDirectiveIndex = null;
 
-  String get uriStr {
-    return '${source.uri}';
-  }
+  LinkInputUnit.tmp1({
+    required this.partDirectiveIndex,
+    this.partUriStr,
+    required this.source,
+    required this.isSynthetic,
+    required this.unit,
+  });
+
+  Uri get uri => source.uri;
+
+  String get uriStr => '$uri';
 }
 
 class LinkResult {

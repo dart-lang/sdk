@@ -136,9 +136,15 @@ class _Builder {
 
     CompilationUnit definingUnit = _parse(source);
     inputUnits.add(
-      LinkInputUnit(null, source, false, definingUnit),
+      LinkInputUnit.tmp1(
+        partDirectiveIndex: null,
+        source: source,
+        isSynthetic: false,
+        unit: definingUnit,
+      ),
     );
 
+    var partDirectiveIndex = 0;
     for (Directive directive in definingUnit.directives) {
       if (directive is NamespaceDirective) {
         String libUri = directive.uri.stringValue!;
@@ -149,13 +155,22 @@ class _Builder {
         Source partSource = context.sourceFactory.resolveUri(source, partUri)!;
         CompilationUnit partUnit = _parse(partSource);
         inputUnits.add(
-          LinkInputUnit(partUri, partSource, false, partUnit),
+          LinkInputUnit.tmp1(
+            partUriStr: partUri,
+            partDirectiveIndex: partDirectiveIndex++,
+            source: partSource,
+            isSynthetic: false,
+            unit: partUnit,
+          ),
         );
       }
     }
 
     inputLibraries.add(
-      LinkInputLibrary(source, inputUnits),
+      LinkInputLibrary.tmp1(
+        source: source,
+        units: inputUnits,
+      ),
     );
   }
 

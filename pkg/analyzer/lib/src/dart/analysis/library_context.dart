@@ -145,17 +145,22 @@ class LibraryContext {
             partIndex++;
 
             inputUnits.add(
-              link2.LinkInputUnit(
-                partUriStr,
-                file.source,
-                isSynthetic,
-                unit,
+              link2.LinkInputUnit.tmp1(
+                // TODO(scheglov) bad, group part data
+                partDirectiveIndex: partIndex - 1,
+                partUriStr: partUriStr,
+                source: file.source,
+                isSynthetic: isSynthetic,
+                unit: unit,
               ),
             );
           }
 
           inputLibraries.add(
-            link2.LinkInputLibrary(librarySource, inputUnits),
+            link2.LinkInputLibrary.tmp1(
+              source: librarySource,
+              units: inputUnits,
+            ),
           );
         }
         inputsTimer.stop();
