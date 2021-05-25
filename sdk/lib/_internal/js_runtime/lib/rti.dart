@@ -998,6 +998,13 @@ bool _isListTestViaProperty(Object? object) {
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
   if (object == null) return _nullIs(testRti);
+
+  // Only JavaScript values with `typeof x == "object"` are Dart Lists. Other
+  // typeof results (undefined/string/number/boolean/function/symbol/bigint) are
+  // all non-Lists. Dart `null`, being JavaScript `null` or JavaScript
+  // `undefined`, is handled above.
+  if (JS('bool', 'typeof # != "object"', object)) return false;
+
   if (_Utils.isArray(object)) return true;
   var tag = Rti._getSpecializedTestResource(testRti);
 
