@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Sample illustrating resource management with an explicit pool.
+// Sample illustrating resource management with an explicit arena.
 
 import 'dart:async';
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
 
-import 'pool.dart';
+import 'arena.dart';
 import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
@@ -22,8 +22,8 @@ main() async {
       void Function(Pointer<Void>, Pointer<Void>, int)>("MemMove");
 
   // To ensure resources are freed, wrap them in a [using] call.
-  using((Pool pool) {
-    final p = pool<Int64>(2);
+  using((Arena arena) {
+    final p = arena<Int64>(2);
     p[0] = 24;
     MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
     print(p[1]);
@@ -32,8 +32,8 @@ main() async {
 
   // Resources are freed also when abnormal control flow occurs.
   try {
-    using((Pool pool) {
-      final p = pool<Int64>(2);
+    using((Arena arena) {
+      final p = arena<Int64>(2);
       p[0] = 25;
       MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), 8);
       print(p[1]);
@@ -45,11 +45,11 @@ main() async {
     print("Caught exception: $e");
   }
 
-  // In a pool multiple resources can be allocated, which will all be freed
+  // In a arena multiple resources can be allocated, which will all be freed
   // at the end of the scope.
-  using((Pool pool) {
-    final p = pool<Int64>(2);
-    final p2 = pool<Int64>(2);
+  using((Arena arena) {
+    final p = arena<Int64>(2);
+    final p2 = arena<Int64>(2);
     p[0] = 1;
     p[1] = 2;
     MemMove(p2.cast<Void>(), p.cast<Void>(), 2 * sizeOf<Int64>());
@@ -58,14 +58,14 @@ main() async {
   });
 
   // If the resource allocation happens in a different scope, then one either
-  // needs to pass the pool to that scope.
-  f1(Pool pool) {
-    return pool<Int64>(2);
+  // needs to pass the arena to that scope.
+  f1(Arena arena) {
+    return arena<Int64>(2);
   }
 
-  using((Pool pool) {
-    final p = f1(pool);
-    final p2 = f1(pool);
+  using((Arena arena) {
+    final p = f1(arena);
+    final p2 = f1(arena);
     p[0] = 1;
     p[1] = 2;
     MemMove(p2.cast<Void>(), p.cast<Void>(), 2 * sizeOf<Int64>());
@@ -74,8 +74,8 @@ main() async {
   });
 
   // Using Strings.
-  using((Pool pool) {
-    final p = "Hello world!".toUtf8(pool);
+  using((Arena arena) {
+    final p = "Hello world!".toUtf8(arena);
     print(p.contents());
   });
 
@@ -92,15 +92,15 @@ main() async {
       void Function(Pointer<SomeResource>)>("ReleaseResource");
 
   // Using an FFI call to release a resource.
-  using((Pool pool) {
-    final r = pool.using(allocateResource(), releaseResource);
+  using((Arena arena) {
+    final r = arena.using(allocateResource(), releaseResource);
     useResource(r);
   });
 
   // Using an FFI call to release a resource with abnormal control flow.
   try {
-    using((Pool pool) {
-      final r = pool.using(allocateResource(), releaseResource);
+    using((Arena arena) {
+      final r = arena.using(allocateResource(), releaseResource);
       useResource(r);
 
       throw Exception("Some random exception");
@@ -117,9 +117,9 @@ main() async {
     freed.add(i);
   }
 
-  Future<int> myFutureInt = using((Pool pool) {
+  Future<int> myFutureInt = using((Arena arena) {
     return Future.microtask(() {
-      pool.using(1, freeInt);
+      arena.using(1, freeInt);
       return 1;
     });
   });

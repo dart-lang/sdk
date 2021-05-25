@@ -10,7 +10,7 @@ import 'dart:ffi';
 
 import 'package:expect/expect.dart';
 
-import 'pool.dart';
+import 'arena.dart';
 import '../dylib_utils.dart';
 
 void main() {
@@ -50,9 +50,9 @@ void main() {
 const keepHelperIsolateAlive = true;
 
 void helperIsolateMain(SendPort sendToMain) {
-  using((Pool pool) {
-    final resource = pool.using(allocateResource(), releaseResource);
-    pool.onReleaseAll(() {
+  using((Arena arena) {
+    final resource = arena.using(allocateResource(), releaseResource);
+    arena.onReleaseAll(() {
       // Will only run print if [keepHelperIsolateAlive] is false.
       print("Helper: Releasing all resources.");
     });
