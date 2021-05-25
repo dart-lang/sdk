@@ -12749,6 +12749,8 @@ class B extends A {}
 part 'test.dart';
 class B {
 }
+class B {
+}
 ''');
   }
 

@@ -1133,6 +1133,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
     Exceptions::ThrowArgumentError(error);
     UNREACHABLE();
   }
+  tpeer->handle()->EnsureFreedExternal(IsolateGroup::Current());
   tpeer->ClearData();
 
   const ExternalTypedData& typed_data = ExternalTypedData::Handle(

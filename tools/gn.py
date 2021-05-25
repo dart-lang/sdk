@@ -175,6 +175,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     if gn_args['target_os'] in ['linux', 'win']:
         gn_args['dart_use_fallback_root_certificates'] = True
 
+    gn_args['bssl_use_clang_integrated_as'] = True
+
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
                                     sanitizer == 'none')

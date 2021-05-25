@@ -115,10 +115,6 @@ class Linker {
 
   void _computeLibraryScopes() {
     for (var library in builders.values) {
-      library.buildElement();
-    }
-
-    for (var library in builders.values) {
       library.buildElements();
     }
 

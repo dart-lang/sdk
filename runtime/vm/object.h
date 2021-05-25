@@ -11138,9 +11138,7 @@ class TransferableTypedDataPeer {
 
 class TransferableTypedData : public Instance {
  public:
-  static TransferableTypedDataPtr New(uint8_t* data,
-                                      intptr_t len,
-                                      Heap::Space space = Heap::kNew);
+  static TransferableTypedDataPtr New(uint8_t* data, intptr_t len);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedTransferableTypedData));

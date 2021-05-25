@@ -199,8 +199,10 @@ const _MustCallSuper mustCallSuper = _MustCallSuper();
 ///   overriding member `m`.
 const _NonVirtual nonVirtual = _NonVirtual();
 
-/// Used to annotate a class, mixin, or extension declaration `C`. Indicates
-/// that any type arguments declared on `C` are to be treated as optional.
+/// Used to annotate a class, mixin, extension, function, method, or typedef
+/// declaration `C`. Indicates that any type arguments declared on `C` are to
+/// be treated as optional.
+///
 /// Tools such as the analyzer and linter can use this information to suppress
 /// warnings that would otherwise require type arguments on `C` to be provided.
 const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
@@ -396,6 +398,14 @@ class _NonVirtual {
   const _NonVirtual();
 }
 
+@Target({
+  TargetKind.classType,
+  TargetKind.extension,
+  TargetKind.function,
+  TargetKind.method,
+  TargetKind.mixinType,
+  TargetKind.typedefType,
+})
 class _OptionalTypeArgs {
   const _OptionalTypeArgs();
 }

@@ -10,8 +10,8 @@ class TypeAliasSelfReferenceFinder {
   /// Check typedefs and mark the ones having self references.
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
-      for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit.declarations) {
+      for (var linkingUnit in builder.units) {
+        for (var node in linkingUnit.node.declarations) {
           if (node is FunctionTypeAlias) {
             var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);

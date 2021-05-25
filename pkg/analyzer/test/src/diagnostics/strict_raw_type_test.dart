@@ -117,6 +117,34 @@ class D = Object with C<int>;
 ''');
   }
 
+  test_nonFunctionTypeAlias_explicitTypeArg() async {
+    writeTestPackageConfigWithMeta();
+    await assertNoErrorsInCode('''
+typedef List2<T> = List<T>;
+void f(List2<int> a) {}
+''');
+  }
+
+  test_nonFunctionTypeAlias_missingTypeArg() async {
+    writeTestPackageConfigWithMeta();
+    await assertErrorsInCode('''
+typedef List2<T> = List<T>;
+void f(List2 a) {}
+''', [
+      error(HintCode.STRICT_RAW_TYPE, 35, 5),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_optionalTypeArgs() async {
+    writeTestPackageConfigWithMeta();
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+typedef List2<T> = List<T>;
+void f(List2 a) {}
+''');
+  }
+
   test_parameter_missingTypeArg() async {
     await assertErrorsInCode(r'''
 void f(List a) {}
@@ -181,21 +209,21 @@ void set s(List a) {}
 ''', [error(HintCode.STRICT_RAW_TYPE, 11, 4)]);
   }
 
-  test_typedef_classic_missingTypeArg() async {
+  test_typeAlias_classic_missingTypeArg() async {
     await assertErrorsInCode(r'''
 typedef T F1<T>(T _);
 F1 func = (a) => a;
 ''', [error(HintCode.STRICT_RAW_TYPE, 22, 2)]);
   }
 
-  test_typedef_modern_missingTypeArg() async {
+  test_typeAlias_modern_missingTypeArg() async {
     await assertErrorsInCode(r'''
 typedef F1<T> = T Function(T);
 F1 func = (a) => a;
 ''', [error(HintCode.STRICT_RAW_TYPE, 31, 2)]);
   }
 
-  test_typedef_modern_optionalTypeArgs() async {
+  test_typeAlias_modern_optionalTypeArgs() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -208,7 +236,7 @@ F2 f2 = (a) => a;
 ''');
   }
 
-  test_typedef_modern_withTypeArg() async {
+  test_typeAlias_modern_withTypeArg() async {
     await assertNoErrorsInCode(r'''
 typedef T F1<T>(T _);
 typedef F2<T> = T Function(T);

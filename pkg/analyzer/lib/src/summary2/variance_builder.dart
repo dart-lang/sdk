@@ -21,8 +21,8 @@ class VarianceBuilder {
 
   void perform() {
     for (var builder in _linker.builders.values) {
-      for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit.declarations) {
+      for (var linkingUnit in builder.units) {
+        for (var node in linkingUnit.node.declarations) {
           if (node is FunctionTypeAlias) {
             _pending.add(node);
           } else if (node is GenericTypeAlias) {
@@ -33,8 +33,8 @@ class VarianceBuilder {
     }
 
     for (var builder in _linker.builders.values) {
-      for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit.declarations) {
+      for (var linkingUnit in builder.units) {
+        for (var node in linkingUnit.node.declarations) {
           if (node is ClassTypeAlias) {
             _typeParameters(node.typeParameters);
           } else if (node is ClassDeclaration) {
