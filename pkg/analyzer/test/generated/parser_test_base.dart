@@ -220,11 +220,17 @@ class FastaParserTestCase
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
 
+  final constructorTearoffs = FeatureSet.forTesting(
+      sdkVersion: '2.14.0', additionalFeatures: [Feature.constructor_tearoffs]);
+
   final controlFlow = FeatureSet.latestLanguageVersion();
 
   final spread = FeatureSet.latestLanguageVersion();
 
   final nonNullable = FeatureSet.latestLanguageVersion();
+
+  final preConstructorTearoffs = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: Version.parse('2.13.0'), flags: []);
 
   final preNonNullable = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.9.0'),

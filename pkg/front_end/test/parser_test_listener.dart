@@ -2209,4 +2209,9 @@ class ParserTestListener implements Listener {
   void handleNoCommentReference() {
     doPrint('handleNoCommentReference()');
   }
+
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    seen(openAngleBracket);
+    doPrint('handleTypeArgumentApplication(' '$openAngleBracket)');
+  }
 }

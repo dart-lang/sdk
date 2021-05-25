@@ -23,6 +23,7 @@ across
 activated
 adequate
 adi
+advantage
 affecting
 afterwards
 agree
@@ -300,6 +301,7 @@ degrades
 degree
 del
 delimit
+delimiting
 demands
 demangle
 demangled
@@ -333,6 +335,7 @@ dirtify
 dirtifying
 dirty
 disallow
+disambiguating
 disambiguator
 disjoint
 dispatched
@@ -611,6 +614,7 @@ ints
 invariants
 io
 is64
+isolated
 issuecomment
 issuing
 iterables

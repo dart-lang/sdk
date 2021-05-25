@@ -16,6 +16,9 @@ abstract class Feature {
   /// Feature information for non-nullability by default.
   static final non_nullable = ExperimentalFeatures.non_nullable;
 
+  /// Feature information for constructor tear-offs.
+  static final constructor_tearoffs = ExperimentalFeatures.constructor_tearoffs;
+
   /// Feature information for control flow collections.
   static final control_flow_collections =
       ExperimentalFeatures.control_flow_collections;

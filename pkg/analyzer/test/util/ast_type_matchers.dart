@@ -128,6 +128,8 @@ const isFunctionExpression = TypeMatcher<FunctionExpression>();
 const isFunctionExpressionInvocation =
     TypeMatcher<FunctionExpressionInvocation>();
 
+const isFunctionReference = TypeMatcher<FunctionReference>();
+
 const isFunctionTypeAlias = TypeMatcher<FunctionTypeAlias>();
 
 const isFunctionTypedFormalParameter =

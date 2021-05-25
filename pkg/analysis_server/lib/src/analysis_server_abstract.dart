@@ -37,7 +37,7 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
+import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -80,7 +80,7 @@ abstract class AbstractAnalysisServer {
 
   late ByteStore byteStore;
 
-  late nd.AnalysisDriverScheduler analysisDriverScheduler;
+  late analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
   DeclarationsTracker? declarationsTracker;
   DeclarationsTrackerData? declarationsTrackerData;
@@ -182,7 +182,7 @@ abstract class AbstractAnalysisServer {
 
     byteStore = createByteStore(resourceProvider);
 
-    analysisDriverScheduler = nd.AnalysisDriverScheduler(
+    analysisDriverScheduler = analysis.AnalysisDriverScheduler(
         analysisPerformanceLogger,
         driverWatcher: pluginWatcher);
 
@@ -212,7 +212,8 @@ abstract class AbstractAnalysisServer {
   }
 
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
-  Map<Folder, nd.AnalysisDriver> get driverMap => contextManager.driverMap;
+  Map<Folder, analysis.AnalysisDriver> get driverMap =>
+      contextManager.driverMap;
 
   /// Return the total time the server's been alive.
   Duration get uptime {
@@ -255,7 +256,7 @@ abstract class AbstractAnalysisServer {
   /// Return an analysis driver to which the file with the given [path] is
   /// added if one exists, otherwise a driver in which the file was analyzed if
   /// one exists, otherwise the first driver, otherwise `null`.
-  nd.AnalysisDriver? getAnalysisDriver(String path) {
+  analysis.AnalysisDriver? getAnalysisDriver(String path) {
     var drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
       // Sort the drivers so that more deeply nested contexts will be checked
@@ -395,7 +396,7 @@ abstract class AbstractAnalysisServer {
     return contextManager.isAnalyzed(path);
   }
 
-  void logExceptionResult(nd.ExceptionResult result) {
+  void logExceptionResult(analysis.ExceptionResult result) {
     var message = 'Analysis failed: ${result.filePath}';
     if (result.contextKey != null) {
       message += ' context: ${result.contextKey}';

@@ -5,6 +5,8 @@
 
 # Run dart2native.dart.snapshot on the Dart VM
 
+echo "Warning: 'dart2native' is deprecated. Please use 'dart compile exe'." 1>&2
+
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do

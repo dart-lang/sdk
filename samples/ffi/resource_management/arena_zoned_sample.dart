@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Sample illustrating resource management with an implicit pool in the zone.
-
-// @dart = 2.9
+// Sample illustrating resource management with an implicit arena in the zone.
 
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
 
-import 'pool.dart';
+import 'arena.dart';
 import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
@@ -22,9 +20,9 @@ main() async {
       Void Function(Pointer<Void>, Pointer<Void>, IntPtr),
       void Function(Pointer<Void>, Pointer<Void>, int)>("MemMove");
 
-  // To ensure resources are freed, wrap them in a [withZonePool] call.
-  withZonePool(() {
-    final p = zonePool<Int64>(2);
+  // To ensure resources are freed, wrap them in a [withZoneArena] call.
+  withZoneArena(() {
+    final p = zoneArena<Int64>(2);
     p[0] = 24;
     MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
     print(p[1]);
@@ -33,8 +31,8 @@ main() async {
 
   // Resources are freed also when abnormal control flow occurs.
   try {
-    withZonePool(() {
-      final p = zonePool<Int64>(2);
+    withZoneArena(() {
+      final p = zoneArena<Int64>(2);
       p[0] = 25;
       MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), 8);
       print(p[1]);
@@ -45,11 +43,11 @@ main() async {
     print("Caught exception: ${e}");
   }
 
-  // In a pool multiple resources can be allocated, which will all be freed
+  // In a arena multiple resources can be allocated, which will all be freed
   // at the end of the scope.
-  withZonePool(() {
-    final p = zonePool<Int64>(2);
-    final p2 = zonePool<Int64>(2);
+  withZoneArena(() {
+    final p = zoneArena<Int64>(2);
+    final p2 = zoneArena<Int64>(2);
     p[0] = 1;
     p[1] = 2;
     MemMove(p2.cast<Void>(), p.cast<Void>(), 2 * sizeOf<Int64>());
@@ -58,12 +56,12 @@ main() async {
   });
 
   // If the resource allocation happens in a different scope, it is in the
-  // same zone, so it's lifetime is automatically managed by the pool.
+  // same zone, so it's lifetime is automatically managed by the arena.
   f1() {
-    return zonePool<Int64>(2);
+    return zoneArena<Int64>(2);
   }
 
-  withZonePool(() {
+  withZoneArena(() {
     final p = f1();
     final p2 = f1();
     p[0] = 1;
@@ -74,8 +72,8 @@ main() async {
   });
 
   // Using Strings.
-  withZonePool(() {
-    final p = "Hello world!".toUtf8(zonePool);
+  withZoneArena(() {
+    final p = "Hello world!".toUtf8(zoneArena);
     print(p.contents());
   });
 
@@ -92,15 +90,15 @@ main() async {
       void Function(Pointer<SomeResource>)>("ReleaseResource");
 
   // Using an FFI call to release a resource.
-  withZonePool(() {
-    final r = zonePool.using(allocateResource(), releaseResource);
+  withZoneArena(() {
+    final r = zoneArena.using(allocateResource(), releaseResource);
     useResource(r);
   });
 
   // Using an FFI call to release a resource with abnormal control flow.
   try {
-    withZonePool(() {
-      final r = zonePool.using(allocateResource(), releaseResource);
+    withZoneArena(() {
+      final r = zoneArena.using(allocateResource(), releaseResource);
       useResource(r);
 
       throw Exception("Some random exception");
@@ -118,9 +116,9 @@ main() async {
     freed.add(i);
   }
 
-  Future<int> myFutureInt = withZonePool(() {
+  Future<int> myFutureInt = withZoneArena(() {
     return Future.microtask(() {
-      zonePool.using(1, freeInt);
+      zoneArena.using(1, freeInt);
       return 1;
     });
   });

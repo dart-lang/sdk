@@ -781,6 +781,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    listener?.handleTypeArgumentApplication(openAngleBracket);
+  }
+
+  @override
   void endHide(Token hideKeyword) {
     listener?.endHide(hideKeyword);
   }

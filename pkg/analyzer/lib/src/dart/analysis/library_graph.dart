@@ -19,8 +19,6 @@ void computeLibraryCycle(Uint32List salt, FileState file) {
 
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
-  final int id = fileObjectId++;
-
   /// The libraries that belong to this cycle.
   final List<FileState> libraries = [];
 
@@ -68,7 +66,7 @@ class LibraryCycle {
 
   @override
   String toString() {
-    return '[[id: $id] ' + libraries.join(', ') + ']';
+    return '[' + libraries.join(', ') + ']';
   }
 }
 

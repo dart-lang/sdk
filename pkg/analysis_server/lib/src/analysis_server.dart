@@ -46,8 +46,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/status.dart' as nd;
+import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
+import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -340,7 +340,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
-  void sendStatusNotificationNew(nd.AnalysisStatus status) {
+  void sendStatusNotificationNew(analysis.AnalysisStatus status) {
     if (status.isAnalyzing) {
       _onAnalysisStartedController.add(true);
     }
@@ -677,7 +677,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
+  void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
     analysisDriver.results.listen((result) {
       var path = result.path!;
       filesToFlush.add(path);

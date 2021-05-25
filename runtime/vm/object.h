@@ -8111,6 +8111,10 @@ class AbstractType : public Instance {
   CodePtr type_test_stub() const { return untag()->type_test_stub(); }
 
   void SetTypeTestingStub(const Code& stub) const;
+  void UpdateTypeTestingStubEntryPoint() const {
+    StoreNonPointer(&untag()->type_test_stub_entry_point_,
+                    Code::EntryPointOf(untag()->type_test_stub()));
+  }
 
   // No instances of type AbstractType are allocated, but InstanceSize() and
   // NextFieldOffset() are required to register class _AbstractType.

@@ -15,12 +15,11 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 final String newline = Platform.isWindows ? '\r\n' : '\n';
-final String scriptSuffix = Platform.isWindows ? ".bat" : "";
 final String executableSuffix = Platform.isWindows ? ".exe" : "";
 final String sdkBinDir = path.dirname(Platform.executable);
 final String dartaotruntime =
     path.join(sdkBinDir, 'dartaotruntime${executableSuffix}');
-final String dart2native = path.join(sdkBinDir, 'dart2native${scriptSuffix}');
+final String dart = path.join(sdkBinDir, 'dart${executableSuffix}');
 
 Future<void> withTempDir(Future fun(String dir)) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
@@ -32,14 +31,14 @@ Future<void> withTempDir(Future fun(String dir)) async {
 }
 
 void main(List<String> args) {
-  test("dart2native: Can compile and run AOT", () async {
+  test("Dart native: Can compile and run AOT snapshot", () async {
     await withTempDir((String tmp) async {
       final String testCode = path.join('tools', 'bots', 'dart_aot_test.dart');
       final String tmpAot = path.join(tmp, 'dart_aot_test.aot');
 
       {
-        final ProcessResult result = await Process.run(dart2native,
-            [testCode, '--output', tmpAot, '--output-kind', 'aot']);
+        final ProcessResult result = await Process.run(
+            dart, ['compile', 'aot-snapshot', testCode, '--output', tmpAot]);
         expect(result.stderr, '');
         expect(result.exitCode, 0);
       }
@@ -55,14 +54,14 @@ void main(List<String> args) {
     });
   });
 
-  test("dart2native: Can compile and run exe", () async {
+  test("Dart native: Can compile and run exe", () async {
     await withTempDir((String tmp) async {
       final String testCode = path.join('tools', 'bots', 'dart_aot_test.dart');
       final String tmpExe = path.join(tmp, 'dart_aot_test.exe');
 
       {
-        final ProcessResult result =
-            await Process.run(dart2native, [testCode, '--output', tmpExe]);
+        final ProcessResult result = await Process.run(
+            dart, ['compile', 'exe', testCode, '--output', tmpExe]);
         expect(result.stderr, '');
         expect(result.exitCode, 0);
       }
@@ -77,27 +76,27 @@ void main(List<String> args) {
     });
   });
 
-  test("dart2native: Returns non-zero on missing file.", () async {
+  test("Dart native: Returns non-zero on missing file.", () async {
     await withTempDir((String tmp) async {
       final String testCode = path.join(tmp, 'does_not_exist.dart');
       final String tmpExe = path.join(tmp, 'dart_aot_test.exe');
 
       {
-        final ProcessResult result =
-            await Process.run(dart2native, [testCode, '--output', tmpExe]);
+        final ProcessResult result = await Process.run(
+            dart, ['compile', 'exe', testCode, '--output', tmpExe]);
         expect(result.exitCode, isNonZero);
       }
     });
   });
 
-  test("dart2native: Returns non-zero on non-file.", () async {
+  test("Dart native: Returns non-zero on non-file.", () async {
     await withTempDir((String tmp) async {
       final String testCode = tmp; // This is a directory, not a file.
       final String tmpExe = path.join(tmp, 'dart_aot_test.exe');
 
       {
-        final ProcessResult result =
-            await Process.run(dart2native, [testCode, '--output', tmpExe]);
+        final ProcessResult result = await Process.run(
+            dart, ['compile', 'exe', testCode, '--output', tmpExe]);
         expect(result.exitCode, isNonZero);
       }
     });

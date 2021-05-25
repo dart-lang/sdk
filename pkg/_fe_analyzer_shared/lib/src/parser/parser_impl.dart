@@ -4793,7 +4793,10 @@ class Parser {
         listener.handleNonNullAssertExpression(bangToken);
       }
       token = typeArg.parseArguments(bangToken, this);
-      assert(optional('(', token.next!));
+      if (!optional('(', token.next!)) {
+        listener.handleTypeArgumentApplication(bangToken.next!);
+        typeArg = noTypeParamOrArg;
+      }
     }
 
     return _parsePrecedenceExpressionLoop(
@@ -4861,7 +4864,10 @@ class Parser {
                 listener.handleNonNullAssertExpression(bangToken);
               }
               token = typeArg.parseArguments(bangToken, this);
-              assert(optional('(', token.next!));
+              if (!optional('(', token.next!)) {
+                listener.handleTypeArgumentApplication(bangToken.next!);
+                typeArg = noTypeParamOrArg;
+              }
             }
           } else if (identical(type, TokenType.OPEN_PAREN) ||
               identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
@@ -5174,8 +5180,13 @@ class Parser {
           TypeParamOrArgInfo typeArg = computeTypeParamOrArg(identifier);
           if (typeArg != noTypeParamOrArg) {
             Token endTypeArguments = typeArg.skip(identifier);
-            if (optional(".", endTypeArguments.next!)) {
-              return parseImplicitCreationExpression(token, typeArg);
+            Token afterTypeArguments = endTypeArguments.next!;
+            if (optional(".", afterTypeArguments)) {
+              Token afterPeriod = afterTypeArguments.next!;
+              if (afterPeriod.isIdentifier &&
+                  optional('(', afterPeriod.next!)) {
+                return parseImplicitCreationExpression(token, typeArg);
+              }
             }
           }
         }

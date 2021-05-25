@@ -2542,6 +2542,14 @@ abstract class AbstractDirectParserASTListener implements Listener {
             DirectParserASTType.HANDLE);
     seen(data);
   }
+
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    DirectParserASTContentTypeArgumentApplicationHandle data =
+        new DirectParserASTContentTypeArgumentApplicationHandle(
+            DirectParserASTType.HANDLE,
+            openAngleBracket: openAngleBracket);
+    seen(data);
+  }
 }
 
 class DirectParserASTContentArgumentsBegin extends DirectParserASTContent {
@@ -6860,4 +6868,17 @@ class DirectParserASTContentNoCommentReferenceHandle
       : super("NoCommentReference", type);
 
   Map<String, Object?> get deprecatedArguments => {};
+}
+
+class DirectParserASTContentTypeArgumentApplicationHandle
+    extends DirectParserASTContent {
+  final Token openAngleBracket;
+
+  DirectParserASTContentTypeArgumentApplicationHandle(DirectParserASTType type,
+      {required this.openAngleBracket})
+      : super("TypeArgumentApplication", type);
+
+  Map<String, Object?> get deprecatedArguments => {
+        "openAngleBracket": openAngleBracket,
+      };
 }

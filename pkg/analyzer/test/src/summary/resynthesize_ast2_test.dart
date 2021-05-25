@@ -59,7 +59,10 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
       var inputUnits = <LinkInputUnit>[];
       _addLibraryUnits(source, unit, inputUnits, featureSet);
       inputLibraries.add(
-        LinkInputLibrary(source, inputUnits),
+        LinkInputLibrary.tmp1(
+          source: source,
+          units: inputUnits,
+        ),
       );
     }
 
@@ -95,9 +98,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     for (var inputLibrary in inputLibraries) {
       for (var inputUnit in inputLibrary.units) {
         var informativeBytes = writeUnitInformative(inputUnit.unit);
-        // TODO(scheglov) store Uri, don't parse
-        var uri = Uri.parse(inputUnit.uriStr);
-        unitsInformativeBytes[uri] = informativeBytes;
+        unitsInformativeBytes[inputUnit.uri] = informativeBytes;
       }
     }
 
@@ -146,10 +147,18 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     FeatureSet featureSet,
   ) {
     units.add(
-      LinkInputUnit(null, definingSource, false, definingUnit),
+      LinkInputUnit.tmp1(
+        partDirectiveIndex: null,
+        source: definingSource,
+        isSynthetic: false,
+        unit: definingUnit,
+      ),
     );
+
+    var partDirectiveIndex = -1;
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {
+        ++partDirectiveIndex;
         var relativeUriStr = directive.uri.stringValue;
 
         var partSource = sourceFactory.resolveUri(
@@ -161,7 +170,13 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
           var text = _readSafely(partSource.fullName);
           var unit = parseText(text, featureSet);
           units.add(
-            LinkInputUnit(relativeUriStr, partSource, false, unit),
+            LinkInputUnit.tmp1(
+              partDirectiveIndex: partDirectiveIndex,
+              partUriStr: relativeUriStr,
+              source: partSource,
+              isSynthetic: false,
+              unit: unit,
+            ),
           );
         }
       }
@@ -185,7 +200,10 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var units = <LinkInputUnit>[];
     _addLibraryUnits(source, unit, units, featureSet);
     libraries.add(
-      LinkInputLibrary(source, units),
+      LinkInputLibrary.tmp1(
+        source: source,
+        units: units,
+      ),
     );
 
     void addRelativeUriStr(StringLiteral uriNode) {
