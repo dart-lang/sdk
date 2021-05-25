@@ -313,6 +313,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableNonfunctionTypeAliasesInLibrary;
   bool _enableNonNullableInLibrary;
   Version _enableNonNullableVersionInLibrary;
+  Version _enableConstructorTearoffsVersionInLibrary;
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
   bool _enableGenericMetadataInLibrary;
@@ -349,6 +350,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _enableNonNullableVersionInLibrary ??= loader.target
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.nonNullable, _packageUri ?? importUri);
+
+  Version get enableConstructorTearoffsVersionInLibrary =>
+      _enableConstructorTearoffsVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.constructorTearoffs, _packageUri ?? importUri);
 
   bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
       loader.target.isExperimentEnabledInLibraryByVersion(

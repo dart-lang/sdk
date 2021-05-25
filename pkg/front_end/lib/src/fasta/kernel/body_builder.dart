@@ -75,7 +75,13 @@ import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
+import '../fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        Template,
+        noLength,
+        templateExperimentNotEnabled;
 
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
@@ -6292,6 +6298,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             length: token.length)
       ]));
     }
+  }
+
+  @override
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    /// TODO(johnniwinther, paulberry): add support for this construct when the
+    /// "constructor-tearoffs" feature is enabled.
+    pop(); // typeArguments
+    addProblem(
+        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
+            libraryBuilder.enableConstructorTearoffsVersionInLibrary.toText()),
+        openAngleBracket.charOffset,
+        noLength);
   }
 
   @override

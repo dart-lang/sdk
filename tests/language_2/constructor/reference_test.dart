@@ -94,12 +94,13 @@ main() {
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
-  //       ^^^
-  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected '(' after this.
-  //           ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.
+  //       ^
+  // [cfe] Getter not found: 'bar'.
   Foo.bar<int>();
   //  ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.

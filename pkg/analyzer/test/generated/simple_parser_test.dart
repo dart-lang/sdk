@@ -1419,15 +1419,14 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     expect(unit, isNotNull);
     var f = unit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;
-    expect(body.expression, isInstanceCreationExpression);
-    var creation = body.expression as InstanceCreationExpressionImpl;
-    expect(creation.keyword, isNull);
-    ConstructorName constructorName = creation.constructorName;
-    expect(constructorName.type.toSource(), 'C<E>');
-    expect(constructorName.period, isNotNull);
-    expect(constructorName.name, isNotNull);
-    expect(creation.argumentList, isNotNull);
-    expect(creation.typeArguments!.arguments, hasLength(1));
+    expect(body.expression, isMethodInvocation);
+    var methodInvocation = body.expression as MethodInvocationImpl;
+    var target = methodInvocation.target!;
+    expect(target, isFunctionExpressionInvocation);
+    expect(target.toSource(), 'C<E>()');
+    expect(methodInvocation.methodName.name, 'n');
+    expect(methodInvocation.argumentList, isNotNull);
+    expect(methodInvocation.typeArguments!.arguments, hasLength(1));
   }
 
   void test_parseInstanceCreation_noKeyword_prefix() {

@@ -42,6 +42,7 @@ arbitrarily
 asdf
 asserter
 assure
+asterisk
 auth
 authority
 autobianchi
@@ -145,6 +146,7 @@ collisions
 columns
 commented
 commit
+commits
 companion
 comparative
 comparer
@@ -497,11 +499,13 @@ local3h
 logd
 logs
 loo
+lookahead
 loopback
 mac
 maker
 matters
 mds
+meaningless
 measured
 method1d
 metric
@@ -541,6 +545,7 @@ noisy
 nondefault
 nonexisting
 noo
+noted
 numerator
 ob
 obool
@@ -642,6 +647,7 @@ regards
 regenerate
 regressions
 reify
+reject
 reload
 remap
 remaps

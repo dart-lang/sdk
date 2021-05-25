@@ -140,6 +140,9 @@ class AstBuilder extends StackListener {
   /// `true` if variance behavior is enabled
   final bool enableVariance;
 
+  /// `true` if constructor tearoffs are enabled
+  final bool enableConstructorTearoffs;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
@@ -155,6 +158,8 @@ class AstBuilder extends StackListener {
         enableNonFunctionTypeAliases =
             _featureSet.isEnabled(Feature.nonfunction_type_aliases),
         enableVariance = _featureSet.isEnabled(Feature.variance),
+        enableConstructorTearoffs =
+            _featureSet.isEnabled(Feature.constructor_tearoffs),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -3511,6 +3516,39 @@ class AstBuilder extends StackListener {
     var arguments = pop() as TypeArgumentList?;
     var name = pop() as Identifier;
     push(ast.typeName(name, arguments, question: questionMark));
+  }
+
+  @override
+  void handleTypeArgumentApplication(Token openAngleBracket) {
+    var typeArguments = pop() as TypeArgumentList;
+    var receiver = pop() as Expression;
+    if (!enableConstructorTearoffs) {
+      var feature = ExperimentalFeatures.constructor_tearoffs;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        typeArguments.leftBracket,
+        typeArguments.rightBracket,
+      );
+      // Since analyzer visitors don't yet support constructor tear-offs, create
+      // a FunctionExpressionInvocation with a synthetic argument list instead.
+      // TODO(paulberry): once we have visitor support for constructor
+      // tear-offs, fall through and return a FunctionReference instead since
+      // that should lead to better quality error recovery.
+      var syntheticOffset = typeArguments.rightBracket.end;
+      push(ast.functionExpressionInvocation(
+          receiver,
+          typeArguments,
+          ast.argumentList(
+              SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset),
+              [],
+              SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset))));
+      return;
+    }
+    push(ast.functionReference(
+        function: receiver, typeArguments: typeArguments));
   }
 
   @override
