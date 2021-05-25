@@ -4020,8 +4020,7 @@ class TypeDeserializationCluster
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type ^= refs.At(id);
-        stub = type.type_test_stub();
-        type.SetTypeTestingStub(stub);  // Update type_test_stub_entry_point_
+        type.UpdateTypeTestingStubEntryPoint();
       }
     } else {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -4154,8 +4153,7 @@ class FunctionTypeDeserializationCluster
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type ^= refs.At(id);
-        stub = type.type_test_stub();
-        type.SetTypeTestingStub(stub);  // Update type_test_stub_entry_point_
+        type.UpdateTypeTestingStubEntryPoint();
       }
     } else {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -4245,9 +4243,7 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_ref ^= refs.At(id);
-        stub = type_ref.type_test_stub();
-        type_ref.SetTypeTestingStub(
-            stub);  // Update type_test_stub_entry_point_
+        type_ref.UpdateTypeTestingStubEntryPoint();
       }
     } else {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -4380,9 +4376,7 @@ class TypeParameterDeserializationCluster
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_param ^= refs.At(id);
-        stub = type_param.type_test_stub();
-        type_param.SetTypeTestingStub(
-            stub);  // Update type_test_stub_entry_point_
+        type_param.UpdateTypeTestingStubEntryPoint();
       }
     } else {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
