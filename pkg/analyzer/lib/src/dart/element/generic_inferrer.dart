@@ -4,7 +4,8 @@
 
 import 'dart:math' as math;
 
-import 'package:analyzer/dart/ast/ast.dart' show AstNode, ConstructorName;
+import 'package:analyzer/dart/ast/ast.dart'
+    show Annotation, AstNode, ConstructorName;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
@@ -209,11 +210,12 @@ class GenericInferrer {
 
       if (inferred is FunctionType &&
           inferred.typeFormals.isNotEmpty &&
-          !genericMetadataIsEnabled) {
+          !genericMetadataIsEnabled &&
+          errorReporter != null) {
         if (failAtError) return null;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
-        errorReporter?.reportErrorForNode(
+        errorReporter.reportErrorForNode(
             CompileTimeErrorCode.COULD_NOT_INFER, errorNode!, [
           parameter.name,
           ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
@@ -229,20 +231,11 @@ class GenericInferrer {
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
         // mode.
-        if (errorNode is ConstructorName &&
-            !(errorNode.type.type as InterfaceType)
-                .element
-                .hasOptionalTypeArgs) {
-          String constructorName = errorNode.name == null
-              ? errorNode.type.name.name
-              : '${errorNode.type}.${errorNode.name}';
-          errorReporter?.reportErrorForNode(
-              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
-              errorNode,
-              [constructorName]);
-        }
-        // TODO(srawlins): More inference failure cases, like functions, and
-        // function expressions.
+        _reportInferenceFailure(
+          errorReporter: errorReporter,
+          errorNode: errorNode,
+          genericMetadataIsEnabled: genericMetadataIsEnabled,
+        );
       }
     }
 
@@ -484,6 +477,43 @@ class GenericInferrer {
     for (var i = 0; i < types.length; i++) {
       types[i] = _typeSystem.demoteType(types[i]);
     }
+  }
+
+  /// Reports an inference failure on [errorNode] according to its type.
+  void _reportInferenceFailure({
+    ErrorReporter? errorReporter,
+    AstNode? errorNode,
+    required bool genericMetadataIsEnabled,
+  }) {
+    if (errorReporter == null || errorNode == null) {
+      return;
+    }
+    if (errorNode is ConstructorName &&
+        !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
+      String constructorName = errorNode.name == null
+          ? errorNode.type.name.name
+          : '${errorNode.type}.${errorNode.name}';
+      errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+          errorNode,
+          [constructorName]);
+    } else if (errorNode is Annotation) {
+      if (genericMetadataIsEnabled) {
+        // Only report an error if generic metadata is valid syntax.
+        var element = errorNode.name.staticElement;
+        if (element != null && !element.hasOptionalTypeArgs) {
+          String constructorName = errorNode.constructorName == null
+              ? errorNode.name.name
+              : '${errorNode.name.name}.${errorNode.constructorName}';
+          errorReporter.reportErrorForNode(
+              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+              errorNode,
+              [constructorName]);
+        }
+      }
+    }
+    // TODO(srawlins): More inference failure cases, like functions, and
+    // function expressions.
   }
 
   /// If in a legacy library, return the legacy version of the [type].
