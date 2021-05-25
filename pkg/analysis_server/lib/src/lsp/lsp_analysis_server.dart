@@ -42,8 +42,8 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/status.dart' as nd;
+import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
+import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -543,7 +543,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
-  Future<void> sendStatusNotification(nd.AnalysisStatus status) async {
+  Future<void> sendStatusNotification(analysis.AnalysisStatus status) async {
     // Send old custom notifications to clients that do not support $/progress.
     // TODO(dantup): Remove this custom notification (and related classes) when
     // it's unlikely to be in use by any clients.
@@ -815,7 +815,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void listenAnalysisDriver(nd.AnalysisDriver analysisDriver) {
+  void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
     // TODO(dantup): Is this required, or covered by
     // addContextsToDeclarationsTracker? The original server does not appear to
     // have an equivalent call.
