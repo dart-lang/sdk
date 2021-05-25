@@ -48,7 +48,7 @@ class DartUnitSignatureComputer {
       if (constructorName != null) {
         name += '.${constructorName.name}';
       }
-      execElement = ElementLocator.locate(parent) as ExecutableElement;
+      execElement = ElementLocator.locate(parent) as ExecutableElement?;
     }
 
     if (name == null || execElement == null) {

@@ -16,6 +16,12 @@ void main() {
 }
 
 mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
+  Future<void> expectNoSignature(String fileContent) async {
+    final res =
+        await getSignatureHelp(mainFileUri, positionFromMarker(fileContent));
+    expect(res, isNull);
+  }
+
   Future<void> testSignature(
     String fileContent,
     String expectedLabel,
@@ -245,6 +251,22 @@ void f() {
           triggerKind: SignatureHelpTriggerKind.Invoked,
           isRetrigger: false,
         ));
+  }
+
+  Future<void> test_noDefaultConstructor() async {
+    final content = '''
+    class A {
+      A._();
+    }
+
+    final a = A(^);
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await expectNoSignature(content);
   }
 
   Future<void> test_nonDartFile() async {
