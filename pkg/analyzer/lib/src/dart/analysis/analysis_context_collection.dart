@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:cli_util/cli_util.dart';
@@ -39,6 +40,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool retainDataForTesting = false,
     String? sdkPath,
     AnalysisDriverScheduler? scheduler,
+    FileContentCache? fileContentCache,
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
@@ -71,6 +73,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         scheduler: scheduler,
         updateAnalysisOptions: updateAnalysisOptions,
+        fileContentCache: fileContentCache,
       );
       contexts.add(context);
     }

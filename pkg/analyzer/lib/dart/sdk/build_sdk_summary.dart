@@ -116,7 +116,6 @@ class _Builder {
       );
     }
     return bundleBuilder.finish(
-      astBytes: linkResult.astBytes,
       resolutionBytes: linkResult.resolutionBytes,
       sdk: PackageBundleSdk(
         languageVersionMajor: languageVersion.major,

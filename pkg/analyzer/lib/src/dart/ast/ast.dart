@@ -9167,6 +9167,20 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   /// Initialize a newly created string interpolation expression.
   StringInterpolationImpl(List<InterpolationElement> elements) {
+    // TODO(scheglov) Replace asserts with appropriately typed parameters.
+    assert(elements.length > 2, 'Expected at last three elements.');
+    assert(
+      elements.first is InterpolationStringImpl,
+      'The first element must be a string.',
+    );
+    assert(
+      elements[1] is InterpolationExpressionImpl,
+      'The second element must be an expression.',
+    );
+    assert(
+      elements.last is InterpolationStringImpl,
+      'The last element must be a string.',
+    );
     _elements._initialize(this, elements);
   }
 
@@ -9197,6 +9211,10 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
   Token get endToken => _elements.endToken!;
 
   @override
+  InterpolationStringImpl get firstString =>
+      elements.first as InterpolationStringImpl;
+
+  @override
   bool get isMultiline => _firstHelper.isMultiline;
 
   @override
@@ -9204,6 +9222,10 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   bool get isSingleQuoted => _firstHelper.isSingleQuoted;
+
+  @override
+  InterpolationStringImpl get lastString =>
+      elements.last as InterpolationStringImpl;
 
   StringLexemeHelper get _firstHelper {
     var lastString = _elements.first as InterpolationString;

@@ -12,7 +12,7 @@ class Coordinate extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
-    return let final self::Coordinate* #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate*>(self::Coordinate::#sizeOf)!) in block {
+    return let final self::Coordinate* #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate*>(self::Coordinate::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Coordinate*>}!) in block {
       #t1.{self::Coordinate::x} = x;
       #t1.{self::Coordinate::y} = y;
       #t1.{self::Coordinate::next} = next;
@@ -31,21 +31,21 @@ class Coordinate extends ffi::Struct {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   @#C8
   get x() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C10).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, (#C10).{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
   set x(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C10).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, (#C10).{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v);
   @#C8
   get y() → core::double*
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, (#C12).{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
   set y(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, (#C12).{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}{core::Object}, (#C14).{core::List::[]}(ffi::_abi()){(core::int) → core::int*}));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}{core::Object}, (#C14).{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v.{ffi::Pointer::address}{core::int});
   @#C16
   static get /*isNonNullableByDefault*/ #sizeOf() → core::int*
-    return (#C19).{core::List::[]}(ffi::_abi());
+    return (#C19).{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 static method main() → dynamic {}
 

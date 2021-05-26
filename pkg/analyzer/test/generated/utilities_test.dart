@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -3356,8 +3357,10 @@ class NodeReplacerTest {
   }
 
   void test_stringInterpolation() {
-    StringInterpolation node =
-        AstTestFactory.string([AstTestFactory.interpolationExpression2("a")]);
+    var unit = parseString(content: 'var v = "first \$x last";').unit;
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var variable = declaration.variables.variables[0];
+    var node = variable.initializer as StringInterpolation;
     _assertReplace(
         node, ListGetter_NodeReplacerTest_test_stringInterpolation(0));
   }

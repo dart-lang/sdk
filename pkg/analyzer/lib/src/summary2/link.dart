@@ -34,7 +34,6 @@ LinkResult link(
   var linker = Linker(elementFactory);
   linker.link(inputLibraries);
   return LinkResult(
-    astBytes: linker.astBytes,
     resolutionBytes: linker.resolutionBytes,
   );
 }
@@ -49,7 +48,6 @@ class Linker {
 
   late InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
-  late Uint8List astBytes;
   late Uint8List resolutionBytes;
 
   Linker(this.elementFactory);
@@ -229,7 +227,6 @@ class Linker {
     }
 
     var writeWriterResult = bundleWriter.finish();
-    astBytes = writeWriterResult.astBytes;
     resolutionBytes = writeWriterResult.resolutionBytes;
   }
 }
@@ -280,11 +277,11 @@ class LinkInputUnit {
 }
 
 class LinkResult {
-  final Uint8List astBytes;
+  @Deprecated('This field is not used anymore')
+  final Uint8List astBytes = Uint8List(0);
   final Uint8List resolutionBytes;
 
   LinkResult({
-    required this.astBytes,
     required this.resolutionBytes,
   });
 }

@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -485,6 +486,7 @@ class Driver implements CommandLineStarter {
 
 class _AnalysisContextProvider {
   final ResourceProvider _resourceProvider;
+  final FileContentCache _fileContentCache;
 
   CommandLineOptions _commandLineOptions;
   List<String> _pathList;
@@ -493,7 +495,8 @@ class _AnalysisContextProvider {
   AnalysisContextCollectionImpl _collection;
   DriverBasedAnalysisContext _analysisContext;
 
-  _AnalysisContextProvider(this._resourceProvider);
+  _AnalysisContextProvider(this._resourceProvider)
+      : _fileContentCache = FileContentCache(_resourceProvider);
 
   DriverBasedAnalysisContext get analysisContext {
     return _analysisContext;
@@ -550,6 +553,7 @@ class _AnalysisContextProvider {
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions.dartSdkPath,
       updateAnalysisOptions: _updateAnalysisOptions,
+      fileContentCache: _fileContentCache,
     );
 
     _setContextForPath(path);

@@ -308,6 +308,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       }
       if (0 <= index && index < parameters.length) {
         var param = parameters[index];
+        var paramType = param.type;
+        if (paramType is FunctionType && paramType.returnType.isVoid) {
+          optype.includeVoidReturnSuggestions = true;
+        }
         if (param.isNamed == true) {
           var context = _argumentListContext(node);
           optype.completionLocation = 'ArgumentList_${context}_named';

@@ -12,6 +12,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -83,7 +84,6 @@ class FileSystemStateTest with ResourceProviderMixin {
     fileSystemState = FileSystemState(
       logger,
       byteStore,
-      contentOverlay,
       resourceProvider,
       'contextName',
       sourceFactory,
@@ -93,6 +93,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       Uint32List(0),
       Uint32List(0),
       featureSetProvider,
+      fileContentCache: FileContentCache.ephemeral(resourceProvider),
     );
   }
 

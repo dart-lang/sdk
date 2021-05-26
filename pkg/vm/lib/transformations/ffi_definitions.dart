@@ -1216,8 +1216,10 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
             transformer.getCompoundTypedDataBaseField(
                 ThisExpression(), fileOffset),
             transformer.runtimeBranchOnLayout(offsets),
-            PropertyGet(VariableGet(argument), transformer.addressGetter.name,
-                transformer.addressGetter)
+            InstanceGet(InstanceAccessKind.Instance, VariableGet(argument),
+                transformer.addressGetter.name,
+                interfaceTarget: transformer.addressGetter,
+                resultType: transformer.addressGetter.getterType)
               ..fileOffset = fileOffset
           ]))
         ..fileOffset = fileOffset);

@@ -214,6 +214,7 @@ template("build_gen_snapshot") {
         "Rpcrt4.lib",
         "shlwapi.lib",
         "winmm.lib",
+        "bcrypt.lib",
       ]
       if (target_os != "winuwp") {
         libs += [ "psapi.lib" ]
@@ -784,6 +785,7 @@ template("dart_executable") {
         "Rpcrt4.lib",
         "shlwapi.lib",
         "winmm.lib",
+        "bcrypt.lib",
       ]
     }
   }
@@ -958,6 +960,7 @@ executable("run_vm_tests") {
       "Rpcrt4.lib",
       "shlwapi.lib",
       "winmm.lib",
+      "bcrypt.lib",
     ]
   }
 }

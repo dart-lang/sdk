@@ -87,7 +87,6 @@ class BundleWriter {
 
     var bytes = _sink.flushAndTake();
     return BundleWriterResult(
-      astBytes: Uint8List(0),
       resolutionBytes: bytes,
     );
   }
@@ -482,11 +481,9 @@ class BundleWriter {
 }
 
 class BundleWriterResult {
-  final Uint8List astBytes;
   final Uint8List resolutionBytes;
 
   BundleWriterResult({
-    required this.astBytes,
     required this.resolutionBytes,
   });
 }

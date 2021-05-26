@@ -41,9 +41,9 @@ class Struct11 extends ffi::Struct {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get nested() → self::Struct12*
     return new self::Struct12::#fromTypedDataBase( block {
-      core::Object #typedDataBase = [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase};
-      core::int #offset = (#C12).{core::List::[]}(ffi::_abi());
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::_fromAddress<self::Struct12*>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int?] #typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in [@vm.direct-call.metadata=dart.typed_data::_ByteBuffer.asUint8List] [@vm.inferred-type.metadata=dart.typed_data::_Uint8ArrayView (skip check)] [@vm.inferred-type.metadata=dart.typed_data::_ByteBuffer] #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] #typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C15).{core::List::[]}(ffi::_abi())));
+      core::Object #typedDataBase = [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object};
+      core::int #offset = (#C12).{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer?] ffi::_fromAddress<self::Struct12*>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int?] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in [@vm.direct-call.metadata=dart.typed_data::_ByteBuffer.asUint8List] [@vm.inferred-type.metadata=dart.typed_data::_Uint8ArrayView (skip check)] [@vm.inferred-type.metadata=dart.typed_data::_ByteBuffer] #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] #typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, (#C15).{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List});
 }
 @#C6
 class Struct12 extends ffi::Struct {
@@ -67,7 +67,7 @@ static method testLookupFunctionReturn() → void {
   final ffi::DynamicLibrary* dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary?] ffi::DynamicLibrary::executable();
   final () →* self::Struct1* function1 = block {
     _in::_nativeEffect(new self::Struct1::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C18)));
-  } =>ffi::_asFunctionInternal<() →* self::Struct1*, () →* self::Struct1*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<() →* self::Struct1*>*>("function1"), false);
+  } =>ffi::_asFunctionInternal<() →* self::Struct1*, () →* self::Struct1*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<() →* self::Struct1*>*>("function1"){(core::String) → ffi::Pointer<ffi::NativeFunction<() →* self::Struct1*>*>}, false);
   final self::Struct1* struct1 = [@vm.call-site-attributes.metadata=receiverType:#lib::Struct1* Function()*] function1(){() →* self::Struct1*};
   core::print(struct1);
 }
@@ -90,7 +90,7 @@ static method testFromFunctionArgument() → void {
 }
 static method testLookupFunctionArgument() → void {
   final ffi::DynamicLibrary* dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary?] ffi::DynamicLibrary::executable();
-  final (self::Struct5*) →* void function5 = [@vm.inferred-type.metadata=dart.core::_Closure?] ffi::_asFunctionInternal<(self::Struct5*) →* void, (self::Struct5*) →* ffi::Void*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(self::Struct5*) →* ffi::Void*>*>("function5"), false);
+  final (self::Struct5*) →* void function5 = [@vm.inferred-type.metadata=dart.core::_Closure?] ffi::_asFunctionInternal<(self::Struct5*) →* void, (self::Struct5*) →* ffi::Void*>([@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup??] [@vm.inferred-type.metadata=dart.ffi::Pointer? (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(self::Struct5*) →* ffi::Void*>*>("function5"){(core::String) → ffi::Pointer<ffi::NativeFunction<(self::Struct5*) →* ffi::Void*>*>}, false);
   core::print(function5);
 }
 static method testAsFunctionArgument() → void {

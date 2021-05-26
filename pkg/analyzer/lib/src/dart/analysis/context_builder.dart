@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart'
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -47,6 +48,7 @@ class ContextBuilderImpl implements ContextBuilder {
     String? sdkPath,
     String? sdkSummaryPath,
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    FileContentCache? fileContentCache,
   }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
@@ -91,6 +93,7 @@ class ContextBuilderImpl implements ContextBuilder {
     AnalysisDriver driver = builder.buildDriver(
       oldContextRoot,
       contextRoot.workspace,
+      fileContentCache: fileContentCache,
       updateAnalysisOptions: updateAnalysisOptions,
     );
 
