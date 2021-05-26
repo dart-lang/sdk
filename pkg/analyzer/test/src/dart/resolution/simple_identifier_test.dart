@@ -65,19 +65,6 @@ main() {
     );
   }
 
-  test_never_implicitCore() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  Never;
-}    
-''');
-    assertSimpleIdentifier(
-      findNode.simple('Never;'),
-      element: neverElement,
-      type: 'Type',
-    );
-  }
-
   test_implicitCall_tearOff() async {
     await assertNoErrorsInCode('''
 class A {
@@ -107,6 +94,19 @@ class C<T> {
     var identifier = findNode.simple('f;');
     assertElement(identifier, findElement.localFunction('f'));
     assertType(identifier, 'void Function<U>(S, U)');
+  }
+
+  test_never_implicitCore() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  Never;
+}    
+''');
+    assertSimpleIdentifier(
+      findNode.simple('Never;'),
+      element: neverElement,
+      type: 'Type',
+    );
   }
 
   test_tearOff_function_topLevel() async {
