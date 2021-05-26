@@ -92,7 +92,7 @@ class AstCloner implements AstVisitor<AstNode> {
       if (_lastClonedOffset <= token.offset) {
         _cloneTokens(_nextToClone ?? token, token.offset);
       }
-      return _clonedTokens[token]!;
+      return _clonedTokens[token] ?? _cloneSyntheticToken(token);
     } else {
       return token;
     }
@@ -1089,6 +1089,15 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNullableToken(node.star),
           cloneNode(node.expression),
           cloneToken(node.semicolon));
+
+  /// Clones a synthetic token that isn't linked up to the rest of the token
+  /// list.
+  Token _cloneSyntheticToken(Token token) {
+    assert(token.isSynthetic);
+    assert(token.next == null);
+    assert(token.previous == null);
+    return token.copy();
+  }
 
   /// Clone all token starting from the given [token] up to a token that has
   /// offset greater then [stopAfter], and put mapping from originals to clones
