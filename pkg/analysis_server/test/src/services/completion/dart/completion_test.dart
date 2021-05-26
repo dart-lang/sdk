@@ -9,10 +9,30 @@ import '../../../../completion_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ArgumentListCompletionTest);
     defineReflectiveTests(ConstructorCompletionTest);
     defineReflectiveTests(ExtensionCompletionTest);
     defineReflectiveTests(PropertyAccessorCompletionTest);
   });
+}
+
+@reflectiveTest
+class ArgumentListCompletionTest extends CompletionTestCase {
+  Future<void> test_functionWithVoidReturnType() async {
+    addTestFile('''
+void f(C c) {
+  c.m(^);
+}
+
+void g() {}
+
+class C {
+  void m(void Function() handler) {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
 }
 
 @reflectiveTest
