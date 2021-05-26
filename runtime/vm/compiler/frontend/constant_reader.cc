@@ -87,21 +87,20 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
   {
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    KernelConstantsMap constant_map(H.info().constants());
-    result_ ^= constant_map.GetOrNull(constant_index);
-    ASSERT(constant_map.Release().ptr() == H.info().constants());
+    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    ASSERT(constant_index < constants_array.Length());
+    result_ ^= constants_array.At(constant_index);
   }
 
   // On miss, evaluate, and insert value.
-  if (result_.IsNull()) {
+  if (result_.ptr() == Object::sentinel().ptr()) {
     LeaveCompilerScope cs(H.thread());
     result_ = ReadConstantInternal(constant_index);
     SafepointMutexLocker ml(
         H.thread()->isolate_group()->kernel_constants_mutex());
-    KernelConstantsMap constant_map(H.info().constants());
-    auto insert = constant_map.InsertNewOrGetValue(constant_index, result_);
-    ASSERT(insert == result_.ptr());
-    H.info().set_constants(constant_map.Release());  // update!
+    const auto& constants_array = Array::Handle(Z, H.info().constants());
+    ASSERT(constant_index < constants_array.Length());
+    constants_array.SetAt(constant_index, result_);
   }
   return result_.ptr();
 }
@@ -120,12 +119,22 @@ bool ConstantReader::IsInstanceConstant(intptr_t constant_index,
   return false;
 }
 
-intptr_t ConstantReader::NavigateToIndex(KernelReaderHelper* reader,
-                                         intptr_t constant_index) {
+intptr_t ConstantReader::NumConstants() {
+  ASSERT(!H.constants_table().IsNull());
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  return NumConstants(&reader);
+}
+
+intptr_t ConstantReader::NumConstants(KernelReaderHelper* reader) {
   // Get reader directly into raw bytes of constant table/constant mapping.
   // Get the length of the constants (at the end of the mapping).
   reader->SetOffset(reader->ReaderSize() - 4);
-  const intptr_t num_constants = reader->ReadUInt32();
+  return reader->ReadUInt32();
+}
+
+intptr_t ConstantReader::NavigateToIndex(KernelReaderHelper* reader,
+                                         intptr_t constant_index) {
+  const intptr_t num_constants = NumConstants(reader);
 
   // Get the binary offset of the constant at the wanted index.
   reader->SetOffset(reader->ReaderSize() - 4 - (num_constants * 4) +

@@ -35,9 +35,12 @@ class ConstantReader {
   // into sub-constants).
   InstancePtr ReadConstant(intptr_t constant_index);
 
+  intptr_t NumConstants();
+
  private:
   InstancePtr ReadConstantInternal(intptr_t constant_index);
   intptr_t NavigateToIndex(KernelReaderHelper* reader, intptr_t constant_index);
+  intptr_t NumConstants(KernelReaderHelper* reader);
 
   KernelReaderHelper* helper_;
   Zone* zone_;
@@ -48,38 +51,6 @@ class ConstantReader {
 
   DISALLOW_COPY_AND_ASSIGN(ConstantReader);
 };
-
-class KernelConstMapKeyEqualsTraits : public AllStatic {
- public:
-  static const char* Name() { return "KernelConstMapKeyEqualsTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    const Smi& key1 = Smi::Cast(a);
-    const Smi& key2 = Smi::Cast(b);
-    return (key1.Value() == key2.Value());
-  }
-  static bool IsMatch(const intptr_t key1, const Object& b) {
-    return KeyAsSmi(key1) == Smi::Cast(b).ptr();
-  }
-  static uword Hash(const Object& obj) {
-    const Smi& key = Smi::Cast(obj);
-    return HashValue(key.Value());
-  }
-  static uword Hash(const intptr_t key) {
-    return HashValue(Smi::Value(KeyAsSmi(key)));
-  }
-  static ObjectPtr NewKey(const intptr_t key) { return KeyAsSmi(key); }
-
- private:
-  static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
-
-  static SmiPtr KeyAsSmi(const intptr_t key) {
-    ASSERT(key >= 0);
-    return Smi::New(key);
-  }
-};
-typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
 
 }  // namespace kernel
 }  // namespace dart
