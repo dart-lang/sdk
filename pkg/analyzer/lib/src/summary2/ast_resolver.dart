@@ -48,7 +48,6 @@ class AstResolver {
     _errorListener,
     featureSet: _featureSet,
     nameScope: _nameScope,
-    reportConstEvaluationErrors: false,
     flowAnalysisHelper: _flowAnalysis,
   );
 
