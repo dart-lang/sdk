@@ -5180,3 +5180,10 @@ CompilingWithoutSoundNullSafety:
   script: |
     // @dart=2.9
     main() {}
+
+DeprecateDartExt:
+  template: "Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK."
+  tip: "Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)"
+  severity: INFO
+  script: |
+    import 'dart-ext:foo.dart';
