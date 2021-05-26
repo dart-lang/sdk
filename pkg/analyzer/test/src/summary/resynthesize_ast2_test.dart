@@ -81,7 +81,6 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var sdkLinkResult = link(elementFactory, inputLibraries, true);
 
     return _sdkBundle = _SdkBundle(
-      astBytes: sdkLinkResult.astBytes,
       resolutionBytes: sdkLinkResult.resolutionBytes,
     );
   }
@@ -244,11 +243,9 @@ class _AnalysisSessionForLinking implements AnalysisSessionImpl {
 }
 
 class _SdkBundle {
-  final Uint8List astBytes;
   final Uint8List resolutionBytes;
 
   _SdkBundle({
-    required this.astBytes,
     required this.resolutionBytes,
   });
 }

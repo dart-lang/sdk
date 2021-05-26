@@ -124,7 +124,7 @@ class FileState {
   Set<String>? _referencedNames;
   List<int>? _unlinkedSignature;
   String? _unlinkedKey;
-  String? _astKey;
+  String? _informativeKey;
   AnalysisDriverUnlinkedUnit? _driverUnlinkedUnit;
   List<int>? _apiSignature;
 
@@ -375,12 +375,12 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
-  Uint8List getAstBytes({CompilationUnit? unit}) {
-    var bytes = _fsState._byteStore.get(_astKey!) as Uint8List?;
+  Uint8List getInformativeBytes({CompilationUnit? unit}) {
+    var bytes = _fsState._byteStore.get(_informativeKey!) as Uint8List?;
     if (bytes == null) {
       unit ??= parse();
       bytes = writeUnitInformative(unit);
-      _fsState._byteStore.put(_astKey!, bytes);
+      _fsState._byteStore.put(_informativeKey!, bytes);
     }
     return bytes;
   }
@@ -443,7 +443,7 @@ class FileState {
       var signatureHex = hex.encode(_unlinkedSignature!);
       _unlinkedKey = '$signatureHex.unlinked2';
       // TODO(scheglov) Use the path as the key, and store the signature.
-      _astKey = '$signatureHex.ast';
+      _informativeKey = '$signatureHex.ast';
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.

@@ -34,10 +34,8 @@ class BundleReader {
 
   final Map<String, LibraryReader> libraryMap = {};
 
-  /// TODO(scheglov) Remove [astBytes].
   BundleReader({
     required LinkedElementFactory elementFactory,
-    Uint8List? astBytes, // ignore: avoid_unused_constructor_parameters
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
   })  : _reader = SummaryDataReader(resolutionBytes),

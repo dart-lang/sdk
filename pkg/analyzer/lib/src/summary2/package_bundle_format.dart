@@ -21,7 +21,7 @@ class PackageBundleBuilder {
   }
 
   Uint8List finish({
-    required Uint8List astBytes,
+    @Deprecated('This parameter is not used anymore') Uint8List? astBytes,
     required Uint8List resolutionBytes,
     PackageBundleSdk? sdk,
   }) {
@@ -43,7 +43,6 @@ class PackageBundleBuilder {
       );
     });
 
-    sink.writeUint8List(astBytes);
     sink.writeUint8List(resolutionBytes);
 
     return sink.flushAndTake();
@@ -84,12 +83,8 @@ class PackageBundleReader {
       );
     }
 
-    reader.readUint8List(); // astBytes
     _resolutionBytes = reader.readUint8List();
   }
-
-  @Deprecated('The linker does not need it anymore')
-  Uint8List get astBytes => Uint8List(0);
 
   Uint8List get resolutionBytes => _resolutionBytes;
 
