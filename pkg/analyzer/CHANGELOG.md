@@ -1,3 +1,8 @@
+## 1.8.0-dev
+* Added `StringInterpolation.firstString` and `lastString`, to express
+  explicitly  that there are always (possibly empty) strings as the first
+  and the last elements of an interpolation.
+
 ## 1.7.0
 * Require `meta: ^1.4.0`.
 

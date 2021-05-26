@@ -5152,7 +5152,18 @@ abstract class Statement implements AstNode {
 /// Clients may not extend, implement or mix-in this class.
 abstract class StringInterpolation implements SingleStringLiteral {
   /// Return the elements that will be composed to produce the resulting string.
+  /// The list includes [firstString] and [lastString].
   NodeList<InterpolationElement> get elements;
+
+  /// Return the first element in this interpolation, which is always a string.
+  /// The string might be empty if there is no text before the first
+  /// interpolation expression (such as in `'$foo bar'`).
+  InterpolationString get firstString;
+
+  /// Return the last element in this interpolation, which is always a string.
+  /// The string might be empty if there is no text after the last
+  /// interpolation expression (such as in `'foo $bar'`).
+  InterpolationString get lastString;
 }
 
 /// A string literal expression.
