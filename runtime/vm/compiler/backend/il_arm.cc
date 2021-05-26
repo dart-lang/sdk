@@ -7536,10 +7536,10 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   if (type_arguments() != nullptr) {
-    locs->set_in(0,
-                 Location::RegisterLocation(kAllocationStubTypeArgumentsReg));
+    locs->set_in(kTypeArgumentsPos, Location::RegisterLocation(
+                                        AllocateObjectABI::kTypeArgumentsReg));
   }
-  locs->set_out(0, Location::RegisterLocation(R0));
+  locs->set_out(0, Location::RegisterLocation(AllocateObjectABI::kResultReg));
   return locs;
 }
 

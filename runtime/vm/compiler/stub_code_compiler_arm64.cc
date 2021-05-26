@@ -1865,8 +1865,6 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
-  const Register kInstanceReg = R0;
-  // kAllocationStubTypeArgumentsReg = R1
   const Register kTagsReg = R2;
 
   {
@@ -1882,11 +1880,12 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ ExtractInstanceSizeFromTags(kInstanceSizeReg, kTagsReg);
 
       // Load two words from Thread::top: top and end.
-      // kInstanceReg: potential next object start.
-      __ ldp(kInstanceReg, kEndReg,
+      // AllocateObjectABI::kResultReg: potential next object start.
+      __ ldp(AllocateObjectABI::kResultReg, kEndReg,
              Address(THR, target::Thread::top_offset(), Address::PairOffset));
 
-      __ add(kNewTopReg, kInstanceReg, Operand(kInstanceSizeReg));
+      __ add(kNewTopReg, AllocateObjectABI::kResultReg,
+             Operand(kInstanceSizeReg));
 
       __ CompareRegisters(kEndReg, kNewTopReg);
       __ b(&slow_case, UNSIGNED_LESS_EQUAL);
@@ -1897,13 +1896,14 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
     }  // kInstanceSizeReg = R4, kEndReg = R5
 
     // Tags.
-    __ str(kTagsReg, Address(kInstanceReg, target::Object::tags_offset()));
+    __ str(kTagsReg, Address(AllocateObjectABI::kResultReg,
+                             target::Object::tags_offset()));
 
     // Initialize the remaining words of the object.
     {
       const Register kFieldReg = R4;
 
-      __ AddImmediate(kFieldReg, kInstanceReg,
+      __ AddImmediate(kFieldReg, AllocateObjectABI::kResultReg,
                       target::Instance::first_field_offset());
       Label done, init_loop;
       __ Bind(&init_loop);
@@ -1935,14 +1935,16 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       // Set the type arguments in the new object.
       __ StoreIntoObjectNoBarrier(
-          kInstanceReg,
-          Address(kInstanceReg, kTypeOffestReg, UXTX, Address::Scaled),
-          kAllocationStubTypeArgumentsReg);
+          AllocateObjectABI::kResultReg,
+          Address(AllocateObjectABI::kResultReg, kTypeOffestReg, UXTX,
+                  Address::Scaled),
+          AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R4, kTypeOffestReg = R5
 
-    __ AddImmediate(kInstanceReg, kInstanceReg, kHeapObjectTag);
+    __ AddImmediate(AllocateObjectABI::kResultReg,
+                    AllocateObjectABI::kResultReg, kHeapObjectTag);
 
     __ ret();
 
@@ -1951,7 +1953,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
   // Fall back on slow case:
   if (!is_cls_parameterized) {
-    __ mov(kAllocationStubTypeArgumentsReg, NULL_REG);
+    __ mov(AllocateObjectABI::kTypeArgumentsReg, NULL_REG);
   }
   // Tail call to generic allocation stub.
   __ ldr(
@@ -1971,8 +1973,6 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  const Register kInstanceReg = R0;
-  // kAllocationStubTypeArgumentsReg = R1
   const Register kTagsToClsIdReg = R2;
 
   if (!FLAG_use_bare_instructions) {
@@ -1990,12 +1990,12 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   __ PushPair(R0, NULL_REG);  // Pushes result slot, then class object.
 
   // Should be Object::null() if class is non-parameterized.
-  __ Push(kAllocationStubTypeArgumentsReg);
+  __ Push(AllocateObjectABI::kTypeArgumentsReg);
 
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);
 
   // Load result off the stack into result register.
-  __ ldr(kInstanceReg, Address(SP, 2 * target::kWordSize));
+  __ ldr(AllocateObjectABI::kResultReg, Address(SP, 2 * target::kWordSize));
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
@@ -2013,9 +2013,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     const Class& cls,
     const Code& allocate_object,
     const Code& allocat_object_parametrized) {
-  static_assert(kAllocationStubTypeArgumentsReg == R1,
-                "Adjust register allocation in the AllocationStub");
-
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
@@ -2034,8 +2031,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
-  // kInstanceReg = R0
-  // kAllocationStubTypeArgumentsReg = R1
   const Register kTagsReg = R2;
 
   __ LoadImmediate(kTagsReg, tags);
@@ -2074,7 +2069,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     }
   } else {
     if (!is_cls_parameterized) {
-      __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
+      __ LoadObject(AllocateObjectABI::kTypeArgumentsReg, NullObject());
     }
     __ ldr(R4,
            Address(THR,

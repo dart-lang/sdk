@@ -1453,9 +1453,9 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
 // Called for inline allocation of objects.
 // Input parameters:
 //   ESP : points to return address.
-//   kAllocationStubTypeArgumentsReg (EDX) : type arguments object
-//                                           (only if class is parameterized).
-// Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
+//   AllocateObjectABI::kTypeArgumentsPos : type arguments object
+//                                          (only if class is parameterized).
+// Uses AllocateObjectABI::kResultReg, EBX, ECX, EDI as temporary registers.
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
 void StubCodeCompiler::GenerateAllocationStubForClass(
@@ -1476,41 +1476,45 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
 
-  // EDX: instantiated type arguments (if is_cls_parameterized).
-  static_assert(kAllocationStubTypeArgumentsReg == EDX,
-                "Adjust register allocation in the AllocationStub");
-
+  // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+  //                                       (if is_cls_parameterized).
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    // EDX: instantiated type arguments (if is_cls_parameterized).
-    __ movl(EAX, Address(THR, target::Thread::top_offset()));
-    __ leal(EBX, Address(EAX, instance_size));
+    // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+    //                                       (if is_cls_parameterized).
+    __ movl(AllocateObjectABI::kResultReg,
+            Address(THR, target::Thread::top_offset()));
+    __ leal(EBX, Address(AllocateObjectABI::kResultReg, instance_size));
     // Check if the allocation fits into the remaining space.
-    // EAX: potential new object start.
+    // AllocateObjectABI::kResultReg: potential new object start.
     // EBX: potential next object start.
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
 
-    // EAX: new object start (untagged).
+    // AllocateObjectABI::kResultReg: new object start (untagged).
     // EBX: next object start.
-    // EDX: new object type arguments (if is_cls_parameterized).
+    // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+    //                                       (if is_cls_parameterized).
     // Set the tags.
     ASSERT(target::Class::GetId(cls) != kIllegalCid);
     uword tags = target::MakeTagWordForNewSpaceObject(target::Class::GetId(cls),
                                                       instance_size);
-    __ movl(Address(EAX, target::Object::tags_offset()), Immediate(tags));
-    __ addl(EAX, Immediate(kHeapObjectTag));
+    __ movl(
+        Address(AllocateObjectABI::kResultReg, target::Object::tags_offset()),
+        Immediate(tags));
+    __ addl(AllocateObjectABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the remaining words of the object.
 
-    // EAX: new object (tagged).
+    // AllocateObjectABI::kResultReg: new object (tagged).
     // EBX: next object start.
-    // EDX: new object type arguments (if is_cls_parameterized).
+    // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+    //                                       (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * target::kWordSize)) {
       // Check if the object contains any non-header fields.
@@ -1518,42 +1522,49 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       for (intptr_t current_offset = target::Instance::first_field_offset();
            current_offset < instance_size;
            current_offset += target::kWordSize) {
-        __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, current_offset),
-                                    NullObject());
+        __ StoreIntoObjectNoBarrier(
+            AllocateObjectABI::kResultReg,
+            FieldAddress(AllocateObjectABI::kResultReg, current_offset),
+            NullObject());
       }
     } else {
-      __ leal(ECX, FieldAddress(EAX, target::Instance::first_field_offset()));
+      __ leal(ECX, FieldAddress(AllocateObjectABI::kResultReg,
+                                target::Instance::first_field_offset()));
       // Loop until the whole object is initialized.
-      // EAX: new object (tagged).
+      // AllocateObjectABI::kResultReg: new object (tagged).
       // EBX: next object start.
       // ECX: next word to be initialized.
-      // EDX: new object type arguments (if is_cls_parameterized).
+      // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
+      //                                       (if is_cls_parameterized).
       Label init_loop;
       Label done;
       __ Bind(&init_loop);
       __ cmpl(ECX, EBX);
       __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-      __ StoreIntoObjectNoBarrier(EAX, Address(ECX, 0), NullObject());
+      __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                  Address(ECX, 0), NullObject());
       __ addl(ECX, Immediate(target::kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
-      // EAX: new object (tagged).
-      // EDX: new object type arguments.
+      // AllocateObjectABI::kResultReg: new object (tagged).
+      // AllocateObjectABI::kTypeArgumentsReg: new object type arguments.
       // Set the type arguments in the new object.
       const intptr_t offset = target::Class::TypeArgumentsFieldOffset(cls);
-      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset),
-                                  kAllocationStubTypeArgumentsReg);
+      __ StoreIntoObjectNoBarrier(
+          AllocateObjectABI::kResultReg,
+          FieldAddress(AllocateObjectABI::kResultReg, offset),
+          AllocateObjectABI::kTypeArgumentsReg);
     }
     // Done allocating and initializing the instance.
-    // EAX: new object (tagged).
+    // AllocateObjectABI::kResultReg: new object (tagged).
     __ ret();
 
     __ Bind(&slow_case);
   }
   // If is_cls_parameterized:
-  // EDX: new object type arguments.
+  //   AllocateObjectABI::kTypeArgumentsReg: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -1562,14 +1573,14 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     // Push type arguments of object to be allocated.
-    __ pushl(kAllocationStubTypeArgumentsReg);
+    __ pushl(AllocateObjectABI::kTypeArgumentsReg);
   } else {
     __ pushl(raw_null);  // Push null type arguments.
   }
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
-  __ popl(EAX);  // Pop argument (type arguments of object).
-  __ popl(EAX);  // Pop argument (class of object).
-  __ popl(EAX);  // Pop result (newly allocated object).
+  __ popl(AllocateObjectABI::kResultReg);          // Drop type arguments.
+  __ popl(AllocateObjectABI::kResultReg);          // Drop class.
+  __ popl(AllocateObjectABI::kResultReg);          // Pop allocated object.
 
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     // Write-barrier elimination is enabled for [cls] and we therefore need to
@@ -1577,7 +1588,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   }
 
-  // EAX: new object
+  // AllocateObjectABI::kResultReg: new object
   // Restore the frame pointer.
   __ LeaveFrame();
   __ ret();
