@@ -282,7 +282,14 @@ struct AllocateBoxABI {
   static const Register kTempReg = RBX;
 };
 
-// ABI for Allocate<TypedData>ArrayStub.
+// ABI for AllocateArrayStub.
+struct AllocateArrayABI {
+  static const Register kResultReg = RAX;
+  static const Register kLengthReg = R10;
+  static const Register kTypeArgumentsReg = RBX;
+};
+
+// ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kLengthReg = RAX;
   static const Register kResultReg = RAX;

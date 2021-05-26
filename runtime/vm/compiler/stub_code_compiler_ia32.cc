@@ -791,11 +791,13 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 }
 
 // Called for inline allocation of arrays.
-// Input parameters:
-//   EDX : Array length as Smi (must be preserved).
-//   ECX : array element type (either NULL or an instantiated type).
-// Uses EAX, EBX, ECX, EDI  as temporary registers.
-// The newly allocated object is returned in EAX.
+// Input registers (preserved):
+//   AllocateArrayABI::kLengthReg: array length as Smi.
+//   AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+// Output registers:
+//   AllocateArrayABI::kResultReg: newly allocated array.
+// Clobbered:
+//   EBX, EDI
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
@@ -804,54 +806,57 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // RoundedAllocationSize(
     //     (array_length * kwordSize) + target::Array::header_size()).
     // Assert that length is a Smi.
-    __ testl(EDX, Immediate(kSmiTagMask));
+    __ testl(AllocateArrayABI::kLengthReg, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
 
     // Check for maximum allowed length.
     const Immediate& max_len =
         Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
-    __ cmpl(EDX, max_len);
+    __ cmpl(AllocateArrayABI::kLengthReg, max_len);
     __ j(ABOVE, &slow_case);
 
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, EAX, &slow_case,
-                                           Assembler::kFarJump));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid,
+                                           AllocateArrayABI::kResultReg,
+                                           &slow_case, Assembler::kFarJump));
 
     const intptr_t fixed_size_plus_alignment_padding =
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
-    // EDX is Smi.
-    __ leal(EBX, Address(EDX, TIMES_2, fixed_size_plus_alignment_padding));
+    // AllocateArrayABI::kLengthReg is Smi.
+    __ leal(EBX, Address(AllocateArrayABI::kLengthReg, TIMES_2,
+                         fixed_size_plus_alignment_padding));
     ASSERT(kSmiTagShift == 1);
     __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
-    // ECX: array element type.
-    // EDX: array length as Smi.
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
     // EBX: allocation size.
 
     const intptr_t cid = kArrayCid;
-    __ movl(EAX, Address(THR, target::Thread::top_offset()));
-    __ addl(EBX, EAX);
+    __ movl(AllocateArrayABI::kResultReg,
+            Address(THR, target::Thread::top_offset()));
+    __ addl(EBX, AllocateArrayABI::kResultReg);
     __ j(CARRY, &slow_case);
 
     // Check if the allocation fits into the remaining space.
-    // EAX: potential new object start.
+    // AllocateArrayABI::kResultReg: potential new object start.
     // EBX: potential next object start.
-    // ECX: array element type.
-    // EDX: array length as Smi).
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi).
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
-    __ subl(EBX, EAX);
-    __ addl(EAX, Immediate(kHeapObjectTag));
+    __ subl(EBX, AllocateArrayABI::kResultReg);
+    __ addl(AllocateArrayABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the tags.
-    // EAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
-    // ECX: array element type.
-    // EDX: array length as Smi.
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
     {
       Label size_tag_overflow, done;
       __ movl(EDI, EBX);
@@ -868,41 +873,50 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       // Get the class index and insert it into the tags.
       uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orl(EDI, Immediate(tags));
-      __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
+      __ movl(FieldAddress(AllocateArrayABI::kResultReg,
+                           target::Object::tags_offset()),
+              EDI);  // Tags.
     }
-    // EAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
-    // ECX: array element type.
-    // EDX: Array length as Smi (preserved).
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: Array length as Smi (preserved).
     // Store the type argument field.
     // No generational barrier needed, since we store into a new object.
     __ StoreIntoObjectNoBarrier(
-        EAX, FieldAddress(EAX, target::Array::type_arguments_offset()), ECX);
+        AllocateArrayABI::kResultReg,
+        FieldAddress(AllocateArrayABI::kResultReg,
+                     target::Array::type_arguments_offset()),
+        AllocateArrayABI::kTypeArgumentsReg);
 
     // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        EAX, FieldAddress(EAX, target::Array::length_offset()), EDX);
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                FieldAddress(AllocateArrayABI::kResultReg,
+                                             target::Array::length_offset()),
+                                AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
-    // EAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
     // EDI: iterator which initially points to the start of the variable
     // data area to be initialized.
-    // ECX: array element type.
-    // EDX: array length as Smi.
-    __ leal(EBX, FieldAddress(EAX, EBX, TIMES_1, 0));
-    __ leal(EDI, FieldAddress(EAX, target::Array::header_size()));
+    // AllocateArrayABI::kTypeArgumentsReg: array type arguments.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
+    __ leal(EBX, FieldAddress(AllocateArrayABI::kResultReg, EBX, TIMES_1, 0));
+    __ leal(EDI, FieldAddress(AllocateArrayABI::kResultReg,
+                              target::Array::header_size()));
     Label done;
     Label init_loop;
     __ Bind(&init_loop);
     __ cmpl(EDI, EBX);
     __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(EAX, Address(EDI, 0), NullObject());
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg, Address(EDI, 0),
+                                NullObject());
     __ addl(EDI, Immediate(target::kWordSize));
     __ jmp(&init_loop, Assembler::kNearJump);
     __ Bind(&done);
-    __ ret();  // returns the newly allocated object in EAX.
+    __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
     // into the runtime.
@@ -912,12 +926,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(Immediate(0));  // Setup space on stack for return value.
-  __ pushl(EDX);           // Array length as Smi.
-  __ pushl(ECX);           // Element type.
+  __ pushl(AllocateArrayABI::kLengthReg);         // Array length as Smi.
+  __ pushl(AllocateArrayABI::kTypeArgumentsReg);  // Type arguments.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popl(EAX);  // Pop element type argument.
-  __ popl(EDX);  // Pop array length argument (preserved).
-  __ popl(EAX);  // Pop return value from return slot.
+  __ popl(AllocateArrayABI::kTypeArgumentsReg);  // Pop type arguments.
+  __ popl(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popl(AllocateArrayABI::kResultReg);  // Pop return value from return slot.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old

@@ -2111,7 +2111,7 @@ class LoadOptimizer : public ValueObject {
             if (auto load = use->instruction()->AsLoadField()) {
               if (load->slot().IsTypeArguments()) {
                 place_id = GetPlaceId(load);
-                forward_def = alloc->element_type()->definition();
+                forward_def = alloc->type_arguments()->definition();
               }
             } else if (use->instruction()->IsLoadIndexed() ||
                        use->instruction()->IsStoreIndexed()) {

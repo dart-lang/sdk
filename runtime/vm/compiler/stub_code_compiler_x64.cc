@@ -1048,11 +1048,13 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 }
 
 // Called for inline allocation of arrays.
-// Input parameters:
-//   R10 : Array length as Smi.
-//   RBX : array element type (either NULL or an instantiated type).
-// NOTE: R10 cannot be clobbered here as the caller relies on it being saved.
-// The newly allocated object is returned in RAX.
+// Input registers (preserved):
+//   AllocateArrayABI::kLengthReg: array length as Smi.
+//   AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+// Output registers:
+//   AllocateArrayABI::kResultReg: newly allocated array.
+// Clobbered:
+//   RCX, RDI, R12
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
@@ -1060,7 +1062,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // and is computed as:
     // RoundedAllocationSize(
     //     (array_length * target::kwordSize) + target::Array::header_size()).
-    __ movq(RDI, R10);  // Array Length.
+    __ movq(RDI, AllocateArrayABI::kLengthReg);  // Array Length.
     // Check that length is Smi.
     __ testq(RDI, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
@@ -1084,15 +1086,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
     const intptr_t cid = kArrayCid;
-    __ movq(RAX, Address(THR, target::Thread::top_offset()));
+    __ movq(AllocateArrayABI::kResultReg,
+            Address(THR, target::Thread::top_offset()));
 
     // RDI: allocation size.
-    __ movq(RCX, RAX);
+    __ movq(RCX, AllocateArrayABI::kResultReg);
     __ addq(RCX, RDI);
     __ j(CARRY, &slow_case);
 
     // Check if the allocation fits into the remaining space.
-    // RAX: potential new object start.
+    // AllocateArrayABI::kResultReg: potential new object start.
     // RCX: potential next object start.
     // RDI: allocation size.
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
@@ -1101,10 +1104,10 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ movq(Address(THR, target::Thread::top_offset()), RCX);
-    __ addq(RAX, Immediate(kHeapObjectTag));
+    __ addq(AllocateArrayABI::kResultReg, Immediate(kHeapObjectTag));
 
     // Initialize the tags.
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // RDI: allocation size.
     {
       Label size_tag_overflow, done;
@@ -1124,23 +1127,29 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
     }
 
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // Store the type argument field.
     // No generational barrier needed, since we store into a new object.
     __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, target::Array::type_arguments_offset()), RBX);
+        AllocateArrayABI::kResultReg,
+        FieldAddress(AllocateArrayABI::kResultReg,
+                     target::Array::type_arguments_offset()),
+        AllocateArrayABI::kTypeArgumentsReg);
 
     // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, target::Array::length_offset()), R10);
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                FieldAddress(AllocateArrayABI::kResultReg,
+                                             target::Array::length_offset()),
+                                AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
-    // RAX: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // RCX: new object end address.
     // RDI: iterator which initially points to the start of the variable
     // data area to be initialized.
     __ LoadObject(R12, NullObject());
-    __ leaq(RDI, FieldAddress(RAX, target::Array::header_size()));
+    __ leaq(RDI, FieldAddress(AllocateArrayABI::kResultReg,
+                              target::Array::header_size()));
     Label done;
     Label init_loop;
     __ Bind(&init_loop);
@@ -1152,11 +1161,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 #endif  // DEBUG
     __ j(ABOVE_EQUAL, &done, kJumpLength);
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
+    __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg, Address(RDI, 0),
+                                R12);
     __ addq(RDI, Immediate(target::kWordSize));
     __ jmp(&init_loop, kJumpLength);
     __ Bind(&done);
-    __ ret();  // returns the newly allocated object in RAX.
+    __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
     // into the runtime.
@@ -1165,14 +1175,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  // Setup space on stack for return value.
-  __ pushq(Immediate(0));
-  __ pushq(R10);  // Array length as Smi.
-  __ pushq(RBX);  // Element type.
+  __ pushq(Immediate(0));                         // Space for return value.
+  __ pushq(AllocateArrayABI::kLengthReg);         // Array length as Smi.
+  __ pushq(AllocateArrayABI::kTypeArgumentsReg);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popq(RAX);  // Pop element type argument.
-  __ popq(R10);  // Pop array length argument.
-  __ popq(RAX);  // Pop return value from return slot.
+  __ popq(AllocateArrayABI::kTypeArgumentsReg);  // Pop element type argument.
+  __ popq(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popq(AllocateArrayABI::kResultReg);         // Pop allocated object.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old

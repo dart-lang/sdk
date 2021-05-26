@@ -209,7 +209,14 @@ struct AllocateClosureABI {
   static const Register kScratchReg = EDX;
 };
 
-// ABI for Allocate<TypedData>ArrayStub.
+// ABI for AllocateArrayStub.
+struct AllocateArrayABI {
+  static const Register kResultReg = EAX;
+  static const Register kLengthReg = EDX;
+  static const Register kTypeArgumentsReg = ECX;
+};
+
+// ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kLengthReg = EAX;
   static const Register kResultReg = EAX;

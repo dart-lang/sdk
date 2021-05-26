@@ -6405,20 +6405,20 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
 class CreateArrayInstr : public TemplateArrayAllocation<2> {
  public:
   CreateArrayInstr(const InstructionSource& source,
-                   Value* element_type,
+                   Value* type_arguments,
                    Value* num_elements,
                    intptr_t deopt_id)
       : TemplateArrayAllocation(source, deopt_id) {
-    SetInputAt(kElementTypePos, element_type);
+    SetInputAt(kTypeArgumentsPos, type_arguments);
     SetInputAt(kLengthPos, num_elements);
   }
 
-  enum { kElementTypePos = 0, kLengthPos = 1 };
+  enum { kTypeArgumentsPos = 0, kLengthPos = 1 };
 
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType ComputeType() const;
 
-  Value* element_type() const { return inputs_[kElementTypePos]; }
+  Value* type_arguments() const { return inputs_[kTypeArgumentsPos]; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
