@@ -16,7 +16,7 @@ const _details = r'''
 
 For the purposes of this lint, a public API is considered to be any top-level or
 member declaration unless the declaration is library private or contained in a
-declarartion that's library private. The following uses of types are checked:
+declaration that's library private. The following uses of types are checked:
 
 - the return type of a function or method,
 - the type of any parameter of a function or method,
