@@ -716,6 +716,11 @@ intptr_t NativeCallingConvention::StackTopInBytes() const {
     max_height_in_bytes = Utils::Maximum(
         max_height_in_bytes, argument_locations_[i]->StackTopInBytes());
   }
+  if (return_location_.IsPointerToMemory()) {
+    const auto& ret_loc = return_location_.AsPointerToMemory();
+    max_height_in_bytes =
+        Utils::Maximum(max_height_in_bytes, ret_loc.StackTopInBytes());
+  }
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
 }
 

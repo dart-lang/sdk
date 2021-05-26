@@ -921,6 +921,7 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   const intptr_t field_id = field.field_id();
   initial_field_table()->SetAt(field_id, initial_value.ptr());
 
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   if (need_to_grow_backing_store) {
     // We have to stop other isolates from accessing their field state, since
     // we'll have to grow the backing store.

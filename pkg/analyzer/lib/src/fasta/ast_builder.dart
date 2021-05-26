@@ -485,15 +485,15 @@ class AstBuilder extends StackListener {
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidSuperInInitializer,
           target.superKeyword, target.superKeyword);
-      return ast.superConstructorInvocation(
-          target.superKeyword, null, null, argumentList!);
+      return ast.superConstructorInvocation(target.superKeyword, null, null,
+          argumentList ?? _syntheticArgumentList(target.superKeyword));
     } else if (target is ThisExpression) {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
       handleRecoverableError(messageInvalidThisInInitializer,
           target.thisKeyword, target.thisKeyword);
-      return ast.redirectingConstructorInvocation(
-          target.thisKeyword, null, null, argumentList!);
+      return ast.redirectingConstructorInvocation(target.thisKeyword, null,
+          null, argumentList ?? _syntheticArgumentList(target.thisKeyword));
     }
     return null;
   }
@@ -3537,14 +3537,8 @@ class AstBuilder extends StackListener {
       // TODO(paulberry): once we have visitor support for constructor
       // tear-offs, fall through and return a FunctionReference instead since
       // that should lead to better quality error recovery.
-      var syntheticOffset = typeArguments.rightBracket.end;
-      push(ast.functionExpressionInvocation(
-          receiver,
-          typeArguments,
-          ast.argumentList(
-              SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset),
-              [],
-              SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset))));
+      push(ast.functionExpressionInvocation(receiver, typeArguments,
+          _syntheticArgumentList(typeArguments.rightBracket)));
       return;
     }
     push(ast.functionReference(
@@ -3869,6 +3863,14 @@ class AstBuilder extends StackListener {
   VariableDeclaration _makeVariableDeclaration(
       SimpleIdentifier name, Token? equals, Expression? initializer) {
     return ast.variableDeclaration(name, equals, initializer);
+  }
+
+  ArgumentList _syntheticArgumentList(Token precedingToken) {
+    int syntheticOffset = precedingToken.end;
+    return ast.argumentList(
+        SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset),
+        [],
+        SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset));
   }
 
   SimpleIdentifier _tmpSimpleIdentifier() {

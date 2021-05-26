@@ -11,10 +11,11 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
-void RunSignatureTest(dart::Zone* zone,
-                      const char* name,
-                      const NativeTypes& argument_types,
-                      const NativeType& return_type) {
+const NativeCallingConvention& RunSignatureTest(
+    dart::Zone* zone,
+    const char* name,
+    const NativeTypes& argument_types,
+    const NativeType& return_type) {
   const auto& native_signature =
       *new (zone) NativeFunctionType(argument_types, return_type);
 
@@ -42,6 +43,8 @@ void RunSignatureTest(dart::Zone* zone,
     EXPECT_STREQ(expectation_file_contents, test_result);
     free(expectation_file_contents);
   }
+
+  return native_calling_convention;
 }
 
 UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_int8x10) {
@@ -553,6 +556,32 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_union5bytesPackedx10) {
   arguments.Add(&union_type);
 
   RunSignatureTest(Z, "union5bytesPackedx10", arguments, union_type);
+}
+
+// http://dartbug.com/46127
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress46127) {
+  const auto& uint64_type = *new (Z) NativePrimitiveType(kUint64);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 1);
+  member_types.Add(&uint64_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  EXPECT_EQ(8, struct_type.SizeInBytes());
+
+  auto& arguments = *new (Z) NativeTypes(Z, 0);
+
+  const auto& native_calling_convention =
+      RunSignatureTest(Z, "regress46127", arguments, struct_type);
+
+#if defined(TARGET_ARCH_IA32) &&                                               \
+    (defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX))
+  // We must count the result pointer passed on the stack as well.
+  EXPECT_EQ(4, native_calling_convention.StackTopInBytes());
+#else
+  EXPECT_EQ(0, native_calling_convention.StackTopInBytes());
+#endif
 }
 
 }  // namespace ffi

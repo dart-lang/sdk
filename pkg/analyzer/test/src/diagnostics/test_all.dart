@@ -334,6 +334,7 @@ import 'invalid_required_optional_positional_param_test.dart'
 import 'invalid_required_positional_param_test.dart'
     as invalid_required_positional_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'invalid_super_in_initializer_test.dart' as invalid_super_in_initializer;
 import 'invalid_super_invocation_test.dart' as invalid_super_invocation;
 import 'invalid_type_argument_in_const_list_test.dart'
     as invalid_type_argument_in_const_list;
@@ -918,6 +919,7 @@ main() {
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();
     invalid_sealed_annotation.main();
+    invalid_super_in_initializer.main();
     invalid_super_invocation.main();
     invalid_type_argument_in_const_list.main();
     invalid_type_argument_in_const_map.main();
