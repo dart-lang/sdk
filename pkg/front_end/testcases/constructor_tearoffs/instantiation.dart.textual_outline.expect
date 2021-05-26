@@ -1,0 +1,8 @@
+class A<X extends num> {
+  A.foo(X x) {}
+}
+
+A<num> Function(num) bar1() => A.foo;
+A<int> Function(int) bar2() => A.foo;
+A<dynamic> Function(String) bar3() => A.foo;
+main() {}

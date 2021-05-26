@@ -254,6 +254,8 @@ class SimpleIdentifierResolver {
       staticType = _typeProvider.dynamicType;
     } else if (element is DynamicElementImpl) {
       staticType = _typeProvider.typeType;
+    } else if (element is NeverElementImpl) {
+      staticType = _typeProvider.typeType;
     } else {
       staticType = DynamicTypeImpl.instance;
     }

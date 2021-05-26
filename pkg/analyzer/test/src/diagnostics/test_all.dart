@@ -262,8 +262,12 @@ import 'inconsistent_language_version_override_test.dart'
     as inconsistent_language_version_override;
 import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
+import 'inference_failure_on_function_invocation_test.dart'
+    as inference_failure_on_function_invocation;
 import 'inference_failure_on_function_return_type_test.dart'
     as inference_failure_on_function_return_type;
+import 'inference_failure_on_generic_invocation_test.dart'
+    as inference_failure_on_generic_invocation;
 import 'inference_failure_on_instance_creation_test.dart'
     as inference_failure_on_instance_creation;
 import 'inference_failure_on_uninitialized_variable_test.dart'
@@ -871,7 +875,9 @@ main() {
     inconsistent_inheritance.main();
     inconsistent_language_version_override.main();
     inference_failure_on_collection_literal.main();
+    inference_failure_on_function_invocation.main();
     inference_failure_on_function_return_type.main();
+    inference_failure_on_generic_invocation.main();
     inference_failure_on_instance_creation.main();
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();

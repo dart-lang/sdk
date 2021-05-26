@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:9:12: Error: Getter not found: 'foo'.
+// bar() => A.foo;
+//            ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor foo() → self::A
+    : super core::Object::•() {}
+}
+static method bar() → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:9:12: Error: Getter not found: 'foo'.
+bar() => A.foo;
+           ^^^";
+static method main() → dynamic {}

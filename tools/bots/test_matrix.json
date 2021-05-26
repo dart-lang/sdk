@@ -2830,6 +2830,7 @@
           "arguments": [
             "--arch=ia32,x64,arm,arm64",
             "--mode=release",
+            "--check-clean",
             "create_sdk"
           ]
         },
@@ -2867,6 +2868,7 @@
           "arguments": [
             "--arch=x64",
             "--mode=release",
+            "--check-clean",
             "create_sdk"
           ],
           "environment": {

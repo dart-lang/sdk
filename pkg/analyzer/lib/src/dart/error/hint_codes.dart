@@ -760,6 +760,15 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
+   * When "strict-inference" is enabled, types in function invocations must be
+   * inferred via the context type, or have type arguments.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION = HintCode(
+      'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
+      "The type argument(s) of the function '{0}' can't be inferred.",
+      correction: "Use explicit type argument(s) for '{0}'.");
+
+  /**
    * When "strict-inference" is enabled, recursive local functions, top-level
    * functions, methods, and function-typed function parameters must all
    * specify a return type. See the strict-inference resource:
@@ -770,6 +779,16 @@ class HintCode extends AnalyzerErrorCode {
       'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
       "The return type of '{0}' cannot be inferred.",
       correction: "Declare the return type of '{0}'.");
+
+  /**
+   * When "strict-inference" is enabled, types in function invocations must be
+   * inferred via the context type, or have type arguments.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION = HintCode(
+      'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
+      "The type argument(s) of the generic function type '{0}' can't be "
+          "inferred.",
+      correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
    * When "strict-inference" is enabled, types in instance creation
