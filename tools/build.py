@@ -53,6 +53,11 @@ def BuildOptions():
                              help="Don't try to start goma",
                              default=False,
                              action='store_true')
+    other_group.add_argument(
+        "--check-clean",
+        help="Check that a second invocation of Ninja has nothing to do",
+        default=False,
+        action='store_true')
 
     parser.add_argument('build_targets', nargs='*')
 
@@ -192,6 +197,25 @@ def RunOneBuildCommand(build_config, args, env):
     return 0
 
 
+def CheckCleanBuild(build_config, args, env):
+    args = args + ['-n', '-d', 'explain']
+    print(' '.join(args))
+    process = subprocess.Popen(args,
+                               env=env,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               stdin=None)
+    out, err = process.communicate()
+    process.wait()
+    if process.returncode != 0:
+        return 1
+    if 'ninja: no work to do' not in out.decode('utf-8'):
+        print(err.decode('utf-8'))
+        return 1
+
+    return 0
+
+
 def SanitizerEnvironmentVariables():
     with io.open('tools/bots/test_matrix.json', encoding='utf-8') as fd:
         config = json.loads(fd.read())
@@ -269,6 +293,11 @@ def Main():
                     for (_, to_kill) in active_goma_builds:
                         to_kill.terminate()
                     return 1
+
+    if options.check_clean:
+        for (build_config, args, goma) in configs:
+            if CheckCleanBuild(build_config, args, env=env) != 0:
+                return 1
 
     endtime = time.time()
     print("The build took %.3f seconds" % (endtime - starttime))
