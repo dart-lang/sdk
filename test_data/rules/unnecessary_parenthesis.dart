@@ -27,13 +27,10 @@ main() async {
   // than the cascade.
   (true ? [] : [])..add(''); // OK
   (a ?? true) ? true : true; // OK
-  (a.foo).bar; // LINT
-  (a.foo.bar).baz; // LINT
-  (a.foo()).bar(); // LINT
-  (a.foo().bar()).baz(); // LINT
   true ? [] : []
     ..add(''); // OK
   m(p: (1 + 3)); // LINT
+  (a++).toString(); // OK
 
   // OK because it is unobvious where cascades fall in precedence.
   a..b = (c..d); // OK
