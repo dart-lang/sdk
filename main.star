@@ -594,6 +594,7 @@ def dart_builder(
         dimensions = None,
         executable = None,
         execution_timeout = None,
+        experimental = None,
         expiration_timeout = None,
         goma = None,
         fyi = False,
@@ -621,6 +622,7 @@ def dart_builder(
         dimensions: Extra swarming dimensions required by this builder.
         executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
+        experimental: Wether the build is experimental or not.
         expiration_timeout: How long builds should wait for a bot to run on.
         goma: Whether to use goma or not.
         fyi: Whether this is an FYI builder or not.
@@ -693,6 +695,7 @@ def dart_builder(
                 dimensions = dimensions,
                 executable = executable or dart_recipe(recipe),
                 execution_timeout = execution_timeout,
+                experimental = experimental,
                 expiration_timeout = expiration_timeout,
                 priority = priority,
                 properties = builder_properties,
@@ -1615,6 +1618,23 @@ dart_ci_sandbox_builder(
     properties = {"bisection_enabled": True},
     notifies = "ci-test-data",
     triggered_by = ["dart-ci-test-data-trigger"],
+)
+
+# Builder that tests the dev Linux image. When the image autoroller detects
+# successful builds of this builder with the dev image, it the current dev image
+# becomes the new prod image. Newly created bots will than use the updated
+# image. The `vm-precomp-ffi-qemu-linux-release-arm` is  used because qemu is
+# the primary difference, it passes all tests, triggers no shards and runs a few
+# different builds. See also https://crbug.com/1207358.
+dart_ci_sandbox_builder(
+    "vm-precomp-ffi-qemu-linux-release-arm-experimental",
+    channels = [],
+    dimensions = {"host_class": "experimental"},
+    experimental = True,
+    notifies = "infra",
+    # At minute 0 past hour 5 and 7 on every day-of-week from Mon through Fri.
+    schedule = "0 5,7 * * 1-5",
+    triggered_by = None,
 )
 
 # Fuzz testing builders
