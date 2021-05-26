@@ -27,6 +27,10 @@ main() async {
   // than the cascade.
   (true ? [] : [])..add(''); // OK
   (a ?? true) ? true : true; // OK
+  (a.foo).bar; // LINT
+  (a.foo.bar).baz; // LINT
+  (a.foo()).bar(); // LINT
+  (a.foo().bar()).baz(); // LINT
   true ? [] : []
     ..add(''); // OK
   m(p: (1 + 3)); // LINT

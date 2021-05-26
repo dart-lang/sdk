@@ -122,7 +122,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             parent.parent is ExpressionStatement) return;
       }
 
-      if (parent.precedence < node.expression.precedence) {
+      if (parent.precedence <= node.expression.precedence) {
         rule.reportLint(node);
         return;
       }
