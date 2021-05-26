@@ -2769,9 +2769,11 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(RBX));
-  locs->set_in(1, Location::RegisterLocation(R10));
-  locs->set_out(0, Location::RegisterLocation(RAX));
+  locs->set_in(kTypeArgumentsPos,
+               Location::RegisterLocation(AllocateArrayABI::kTypeArgumentsReg));
+  locs->set_in(kLengthPos,
+               Location::RegisterLocation(AllocateArrayABI::kLengthReg));
+  locs->set_out(0, Location::RegisterLocation(AllocateArrayABI::kResultReg));
   return locs;
 }
 
@@ -2781,46 +2783,52 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                   compiler::Label* slow_path,
                                   compiler::Label* done) {
   const int kInlineArraySize = 12;  // Same as kInlineInstanceSize.
-  const Register kLengthReg = R10;
-  const Register kElemTypeReg = RBX;
   const intptr_t instance_size = Array::InstanceSize(num_elements);
 
   __ TryAllocateArray(kArrayCid, instance_size, slow_path,
                       compiler::Assembler::kFarJump,
-                      RAX,   // instance
-                      RCX,   // end address
-                      R13);  // temp
+                      AllocateArrayABI::kResultReg,  // instance
+                      RCX,                           // end address
+                      R13);                          // temp
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
   __ StoreIntoObjectNoBarrier(
-      RAX, compiler::FieldAddress(RAX, Array::type_arguments_offset()),
-      kElemTypeReg);
+      AllocateArrayABI::kResultReg,
+      compiler::FieldAddress(AllocateArrayABI::kResultReg,
+                             Array::type_arguments_offset()),
+      AllocateArrayABI::kTypeArgumentsReg);
 
   // Set the length field.
   __ StoreIntoObjectNoBarrier(
-      RAX, compiler::FieldAddress(RAX, Array::length_offset()), kLengthReg);
+      AllocateArrayABI::kResultReg,
+      compiler::FieldAddress(AllocateArrayABI::kResultReg,
+                             Array::length_offset()),
+      AllocateArrayABI::kLengthReg);
 
   // Initialize all array elements to raw_null.
-  // RAX: new object start as a tagged pointer.
+  // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
   // RCX: new object end address.
   // RDI: iterator which initially points to the start of the variable
   // data area to be initialized.
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(UntaggedArray);
     __ LoadObject(R12, Object::null_object());
-    __ leaq(RDI, compiler::FieldAddress(RAX, sizeof(UntaggedArray)));
+    __ leaq(RDI, compiler::FieldAddress(AllocateArrayABI::kResultReg,
+                                        sizeof(UntaggedArray)));
     if (array_size < (kInlineArraySize * kWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
-        __ StoreIntoObjectNoBarrier(RAX, compiler::Address(RDI, current_offset),
+        __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                    compiler::Address(RDI, current_offset),
                                     R12);
         current_offset += kWordSize;
       }
     } else {
       compiler::Label init_loop;
       __ Bind(&init_loop);
-      __ StoreIntoObjectNoBarrier(RAX, compiler::Address(RDI, 0), R12);
+      __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                  compiler::Address(RDI, 0), R12);
       __ addq(RDI, compiler::Immediate(kWordSize));
       __ cmpq(RDI, RCX);
       __ j(BELOW, &init_loop, compiler::Assembler::kNearJump);
@@ -2835,15 +2843,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Class& list_class =
         Class::Handle(compiler->isolate_group()->class_table()->At(kArrayCid));
     RegisterTypeArgumentsUse(compiler->function(), type_usage_info, list_class,
-                             element_type()->definition());
+                             type_arguments()->definition());
   }
-
-  // Allocate the array.  R10 = length, RBX = element type.
-  const Register kLengthReg = R10;
-  const Register kElemTypeReg = RBX;
-  const Register kResultReg = RAX;
-  ASSERT(locs()->in(0).reg() == kElemTypeReg);
-  ASSERT(locs()->in(1).reg() == kLengthReg);
 
   compiler::Label slow_path, done;
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
@@ -2866,7 +2867,6 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
   __ Bind(&done);
-  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
@@ -6966,10 +6966,10 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   if (type_arguments() != nullptr) {
-    locs->set_in(0,
-                 Location::RegisterLocation(kAllocationStubTypeArgumentsReg));
+    locs->set_in(kTypeArgumentsPos, Location::RegisterLocation(
+                                        AllocateObjectABI::kTypeArgumentsReg));
   }
-  locs->set_out(0, Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(AllocateObjectABI::kResultReg));
   return locs;
 }
 

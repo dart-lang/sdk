@@ -1118,12 +1118,14 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 }
 
 // Called for inline allocation of arrays.
-// Input parameters:
+// Input registers (preserved):
 //   LR: return address.
-//   R2: array length as Smi.
-//   R1: array element type (either NULL or an instantiated type).
-// NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
-// The newly allocated object is returned in R0.
+//   AllocateArrayABI::kLengthReg: array length as Smi.
+//   AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+// Output registers:
+//   AllocateArrayABI::kResultReg: newly allocated array.
+// Clobbered:
+//   R3, R7
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
@@ -1132,12 +1134,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // RoundedAllocationSize(
     //     (array_length * kwordSize) + target::Array::header_size()).
     // Check that length is a Smi.
-    __ BranchIfNotSmi(R2, &slow_case);
+    __ BranchIfNotSmi(AllocateArrayABI::kLengthReg, &slow_case);
 
     // Check length >= 0 && length <= kMaxNewSpaceElements
     const intptr_t max_len =
         target::ToRawSmi(target::Array::kMaxNewSpaceElements);
-    __ CompareImmediate(R2, max_len, kObjectBytes);
+    __ CompareImmediate(AllocateArrayABI::kLengthReg, max_len, kObjectBytes);
     __ b(&slow_case, HI);
 
     const intptr_t cid = kArrayCid;
@@ -1145,26 +1147,28 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
     // Calculate and align allocation size.
     // Load new object start and calculate next object start.
-    // R1: array element type.
-    // R2: array length as Smi.
-    __ ldr(R0, Address(THR, target::Thread::top_offset()));
+    // AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
+    __ ldr(AllocateArrayABI::kResultReg,
+           Address(THR, target::Thread::top_offset()));
     intptr_t fixed_size_plus_alignment_padding =
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
-    __ add(R3, R3, Operand(R2, LSL, 2), kObjectBytes);  // R2 is Smi.
+    __ add(R3, R3, Operand(AllocateArrayABI::kLengthReg, LSL, 2),
+           kObjectBytes);  // R2 is Smi.
     ASSERT(kSmiTagShift == 1);
     __ andi(R3, R3,
             Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
-    // R0: potential new object start.
+    // AllocateArrayABI::kResultReg: potential new object start.
     // R3: object size in bytes.
-    __ adds(R7, R3, Operand(R0));
+    __ adds(R7, R3, Operand(AllocateArrayABI::kResultReg));
     __ b(&slow_case, CS);  // Branch if unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
-    // R0: potential new object start.
-    // R1: array element type.
-    // R2: array length as Smi.
+    // AllocateArrayABI::kResultReg: potential new object start.
+    // AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
     // R3: array size.
     // R7: potential next object start.
     __ LoadFromOffset(TMP, THR, target::Thread::end_offset());
@@ -1173,66 +1177,72 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    // R0: potential new object start.
+    // AllocateArrayABI::kResultReg: potential new object start.
     // R3: array size.
     // R7: potential next object start.
     __ str(R7, Address(THR, target::Thread::top_offset()));
-    __ add(R0, R0, Operand(kHeapObjectTag));
+    __ add(AllocateArrayABI::kResultReg, AllocateArrayABI::kResultReg,
+           Operand(kHeapObjectTag));
 
-    // R0: new object start as a tagged pointer.
-    // R1: array element type.
-    // R2: array length as Smi.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
+    // AllocateArrayABI::kTypeArgumentsReg: type arguments of array.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
     // R3: array size.
     // R7: new object end address.
 
     // Store the type argument field.
-    __ StoreIntoObjectOffsetNoBarrier(
-        R0, target::Array::type_arguments_offset(), R1);
+    __ StoreIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
+                                      target::Array::type_arguments_offset(),
+                                      AllocateArrayABI::kTypeArgumentsReg);
 
     // Set the length field.
-    __ StoreIntoObjectOffsetNoBarrier(R0, target::Array::length_offset(), R2);
+    __ StoreIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
+                                      target::Array::length_offset(),
+                                      AllocateArrayABI::kLengthReg);
 
     // Calculate the size tag.
-    // R0: new object start as a tagged pointer.
-    // R2: array length as Smi.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
+    // AllocateArrayABI::kLengthReg: array length as Smi.
     // R3: array size.
     // R7: new object end address.
     const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
     __ CompareImmediate(R3, target::UntaggedObject::kSizeTagMaxSizeTag);
-    // If no size tag overflow, shift R1 left, else set R1 to zero.
+    // If no size tag overflow, shift R3 left, else set R3 to zero.
     __ LslImmediate(TMP, R3, shift);
-    __ csel(R1, TMP, R1, LS);
-    __ csel(R1, ZR, R1, HI);
+    __ csel(R3, TMP, R3, LS);
+    __ csel(R3, ZR, R3, HI);
 
     // Get the class index and insert it into the tags.
     const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
 
     __ LoadImmediate(TMP, tags);
-    __ orr(R1, R1, Operand(TMP));
-    __ StoreFieldToOffset(R1, R0, target::Array::tags_offset());
+    __ orr(R3, R3, Operand(TMP));
+    __ StoreFieldToOffset(R3, AllocateArrayABI::kResultReg,
+                          target::Array::tags_offset());
 
     // Initialize all array elements to raw_null.
-    // R0: new object start as a tagged pointer.
+    // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // R7: new object end address.
-    // R2: array length as Smi.
-    __ AddImmediate(R1, R0, target::Array::data_offset() - kHeapObjectTag);
-    // R1: iterator which initially points to the start of the variable
+    // AllocateArrayABI::kLengthReg: array length as Smi.
+    __ AddImmediate(R3, AllocateArrayABI::kResultReg,
+                    target::Array::data_offset() - kHeapObjectTag);
+    // R3: iterator which initially points to the start of the variable
     // data area to be initialized.
     Label loop, done;
     __ Bind(&loop);
     // TODO(cshapiro): StoreIntoObjectNoBarrier
-    __ CompareRegisters(R1, R7);
+    __ CompareRegisters(R3, R7);
     __ b(&done, CS);
-    __ str(NULL_REG, Address(R1));  // Store if unsigned lower.
-    __ AddImmediate(R1, target::kWordSize);
-    __ b(&loop);  // Loop until R1 == R7.
+    __ str(NULL_REG, Address(R3));  // Store if unsigned lower.
+    __ AddImmediate(R3, target::kWordSize);
+    __ b(&loop);  // Loop until R3 == R7.
     __ Bind(&done);
 
     // Done allocating and initializing the array.
-    // R0: new object.
-    // R2: array length as Smi (preserved for the caller.)
+    // AllocateArrayABI::kResultReg: new object.
+    // AllocateArrayABI::kLengthReg: array length as Smi (preserved).
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1245,13 +1255,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Setup space on stack for return value.
   // Push array length as Smi and element type.
   __ Push(ZR);
-  __ Push(R2);
-  __ Push(R1);
+  __ Push(AllocateArrayABI::kLengthReg);
+  __ Push(AllocateArrayABI::kTypeArgumentsReg);
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
   // Pop arguments; result is popped in IP.
-  __ Pop(R1);
-  __ Pop(R2);
-  __ Pop(R0);
+  __ Pop(AllocateArrayABI::kTypeArgumentsReg);
+  __ Pop(AllocateArrayABI::kLengthReg);
+  __ Pop(AllocateArrayABI::kResultReg);
   __ LeaveStubFrame();
 
   // Write-barrier elimination might be enabled for this array (depending on the
@@ -1855,8 +1865,6 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 static void GenerateAllocateObjectHelper(Assembler* assembler,
                                          bool is_cls_parameterized) {
-  const Register kInstanceReg = R0;
-  // kAllocationStubTypeArgumentsReg = R1
   const Register kTagsReg = R2;
 
   {
@@ -1872,11 +1880,12 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ ExtractInstanceSizeFromTags(kInstanceSizeReg, kTagsReg);
 
       // Load two words from Thread::top: top and end.
-      // kInstanceReg: potential next object start.
-      __ ldp(kInstanceReg, kEndReg,
+      // AllocateObjectABI::kResultReg: potential next object start.
+      __ ldp(AllocateObjectABI::kResultReg, kEndReg,
              Address(THR, target::Thread::top_offset(), Address::PairOffset));
 
-      __ add(kNewTopReg, kInstanceReg, Operand(kInstanceSizeReg));
+      __ add(kNewTopReg, AllocateObjectABI::kResultReg,
+             Operand(kInstanceSizeReg));
 
       __ CompareRegisters(kEndReg, kNewTopReg);
       __ b(&slow_case, UNSIGNED_LESS_EQUAL);
@@ -1887,13 +1896,14 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
     }  // kInstanceSizeReg = R4, kEndReg = R5
 
     // Tags.
-    __ str(kTagsReg, Address(kInstanceReg, target::Object::tags_offset()));
+    __ str(kTagsReg, Address(AllocateObjectABI::kResultReg,
+                             target::Object::tags_offset()));
 
     // Initialize the remaining words of the object.
     {
       const Register kFieldReg = R4;
 
-      __ AddImmediate(kFieldReg, kInstanceReg,
+      __ AddImmediate(kFieldReg, AllocateObjectABI::kResultReg,
                       target::Instance::first_field_offset());
       Label done, init_loop;
       __ Bind(&init_loop);
@@ -1925,14 +1935,16 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       // Set the type arguments in the new object.
       __ StoreIntoObjectNoBarrier(
-          kInstanceReg,
-          Address(kInstanceReg, kTypeOffestReg, UXTX, Address::Scaled),
-          kAllocationStubTypeArgumentsReg);
+          AllocateObjectABI::kResultReg,
+          Address(AllocateObjectABI::kResultReg, kTypeOffestReg, UXTX,
+                  Address::Scaled),
+          AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R4, kTypeOffestReg = R5
 
-    __ AddImmediate(kInstanceReg, kInstanceReg, kHeapObjectTag);
+    __ AddImmediate(AllocateObjectABI::kResultReg,
+                    AllocateObjectABI::kResultReg, kHeapObjectTag);
 
     __ ret();
 
@@ -1941,7 +1953,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
   // Fall back on slow case:
   if (!is_cls_parameterized) {
-    __ mov(kAllocationStubTypeArgumentsReg, NULL_REG);
+    __ mov(AllocateObjectABI::kTypeArgumentsReg, NULL_REG);
   }
   // Tail call to generic allocation stub.
   __ ldr(
@@ -1961,8 +1973,6 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 }
 
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
-  const Register kInstanceReg = R0;
-  // kAllocationStubTypeArgumentsReg = R1
   const Register kTagsToClsIdReg = R2;
 
   if (!FLAG_use_bare_instructions) {
@@ -1980,12 +1990,12 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   __ PushPair(R0, NULL_REG);  // Pushes result slot, then class object.
 
   // Should be Object::null() if class is non-parameterized.
-  __ Push(kAllocationStubTypeArgumentsReg);
+  __ Push(AllocateObjectABI::kTypeArgumentsReg);
 
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);
 
   // Load result off the stack into result register.
-  __ ldr(kInstanceReg, Address(SP, 2 * target::kWordSize));
+  __ ldr(AllocateObjectABI::kResultReg, Address(SP, 2 * target::kWordSize));
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
@@ -2003,9 +2013,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     const Class& cls,
     const Code& allocate_object,
     const Code& allocat_object_parametrized) {
-  static_assert(kAllocationStubTypeArgumentsReg == R1,
-                "Adjust register allocation in the AllocationStub");
-
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
@@ -2024,8 +2031,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
-  // kInstanceReg = R0
-  // kAllocationStubTypeArgumentsReg = R1
   const Register kTagsReg = R2;
 
   __ LoadImmediate(kTagsReg, tags);
@@ -2064,7 +2069,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     }
   } else {
     if (!is_cls_parameterized) {
-      __ LoadObject(kAllocationStubTypeArgumentsReg, NullObject());
+      __ LoadObject(AllocateObjectABI::kTypeArgumentsReg, NullObject());
     }
     __ ldr(R4,
            Address(THR,

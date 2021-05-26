@@ -2961,7 +2961,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
           break;
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
-      return create_array->element_type()->definition();
+      return create_array->type_arguments()->definition();
     } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
       const Slot& slot = load_array->slot();
       switch (slot.kind()) {

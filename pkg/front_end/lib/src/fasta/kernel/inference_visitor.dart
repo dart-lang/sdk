@@ -1995,7 +1995,7 @@ class InferenceVisitor
                       entry,
                       (type) => !type.isPotentiallyNullable));
               _copyNonPromotionReasonToReplacement(entry, problem);
-              replacement = new SpreadMapEntry(problem, false)
+              replacement = new SpreadMapEntry(problem, isNullAware: false)
                 ..fileOffset = entry.fileOffset;
             }
 

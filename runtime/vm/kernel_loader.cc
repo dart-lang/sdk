@@ -699,13 +699,16 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
       }
     }
 
-    // Sets the constants array to an empty hash and leaves the constant
-    // table's raw bytes in place for lazy reading. We can fix up all
-    // "pending" processing now, and must ensure we don't create new
-    // ones from this point on.
+    // Sets the constants array to an empty array with the length equal to
+    // the number of constants. The array gets filled lazily while reading
+    // constants.
     ASSERT(kernel_program_info_.constants_table() != ExternalTypedData::null());
-    const Array& array =
-        Array::Handle(Z, HashTables::New<KernelConstantsMap>(16, Heap::kOld));
+    ConstantReader constant_reader(&helper_, &active_class_);
+    const intptr_t num_consts = constant_reader.NumConstants();
+    const Array& array = Array::Handle(Z, Array::New(num_consts, Heap::kOld));
+    for (intptr_t i = 0; i < num_consts; i++) {
+      array.SetAt(i, Object::sentinel());
+    }
     kernel_program_info_.set_constants(array);
     H.SetConstants(array);  // for caching
     AnnotateNativeProcedures();

@@ -88,9 +88,6 @@ const Register kWriteBarrierObjectReg = EDX;
 const Register kWriteBarrierValueReg = kNoRegister;
 const Register kWriteBarrierSlotReg = EDI;
 
-// ABI for allocation stubs.
-const Register kAllocationStubTypeArgumentsReg = EDX;
-
 // Common ABI for shared slow path stubs.
 struct SharedSlowPathStubABI {
   static const Register kResultReg = EAX;
@@ -196,23 +193,36 @@ struct RangeErrorABI {
   static const Register kIndexReg = EBX;
 };
 
+// ABI for AllocateObjectStub.
+struct AllocateObjectABI {
+  static const Register kResultReg = EAX;
+  static const Register kTypeArgumentsReg = EDX;
+};
+
 // ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
 struct AllocateBoxABI {
-  static const Register kResultReg = EAX;
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kTempReg = EBX;
 };
 
 // ABI for AllocateClosureStub.
 struct AllocateClosureABI {
-  static const Register kResultReg = EAX;
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kFunctionReg = EBX;
   static const Register kScratchReg = EDX;
 };
 
-// ABI for Allocate<TypedData>ArrayStub.
+// ABI for AllocateArrayStub.
+struct AllocateArrayABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kLengthReg = EDX;
+  static const Register kTypeArgumentsReg = ECX;
+};
+
+// ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
-  static const Register kLengthReg = EAX;
-  static const Register kResultReg = EAX;
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kLengthReg = kResultReg;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
