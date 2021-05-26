@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -138,6 +139,9 @@ class ContextManagerImpl implements ContextManager {
   /// The storage for cached results.
   final ByteStore _byteStore;
 
+  /// The cache of file contents shared between context of the collection.
+  final FileContentCache _fileContentCache;
+
   /// The logger used to create analysis contexts.
   final PerformanceLog _performanceLog;
 
@@ -196,8 +200,14 @@ class ContextManagerImpl implements ContextManager {
   /// clean up when we destroy a context.
   final bazelWatchedPathsPerFolder = <Folder, _BazelWatchedFiles>{};
 
-  ContextManagerImpl(this.resourceProvider, this.sdkManager, this._byteStore,
-      this._performanceLog, this._scheduler, this._instrumentationService,
+  ContextManagerImpl(
+      this.resourceProvider,
+      this.sdkManager,
+      this._byteStore,
+      this._fileContentCache,
+      this._performanceLog,
+      this._scheduler,
+      this._instrumentationService,
       {required enableBazelWatcher})
       : pathContext = resourceProvider.pathContext {
     if (enableBazelWatcher) {
@@ -406,6 +416,7 @@ class ContextManagerImpl implements ContextManager {
       resourceProvider: resourceProvider,
       scheduler: _scheduler,
       sdkPath: sdkManager.defaultSdkDirectory,
+      fileContentCache: _fileContentCache,
     );
 
     for (var analysisContext in collection.contexts) {

@@ -13,6 +13,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -89,8 +90,12 @@ class ContextBuilder {
 
   /// Return an analysis driver that is configured correctly to analyze code in
   /// the directory with the given [path].
-  AnalysisDriver buildDriver(ContextRoot contextRoot, Workspace workspace,
-      {void Function(AnalysisOptionsImpl)? updateAnalysisOptions}) {
+  AnalysisDriver buildDriver(
+    ContextRoot contextRoot,
+    Workspace workspace, {
+    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    FileContentCache? fileContentCache,
+  }) {
     String path = contextRoot.root;
 
     var options = getAnalysisOptions(path, workspace, contextRoot: contextRoot);
@@ -124,6 +129,7 @@ class ContextBuilder {
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
+      fileContentCache: fileContentCache,
     );
 
     declareVariablesInDriver(driver);

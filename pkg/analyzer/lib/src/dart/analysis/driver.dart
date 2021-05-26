@@ -19,6 +19,7 @@ import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -111,7 +112,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// This [ContentCache] is consulted for a file content before reading
   /// the content from the file.
-  final FileContentOverlay? _contentOverlay;
+  final FileContentCache _fileContentCache;
 
   /// The analysis options to analyze with.
   AnalysisOptionsImpl _analysisOptions;
@@ -302,13 +303,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required SourceFactory sourceFactory,
     required AnalysisOptionsImpl analysisOptions,
     required Packages packages,
+    FileContentCache? fileContentCache,
     bool enableIndex = false,
     SummaryDataStore? externalSummaries,
     bool retainDataForTesting = false,
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
         _byteStore = byteStore,
-        _contentOverlay = FileContentOverlay(),
+        _fileContentCache =
+            fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
         _analysisOptions = analysisOptions,
         enableIndex = enableIndex,
         _logger = logger,
@@ -1806,7 +1809,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _fsState = FileSystemState(
       _logger,
       _byteStore,
-      _contentOverlay,
       _resourceProvider,
       name,
       sourceFactory,
@@ -1817,6 +1819,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _saltForElements,
       featureSetProvider,
       externalSummaries: _externalSummaries,
+      fileContentCache: _fileContentCache,
     );
     _fileTracker = FileTracker(_logger, _fsState, _changeHook);
   }
