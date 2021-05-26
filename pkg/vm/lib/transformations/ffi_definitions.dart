@@ -568,8 +568,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = _getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
-          type = NativeTypeCfe(this, dartType,
-              compoundCache: compoundCache, arrayDimensions: arrayDimensions);
+          arrayDimensions.length;
+          if (this.arrayDimensions(dartType) == arrayDimensions.length) {
+            type = NativeTypeCfe(this, dartType,
+                compoundCache: compoundCache, arrayDimensions: arrayDimensions);
+          } else {
+            type = InvalidNativeTypeCfe("Invalid array dimensions.");
+          }
         }
       } else if (isPointerType(dartType) || isCompoundSubtype(dartType)) {
         type = NativeTypeCfe(this, dartType, compoundCache: compoundCache);
@@ -888,7 +893,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             .whereType<IntConstant>()
             .map((e) => e.value)
             .toList();
-        assert(result.length > 0);
         return result;
       }
     }
@@ -982,12 +986,15 @@ abstract class NativeTypeCfe {
       if (compoundCache.containsKey(clazz)) {
         return compoundCache[clazz];
       } else {
-        throw "$clazz not found in compoundCache";
+        throw "Class '$clazz' not found in compoundCache.";
       }
     }
     if (transformer.isArrayType(dartType)) {
       if (arrayDimensions == null) {
-        throw "Must have array dimensions for ArrayType";
+        throw "Must have array dimensions for ArrayType.";
+      }
+      if (arrayDimensions.length == 0) {
+        throw "Must have a size for this array dimension.";
       }
       final elementType = transformer.arraySingleElementType(dartType);
       final elementCfeType =
