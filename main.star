@@ -1597,6 +1597,20 @@ dart_infra_builder(
     recipe = "roller/roll_to_dev",
     schedule = "with 4h interval",
 )
+
+# Builder that tests the dev Linux image. When the image autoroller detects
+# successful builds of this builder with the dev image, it the current dev image
+# becomes the new prod image. Newly created bots will than use the updated
+# image. The `vm-precomp-ffi-qemu-linux-release-arm` is  used because qemu is
+# the primary difference, it passes all tests, triggers no shards and runs a few
+# different builds. See also https://crbug.com/1207358.
+nightly_builder(
+    "vm-precomp-ffi-qemu-linux-release-arm-experimental",
+    channels = [],
+    dimensions = {"host_class": "experimental"},
+    notifies = "infra",
+)
+
 dart_infra_builder(
     "nightly",
     notifies = "infra",
@@ -1618,23 +1632,6 @@ dart_ci_sandbox_builder(
     properties = {"bisection_enabled": True},
     notifies = "ci-test-data",
     triggered_by = ["dart-ci-test-data-trigger"],
-)
-
-# Builder that tests the dev Linux image. When the image autoroller detects
-# successful builds of this builder with the dev image, it the current dev image
-# becomes the new prod image. Newly created bots will than use the updated
-# image. The `vm-precomp-ffi-qemu-linux-release-arm` is  used because qemu is
-# the primary difference, it passes all tests, triggers no shards and runs a few
-# different builds. See also https://crbug.com/1207358.
-dart_ci_sandbox_builder(
-    "vm-precomp-ffi-qemu-linux-release-arm-experimental",
-    channels = [],
-    dimensions = {"host_class": "experimental"},
-    experimental = True,
-    notifies = "infra",
-    # At minute 0 past hour 5 and 7 on every day-of-week from Mon through Fri.
-    schedule = "0 5,7 * * 1-5",
-    triggered_by = None,
 )
 
 # Fuzz testing builders
