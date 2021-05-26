@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:9:34: Error: Getter not found: 'foo'.
+// A<num> Function(num) bar1() => A.foo; // Ok.
+//                                  ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:10:34: Error: Getter not found: 'foo'.
+// A<int> Function(int) bar2() => A.foo; // Ok.
+//                                  ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:11:41: Error: Getter not found: 'foo'.
+// A<dynamic> Function(String) bar3() => A.foo; // Error.
+//                                         ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num> extends core::Object {
+  constructor foo(self::A::X x) → self::A<self::A::X>
+    : super core::Object::•() {}
+}
+static method bar1() → (core::num) → self::A<core::num>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:9:34: Error: Getter not found: 'foo'.
+A<num> Function(num) bar1() => A.foo; // Ok.
+                                 ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::num) → self::A<core::num>;
+static method bar2() → (core::int) → self::A<core::int>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:10:34: Error: Getter not found: 'foo'.
+A<int> Function(int) bar2() => A.foo; // Ok.
+                                 ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int) → self::A<core::int>;
+static method bar3() → (core::String) → self::A<dynamic>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:11:41: Error: Getter not found: 'foo'.
+A<dynamic> Function(String) bar3() => A.foo; // Error.
+                                        ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::String) → self::A<dynamic>;
+static method main() → dynamic {}
