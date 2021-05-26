@@ -5,7 +5,14 @@
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show Annotation, AstNode, ConstructorName;
+    show
+        Annotation,
+        AsExpression,
+        AstNode,
+        ConstructorName,
+        Expression,
+        InvocationExpression,
+        SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
@@ -488,6 +495,13 @@ class GenericInferrer {
     if (errorReporter == null || errorNode == null) {
       return;
     }
+    if (errorNode.parent is InvocationExpression &&
+        errorNode.parent?.parent is AsExpression) {
+      // Casts via `as` do not play a part in downward inference. We allow an
+      // exception when inference has "failed" but the return value is
+      // immediately cast with `as`.
+      return;
+    }
     if (errorNode is ConstructorName &&
         !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
       String constructorName = errorNode.name == null
@@ -511,9 +525,42 @@ class GenericInferrer {
               [constructorName]);
         }
       }
+    } else if (errorNode is SimpleIdentifier) {
+      var element = errorNode.staticElement;
+      if (element != null) {
+        if (element is VariableElement) {
+          // For variable elements, we check their type and possible alias type.
+          var type = element.type;
+          var typeElement = type.element;
+          if (typeElement != null && typeElement.hasOptionalTypeArgs) {
+            return;
+          }
+          var typeAliasElement = type.aliasElement;
+          if (typeAliasElement != null &&
+              typeAliasElement.hasOptionalTypeArgs) {
+            return;
+          }
+        }
+        if (!element.hasOptionalTypeArgs) {
+          errorReporter.reportErrorForNode(
+              HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
+              errorNode,
+              [errorNode.name]);
+          return;
+        }
+      }
+    } else if (errorNode is Expression) {
+      var type = errorNode.staticType;
+      if (type != null) {
+        var typeDisplayString = type.getDisplayString(
+            withNullability: _typeSystem.isNonNullableByDefault);
+        errorReporter.reportErrorForNode(
+            HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION,
+            errorNode,
+            [typeDisplayString]);
+        return;
+      }
     }
-    // TODO(srawlins): More inference failure cases, like functions, and
-    // function expressions.
   }
 
   /// If in a legacy library, return the legacy version of the [type].
