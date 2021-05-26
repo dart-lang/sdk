@@ -1,3 +1,6 @@
+## 1.7.0
+* Require `meta: ^1.4.0`.
+
 ## 1.6.0
 * Deprecated `AnalysisDriver` default constructor.  Added `tmp1`. The goal
   is to allow deprecating and removing unused  parameters.
