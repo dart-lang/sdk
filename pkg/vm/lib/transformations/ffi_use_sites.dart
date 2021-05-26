@@ -25,6 +25,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
@@ -341,11 +342,18 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           if (node.arguments.positional.length == 2) {
             sizeInBytes = multiply(node.arguments.positional[1], sizeInBytes);
           }
-          return MethodInvocation(
+          final FunctionType allocateFunctionType =
+              allocatorAllocateMethod.getterType as FunctionType;
+          return InstanceInvocation(
+              InstanceAccessKind.Instance,
               node.arguments.positional[0],
               allocatorAllocateMethod.name,
               Arguments([sizeInBytes], types: node.arguments.types),
-              allocatorAllocateMethod);
+              interfaceTarget: allocatorAllocateMethod,
+              functionType: Substitution.fromPairs(
+                      allocateFunctionType.typeParameters, node.arguments.types)
+                  .substituteType(allocateFunctionType
+                      .withoutTypeParameters) as FunctionType);
         }
       }
     } on _FfiStaticTypeError {
@@ -428,17 +436,24 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final DartType nativeSignature = node.arguments.types[0];
     final DartType dartSignature = node.arguments.types[1];
 
-    final Arguments lookupArgs = Arguments([
-      node.arguments.positional[1]
-    ], types: [
+    final List<DartType> lookupTypeArgs = [
       InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeSignature])
-    ]);
+    ];
+    final Arguments lookupArgs =
+        Arguments([node.arguments.positional[1]], types: lookupTypeArgs);
+    final FunctionType lookupFunctionType =
+        libraryLookupMethod.getterType as FunctionType;
 
-    final Expression lookupResult = MethodInvocation(
+    final Expression lookupResult = InstanceInvocation(
+        InstanceAccessKind.Instance,
         node.arguments.positional[0],
-        Name("lookup"),
+        libraryLookupMethod.name,
         lookupArgs,
-        libraryLookupMethod);
+        interfaceTarget: libraryLookupMethod,
+        functionType: Substitution.fromPairs(
+                    lookupFunctionType.typeParameters, lookupTypeArgs)
+                .substituteType(lookupFunctionType.withoutTypeParameters)
+            as FunctionType);
 
     bool isLeaf = _getIsLeafBoolean(node);
     if (isLeaf == null) {
@@ -496,13 +511,17 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
     Expression pointer = NullCheck(node.arguments.positional[0]);
     if (node.arguments.positional.length == 2) {
-      pointer = MethodInvocation(
+      pointer = InstanceInvocation(
+          InstanceAccessKind.Instance,
           pointer,
           offsetByMethod.name,
           Arguments([
             multiply(node.arguments.positional[1], _inlineSizeOf(dartType))
           ]),
-          offsetByMethod);
+          interfaceTarget: offsetByMethod,
+          functionType:
+              Substitution.fromPairs(pointerClass.typeParameters, [dartType])
+                  .substituteType(offsetByMethod.getterType) as FunctionType);
     }
     return ConstructorInvocation(constructor, Arguments([pointer]));
   }
@@ -585,10 +604,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final elementSizeVar = VariableDeclaration("#elementSize",
         initializer: multiply(
             VariableGet(singleElementSizeVar),
-            PropertyGet(
-                VariableGet(arrayVar),
+            InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                 arrayNestedDimensionsFlattened.name,
-                arrayNestedDimensionsFlattened)),
+                interfaceTarget: arrayNestedDimensionsFlattened,
+                resultType: arrayNestedDimensionsFlattened.type)),
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final offsetVar = VariableDeclaration("#offset",
@@ -600,11 +619,13 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final checkIndexAndLocalVars = Block([
       arrayVar,
       indexVar,
-      ExpressionStatement(MethodInvocation(
+      ExpressionStatement(InstanceInvocation(
+          InstanceAccessKind.Instance,
           VariableGet(arrayVar),
           arrayCheckIndex.name,
           Arguments([VariableGet(indexVar)]),
-          arrayCheckIndex)),
+          interfaceTarget: arrayCheckIndex,
+          functionType: arrayCheckIndex.getterType as FunctionType)),
       singleElementSizeVar,
       elementSizeVar,
       offsetVar
@@ -623,12 +644,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                     VariableGet(elementSizeVar),
                     dartType,
                     node.fileOffset),
-                PropertyGet(
-                    VariableGet(arrayVar),
+                InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                     arrayNestedDimensionsFirst.name,
-                    arrayNestedDimensionsFirst),
-                PropertyGet(VariableGet(arrayVar),
-                    arrayNestedDimensionsRest.name, arrayNestedDimensionsRest)
+                    interfaceTarget: arrayNestedDimensionsFirst,
+                    resultType: arrayNestedDimensionsFirst.type),
+                InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
+                    arrayNestedDimensionsRest.name,
+                    interfaceTarget: arrayNestedDimensionsRest,
+                    resultType: arrayNestedDimensionsRest.type)
               ], types: [
                 dartType
               ])));
@@ -667,12 +690,17 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         Expression inlineSizeOf = _inlineSizeOf(nativeType);
         if (inlineSizeOf != null) {
           // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
-          return MethodInvocation(
+          return InstanceInvocation(
+              InstanceAccessKind.Instance,
               node.receiver,
               offsetByMethod.name,
               Arguments(
                   [multiply(node.arguments.positional.single, inlineSizeOf)]),
-              offsetByMethod);
+              interfaceTarget: offsetByMethod,
+              functionType:
+                  Substitution.fromInterfaceType(pointerType as InterfaceType)
+                          .substituteType(offsetByMethod.getterType)
+                      as FunctionType);
         }
       }
     } on _FfiStaticTypeError {
@@ -700,12 +728,17 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         Expression inlineSizeOf = _inlineSizeOf(nativeType);
         if (inlineSizeOf != null) {
           // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
-          return MethodInvocation(
+          return InstanceInvocation(
+              InstanceAccessKind.Instance,
               node.receiver,
               offsetByMethod.name,
               Arguments(
                   [multiply(node.arguments.positional.single, inlineSizeOf)]),
-              offsetByMethod);
+              interfaceTarget: offsetByMethod,
+              functionType:
+                  Substitution.fromInterfaceType(pointerType as InterfaceType)
+                          .substituteType(offsetByMethod.getterType)
+                      as FunctionType);
         }
       }
     } on _FfiStaticTypeError {
