@@ -2481,9 +2481,12 @@ class PhiInstr : public Definition {
 
   virtual void set_representation(Representation r) { representation_ = r; }
 
-  // In AOT mode Phi instructions do not check types of inputs when unboxing.
+  // Only Int32 phis in JIT mode are unboxed optimistically.
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
-    return CompilerState::Current().is_aot() ? kNotSpeculative : kGuardInputs;
+    return (CompilerState::Current().is_aot() ||
+            (representation_ != kUnboxedInt32))
+               ? kNotSpeculative
+               : kGuardInputs;
   }
 
   virtual intptr_t Hashcode() const {
@@ -3139,6 +3142,9 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
     // hoists instructions out of the loop.
     return true;
   }
+
+  // May require a deoptimization target for int32 Phi input conversions.
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -4104,6 +4110,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
       }
       idx--;
     }
+    if (interface_target_.IsNull()) return kGuardInputs;
     return interface_target_.is_unboxed_parameter_at(idx) ? kNotSpeculative
                                                           : kGuardInputs;
   }
