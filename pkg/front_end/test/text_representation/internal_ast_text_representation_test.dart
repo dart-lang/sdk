@@ -785,9 +785,9 @@ void _testParenthesizedExpression() {
 }
 
 void _testSpreadElement() {
-  testExpression(new SpreadElement(new IntLiteral(0), false), '''
+  testExpression(new SpreadElement(new IntLiteral(0), isNullAware: false), '''
 ...0''');
-  testExpression(new SpreadElement(new IntLiteral(0), true), '''
+  testExpression(new SpreadElement(new IntLiteral(0), isNullAware: true), '''
 ...?0''');
 }
 

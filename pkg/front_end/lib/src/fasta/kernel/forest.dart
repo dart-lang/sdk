@@ -225,7 +225,8 @@ class Forest {
       {bool isNullAware}) {
     assert(fileOffset != null);
     assert(isNullAware != null);
-    return new SpreadElement(expression, isNullAware)..fileOffset = fileOffset;
+    return new SpreadElement(expression, isNullAware: isNullAware)
+      ..fileOffset = fileOffset;
   }
 
   Expression createIfElement(
