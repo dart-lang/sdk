@@ -105,12 +105,12 @@ class ReplaceWithInterpolation extends CorrectionProducer {
     buffer.write(quotes);
     for (var i = 0; i < components.length; i++) {
       var component = components[i];
-      if (component is SimpleStringLiteral) {
+      if (component is SingleStringLiteral) {
         var contents = utils.getRangeText(range.startOffsetEndOffset(
             component.contentsOffset, component.contentsEnd));
         buffer.write(contents);
       } else if (component is SimpleIdentifier) {
-        if (_nextStartsWithLetter(components, i)) {
+        if (_nextStartsWithIdentifierContinuation(components, i)) {
           buffer.write(r'${');
           buffer.write(component.name);
           buffer.write('}');
@@ -129,20 +129,22 @@ class ReplaceWithInterpolation extends CorrectionProducer {
   }
 
   /// Return `true` if the component after [index] in the list of [components]
-  /// is one that would begin with a letter when written into the resulting
-  /// string.
-  bool _nextStartsWithLetter(List<AstNode> components, int index) {
-    bool startsWithLetter(String string) =>
-        string.startsWith(RegExp('[a-zA-Z]'));
+  /// is one that would begin with a valid identifier continuation character
+  /// when written into the resulting string.
+  bool _nextStartsWithIdentifierContinuation(
+      List<AstNode> components, int index) {
+    bool startsWithIdentifierContinuation(String string) =>
+        string.startsWith(RegExp(r'[a-zA-Z0-9_$]'));
 
     if (index + 1 >= components.length) {
       return false;
     }
     var next = components[index + 1];
     if (next is SimpleStringLiteral) {
-      return startsWithLetter(next.value);
+      return startsWithIdentifierContinuation(next.value);
     } else if (next is StringInterpolation) {
-      return startsWithLetter((next.elements[0] as InterpolationString).value);
+      return startsWithIdentifierContinuation(
+          (next.elements[0] as InterpolationString).value);
     }
     return false;
   }

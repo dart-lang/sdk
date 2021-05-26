@@ -265,6 +265,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     PerformanceLog logger,
     ResourceProvider resourceProvider,
     ByteStore byteStore,
+    // ignore: avoid_unused_constructor_parameters
     FileContentOverlay? contentOverlay,
     // ignore: avoid_unused_constructor_parameters
     ContextRoot? contextRoot,
@@ -280,7 +281,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       logger: logger,
       resourceProvider: resourceProvider,
       byteStore: byteStore,
-      contentOverlay: contentOverlay,
       sourceFactory: sourceFactory,
       analysisOptions: analysisOptions,
       packages: packages ?? Packages.empty,
@@ -299,8 +299,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required PerformanceLog logger,
     required ResourceProvider resourceProvider,
     required ByteStore byteStore,
-    @Deprecated('Use OverlayResourceProvider instead')
-        FileContentOverlay? contentOverlay,
     required SourceFactory sourceFactory,
     required AnalysisOptionsImpl analysisOptions,
     required Packages packages,
@@ -310,7 +308,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
         _byteStore = byteStore,
-        _contentOverlay = contentOverlay ?? FileContentOverlay(),
+        _contentOverlay = FileContentOverlay(),
         _analysisOptions = analysisOptions,
         enableIndex = enableIndex,
         _logger = logger,

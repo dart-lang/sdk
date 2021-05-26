@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library dart2js.util.enumset;
 
 import 'dart:collection';
@@ -19,11 +21,11 @@ abstract class EnumSet<E> {
 
   /// Create a set containing the [values]. If [fixed] is `true` the set is
   /// immutable.
-  factory EnumSet.fromValues(Iterable<E> values, {bool fixed: false}) {
+  factory EnumSet.fromValues(Iterable<E> values, {bool fixed = false}) {
     if (fixed) {
-      return new _ConstEnumSet<E>.fromValues(values);
+      return _ConstEnumSet<E>.fromValues(values);
     } else {
-      return new _EnumSet<E>.fromValues(values);
+      return _EnumSet<E>.fromValues(values);
     }
   }
 
@@ -53,19 +55,19 @@ abstract class EnumSet<E> {
 
   /// Returns a new set containing all values in both this and the [other] set.
   EnumSet<E> intersection(EnumSet<E> other) {
-    return new EnumSet.fromValue(value & other.value);
+    return EnumSet.fromValue(value & other.value);
   }
 
   /// Returns a new set containing all values either in this set or in the
   /// [other] set.
   EnumSet<E> union(EnumSet<E> other) {
-    return new EnumSet.fromValue(value | other.value);
+    return EnumSet.fromValue(value | other.value);
   }
 
   /// Returns a new set containing all values in this set that are not in the
   /// [other] set.
   EnumSet<E> minus(EnumSet<E> other) {
-    return new EnumSet.fromValue(value & ~other.value);
+    return EnumSet.fromValue(value & ~other.value);
   }
 
   /// Clears this set.
@@ -86,7 +88,7 @@ abstract class EnumSet<E> {
   ///     Iterable<EnumClass> iterable = set.iterable(EnumClass.values);
   ///
   Iterable<E> iterable(List<E> values) {
-    return new _EnumSetIterable(this, values);
+    return _EnumSetIterable(this, values);
   }
 
   /// Returns `true` if this and [other] have any elements in common.
@@ -101,7 +103,7 @@ abstract class EnumSet<E> {
   bool get isNotEmpty => value != 0;
 
   /// Returns a new mutable enum set that contains the values of this set.
-  EnumSet<E> clone() => new EnumSet<E>.fromValue(value);
+  EnumSet<E> clone() => EnumSet<E>.fromValue(value);
 
   @override
   int get hashCode => value.hashCode * 19;
@@ -115,16 +117,7 @@ abstract class EnumSet<E> {
 
   @override
   String toString() {
-    if (value == 0) return '0';
-    int index = value.bitLength - 1;
-    StringBuffer sb = new StringBuffer();
-    int mask = 1 << index;
-    while (index >= 0) {
-      sb.write((value & mask) != 0 ? '1' : '0');
-      index--;
-      mask >>= 1;
-    }
-    return sb.toString();
+    return value.toRadixString(2);
   }
 }
 
@@ -173,7 +166,7 @@ class _EnumSet<E> extends EnumSet<E> {
   EnumSet<E> removeAll(EnumSet<E> set) {
     int removed = _value & set.value;
     _value &= ~set.value;
-    return new EnumSet<E>.fromValue(removed);
+    return EnumSet<E>.fromValue(removed);
   }
 
   @override
@@ -198,22 +191,22 @@ class _ConstEnumSet<E> extends EnumSet<E> {
     }
 
     values.forEach(add);
-    return new _ConstEnumSet(value);
+    return _ConstEnumSet(value);
   }
 
   @override
   void set value(int mask) {
-    throw new UnsupportedError('EnumSet.value=');
+    throw UnsupportedError('EnumSet.value=');
   }
 
   @override
   bool add(E enumValue) {
-    throw new UnsupportedError('EnumSet.add');
+    throw UnsupportedError('EnumSet.add');
   }
 
   @override
   void addAll(EnumSet<E> set) {
-    throw new UnsupportedError('EnumSet.addAll');
+    throw UnsupportedError('EnumSet.addAll');
   }
 
   @override
@@ -222,7 +215,7 @@ class _ConstEnumSet<E> extends EnumSet<E> {
       // We allow this no-op operation on an immutable set to support using a
       // constant empty set together with mutable sets where applicable.
     } else {
-      throw new UnsupportedError('EnumSet.clear');
+      throw UnsupportedError('EnumSet.clear');
     }
   }
 
@@ -233,7 +226,7 @@ class _ConstEnumSet<E> extends EnumSet<E> {
       // constant empty set together with mutable sets where applicable.
       return false;
     }
-    throw new UnsupportedError('EnumSet.remove');
+    throw UnsupportedError('EnumSet.remove');
   }
 
   @override
@@ -248,7 +241,7 @@ class _ConstEnumSet<E> extends EnumSet<E> {
       // constant empty set together with mutable sets where applicable.
       return set.clone();
     }
-    throw new UnsupportedError('EnumSet.removeAll');
+    throw UnsupportedError('EnumSet.removeAll');
   }
 }
 
@@ -259,42 +252,28 @@ class _EnumSetIterable<E> extends IterableBase<E> {
   _EnumSetIterable(this._enumSet, this._values);
 
   @override
-  Iterator<E> get iterator => new _EnumSetIterator(_enumSet.value, _values);
+  Iterator<E> get iterator => _EnumSetIterator(_enumSet.value, _values);
 }
 
 class _EnumSetIterator<E> implements Iterator<E> {
   int _value;
-  int _index;
-  int _mask;
   final List<E> _values;
-  E _current;
+  E? _current;
 
   _EnumSetIterator(this._value, this._values);
 
   @override
-  E get current => _current;
+  E get current => _current as E;
 
   @override
   bool moveNext() {
     if (_value == 0) {
-      return false;
-    } else {
-      if (_mask == null) {
-        _index = _value.bitLength - 1;
-        _mask = 1 << _index;
-      }
       _current = null;
-      while (_index >= 0) {
-        if (_mask & _value != 0) {
-          _current = _values[_index];
-        }
-        _mask >>= 1;
-        _index--;
-        if (_current != null) {
-          break;
-        }
-      }
-      return _current != null;
+      return false;
     }
+    int index = _value.bitLength - 1;
+    _current = _values[index];
+    _value &= ~(1 << index);
+    return true;
   }
 }

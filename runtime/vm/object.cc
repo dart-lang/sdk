@@ -20090,6 +20090,23 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   if (IsDynamicType() || IsVoidType()) {
     return false;
   }
+  // Left TypeRef.
+  if (IsTypeRef()) {
+    if (TestAndAddBuddyToTrail(&trail, other)) {
+      return true;
+    }
+    const AbstractType& ref_type =
+        AbstractType::Handle(TypeRef::Cast(*this).type());
+    return ref_type.IsSubtypeOf(other, space, trail);
+  }
+  // Right TypeRef.
+  if (other.IsTypeRef()) {
+    // Unfold right hand type. Divergence is controlled by left hand type.
+    const AbstractType& other_ref_type =
+        AbstractType::Handle(TypeRef::Cast(other).type());
+    ASSERT(!other_ref_type.IsTypeRef());
+    return IsSubtypeOf(other_ref_type, space, trail);
+  }
   // Left Null type.
   if (IsNullType()) {
     return Instance::NullIsAssignableTo(other);
@@ -20113,8 +20130,11 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     const TypeParameter& type_param = TypeParameter::Cast(*this);
     if (other.IsTypeParameter()) {
       const TypeParameter& other_type_param = TypeParameter::Cast(other);
+      // It is ok to pass the IsSubtypeOf trail to TypeParameter::IsEquivalent,
+      // because it will only be used in a IsSubtypeOf test of the type
+      // parameter bounds.
       if (type_param.IsEquivalent(other_type_param,
-                                  TypeEquality::kInSubtypeTest)) {
+                                  TypeEquality::kInSubtypeTest, trail)) {
         return true;
       }
     }
@@ -21521,8 +21541,12 @@ bool TypeParameter::IsEquivalent(const Instance& other,
       AbstractType& other_type_param_upper_bound =
           AbstractType::Handle(other_type_param.bound());
       // Bounds that are mutual subtypes are considered equal.
-      if (!upper_bound.IsSubtypeOf(other_type_param_upper_bound, Heap::kOld) ||
-          !other_type_param_upper_bound.IsSubtypeOf(upper_bound, Heap::kOld)) {
+      // It is ok to pass the IsEquivalent trail as the IsSubtypeOf trail,
+      // because it is more restrictive (equivalence implies subtype).
+      if (!upper_bound.IsSubtypeOf(other_type_param_upper_bound, Heap::kOld,
+                                   trail) ||
+          !other_type_param_upper_bound.IsSubtypeOf(upper_bound, Heap::kOld,
+                                                    trail)) {
         return false;
       }
     } else {

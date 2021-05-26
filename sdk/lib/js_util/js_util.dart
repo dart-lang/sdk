@@ -68,11 +68,21 @@ dynamic newObject() => JS('=Object', '{}');
 
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 
+// All usage optimized away in a CFE transformation. Changes here will not
+// affect the generated JS.
 dynamic getProperty(Object o, Object name) =>
     JS('Object|Null', '#[#]', o, name);
 
+// Some usage optimized away in a CFE transformation. If given value is a
+// function, changes here will not affect the generated JS.
 dynamic setProperty(Object o, Object name, Object? value) {
   assertInterop(value);
+  return JS('', '#[#]=#', o, name, value);
+}
+
+/// Unchecked version of setProperty, only used in a CFE transformation.
+@pragma('dart2js:tryInline')
+dynamic _setPropertyUnchecked(Object o, Object name, Object? value) {
   return JS('', '#[#]=#', o, name, value);
 }
 

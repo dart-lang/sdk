@@ -3956,6 +3956,13 @@ static FunctionPtr GetFunction(const Class& cls, const char* name) {
   return result.ptr();
 }
 
+static FunctionPtr GetFunction(const Library& lib, const char* name) {
+  const Function& result = Function::Handle(
+      lib.LookupLocalFunction(String::Handle(String::New(name))));
+  EXPECT(!result.IsNull());
+  return result.ptr();
+}
+
 static FunctionPtr GetStaticFunction(const Class& cls, const char* name) {
   const auto& error = cls.EnsureIsFinalized(Thread::Current());
   EXPECT(error == Error::null());
@@ -4889,6 +4896,27 @@ ISOLATE_UNIT_TEST_CASE(String_EqualsUTF32) {
   const String& str =
       String::Handle(String::FromUTF32(char_codes, ARRAY_SIZE(char_codes)));
   EXPECT(str.Equals(char_codes, ARRAY_SIZE(char_codes)));
+}
+
+TEST_CASE(TypeParameterTypeRef) {
+  // Regression test for issue 82890.
+  const char* kScriptChars =
+      "void foo<T extends C<T>>(T x) {}\n"
+      "void bar<M extends U<M>>(M x) {}\n"
+      "abstract class C<T> {}\n"
+      "abstract class U<T> extends C<T> {}\n";
+  TestCase::LoadTestScript(kScriptChars, NULL);
+  TransitionNativeToVM transition(thread);
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  const String& name = String::Handle(String::New(TestCase::url()));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
+  EXPECT(!lib.IsNull());
+
+  const Function& foo = Function::Handle(GetFunction(lib, "foo"));
+  const Function& bar = Function::Handle(GetFunction(lib, "bar"));
+  const TypeParameter& t = TypeParameter::Handle(foo.TypeParameterAt(0));
+  const TypeParameter& m = TypeParameter::Handle(bar.TypeParameterAt(0));
+  EXPECT(!m.IsSubtypeOf(t, Heap::kNew));
 }
 
 }  // namespace dart

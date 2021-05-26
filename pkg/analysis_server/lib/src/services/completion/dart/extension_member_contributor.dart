@@ -54,6 +54,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
                       extendedType.element, type.element);
               _addTypeMembers(type, inheritanceDistance);
             }
+            _addExtensionMembers(containingLibrary, extendedType);
           }
         }
       }
