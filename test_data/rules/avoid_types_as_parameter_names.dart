@@ -42,3 +42,9 @@ m9(f7) => null; // LINT
 m10(m1) => null; // OK
 
 final void Function(Object, [StackTrace]) onError = null; // OK
+
+/// Naming the field `num` is significant - should be the name of a class.
+class FieldFormalParameter {
+  final int num;
+  FieldFormalParameter(this.num); // OK
+}

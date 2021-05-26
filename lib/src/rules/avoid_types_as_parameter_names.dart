@@ -65,8 +65,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parameter.declaredElement;
       var identifier = parameter.identifier;
       if (declaredElement != null &&
-          identifier != null &&
+          declaredElement is! FieldFormalParameterElement &&
           declaredElement.hasImplicitType &&
+          identifier != null &&
           _isTypeName(node, identifier)) {
         rule.reportLint(identifier);
       }
