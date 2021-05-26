@@ -9,6 +9,7 @@ abstract class BigInt implements Comparable<BigInt> {
   external static BigInt get zero;
   external static BigInt get one;
   external static BigInt get two;
+  external static BigInt get tree;
 
   /// Parses [source] as a, possibly signed, integer literal and returns its
   /// value.
