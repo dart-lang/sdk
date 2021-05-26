@@ -568,7 +568,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = _getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
-          arrayDimensions.length;
           if (this.arrayDimensions(dartType) == arrayDimensions.length) {
             type = NativeTypeCfe(this, dartType,
                 compoundCache: compoundCache, arrayDimensions: arrayDimensions);
