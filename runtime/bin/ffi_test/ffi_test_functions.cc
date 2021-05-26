@@ -1113,6 +1113,16 @@ DART_EXPORT uint64_t Regress43693(Struct43693* my_struct) {
   return my_struct->someValue;
 }
 
+struct Struct46127 {
+  uint64_t val;
+};
+
+DART_EXPORT Struct46127 Regress46127() {
+  struct Struct46127 myStruct;
+  myStruct.val = 123;
+  return myStruct;
+}
+
 #pragma pack(push, 1)
 struct Struct3BytesPackedIntCopy {
   int8_t a0;
