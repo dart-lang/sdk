@@ -83,10 +83,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement _definingLibrary;
 
-  /// Whether constant evaluation errors should be reported during resolution.
-  @Deprecated('This field is no longer used')
-  final bool reportConstEvaluationErrors;
-
   /// Helper for resolving properties on types.
   final TypePropertyResolver _typePropertyResolver;
 
@@ -95,8 +91,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
   ElementResolver(this._resolver,
-      {this.reportConstEvaluationErrors = true,
-      MigratableAstInfoProvider migratableAstInfoProvider =
+      {MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
         _typePropertyResolver = _resolver.typePropertyResolver {

@@ -6,10 +6,12 @@
 [ $compiler == app_jitk ]
 main/no_main_test/01: Crash
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
+unsorted/disassemble_test: SkipByDesign # Tested in JIT mode.
 vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
 
 [ $compiler == dartkp ]
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
+unsorted/disassemble_test: SkipByDesign # JIT only test
 
 [ $compiler == fasta ]
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
