@@ -35,7 +35,7 @@ const snapshots = <String>[
 
 Future<void> reportArtifactSize(String path, String name) async {
   final size = await File(path).length();
-  print('SDKArtifactSize_$name(CodeSize): $size');
+  print('SDKArtifactSize.$name(CodeSize): $size');
 }
 
 Future<void> main() async {
