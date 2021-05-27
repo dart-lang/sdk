@@ -1217,7 +1217,7 @@ class _ElementWriter {
   }
 
   String _getElementLocationString(Element? element) {
-    if (element == null) {
+    if (element == null || element is MultiplyDefinedElement) {
       return 'null';
     }
 

@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/util/comment.dart';
 import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
@@ -82,6 +83,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var firstDirective = unit.directives.firstOrNull;
     if (firstDirective != null) {
       _libraryElement.metadata = _buildAnnotations(firstDirective.metadata);
+      _libraryElement.documentationComment = getCommentNodeRawText(
+        firstDirective.documentationComment,
+      );
     }
   }
 
@@ -94,6 +98,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isAbstract = node.isAbstract;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
 
     nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
@@ -126,6 +131,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isMixinApplication = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
 
     nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
@@ -151,17 +157,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitConstructorDeclaration(
     covariant ConstructorDeclarationImpl node,
   ) {
-    var nameNode = node.name;
-    var name = nameNode?.name ?? '';
-    var nameOffset = nameNode?.offset ?? -1;
+    var nameNode = node.name ?? node.returnType;
+    var name = node.name?.name ?? '';
+    var nameOffset = nameNode.offset;
 
     var element = ConstructorElementImpl(name, nameOffset);
-    element.constantInitializers = node.initializers;
     element.isConst = node.constKeyword != null;
     element.isExternal = node.externalKeyword != null;
     element.isFactory = node.factoryKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
+    element.nameEnd = nameNode.end;
+    element.periodOffset = node.period?.offset;
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
+
+    if (element.isConst || element.isFactory) {
+      element.constantInitializers = node.initializers;
+    }
 
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
@@ -188,6 +200,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = EnumElementImpl(name, nameOffset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
 
     nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
@@ -222,6 +235,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = ExtensionElementImpl(name, nameOffset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
 
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
@@ -280,6 +294,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isLate = node.fields.isLate;
       element.isStatic = node.isStatic;
       element.metadata = _buildAnnotations(node.metadata);
+      _setCodeRange(element, variable);
+      _setDocumentation(element, node);
 
       if (node.fields.type == null) {
         element.hasImplicitType = true;
@@ -401,6 +417,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     executableElement.isGenerator = body.isGenerator;
     executableElement.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(executableElement, node);
+    _setDocumentation(executableElement, node);
 
     nameNode.staticElement = executableElement;
     _linker.elementNodes[executableElement] = node;
@@ -432,6 +449,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isFunctionTypeAliasBased = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
 
     nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
@@ -541,6 +559,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
 
     nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
@@ -654,6 +673,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     executableElement.isGenerator = node.body.isGenerator;
     executableElement.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(executableElement, node);
+    _setDocumentation(executableElement, node);
 
     nameNode.staticElement = executableElement;
     _linker.elementNodes[executableElement] = node;
@@ -676,6 +696,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = MixinElementImpl(name, nameNode.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
+    _setDocumentation(element, node);
 
     nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
@@ -777,6 +798,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isFinal = node.variables.isFinal;
       element.isLate = node.variables.isLate;
       element.metadata = _buildAnnotations(node.metadata);
+      _setCodeRange(element, variable);
+      _setDocumentation(element, node);
 
       if (node.variables.type == null) {
         element.hasImplicitType = true;
@@ -824,6 +847,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = TypeParameterElementImpl(name, nameNode.offset);
     element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
 
     nameNode.staticElement = element;
     _linker.elementNodes[element] = node;
@@ -1047,6 +1071,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           var name = constant.name.name;
           var reference = containerRef.getChild(name);
           var field = ConstFieldElementImpl_EnumValue(element, name, i);
+          // TODO(scheglov) test it
+          field.nameOffset = constant.name.offset;
+          _setCodeRange(field, constant);
+          _setDocumentation(field, constant);
           field.reference = reference;
           field.metadata = _buildAnnotationsWithUnit(
             unitElement as CompilationUnitElementImpl,
@@ -1078,10 +1106,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var annotations = <ElementAnnotation>[];
     for (int i = 0; i < length; i++) {
-      var ast = nodeList[i];
-      annotations.add(ElementAnnotationImpl(unitElement)
-        ..annotationAst = ast
-        ..element = ast.element);
+      var ast = nodeList[i] as AnnotationImpl;
+      var element = ElementAnnotationImpl(unitElement);
+      element.annotationAst = ast;
+      ast.elementAnnotation = element;
+      annotations.add(element);
     }
     return annotations;
   }
@@ -1096,6 +1125,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
       if (node is ShowCombinator) {
         return ShowElementCombinatorImpl()
+          ..offset = node.keyword.offset
+          ..end = node.end
           ..shownNames = node.shownNames.nameList;
       }
       throw UnimplementedError('${node.runtimeType}');
@@ -1103,7 +1134,26 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   static void _setCodeRange(ElementImpl element, AstNode node) {
+    var parent = node.parent;
+    if (node is FormalParameter && parent is DefaultFormalParameter) {
+      node = parent;
+    }
+
+    if (node is VariableDeclaration && parent is VariableDeclarationList) {
+      var fieldDeclaration = parent.parent;
+      if (fieldDeclaration != null && parent.variables.first == node) {
+        var offset = fieldDeclaration.offset;
+        element.setCodeRange(offset, node.end - offset);
+        return;
+      }
+    }
+
     element.setCodeRange(node.offset, node.length);
+  }
+
+  static void _setDocumentation(ElementImpl element, AnnotatedNode node) {
+    element.documentationComment =
+        getCommentNodeRawText(node.documentationComment);
   }
 }
 
