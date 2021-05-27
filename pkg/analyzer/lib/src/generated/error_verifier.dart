@@ -38,6 +38,7 @@ import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
+import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
@@ -249,6 +250,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   final RequiredParametersVerifier _requiredParametersVerifier;
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
+  final UseResultVerifier _checkUseVerifier;
   late final TypeArgumentsVerifier _typeArgumentsVerifier;
   late final ConstructorFieldsVerifier _constructorFieldsVerifier;
   late final ReturnTypeVerifier _returnTypeVerifier;
@@ -258,6 +260,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       this._inheritanceManager)
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
+        _checkUseVerifier = UseResultVerifier(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
@@ -930,6 +933,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _requiredParametersVerifier.visitMethodInvocation(node);
+    _checkUseVerifier.checkMethodInvocation(node);
     super.visitMethodInvocation(node);
   }
 
@@ -1029,7 +1033,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
     _checkForUnnecessaryNullAware(target, node.operator);
-
+    _checkUseVerifier.checkPropertyAccess(node);
     super.visitPropertyAccess(node);
   }
 
@@ -1100,6 +1104,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
     }
+    _checkUseVerifier.checkSimpleIdentifier(node);
     super.visitSimpleIdentifier(node);
   }
 
