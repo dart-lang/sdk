@@ -8,8 +8,6 @@ LibTest/isolate/SendPort/send_A01_t02: Crash
 LibTest/isolate/SendPort/send_A01_t03: Crash
 
 [ $compiler == fasta ]
-Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
-Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: Crash
 
 [ $runtime == vm ]
