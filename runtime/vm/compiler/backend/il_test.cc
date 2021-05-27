@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/backend/type_propagator.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -311,6 +312,67 @@ ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
   H.flow_graph()->Canonicalize();
 
   EXPECT(ret->value()->definition() == v0);
+}
+
+// Regression test for issue 46018.
+ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+  Definition* unbox;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    Definition* index = H.IntConstant(0);
+    Definition* int_type =
+        H.flow_graph()->GetConstant(Type::Handle(Type::IntType()));
+
+    Definition* float64_array =
+        builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    Definition* int64_array =
+        builder.AddParameter(1, 1, /*with_frame=*/true, kTagged);
+
+    Definition* load_indexed = builder.AddDefinition(new LoadIndexedInstr(
+        new Value(float64_array), new Value(index),
+        /* index_unboxed */ false,
+        /* index_scale */ 8, kTypedDataFloat64ArrayCid, kAlignedAccess,
+        S.GetNextDeoptId(), InstructionSource()));
+    Definition* box = builder.AddDefinition(
+        BoxInstr::Create(kUnboxedDouble, new Value(load_indexed)));
+    Definition* cast = builder.AddDefinition(new AssertAssignableInstr(
+        InstructionSource(), new Value(box), new Value(int_type),
+        /* instantiator_type_arguments */
+        new Value(H.flow_graph()->constant_null()),
+        /* function_type_arguments */
+        new Value(H.flow_graph()->constant_null()),
+        /* dst_name */ String::Handle(String::New("not-null")),
+        S.GetNextDeoptId()));
+    unbox = builder.AddDefinition(new UnboxInt64Instr(
+        new Value(cast), S.GetNextDeoptId(), BoxInstr::kGuardInputs));
+
+    builder.AddInstruction(new StoreIndexedInstr(
+        new Value(int64_array), new Value(index), new Value(unbox),
+        kNoStoreBarrier,
+        /* index_unboxed */ false,
+        /* index_scale */ 8, kTypedDataInt64ArrayCid, kAlignedAccess,
+        S.GetNextDeoptId(), InstructionSource()));
+    builder.AddReturn(new Value(index));
+  }
+
+  H.FinishGraph();
+
+  FlowGraphTypePropagator::Propagate(H.flow_graph());
+  EXPECT(!unbox->ComputeCanDeoptimize());
+
+  H.flow_graph()->Canonicalize();
+  EXPECT(!unbox->ComputeCanDeoptimize());
+
+  H.flow_graph()->RemoveRedefinitions();
+  EXPECT(!unbox->ComputeCanDeoptimize());  // Previously this reverted to true.
 }
 
 }  // namespace dart

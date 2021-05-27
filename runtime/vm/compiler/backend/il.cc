@@ -3264,6 +3264,12 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
+  if ((speculative_mode_ == kGuardInputs) && !ComputeCanDeoptimize()) {
+    // Remember if we ever learn out input doesn't require checking, as
+    // the input Value might be later changed that would make us forget.
+    speculative_mode_ = kNotSpeculative;
+  }
+
   return this;
 }
 
