@@ -26,7 +26,7 @@ main() {
   // Attempt to create total 1tb uint8list which should fail on 32 and 64-bit
   // platforms.
   final bytes100MB = Uint8List(100 * 1024 * 1024);
-  final total1TB = List<Uint8List>.filled(10000, bytes100MB);
-  // Try to make a 1 TB transferable.
-  Expect.throws(() => TransferableTypedData.fromList(total1TB));
+  final total1PB = List<Uint8List>.filled(10 * 1000 * 1000, bytes100MB);
+  // Try to make a 1 PB transferable.
+  Expect.throws(() => TransferableTypedData.fromList(total1PB));
 }
