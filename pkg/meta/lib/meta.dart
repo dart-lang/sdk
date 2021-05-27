@@ -207,24 +207,41 @@ const _NonVirtual nonVirtual = _NonVirtual();
 /// warnings that would otherwise require type arguments on `C` to be provided.
 const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 
-/// Used to annotate an instance member (method, getter, setter, operator, or
-/// field) `m` in a class `C`. If the annotation is on a field it applies to the
-/// getter, and setter if appropriate, that are induced by the field. Indicates
-/// that `m` should only be invoked from instance methods of `C` or classes that
-/// extend, implement or mix in `C`, either directly or indirectly or from within
-/// the same library that `m` is declared in. Additionally indicates that `m`
-/// should only be invoked on `this` (when outside of the library that it is
-/// declared in), whether explicitly or implicitly.
+/// Used to annotate an instance member in a class or mixin which is meant to
+/// be visible only within the declaring library, and to other instance members
+/// of the class or mixin, and their subtypes.
+///
+/// If the annotation is on a field it applies to the getter, and setter if
+/// appropriate, that are induced by the field.
+///
+/// Indicates that the annotated instance member (method, getter, setter,
+/// operator, or field) `m` in a class or mixin `C` should only be referenced
+/// in specific locations. A reference from within the library in which `C` is
+/// declared is valid. Additionally, a reference from within an instance member
+/// in `C`, or a class that extends, implements, or mixes in `C` (either
+/// directly or indirectly) or a mixin that uses `C` as a superclass constraint
+/// is valid. Additionally a reference from within an instance member in an
+/// extension that applies to `C` is valid.
+///
+/// Additionally restricts the instance of `C` on which `m` is referenced: a
+/// reference to `m` should either be in the same library in which `C` is
+/// declared, or should refer to `this.m` (explicitly or implicitly), and not
+/// `m` on any other instance of `C`.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than an instance member,
 ///   or
-/// * an invocation of a member that has this annotation is used outside of an
-///   instance member defined on a class that extends or mixes in (or a mixin
-///   constrained to) the class in which the protected member is defined.
-/// * an invocation of a member that has this annotation is used within an
-///   instance method, but the receiver is something other than `this`.
+/// * a reference to a member `m` which has this annotation, declared in a
+///   class or mixin `C`, is found outside of the declaring library and outside
+///   of an instance member in any class that extends, implements, or mixes in
+///   `C` or any mixin that uses `C` as a superclass constraint, or
+/// * a reference to a member `m` which has this annotation, declared in a
+///   class or mixin `C`, is found outside of the declaring library and the
+///   receiver is something other than `this`.
+// TODO(srawlins): Add a sentence which defines "referencing" and explicitly
+// mentions tearing off, here and on the other annotations which use the word
+// "referenced."
 const _Protected protected = _Protected();
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
