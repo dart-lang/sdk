@@ -21,7 +21,9 @@ if (is_fuchsia) {
 }
 
 config("libdart_builtin_config") {
-  if (!is_win) {
+  if (is_win) {
+    libs = [ "bcrypt.lib" ]
+  } else {
     libs = [ "dl" ]
   }
   if (is_android) {
@@ -214,7 +216,6 @@ template("build_gen_snapshot") {
         "Rpcrt4.lib",
         "shlwapi.lib",
         "winmm.lib",
-        "bcrypt.lib",
       ]
       if (target_os != "winuwp") {
         libs += [ "psapi.lib" ]
@@ -785,7 +786,6 @@ template("dart_executable") {
         "Rpcrt4.lib",
         "shlwapi.lib",
         "winmm.lib",
-        "bcrypt.lib",
       ]
     }
   }
@@ -960,7 +960,6 @@ executable("run_vm_tests") {
       "Rpcrt4.lib",
       "shlwapi.lib",
       "winmm.lib",
-      "bcrypt.lib",
     ]
   }
 }
