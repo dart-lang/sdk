@@ -246,21 +246,15 @@ class Namer extends ModularNamer {
     "eval", "arguments"
   ];
 
-  // Symbols that we might be using in our JS snippets.
-  static const List<String> reservedGlobalSymbols = const <String>[
+  /// A set of all capitalized global symbols.
+  /// This set is so [DeferredHolderFinalizer] can use names like:
+  /// [A-Z][_0-9a-zA-Z]* without collisions
+  static const Set<String> reservedCapitalizedGlobalSymbols = const {
     // Section references are from Ecma-262
     // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
     // 15.1.1 Value Properties of the Global Object
-    "NaN", "Infinity", "undefined",
-
-    // 15.1.2 Function Properties of the Global Object
-    "eval", "parseInt", "parseFloat", "isNaN", "isFinite",
-
-    // 15.1.3 URI Handling Function Properties
-    "decodeURI", "decodeURIComponent",
-    "encodeURI",
-    "encodeURIComponent",
+    "NaN", "Infinity",
 
     // 15.1.4 Constructor Properties of the Global Object
     "Object", "Function", "Array", "String", "Boolean", "Number", "Date",
@@ -270,6 +264,61 @@ class Namer extends ModularNamer {
     // 15.1.5 Other Properties of the Global Object
     "Math",
 
+    // Window props (https://developer.mozilla.org/en/DOM/window)
+    "Components",
+
+    // Window methods (https://developer.mozilla.org/en/DOM/window)
+    "GeckoActiveXObject", "QueryInterface", "XPCNativeWrapper",
+    "XPCSafeJSOjbectWrapper",
+
+    // Common browser-defined identifiers not defined in ECMAScript
+    "Debug", "Enumerator", "Global", "Image",
+    "ActiveXObject", "VBArray",
+
+    // Client-side JavaScript identifiers
+    "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient",
+    "CanvasPattern", "CanvasRenderingContext2D", "CDATASection",
+    "CharacterData", "Comment", "CSS2Properties", "CSSRule",
+    "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType",
+    "DOMException", "DOMImplementation", "DOMParser", "Element", "Event",
+    "ExternalInterface", "FlashPlayer", "Form", "Frame", "History",
+    "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame",
+    "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType",
+    "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin",
+    "ProcessingInstruction", "Range", "RangeException", "Screen", "Select",
+    "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea",
+    "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer",
+    "XPathException", "XPathResult", "XSLTProcessor",
+
+    // These keywords trigger the loading of the java-plugin. For the
+    // next-generation plugin, this results in starting a new Java process.
+    "Packages", "JavaObject", "JavaClass",
+    "JavaArray", "JavaMember",
+
+    // ES6 collections.
+    "Map", "Set",
+
+    // Some additional names
+    "Isolate",
+  };
+
+  /// Symbols that we might be using in our JS snippets. Some of the symbols in
+  /// these sections are in [reservedGlobalUpperCaseSymbols] above.
+  static const List<String> reservedGlobalSymbols = const <String>[
+    // Section references are from Ecma-262
+    // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
+
+    // 15.1.1 Value Properties of the Global Object
+    "undefined",
+
+    // 15.1.2 Function Properties of the Global Object
+    "eval", "parseInt", "parseFloat", "isNaN", "isFinite",
+
+    // 15.1.3 URI Handling Function Properties
+    "decodeURI", "decodeURIComponent",
+    "encodeURI",
+    "encodeURIComponent",
+
     // 10.1.6 Activation Object
     "arguments",
 
@@ -277,7 +326,7 @@ class Namer extends ModularNamer {
     "escape", "unescape",
 
     // Window props (https://developer.mozilla.org/en/DOM/window)
-    "applicationCache", "closed", "Components", "content", "controllers",
+    "applicationCache", "closed", "content", "controllers",
     "crypto", "defaultStatus", "dialogArguments", "directories",
     "document", "frameElement", "frames", "fullScreen", "globalStorage",
     "history", "innerHeight", "innerWidth", "length",
@@ -294,15 +343,14 @@ class Namer extends ModularNamer {
     "captureEvents", "clearInterval", "clearTimeout", "close", "confirm",
     "disableExternalCapture", "dispatchEvent", "dump",
     "enableExternalCapture", "escape", "find", "focus", "forward",
-    "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount",
+    "getAttention", "getAttentionWithCycleCount",
     "getComputedStyle", "getSelection", "home", "maximize", "minimize",
     "moveBy", "moveTo", "open", "openDialog", "postMessage", "print",
-    "prompt", "QueryInterface", "releaseEvents", "removeEventListener",
+    "prompt", "releaseEvents", "removeEventListener",
     "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy",
     "scrollByLines", "scrollByPages", "scrollTo", "setInterval",
     "setResizeable", "setTimeout", "showModalDialog", "sizeToContent",
-    "stop", "uuescape", "updateCommands", "XPCNativeWrapper",
-    "XPCSafeJSOjbectWrapper",
+    "stop", "uuescape", "updateCommands",
 
     // Mozilla Window event handlers, same cite
     "onabort", "onbeforeunload", "onchange", "onclick", "onclose",
@@ -334,34 +382,14 @@ class Namer extends ModularNamer {
     "oncontrolselect", "ondeactivate", "onhelp", "onresizeend",
 
     // Common browser-defined identifiers not defined in ECMAScript
-    "event", "external", "Debug", "Enumerator", "Global", "Image",
-    "ActiveXObject", "VBArray", "Components",
+    "event", "external",
 
     // Functions commonly defined on Object
     "toString", "getClass", "constructor", "prototype", "valueOf",
 
-    // Client-side JavaScript identifiers
-    "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient",
-    "CanvasPattern", "CanvasRenderingContext2D", "CDATASection",
-    "CharacterData", "Comment", "CSS2Properties", "CSSRule",
-    "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType",
-    "DOMException", "DOMImplementation", "DOMParser", "Element", "Event",
-    "ExternalInterface", "FlashPlayer", "Form", "Frame", "History",
-    "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image",
-    "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType",
-    "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin",
-    "ProcessingInstruction", "Range", "RangeException", "Screen", "Select",
-    "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea",
-    "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer",
-    "XPathException", "XPathResult", "XSLTProcessor",
-
     // These keywords trigger the loading of the java-plugin. For the
     // next-generation plugin, this results in starting a new Java process.
-    "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass",
-    "JavaArray", "JavaMember",
-
-    // ES6 collections.
-    "Map", "Set",
+    "java", "netscape", "sun",
   ];
 
   // TODO(joshualitt): Stop reserving these names after local naming is updated
@@ -397,7 +425,6 @@ class Namer extends ModularNamer {
 
   static const List<String> reservedGlobalHelperFunctions = const <String>[
     "init",
-    "Isolate",
   ];
 
   static final List<String> userGlobalObjects =
@@ -413,12 +440,7 @@ class Namer extends ModularNamer {
   /// Names that cannot be used by members, top level and static
   /// methods.
   Set<String> get jsReserved {
-    if (_jsReserved == null) {
-      _jsReserved = new Set<String>();
-      _jsReserved.addAll(javaScriptKeywords);
-      _jsReserved.addAll(reservedPropertySymbols);
-    }
-    return _jsReserved;
+    return _jsReserved ??= {...javaScriptKeywords, ...reservedPropertySymbols};
   }
 
   final String stubNameField = r'$stubName';
@@ -2232,17 +2254,37 @@ abstract class ModularNamer {
 
   Set<String> _jsVariableReservedCache = null;
 
+  /// Returns true if all reserved names with 2 or more characters long where
+  /// the first character is upper case are in
+  /// [Namer.reservedGlobalUpperCaseSymbols] and all names in that said have
+  /// already been added to [_jsVariableReservedCache].
+  bool _sanityCheckUpperCaseNames(Set<String> reserved) {
+    for (var name in reserved) {
+      var firstChar = name.codeUnitAt(0);
+      if (name.length > 1 &&
+          firstChar >= $A &&
+          firstChar <= $Z &&
+          !Namer.reservedCapitalizedGlobalSymbols.contains(name)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// Names that cannot be used by local variables and parameters.
   Set<String> get _jsVariableReserved {
     if (_jsVariableReservedCache == null) {
-      _jsVariableReservedCache = new Set<String>();
-      _jsVariableReservedCache.addAll(Namer.javaScriptKeywords);
-      _jsVariableReservedCache.addAll(Namer.reservedPropertySymbols);
-      _jsVariableReservedCache.addAll(Namer.reservedGlobalSymbols);
-      _jsVariableReservedCache.addAll(Namer.reservedGlobalObjectNames);
+      _jsVariableReservedCache = {
+        ...Namer.javaScriptKeywords,
+        ...Namer.reservedPropertySymbols,
+        ...Namer.reservedGlobalSymbols,
+        ...Namer.reservedGlobalObjectNames,
+        ...Namer.reservedCapitalizedGlobalSymbols,
+        ...Namer.reservedGlobalHelperFunctions
+      };
       // 26 letters in the alphabet, 25 not counting I.
       assert(Namer.reservedGlobalObjectNames.length == 25);
-      _jsVariableReservedCache.addAll(Namer.reservedGlobalHelperFunctions);
+      assert(_sanityCheckUpperCaseNames(_jsVariableReservedCache));
     }
     return _jsVariableReservedCache;
   }

@@ -29,9 +29,10 @@ class DocumentationCache {
 
   /// Fill the cache with data from the [result].
   void cacheFromResult(ResolvedUnitResult result) {
-    var element = result.unit?.declaredElement;
-    if (element != null) {
-      _cacheFromElement(element);
+    var compilationUnit = result.unit?.declaredElement;
+    if (compilationUnit != null) {
+      documentationCache.remove(_keyForUnit(compilationUnit));
+      _cacheFromElement(compilationUnit);
       for (var library in result.libraryElement.importedLibraries) {
         _cacheLibrary(library);
       }
@@ -87,12 +88,12 @@ class DocumentationCache {
           elementMap.cacheTopLevelElement(dartdocDirectiveInfo, element);
       if (parentKey != null) {
         for (var member in element.accessors) {
-          if (!element.isSynthetic) {
+          if (!member.isSynthetic) {
             elementMap.cacheMember(dartdocDirectiveInfo, parentKey, member);
           }
         }
         for (var member in element.fields) {
-          if (!element.isSynthetic) {
+          if (!member.isSynthetic) {
             elementMap.cacheMember(dartdocDirectiveInfo, parentKey, member);
           }
         }
