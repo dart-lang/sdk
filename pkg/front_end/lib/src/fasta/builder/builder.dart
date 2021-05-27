@@ -12,9 +12,9 @@ abstract class Builder {
   /// block scopes.
   Builder? next;
 
-  Builder get parent;
+  Builder? get parent;
 
-  Uri get fileUri;
+  Uri? get fileUri;
 
   int get charOffset;
 
