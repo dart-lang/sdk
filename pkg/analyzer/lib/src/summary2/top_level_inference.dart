@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
@@ -19,6 +20,8 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:analyzer/src/util/collection.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
 /// Resolver for typed constant top-level variables and fields initializers.
@@ -118,10 +121,22 @@ class TopLevelInference {
   }
 }
 
+/// Information about a base constructor of a mixin application.
+class _BaseConstructor {
+  final InterfaceType superType;
+  final ConstructorElement element;
+
+  _BaseConstructor(this.superType, this.element);
+}
+
 class _ConstructorInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
   final ConstructorElement _constructor;
   final List<_FieldFormalParameterWithField> _parameters = [];
+
+  /// If this node is a constructor of a mixin application, this field
+  /// is the corresponding constructor of the superclass.
+  _BaseConstructor? _baseConstructor;
 
   @override
   bool isEvaluated = false;
@@ -139,6 +154,21 @@ class _ConstructorInferenceNode extends _InferenceNode {
         }
       }
     }
+
+    var classElement = _constructor.enclosingElement;
+    if (classElement.isMixinApplication) {
+      var superType = classElement.supertype;
+      if (superType != null) {
+        var index = classElement.constructors.indexOf(_constructor);
+        var superConstructors = superType.element.constructors;
+        if (index < superConstructors.length) {
+          _baseConstructor = _BaseConstructor(
+            superType,
+            superConstructors[index],
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -146,10 +176,16 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    return _parameters
+    var dependencies = _parameters
         .map((e) => _walker.getNode(e.field))
         .whereNotNull()
         .toList();
+
+    dependencies.addIfNotNull(
+      _walker.getNode(_baseConstructor?.element),
+    );
+
+    return dependencies;
   }
 
   @override
@@ -158,6 +194,24 @@ class _ConstructorInferenceNode extends _InferenceNode {
       var parameter = parameterWithField.parameter;
       parameter.type = parameterWithField.field.type;
     }
+
+    // We have inferred formal parameter types of the base constructor.
+    // Update types of a mixin application constructor formal parameters.
+    var baseConstructor = _baseConstructor;
+    if (baseConstructor != null) {
+      var substitution = Substitution.fromInterfaceType(
+        baseConstructor.superType,
+      );
+      forCorrespondingPairs<ParameterElement, ParameterElement>(
+        _constructor.parameters,
+        baseConstructor.element.parameters,
+        (parameter, baseParameter) {
+          var type = substitution.substituteType(baseParameter.type);
+          (parameter as ParameterElementImpl).type = type;
+        },
+      );
+    }
+
     isEvaluated = true;
   }
 
@@ -241,7 +295,7 @@ class _InferenceWalker extends graph.DependencyWalker<_InferenceNode> {
     }
   }
 
-  _InferenceNode? getNode(Element element) {
+  _InferenceNode? getNode(Element? element) {
     return _nodes[element];
   }
 
@@ -282,7 +336,6 @@ class _InitializerInference {
 
   void perform() {
     _walker.walkNodes();
-    _resetMixinApplicationConstructors();
   }
 
   void _addClassConstructorFieldFormals(ClassElement class_) {
@@ -325,28 +378,6 @@ class _InitializerInference {
           _PropertyInducingElementTypeInference(inferenceNode);
     } else {
       (element as PropertyInducingElementImpl).type = DynamicTypeImpl.instance;
-    }
-  }
-
-  /// This is necessary to work around the ordering issue - we infer types
-  /// of fields and types of field formal parameters in constructors as one
-  /// graph walking operation. So, we ask for mixin application constructors,
-  /// and copy not-yet-computed types of formal parameters from base classes.
-  ///
-  /// Here we reset constructors, so that when we create them again, we will
-  /// get inferred types of formal parameters.
-  ///
-  /// TODO(scheglov) Ideally we should use correct ordering instead.
-  void _resetMixinApplicationConstructors() {
-    for (var builder in _linker.builders.values) {
-      for (var unitElement in builder.element.units) {
-        for (var classElement in unitElement.types) {
-          if (classElement is ClassElementImpl &&
-              classElement.isMixinApplication) {
-            classElement.resetMixinApplicationConstructors();
-          }
-        }
-      }
     }
   }
 }

@@ -13119,10 +13119,6 @@ class B {
 ''');
   }
 
-  @FailingTest(reason: '''
-Synthetic mixin application constructors are created before types of fields
-are inferred.
-''')
   test_type_inference_field_depends_onFieldFormal_withMixinApp() async {
     var library = await checkLibrary('''
 class A<T> {

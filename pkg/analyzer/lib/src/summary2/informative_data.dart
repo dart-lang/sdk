@@ -13,6 +13,7 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:collection/collection.dart';
 
@@ -56,7 +57,7 @@ class InformativeDataApplier {
 
         _applyToAccessors(unitElement.accessors, unitInfo.accessors);
 
-        _forEach2(
+        forCorrespondingPairs(
           unitElement.types
               .where((element) => !element.isMixinApplication)
               .toList(),
@@ -64,7 +65,7 @@ class InformativeDataApplier {
           _applyToClassDeclaration,
         );
 
-        _forEach2(
+        forCorrespondingPairs(
           unitElement.types
               .where((element) => element.isMixinApplication)
               .toList(),
@@ -72,21 +73,22 @@ class InformativeDataApplier {
           _applyToClassTypeAlias,
         );
 
-        _forEach2(unitElement.enums, unitInfo.enums, _applyToEnumDeclaration);
+        forCorrespondingPairs(
+            unitElement.enums, unitInfo.enums, _applyToEnumDeclaration);
 
-        _forEach2(unitElement.extensions, unitInfo.extensions,
+        forCorrespondingPairs(unitElement.extensions, unitInfo.extensions,
             _applyToExtensionDeclaration);
 
-        _forEach2(unitElement.functions, unitInfo.functions,
+        forCorrespondingPairs(unitElement.functions, unitInfo.functions,
             _applyToFunctionDeclaration);
 
-        _forEach2(unitElement.mixins, unitInfo.mixinDeclarations,
+        forCorrespondingPairs(unitElement.mixins, unitInfo.mixinDeclarations,
             _applyToMixinDeclaration);
 
-        _forEach2(unitElement.topLevelVariables, unitInfo.topLevelVariable,
-            _applyToTopLevelVariable);
+        forCorrespondingPairs(unitElement.topLevelVariables,
+            unitInfo.topLevelVariable, _applyToTopLevelVariable);
 
-        _forEach2(
+        forCorrespondingPairs(
           unitElement.typeAliases
               .cast<TypeAliasElementImpl>()
               .where((e) => e.isFunctionTypeAliasBased)
@@ -95,7 +97,7 @@ class InformativeDataApplier {
           _applyToFunctionTypeAlias,
         );
 
-        _forEach2(
+        forCorrespondingPairs(
           unitElement.typeAliases
               .cast<TypeAliasElementImpl>()
               .where((e) => !e.isFunctionTypeAliasBased)
@@ -113,7 +115,7 @@ class InformativeDataApplier {
     List<PropertyAccessorElement> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
-    _forEach2<PropertyAccessorElement, _InfoMethodDeclaration>(
+    forCorrespondingPairs<PropertyAccessorElement, _InfoMethodDeclaration>(
       elementList.notSynthetic,
       infoList,
       (element, info) {
@@ -169,7 +171,7 @@ class InformativeDataApplier {
     List<NamespaceCombinator> elementList,
     List<_InfoCombinator> infoList,
   ) {
-    _forEach2<NamespaceCombinator, _InfoCombinator>(
+    forCorrespondingPairs<NamespaceCombinator, _InfoCombinator>(
       elementList,
       infoList,
       (element, info) {
@@ -185,7 +187,7 @@ class InformativeDataApplier {
     List<ConstructorElement> elementList,
     List<_InfoConstructorDeclaration> infoList,
   ) {
-    _forEach2<ConstructorElement, _InfoConstructorDeclaration>(
+    forCorrespondingPairs<ConstructorElement, _InfoConstructorDeclaration>(
       elementList,
       infoList,
       (element, info) {
@@ -212,7 +214,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    _forEach2<FieldElement, _InfoEnumConstantDeclaration>(
+    forCorrespondingPairs<FieldElement, _InfoEnumConstantDeclaration>(
       element.constants_unresolved,
       info.constants,
       (element, info) {
@@ -245,7 +247,7 @@ class InformativeDataApplier {
     List<FieldElement> elementList,
     List<_InfoFieldDeclaration> infoList,
   ) {
-    _forEach2<FieldElement, _InfoFieldDeclaration>(
+    forCorrespondingPairs<FieldElement, _InfoFieldDeclaration>(
       elementList.notSynthetic,
       infoList,
       (element, info) {
@@ -265,7 +267,7 @@ class InformativeDataApplier {
     List<ParameterElement> parameters,
     List<_InfoFormalParameter> infoList,
   ) {
-    _forEach2<ParameterElement, _InfoFormalParameter>(
+    forCorrespondingPairs<ParameterElement, _InfoFormalParameter>(
       parameters,
       infoList,
       (element, info) {
@@ -332,7 +334,7 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    _forEach2<ImportElement, _InfoImport>(
+    forCorrespondingPairs<ImportElement, _InfoImport>(
       element.imports_unresolved,
       info.imports,
       (element, info) {
@@ -349,7 +351,7 @@ class InformativeDataApplier {
       },
     );
 
-    _forEach2<ExportElement, _InfoExport>(
+    forCorrespondingPairs<ExportElement, _InfoExport>(
       element.exports_unresolved,
       info.exports,
       (element, info) {
@@ -364,7 +366,7 @@ class InformativeDataApplier {
     List<MethodElement> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
-    _forEach2<MethodElement, _InfoMethodDeclaration>(
+    forCorrespondingPairs<MethodElement, _InfoMethodDeclaration>(
       elementList,
       infoList,
       (element, info) {
@@ -420,7 +422,7 @@ class InformativeDataApplier {
     List<TypeParameterElement> elementList,
     List<_InfoTypeParameter> infoList,
   ) {
-    _forEach2<TypeParameterElement, _InfoTypeParameter>(
+    forCorrespondingPairs<TypeParameterElement, _InfoTypeParameter>(
       elementList,
       infoList,
       (element, info) {
@@ -429,18 +431,6 @@ class InformativeDataApplier {
         element.nameOffset = info.nameOffset;
       },
     );
-  }
-
-  static void _forEach2<T1, T2>(
-    List<T1> list1,
-    List<T2> list2,
-    void Function(T1, T2) f,
-  ) {
-    var i1 = list1.iterator;
-    var i2 = list2.iterator;
-    while (i1.moveNext() && i2.moveNext()) {
-      f(i1.current, i2.current);
-    }
   }
 }
 
