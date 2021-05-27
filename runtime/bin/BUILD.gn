@@ -875,6 +875,11 @@ executable("process_test") {
   sources = [ "process_test.cc" ]
 }
 
+executable("abstract_socket_test") {
+  sources = [ "abstract_socket_test.cc" ]
+  include_dirs = [ ".." ]
+}
+
 executable("run_vm_tests") {
   if (target_os == "fuchsia") {
     testonly = true
