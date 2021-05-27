@@ -282,6 +282,7 @@ class _InitializerInference {
 
   void perform() {
     _walker.walkNodes();
+    _resetMixinApplicationConstructors();
   }
 
   void _addClassConstructorFieldFormals(ClassElement class_) {
@@ -324,6 +325,28 @@ class _InitializerInference {
           _PropertyInducingElementTypeInference(inferenceNode);
     } else {
       (element as PropertyInducingElementImpl).type = DynamicTypeImpl.instance;
+    }
+  }
+
+  /// This is necessary to work around the ordering issue - we infer types
+  /// of fields and types of field formal parameters in constructors as one
+  /// graph walking operation. So, we ask for mixin application constructors,
+  /// and copy not-yet-computed types of formal parameters from base classes.
+  ///
+  /// Here we reset constructors, so that when we create them again, we will
+  /// get inferred types of formal parameters.
+  ///
+  /// TODO(scheglov) Ideally we should use correct ordering instead.
+  void _resetMixinApplicationConstructors() {
+    for (var builder in _linker.builders.values) {
+      for (var unitElement in builder.element.units) {
+        for (var classElement in unitElement.types) {
+          if (classElement is ClassElementImpl &&
+              classElement.isMixinApplication) {
+            classElement.resetMixinApplicationConstructors();
+          }
+        }
+      }
     }
   }
 }

@@ -79,6 +79,7 @@ class Linker {
     _writeLibraries();
     timerLinkingLinkingBundle.stop();
 
+    // TODO(scheglov) Remove to keep linking elements.
     timerLinkingRemoveBundle.start();
     elementFactory.removeBundle(
       inputLibraries.map((e) => e.uriStr).toSet(),

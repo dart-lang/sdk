@@ -1715,6 +1715,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         var mapStr = _substitutionMapStr(map);
         _writelnWithIndent('substitution: $mapStr');
       });
+    } else if (element is MultiplyDefinedElement) {
+      _sink.writeln('<null>');
     } else {
       var reference = (element as ElementImpl).reference;
       if (reference != null) {

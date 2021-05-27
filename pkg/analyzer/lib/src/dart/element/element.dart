@@ -751,6 +751,11 @@ class ClassElementImpl extends AbstractClassElementImpl
   ConstructorElement? getNamedConstructor(String name) =>
       getNamedConstructorFromList(name, constructors);
 
+  void resetMixinApplicationConstructors() {
+    assert(isMixinApplication);
+    _constructors = _Sentinel.constructorElement;
+  }
+
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
     reference.element = this;
@@ -3846,14 +3851,8 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   Namespace get publicNamespace {
-    if (_publicNamespace != null) return _publicNamespace!;
-
-    if (linkedData != null) {
-      return _publicNamespace =
-          NamespaceBuilder().createPublicNamespaceForLibrary(this);
-    }
-
-    return _publicNamespace!;
+    return _publicNamespace ??=
+        NamespaceBuilder().createPublicNamespaceForLibrary(this);
   }
 
   set publicNamespace(Namespace publicNamespace) {

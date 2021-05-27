@@ -124,6 +124,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
 
     var linkResult = link(elementFactory, inputLibraries, true);
 
+    // TODO(scheglov) Remove to keep linking elements.
     elementFactory.addBundle(
       BundleReader(
         elementFactory: elementFactory,

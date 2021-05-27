@@ -13119,6 +13119,43 @@ class B {
 ''');
   }
 
+  @FailingTest(reason: '''
+Synthetic mixin application constructors are created before types of fields
+are inferred.
+''')
+  test_type_inference_field_depends_onFieldFormal_withMixinApp() async {
+    var library = await checkLibrary('''
+class A<T> {
+  T value;
+
+  A(this.value);
+}
+
+class B<T> = A<T> with M;
+
+class C {
+  var a = new B(42);
+}
+
+mixin M {}
+''');
+    checkElementText(library, r'''
+class A<T> {
+  T value;
+  A(final T this.value);
+}
+class alias B<T> extends A<T> with M {
+  synthetic B(final T value) : super(
+        value/*location: test.dart;B;;value*/);
+}
+class C {
+  B<int> a;
+}
+mixin M on Object {
+}
+''');
+  }
+
   test_type_inference_fieldFormal_depends_onField() async {
     var library = await checkLibrary('''
 class A<T> {
@@ -15400,6 +15437,12 @@ int j;
     var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
     var reference = unit.reference!;
     names.forEach((name) => reference = reference.getChild(name));
+
+    var element = reference.element;
+    if (element != null) {
+      return element;
+    }
+
     var elementFactory = library.linkedData!.elementFactory;
     return elementFactory.elementOfReference(reference)!;
   }

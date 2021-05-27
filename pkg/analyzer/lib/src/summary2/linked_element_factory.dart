@@ -16,6 +16,7 @@ class LinkedElementFactory {
   final AnalysisSessionImpl analysisSession;
   final Reference rootReference;
   final Map<String, LibraryReader> libraryReaders = {};
+  final _exportsOfLibrary = <String, List<Reference>>{};
 
   bool isApplyingInformativeData = false;
 
@@ -150,6 +151,10 @@ class LinkedElementFactory {
   }
 
   List<Reference> exportsOfLibrary(String uriStr) {
+    var exports = _exportsOfLibrary[uriStr];
+    if (exports != null) return exports;
+
+    // TODO(scheglov) Use [setExportsOfLibrary] instead
     var library = libraryReaders[uriStr];
     if (library == null) return const [];
 
@@ -203,12 +208,19 @@ class LinkedElementFactory {
   /// any session level caches.
   void removeLibraries(Set<String> uriStrSet) {
     for (var uriStr in uriStrSet) {
+      _exportsOfLibrary.remove(uriStr);
       libraryReaders.remove(uriStr);
       rootReference.removeChild(uriStr);
     }
 
     analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
     analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
+  }
+
+  /// Set exports of the library with [uriStr], after building exports during
+  /// linking, or after reading a linked bundle.
+  void setExportsOfLibrary(String uriStr, List<Reference> exports) {
+    _exportsOfLibrary[uriStr] = exports;
   }
 
   void setLibraryTypeSystem(LibraryElementImpl libraryElement) {

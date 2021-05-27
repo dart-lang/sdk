@@ -200,6 +200,8 @@ class LibraryBuilder {
     if (entryPoint is FunctionElement) {
       element.entryPoint = entryPoint;
     }
+
+    linker.elementFactory.setExportsOfLibrary('$uri', exports);
   }
 
   static void build(Linker linker, LinkInputLibrary inputLibrary) {
@@ -250,6 +252,7 @@ class LibraryBuilder {
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = inputUnit.source;
       unitElement.uri = inputUnit.partUriStr;
+      unitElement.setCodeRange(0, unitNode.length);
 
       var unitReference = unitContainerRef.getChild(inputUnit.uriStr);
       _bindReference(unitReference, unitElement);
