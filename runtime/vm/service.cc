@@ -4234,6 +4234,70 @@ static void RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 }
 
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+struct VMMapping {
+  char path[256];
+  size_t size;
+};
+
+static void AddVMMappings(JSONArray* rss_children) {
+  FILE* fp = fopen("/proc/self/smaps", "r");
+  if (fp == nullptr) {
+    return;
+  }
+
+  MallocGrowableArray<VMMapping> mappings(10);
+  char line[256];
+  char path[256];
+  char property[32];
+  size_t start, end, size;
+  while (fgets(line, sizeof(line), fp) != nullptr) {
+    if (sscanf(line, "%zx-%zx", &start, &end) == 2) {
+      // Mapping line.
+      strncpy(path, strrchr(line, ' ') + 1, sizeof(path));
+      int len = strlen(path);
+      if ((len > 0) && path[len - 1] == '\n') {
+        path[len - 1] = 0;
+      }
+    } else if (sscanf(line, "%s%zd", property, &size) == 2) {
+      // Property line.
+      // Skipping a few paths to avoid double counting:
+      // (deleted) - memfd dual mapping in Dart heap
+      // [heap] - sbrk area, should already included with malloc
+      // <empty> - anonymous mappings, mostly in Dart heap
+      if ((strcmp(property, "Rss:") == 0) && (size != 0) &&
+          (strcmp(path, "(deleted)") != 0) && (strcmp(path, "[heap]") != 0) &&
+          (strcmp(path, "") != 0)) {
+        bool updated = false;
+        for (intptr_t i = 0; i < mappings.length(); i++) {
+          if (strcmp(mappings[i].path, path) == 0) {
+            mappings[i].size += size;
+            updated = true;
+            break;
+          }
+        }
+        if (!updated) {
+          VMMapping mapping;
+          strncpy(mapping.path, path, sizeof(mapping.path));
+          mapping.size = size;
+          mappings.Add(mapping);
+        }
+      }
+    }
+  }
+  fclose(fp);
+
+  for (intptr_t i = 0; i < mappings.length(); i++) {
+    JSONObject mapping(rss_children);
+    mapping.AddProperty("name", mappings[i].path);
+    mapping.AddProperty("description",
+                        "Mapped file / shared library / executable");
+    mapping.AddProperty64("size", mappings[i].size * KB);
+    JSONArray(&mapping, "children");
+  }
+}
+#endif
+
 static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   JSONObject response(js);
   response.AddProperty("type", "ProcessMemoryUsage");
@@ -4335,6 +4399,8 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
     vm.AddProperty64("size", vm_size);
   }
 
+  // On Android, malloc is better labeled by /proc/self/smaps.
+#if !defined(HOST_OS_ANDROID)
   intptr_t used, capacity;
   const char* implementation;
   if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
@@ -4360,6 +4426,12 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
       JSONArray(&malloc_free, "children");
     }
   }
+#endif
+
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+  AddVMMappings(&rss_children);
+#endif
+  // TODO(46166): Implement for other operating systems.
 
   return vm_size;
 }

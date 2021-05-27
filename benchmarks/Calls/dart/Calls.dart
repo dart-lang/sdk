@@ -816,7 +816,7 @@ class SyncCallBenchmark {
 
   // Runs warmup phase, runs benchmark and reports result.
   void report() {
-    // Warmup for 200 ms.
+    // Warmup for 100 ms.
     measureFor(const Duration(milliseconds: 100));
 
     // Run benchmark for 2 seconds.
