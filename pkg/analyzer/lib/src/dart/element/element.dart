@@ -751,11 +751,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   ConstructorElement? getNamedConstructor(String name) =>
       getNamedConstructorFromList(name, constructors);
 
-  void resetMixinApplicationConstructors() {
-    assert(isMixinApplication);
-    _constructors = _Sentinel.constructorElement;
-  }
-
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
     reference.element = this;

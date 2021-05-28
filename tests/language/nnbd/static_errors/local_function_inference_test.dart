@@ -23,7 +23,9 @@ void main() {
       return 3;
     }
   }
-  //  ^
-  // [analyzer] undefined
-  // [cfe] undefined
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+// TODO(45942): This may be the wrong location, but until the linked issue is
+// fixed and implementations report the error, this is as good as any.
 }

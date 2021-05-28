@@ -7118,8 +7118,9 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   intptr_t ValueOffset() const { return Boxing::ValueOffset(representation_); }
 
+ protected:
   const Representation representation_;
-  const SpeculativeMode speculative_mode_;
+  SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxInstr);
 };

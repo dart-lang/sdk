@@ -163,6 +163,47 @@ Future testAbstractAddress() async {
   await completer.future;
 }
 
+String getAbstractSocketTestFileName() {
+  var executable = Platform.executable;
+  var dirIndex = executable.lastIndexOf('dart');
+  var buffer = new StringBuffer(executable.substring(0, dirIndex));
+  buffer.write('abstract_socket_test');
+  return buffer.toString();
+}
+
+Future testShortAbstractAddress() async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  Process? process;
+  try {
+    var socketAddress = '@hidden';
+    var abstractSocketServer = getAbstractSocketTestFileName();
+    process = await Process.start(abstractSocketServer, [socketAddress]);
+    var serverAddress =
+        InternetAddress(socketAddress, type: InternetAddressType.unix);
+    Socket client = await Socket.connect(serverAddress, 0);
+    List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    List<int> data = [];
+    var completer = Completer<void>();
+    client.listen(data.addAll, onDone: () {
+      Expect.listEquals(sendData, data);
+      completer.complete();
+    });
+    client.add(sendData);
+    await client.close();
+    await completer.future;
+    client.destroy();
+    var exitCode = await process.exitCode;
+    process = null;
+    Expect.equals(exitCode, 0);
+  } catch (e, st) {
+    Expect.fail('Failed with exception:\n$e\n$st');
+  } finally {
+    process?.kill(ProcessSignal.sigkill);
+  }
+}
+
 Future testExistingFile(String name) async {
   // Test that a leftover file(In case of previous process being killed and
   // finalizer doesn't clean up the file) will be cleaned up and bind() should
@@ -398,6 +439,7 @@ void main() async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testHttpServer('${dir.path}');
     });
+    await testShortAbstractAddress();
   } catch (e) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
       Expect.fail("Unexpected exception $e is thrown");

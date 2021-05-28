@@ -989,6 +989,11 @@ void UnboxIntegerInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   if (is_truncating()) {
     f->AddString("[tr], ");
   }
+  if (SpeculativeModeOfInputs() == kGuardInputs) {
+    f->AddString("[guard-inputs], ");
+  } else {
+    f->AddString("[non-speculative], ");
+  }
   Definition::PrintOperandsTo(f);
 }
 
