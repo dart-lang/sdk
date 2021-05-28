@@ -16,7 +16,7 @@
   "packages": [
     {
       "name": "_fe_analyzer_shared",
-      "rootUri": "../pkg/_fe_analyzer_shared",
+      "rootUri": "../pkg/_fe_analyze
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
