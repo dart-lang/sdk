@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
@@ -34,7 +35,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ///
   /// When [build] is called, the type is built, stored into this field,
   /// and set for the [node].
-  DartType? _type;
+  FunctionType? _type;
 
   FunctionTypeBuilder(
     this.typeFormals,
@@ -74,8 +75,9 @@ class FunctionTypeBuilder extends TypeBuilder {
 
   @override
   DartType build() {
-    if (_type != null) {
-      return _type!;
+    var type = _type;
+    if (type != null) {
+      return type;
     }
 
     for (var typeParameter in typeFormals) {
@@ -91,18 +93,19 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
 
     var builtReturnType = _buildType(returnType);
-    _type = FunctionTypeImpl(
+    type = FunctionTypeImpl(
       typeFormals: typeFormals,
       parameters: parameters,
       returnType: builtReturnType,
       nullabilitySuffix: nullabilitySuffix,
     );
 
-    if (node != null) {
-      node?.type = _type;
-    }
+    var fresh = getFreshTypeParameters(typeFormals);
+    type = fresh.applyToFunctionType(type) as FunctionTypeImpl;
 
-    return _type!;
+    _type = type;
+    node?.type = type;
+    return type;
   }
 
   @override
