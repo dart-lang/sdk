@@ -1398,7 +1398,7 @@ dart_ci_sandbox_builder(
     "flutter-analyze",
     category = "analyzer|fa",
     channels = ["try"],
-    execution_timeout = 25 * time.minute,
+    execution_timeout = 45 * time.minute,
     location_regexp = [
         ".+/[+]/DEPS",
         ".+/[+]/pkg/analysis_server/.+",
