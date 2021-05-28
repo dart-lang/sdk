@@ -442,11 +442,12 @@ class _ElementWriter {
 
       writeIf(e.isDeferred, ' deferred');
 
-      if (e.prefix != null) {
+      var prefix = e.prefix;
+      if (prefix != null) {
         buffer.write(' as ');
-        writeName(e.prefix!);
+        writeName(prefix);
         if (withOffsets) {
-          buffer.write('(${e.prefixOffset})');
+          buffer.write('(${prefix.nameOffset})');
         }
       }
 
