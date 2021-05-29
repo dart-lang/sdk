@@ -34,7 +34,8 @@ int SocketAddress::GetType() {
   }
 }
 
-intptr_t SocketAddress::GetAddrLength(const RawAddr& addr) {
+intptr_t SocketAddress::GetAddrLength(const RawAddr& addr,
+                                      bool unnamed_unix_socket) {
   ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6) ||
          (addr.ss.ss_family == AF_UNIX));
   switch (addr.ss.ss_family) {
@@ -53,7 +54,7 @@ intptr_t SocketAddress::GetAddrLength(const RawAddr& addr) {
       // trailing null bytes on purpose.
       // https://github.com/dart-lang/sdk/issues/46158
       intptr_t nulls = 0;
-      if (addr.un.sun_path[0] == '\0') {
+      if (!unnamed_unix_socket && addr.un.sun_path[0] == '\0') {
         intptr_t i = sizeof(addr.un.sun_path) - 1;
         while (addr.un.sun_path[i] == '\0') {
           nulls++;

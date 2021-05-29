@@ -179,6 +179,11 @@ Future testShortAbstractAddress() async {
   try {
     var socketAddress = '@hidden';
     var abstractSocketServer = getAbstractSocketTestFileName();
+    // check if the executable exists, some build configurations do not
+    // build it (e.g: precompiled simarm/simarm64)
+    if (!File(abstractSocketServer).existsSync()) {
+      return;
+    }
     process = await Process.start(abstractSocketServer, [socketAddress]);
     var serverAddress =
         InternetAddress(socketAddress, type: InternetAddressType.unix);
