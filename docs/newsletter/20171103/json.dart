@@ -12,7 +12,7 @@ main() {
 
     // Measure synchronous decoding.
     sw.reset();
-    var decoded = JSON.decode(input);
+    var decoded = json.decode(input);
     print("Decoding took: ${sw.elapsedMicroseconds}us");
 
     // Measure chunked decoding.
@@ -24,7 +24,7 @@ main() {
       result = x.single;
     });
 
-    var inSink = JSON.decoder.startChunkedConversion(outSink);
+    var inSink = json.decoder.startChunkedConversion(outSink);
     var chunkSw = new Stopwatch()..start();
     var maxChunkTime = 0;
     var chunkSize = input.length ~/ chunkCount;
