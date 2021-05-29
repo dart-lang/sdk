@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
+// import 'dart:math';
 
 /// Decodes [input] in a chunked way and yields to the event loop
 /// as soon as [maxMicroseconds] have elapsed.

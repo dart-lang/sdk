@@ -10,10 +10,11 @@ for more details about the presubmit API built into gcl.
 import imp
 import os
 import os.path
-import scm
+from platform import scm
 import subprocess
 import tempfile
 import platform
+
 
 def is_cpp_file(path):
     return path.endswith('.cc') or path.endswith('.h')
@@ -29,10 +30,12 @@ def _CheckNnbdTestSync(input_api, output_api):
         "tests/lib", "tests/standalone", "runtime/tests/vm/dart"
     ]
 
-    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+    files = [git_file.LocalPath()
+             for git_file in input_api.AffectedTextFiles()]
     unsynchronized = []
     for file in files:
-        if file.endswith('.status'): continue
+        if file.endswith('.status'):
+            continue
 
         for dir in DIRS:
             legacy_dir = "{}_2/".format(dir)
@@ -224,7 +227,8 @@ def _CheckPackageConfigUpToDate(input_api, output_api):
                             os.path.join(local_root, 'tools', 'utils.py'))
 
     dart = utils.CheckedInSdkExecutable()
-    generate = os.path.join(local_root, 'tools', 'generate_package_config.dart')
+    generate = os.path.join(local_root, 'tools',
+                            'generate_package_config.dart')
     cmd = [dart, generate, '--check']
     pipe = subprocess.Popen(cmd,
                             stdout=subprocess.PIPE,
@@ -251,7 +255,7 @@ def _CheckValidHostsInDEPS(input_api, output_api):
     try:
         input_api.subprocess.check_output(['gclient', 'verify'])
         return []
-    except input_api.subprocess.CalledProcessError, error:
+    except input_api.subprocess.CalledProcessError as error:
         return [
             output_api.PresubmitError(
                 'DEPS file must have only dependencies from allowed hosts.',
@@ -302,7 +306,8 @@ def _CheckClangTidy(input_api, output_api):
     files = []
     for f in input_api.AffectedFiles():
         path = f.LocalPath()
-        if is_cpp_file(path) and os.path.isfile(path): files.append(path)
+        if is_cpp_file(path) and os.path.isfile(path):
+            files.append(path)
 
     if not files:
         return []
