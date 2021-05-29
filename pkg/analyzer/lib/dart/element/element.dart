@@ -1284,6 +1284,7 @@ abstract class ImportElement implements Element, UriReferencedElement {
   /// Return the offset of the prefix of this import in the file that contains
   /// this import directive, or `-1` if this import is synthetic, does not have
   /// a prefix, or otherwise does not have an offset.
+  @Deprecated('Use prefix.nameOffset instead')
   int get prefixOffset;
 }
 

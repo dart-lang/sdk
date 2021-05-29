@@ -340,7 +340,6 @@ class InformativeDataApplier {
       (element, info) {
         element as ImportElementImpl;
         element.nameOffset = info.nameOffset;
-        element.prefixOffset = info.prefixOffset;
 
         var prefix = element.prefix;
         if (prefix is PrefixElementImpl) {

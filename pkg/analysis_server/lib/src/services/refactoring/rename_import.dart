@@ -60,7 +60,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         var node = _findNode();
         if (node != null) {
           var uriEnd = node.uri.end;
-          var prefixEnd = element.prefixOffset + prefix.nameLength;
+          var prefixEnd = prefix.nameOffset + prefix.nameLength;
           edit = newSourceEdit_range(
               range.startOffsetEndOffset(uriEnd, prefixEnd), '');
         }
@@ -72,7 +72,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
             edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
           }
         } else {
-          var offset = element.prefixOffset;
+          var offset = prefix.nameOffset;
           var length = prefix.nameLength;
           edit = newSourceEdit_range(SourceRange(offset, length), newName);
         }

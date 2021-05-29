@@ -3434,9 +3434,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   PrefixElement? prefix;
 
   @override
-  int prefixOffset = -1;
-
-  @override
   List<NamespaceCombinator> combinators = const [];
 
   /// The cached value of [namespace].
@@ -3473,6 +3470,10 @@ class ImportElementImpl extends UriReferencedElementImpl
     return _namespace ??=
         NamespaceBuilder().createImportNamespaceForDirective(this);
   }
+
+  @Deprecated('Use prefix.nameOffset instead')
+  @override
+  int get prefixOffset => prefix?.nameOffset ?? -1;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitImportElement(this);

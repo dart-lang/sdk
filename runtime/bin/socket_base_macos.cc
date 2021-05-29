@@ -39,7 +39,8 @@ SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
       as_string_[0] = 0;
     }
   }
-  socklen_t salen = GetAddrLength(*reinterpret_cast<RawAddr*>(sa));
+  socklen_t salen =
+      GetAddrLength(*reinterpret_cast<RawAddr*>(sa), unnamed_unix_socket);
   memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
