@@ -348,16 +348,6 @@ namespace dart {
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
-  V(LinkedHashMap_getIndex, 1)                                                 \
-  V(LinkedHashMap_setIndex, 2)                                                 \
-  V(LinkedHashMap_getData, 1)                                                  \
-  V(LinkedHashMap_setData, 2)                                                  \
-  V(LinkedHashMap_getHashMask, 1)                                              \
-  V(LinkedHashMap_setHashMask, 2)                                              \
-  V(LinkedHashMap_getUsedData, 1)                                              \
-  V(LinkedHashMap_setUsedData, 2)                                              \
-  V(LinkedHashMap_getDeletedKeys, 1)                                           \
-  V(LinkedHashMap_setDeletedKeys, 2)                                           \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_setKey, 2)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
