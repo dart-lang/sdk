@@ -92,8 +92,6 @@ main() {
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
   // ^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.

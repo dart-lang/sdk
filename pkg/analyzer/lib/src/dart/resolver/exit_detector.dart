@@ -305,6 +305,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitFunctionReference(FunctionReference node) {
+    // Note: `node.function` could be a reference to a method
+    // (`Target.methodName`) so we need to visit it in case the target exits.
+    return node.function.accept(this)!;
+  }
+
+  @override
   bool visitGenericFunctionType(GenericFunctionType node) => false;
 
   @override

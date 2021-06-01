@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,10 +25,6 @@ main() {
   Foo<int>.bar.baz();
 }
 ''', [
-      // TODO(paulberry): the INVOCATION_OF_NON_FUNCTION_EXPRESSION error is
-      // bogus, and should go away once we implement visitor and resolution
-      // support for constructor tearoffs.
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 67, 3),
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 70, 5),
     ]);
   }
@@ -45,10 +40,6 @@ main() {
   Foo<int>.bar.baz();
 }
 ''', [
-      // TODO(paulberry): the INVOCATION_OF_NON_FUNCTION_EXPRESSION error is
-      // bogus, and should go away once we implement visitor and resolution
-      // support for constructor tearoffs.
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 80, 3),
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 83, 5),
     ]);
   }
