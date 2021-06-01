@@ -125,6 +125,13 @@ abstract class RuntimeConfiguration {
     return processTestExecutable;
   }
 
+  String get abstractSocketTestBinaryFileName {
+    var abstractSocketTestExecutable =
+        '$buildDir/abstract_socket_test$executableExtension';
+    TestUtils.ensureExists(abstractSocketTestExecutable, _configuration);
+    return abstractSocketTestExecutable;
+  }
+
   String get d8FileName {
     var d8Dir = Repository.dir.append('third_party/d8');
     var d8Path =
@@ -358,8 +365,10 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
     var buildPath = buildDir;
     var processTest = processTestBinaryFileName;
+    var abstractSocketTest = abstractSocketTestBinaryFileName;
     return [
-      AdbDartkCommand(buildPath, processTest, script, arguments, extraLibs)
+      AdbDartkCommand(buildPath, processTest, abstractSocketTest, script,
+          arguments, extraLibs)
     ];
   }
 }
@@ -385,9 +394,10 @@ class DartPrecompiledAdbRuntimeConfiguration
     }
 
     var processTest = processTestBinaryFileName;
+    var abstractSocketTest = abstractSocketTestBinaryFileName;
     return [
-      AdbPrecompilationCommand(
-          buildDir, processTest, script, arguments, useElf, extraLibs)
+      AdbPrecompilationCommand(buildDir, processTest, abstractSocketTest,
+          script, arguments, useElf, extraLibs)
     ];
   }
 }

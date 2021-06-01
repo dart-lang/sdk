@@ -1149,11 +1149,15 @@ class C {
 
   test_class_getter_static() async {
     var library = await checkLibrary('class C { static int get x => null; }');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic static int x;
   static int get x {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_getters() async {
@@ -1174,12 +1178,16 @@ class C {
   void set x(int value) {} 
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic int x;
   int get x {}
   void set x(int value) {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_implicitField_setterFirst() async {
@@ -1189,12 +1197,16 @@ class C {
   int get x => 0;
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic int x;
   void set x(int value) {}
   int get x {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_interfaces() async {
@@ -11004,12 +11016,15 @@ const dynamic b = null;
   }
 
   test_metadata_importDirective() async {
-    addLibrarySource('/foo.dart', 'const b = 0;');
-    var library = await checkLibrary('@a import "foo.dart"; const a = b;');
+    var library = await checkLibrary('''
+@a
+import "dart:math";
+const a = 0;
+''');
     checkElementText(
         library,
         '''
-import 'foo.dart';
+import 'dart:math';
   metadata
     Annotation
       element: self::@getter::a
@@ -11019,10 +11034,9 @@ import 'foo.dart';
         token: a
 const int a;
   constantInitializer
-    SimpleIdentifier
-      staticElement: ${toUriStr('/foo.dart')}::@getter::b
+    IntegerLiteral
+      literal: 0
       staticType: int
-      token: b
 ''',
         withFullyResolvedAst: true);
   }
@@ -14771,6 +14785,36 @@ dynamic g() {}
 ''');
   }
 
+  test_unit_implicitVariable_getterFirst() async {
+    var library = await checkLibrary('''
+int get x => 0;
+void set x(int value) {} 
+''');
+    checkElementText(
+        library,
+        r'''
+synthetic int x;
+int get x {}
+void set x(int value) {}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_unit_implicitVariable_setterFirst() async {
+    var library = await checkLibrary('''
+void set x(int value) {}
+int get x => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+synthetic int x;
+void set x(int value) {}
+int get x {}
+''',
+        withSyntheticFields: true);
+  }
+
   test_unit_variable_final_withSetter() async {
     var library = await checkLibrary(r'''
 final int foo = 0;
@@ -15165,7 +15209,7 @@ void set x(int _) {}
         as PropertyAccessorElementImpl;
     var variable = getter.variable as TopLevelVariableElementImpl;
     expect(variable, isNotNull);
-    expect(variable.isFinal, isTrue);
+    expect(variable.isFinal, isFalse);
     expect(variable.getter, same(getter));
     expect('${variable.type}', 'int');
     expect(variable, same(_elementOfDefiningUnit(library, ['@variable', 'x'])));

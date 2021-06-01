@@ -5,8 +5,8 @@
 // @dart = 2.9
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:expect/expect.dart';
 
@@ -177,7 +177,11 @@ Future testShortAbstractAddress() async {
   if (!Platform.isLinux && !Platform.isAndroid) {
     return;
   }
+  var retries = 10;
+  var retryDelay = const Duration(seconds: 1);
   Process process;
+  var stdoutFuture;
+  var stderrFuture;
   try {
     var socketAddress = '@hidden';
     var abstractSocketServer = getAbstractSocketTestFileName();
@@ -186,10 +190,36 @@ Future testShortAbstractAddress() async {
     if (!File(abstractSocketServer).existsSync()) {
       return;
     }
+
+    // Start up a subprocess that listens on '@hidden'.
     process = await Process.start(abstractSocketServer, [socketAddress]);
+    stdoutFuture = process.stdout
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .listen(stdout.write)
+        .asFuture(null);
+    stderrFuture = process.stderr
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .listen(stderr.write)
+        .asFuture(null);
     var serverAddress =
         InternetAddress(socketAddress, type: InternetAddressType.unix);
-    Socket client = await Socket.connect(serverAddress, 0);
+
+    // The subprocess may take some time to start, so retry setting up the
+    // connection a few times.
+    Socket client;
+    while (true) {
+      try {
+        client = await Socket.connect(serverAddress, 0);
+        break;
+      } catch (e, st) {
+        if (retries <= 0) {
+          rethrow;
+        }
+        retries--;
+      }
+      await Future.delayed(retryDelay);
+    }
+
     List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     List<int> data = [];
     var completer = Completer<void>();
@@ -208,6 +238,9 @@ Future testShortAbstractAddress() async {
     Expect.fail('Failed with exception:\n$e\n$st');
   } finally {
     process?.kill(ProcessSignal.sigkill);
+    await stdoutFuture;
+    await stderrFuture;
+    await process?.exitCode;
   }
 }
 

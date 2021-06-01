@@ -23,6 +23,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   final _exports = <ExportElement>[];
   final _imports = <ImportElement>[];
+  var _isFirstLibraryDirective = true;
   var _hasCoreImport = false;
   var _hasExtUri = false;
   var _partDirectiveIndex = 0;
@@ -82,10 +83,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var firstDirective = unit.directives.firstOrNull;
     if (firstDirective != null) {
-      _libraryElement.metadata = _buildAnnotations(firstDirective.metadata);
       _libraryElement.documentationComment = getCommentNodeRawText(
         firstDirective.documentationComment,
       );
+      var firstDirectiveMetadata = firstDirective.element?.metadata;
+      if (firstDirectiveMetadata != null) {
+        _libraryElement.metadata = firstDirectiveMetadata;
+      }
     }
   }
 
@@ -621,7 +625,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitLibraryDirective(LibraryDirective node) {}
+  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
+    if (_isFirstLibraryDirective) {
+      _isFirstLibraryDirective = false;
+      node.element = _libraryElement;
+      _libraryElement.metadata = _buildAnnotations(node.metadata);
+    }
+  }
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {

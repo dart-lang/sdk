@@ -87,10 +87,12 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     class MyClass {
       MyClass();
       MyClass.named();
+      factory MyClass.factory() => MyClass();
     }
 
     final a = MyClass();
     final b = MyClass.named();
+    final c = MyClass.factory();
     ''';
 
     final expected = [
@@ -98,7 +100,13 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('named', SemanticTokenTypes.class_,
+      _Token('named', SemanticTokenTypes.method,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('factory', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('factory', SemanticTokenTypes.method,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
@@ -110,7 +118,14 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.declaration]),
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
-      _Token('named', SemanticTokenTypes.class_,
+      _Token('named', SemanticTokenTypes.method,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('c', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('factory', SemanticTokenTypes.method,
           [CustomSemanticTokenModifiers.constructor])
     ];
 

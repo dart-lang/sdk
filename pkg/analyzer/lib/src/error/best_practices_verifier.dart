@@ -41,6 +41,10 @@ import 'package:meta/meta_meta.dart';
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   static const String _TO_INT_METHOD_NAME = "toInt";
 
+  static final Map<String, TargetKind> _targetKindsByName = {
+    for (final kind in TargetKind.values) kind.toString(): kind,
+  };
+
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   ClassElementImpl? _enclosingClass;
@@ -1623,9 +1627,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (annotation.isTarget) {
         var value = annotation.computeConstantValue()!;
         var kinds = <TargetKind>{};
+
         for (var kindObject in value.getField('kinds')!.toSetValue()!) {
+          // We can't directly translate the index from the analyzed TargetKind
+          // constant to TargetKinds.values because the analyzer from the SDK
+          // may have been compiled with a different version of pkg:meta.
           var index = kindObject.getField('index')!.toIntValue()!;
-          kinds.add(TargetKind.values[index]);
+          var targetKindClass =
+              (kindObject.type as InterfaceType).element as EnumElementImpl;
+          // Instead, map constants to their TargetKind by comparing getter
+          // names.
+          var getter = targetKindClass.constants[index];
+          var name = 'TargetKind.${getter.name}';
+
+          var foundTargetKind = _targetKindsByName[name];
+          if (foundTargetKind != null) {
+            kinds.add(foundTargetKind);
+          }
         }
         return kinds;
       }

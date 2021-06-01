@@ -1033,7 +1033,6 @@ class _MockSdkElementsBuilder {
     bool isStatic = false,
   }) {
     var field = FieldElementImpl(name, -1);
-    field.isFinal = true;
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;

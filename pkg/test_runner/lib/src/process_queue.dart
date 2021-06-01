@@ -639,6 +639,7 @@ class CommandExecutorImpl implements CommandExecutor {
       AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
     var buildPath = command.buildPath;
     var processTest = command.processTestFilename;
+    var abstractSocketTest = command.abstractSocketTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
     var devicedir = DartPrecompiledAdbRuntimeConfiguration.deviceDir;
@@ -662,10 +663,12 @@ class CommandExecutorImpl implements CommandExecutor {
         '$devicedir/dart_precompiled_runtime'));
     steps.add(
         () => device.pushCachedData(processTest, '$devicedir/process_test'));
+    steps.add(() => device.pushCachedData(
+        abstractSocketTest, '$devicedir/abstract_socket_test'));
     steps.add(() => device.runAdbShellCommand([
           'chmod',
           '777',
-          '$devicedir/dart_precompiled_runtime $devicedir/process_test'
+          '$devicedir/dart_precompiled_runtime $devicedir/process_test $devicedir/abstract_socket_test'
         ]));
 
     steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
