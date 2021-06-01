@@ -28,7 +28,7 @@ class MyPublicWidget extends StatelessWidget {
 **GOOD:**
 ```dart
 class MyPublicWidget extends StatelessWidget {
-  MyPublicWidget({Key key}) : super(key: key);
+  MyPublicWidget({Key? key}) : super(key: key);
 }
 ```
 ''';
