@@ -359,19 +359,16 @@ class _Double implements double {
             (other <= MAX_EXACT_INT_TO_DOUBLE)) {
           return EQUAL;
         }
-        const bool limitIntsTo64Bits = ((1 << 64) == 0);
-        if (limitIntsTo64Bits) {
-          // With integers limited to 64 bits, double.toInt() clamps
-          // double value to fit into the MIN_INT64..MAX_INT64 range.
-          // MAX_INT64 is not precisely representable as double, so
-          // integers near MAX_INT64 compare as equal to (MAX_INT64 + 1) when
-          // represented as doubles.
-          // There is no similar problem with MIN_INT64 as it is precisely
-          // representable as double.
-          const double maxInt64Plus1AsDouble = 9223372036854775808.0;
-          if (this >= maxInt64Plus1AsDouble) {
-            return GREATER;
-          }
+        // With int limited to 64 bits, double.toInt() clamps
+        // double value to fit into the MIN_INT64..MAX_INT64 range.
+        // MAX_INT64 is not precisely representable as double, so
+        // integers near MAX_INT64 compare as equal to (MAX_INT64 + 1) when
+        // represented as doubles.
+        // There is no similar problem with MIN_INT64 as it is precisely
+        // representable as double.
+        const double maxInt64Plus1AsDouble = 9223372036854775808.0;
+        if (this >= maxInt64Plus1AsDouble) {
+          return GREATER;
         }
         return toInt().compareTo(other);
       } else {
