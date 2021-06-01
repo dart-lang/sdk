@@ -11004,12 +11004,15 @@ const dynamic b = null;
   }
 
   test_metadata_importDirective() async {
-    addLibrarySource('/foo.dart', 'const b = 0;');
-    var library = await checkLibrary('@a import "foo.dart"; const a = b;');
+    var library = await checkLibrary('''
+@a
+import "dart:math";
+const a = 0;
+''');
     checkElementText(
         library,
         '''
-import 'foo.dart';
+import 'dart:math';
   metadata
     Annotation
       element: self::@getter::a
@@ -11019,10 +11022,9 @@ import 'foo.dart';
         token: a
 const int a;
   constantInitializer
-    SimpleIdentifier
-      staticElement: ${toUriStr('/foo.dart')}::@getter::b
+    IntegerLiteral
+      literal: 0
       staticType: int
-      token: b
 ''',
         withFullyResolvedAst: true);
   }
