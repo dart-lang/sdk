@@ -160,7 +160,9 @@ class _ConstructorInferenceNode extends _InferenceNode {
       var superType = classElement.supertype;
       if (superType != null) {
         var index = classElement.constructors.indexOf(_constructor);
-        var superConstructors = superType.element.constructors;
+        var superConstructors = superType.element.constructors
+            .where((element) => element.isAccessibleIn(classElement.library))
+            .toList();
         if (index < superConstructors.length) {
           _baseConstructor = _BaseConstructor(
             superType,
