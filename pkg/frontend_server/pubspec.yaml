@@ -8,10 +8,6 @@ environment:
 
 dependencies:
   args: ^1.4.4
-  build_integration:
-    path: ../build_integration
-  compiler:
-    path: ../compiler
   dev_compiler:
     path: ../dev_compiler
   front_end:
