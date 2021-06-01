@@ -451,7 +451,7 @@ FutureOr<Object?> f(void a) async {
 
   test_function_async_expression_dynamic__to_Future_int() async {
     await assertNoErrorsInCode(r'''
-Future<int> f(dynamic a) async => a; 
+Future<int> f(dynamic a) async => a;
 ''');
   }
 

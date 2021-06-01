@@ -68,7 +68,7 @@ main() {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static set _foo(int _) {}
-  
+
   static int get _foo => 0;
 }
 ''');

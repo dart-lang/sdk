@@ -1148,7 +1148,7 @@ void main() {
   new F4(a: [[3]]);
   new F4(a: [["hello"]]);
   new F4(a: [["hello"], [3]]);
-  
+
   new F5([[[3]]]);
 }
 ''', [

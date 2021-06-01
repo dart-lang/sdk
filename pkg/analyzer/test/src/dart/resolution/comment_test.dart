@@ -148,13 +148,13 @@ get g => null;
 abstract class A {
   /// [p1]
   ma(int p1);
-  
+
   /// [p2]
   mb(int p2);
-  
+
   /// [p3] and [p4]
   mc(int p3, p4());
-  
+
   /// [p5]
   md(int p5, {int p6});
 }

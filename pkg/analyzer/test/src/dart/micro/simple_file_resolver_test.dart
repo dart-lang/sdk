@@ -463,7 +463,7 @@ class A {
   void func() {
    print('hello');
  }
- 
+
  void func2() {
    func();
  }
@@ -483,7 +483,7 @@ main() {
     await resolveFile(bPath);
     var result = fileResolver.findReferences(17, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [17, 69]),
+      CiderSearchMatch(aPath, [17, 68]),
       CiderSearchMatch(bPath, [46])
     ];
     expect(result, unorderedEquals(expected));
@@ -593,14 +593,14 @@ void func() {
     newFile(aPath, content: r'''
 class Foo<T> {
   List<T> l;
-  
+
   void bar(T t) {}
 }
 ''');
     await resolveFile(aPath);
     var result = fileResolver.findReferences(10, aPath);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [10, 22, 42])
+      CiderSearchMatch(aPath, [10, 22, 40])
     ];
     expect(result.map((e) => e.path),
         unorderedEquals(expected.map((e) => e.path)));
