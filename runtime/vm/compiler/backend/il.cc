@@ -5742,6 +5742,7 @@ Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
       length, fixed_parameter_count_, LazyDeoptPruneCount(), parsed_function_,
       (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
   copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
+  copy->SetLazyDeoptToBeforeDeoptId(LazyDeoptToBeforeDeoptId());
   if (locations_ != NULL) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);

@@ -9423,6 +9423,14 @@ class Environment : public ZoneAllocated {
     return LazyDeoptPruningBits::decode(bitfield_);
   }
 
+  bool LazyDeoptToBeforeDeoptId() const {
+    return LazyDeoptToBeforeDeoptId::decode(bitfield_);
+  }
+
+  void MarkAsLazyDeoptToBeforeDeoptId() {
+    bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
+  }
+
   Environment* GetLazyDeoptEnv(Zone* zone) {
     const intptr_t num_args_to_prune = LazyDeoptPruneCount();
     if (num_args_to_prune == 0) return this;
@@ -9501,11 +9509,13 @@ class Environment : public ZoneAllocated {
   friend class FlowGraphDeserializer;   // For constructor and deopt_id_.
 
   class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
+  class LazyDeoptToBeforeDeoptId
+      : public BitField<uintptr_t, bool, LazyDeoptPruningBits::kNextBit, 1> {};
   class DeoptIdBits
       : public BitField<uintptr_t,
                         intptr_t,
-                        LazyDeoptPruningBits::kNextBit,
-                        kBitsPerWord - LazyDeoptPruningBits::kNextBit,
+                        LazyDeoptToBeforeDeoptId::kNextBit,
+                        kBitsPerWord - LazyDeoptToBeforeDeoptId::kNextBit,
                         /*sign_extend=*/true> {};
 
   Environment(intptr_t length,
@@ -9516,6 +9526,7 @@ class Environment : public ZoneAllocated {
       : values_(length),
         fixed_parameter_count_(fixed_parameter_count),
         bitfield_(DeoptIdBits::encode(DeoptId::kNone) |
+                  LazyDeoptToBeforeDeoptId::encode(false) |
                   LazyDeoptPruningBits::encode(lazy_deopt_pruning_count)),
         parsed_function_(parsed_function),
         outer_(outer) {}
@@ -9525,6 +9536,9 @@ class Environment : public ZoneAllocated {
   }
   void SetLazyDeoptPruneCount(intptr_t value) {
     bitfield_ = LazyDeoptPruningBits::update(value, bitfield_);
+  }
+  void SetLazyDeoptToBeforeDeoptId(bool value) {
+    bitfield_ = LazyDeoptToBeforeDeoptId::update(value, bitfield_);
   }
 
   GrowableArray<Value*> values_;
