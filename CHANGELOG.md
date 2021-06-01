@@ -1,3 +1,25 @@
+# 1.5.0
+
+- (internal) migrated to `SecurityLintCode` instead of deprecated 
+  `SecurityLintCodeWithUniqueName`
+- (internal) fixed `avoid_types_as_parameter_names` to skip field formal
+  parameters
+- fixed false positives in `prefer_interpolation_to_compose_strings` where
+  the left operand is not a String
+- fixed false positives in `only_throw_errors` for misidentified type
+  variables
+- new lint: `depend_on_referenced_packages`
+- update `avoid_returning_null_for_future` to skip checks for null-safe
+  libraries
+- new lint: `use_test_throws_matchers`
+- relax `sort_child_properties_last` to accept closures after child
+- performance improvements for `prefer_contains` and `prefer_is_empty`
+- new lint: `noop_primitive_operations`
+- mark `avoid_web_libraries_in_flutter` as stable
+- new lint: `prefer_final_parameters`
+- update `prefer_initializing_formals` to allow assignments where identifier
+  names don't match
+
 # 1.4.0
 
 - `directives_ordering` now checks ordering of `package:` imports in code
