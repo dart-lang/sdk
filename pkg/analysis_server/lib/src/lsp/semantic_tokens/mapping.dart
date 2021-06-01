@@ -15,7 +15,6 @@ final highlightRegionTokenModifiers =
   HighlightRegionType.COMMENT_DOCUMENTATION: {
     SemanticTokenModifiers.documentation
   },
-  HighlightRegionType.CONSTRUCTOR: {CustomSemanticTokenModifiers.constructor},
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION: {
     SemanticTokenModifiers.declaration
   },
@@ -88,7 +87,6 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.COMMENT_BLOCK: SemanticTokenTypes.comment,
   HighlightRegionType.COMMENT_DOCUMENTATION: SemanticTokenTypes.comment,
   HighlightRegionType.COMMENT_END_OF_LINE: SemanticTokenTypes.comment,
-  HighlightRegionType.CONSTRUCTOR: SemanticTokenTypes.class_,
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION:
       SemanticTokenTypes.variable,
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE:

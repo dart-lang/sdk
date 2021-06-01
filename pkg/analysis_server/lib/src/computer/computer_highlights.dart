@@ -160,6 +160,8 @@ class DartUnitHighlightsComputer {
     }
     // prepare type
     HighlightRegionType type;
+    SemanticTokenTypes? semanticType;
+    Set<SemanticTokenModifiers>? semanticModifiers;
     var parent = node.parent;
     var grandParent = parent?.parent;
     if (parent is TypeName &&
@@ -167,13 +169,20 @@ class DartUnitHighlightsComputer {
         grandParent.parent is InstanceCreationExpression) {
       // new Class()
       type = HighlightRegionType.CONSTRUCTOR;
+      semanticType = SemanticTokenTypes.class_;
+      semanticModifiers = {CustomSemanticTokenModifiers.constructor};
     } else if (element.isEnum) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
     }
     // add region
-    return _addRegion_node(node, type);
+    return _addRegion_node(
+      node,
+      type,
+      semanticTokenType: semanticType,
+      semanticTokenModifiers: semanticModifiers,
+    );
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
@@ -181,7 +190,14 @@ class DartUnitHighlightsComputer {
     if (element is! ConstructorElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightRegionType.CONSTRUCTOR);
+    return _addRegion_node(
+      node,
+      HighlightRegionType.CONSTRUCTOR,
+      // For semantic tokens, constructor names are coloured like methods but
+      // have a modifier applied.
+      semanticTokenType: SemanticTokenTypes.method,
+      semanticTokenModifiers: {CustomSemanticTokenModifiers.constructor},
+    );
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
