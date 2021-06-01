@@ -3624,7 +3624,11 @@
         {
           "name": "analyze flutter/flutter",
           "script": "tools/bots/flutter/analyze_flutter_flutter.sh"
-        }
+        },
+        {
+          "name": "analyze flutter/plugins",
+          "script": "tools/bots/flutter/analyze_flutter_plugins.sh"
+        }        
       ]
     },
     {
