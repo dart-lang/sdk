@@ -679,7 +679,6 @@ class FragmentEmitter {
       size = estimator.charCount;
     }
     var emittedOutputUnit = EmittedOutputUnit(
-        fragment,
         fragment.outputUnit,
         fragment.libraries,
         classPrototypes,
@@ -705,10 +704,9 @@ class FragmentEmitter {
     // Emit holder code.
     var holderCode = emitHolderCode(fragment.libraries);
     var holderDeclaration = DeferredHolderResource(
-        DeferredHolderResourceKind.mainFragment,
-        mainResourceName,
-        [fragment],
-        holderCode);
+        DeferredHolderResourceKind.declaration,
+        holderCode: holderCode,
+        initializeEmptyHolders: true);
     js.Statement mainCode = js.js.statement(_mainBoilerplate, {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
@@ -760,7 +758,7 @@ class FragmentEmitter {
       'call2selector': js.quoteName(call2Name)
     });
     // We assume emitMainFragment will be the last piece of code we emit.
-    finalizeCode(mainResourceName, mainCode, holderCode, finalizeHolders: true);
+    finalizeCode(mainCode, holderCode, finalizeHolders: true);
     return mainCode;
   }
 
@@ -780,12 +778,9 @@ class FragmentEmitter {
       return null;
     }
 
-    var resourceName = fragment.canonicalOutputUnit.name;
     var updateHolders = DeferredHolderResource(
-        DeferredHolderResourceKind.deferredFragment,
-        resourceName,
-        fragment.fragments,
-        holderCode);
+        DeferredHolderResourceKind.update,
+        holderCode: holderCode);
     js.Expression code = js.js(_deferredBoilerplate, {
       // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': new js.Parameter('init'),
@@ -811,7 +806,7 @@ class FragmentEmitter {
     if (_options.experimentStartupFunctions) {
       code = js.Parentheses(code);
     }
-    finalizeCode(resourceName, code, holderCode);
+    finalizeCode(code, holderCode);
     return code;
   }
 
@@ -828,8 +823,7 @@ class FragmentEmitter {
 
   /// Finalizes the code for a fragment, and optionally finalizes holders.
   /// Finalizing holders must be the last step of the emitter.
-  void finalizeCode(String resourceName, js.Node code,
-      Map<Entity, List<js.Property>> holderCode,
+  void finalizeCode(js.Node code, Map<Entity, List<js.Property>> holderCode,
       {bool finalizeHolders: false}) {
     StringReferenceFinalizer stringFinalizer =
         StringReferenceFinalizerImpl(_options.enableMinification);
@@ -847,11 +841,7 @@ class FragmentEmitter {
     // per output unit, the holderFinalizer is a whole-program finalizer,
     // which collects deferred [Node]s from each call to `finalizeCode`
     // before begin finalized once for the last (main) unit.
-    void _addCode(js.Node code) {
-      _holderFinalizer.addCode(resourceName, code);
-    }
-
-    addCodeToFinalizer(_addCode, code, holderCode);
+    addCodeToFinalizer(_holderFinalizer.addCode, code, holderCode);
     if (finalizeHolders) {
       _holderFinalizer.finalize();
     }
@@ -1573,7 +1563,7 @@ class FragmentEmitter {
       // TODO(25230): We only need to name constants that are used from function
       // bodies or from other constants in a different part.
       var assignment = js.js.statement('#.# = #', [
-        _namer.globalObjectForConstant(constant.value),
+        _namer.globalObjectForConstants(),
         constant.name,
         _constantEmitter.generate(constant.value)
       ]);
