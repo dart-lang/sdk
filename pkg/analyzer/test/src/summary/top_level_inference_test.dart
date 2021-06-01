@@ -1514,7 +1514,7 @@ abstract class A {
 }
 class B implements A {
   int x;
-  synthetic final int y;
+  synthetic int y;
   synthetic int z;
   int get y {}
   void set z(int _) {}
@@ -1565,7 +1565,7 @@ abstract class A<E> {
 }
 class B<T> implements A<T> {
   T x;
-  synthetic final T y;
+  synthetic T y;
   synthetic T z;
   T get y {}
   void set z(T _) {}
@@ -1816,7 +1816,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {
@@ -1824,7 +1824,7 @@ abstract class B {
   void set x(String _);
 }
 class C implements A, B {
-  synthetic final int x;
+  synthetic int x;
   int get x {}
 }
 ''',
@@ -1848,7 +1848,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {
@@ -1904,7 +1904,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {
@@ -1912,7 +1912,7 @@ abstract class B {
   void set x(int _);
 }
 class C implements A, B {
-  synthetic final int x;
+  synthetic int x;
   int get x {}
 }
 ''',
@@ -1935,7 +1935,7 @@ class C implements A, B {
         library,
         r'''
 abstract class A {
-  synthetic final int x;
+  synthetic int x;
   int get x;
 }
 abstract class B {

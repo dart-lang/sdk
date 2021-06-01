@@ -998,7 +998,6 @@ class LibraryReader {
           property = existing;
         } else {
           var field = TopLevelVariableElementImpl(name, -1);
-          field.isFinal = true;
           property = field;
         }
       } else {
@@ -1007,7 +1006,6 @@ class LibraryReader {
           property = existing;
         } else {
           var field = FieldElementImpl(name, -1);
-          field.isFinal = true;
           field.isStatic = accessor.isStatic;
           property = field;
         }

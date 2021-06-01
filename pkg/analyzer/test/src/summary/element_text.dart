@@ -997,6 +997,7 @@ class _ElementWriter {
     } else {
       writeDocumentation(e);
       writeMetadata(e, '', '\n');
+      writeIf(e.isSynthetic, 'synthetic ');
       writeIf(e is TopLevelVariableElementImpl && e.isExternal, 'external ');
     }
 

@@ -1149,11 +1149,15 @@ class C {
 
   test_class_getter_static() async {
     var library = await checkLibrary('class C { static int get x => null; }');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic static int x;
   static int get x {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_getters() async {
@@ -1174,12 +1178,16 @@ class C {
   void set x(int value) {} 
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic int x;
   int get x {}
   void set x(int value) {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_implicitField_setterFirst() async {
@@ -1189,12 +1197,16 @@ class C {
   int get x => 0;
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 class C {
+  synthetic int x;
   void set x(int value) {}
   int get x {}
 }
-''');
+''',
+        withSyntheticFields: true);
   }
 
   test_class_interfaces() async {
@@ -14773,6 +14785,36 @@ dynamic g() {}
 ''');
   }
 
+  test_unit_implicitVariable_getterFirst() async {
+    var library = await checkLibrary('''
+int get x => 0;
+void set x(int value) {} 
+''');
+    checkElementText(
+        library,
+        r'''
+synthetic int x;
+int get x {}
+void set x(int value) {}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_unit_implicitVariable_setterFirst() async {
+    var library = await checkLibrary('''
+void set x(int value) {}
+int get x => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+synthetic int x;
+void set x(int value) {}
+int get x {}
+''',
+        withSyntheticFields: true);
+  }
+
   test_unit_variable_final_withSetter() async {
     var library = await checkLibrary(r'''
 final int foo = 0;
@@ -15167,7 +15209,7 @@ void set x(int _) {}
         as PropertyAccessorElementImpl;
     var variable = getter.variable as TopLevelVariableElementImpl;
     expect(variable, isNotNull);
-    expect(variable.isFinal, isTrue);
+    expect(variable.isFinal, isFalse);
     expect(variable.getter, same(getter));
     expect('${variable.type}', 'int');
     expect(variable, same(_elementOfDefiningUnit(library, ['@variable', 'x'])));
