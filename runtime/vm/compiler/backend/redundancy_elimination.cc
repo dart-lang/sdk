@@ -1368,6 +1368,9 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
   // Using kind kEffect will not assign a fresh ssa temporary index.
   flow_graph()->InsertBefore(last, current, last->env(), FlowGraph::kEffect);
+  // If the hoisted instruction lazy-deopts, it should continue at the start of
+  // the Goto (of which we copy the deopt-id from).
+  current->env()->MarkAsLazyDeoptToBeforeDeoptId();
   current->CopyDeoptIdFrom(*last);
 }
 
