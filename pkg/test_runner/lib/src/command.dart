@@ -609,6 +609,7 @@ abstract class AdbCommand {
 class AdbPrecompilationCommand extends Command implements AdbCommand {
   final String buildPath; // Path to the output directory of the build.
   final String processTestFilename;
+  final String abstractSocketTestFilename;
   final String precompiledTestDirectory;
   final List<String> arguments;
   final bool useElf;
@@ -617,6 +618,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
   AdbPrecompilationCommand(
       this.buildPath,
       this.processTestFilename,
+      this.abstractSocketTestFilename,
       this.precompiledTestDirectory,
       this.arguments,
       this.useElf,
@@ -627,6 +629,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
   AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand(
       buildPath,
       processTestFilename,
+      abstractSocketTestFilename,
       precompiledTestDirectory,
       arguments,
       useElf,
@@ -662,17 +665,28 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
 class AdbDartkCommand extends Command implements AdbCommand {
   final String buildPath;
   final String processTestFilename;
+  final String abstractSocketTestFilename;
   final String kernelFile;
   final List<String> arguments;
   final List<String> extraLibraries;
 
-  AdbDartkCommand(this.buildPath, this.processTestFilename, this.kernelFile,
-      this.arguments, this.extraLibraries,
+  AdbDartkCommand(
+      this.buildPath,
+      this.processTestFilename,
+      this.abstractSocketTestFilename,
+      this.kernelFile,
+      this.arguments,
+      this.extraLibraries,
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
   AdbDartkCommand indexedCopy(int index) => AdbDartkCommand(
-      buildPath, processTestFilename, kernelFile, arguments, extraLibraries,
+      buildPath,
+      processTestFilename,
+      abstractSocketTestFilename,
+      kernelFile,
+      arguments,
+      extraLibraries,
       index: index);
 
   _buildHashCode(HashCodeBuilder builder) {
