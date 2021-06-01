@@ -59,7 +59,7 @@ Dart SDK) in Dart 2.15.
 https://github.com/dart-lang/sdk/issues/46100
 
 * The `dart create` command has been updated to create projects that use the new
-  'core' set of lints from `package:lints`. See https://dart.dev/go/core-lints
+  'recommended' set of lints from `package:lints`. See https://dart.dev/go/core-lints
   for more information about these lints.
 
 #### Linter
