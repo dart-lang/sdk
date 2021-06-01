@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as js;
 import '../serialization/serialization.dart';
 import '../util/util.dart';
+import '../js_emitter/model.dart' show Fragment;
 
 import 'namer.dart';
 
@@ -17,7 +18,7 @@ import 'namer.dart';
 // for the entity referenced in the DeferredHolderExpression.
 enum DeferredHolderExpressionKind {
   globalObjectForStaticState,
-  globalObjectForConstants,
+  globalObjectForConstant,
   globalObjectForLibrary,
   globalObjectForClass,
   globalObjectForMember,
@@ -34,19 +35,15 @@ class DeferredHolderExpression extends js.DeferredExpression
   static const String tag = 'deferred-holder-expression';
 
   final DeferredHolderExpressionKind kind;
-  final Entity entity;
+  final Object data;
   js.Expression _value;
 
   @override
   final js.JavaScriptNodeSourceInformation sourceInformation;
 
-  DeferredHolderExpression(this.kind, this.entity) : sourceInformation = null;
+  DeferredHolderExpression(this.kind, this.data) : sourceInformation = null;
   DeferredHolderExpression._(
-      this.kind, this.entity, this._value, this.sourceInformation);
-  factory DeferredHolderExpression.forConstants() {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForConstants, null);
-  }
+      this.kind, this.data, this._value, this.sourceInformation);
 
   factory DeferredHolderExpression.forStaticState() {
     return DeferredHolderExpression(
@@ -56,24 +53,26 @@ class DeferredHolderExpression extends js.DeferredExpression
   factory DeferredHolderExpression.readFromDataSource(DataSource source) {
     source.begin(tag);
     var kind = source.readEnum(DeferredHolderExpressionKind.values);
-    Entity entity;
+    Object data;
     switch (kind) {
       case DeferredHolderExpressionKind.globalObjectForLibrary:
-        entity = source.readLibrary();
+        data = source.readLibrary();
         break;
       case DeferredHolderExpressionKind.globalObjectForClass:
-        entity = source.readClass();
+        data = source.readClass();
         break;
       case DeferredHolderExpressionKind.globalObjectForMember:
-        entity = source.readMember();
+        data = source.readMember();
+        break;
+      case DeferredHolderExpressionKind.globalObjectForConstant:
+        data = source.readConstant();
         break;
       case DeferredHolderExpressionKind.globalObjectForStaticState:
-      case DeferredHolderExpressionKind.globalObjectForConstants:
         // no entity.
         break;
     }
     source.end(tag);
-    return DeferredHolderExpression(kind, entity);
+    return DeferredHolderExpression(kind, data);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -81,16 +80,18 @@ class DeferredHolderExpression extends js.DeferredExpression
     sink.writeEnum(kind);
     switch (kind) {
       case DeferredHolderExpressionKind.globalObjectForLibrary:
-        sink.writeLibrary(entity);
+        sink.writeLibrary(data);
         break;
       case DeferredHolderExpressionKind.globalObjectForClass:
-        sink.writeClass(entity);
+        sink.writeClass(data);
         break;
       case DeferredHolderExpressionKind.globalObjectForMember:
-        sink.writeMember(entity);
+        sink.writeMember(data);
+        break;
+      case DeferredHolderExpressionKind.globalObjectForConstant:
+        sink.writeConstant(data);
         break;
       case DeferredHolderExpressionKind.globalObjectForStaticState:
-      case DeferredHolderExpressionKind.globalObjectForConstants:
         // no entity.
         break;
     }
@@ -116,8 +117,7 @@ class DeferredHolderExpression extends js.DeferredExpression
       js.JavaScriptNodeSourceInformation newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
-    return DeferredHolderExpression._(
-        kind, entity, _value, newSourceInformation);
+    return DeferredHolderExpression._(kind, data, _value, newSourceInformation);
   }
 
   @override
@@ -125,7 +125,7 @@ class DeferredHolderExpression extends js.DeferredExpression
 
   @override
   int get hashCode {
-    return Hashing.objectsHash(kind, entity);
+    return Hashing.objectsHash(kind, data);
   }
 
   @override
@@ -133,13 +133,13 @@ class DeferredHolderExpression extends js.DeferredExpression
     if (identical(this, other)) return true;
     return other is DeferredHolderExpression &&
         kind == other.kind &&
-        entity == other.entity;
+        data == other.data;
   }
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('DeferredHolderExpression(kind=$kind,entity=$entity,');
+    StringBuffer sb = StringBuffer();
+    sb.write('DeferredHolderExpression(kind=$kind,data=$data,');
     sb.write('value=$_value)');
     return sb.toString();
   }
@@ -205,40 +205,43 @@ class DeferredHolderParameter extends js.Expression implements js.Parameter {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('DeferredHolderParameter(name=$_name)');
     return sb.toString();
   }
 }
 
 enum DeferredHolderResourceKind {
-  declaration,
-  update,
+  mainFragment,
+  deferredFragment,
 }
 
 /// A [DeferredHolderResource] is a deferred JavaScript statement determined by
-/// the finalization of holders. It is the injection point for data or
-/// code to holders. The actual [Statement] contained with the
+/// the finalization of holders. Each fragment contains one
+/// [DeferredHolderResource]. The actual [Statement] contained with the
 /// [DeferredHolderResource] will be determined by the
 /// [DeferredHolderResourceKind]. These [Statement]s differ considerably
-/// depending on where they are used in the AST. This class does not support
-/// serialization.
+/// depending on where they are used in the AST. This class is created by the
+/// fragment emitter so does not need to support serialization.
 class DeferredHolderResource extends js.DeferredStatement
     implements js.AstContainer {
   DeferredHolderResourceKind kind;
+  // Each resource has a distinct name.
+  String name;
+  List<Fragment> fragments;
   Map<Entity, List<js.Property>> holderCode;
-  bool initializeEmptyHolders;
   js.Statement _statement;
 
   @override
   final js.JavaScriptNodeSourceInformation sourceInformation;
 
-  DeferredHolderResource(this.kind,
-      {this.holderCode: const {}, this.initializeEmptyHolders: false})
+  DeferredHolderResource(this.kind, this.name, this.fragments, this.holderCode)
       : sourceInformation = null;
 
-  DeferredHolderResource._(this.kind, this.holderCode,
-      this.initializeEmptyHolders, this._statement, this.sourceInformation);
+  DeferredHolderResource._(this.kind, this.name, this.fragments,
+      this.holderCode, this._statement, this.sourceInformation);
+
+  bool get isMainFragment => kind == DeferredHolderResourceKind.mainFragment;
 
   set statement(js.Statement statement) {
     assert(!isFinalized && statement != null);
@@ -259,7 +262,7 @@ class DeferredHolderResource extends js.DeferredStatement
       js.JavaScriptNodeSourceInformation newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
-    return DeferredHolderResource._(kind, holderCode, initializeEmptyHolders,
+    return DeferredHolderResource._(kind, this.name, this.fragments, holderCode,
         _statement, newSourceInformation);
   }
 
@@ -277,14 +280,60 @@ class DeferredHolderResource extends js.DeferredStatement
   }
 }
 
+const String mainResourceName = 'MAIN';
+
 abstract class DeferredHolderExpressionFinalizer {
   /// Collects DeferredHolderExpressions from the JavaScript
-  /// AST [code];
-  void addCode(js.Node code);
+  /// AST [code] and associates it with [resourceName].
+  void addCode(String resourceName, js.Node code);
 
   /// Performs analysis on all collected DeferredHolderExpression nodes
   /// finalizes the values to expressions to access the holders.
   void finalize();
+}
+
+/// An abstraction representing a [Holder] object, which will contain some
+/// portion of the programs code.
+class Holder {
+  final String name;
+  final Map<String, int> refCountPerResource = {};
+  final Map<String, List<js.Property>> propertiesPerResource = {};
+  int _index;
+  int _hashCode;
+
+  Holder(this.name);
+
+  int refCount(String resource) => refCountPerResource[resource];
+
+  void registerUse(String resource) {
+    refCountPerResource.update(resource, (count) => count + 1,
+        ifAbsent: () => 0);
+  }
+
+  void registerUpdate(String resource, List<js.Property> properties) {
+    (propertiesPerResource[resource] ??= []).addAll(properties);
+    registerUse(resource);
+  }
+
+  int get index {
+    assert(_index != null);
+    return _index;
+  }
+
+  set index(int newIndex) {
+    assert(_index == null);
+    _index = newIndex;
+  }
+
+  @override
+  bool operator ==(that) {
+    return that is Holder && name == that.name;
+  }
+
+  @override
+  int get hashCode {
+    return _hashCode ??= Hashing.objectsHash(name);
+  }
 }
 
 /// [DeferredHolderExpressionFinalizerImpl] finalizes
@@ -293,25 +342,25 @@ abstract class DeferredHolderExpressionFinalizer {
 class DeferredHolderExpressionFinalizerImpl
     implements DeferredHolderExpressionFinalizer {
   _DeferredHolderExpressionCollectorVisitor _visitor;
-  final List<DeferredHolderExpression> holderReferences = [];
+  final Map<String, List<DeferredHolderExpression>> holderReferences = {};
   final List<DeferredHolderParameter> holderParameters = [];
   final List<DeferredHolderResource> holderResources = [];
-  final Set<String> _uniqueHolders = {};
-  final List<String> _holders = [];
-  final Map<Entity, String> _entityMap = {};
+  final Map<String, Set<Holder>> holdersPerResource = {};
+  final Map<String, Holder> holderMap = {};
   final JCommonElements _commonElements;
+  DeferredHolderResource mainHolderResource;
 
   DeferredHolderExpressionFinalizerImpl(this._commonElements) {
     _visitor = _DeferredHolderExpressionCollectorVisitor(this);
   }
 
   @override
-  void addCode(js.Node code) {
-    code.accept(_visitor);
+  void addCode(String resourceName, js.Node code) {
+    _visitor.setResourceNameAndVisit(resourceName, code);
   }
 
   final List<String> userGlobalObjects =
-      new List.from(Namer.reservedGlobalObjectNames)
+      List.from(Namer.reservedGlobalObjectNames)
         ..remove('C')
         ..remove('H')
         ..remove('J')
@@ -319,7 +368,7 @@ class DeferredHolderExpressionFinalizerImpl
         ..remove('W');
 
   /// Returns the [reservedGlobalObjectNames] for [library].
-  String globalObjectForLibrary(LibraryEntity library) {
+  String globalObjectNameForLibrary(LibraryEntity library) {
     if (library == _commonElements.interceptorsLibrary) return 'J';
     Uri uri = library.canonicalUri;
     if (uri.scheme == 'dart') {
@@ -341,236 +390,285 @@ class DeferredHolderExpressionFinalizerImpl
     return element.isField;
   }
 
-  String globalObjectForMember(MemberEntity entity) {
+  String globalObjectNameForMember(MemberEntity entity) {
     if (_isPropertyOfStaticStateHolder(entity)) {
-      return globalObjectForStaticState();
+      return globalObjectNameForStaticState();
     } else {
-      return globalObjectForLibrary(entity.library);
+      return globalObjectNameForLibrary(entity.library);
     }
   }
 
-  String globalObjectForClass(ClassEntity entity) {
-    return globalObjectForLibrary(entity.library);
+  String globalObjectNameForClass(ClassEntity entity) {
+    return globalObjectNameForLibrary(entity.library);
   }
 
-  String globalObjectForStaticState() => r'$';
+  final Holder globalObjectForStaticState =
+      Holder(globalObjectNameForStaticState());
 
-  String globalObjectForConstants() => 'C';
+  static String globalObjectNameForStaticState() => r'$';
 
-  String globalObjectForEntity(Entity entity) {
+  String globalObjectNameForConstants() => 'C';
+
+  String globalObjectNameForEntity(Entity entity) {
     if (entity is MemberEntity) {
-      return globalObjectForMember(entity);
+      return globalObjectNameForMember(entity);
     } else if (entity is ClassEntity) {
-      return globalObjectForLibrary(entity.library);
+      return globalObjectNameForLibrary(entity.library);
     } else {
       assert(entity is LibraryEntity);
-      return globalObjectForLibrary(entity);
+      return globalObjectNameForLibrary(entity);
     }
   }
 
-  /// Registers an [Entity] with a specific [holder].
-  void registerHolderUse(String holder, Entity entity) {
-    if (_uniqueHolders.add(holder)) _holders.add(holder);
-    if (entity != null) {
-      assert(!_entityMap.containsKey(entity) || _entityMap[entity] == holder);
-      _entityMap[entity] = holder;
+  Holder holderNameToHolder(String holderKey) {
+    if (holderKey == globalObjectNameForStaticState()) {
+      return globalObjectForStaticState;
+    } else {
+      return holderMap[holderKey];
     }
   }
 
-  /// Returns a global object for a given [Entity] based on the
+  Holder globalObjectForEntity(Entity entity) {
+    return holderNameToHolder(globalObjectNameForEntity(entity));
+  }
+
+  /// Registers a [holder] use within a given [resource], if [properties] are
+  /// provided then it is assumed this is an update to a holder.
+  void registerHolderUseOrUpdate(String resourceName, String holderName,
+      {List<js.Property> properties}) {
+    // For simplicity, we don't currently track the static state holder per
+    // resource.
+    if (holderName == globalObjectNameForStaticState()) return;
+    Holder holder = holderMap[holderName] ??= Holder(holderName);
+    if (properties == null) {
+      holder.registerUse(resourceName);
+    } else {
+      holder.registerUpdate(resourceName, properties);
+    }
+    (holdersPerResource[resourceName] ??= {}).add(holder);
+  }
+
+  /// Returns a key to a global object for a given [Object] based on the
   /// [DeferredHolderExpressionKind].
-  String kindToHolder(DeferredHolderExpressionKind kind, Entity entity) {
+  String kindToHolderName(DeferredHolderExpressionKind kind, Object data) {
     switch (kind) {
       case DeferredHolderExpressionKind.globalObjectForLibrary:
-        return globalObjectForLibrary(entity);
+        return globalObjectNameForLibrary(data);
       case DeferredHolderExpressionKind.globalObjectForClass:
-        return globalObjectForClass(entity);
+        return globalObjectNameForClass(data);
       case DeferredHolderExpressionKind.globalObjectForMember:
-        return globalObjectForMember(entity);
-      case DeferredHolderExpressionKind.globalObjectForConstants:
-        return globalObjectForConstants();
+        return globalObjectNameForMember(data);
+      case DeferredHolderExpressionKind.globalObjectForConstant:
+        return globalObjectNameForConstants();
       case DeferredHolderExpressionKind.globalObjectForStaticState:
-        return globalObjectForStaticState();
+        return globalObjectNameForStaticState();
     }
     throw UnsupportedError("Unreachable");
   }
 
-  /// Finalizes [DeferredHolderExpression]s [DeferredHolderParameter]s.
-  void finalizeReferences() {
-    // Finalize [DeferredHolderExpression]s and registers holder usage.
-    for (var reference in holderReferences) {
+  /// Returns a global object for a given [Object] based on the
+  /// [DeferredHolderExpressionKind].
+  Holder kindToHolder(DeferredHolderExpressionKind kind, Object data) {
+    return holderNameToHolder(kindToHolderName(kind, data));
+  }
+
+  /// Finalizes [DeferredHolderParameter]s.
+  void finalizeParameters() {
+    for (var parameter in holderParameters) {
+      if (parameter.isFinalized) continue;
+      parameter.name = globalObjectNameForStaticState();
+    }
+  }
+
+  /// Finalizes all of the [DeferredHolderExpression]s associated with a
+  /// [DeferredHolderResource].
+  void finalizeReferences(DeferredHolderResource resource) {
+    if (!holderReferences.containsKey(resource.name)) return;
+    for (var reference in holderReferences[resource.name]) {
       if (reference.isFinalized) continue;
-      Entity entity = reference.entity;
-      String holder = kindToHolder(reference.kind, entity);
+      String holder = kindToHolder(reference.kind, reference.data).name;
       js.Expression value = js.VariableUse(holder);
-      registerHolderUse(holder, entity);
       reference.value =
           value.withSourceInformation(reference.sourceInformation);
     }
-
-    // Finalize [DeferredHolderParameter]s.
-    for (var parameter in holderParameters) {
-      if (parameter.isFinalized) continue;
-      parameter.name = globalObjectForStaticState();
-    }
   }
 
-  /// Registers all of the holders used by a given [DeferredHolderResource].
-  void registerHolders(DeferredHolderResource resource) {
-    for (var entity in resource.holderCode.keys) {
-      var holder = globalObjectForEntity(entity);
-      registerHolderUse(holder, entity);
-    }
-  }
-
-  /// Returns a [List<String>] containing all of the holders except the static
-  /// state holder.
-  List<String> get nonStaticStateHolders {
-    return _holders
-        .where((holder) => holder != globalObjectForStaticState())
-        .toList(growable: false);
-  }
-
-  /// Generates code to declare holders.
-  HolderCode declareHolders(DeferredHolderResource resource) {
-    // Collect all holders except the static state holder. Then, create a map of
-    // holder to list of properties which are associated with that holder, but
-    // only with respect to a given [DeferredHolderResource]. Each fragment will
-    // have its own [DeferredHolderResource] and associated code.
-    Map<String, List<js.Property>> codePerHolder = {};
-    final holders = nonStaticStateHolders;
-    for (var holder in holders) {
-      codePerHolder[holder] = [];
+  /// Registers all of the holders used in the entire program.
+  void registerHolders() {
+    // Register all holders used in all [DeferredHolderResource]s.
+    for (var resource in holderResources) {
+      resource.holderCode.forEach((entity, properties) {
+        String holderName = globalObjectNameForEntity(entity);
+        registerHolderUseOrUpdate(resource.name, holderName,
+            properties: properties);
+      });
     }
 
-    final holderCode = resource.holderCode;
-    holderCode.forEach((entity, properties) {
-      assert(_entityMap.containsKey(entity));
-      var holder = _entityMap[entity];
-      assert(codePerHolder.containsKey(holder));
-      codePerHolder[holder].addAll(properties);
+    // Register all holders used in [DeferredHolderReference]s.
+    holderReferences.forEach((resource, references) {
+      for (var reference in references) {
+        String holderName = kindToHolderName(reference.kind, reference.data);
+        registerHolderUseOrUpdate(resource, holderName);
+      }
     });
+  }
 
-    // Create holder initialization code based on the [codePerHolder]. If there
-    // are no properties associated with a given holder in this specific
-    // [DeferredHolderResource] then it will be omitted. However, in some cases,
-    // i.e. the main output unit, we still want to declare the holder with an
-    // empty object literal which will be filled in later by another
-    // [DeferredHolderResource], i.e. in a specific deferred fragment.
-    // The generated code looks like this:
+  /// Returns an [Iterable<Holder>] containing all of the holders used within a
+  /// given [DeferredHolderResource]except the static state holder (if any).
+  Iterable<Holder> nonStaticStateHolders(DeferredHolderResource resource) {
+    return holdersPerResource[resource.name] ?? [];
+  }
+
+  /// Returns an [Iterable<Holder>] containing all of the holders used within a
+  /// given [DeferredHolderResource] except the static state holder.
+  Iterable<Holder> get allNonStaticStateHolders {
+    return holderMap.values;
+  }
+
+  /// Generates code to declare holders for a given [resourceName].
+  HolderInitCode declareHolders(String resourceName, Iterable<Holder> holders,
+      {bool initializeEmptyHolders = false}) {
+    // Create holder initialization code. If there are no properties
+    // associated with a given holder in this specific [DeferredHolderResource]
+    // then it will be omitted. However, in some cases, i.e. the main output
+    // unit, we still want to declare the holder with an empty object literal
+    // which will be filled in later by another [DeferredHolderResource], i.e.
+    // in a specific deferred fragment. The generated code looks like this:
     //
     //    {
     //      var H = {...}, ..., G = {...};
-    //      var holders = [ H, ..., G ]; // Main unit only.
     //    }
 
-    List<String> activeHolders = [];
+    List<Holder> activeHolders = [];
     List<js.VariableInitialization> holderInitializations = [];
     for (var holder in holders) {
-      List<js.Property> properties = codePerHolder[holder];
+      var holderName = holder.name;
+      List<js.Property> properties =
+          holder.propertiesPerResource[resourceName] ?? [];
       if (properties.isEmpty) {
         holderInitializations.add(js.VariableInitialization(
-            js.VariableDeclaration(holder, allowRename: false),
-            resource.initializeEmptyHolders
-                ? js.ObjectInitializer(properties)
-                : null));
+            js.VariableDeclaration(holderName, allowRename: false),
+            initializeEmptyHolders ? js.ObjectInitializer(properties) : null));
       } else {
         activeHolders.add(holder);
         holderInitializations.add(js.VariableInitialization(
-            js.VariableDeclaration(holder, allowRename: false),
+            js.VariableDeclaration(holderName, allowRename: false),
             js.ObjectInitializer(properties)));
       }
     }
 
-    List<js.Statement> statements = [];
-    statements.add(js.ExpressionStatement(js.VariableDeclarationList(
-        holderInitializations,
-        indentSplits: false)));
-    if (resource.initializeEmptyHolders) {
-      statements.add(js.js.statement(
-          'var holders = #',
-          js.ArrayInitializer(holders
-              .map((holder) => js.VariableUse(holder))
-              .toList(growable: false))));
-    }
-    return HolderCode(activeHolders, statements);
+    // Create statement to initialize holders.
+    var initStatement = js.ExpressionStatement(
+        js.VariableDeclarationList(holderInitializations, indentSplits: false));
+    return HolderInitCode(holders, activeHolders, initStatement);
   }
 
   /// Finalizes [resource] to code that updates holders. [resource] must be in
   /// the AST of a deferred fragment.
   void updateHolders(DeferredHolderResource resource) {
-    // Declare holders.
-    final holderCode = declareHolders(resource);
+    final holderCode =
+        declareHolders(resource.name, nonStaticStateHolders(resource));
 
     // Set names if necessary on deferred holders list.
     js.Expression deferredHoldersList = js.ArrayInitializer(holderCode
         .activeHolders
-        .map((holder) => js.js("#", holder))
+        .map((holder) => js.js("#", holder.name))
         .toList(growable: false));
     js.Statement setNames = js.js.statement(
         'hunkHelpers.setFunctionNamesIfNecessary(#deferredHoldersList)',
         {'deferredHoldersList': deferredHoldersList});
 
     // Update holder assignments.
-    final holders = nonStaticStateHolders;
-    List<js.Statement> updateHolderAssignments = [setNames];
-    for (int i = 0; i < holders.length; i++) {
-      var holder = holders[i];
+    List<js.Statement> updateHolderAssignments = [
+      holderCode.statement,
+      setNames
+    ];
+    for (var holder in holderCode.allHolders) {
+      var holderName = holder.name;
+      var holderIndex = js.number(holder.index);
       if (holderCode.activeHolders.contains(holder)) {
         updateHolderAssignments.add(js.js.statement(
             '#holder = hunkHelpers.updateHolder(holdersList[#index], #holder)',
-            {'index': js.number(i), 'holder': js.VariableUse(holder)}));
+            {'index': holderIndex, 'holder': js.VariableUse(holderName)}));
       } else {
         // TODO(sra): Change declaration followed by assignments to declarations
         // with initialization.
         updateHolderAssignments.add(js.js.statement(
             '#holder = holdersList[#index]',
-            {'index': js.number(i), 'holder': js.VariableUse(holder)}));
+            {'index': holderIndex, 'holder': js.VariableUse(holderName)}));
       }
     }
 
     // Create a single block of all statements.
-    List<js.Statement> statements = holderCode.statements
-        .followedBy(updateHolderAssignments)
-        .toList(growable: false);
-    resource.statement = js.Block(statements);
+    resource.statement = js.Block(updateHolderAssignments);
   }
 
-  /// Allocates all [DeferredHolderResource]s and
-  /// [DeferredHolderResourceExpression]s.
-  void allocateResources() {
-    // First ensure all holders used in all [DeferredHolderResource]s have been
-    // allocated.
-    for (var resource in holderResources) {
-      registerHolders(resource);
+  /// Declares all holders in the [DeferredHolderResource] representing the main
+  /// fragment.
+  void declareHoldersInMainResource() {
+    // Declare holders in main output unit.
+    var holders = allNonStaticStateHolders;
+    var holderCode = declareHolders(mainHolderResource.name, holders,
+        initializeEmptyHolders: true);
+
+    // Create holder uses and init holder indices.
+    List<js.VariableUse> holderUses = [];
+    int i = 0;
+    for (var holder in holders) {
+      holder.index = i++;
+      holderUses.add(js.VariableUse(holder.name));
     }
-    _holders.sort();
+
+    // Create holders array statement.
+    //    {
+    //      var holders = [ H, ..., G ];
+    //    }
+    var holderArray =
+        js.js.statement('var holders = #', js.ArrayInitializer(holderUses));
+
+    mainHolderResource.statement =
+        js.Block([holderCode.statement, holderArray]);
+  }
+
+  /// Allocates all [DeferredHolderResource]s and finalizes the associated
+  /// [DeferredHolderExpression]s.
+  void allocateResourcesAndFinalizeReferences() {
+    // First finalize all holders in the main output unit.
+    declareHoldersInMainResource();
 
     // Next finalize all [DeferredHolderResource]s.
     for (var resource in holderResources) {
       switch (resource.kind) {
-        case DeferredHolderResourceKind.declaration:
-          var holderCode = declareHolders(resource);
-          resource.statement = js.Block(holderCode.statements);
+        case DeferredHolderResourceKind.mainFragment:
+          // There should only be one main resource and at this point it
+          // should have already been finalized.
+          assert(mainHolderResource == resource && resource.isFinalized);
           break;
-        case DeferredHolderResourceKind.update:
+        case DeferredHolderResourceKind.deferredFragment:
           updateHolders(resource);
           break;
       }
+      finalizeReferences(resource);
     }
   }
 
   @override
   void finalize() {
-    finalizeReferences();
-    allocateResources();
+    registerHolders();
+    finalizeParameters();
+    allocateResourcesAndFinalizeReferences();
   }
 
-  void _registerDeferredHolderExpression(DeferredHolderExpression node) {
-    holderReferences.add(node);
+  void _registerDeferredHolderExpression(
+      String resourceName, DeferredHolderExpression node) {
+    (holderReferences[resourceName] ??= []).add(node);
   }
 
   void _registerDeferredHolderResource(DeferredHolderResource node) {
+    if (node.isMainFragment) {
+      assert(mainHolderResource == null);
+      mainHolderResource = node;
+    }
     holderResources.add(node);
   }
 
@@ -586,9 +684,16 @@ class DeferredHolderExpressionFinalizerImpl
 /// The state is kept in the finalizer so that this scan could be extended to
 /// look for other deferred expressions in one pass.
 class _DeferredHolderExpressionCollectorVisitor extends js.BaseVisitor<void> {
+  String resourceName;
   final DeferredHolderExpressionFinalizerImpl _finalizer;
 
   _DeferredHolderExpressionCollectorVisitor(this._finalizer);
+
+  void setResourceNameAndVisit(String resourceName, js.Node code) {
+    this.resourceName = resourceName;
+    code.accept(this);
+    this.resourceName = null;
+  }
 
   @override
   void visitNode(js.Node node) {
@@ -605,7 +710,8 @@ class _DeferredHolderExpressionCollectorVisitor extends js.BaseVisitor<void> {
   @override
   void visitDeferredExpression(js.DeferredExpression node) {
     if (node is DeferredHolderExpression) {
-      _finalizer._registerDeferredHolderExpression(node);
+      assert(resourceName != null);
+      _finalizer._registerDeferredHolderExpression(resourceName, node);
     } else {
       visitNode(node);
     }
@@ -630,8 +736,9 @@ class _DeferredHolderExpressionCollectorVisitor extends js.BaseVisitor<void> {
   }
 }
 
-class HolderCode {
-  final List<String> activeHolders;
-  final List<js.Statement> statements;
-  HolderCode(this.activeHolders, this.statements);
+class HolderInitCode {
+  final Iterable<Holder> allHolders;
+  final List<Holder> activeHolders;
+  final js.Statement statement;
+  HolderInitCode(this.allHolders, this.activeHolders, this.statement);
 }
