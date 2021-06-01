@@ -4,13 +4,10 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/generic_inferrer.dart'
-    show GenericInferrer;
-import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A contributor that produces suggestions based on the members of an
@@ -87,7 +84,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       if (type == null) {
         // Without a type we can't find the extensions that apply. We shouldn't
         // get to this point, but there's an NPE if we invoke
-        // `_resolveExtendedType` when `type` is `null`, so we guard against it
+        // `resolvedExtendedType` when `type` is `null`, so we guard against it
         // to ensure that we can return the suggestions from other providers.
         return;
       }
@@ -101,7 +98,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     var nameScope = containingLibrary.scope;
     for (var extension in nameScope.extensions) {
       var extendedType =
-          _resolveExtendedType(containingLibrary, extension, type);
+          extension.resolvedExtendedType(containingLibrary, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
         var inheritanceDistance = 0.0;
         if (type is InterfaceType && extendedType is InterfaceType) {
@@ -140,35 +137,5 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       memberBuilder.addSuggestionForAccessor(
           accessor: accessor, inheritanceDistance: inheritanceDistance);
     }
-  }
-
-  /// Use the [type] of the object being extended in the [library] to compute
-  /// the actual type extended by the [extension]. Return the computed type,
-  /// or `null` if the type cannot be computed.
-  DartType? _resolveExtendedType(
-    LibraryElement library,
-    ExtensionElement extension,
-    DartType type,
-  ) {
-    var typeParameters = extension.typeParameters;
-    var inferrer =
-        GenericInferrer(library.typeSystem as TypeSystemImpl, typeParameters);
-    inferrer.constrainArgument(
-      type,
-      extension.extendedType,
-      'extendedType',
-    );
-    var typeArguments = inferrer.infer(typeParameters,
-        failAtError: true, genericMetadataIsEnabled: true);
-    if (typeArguments == null) {
-      return null;
-    }
-    var substitution = Substitution.fromPairs(
-      typeParameters,
-      typeArguments,
-    );
-    return substitution.substituteType(
-      extension.extendedType,
-    );
   }
 }

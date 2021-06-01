@@ -79,6 +79,17 @@ main() {
 ''');
   }
 
+  @failingTest
+  Future<void> test_propertyAccess() async {
+    // We should not offer to define a local variable named 'g'.
+    await resolveTestCode('''
+void f(String s) {
+  s.g;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_read_typeAssignment() async {
     await resolveTestCode('''
 main() {

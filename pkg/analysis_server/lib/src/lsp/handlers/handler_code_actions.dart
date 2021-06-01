@@ -312,7 +312,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             unit.path!,
             name,
           );
-        });
+        }, extensionCache: server.getExtensionCacheFor(unit));
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
           fixes.sort(Fix.SORT_BY_RELEVANCE);
