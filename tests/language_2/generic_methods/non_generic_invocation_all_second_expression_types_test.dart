@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test verifies that `f<a,b>EXPR` is properly parsed as a pair of
 // expressions separated by a `,`, for all types of expressions that may appear
 // as EXPR.  We try to pay extra attention to expressions that will become
