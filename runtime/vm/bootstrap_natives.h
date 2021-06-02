@@ -402,6 +402,7 @@ namespace dart {
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
+  V(Ffi_dl_providesSymbol, 2)                                                  \
   V(Ffi_asExternalTypedData, 2)                                                \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \

@@ -11,6 +11,7 @@
  */
 library dart.ffi;
 
+import 'dart:_internal' show Since;
 import 'dart:isolate';
 import 'dart:typed_data';
 

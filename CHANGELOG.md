@@ -14,6 +14,11 @@
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
+#### `dart:ffi`
+
+*   Adds the `DynamicLibrary.providesSymbol` function to check whether a symbol
+    is available in a dynamic library.
+
 #### `dart:io`
 
 *   BREAKING CHANGE (for pre-migrated null safe code):
