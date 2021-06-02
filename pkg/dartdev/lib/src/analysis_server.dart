@@ -6,8 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/server/driver.dart' show Driver;
 import 'package:analysis_server_client/protocol.dart'
     show EditBulkFixesResult, ResponseDecoder;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import 'core.dart';
@@ -16,10 +18,15 @@ import 'utils.dart';
 
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
-  AnalysisServer(this.sdkPath, this.analysisRoot);
+  AnalysisServer(
+    this.sdkPath,
+    this.analysisRoot, {
+    @required this.commandName,
+  });
 
   final Directory sdkPath;
   final FileSystemEntity analysisRoot;
+  final String commandName;
 
   Process _process;
 
@@ -64,6 +71,8 @@ class AnalysisServer {
   Future<void> start() async {
     final List<String> command = <String>[
       sdk.analysisServerSnapshot,
+      '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
+      '--${Driver.CLIENT_ID}=dart-$commandName',
       '--disable-server-feature-completion',
       '--disable-server-feature-search',
       '--sdk',
