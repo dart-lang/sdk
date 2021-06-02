@@ -34,6 +34,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   /// Dart CLI, Dart tests, Flutter, Flutter tests).
   TLaunchArgs Function(Map<String, Object?>) get parseLaunchArgs;
 
+  FutureOr<void> attachRequest(
+    Request request,
+    TLaunchArgs args,
+    void Function(void) sendResponse,
+  );
+
   FutureOr<void> configurationDoneRequest(
     Request request,
     ConfigurationDoneArguments? args,
@@ -164,6 +170,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
       handle(request, initializeRequest, InitializeRequestArguments.fromJson);
     } else if (request.command == 'launch') {
       handle(request, launchRequest, parseLaunchArgs);
+    } else if (request.command == 'attach') {
+      handle(request, attachRequest, parseLaunchArgs);
     } else if (request.command == 'terminate') {
       handle(
         request,

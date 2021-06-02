@@ -3,8 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
+
+import 'package:collection/collection.dart';
+import 'package:vm_service/vm_service.dart' as vm;
 
 import '../base_debug_adapter.dart';
+import '../isolate_manager.dart';
 import '../logging.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
@@ -47,18 +52,68 @@ import '../protocol_stream.dart';
 /// to then send a `stackTraceRequest` or `scopesRequest` to get variables).
 abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     extends BaseDebugAdapter<T> {
-  late T args;
+  late final T args;
   final _debuggerInitializedCompleter = Completer<void>();
   final _configurationDoneCompleter = Completer<void>();
 
+  /// Managers VM Isolates and their events, including fanning out any requests
+  /// to set breakpoints etc. from the client to all Isolates.
+  late IsolateManager _isolateManager;
+
+  /// All active VM Service subscriptions.
+  ///
+  /// TODO(dantup): This may be changed to use StreamManager as part of using
+  /// DDS in this process.
+  final _subscriptions = <StreamSubscription<vm.Event>>[];
+
+  /// The VM service of the app being debugged.
+  ///
+  /// `null` if the session is running in noDebug mode of the connection has not
+  /// yet been made.
+  vm.VmServiceInterface? vmService;
+
+  /// Whether the current debug session is an attach request (as opposed to a
+  /// launch request). Not available until after launchRequest or attachRequest
+  /// have been called.
+  late final bool isAttach;
+
   DartDebugAdapter(ByteStreamServerChannel channel, Logger? logger)
-      : super(channel, logger);
+      : super(channel, logger) {
+    _isolateManager = IsolateManager(this);
+  }
 
   /// Completes when the debugger initialization has completed. Used to delay
   /// processing isolate events while initialization is still running to avoid
   /// race conditions (for example if an isolate unpauses before we have
   /// processed its initial paused state).
   Future<void> get debuggerInitialized => _debuggerInitializedCompleter.future;
+
+  /// attachRequest is called by the client when it wants us to to attach to
+  /// an existing app. This will only be called once (and only one of this or
+  /// launchRequest will be called).
+  @override
+  FutureOr<void> attachRequest(
+    Request request,
+    T args,
+    void Function(void) sendResponse,
+  ) async {
+    this.args = args;
+    isAttach = true;
+
+    // Don't start launching until configurationDone.
+    if (!_configurationDoneCompleter.isCompleted) {
+      logger?.call('Waiting for configurationDone request...');
+      await _configurationDoneCompleter.future;
+    }
+
+    // TODO(dantup): Implement attach support.
+    throw UnimplementedError();
+
+    // Delegate to the sub-class to attach to the process.
+    // await attachImpl();
+    //
+    // sendResponse(null);
+  }
 
   /// configurationDone is called by the client when it has finished sending
   /// any initial configuration (such as breakpoints and exception pause
@@ -76,6 +131,97 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     _configurationDoneCompleter.complete();
     sendResponse(null);
   }
+
+  /// Connects to the VM Service at [uri] and initializes debugging.
+  ///
+  /// This method will be called by sub-classes when they are ready to start
+  /// a debug session and may provide a URI given by the user (in the case
+  /// of attach) or from something like a vm-service-info file or Flutter
+  /// app.debugPort message.
+  ///
+  /// The URI protocol will be changed to ws/wss but otherwise not normalised.
+  /// The caller should handle any other normalisation (such as adding /ws to
+  /// the end if required).
+  Future<void> connectDebugger(Uri uri) async {
+    // The VM Service library always expects the WebSockets URI so fix the
+    // scheme (http -> ws, https -> wss).
+    final isSecure = uri.isScheme('https') || uri.isScheme('wss');
+    uri = uri.replace(scheme: isSecure ? 'wss' : 'ws');
+
+    logger?.call('Connecting to debugger at $uri');
+    sendOutput('console', 'Connecting to VM Service at $uri\n');
+    final vmService =
+        await _vmServiceConnectUri(uri.toString(), logger: logger);
+    logger?.call('Connected to debugger at $uri!');
+
+    // TODO(dantup): VS Code currently depends on a custom dart.debuggerUris
+    // event to notify it of VM Services that become available (for example to
+    // register with the DevTools server). If this is still required, it will
+    // need implementing here (and also documented as a customisation and
+    // perhaps gated on a capability/argument).
+    this.vmService = vmService;
+
+    _subscriptions.addAll([
+      vmService.onIsolateEvent.listen(_handleIsolateEvent),
+      vmService.onDebugEvent.listen(_handleDebugEvent),
+      vmService.onLoggingEvent.listen(_handleLoggingEvent),
+      // TODO(dantup): Implement these.
+      // vmService.onExtensionEvent.listen(_handleExtensionEvent),
+      // vmService.onServiceEvent.listen(_handleServiceEvent),
+      // vmService.onStdoutEvent.listen(_handleStdoutEvent),
+      // vmService.onStderrEvent.listen(_handleStderrEvent),
+    ]);
+    await Future.wait([
+      vmService.streamListen(vm.EventStreams.kIsolate),
+      vmService.streamListen(vm.EventStreams.kDebug),
+      vmService.streamListen(vm.EventStreams.kLogging),
+      // vmService.streamListen(vm.EventStreams.kExtension),
+      // vmService.streamListen(vm.EventStreams.kService),
+      // vmService.streamListen(vm.EventStreams.kStdout),
+      // vmService.streamListen(vm.EventStreams.kStderr),
+    ]);
+
+    final vmInfo = await vmService.getVM();
+    logger?.call('Connected to ${vmInfo.name} on ${vmInfo.operatingSystem}');
+
+    // Let the subclass do any existing setup once we have a connection.
+    await debuggerConnected(vmInfo);
+
+    // Process any existing isolates that may have been created before the
+    // streams above were set up.
+    final existingIsolateRefs = vmInfo.isolates;
+    final existingIsolates = existingIsolateRefs != null
+        ? await Future.wait(existingIsolateRefs
+            .map((isolateRef) => isolateRef.id)
+            .whereNotNull()
+            .map(vmService.getIsolate))
+        : <vm.Isolate>[];
+    await Future.wait(existingIsolates.map((isolate) async {
+      // Isolates may have the "None" pauseEvent kind at startup, so infer it
+      // from the runnable field.
+      final pauseEventKind = isolate.runnable ?? false
+          ? vm.EventKind.kIsolateRunnable
+          : vm.EventKind.kIsolateStart;
+      await _isolateManager.registerIsolate(isolate, pauseEventKind);
+
+      // If the Isolate already has a Pause event we can give it to the
+      // IsolateManager to handle (if it's PausePostStart it will re-configure
+      // the isolate before resuming), otherwise we can just resume it (if it's
+      // runnable - otherwise we'll handle this when it becomes runnable in an
+      // event later).
+      if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
+        await _isolateManager.handleEvent(isolate.pauseEvent!);
+      } else if (isolate.runnable == true) {
+        await _isolateManager.resumeIsolate(isolate);
+      }
+    }));
+
+    _debuggerInitializedCompleter.complete();
+  }
+
+  /// Overridden by sub-classes to perform any additional setup after the VM
+  /// Service is connected.
+  FutureOr<void> debuggerConnected(vm.VM vmInfo);
 
   /// Overridden by sub-classes to handle when the client sends a
   /// `disconnectRequest` (a forceful request to shut down).
@@ -159,6 +305,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     void Function(void) sendResponse,
   ) async {
     this.args = args;
+    isAttach = false;
 
     // Don't start launching until configurationDone.
     if (!_configurationDoneCompleter.isCompleted) {
@@ -176,6 +323,18 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// may be used by buffered data).
   void sendOutput(String category, String message) {
     sendEvent(OutputEventBody(category: category, output: message));
+  }
+
+  /// Sends an OutputEvent for [message], prefixed with [prefix] and with [message]
+  /// indented to after the prefix.
+  ///
+  /// Assumes the output is in full lines and will always include a terminating
+  /// newline.
+  void sendPrefixedOutput(String category, String prefix, String message) {
+    final indentString = ' ' * prefix.length;
+    final indentedMessage =
+        message.trimRight().split('\n').join('\n$indentString');
+    sendOutput(category, '$prefix$indentedMessage\n');
   }
 
   /// Overridden by sub-classes to handle when the client sends a
@@ -198,6 +357,84 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ) async {
     terminateImpl();
     sendResponse(null);
+  }
+
+  void _handleDebugEvent(vm.Event event) {
+    _isolateManager.handleEvent(event);
+  }
+
+  void _handleIsolateEvent(vm.Event event) {
+    _isolateManager.handleEvent(event);
+  }
+
+  /// Handles a dart:developer log() event, sending output to the client.
+  Future<void> _handleLoggingEvent(vm.Event event) async {
+    final record = event.logRecord;
+    final thread = _isolateManager.threadForIsolate(event.isolate);
+    if (record == null || thread == null) {
+      return;
+    }
+
+    /// Helper to convert to InstanceRef to a String, taking into account
+    /// [vm.InstanceKind.kNull] which is the type for the unused fields of a
+    /// log event.
+    FutureOr<String?> asString(vm.InstanceRef? ref) {
+      if (ref == null || ref.kind == vm.InstanceKind.kNull) {
+        return null;
+      }
+      // TODO(dantup): This should handle truncation and complex types.
+      return ref.valueAsString;
+    }
+
+    var loggerName = await asString(record.loggerName);
+    if (loggerName?.isEmpty ?? true) {
+      loggerName = 'log';
+    }
+    final message = await asString(record.message);
+    final error = await asString(record.error);
+    final stack = await asString(record.stackTrace);
+
+    final prefix = '[$loggerName] ';
+
+    if (message != null) {
+      sendPrefixedOutput('stdout', prefix, '$message\n');
+    }
+    if (error != null) {
+      sendPrefixedOutput('stderr', prefix, '$error\n');
+    }
+    if (stack != null) {
+      sendPrefixedOutput('stderr', prefix, '$stack\n');
+    }
+  }
+
+  /// A wrapper around the same name function from package:vm_service that
+  /// allows logging all traffic over the VM Service.
+  Future<vm.VmService> _vmServiceConnectUri(
+    String wsUri, {
+    Logger? logger,
+  }) async {
+    final socket = await WebSocket.connect(wsUri);
+    final controller = StreamController();
+    final streamClosedCompleter = Completer();
+
+    socket.listen(
+      (data) {
+        logger?.call('<== [VM] $data');
+        controller.add(data);
+      },
+      onDone: () => streamClosedCompleter.complete(),
+    );
+
+    return vm.VmService(
+      controller.stream,
+      (String message) {
+        logger?.call('==> [VM] $message');
+        socket.add(message);
+      },
+      log: logger != null ? VmServiceLogger(logger) : null,
+      disposeHandler: () => socket.close(),
+      streamClosed: streamClosedCompleter.future,
+    );
   }
 }
 

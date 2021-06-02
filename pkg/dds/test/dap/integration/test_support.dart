@@ -81,7 +81,7 @@ class DapTestSession {
     // Since we don't get a signal from the DAP server when it's ready and we
     // just started it, add a short retry to connections.
     var attempt = 1;
-    while (attempt++ <= 5) {
+    while (attempt++ <= 20) {
       try {
         return await DapTestClient.connect(server.port);
       } catch (e) {
@@ -89,7 +89,8 @@ class DapTestSession {
       }
     }
 
-    throw 'Failed to connect to DAP server after $attempt attempts';
+    throw 'Failed to connect to DAP server on port ${server.port}'
+        ' after $attempt attempts. Did the server start correctly?';
   }
 
   /// Starts a DAP server that can be shared across tests.

@@ -8,7 +8,7 @@ import 'test_support.dart';
 
 main() {
   testDap((dap) async {
-    group('noDebug mode', () {
+    group('debug mode', () {
       test('runs a simple script', () async {
         final testFile = dap.createTestFile(r'''
 void main(List<String> args) async {
@@ -18,15 +18,22 @@ void main(List<String> args) async {
 }
     ''');
 
-        final outputEvents = await dap.client.collectOutput(
+        var outputEvents = await dap.client.collectOutput(
           launch: () => dap.client.launch(
             testFile.path,
-            noDebug: true,
             args: ['one', 'two'],
           ),
         );
 
-        final output = outputEvents.map((e) => e.output).join();
+        // Expect a "console" output event that prints the URI of the VM Service
+        // the debugger connects to.
+        final vmConnection = outputEvents.first;
+        expect(vmConnection.output,
+            startsWith('Connecting to VM Service at ws://127.0.0.1:'));
+        expect(vmConnection.category, equals('console'));
+
+        // Expect the normal applications output.
+        final output = outputEvents.skip(1).map((e) => e.output).join();
         expectLines(output, [
           'Hello!',
           'World!',
