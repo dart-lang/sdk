@@ -91,7 +91,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
     var server = AnalysisServer(
       io.Directory(sdk.sdkPath),
-      dir,
+      [dir],
       commandName: 'fix',
     );
 

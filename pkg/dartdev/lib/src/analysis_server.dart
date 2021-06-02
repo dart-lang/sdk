@@ -20,12 +20,12 @@ import 'utils.dart';
 class AnalysisServer {
   AnalysisServer(
     this.sdkPath,
-    this.analysisRoot, {
+    this.analysisRoots, {
     @required this.commandName,
   });
 
   final Directory sdkPath;
-  final FileSystemEntity analysisRoot;
+  final List<FileSystemEntity> analysisRoots;
   final String commandName;
 
   Process _process;
@@ -107,10 +107,10 @@ class AnalysisServer {
     //
     // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path to
     // be passed to the analysis server.
-    var analysisRootPath = trimEnd(
-      analysisRoot.absolute.resolveSymbolicLinksSync(),
-      path.context.separator,
-    );
+    List<String> analysisRootPaths = analysisRoots.map((root) {
+      return trimEnd(
+          root.absolute.resolveSymbolicLinksSync(), path.context.separator);
+    }).toList();
 
     onAnalyzing.listen((bool isAnalyzing) {
       if (isAnalyzing && _analysisFinished.isCompleted) {
@@ -124,7 +124,7 @@ class AnalysisServer {
 
     // ignore: unawaited_futures
     _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
-      'included': [analysisRootPath],
+      'included': analysisRootPaths,
       'excluded': <String>[]
     });
   }
