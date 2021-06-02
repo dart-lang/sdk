@@ -1400,14 +1400,20 @@ class FragmentEmitter {
       // The first entry in the funsOrNames-array must be a string.
       funsOrNames.add(js.quoteName(method.name));
       for (ParameterStubMethod stubMethod in method.parameterStubs) {
-        callNames.add(stubMethod.callName);
-        addFunOrName(stubMethod);
+        js.Name callName = stubMethod.callName;
+        // `callName` might be `null` if the method is called directly with some
+        // CallStructure but it can be proven that the tearoff not called with
+        // with that CallStructure, e.g. the closure does no need the defaulting
+        // of arguments but some direct call does.
+        if (callName != null) {
+          callNames.add(callName);
+          addFunOrName(stubMethod);
+        }
       }
 
-      js.ArrayInitializer callNameArray =
-          new js.ArrayInitializer(callNames.map(js.quoteName).toList());
-      js.ArrayInitializer funsOrNamesArray =
-          new js.ArrayInitializer(funsOrNames);
+      final callNameArray =
+          js.ArrayInitializer([...callNames.map(js.quoteName)]);
+      final funsOrNamesArray = js.ArrayInitializer(funsOrNames);
 
       bool isIntercepted = false;
       if (method is InstanceMethod) {
@@ -1415,7 +1421,7 @@ class FragmentEmitter {
       }
 
       int requiredParameterCount = method.requiredParameterCount;
-      js.Expression optionalParameterDefaultValues = new js.LiteralNull();
+      js.Expression optionalParameterDefaultValues = js.LiteralNull();
       if (method.canBeApplied) {
         optionalParameterDefaultValues =
             _encodeOptionalParameterDefaultValues(method);

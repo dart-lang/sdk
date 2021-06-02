@@ -296,186 +296,24 @@ class JsBuilder {
   }
 
   /// Creates a literal js string from [value].
-  LiteralString _legacyEscapedString(String value) {
-    // Start by escaping the backslashes.
-    String escaped = value.replaceAll('\\', '\\\\');
-    // Do not escape unicode characters and ' because they are allowed in the
-    // string literal anyway.
-    escaped = escaped.replaceAllMapped(new RegExp('\n|"|\b|\t|\v|\r'), (match) {
-      switch (match.group(0)) {
-        case "\n":
-          return r"\n";
-        case "\"":
-          return r'\"';
-        case "\b":
-          return r"\b";
-        case "\t":
-          return r"\t";
-        case "\f":
-          return r"\f";
-        case "\r":
-          return r"\r";
-        case "\v":
-          return r"\v";
-      }
-      throw new UnsupportedError("Unexpected match: ${match.group(0)}");
-    });
-    LiteralString result = string(escaped);
-    // We don't escape ' under the assumption that the string is wrapped
-    // into ". Verify that assumption.
-    assert(result.value.codeUnitAt(0) == '"'.codeUnitAt(0));
-    return result;
+  LiteralString string(String value) => LiteralString(value);
+
+  StringConcatenation concatenateStrings(Iterable<Literal> parts) {
+    return StringConcatenation(List.of(parts, growable: false));
   }
 
-  /// Creates a literal js string from [value].
-  LiteralString escapedString(String value,
-      {bool utf8: false, bool ascii: false}) {
-    if (utf8 == false && ascii == false) return _legacyEscapedString(value);
-    if (utf8 && ascii) throw new ArgumentError('Cannot be both UTF8 and ASCII');
-
-    int singleQuotes = 0;
-    int doubleQuotes = 0;
-    int otherEscapes = 0;
-    int unpairedSurrogates = 0;
-
-    for (int rune in value.runes) {
-      if (rune == charCodes.$BACKSLASH) {
-        ++otherEscapes;
-      } else if (rune == charCodes.$SQ) {
-        ++singleQuotes;
-      } else if (rune == charCodes.$DQ) {
-        ++doubleQuotes;
-      } else if (rune == charCodes.$LF ||
-          rune == charCodes.$CR ||
-          rune == charCodes.$LS ||
-          rune == charCodes.$PS) {
-        // Line terminators.
-        ++otherEscapes;
-      } else if (rune == charCodes.$BS ||
-          rune == charCodes.$TAB ||
-          rune == charCodes.$VTAB ||
-          rune == charCodes.$FF) {
-        ++otherEscapes;
-      } else if (_isUnpairedSurrogate(rune)) {
-        ++unpairedSurrogates;
-      } else {
-        if (ascii && (rune < charCodes.$SPACE || rune >= charCodes.$DEL)) {
-          ++otherEscapes;
-        }
-      }
+  Iterable<Literal> joinLiterals(
+      Iterable<Literal> items, Literal separator) sync* {
+    bool first = true;
+    for (final item in items) {
+      if (!first) yield separator;
+      yield item;
+      first = false;
     }
-
-    LiteralString finish(String quote, String contents) {
-      return new LiteralString('$quote$contents$quote');
-    }
-
-    if (otherEscapes == 0 && unpairedSurrogates == 0) {
-      if (doubleQuotes == 0) return finish('"', value);
-      if (singleQuotes == 0) return finish("'", value);
-    }
-
-    bool useSingleQuotes = singleQuotes < doubleQuotes;
-
-    StringBuffer sb = new StringBuffer();
-
-    for (int rune in value.runes) {
-      String escape = _irregularEscape(rune, useSingleQuotes);
-      if (escape != null) {
-        sb.write(escape);
-        continue;
-      }
-      if (rune == charCodes.$LS ||
-          rune == charCodes.$PS ||
-          _isUnpairedSurrogate(rune) ||
-          ascii && (rune < charCodes.$SPACE || rune >= charCodes.$DEL)) {
-        if (rune < 0x100) {
-          sb.write(r'\x');
-          sb.write(rune.toRadixString(16).padLeft(2, '0'));
-        } else if (rune < 0x10000) {
-          sb.write(r'\u');
-          sb.write(rune.toRadixString(16).padLeft(4, '0'));
-        } else {
-          // Not all browsers accept the ES6 \u{zzzzzz} encoding, so emit two
-          // surrogate pairs.
-          var bits = rune - 0x10000;
-          var leading = 0xD800 | (bits >> 10);
-          var trailing = 0xDC00 | (bits & 0x3ff);
-          sb.write(r'\u');
-          sb.write(leading.toRadixString(16));
-          sb.write(r'\u');
-          sb.write(trailing.toRadixString(16));
-        }
-      } else {
-        sb.writeCharCode(rune);
-      }
-    }
-
-    return finish(useSingleQuotes ? "'" : '"', sb.toString());
   }
 
-  static bool _isUnpairedSurrogate(int code) => (code & 0xFFFFF800) == 0xD800;
-
-  static String _irregularEscape(int code, bool useSingleQuotes) {
-    switch (code) {
-      case charCodes.$SQ:
-        return useSingleQuotes ? r"\'" : r"'";
-      case charCodes.$DQ:
-        return useSingleQuotes ? r'"' : r'\"';
-      case charCodes.$BACKSLASH:
-        return r'\\';
-      case charCodes.$BS:
-        return r'\b';
-      case charCodes.$TAB:
-        return r'\t';
-      case charCodes.$LF:
-        return r'\n';
-      case charCodes.$VTAB:
-        return r'\v';
-      case charCodes.$FF:
-        return r'\f';
-      case charCodes.$CR:
-        return r'\r';
-    }
-    return null;
-  }
-
-  /// Creates a literal js string from [value].
-  ///
-  /// Note that this function only puts quotes around [value]. It does not do
-  /// any escaping, so use only when you can guarantee that [value] does not
-  /// contain newlines or backslashes. For escaping the string use
-  /// [escapedString].
-  LiteralString string(String value) => new LiteralString('"$value"');
-
-  /// Creates an instance of [LiteralString] from [value].
-  ///
-  /// Does not add quotes or do any escaping.
-  LiteralString stringPart(String value) => new LiteralString(value);
-
-  StringConcatenation concatenateStrings(Iterable<Literal> parts,
-      {addQuotes: false}) {
-    List<Literal> _parts;
-    if (addQuotes) {
-      Literal quote = stringPart('"');
-      _parts = <Literal>[quote]
-        ..addAll(parts)
-        ..add(quote);
-    } else {
-      _parts = new List.from(parts, growable: false);
-    }
-    return new StringConcatenation(_parts);
-  }
-
-  Iterable<Literal> joinLiterals(Iterable<Literal> list, Literal separator) {
-    return new _InterleaveIterable<Literal>(list, separator);
-  }
-
-  LiteralString quoteName(Name name, {allowNull: false}) {
-    if (name == null) {
-      assert(allowNull);
-      return new LiteralString('""');
-    }
-    return new LiteralStringFromName(name);
+  LiteralString quoteName(Name name) {
+    return LiteralStringFromName(name);
   }
 
   LiteralNumber number(num value) => new LiteralNumber('$value');
@@ -505,18 +343,19 @@ class JsBuilder {
 }
 
 LiteralString string(String value) => js.string(value);
-LiteralString quoteName(Name name, {allowNull: false}) {
-  return js.quoteName(name, allowNull: allowNull);
-}
 
-LiteralString stringPart(String value) => js.stringPart(value);
+/// Returns a LiteralString which has contents determined by [Name].
+///
+/// This is used to force a Name to be a string literal regardless of
+/// context. It is not necessary for properties.
+LiteralString quoteName(Name name) => js.quoteName(name);
+
 Iterable<Literal> joinLiterals(Iterable<Literal> list, Literal separator) {
   return js.joinLiterals(list, separator);
 }
 
-StringConcatenation concatenateStrings(Iterable<Literal> parts,
-    {addQuotes: false}) {
-  return js.concatenateStrings(parts, addQuotes: addQuotes);
+StringConcatenation concatenateStrings(Iterable<Literal> parts) {
+  return js.concatenateStrings(parts);
 }
 
 LiteralNumber number(num value) => js.number(value);
@@ -763,7 +602,7 @@ class MiniJsParser {
     return CATEGORIES[code];
   }
 
-  String getDelimited(int startPosition) {
+  String getRegExp(int startPosition) {
     position = startPosition;
     int delimiter = src.codeUnitAt(startPosition);
     int currentCode;
@@ -780,12 +619,52 @@ class MiniJsParser {
             escaped == charCodes.$u ||
             escaped == charCodes.$U ||
             category(escaped) == NUMERIC) {
-          error('Numeric and hex escapes are not allowed in literals');
+          error('Numeric and hex escapes are not supported in RegExp literals');
         }
       }
     } while (currentCode != delimiter);
     position++;
     return src.substring(lastPosition, position);
+  }
+
+  String getString(int startPosition, int quote) {
+    assert(src.codeUnitAt(startPosition) == quote);
+    position = startPosition + 1;
+    final value = StringBuffer();
+    while (true) {
+      if (position >= src.length) error("Unterminated literal");
+      int code = src.codeUnitAt(position++);
+      if (code == quote) break;
+      if (code == charCodes.$LF) error("Unterminated literal");
+      if (code == charCodes.$BACKSLASH) {
+        if (position >= src.length) error("Unterminated literal");
+        code = src.codeUnitAt(position++);
+        if (code == charCodes.$f) {
+          value.writeCharCode(12);
+        } else if (code == charCodes.$n) {
+          value.writeCharCode(10);
+        } else if (code == charCodes.$r) {
+          value.writeCharCode(13);
+        } else if (code == charCodes.$t) {
+          value.writeCharCode(8);
+        } else if (code == charCodes.$BACKSLASH ||
+            code == charCodes.$SQ ||
+            code == charCodes.$DQ) {
+          value.writeCharCode(code);
+        } else if (code == charCodes.$x || code == charCodes.$X) {
+          error('Hex escapes not supported in string literals');
+        } else if (code == charCodes.$u || code == charCodes.$U) {
+          error('Unicode escapes not supported in string literals');
+        } else if (charCodes.$0 <= code && code <= charCodes.$9) {
+          error('Numeric escapes not supported in string literals');
+        } else {
+          error('Unknown escape U+${code.toRadixString(16).padLeft(4, '0')}');
+        }
+        continue;
+      }
+      value.writeCharCode(code);
+    }
+    return value.toString();
   }
 
   void getToken() {
@@ -823,7 +702,7 @@ class MiniJsParser {
     if (code == charCodes.$SQ || code == charCodes.$DQ) {
       // String literal.
       lastCategory = STRING;
-      lastToken = getDelimited(position);
+      lastToken = getString(position, code);
     } else if (code == charCodes.$0 &&
         position + 2 < src.length &&
         src.codeUnitAt(position + 1) == charCodes.$x) {
@@ -985,7 +864,7 @@ class MiniJsParser {
       }
       return new ArrayInitializer(values);
     } else if (last != null && last.startsWith("/")) {
-      String regexp = getDelimited(lastPosition);
+      String regexp = getRegExp(lastPosition);
       getToken();
       String flags = lastToken;
       if (!acceptCategory(ALPHA)) flags = "";
@@ -1059,12 +938,12 @@ class MiniJsParser {
       Literal propertyName;
       String identifier = lastToken;
       if (acceptCategory(ALPHA)) {
-        propertyName = new LiteralString('"$identifier"');
+        propertyName = LiteralString(identifier);
       } else if (acceptCategory(STRING)) {
-        propertyName = new LiteralString(identifier);
+        propertyName = LiteralString(identifier);
       } else if (acceptCategory(SYMBOL)) {
         // e.g. void
-        propertyName = new LiteralString('"$identifier"');
+        propertyName = LiteralString(identifier);
       } else if (acceptCategory(HASH)) {
         var nameOrPosition = parseHash();
         InterpolatedLiteral interpolatedLiteral =
@@ -1578,42 +1457,5 @@ class MiniJsParser {
     expectCategory(LBRACE);
     Block body = parseBlock();
     return new Catch(errorName, body);
-  }
-}
-
-class _InterleaveIterator<T extends Node> implements Iterator<T> {
-  Iterator<T> source;
-  T separator;
-  bool isNextSeparator = false;
-  bool isInitialized = false;
-
-  _InterleaveIterator(this.source, this.separator);
-
-  bool moveNext() {
-    if (!isInitialized) {
-      isInitialized = true;
-      return source.moveNext();
-    } else if (isNextSeparator) {
-      isNextSeparator = false;
-      return true;
-    } else {
-      return isNextSeparator = source.moveNext();
-    }
-  }
-
-  T get current {
-    if (isNextSeparator) return separator;
-    return source.current;
-  }
-}
-
-class _InterleaveIterable<T extends Node> extends IterableBase<T> {
-  Iterable<T> source;
-  T separator;
-
-  _InterleaveIterable(this.source, this.separator);
-
-  Iterator<T> get iterator {
-    return new _InterleaveIterator<T>(source.iterator, separator);
   }
 }

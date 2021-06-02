@@ -101,7 +101,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
           /// Call to fixed backend name, so we include the argument
           /// values to test encoding of optional parameters in native
           /// methods.
-          name = selector.value.substring(1, selector.value.length - 1);
+          name = selector.value;
           fixedNameCall = true;
         }
         if (name != null) {
@@ -146,7 +146,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         /// Call to fixed backend name, so we include the argument
         /// values to test encoding of optional parameters in native
         /// methods.
-        name = selector.value.substring(1, selector.value.length - 1);
+        name = selector.value;
       }
 
       if (receiverName != null && name != null) {
@@ -236,7 +236,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
             if (selector is js.Name) {
               name = selector.key;
             } else if (selector is js.LiteralString) {
-              name = selector.value.substring(1, selector.value.length - 1);
+              name = selector.value;
             }
             if (name != null) {
               features.addElement(Tags.assignment, '${name}');

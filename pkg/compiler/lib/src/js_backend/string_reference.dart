@@ -256,8 +256,7 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
     for (_ReferenceSet referenceSet in _referencesByString.values) {
       if (referenceSet.generateAtUse) {
         StringConstantValue constant = referenceSet.constant;
-        js.Expression reference =
-            js.js.escapedString(constant.stringValue, ascii: true);
+        js.Expression reference = js.string(constant.stringValue);
         for (StringReference ref in referenceSet._references) {
           ref.value = reference;
         }
@@ -275,8 +274,7 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       String string = referenceSet.constant.stringValue;
       var propertyName = js.string(referenceSet.propertyName);
-      properties.add(
-          js.Property(propertyName, js.js.escapedString(string, ascii: true)));
+      properties.add(js.Property(propertyName, js.string(string)));
       var access = js.js('#.#', [holderLocalName, propertyName]);
       for (StringReference ref in referenceSet._references) {
         ref.value = access;
@@ -438,5 +436,11 @@ class _StringReferenceCollectorVisitor extends js.BaseVisitor<void> {
     } else {
       visitNode(node);
     }
+  }
+
+  @override
+  void visitLiteralString(js.LiteralString node) {
+    // [js.LiteralString] and [js.LiteralStringFromName] do not contain embedded
+    // [StringReference] or [StringReferenceResource] nodes.
   }
 }
