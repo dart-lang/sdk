@@ -29,7 +29,7 @@ void main() {
     var mod = WasmModule(data);
 
     // Valid instantiation.
-    var inst = mod
+    mod
         .instantiate()
         .addFunction('env', 'someFn', (int a, int b, num c, double d) => 123)
         .build();

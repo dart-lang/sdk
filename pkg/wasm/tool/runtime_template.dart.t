@@ -4,12 +4,16 @@
 
 /* <GEN_DOC> */
 
+// ignore_for_file: unused_field
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:ffi/ffi.dart';
+
 import 'wasmer_api.dart';
 
 class WasmImportDescriptor {
@@ -17,6 +21,7 @@ class WasmImportDescriptor {
   String moduleName;
   String name;
   Pointer<WasmerFunctype> funcType;
+
   WasmImportDescriptor(this.kind, this.moduleName, this.name, this.funcType);
 
   @override
@@ -37,6 +42,7 @@ class WasmExportDescriptor {
   int kind;
   String name;
   Pointer<WasmerFunctype> funcType;
+
   WasmExportDescriptor(this.kind, this.name, this.funcType);
 
   @override
@@ -55,6 +61,7 @@ class WasmExportDescriptor {
 
 class _WasmTrapsEntry {
   dynamic exception;
+
   _WasmTrapsEntry(this.exception);
 }
 
@@ -392,6 +399,7 @@ class _WasiStreamIterator implements Iterator<List<int>> {
   final Function _reader;
   final Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
   int _length = 0;
+
   _WasiStreamIterator(this._env, this._reader);
 
   @override
@@ -407,7 +415,9 @@ class _WasiStreamIterator implements Iterator<List<int>> {
 class _WasiStreamIterable extends Iterable<List<int>> {
   final Pointer<WasmerWasiEnv> _env;
   final Function _reader;
+
   _WasiStreamIterable(this._env, this._reader);
+
   @override
   Iterator<List<int>> get iterator => _WasiStreamIterator(_env, _reader);
 }

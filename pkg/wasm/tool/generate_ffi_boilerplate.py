@@ -11,7 +11,7 @@
 # and runtime.dart.
 
 # Usage:
-# generate_ffi_boilerplate.py && dartfmt -w ../runtime.dart ../wasmer_api.dart
+# ./generate_ffi_boilerplate.py && dart format -owrite ../lib/
 
 import os
 import re
@@ -118,8 +118,8 @@ def getWasmerApi():
         for t in sorted(opaqueTypes)
     ]) + '\n\n' + '\n\n'.join([
         vecTypeTemplate % (addPrefix(t), camel(t),
-                           ('Pointer<%s>' if ptr else '%s') % nativeTypeToFfi(
-                               '%s_t' % addPrefix(t)),
+                           ('Pointer<%s>' if ptr else '%s') %
+                           nativeTypeToFfi('%s_t' % addPrefix(t)),
                            (byteVecToStringTemplate if t == 'byte' else ''))
         for t, ptr in sorted(vecTypes.items())
     ]) + '\n' + '\n'.join([
@@ -372,16 +372,17 @@ def readFile(filename):
 
 
 def writeFile(filename, content):
-    with open(os.path.abspath(os.path.join(thisDir, '..', filename)), 'w') as f:
+    with open(os.path.abspath(os.path.join(thisDir, '../lib/src', filename)),
+              'w') as f:
         f.write(content)
 
 
-wasmerApiText = readFile('wasmer_api_template.dart')
+wasmerApiText = readFile('wasmer_api_template.dart.t')
 wasmerApiText = wasmerApiText.replace('/* <WASMER_API> */', getWasmerApi())
 wasmerApiText = wasmerApiText.replace('/* <GEN_DOC> */', genDoc)
 writeFile('wasmer_api.dart', wasmerApiText)
 
-runtimeText = readFile('runtime_template.dart')
+runtimeText = readFile('runtime_template.dart.t')
 runtimeText = runtimeText.replace('/* <RUNTIME_MEMB> */', getRuntimeMemb())
 runtimeText = runtimeText.replace('/* <RUNTIME_LOAD> */', getRuntimeLoad())
 runtimeText = runtimeText.replace('/* <GEN_DOC> */', genDoc)

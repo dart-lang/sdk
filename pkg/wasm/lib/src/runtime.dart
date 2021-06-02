@@ -6,12 +6,16 @@
 // To regenerate the file, use the following command
 // "generate_ffi_boilerplate.py".
 
+// ignore_for_file: unused_field
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:ffi/ffi.dart';
+
 import 'wasmer_api.dart';
 
 class WasmImportDescriptor {
@@ -19,6 +23,7 @@ class WasmImportDescriptor {
   String moduleName;
   String name;
   Pointer<WasmerFunctype> funcType;
+
   WasmImportDescriptor(this.kind, this.moduleName, this.name, this.funcType);
 
   @override
@@ -39,6 +44,7 @@ class WasmExportDescriptor {
   int kind;
   String name;
   Pointer<WasmerFunctype> funcType;
+
   WasmExportDescriptor(this.kind, this.name, this.funcType);
 
   @override
@@ -56,7 +62,8 @@ class WasmExportDescriptor {
 }
 
 class _WasmTrapsEntry {
-  dynamic exception;
+  Object exception;
+
   _WasmTrapsEntry(this.exception);
 }
 
@@ -617,7 +624,7 @@ class WasmRuntime {
     return f;
   }
 
-  Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, dynamic exception) {
+  Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, Object exception) {
     var msg = calloc<WasmerByteVec>();
     msg.ref.data = calloc<Uint8>();
     msg.ref.data[0] = 0;
@@ -701,11 +708,12 @@ class _WasiStreamIterator implements Iterator<List<int>> {
   final Function _reader;
   final Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
   int _length = 0;
+
   _WasiStreamIterator(this._env, this._reader);
 
   @override
   bool moveNext() {
-    _length = _reader(_env, _buf, _bufferLength);
+    _length = _reader(_env, _buf, _bufferLength) as int;
     return true;
   }
 
@@ -716,7 +724,9 @@ class _WasiStreamIterator implements Iterator<List<int>> {
 class _WasiStreamIterable extends Iterable<List<int>> {
   final Pointer<WasmerWasiEnv> _env;
   final Function _reader;
+
   _WasiStreamIterable(this._env, this._reader);
+
   @override
   Iterator<List<int>> get iterator => _WasiStreamIterator(_env, _reader);
 }

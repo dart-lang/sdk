@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: unused_field
+
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -95,16 +97,16 @@ class _WasmFnImport extends Struct {
       rawResult.ref.data[0].kind = imp.ref.returnType;
       switch (imp.ref.returnType) {
         case WasmerValKindI32:
-          rawResult.ref.data[0].i32 = result;
+          rawResult.ref.data[0].i32 = result as int;
           break;
         case WasmerValKindI64:
-          rawResult.ref.data[0].i64 = result;
+          rawResult.ref.data[0].i64 = result as int;
           break;
         case WasmerValKindF32:
-          rawResult.ref.data[0].f32 = result;
+          rawResult.ref.data[0].f32 = result as int;
           break;
         case WasmerValKindF64:
-          rawResult.ref.data[0].f64 = result;
+          rawResult.ref.data[0].f64 = result as int;
           break;
       }
     }

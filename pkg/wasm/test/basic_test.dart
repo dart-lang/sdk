@@ -23,7 +23,7 @@ void main() {
 
     var inst = WasmModule(data).instantiate().build();
     var fn = inst.lookupFunction('square');
-    int n = fn(1234);
+    var n = fn(1234) as int;
 
     expect(n, 1234 * 1234);
 
