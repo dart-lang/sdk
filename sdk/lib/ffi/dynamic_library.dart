@@ -39,8 +39,14 @@ class DynamicLibrary {
   /// [dlsym(3)](https://man7.org/linux/man-pages/man3/dlsym.3.html) system
   /// call.
   ///
-  /// The symbol must be provided by the dynamic library.
+  /// The symbol must be provided by the dynamic library. To check whether
+  /// the library provides such symbol, use [hasSymbol].
   external Pointer<T> lookup<T extends NativeType>(String symbolName);
+
+  /// Checks whether this dynamic library provides a symbol with the given
+  /// name.
+  @Since('2.14')
+  external bool providesSymbol(String symbolName);
 
   /// Dynamic libraries are equal if they load the same library.
   external bool operator ==(Object other);
