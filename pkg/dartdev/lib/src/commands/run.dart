@@ -69,6 +69,12 @@ class RunCommand extends DartdevCommand {
         valueHelp: '[<port>[/<bind-address>]]',
       )
       ..addFlag(
+        'serve-devtools',
+        help: 'Serves an instance of the Dart DevTools debugger and profiler '
+            'via the VM service at <vm-service-uri>/devtools.',
+        defaultsTo: true,
+      )
+      ..addFlag(
         'pause-isolates-on-exit',
         help: 'Pause isolates on exit when '
             'running with --enable-vm-service.',
@@ -186,9 +192,7 @@ class RunCommand extends DartdevCommand {
     String ddsHost = '';
     String ddsPort = '';
 
-    // TODO(bkonyi): allow for users to choose not to launch DevTools
-    // See https://github.com/dart-lang/sdk/issues/45867.
-    const bool launchDevTools = true;
+    bool launchDevTools = argResults['serve-devtools'];
     bool launchDds = false;
     if (launchDdsArg != null) {
       launchDds = true;

@@ -139,6 +139,10 @@ _platform_sdk_snapshots = [
     "../utils/dds:dds",
   ],
   [
+    "frontend_server",
+    "../utils/kernel-service:frontend_server",
+  ],
+  [
     "pub",
     "../utils/pub",
   ],
@@ -168,10 +172,6 @@ _full_sdk_snapshots = _platform_sdk_snapshots + [
                         [
                           "kernel_worker",
                           "../utils/bazel:kernel_worker",
-                        ],
-                        [
-                          "frontend_server",
-                          "../utils/kernel-service:frontend_server",
                         ],
                       ]
 

@@ -985,9 +985,12 @@ SemiSpace* Scavenger::Prologue() {
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
-  SemiSpace* from = to_;
-
-  to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words()));
+  SemiSpace* from;
+  {
+    MutexLocker ml(&space_lock_);
+    from = to_;
+    to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words()));
+  }
   UpdateMaxHeapCapacity();
 
   return from;
@@ -1740,9 +1743,12 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
   // Swap from-space and to-space. The abandoned to-space will be deleted in
   // the epilogue.
-  SemiSpace* temp = to_;
-  to_ = *from;
-  *from = temp;
+  {
+    MutexLocker ml(&space_lock_);
+    SemiSpace* temp = to_;
+    to_ = *from;
+    *from = temp;
+  }
 
   // Release any remaining part of the promotion worklist that wasn't completed.
   promotion_stack_.Reset();

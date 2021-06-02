@@ -3532,14 +3532,6 @@ class AstBuilder extends StackListener {
         typeArguments.leftBracket,
         typeArguments.rightBracket,
       );
-      // Since analyzer visitors don't yet support constructor tear-offs, create
-      // a FunctionExpressionInvocation with a synthetic argument list instead.
-      // TODO(paulberry): once we have visitor support for constructor
-      // tear-offs, fall through and return a FunctionReference instead since
-      // that should lead to better quality error recovery.
-      push(ast.functionExpressionInvocation(receiver, typeArguments,
-          _syntheticArgumentList(typeArguments.rightBracket)));
-      return;
     }
     push(ast.functionReference(
         function: receiver, typeArguments: typeArguments));

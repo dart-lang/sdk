@@ -636,7 +636,7 @@ class EditDomainHandler extends AbstractRequestHandler {
               result.path!,
               name,
             );
-          });
+          }, extensionCache: server.getExtensionCacheFor(result));
 
           List<Fix> fixes;
           try {

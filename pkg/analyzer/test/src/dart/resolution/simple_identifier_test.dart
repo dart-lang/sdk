@@ -100,7 +100,7 @@ class C<T> {
     await assertNoErrorsInCode(r'''
 main() {
   Never;
-}    
+}
 ''');
     assertSimpleIdentifier(
       findNode.simple('Never;'),

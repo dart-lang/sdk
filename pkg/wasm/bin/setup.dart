@@ -27,6 +27,12 @@ Uri getSdkDir() {
     return checkedOutSdkDir;
   }
 
+  final homebrewOutSdkDir = exe.resolve('..');
+  final homebrewIncludeDir = homebrewOutSdkDir.resolve('include');
+  if (Directory(homebrewIncludeDir.path).existsSync()) {
+    return homebrewOutSdkDir;
+  }
+
   // If neither returned above, we return the common case:
   return commonSdkDir;
 }
@@ -52,7 +58,7 @@ String getOutLib(String target) {
   return 'libwasmer.so';
 }
 
-getTargetTriple() async {
+Future<String> getTargetTriple() async {
   final process = await Process.start('rustc', ['--print', 'cfg']);
   process.stderr
       .transform(utf8.decoder)
@@ -69,11 +75,14 @@ getTargetTriple() async {
   String arch = cfg['target_arch'] ?? 'unknown';
   String vendor = cfg['target_vendor'] ?? 'unknown';
   String os = cfg['target_os'] ?? 'unknown';
-  String env = cfg['target_env'] ?? 'unknown';
-  return '$arch-$vendor-$os-$env';
+  if (os == 'macos') os = 'darwin';
+  String? env = cfg['target_env'];
+  return [arch, vendor, os, env]
+      .where((element) => element != null && element.isNotEmpty)
+      .join('-');
 }
 
-run(String exe, List<String> args) async {
+Future<void> run(String exe, List<String> args) async {
   print('\n$exe ${args.join(' ')}\n');
   final process = await Process.start(exe, args);
   process.stdout
@@ -91,13 +100,13 @@ run(String exe, List<String> args) async {
   }
 }
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   if (args.length > 1) {
     print('Usage: dart setup.dart [target-triple]');
     exit(1);
   }
 
-  final target = args.length >= 1 ? args[0] : await getTargetTriple();
+  final target = args.isNotEmpty ? args[0] : await getTargetTriple();
   final sdkDir = getSdkDir();
   final binDir = Platform.script;
   final outDir = getOutDir(binDir);
@@ -121,12 +130,13 @@ main(List<String> args) async {
     '--release'
   ]);
 
+  final dartApiDlImplFile =
+      File.fromUri(sdkDir.resolve('include/internal/dart_api_dl_impl.h'));
   // Hack around a bug with dart_api_dl_impl.h include path in dart_api_dl.c.
-  if (!File.fromUri(sdkDir.resolve('include/internal/dart_api_dl_impl.h'))
-      .existsSync()) {
+  if (!dartApiDlImplFile.existsSync()) {
     Directory(outDir.resolve('include/internal/').path)
         .createSync(recursive: true);
-    File.fromUri(sdkDir.resolve('include/runtime/dart_api_dl_impl.h'))
+    await dartApiDlImplFile
         .copy(outDir.resolve('include/internal/dart_api_dl_impl.h').path);
   }
 

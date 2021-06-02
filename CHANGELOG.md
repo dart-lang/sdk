@@ -59,13 +59,32 @@ Dart SDK) in Dart 2.15.
 https://github.com/dart-lang/sdk/issues/46100
 
 * The `dart create` command has been updated to create projects that use the new
-  'core' set of lints from `package:lints`. See https://dart.dev/go/core-lints
+  'recommended' set of lints from `package:lints`. See https://dart.dev/go/core-lints
   for more information about these lints.
 
 #### Linter
 
-Updated the Linter to `1.4.0`, which includes:
+Updated the Linter to `1.5.0`, which includes:
 
+- (internal) migrated to `SecurityLintCode` instead of deprecated 
+  `SecurityLintCodeWithUniqueName`.
+- (internal) fixed `avoid_types_as_parameter_names` to skip field formal
+  parameters.
+- fixed false positives in `prefer_interpolation_to_compose_strings` where
+  the left operand is not a String.
+- fixed false positives in `only_throw_errors` for misidentified type
+  variables.
+- new lint: `depend_on_referenced_packages`.
+- update `avoid_returning_null_for_future` to skip checks for null-safe
+  libraries.
+- new lint: `use_test_throws_matchers`.
+- relaxed `sort_child_properties_last` to accept closures after child.
+- performance improvements for `prefer_contains` and `prefer_is_empty`.
+- new lint: `noop_primitive_operations`.
+- marked `avoid_web_libraries_in_flutter` as stable.
+- new lint: `prefer_final_parameters`.
+- updated `prefer_initializing_formals` to allow assignments where identifier
+  names don't match.
 - `directives_ordering` now checks ordering of `package:` imports in code
   outside pub packages.
 - simple reachability analysis added to `use_build_context_synchronously` to

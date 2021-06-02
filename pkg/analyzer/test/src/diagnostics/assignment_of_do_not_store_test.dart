@@ -216,7 +216,7 @@ class A {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
-String top = A().f; 
+String top = A().f;
 
 class A{
   @doNotStore
@@ -246,7 +246,7 @@ String v = c();
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
-String top = v; 
+String top = v;
 
 @doNotStore
 String get v => '';
@@ -259,7 +259,7 @@ String get v => '';
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
-String top = A().v(); 
+String top = A().v();
 
 class A{
   @doNotStore

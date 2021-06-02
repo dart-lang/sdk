@@ -1507,7 +1507,7 @@ class C {
     var library = await buildTestLibrary(a, r'''
 class C {
   var f;
-  
+
   C.test() : f = x;
 }
 ''');
@@ -1567,7 +1567,7 @@ class C extends A {
     var library = await buildTestLibrary(a, r'''
 class C extends A {
   C.test() : this.named(x);
-  
+
   C.named(a);
 }
 ''');
@@ -1579,7 +1579,7 @@ class C extends A {
     var library = await buildTestLibrary(a, r'''
 class C extends A {
   C.test() : this(x);
-  
+
   C(a);
 }
 ''');

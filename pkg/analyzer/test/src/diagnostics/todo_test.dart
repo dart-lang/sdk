@@ -40,12 +40,12 @@ main() {
    */
   /* TODO(a): Implement something
    *  that is too long for one line
-   * 
+   *
    *  This line is not part of the todo
    */
   /* TODO: Implement something
    *  that is too long for one line
-   * 
+   *
    *  This line is not part of the todo
    */
 }
@@ -56,7 +56,7 @@ main() {
           text: 'TODO: Implement something that is too long for one line'),
       error(TodoCode.TODO, 241, 64,
           text: 'TODO(a): Implement something that is too long for one line'),
-      error(TodoCode.TODO, 363, 61,
+      error(TodoCode.TODO, 362, 61,
           text: 'TODO: Implement something that is too long for one line'),
     ]);
   }
@@ -145,12 +145,12 @@ main() {
 
   // TODO: Implement something
   //  that is too long for one line
-  
+
   //  this is not part of the todo
 
   // TODO: Implement something
   //  that is too long for one line
-  // 
+  //
   //  this is not part of the todo
 }
 ''', [
@@ -158,7 +158,7 @@ main() {
           text: 'TODO: Implement something that is too long for one line'),
       error(TodoCode.TODO, 116, 61,
           text: 'TODO: Implement something that is too long for one line'),
-      error(TodoCode.TODO, 222, 61,
+      error(TodoCode.TODO, 220, 61,
           text: 'TODO: Implement something that is too long for one line'),
     ]);
   }

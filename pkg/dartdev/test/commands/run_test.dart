@@ -329,7 +329,7 @@ void main(List<String> args) => print("$b $args");
     const devToolsMessagePrefix =
         'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
 
-    test('spawn simple', () async {
+    test('dart run simple', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = p.runSync([
         'run',
@@ -339,13 +339,74 @@ void main(List<String> args) => print("$b $args");
       expect(result.stdout, contains(devToolsMessagePrefix));
     });
 
-    test('implicit spawn', () async {
+    test('dart simple', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = p.runSync([
         '--enable-vm-service',
         p.relativeFilePath,
       ]);
       expect(result.stdout, contains(devToolsMessagePrefix));
+    });
+
+    test('dart run explicit', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        'run',
+        '--serve-devtools',
+        '--enable-vm-service',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, contains(devToolsMessagePrefix));
+    });
+
+    test('dart explicit', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        '--serve-devtools',
+        '--enable-vm-service',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, contains(devToolsMessagePrefix));
+    });
+
+    test('dart run disabled', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        'run',
+        '--enable-vm-service',
+        '--no-serve-devtools',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
+    });
+
+    test('dart disabled', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        '--enable-vm-service',
+        '--no-serve-devtools',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
+    });
+
+    test('dart run VM service not enabled', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        'run',
+        '--serve-devtools',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
+    });
+
+    test('dart VM service not enabled', () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+      ProcessResult result = p.runSync([
+        '--serve-devtools',
+        p.relativeFilePath,
+      ]);
+      expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
     });
 
     test(

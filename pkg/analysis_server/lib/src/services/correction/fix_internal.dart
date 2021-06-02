@@ -234,6 +234,7 @@ class FixInFileProcessor {
           resolveResult,
           error,
           (name) => [],
+          extensionCache: context.extensionCache,
         );
         fixState = await _fixError(fixContext, fixState, generator(), error);
       }
@@ -1131,6 +1132,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
       DataDriven.newInstance,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
@@ -1143,6 +1145,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
       DataDriven.newInstance,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
@@ -1150,9 +1153,13 @@ class FixProcessor extends BaseProcessor {
       ChangeArgumentName.newInstance,
       DataDriven.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+      ImportLibrary.forExtensionMember,
+    ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
-      // TODO(brianwilkerson) Support ImportLibrary
+      // TODO(brianwilkerson) Support ImportLibrary for non-extension members.
+      ImportLibrary.forExtensionMember,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
       DataDriven.newInstance,

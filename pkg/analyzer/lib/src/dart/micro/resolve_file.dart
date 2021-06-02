@@ -55,6 +55,11 @@ class CiderSearchMatch {
       object is CiderSearchMatch &&
       path == object.path &&
       const ListEquality<int>().equals(offsets, object.offsets);
+
+  @override
+  String toString() {
+    return '($path, $offsets)';
+  }
 }
 
 class FileContext {

@@ -1175,7 +1175,7 @@ class C {
     var library = await checkLibrary('''
 class C {
   int get x => 0;
-  void set x(int value) {} 
+  void set x(int value) {}
 }
 ''');
     checkElementText(
@@ -2194,7 +2194,7 @@ class CommentAroundAnnotation/*codeOffset=261, codeLength=57*/ {
 class A {}
 
 class B {}
-    
+
 class Raw = Object with A, B;
 
 /// Comment 1.
@@ -2226,33 +2226,33 @@ class A/*codeOffset=0, codeLength=10*/ {
 }
 class B/*codeOffset=12, codeLength=10*/ {
 }
-class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
+class alias Raw/*codeOffset=24, codeLength=29*/ extends Object with A, B {
   synthetic const Raw() : super();
 }
 /// Comment 1.
 /// Comment 2.
-class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
+class alias HasDocComment/*codeOffset=55, codeLength=69*/ extends Object with A, B {
   synthetic const HasDocComment() : super();
 }
 @Object()
-class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
+class alias HasAnnotation/*codeOffset=126, codeLength=49*/ extends Object with A, B {
   synthetic const HasAnnotation() : super();
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
-class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
+class alias AnnotationThenComment/*codeOffset=177, codeLength=87*/ extends Object with A, B {
   synthetic const AnnotationThenComment() : super();
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
-class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
+class alias CommentThenAnnotation/*codeOffset=266, codeLength=87*/ extends Object with A, B {
   synthetic const CommentThenAnnotation() : super();
 }
 /// Comment 2.
 @Object()
-class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
+class alias CommentAroundAnnotation/*codeOffset=370, codeLength=74*/ extends Object with A, B {
   synthetic const CommentAroundAnnotation() : super();
 }
 ''',
@@ -2466,13 +2466,13 @@ class C {
 
   int withoutInit;
 
-  int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3; 
+  int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 }
 ''');
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=116*/ {
+class C/*codeOffset=0, codeLength=115*/ {
   int withInit/*codeOffset=12, codeLength=16*/;
   int withoutInit/*codeOffset=33, codeLength=15*/;
   int multiWithInit/*codeOffset=53, codeLength=21*/;
@@ -2794,7 +2794,7 @@ int withInit = 1 + 2 * 3;
 
 int withoutInit;
 
-int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3; 
+int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
 ''');
     checkElementText(
         library,
@@ -14788,7 +14788,7 @@ dynamic g() {}
   test_unit_implicitVariable_getterFirst() async {
     var library = await checkLibrary('''
 int get x => 0;
-void set x(int value) {} 
+void set x(int value) {}
 ''');
     checkElementText(
         library,

@@ -1,7 +1,6 @@
 name: wasm
 version: 0.1.0
-description: Load and run wasm bytecode.
-author: Dart Team <misc@dartlang.org>
+description: Utilities for loading and running WASM modules from Dart code
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/wasm
 
 environment:

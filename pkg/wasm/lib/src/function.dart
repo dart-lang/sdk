@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:ffi';
+
+import 'package:ffi/ffi.dart';
+
 import 'runtime.dart';
 import 'wasmer_api.dart';
-import 'dart:ffi';
-import 'package:ffi/ffi.dart';
 
 /// WasmFunction is a callable function from a WasmInstance.
 class WasmFunction {
@@ -19,7 +21,7 @@ class WasmFunction {
   WasmFunction(this._name, this._func, this._argTypes, this._returnType) {
     _args.ref.length = _argTypes.length;
     _args.ref.data =
-        _argTypes.length == 0 ? nullptr : calloc<WasmerVal>(_argTypes.length);
+        _argTypes.isEmpty ? nullptr : calloc<WasmerVal>(_argTypes.length);
     _results.ref.length = _returnType == WasmerValKindVoid ? 0 : 1;
     _results.ref.data =
         _returnType == WasmerValKindVoid ? nullptr : calloc<WasmerVal>();

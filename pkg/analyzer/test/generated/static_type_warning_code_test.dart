@@ -475,7 +475,7 @@ f(Object x) {
     await assertErrorsInCode('''
 Future<Future<int>> ffi() => null;
 f() async {
-  Future<int> b = await ffi(); 
+  Future<int> b = await ffi();
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),

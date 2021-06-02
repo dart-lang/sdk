@@ -18151,7 +18151,7 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
   } else {
     ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf(
-        "%sfunction: %s", separator,
+        "%ssignature: %s", separator,
         FunctionType::Cast(instance_class_id_or_signature).ToCString());
   }
   if (!destination_type.IsNull()) {
@@ -19237,6 +19237,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
         instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
       if (instantiated_other.IsTopTypeForSubtyping() ||
+          instantiated_other.IsObjectType() ||
           instantiated_other.IsDartFunctionType()) {
         return true;
       }

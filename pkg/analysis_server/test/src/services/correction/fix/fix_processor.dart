@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -172,8 +174,17 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
 /// A base class defining support for writing fix processor tests.
 abstract class FixProcessorTest extends BaseFixProcessorTest {
+  /// The extension cache used for test purposes.
+  ExtensionCache extensionCache = ExtensionCache();
+
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
+
+  Future<void> addUnimportedFile(String filePath, String content) async {
+    addSource(filePath, content);
+    var result = await session.getResolvedUnit2(filePath);
+    extensionCache.cacheFromResult(result as ResolvedUnitResult);
+  }
 
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError)? errorFilter,
@@ -429,6 +440,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     tracker.addContext(analysisContext);
+    extensionCache.cacheFromResult(testAnalysisResult);
 
     var context = DartFixContextImpl(
       TestInstrumentationService(),
@@ -440,6 +452,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
         provider.doTrackerWork();
         return provider.get(analysisContext, testFile, name);
       },
+      extensionCache: extensionCache,
     );
     return await DartFixContributor().computeFixes(context);
   }

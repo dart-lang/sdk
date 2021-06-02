@@ -165,7 +165,7 @@ class A {
   }
 
   String getV2() => _v;
-  
+
   @doNotStore
   String getV3() => _v;
 }

@@ -836,6 +836,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         final serverErrors = protocol.doAnalysisError_listFromEngine(result);
         recordAnalysisErrors(path, serverErrors);
       }
+      analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
+      analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
       final unit = result.unit;
       if (unit != null) {
         if (analysisServer.shouldSendClosingLabelsFor(path)) {

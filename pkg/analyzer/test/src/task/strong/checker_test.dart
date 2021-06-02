@@ -2065,21 +2065,21 @@ class C extends Object with M<int> {
 }
 
 abstract class D extends Object with M<num> {}
-  
+
 class E extends D with M<int> {
   int x;
 }
-  
+
 class F extends D with M<int> {
   num x;
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 186, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 186, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 218, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 232, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 232, 1),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 216, 1),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
     ]);
   }
 

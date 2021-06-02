@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -129,11 +130,16 @@ class DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
+  @override
+  final ExtensionCache extensionCache;
+
   final List<TopLevelDeclaration> Function(String name)
       getTopLevelDeclarationsFunction;
 
   DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction);
+      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction,
+      {ExtensionCache? extensionCache})
+      : extensionCache = extensionCache ?? ExtensionCache();
 
   @override
   List<TopLevelDeclaration> getTopLevelDeclarations(String name) {

@@ -36,23 +36,9 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
   }
 
   void test_feature_disabled() {
-    var expression =
-        (parseStatement('f<a, b>;', featureSet: preConstructorTearoffs)
-                as ExpressionStatement)
-            .expression;
-    // TODO(paulberry): once we have visitor support for FunctionReference, this
-    // should be parsed as a FunctionReference, so we should be able to validate
-    // it using `expect_f_a_b`.  But for now it's parsed as a
-    // FunctionExpressionInvocation with synthetic arguments.
-    var functionExpressionInvocation =
-        expression as FunctionExpressionInvocation;
-    expect(
-        (functionExpressionInvocation.function as SimpleIdentifier).name, 'f');
-    expect(functionExpressionInvocation.argumentList.arguments, isEmpty);
-    var typeArgs = functionExpressionInvocation.typeArguments!.arguments;
-    expect(typeArgs, hasLength(2));
-    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
-    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+    expect_f_a_b((parseStatement('f<a, b>;', featureSet: preConstructorTearoffs)
+            as ExpressionStatement)
+        .expression);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 6),
     ]);

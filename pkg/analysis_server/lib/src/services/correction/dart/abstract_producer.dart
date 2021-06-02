@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -392,6 +393,9 @@ abstract class _AbstractCorrectionProducer {
 
   /// Returns the EOL to use for this [CompilationUnit].
   String get eol => utils.endOfLine;
+
+  /// Return the extension cache used to find available extensions.
+  ExtensionCache get extensionCache => _context.dartFixContext!.extensionCache;
 
   String get file => _context.file;
 

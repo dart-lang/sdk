@@ -155,6 +155,7 @@ void Options::PrintUsage() {
 "  set of options which are often useful for debugging under Observatory.\n"
 "  These options are currently:\n"
 "      --enable-vm-service[=<port>[/<bind-address>]]\n"
+"      --serve-devtools\n"
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
@@ -191,6 +192,7 @@ void Options::PrintUsage() {
 "  set of options which are often useful for debugging under Observatory.\n"
 "  These options are currently:\n"
 "      --enable-vm-service[=<port>[/<bind-address>]]\n"
+"      --serve-devtools\n"
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
@@ -416,6 +418,7 @@ bool Options::ParseArguments(int argc,
 
   bool enable_dartdev_analytics = false;
   bool disable_dartdev_analytics = false;
+  bool serve_devtools = true;
 
   // Parse out the vm options.
   while (i < argc) {
@@ -443,6 +446,12 @@ bool Options::ParseArguments(int argc,
         // Just add this option even if we don't go to dartdev.
         // It is irelevant for the vm.
         dart_options->AddArgument("--no-analytics");
+        skipVmOption = true;
+      } else if (IsOption(argv[i], "serve-devtools")) {
+        serve_devtools = true;
+        skipVmOption = true;
+      } else if (IsOption(argv[i], "no-serve-devtools")) {
+        serve_devtools = false;
         skipVmOption = true;
       }
       if (!skipVmOption) {
@@ -571,6 +580,16 @@ bool Options::ParseArguments(int argc,
       // run command. If 'run' is provided, it will be the first argument
       // processed in this loop.
       dart_options->AddArgument("run");
+
+      // Ensure we can enable / disable DevTools when invoking 'dart run'
+      // implicitly.
+      if (enable_vm_service_) {
+        if (serve_devtools) {
+          dart_options->AddArgument("--serve-devtools");
+        } else {
+          dart_options->AddArgument("--no-serve-devtools");
+        }
+      }
     } else {
       dart_options->AddArgument(argv[i]);
       i++;
