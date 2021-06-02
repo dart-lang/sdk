@@ -176,6 +176,7 @@ void main() {
 
     var fn = inst.lookupFunction('_start');
     fn();
+    // TODO: failing on mac https://github.com/dart-lang/sdk/issues/46222
     var out = utf8.decode(await inst.stdout.first);
     expect(out, 'hello, world!\n');
   });
