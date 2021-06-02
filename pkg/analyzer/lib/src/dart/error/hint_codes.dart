@@ -2389,8 +2389,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_NEVER = HintCode(
       'SDK_VERSION_NEVER',
-      "The type 'Never' wasn't supported until version 2.X.0, but this code is "
-          "required to be able to run on earlier versions.",
+      "The type 'Never' wasn't supported until version 2.12.0, but this code "
+          "is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.",
       hasPublishedDocs: true);
 
