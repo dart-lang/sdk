@@ -456,12 +456,9 @@ class Place : public ValueObject {
   static Place* Wrap(Zone* zone, const Place& place, intptr_t id);
 
   static bool IsAllocation(Definition* defn) {
-    return (defn != NULL) &&
-           (defn->IsAllocateObject() || defn->IsAllocateClosure() ||
-            defn->IsCreateArray() || defn->IsAllocateTypedData() ||
-            defn->IsAllocateUninitializedContext() ||
-            (defn->IsStaticCall() &&
-             defn->AsStaticCall()->IsRecognizedFactory()));
+    return (defn != NULL) && (defn->IsAllocation() ||
+                              (defn->IsStaticCall() &&
+                               defn->AsStaticCall()->IsRecognizedFactory()));
   }
 
  private:
@@ -1586,7 +1583,7 @@ void LICM::Optimize() {
 }
 
 void DelayAllocations::Optimize(FlowGraph* graph) {
-  // Go through all AllocateObject instructions and move them down to their
+  // Go through all Allocation instructions and move them down to their
   // dominant use when doing so is sound.
   DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> moved;
   for (BlockIterator block_it = graph->reverse_postorder_iterator();
@@ -1596,10 +1593,8 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
     for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
          instr_it.Advance()) {
       Definition* def = instr_it.Current()->AsDefinition();
-      if (def != nullptr &&
-          (def->IsAllocateObject() || def->IsAllocateClosure() ||
-           def->IsCreateArray()) &&
-          def->env() == nullptr && !moved.HasKey(def)) {
+      if (def != nullptr && def->IsAllocation() && def->env() == nullptr &&
+          !moved.HasKey(def)) {
         Instruction* use = DominantUse(def);
         if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
           instr_it.RemoveCurrentFromGraph();
@@ -3084,9 +3079,8 @@ static bool IsValidLengthForAllocationSinking(
 // Returns true if the given instruction is an allocation that
 // can be sunk by the Allocation Sinking pass.
 static bool IsSupportedAllocation(Instruction* instr) {
-  return instr->IsAllocateObject() || instr->IsAllocateUninitializedContext() ||
-         instr->IsAllocateClosure() ||
-         (instr->IsArrayAllocation() &&
+  return instr->IsAllocation() &&
+         (!instr->IsArrayAllocation() ||
           IsValidLengthForAllocationSinking(instr->AsArrayAllocation()));
 }
 
@@ -3639,6 +3633,9 @@ void AllocationSinking::CreateMaterializationAt(
   } else if (auto instr = alloc->AsAllocateClosure()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->object_store()->closure_class());
+  } else if (auto instr = alloc->AsAllocateContext()) {
+    cls = &Class::ZoneHandle(Object::context_class());
+    num_elements = instr->num_context_variables();
   } else if (auto instr = alloc->AsAllocateUninitializedContext()) {
     cls = &Class::ZoneHandle(Object::context_class());
     num_elements = instr->num_context_variables();

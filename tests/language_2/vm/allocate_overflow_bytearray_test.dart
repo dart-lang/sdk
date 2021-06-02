@@ -21,26 +21,31 @@ const interestingLengths = <int>[
 
 main() {
   for (int interestingLength in interestingLengths) {
+    bool exceptionCheck(e) {
+      // Allow RangeError as the range check may happen before the allocation.
+      return e is RangeError || e is OutOfMemoryError;
+    }
+
     print(interestingLength);
 
     Expect.throws(() {
       var bytearray = new Uint8List(interestingLength);
       print(bytearray.first);
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
 
     Expect.throws(() {
       var bytearray = new Uint8ClampedList(interestingLength);
       print(bytearray.first);
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
 
     Expect.throws(() {
       var bytearray = new Int8List(interestingLength);
       print(bytearray.first);
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
 
     Expect.throws(() {
       var bytearray = new ByteData(interestingLength);
       print(bytearray.getUint8(0));
-    }, (e) => e is OutOfMemoryError);
+    }, exceptionCheck);
   }
 }
