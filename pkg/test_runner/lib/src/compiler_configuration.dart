@@ -1066,27 +1066,10 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    const legacyTestDirectories = {
-      "co19_2",
-      "corelib_2",
-      "ffi_2",
-      "language_2",
-      "lib_2",
-      "service_2",
-      "standalone_2"
-    };
-
-    // If we are running a legacy test with NNBD enabled, tell analyzer to use
-    // a pre-NNBD language version for the test.
-    var testPath = arguments.last;
-    var segments = Path(testPath).relativeTo(Repository.dir).segments();
-    var setLegacyVersion = segments.any(legacyTestDirectories.contains);
-
     var args = [
       ...arguments,
       if (_configuration.useAnalyzerCfe) '--use-cfe',
       if (_configuration.useAnalyzerFastaParser) '--use-fasta-parser',
-      if (setLegacyVersion) '--default-language-version=2.7',
     ];
 
     // Since this is not a real compilation, no artifacts are produced.

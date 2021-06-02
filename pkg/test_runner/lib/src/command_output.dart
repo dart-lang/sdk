@@ -9,7 +9,6 @@ import 'dart:io' as io;
 
 import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 import 'package:status_file/expectation.dart';
-import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/static_error.dart';
 
 import 'browser_controller.dart';
@@ -461,67 +460,53 @@ class BrowserCommandOutput extends CommandOutput
 /// A parsed analyzer error diagnostic.
 class AnalyzerError implements Comparable<AnalyzerError> {
   /// Parses all errors from analyzer [stderr] output.
-  static Iterable<AnalyzerError> parseStderr(String stderr) sync* {
-    for (var outputLine in stderr.split("\n")) {
-      var error = _tryParse(outputLine);
-      if (error != null) yield error;
+  static List<AnalyzerError> parseStderr(String stderr) {
+    var result = <AnalyzerError>[];
+
+    var jsonData = json.decode(stderr) as Map<String, dynamic>;
+    var version = jsonData['version'];
+    if (version != 1) {
+      DebugLogger.error('Unexpected analyzer JSON data version: $version');
+      throw UnimplementedError();
     }
-  }
 
-  static AnalyzerError _tryParse(String line) {
-    if (line.isEmpty) return null;
+    for (var diagnostic in jsonData['diagnostics'] as List<dynamic>) {
+      var diagnosticMap = diagnostic as Map<String, dynamic>;
 
-    // Split and unescape the fields.
-    // The escaping is implemented in:
-    // pkg/analyzer_cli/lib/src/error_formatter.dart#L392
-    var fields = <String>[];
-    var field = StringBuffer();
-    var inEscape = false;
-    for (var i = 0; i < line.length; i++) {
-      var c = line[i];
+      var type = diagnosticMap['type'] as String;
+      var code = diagnosticMap['code'] as String;
+      var errorCode = '$type.${code.toUpperCase()}';
 
-      if (inEscape) {
-        switch (c) {
-          case '\\':
-            field.write('\\');
-            break;
-          case '|':
-            field.write('|');
-            break;
-          case 'n':
-            field.write('\n');
-            break;
-          // TODO(rnystrom): Are there other escapes?
-          default:
-            field.write(c);
-            break;
-        }
+      var error = _parse(
+          diagnosticMap, diagnosticMap['problemMessage'] as String, errorCode);
+      result.add(error);
 
-        inEscape = false;
-      } else if (c == '\\') {
-        inEscape = true;
-      } else if (c == '|') {
-        fields.add(field.toString());
-        field = StringBuffer();
-      } else {
-        field.write(c);
+      var contextMessages = diagnosticMap['contextMessages'] as List<dynamic>;
+      for (var contextMessage in contextMessages ?? const []) {
+        var contextMessageMap = contextMessage as Map<String, dynamic>;
+        error.contextMessages.add(
+            _parse(contextMessageMap, contextMessageMap['message'] as String));
       }
     }
 
-    // Add the last field.
-    fields.add(field.toString());
+    return result;
+  }
 
-    // Lines without enough fields are other output we don't care about.
-    if (fields.length < 8) return null;
+  static AnalyzerError _parse(Map<String, dynamic> diagnostic, String message,
+      [String errorCode]) {
+    var location = diagnostic['location'] as Map<String, dynamic>;
 
+    var range = location['range'] as Map<String, dynamic>;
+    var start = range['start'] as Map<String, dynamic>;
+    var end = range['end'] as Map<String, dynamic>;
     return AnalyzerError._(
-        severity: fields[0],
-        errorCode: "${fields[1]}.${fields[2]}",
-        file: fields[3],
-        message: fields[7],
-        line: int.parse(fields[4]),
-        column: int.parse(fields[5]),
-        length: int.parse(fields[6]));
+        severity: diagnostic['severity'] as String,
+        errorCode: errorCode,
+        file: location['file'] as String,
+        message: message,
+        line: start['line'] as int,
+        column: start['column'] as int,
+        length: (end['offset'] as int) - (start['offset'] as int));
   }
 
   final String severity;
@@ -531,6 +516,8 @@ class AnalyzerError implements Comparable<AnalyzerError> {
   final int line;
   final int column;
   final int length;
+
+  final List<AnalyzerError> contextMessages = [];
 
   AnalyzerError._(
       {this.severity,
@@ -558,56 +545,52 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   static void parseErrors(String stderr, List<StaticError> errors,
       [List<StaticError> warnings]) {
-    var jsonData = json.decode(stderr) as Map<String, dynamic>;
-    var version = jsonData['version'];
-    if (version != 1) {
-      DebugLogger.error('Unexpected analyzer JSON data version: $version');
-      throw UnimplementedError();
-    }
-    for (var diagnostic in jsonData['diagnostics'] as List<dynamic>) {
-      var diagnosticMap = diagnostic as Map<String, dynamic>;
-      var location = diagnosticMap['location'] as Map<String, dynamic>;
-      var file = location['file'] as String;
-      var type = diagnosticMap['type'] as String;
-      var code = (diagnosticMap['code'] as String).toUpperCase();
-      var staticError =
-          _decodeStaticError(ErrorSource.analyzer, '$type.$code', location);
-      var contextMessages = diagnosticMap['contextMessages'] as List<dynamic>;
-      for (var contextMessage in contextMessages ?? const []) {
-        var contextMessageMap = contextMessage as Map<String, dynamic>;
-        var contextLocation =
-            contextMessageMap['location'] as Map<String, dynamic>;
-        if (contextLocation['file'] == file) {
-          staticError.contextMessages.add(_decodeStaticError(
-              ErrorSource.context,
-              contextMessageMap['message'] as String,
-              contextLocation));
-        } else {
+    StaticError convert(AnalyzerError error) {
+      var staticError = StaticError(ErrorSource.analyzer, error.errorCode,
+          line: error.line, column: error.column, length: error.length);
+
+      for (var context in error.contextMessages) {
+        // TODO(rnystrom): Include these when static error tests get support
+        // for errors/context in other files.
+        if (context.file != error.file) {
           DebugLogger.warning(
               "Context messages in other files not currently supported.");
+          continue;
         }
+
+        staticError.contextMessages.add(StaticError(
+            ErrorSource.context, context.message,
+            line: context.line,
+            column: context.column,
+            length: context.length));
       }
 
-      var severity = diagnosticMap['severity'] as String;
-      if (severity == 'ERROR') {
-        errors.add(staticError);
-      } else if (severity == 'WARNING') {
-        warnings?.add(staticError);
+      return staticError;
+    }
+
+    // Parse as Analyzer errors and then convert them to the StaticError objects
+    // the static error tests expect.
+    for (var diagnostic in AnalyzerError.parseStderr(stderr)) {
+      if (diagnostic.severity == 'ERROR') {
+        errors.add(convert(diagnostic));
+      } else if (diagnostic.severity == 'WARNING' && warnings != null) {
+        warnings.add(convert(diagnostic));
       }
     }
   }
 
-  static StaticError _decodeStaticError(
-      ErrorSource errorSource, String message, Map<String, dynamic> location) {
-    var locationRange = location['range'] as Map<String, dynamic>;
-    var locationRangeStart = locationRange['start'] as Map<String, dynamic>;
-    var locationRangeEnd = locationRange['end'] as Map<String, dynamic>;
-    return StaticError(errorSource, message,
-        line: locationRangeStart['line'] as int,
-        column: locationRangeStart['column'] as int,
-        length: (locationRangeEnd['offset'] as int) -
-            (locationRangeStart['offset'] as int));
+  /// If the stderr of analyzer could not be parsed as valid JSON, this will
+  /// be the stderr as a string instead. Otherwise it will be null.
+  String get invalidJsonStderr {
+    if (!_parsedErrors) {
+      _parseErrors();
+      _parsedErrors = true;
+    }
+
+    return _invalidJsonStderr;
   }
+
+  String _invalidJsonStderr;
 
   AnalysisCommandOutput(
       Command command,
@@ -631,22 +614,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
-    List<StaticError> errors;
-    try {
-      errors = this.errors;
-    } catch (_) {
-      // This can happen in at least two scenarios:
-      // - The analyzer output was too long so it got truncated (so the
-      //   resulting output was ill-formed).  See also
-      //   https://github.com/dart-lang/sdk/issues/44493.
-      // - The analyzer did not find a file to analyze at the specified
-      //   location, so it generated the output "No dart files found at
-      //   <path>.dart" (which is not valid JSON).  See
-      //   https://github.com/dart-lang/sdk/issues/45556.
-      // TODO(paulberry,rnystrom): remove this logic once the two above bugs are
-      // fixed.
-      return Expectation.crash;
-    }
+    if (invalidJsonStderr != null) return Expectation.fail;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -693,22 +661,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
     if (truncatedOutput) return Expectation.truncatedOutput;
 
-    List<StaticError> errors;
-    try {
-      errors = this.errors;
-    } catch (_) {
-      // This can happen in at least two scenarios:
-      // - The analyzer output was too long so it got truncated (so the
-      //   resulting output was ill-formed).  See also
-      //   https://github.com/dart-lang/sdk/issues/44493.
-      // - The analyzer did not find a file to analyze at the specified
-      //   location, so it generated the output "No dart files found at
-      //   <path>.dart" (which is not valid JSON).  See
-      //   https://github.com/dart-lang/sdk/issues/45556.
-      // TODO(paulberry,rnystrom): remove this logic once the two above bugs are
-      // fixed.
-      return Expectation.crash;
-    }
+    if (invalidJsonStderr != null) return Expectation.fail;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -726,16 +679,19 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    if (invalidJsonStderr != null) {
+      output.subsection("invalid JSON on analyzer stderr");
+      output.write(invalidJsonStderr);
+      return;
+    }
+
     // Handle static error test output specially. We don't want to show the raw
     // stdout if we can give the user the parsed expectations instead.
     if (testCase.testFile.isStaticErrorTest || hasCrashed || hasTimedOut) {
       super.describe(testCase, progress, output);
     } else {
-      output.subsection("unexpected analysis errors");
-
-      var errorsByFile = <String, List<AnalyzerError>>{};
-
       // Parse and sort the errors.
+      var errorsByFile = <String, List<AnalyzerError>>{};
       for (var error in AnalyzerError.parseStderr(decodeUtf8(stderr))) {
         errorsByFile.putIfAbsent(error.file, () => []).add(error);
       }
@@ -744,8 +700,10 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       files.sort();
 
       for (var file in files) {
-        var path = Path(file).relativeTo(Repository.dir).toString();
-        output.write("In $path:");
+        var path = Path(file)
+            .relativeTo(testCase.testFile.path.directoryPath)
+            .toString();
+        output.subsection("unexpected analysis errors in $path");
 
         var errors = errorsByFile[file];
         errors.sort();
@@ -762,24 +720,21 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     }
   }
 
-  /// Parses the machine-readable output of analyzer, which looks like:
-  ///
-  ///     ERROR|STATIC_TYPE_WARNING|SOME_ERROR_CODE|/path/to/some_test.dart|9|26|1|Error message.
-  ///
-  /// Pipes can be escaped with backslashes:
-  ///
-  ///     FOO|BAR|FOO\|BAR|FOO\\BAZ
-  ///
-  /// Is parsed as:
-  ///
-  ///     FOO BAR FOO|BAR FOO\BAZ
+  /// Parses the JSON output of analyzer.
   @override
   void _parseErrors() {
-    var errors = <StaticError>[];
-    var warnings = <StaticError>[];
-    parseErrors(decodeUtf8(stderr), errors, warnings);
-    errors.forEach(addError);
-    warnings.forEach(addWarning);
+    var stderrString = decodeUtf8(stderr);
+    try {
+      var errors = <StaticError>[];
+      var warnings = <StaticError>[];
+      parseErrors(stderrString, errors, warnings);
+      errors.forEach(addError);
+      warnings.forEach(addWarning);
+    } on FormatException {
+      // It wasn't JSON. This can happen if analyzer instead prints:
+      // "No dart files found at: ..."
+      _invalidJsonStderr = stderrString;
+    }
   }
 }
 

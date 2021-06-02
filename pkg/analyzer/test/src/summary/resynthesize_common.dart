@@ -7933,6 +7933,443 @@ int Function(int, String) v;
 ''');
   }
 
+  test_genericFunction_asTypeArgument_ofAnnotation_class() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+@A<int Function(String a)>()
+class B {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+class B {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: dynamic}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+      typeArguments: TypeArgumentList
+        arguments
+          GenericFunctionType
+            declaredElement: GenericFunctionTypeElement
+              parameters
+                a
+                  kind: required positional
+                  type: String
+              returnType: int
+              type: int Function(String)
+            functionKeyword: Function
+            parameters: FormalParameterList
+              parameters
+                SimpleFormalParameter
+                  declaredElement: a@-1
+                  declaredElementType: String
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: a
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: dart:core::@class::String
+                      staticType: null
+                      token: String
+                    type: String
+            returnType: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::int
+                staticType: null
+                token: int
+              type: int
+            type: int Function(String)
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_ofAnnotation_topLevelVariable() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+@A<int Function(String a)>()
+var v = 0;
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+int v;
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: dynamic}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+      typeArguments: TypeArgumentList
+        arguments
+          GenericFunctionType
+            declaredElement: GenericFunctionTypeElement
+              parameters
+                a
+                  kind: required positional
+                  type: String
+              returnType: int
+              type: int Function(String)
+            functionKeyword: Function
+            parameters: FormalParameterList
+              parameters
+                SimpleFormalParameter
+                  declaredElement: a@-1
+                  declaredElementType: String
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: a
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: dart:core::@class::String
+                      staticType: null
+                      token: String
+                    type: String
+            returnType: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::int
+                staticType: null
+                token: int
+              type: int
+            type: int Function(String)
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_optionalNamed() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function({int? a})>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function({int? a})> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function({int? a})}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function({int? a})>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: optional named
+                      type: int?
+                  returnType: String
+                  type: String Function({int? a})
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    DefaultFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int?
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      parameter: SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: int?
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                            token: int
+                          type: int?
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function({int? a})
+      staticType: A<String Function({int? a})>
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_optionalPositional() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function([int? a])>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function([int?])> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function([int?])}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function([int?])>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: optional positional
+                      type: int?
+                  returnType: String
+                  type: String Function([int?])
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    DefaultFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int?
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      parameter: SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: int?
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                            token: int
+                          type: int?
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function([int?])
+      staticType: A<String Function([int?])>
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_requiredNamed() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function({required int a})>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function({required int a})> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function({required int a})}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function({required int a})>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: required named
+                      type: int
+                  returnType: String
+                  type: String Function({required int a})
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    DefaultFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      parameter: SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: int
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a
+                        requiredKeyword: required
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                            token: int
+                          type: int
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function({required int a})
+      staticType: A<String Function({required int a})>
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_genericFunction_asTypeArgument_parameters_requiredPositional() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+
+const v = A<String Function(int a)>();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+const A<String Function(int)> v;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: String Function(int)}
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::@class::A
+            staticType: null
+            token: A
+          type: A<String Function(int)>
+          typeArguments: TypeArgumentList
+            arguments
+              GenericFunctionType
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: required positional
+                      type: int
+                  returnType: String
+                  type: String Function(int)
+                functionKeyword: Function
+                parameters: FormalParameterList
+                  parameters
+                    SimpleFormalParameter
+                      declaredElement: a@-1
+                      declaredElementType: int
+                      identifier: SimpleIdentifier
+                        staticElement: <null>
+                        staticType: null
+                        token: a
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int
+                        type: int
+                returnType: TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String
+                  type: String
+                type: String Function(int)
+      staticType: A<String Function(int)>
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_genericFunction_boundOf_typeParameter_ofMixin() async {
     var library = await checkLibrary(r'''
 mixin B<X extends void Function()> {}

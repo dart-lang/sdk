@@ -328,9 +328,8 @@ class ParameterStubGenerator {
       // Function.apply calls the function with no type arguments, so generic
       // methods need the stub to default the type arguments.
       // This has to be the first stub.
-      Selector namedSelector = new Selector.fromElement(member).toNonGeneric();
-      Selector closureSelector =
-          namedSelector.isClosureCall ? null : namedSelector.toCallSelector();
+      Selector namedSelector = Selector.fromElement(member).toNonGeneric();
+      Selector closureSelector = namedSelector.toCallSelector();
 
       renamedCallSelectors.add(namedSelector);
       stubSelectors.add(namedSelector);
