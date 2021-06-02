@@ -5,9 +5,12 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -401,6 +404,17 @@ class AstBinaryReader {
       defaultValue,
     );
 
+    var nonDefaultElement = parameter.declaredElement!;
+    var element = DefaultParameterElementImpl(
+      nonDefaultElement.name,
+      nonDefaultElement.nameOffset,
+    );
+    element.parameterKind = kind;
+    if (parameter is SimpleFormalParameterImpl) {
+      parameter.declaredElement = element;
+    }
+    element.type = nonDefaultElement.type;
+
     return node;
   }
 
@@ -600,7 +614,17 @@ class AstBinaryReader {
       formalParameters,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.QUESTION : null,
     );
-    node.type = _reader.readType();
+    var type = _reader.readRequiredType() as FunctionType;
+    node.type = type;
+
+    var element = GenericFunctionTypeElementImpl.forOffset(-1);
+    element.parameters = formalParameters.parameters
+        .map((parameter) => parameter.declaredElement!)
+        .toList();
+    element.returnType = returnType?.type ?? DynamicTypeImpl.instance;
+    element.type = type;
+    node.declaredElement = element;
+
     return node;
   }
 
@@ -999,8 +1023,14 @@ class AstBinaryReader {
       requiredKeyword:
           AstBinaryFlags.isRequired(flags) ? Tokens.REQUIRED : null,
     );
-    _reader.readType(); // TODO(scheglov) actual type
+    var actualType = _reader.readRequiredType();
     _reader.readByte(); // TODO(scheglov) inherits covariant
+
+    var element = ParameterElementImpl(identifier?.name ?? '', -1);
+    element.parameterKind = node.kind;
+    element.type = actualType;
+    node.declaredElement = element;
+
     return node;
   }
 

@@ -694,11 +694,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     _writeNextCodeLine(node);
     _writeln('GenericFunctionType');
     _withIndent(() {
       var properties = _Properties();
+      properties.addGenericFunctionTypeElement(
+        'declaredElement',
+        node.declaredElement,
+      );
       properties.addToken('functionKeyword', node.functionKeyword);
       properties.addNode('parameters', node.parameters);
       properties.addNode('returnType', node.returnType);
@@ -1728,6 +1732,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  void _writeGenericFunctionTypeElement(
+    String name,
+    GenericFunctionTypeElement? element,
+  ) {
+    _sink.write(_indent);
+    _sink.write('$name: ');
+    if (element == null) {
+      _sink.writeln('<null>');
+    } else {
+      _withIndent(() {
+        _sink.writeln('GenericFunctionTypeElement');
+        _writeParameterElements(element.parameters);
+        _writeType('returnType', element.returnType);
+        _writeType('type', element.type);
+      });
+    }
+  }
+
   void _writeln(String line) {
     _sink.writeln(line);
   }
@@ -1763,6 +1785,33 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           node.accept(this);
         }
       });
+    }
+  }
+
+  void _writeParameterElements(List<ParameterElement> parameters) {
+    _writelnWithIndent('parameters');
+    _withIndent(() {
+      for (var parameter in parameters) {
+        _writelnWithIndent(parameter.name);
+        _withIndent(() {
+          _writeParameterKind(parameter);
+          _writeType('type', parameter.type);
+        });
+      }
+    });
+  }
+
+  void _writeParameterKind(ParameterElement parameter) {
+    if (parameter.isOptionalNamed) {
+      _writelnWithIndent('kind: optional named');
+    } else if (parameter.isOptionalPositional) {
+      _writelnWithIndent('kind: optional positional');
+    } else if (parameter.isRequiredNamed) {
+      _writelnWithIndent('kind: required named');
+    } else if (parameter.isRequiredPositional) {
+      _writelnWithIndent('kind: required positional');
+    } else {
+      throw StateError('Unknown kind: $parameter');
     }
   }
 
@@ -1822,6 +1871,17 @@ class _ElementProperty extends _Property {
   }
 }
 
+class _GenericFunctionTypeElementProperty extends _Property {
+  final GenericFunctionTypeElement? element;
+
+  _GenericFunctionTypeElementProperty(String name, this.element) : super(name);
+
+  @override
+  void write(ResolvedAstPrinter printer) {
+    printer._writeGenericFunctionTypeElement(name, element);
+  }
+}
+
 class _NodeListProperty extends _Property {
   final NodeList nodeList;
 
@@ -1850,6 +1910,15 @@ class _Properties {
   void addElement(String name, Element? element) {
     properties.add(
       _ElementProperty(name, element),
+    );
+  }
+
+  void addGenericFunctionTypeElement(
+    String name,
+    GenericFunctionTypeElement? element,
+  ) {
+    properties.add(
+      _GenericFunctionTypeElementProperty(name, element),
     );
   }
 
