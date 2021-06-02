@@ -202,6 +202,7 @@ class6a
 class6b
 clazz
 cli
+client's
 clil
 clock
 cls
@@ -876,6 +877,7 @@ per
 perf
 permanently
 permit
+permits
 physically
 pi
 picking

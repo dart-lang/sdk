@@ -1742,4 +1742,10 @@ class Listener implements UnescapeErrorListener {
   /// `var x = (f)<int>;`).  The client is responsible for reporting an error if
   /// this occurs.
   void handleTypeArgumentApplication(Token openAngleBracket) {}
+
+  /// A `new` token was found in a place where an identifier was expected, and
+  /// the "constructor tearoffs" feature permits `new` to be used as an
+  /// identifier name.  It is the client's responsibility to report an
+  /// appropriate error if the "constructor tearoffs" feature is not enabled.
+  void handleNewAsIdentifier(Token token) {}
 }

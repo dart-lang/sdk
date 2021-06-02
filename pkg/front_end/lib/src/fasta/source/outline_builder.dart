@@ -2169,6 +2169,17 @@ class OutlineBuilder extends StackListenerImpl {
   void debugEvent(String name) {
     // printEvent('OutlineBuilder: $name');
   }
+
+  @override
+  void handleNewAsIdentifier(Token token) {
+    // TODO(johnniwinther, paulberry): disable this error when the
+    // "constructor-tearoffs" feature is enabled.
+    addProblem(
+        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
+            libraryBuilder.enableConstructorTearoffsVersionInLibrary.toText()),
+        token.charOffset,
+        token.length);
+  }
 }
 
 enum _MethodKind {
