@@ -578,10 +578,34 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (identical(entity, node.expression)) {
+    var expression = node.expression;
+    if (identical(entity, expression)) {
       optype.completionLocation = 'ExpressionFunctionBody_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+      var parent = node.parent;
+      if (parent is FunctionExpression) {
+        var type = parent.staticType;
+        if (type is FunctionType) {
+          if (type.returnType.isVoid) {
+            // TODO(brianwilkerson) Determine whether the return type can ever
+            //  be inferred as void and remove this case if it can't be.
+            optype.includeVoidReturnSuggestions = true;
+          } else {
+            var grandparent = parent.parent;
+            if (grandparent is ArgumentList) {
+              var parameter = parent.staticParameterElement;
+              if (parameter != null) {
+                var parameterType = parameter.type;
+                if (parameterType is FunctionType &&
+                    parameterType.returnType.isVoid) {
+                  optype.includeVoidReturnSuggestions = true;
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 
