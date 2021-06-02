@@ -13,11 +13,11 @@ import 'package:path/path.dart' as path;
 
 import 'dwarf_stack_trace_test.dart' as dwarf_stack_trace_test;
 
-const int LINE_A = 23;
-const int LINE_B = 29;
-const int LINE_C = 36;
-const int LINE_D = 44;
-const int LINE_E = 56;
+const int LINE_A = 25;
+const int LINE_B = 31;
+const int LINE_C = 38;
+const int LINE_D = 46;
+const int LINE_E = 58;
 
 @pragma("vm:prefer-inline")
 bar() {
