@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 // Test error thrown when a function is called with the wrong args.
 
-import "package:test/test.dart";
-import "package:wasm/wasm.dart";
-import "dart:typed_data";
+import 'package:test/test.dart';
+import 'package:wasm/wasm.dart';
 
 void main() {
-  test("function with wrong arguments", () {
+  test('function with wrong arguments', () {
     // int64_t square(int64_t n) { return n * n; }
     var data = Uint8List.fromList([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x06, 0x01, 0x60,
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x06, 0x01, 0x60, //
       0x01, 0x7e, 0x01, 0x7e, 0x03, 0x02, 0x01, 0x00, 0x04, 0x05, 0x01, 0x70,
       0x01, 0x01, 0x01, 0x05, 0x03, 0x01, 0x00, 0x02, 0x06, 0x08, 0x01, 0x7f,
       0x01, 0x41, 0x80, 0x88, 0x04, 0x0b, 0x07, 0x13, 0x02, 0x06, 0x6d, 0x65,
@@ -22,7 +23,7 @@ void main() {
     ]);
 
     var inst = WasmModule(data).instantiate().build();
-    var fn = inst.lookupFunction("square");
+    var fn = inst.lookupFunction('square');
 
     expect(() => fn(), throwsA(isArgumentError));
     expect(() => fn(1, 2, 3), throwsA(isArgumentError));

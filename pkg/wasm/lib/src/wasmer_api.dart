@@ -28,32 +28,32 @@ const int WasmerExternKindMemory = 3;
 String wasmerExternKindName(int kind) {
   switch (kind) {
     case WasmerExternKindFunction:
-      return "function";
+      return 'function';
     case WasmerExternKindGlobal:
-      return "global";
+      return 'global';
     case WasmerExternKindTable:
-      return "table";
+      return 'table';
     case WasmerExternKindMemory:
-      return "memory";
+      return 'memory';
     default:
-      return "unknown";
+      return 'unknown';
   }
 }
 
 String wasmerValKindName(int kind) {
   switch (kind) {
     case WasmerValKindI32:
-      return "int32";
+      return 'int32';
     case WasmerValKindI64:
-      return "int64";
+      return 'int64';
     case WasmerValKindF32:
-      return "float32";
+      return 'float32';
     case WasmerValKindF64:
-      return "float64";
+      return 'float64';
     case WasmerValKindVoid:
-      return "void";
+      return 'void';
     default:
-      return "unknown";
+      return 'unknown';
   }
 }
 
@@ -171,6 +171,7 @@ class WasmerByteVec extends Struct {
   external Pointer<Uint8> data;
 
   Uint8List get list => data.asTypedList(length);
+  @override
   String toString() => utf8.decode(list);
 }
 

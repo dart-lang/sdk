@@ -11,12 +11,12 @@ import 'wasmer_api.dart';
 
 /// WasmFunction is a callable function from a WasmInstance.
 class WasmFunction {
-  String _name;
-  Pointer<WasmerFunc> _func;
-  List<int> _argTypes;
-  int _returnType;
-  Pointer<WasmerValVec> _args = calloc<WasmerValVec>();
-  Pointer<WasmerValVec> _results = calloc<WasmerValVec>();
+  final String _name;
+  final Pointer<WasmerFunc> _func;
+  final List<int> _argTypes;
+  final int _returnType;
+  final Pointer<WasmerValVec> _args = calloc<WasmerValVec>();
+  final Pointer<WasmerValVec> _results = calloc<WasmerValVec>();
 
   WasmFunction(this._name, this._func, this._argTypes, this._returnType) {
     _args.ref.length = _argTypes.length;
@@ -30,6 +30,7 @@ class WasmFunction {
     }
   }
 
+  @override
   String toString() {
     return WasmRuntime.getSignatureString(_name, _argTypes, _returnType);
   }
@@ -58,11 +59,11 @@ class WasmFunction {
 
   dynamic apply(List<dynamic> args) {
     if (args.length != _argTypes.length) {
-      throw ArgumentError("Wrong number arguments for WASM function: $this");
+      throw ArgumentError('Wrong number arguments for WASM function: $this');
     }
     for (var i = 0; i < args.length; ++i) {
       if (!_fillArg(args[i], i)) {
-        throw ArgumentError("Bad argument type for WASM function: $this");
+        throw ArgumentError('Bad argument type for WASM function: $this');
       }
     }
     WasmRuntime().call(_func, _args, _results, toString());
@@ -84,6 +85,7 @@ class WasmFunction {
     }
   }
 
+  @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.memberName == #call) {
       return apply(invocation.positionalArguments);

@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 // Test errors thrown by function imports.
 
-import "package:test/test.dart";
-import "package:wasm/wasm.dart";
-import "dart:typed_data";
+import 'package:test/test.dart';
+import 'package:wasm/wasm.dart';
 
 void main() {
-  test("bad function imports", () {
+  test('bad function imports', () {
     // This module expects a function import like:
     // int64_t someFn(int32_t a, int64_t b, float c, double d);
     var data = Uint8List.fromList([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x0c, 0x02, 0x60,
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x0c, 0x02, 0x60, //
       0x04, 0x7f, 0x7e, 0x7d, 0x7c, 0x01, 0x7e, 0x60, 0x00, 0x00, 0x02, 0x0e,
       0x01, 0x03, 0x65, 0x6e, 0x76, 0x06, 0x73, 0x6f, 0x6d, 0x65, 0x46, 0x6e,
       0x00, 0x00, 0x03, 0x02, 0x01, 0x01, 0x04, 0x05, 0x01, 0x70, 0x01, 0x01,
@@ -30,48 +31,48 @@ void main() {
     // Valid instantiation.
     var inst = mod
         .instantiate()
-        .addFunction("env", "someFn", (int a, int b, num c, double d) => 123)
+        .addFunction('env', 'someFn', (int a, int b, num c, double d) => 123)
         .build();
 
     // Missing imports.
     expect(() => mod.instantiate().build(),
-        throwsA(predicate((Exception e) => "$e".contains("Missing import"))));
+        throwsA(predicate((Exception e) => '$e'.contains('Missing import'))));
 
     // Wrong kind of import.
     expect(
         () =>
-            mod.instantiate().addMemory("env", "someFn", mod.createMemory(10)),
+            mod.instantiate().addMemory('env', 'someFn', mod.createMemory(10)),
         throwsA(predicate(
-            (Exception e) => "$e".contains("Import is not a memory"))));
+            (Exception e) => '$e'.contains('Import is not a memory'))));
 
     // Wrong namespace.
     expect(
         () => mod
             .instantiate()
             .addFunction(
-                "foo", "someFn", (int a, int b, num c, double d) => 123)
+                'foo', 'someFn', (int a, int b, num c, double d) => 123)
             .build(),
-        throwsA(predicate((Exception e) => "$e".contains("Import not found"))));
+        throwsA(predicate((Exception e) => '$e'.contains('Import not found'))));
 
     // Wrong name.
     expect(
         () => mod
             .instantiate()
             .addFunction(
-                "env", "otherFn", (int a, int b, num c, double d) => 123)
+                'env', 'otherFn', (int a, int b, num c, double d) => 123)
             .build(),
-        throwsA(predicate((Exception e) => "$e".contains("Import not found"))));
+        throwsA(predicate((Exception e) => '$e'.contains('Import not found'))));
 
     // Already filled.
     expect(
         () => mod
             .instantiate()
             .addFunction(
-                "env", "someFn", (int a, int b, num c, double d) => 123)
+                'env', 'someFn', (int a, int b, num c, double d) => 123)
             .addFunction(
-                "env", "someFn", (int a, int b, num c, double d) => 456)
+                'env', 'someFn', (int a, int b, num c, double d) => 456)
             .build(),
         throwsA(predicate(
-            (Exception e) => "$e".contains("Import already filled"))));
+            (Exception e) => '$e'.contains('Import already filled'))));
   });
 }

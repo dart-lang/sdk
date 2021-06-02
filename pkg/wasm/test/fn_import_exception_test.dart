@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test throwing exceptions from an imported function.
+import 'dart:typed_data';
 
-import "package:test/test.dart";
-import "package:wasm/wasm.dart";
-import "dart:typed_data";
+import 'package:test/test.dart';
+import 'package:wasm/wasm.dart';
 
 void main() {
-  test("exception thrown from imported function", () {
+  test('exception thrown from imported function', () {
     // void fn() {
     //   a();
     //   b();
     // }
     var data = Uint8List.fromList([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x04, 0x01, 0x60,
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x04, 0x01, 0x60, //
       0x00, 0x00, 0x02, 0x11, 0x02, 0x03, 0x65, 0x6e, 0x76, 0x01, 0x61, 0x00,
       0x00, 0x03, 0x65, 0x6e, 0x76, 0x01, 0x62, 0x00, 0x00, 0x03, 0x02, 0x01,
       0x00, 0x04, 0x05, 0x01, 0x70, 0x01, 0x01, 0x01, 0x05, 0x03, 0x01, 0x00,
@@ -25,24 +25,24 @@ void main() {
       0x80, 0x80, 0x00, 0x10, 0x81, 0x80, 0x80, 0x80, 0x00, 0x0b,
     ]);
 
-    bool called_b = false;
-    var thrownException = Exception("Hello exception!");
-    var inst = WasmModule(data).instantiate().addFunction("env", "a", () {
+    var called_b = false;
+    var thrownException = Exception('Hello exception!');
+    var inst = WasmModule(data).instantiate().addFunction('env', 'a', () {
       throw thrownException;
-    }).addFunction("env", "b", () {
+    }).addFunction('env', 'b', () {
       called_b = true;
     }).build();
-    var fn = inst.lookupFunction("fn");
+    var fn = inst.lookupFunction('fn');
     expect(() => fn(), throwsA(thrownException));
     expect(called_b, isFalse);
 
-    bool called_a = false;
-    inst = WasmModule(data).instantiate().addFunction("env", "a", () {
+    var called_a = false;
+    inst = WasmModule(data).instantiate().addFunction('env', 'a', () {
       called_a = true;
-    }).addFunction("env", "b", () {
+    }).addFunction('env', 'b', () {
       called_b = true;
     }).build();
-    fn = inst.lookupFunction("fn");
+    fn = inst.lookupFunction('fn');
     fn();
     expect(called_a, isTrue);
     expect(called_b, isTrue);

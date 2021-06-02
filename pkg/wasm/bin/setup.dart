@@ -45,7 +45,7 @@ Uri getOutDir(Uri root) {
       return root.resolve('.dart_tool/wasm/');
     }
   } while (root != (root = root.resolve('..')));
-  throw Exception(".dart_tool/package_config.json not found");
+  throw Exception('.dart_tool/package_config.json not found');
 }
 
 String getOutLib(String target) {

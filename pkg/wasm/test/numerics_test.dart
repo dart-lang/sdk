@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test numeric types.
+import 'dart:typed_data';
 
-import "package:test/test.dart";
-import "package:wasm/wasm.dart";
-import "dart:typed_data";
+import 'package:test/test.dart';
+import 'package:wasm/wasm.dart';
 
 void main() {
-  test("numerics", () {
+  test('numerics', () {
     // int64_t addI64(int64_t x, int64_t y) { return x + y; }
     // int32_t addI32(int32_t x, int32_t y) { return x + y; }
     // double addF64(double x, double y) { return x + y; }
     // float addF32(float x, float y) { return x + y; }
     var data = Uint8List.fromList([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x19, 0x04, 0x60,
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x19, 0x04, 0x60, //
       0x02, 0x7e, 0x7e, 0x01, 0x7e, 0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x60,
       0x02, 0x7c, 0x7c, 0x01, 0x7c, 0x60, 0x02, 0x7d, 0x7d, 0x01, 0x7d, 0x03,
       0x05, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x01, 0x70, 0x01, 0x01,
@@ -31,10 +31,10 @@ void main() {
     ]);
 
     var inst = WasmModule(data).instantiate().build();
-    var addI64 = inst.lookupFunction("addI64");
-    var addI32 = inst.lookupFunction("addI32");
-    var addF64 = inst.lookupFunction("addF64");
-    var addF32 = inst.lookupFunction("addF32");
+    var addI64 = inst.lookupFunction('addI64');
+    var addI32 = inst.lookupFunction('addI32');
+    var addF64 = inst.lookupFunction('addF64');
+    var addF32 = inst.lookupFunction('addF32');
 
     int i64 = addI64(0x123456789ABCDEF, 0xFEDCBA987654321);
     expect(i64, 0x1111111111111110);

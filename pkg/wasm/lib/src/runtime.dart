@@ -21,15 +21,16 @@ class WasmImportDescriptor {
   Pointer<WasmerFunctype> funcType;
   WasmImportDescriptor(this.kind, this.moduleName, this.name, this.funcType);
 
+  @override
   String toString() {
     var kindName = wasmerExternKindName(kind);
     if (kind == WasmerExternKindFunction) {
       var runtime = WasmRuntime();
-      var sig = WasmRuntime.getSignatureString("${moduleName}::${name}",
+      var sig = WasmRuntime.getSignatureString('${moduleName}::${name}',
           runtime.getArgTypes(funcType), runtime.getReturnType(funcType));
-      return "$kindName: $sig";
+      return '$kindName: $sig';
     } else {
-      return "$kindName: ${moduleName}::${name}";
+      return '$kindName: ${moduleName}::${name}';
     }
   }
 }
@@ -40,15 +41,16 @@ class WasmExportDescriptor {
   Pointer<WasmerFunctype> funcType;
   WasmExportDescriptor(this.kind, this.name, this.funcType);
 
+  @override
   String toString() {
     var kindName = wasmerExternKindName(kind);
     if (kind == WasmerExternKindFunction) {
       var runtime = WasmRuntime();
       var sig = WasmRuntime.getSignatureString(
           name, runtime.getArgTypes(funcType), runtime.getReturnType(funcType));
-      return "$kindName: $sig";
+      return '$kindName: $sig';
     } else {
-      return "$kindName: ${name}";
+      return '$kindName: ${name}';
     }
   }
 }
@@ -154,10 +156,10 @@ class WasmRuntime {
   }
 
   static String _getLibName() {
-    if (Platform.isMacOS) return "libwasmer.dylib";
-    if (Platform.isLinux) return "libwasmer.so";
+    if (Platform.isMacOS) return 'libwasmer.dylib';
+    if (Platform.isLinux) return 'libwasmer.so';
     // TODO(dartbug.com/37882): Support more platforms.
-    throw Exception("Wasm not currently supported on this platform");
+    throw Exception('Wasm not currently supported on this platform');
   }
 
   static String? _getLibPathFrom(Uri root) {
@@ -178,7 +180,7 @@ class WasmRuntime {
     if (path != null) return path;
     path = _getLibPathFrom(Directory.current.uri);
     if (path != null) return path;
-    throw Exception("Wasm library not found. Did you `pub run wasm:setup`?");
+    throw Exception('Wasm library not found. Did you `pub run wasm:setup`?');
   }
 
   WasmRuntime._init() : _lib = DynamicLibrary.open(_getLibPath()) {
@@ -409,16 +411,16 @@ class WasmRuntime {
         WasmerWasmerLastErrorMessageFn>('wasmer_last_error_message');
 
     if (_Dart_InitializeApiDL(NativeApi.initializeApiDLData) != 0) {
-      throw Exception("Failed to initialize Dart API");
+      throw Exception('Failed to initialize Dart API');
     }
     _engine = _engine_new();
-    _checkNotEqual(_engine, nullptr, "Failed to initialize Wasm engine.");
+    _checkNotEqual(_engine, nullptr, 'Failed to initialize Wasm engine.');
     _set_finalizer_for_engine(this, _engine);
   }
 
   Pointer<WasmerStore> newStore(Object owner) {
-    Pointer<WasmerStore> store = _checkNotEqual(
-        _store_new(_engine), nullptr, "Failed to create Wasm store.");
+    var store = _checkNotEqual(
+        _store_new(_engine), nullptr, 'Failed to create Wasm store.');
     _set_finalizer_for_store(owner, store);
     return store;
   }
@@ -426,7 +428,7 @@ class WasmRuntime {
   Pointer<WasmerModule> compile(
       Object owner, Pointer<WasmerStore> store, Uint8List data) {
     var dataPtr = calloc<Uint8>(data.length);
-    for (int i = 0; i < data.length; ++i) {
+    for (var i = 0; i < data.length; ++i) {
       dataPtr[i] = data[i];
     }
     var dataVec = calloc<WasmerByteVec>();
@@ -438,7 +440,7 @@ class WasmRuntime {
     calloc.free(dataPtr);
     calloc.free(dataVec);
 
-    _checkNotEqual(modulePtr, nullptr, "Wasm module compile failed.");
+    _checkNotEqual(modulePtr, nullptr, 'Wasm module compile failed.');
     _set_finalizer_for_module(owner, modulePtr);
     return modulePtr;
   }
@@ -496,7 +498,7 @@ class WasmRuntime {
       } else {
         var trapMessage = calloc<WasmerByteVec>();
         _trap_message(trap, trapMessage);
-        var message = "Wasm trap when calling $source: ${trapMessage.ref}";
+        var message = 'Wasm trap when calling $source: ${trapMessage.ref}';
         _byte_vec_delete(trapMessage);
         calloc.free(trapMessage);
         _trap_delete(trap);
@@ -510,9 +512,9 @@ class WasmRuntime {
     var trap = calloc<Pointer<WasmerTrap>>();
     trap.value = nullptr;
     var inst = _instance_new(store, module, imports, trap);
-    maybeThrowTrap(trap.value, "module initialization function");
+    maybeThrowTrap(trap.value, 'module initialization function');
     calloc.free(trap);
-    _checkNotEqual(inst, nullptr, "Wasm module instantiation failed.");
+    _checkNotEqual(inst, nullptr, 'Wasm module instantiation failed.');
     _set_finalizer_for_instance(owner, inst);
     return inst;
   }
@@ -555,7 +557,7 @@ class WasmRuntime {
     if (rets.ref.length == 0) {
       return WasmerValKindVoid;
     } else if (rets.ref.length > 1) {
-      throw Exception("Multiple return values are not supported");
+      throw Exception('Multiple return values are not supported');
     }
     return _valtype_kind(rets.ref.data[0]);
   }
@@ -580,17 +582,17 @@ class WasmRuntime {
     limPtr.ref.max = maxPages ?? wasm_limits_max_default;
     var memType = _memorytype_new(limPtr);
     calloc.free(limPtr);
-    _checkNotEqual(memType, nullptr, "Failed to create memory type.");
+    _checkNotEqual(memType, nullptr, 'Failed to create memory type.');
     _set_finalizer_for_memorytype(owner, memType);
     var memory = _checkNotEqual(
-        _memory_new(store, memType), nullptr, "Failed to create memory.");
+        _memory_new(store, memType), nullptr, 'Failed to create memory.');
     _set_finalizer_for_memory(owner, memory);
     return memory;
   }
 
   void growMemory(Pointer<WasmerMemory> memory, int deltaPages) {
     _checkNotEqual(
-        _memory_grow(memory, deltaPages), 0, "Failed to grow memory.");
+        _memory_grow(memory, deltaPages), 0, 'Failed to grow memory.');
   }
 
   int memoryLength(Pointer<WasmerMemory> memory) {
@@ -610,7 +612,7 @@ class WasmRuntime {
       Pointer finalizer) {
     var f = _func_new_with_env(
         store, funcType, func.cast(), env.cast(), finalizer.cast());
-    _checkNotEqual(f, nullptr, "Failed to create function.");
+    _checkNotEqual(f, nullptr, 'Failed to create function.');
     _set_finalizer_for_func(owner, f);
     return f;
   }
@@ -623,7 +625,7 @@ class WasmRuntime {
     var trap = _trap_new(store, msg);
     calloc.free(msg.ref.data);
     calloc.free(msg);
-    _checkNotEqual(trap, nullptr, "Failed to create trap.");
+    _checkNotEqual(trap, nullptr, 'Failed to create trap.');
     var entry = _WasmTrapsEntry(exception);
     _set_finalizer_for_trap(entry, trap);
     traps[trap.address] = entry;
@@ -635,7 +637,7 @@ class WasmRuntime {
     name[0] = 0;
     var config = _wasi_config_new(name);
     calloc.free(name);
-    return _checkNotEqual(config, nullptr, "Failed to create WASI config.");
+    return _checkNotEqual(config, nullptr, 'Failed to create WASI config.');
   }
 
   void captureWasiStdout(Pointer<WasmerWasiConfig> config) {
@@ -648,7 +650,7 @@ class WasmRuntime {
 
   Pointer<WasmerWasiEnv> newWasiEnv(Pointer<WasmerWasiConfig> config) {
     return _checkNotEqual(
-        _wasi_env_new(config), nullptr, "Failed to create WASI environment.");
+        _wasi_env_new(config), nullptr, 'Failed to create WASI environment.');
   }
 
   void wasiEnvSetMemory(
@@ -659,7 +661,7 @@ class WasmRuntime {
   void getWasiImports(Pointer<WasmerStore> store, Pointer<WasmerModule> mod,
       Pointer<WasmerWasiEnv> env, Pointer<WasmerExternVec> imports) {
     _checkNotEqual(_wasi_get_imports(store, mod, env, imports), 0,
-        "Failed to fill WASI imports.");
+        'Failed to fill WASI imports.');
   }
 
   Stream<List<int>> getWasiStdoutStream(Pointer<WasmerWasiEnv> env) {
@@ -674,44 +676,46 @@ class WasmRuntime {
     var length = _wasmer_last_error_length();
     var buf = calloc<Uint8>(length);
     _wasmer_last_error_message(buf, length);
-    String message = utf8.decode(buf.asTypedList(length));
+    var message = utf8.decode(buf.asTypedList(length));
     calloc.free(buf);
     return message;
   }
 
   T _checkNotEqual<T>(T x, T y, String errorMessage) {
     if (x == y) {
-      throw Exception("$errorMessage\n${_getLastError()}");
+      throw Exception('$errorMessage\n${_getLastError()}');
     }
     return x;
   }
 
   static String getSignatureString(
       String name, List<int> argTypes, int returnType) {
-    return "${wasmerValKindName(returnType)} $name" +
+    return '${wasmerValKindName(returnType)} $name'
         "(${argTypes.map(wasmerValKindName).join(", ")})";
   }
 }
 
 class _WasiStreamIterator implements Iterator<List<int>> {
   static final int _bufferLength = 1024;
-  Pointer<WasmerWasiEnv> _env;
-  Function _reader;
-  Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
+  final Pointer<WasmerWasiEnv> _env;
+  final Function _reader;
+  final Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
   int _length = 0;
   _WasiStreamIterator(this._env, this._reader);
 
+  @override
   bool moveNext() {
     _length = _reader(_env, _buf, _bufferLength);
     return true;
   }
 
+  @override
   List<int> get current => _buf.asTypedList(_length);
 }
 
 class _WasiStreamIterable extends Iterable<List<int>> {
-  Pointer<WasmerWasiEnv> _env;
-  Function _reader;
+  final Pointer<WasmerWasiEnv> _env;
+  final Function _reader;
   _WasiStreamIterable(this._env, this._reader);
   @override
   Iterator<List<int>> get iterator => _WasiStreamIterator(_env, _reader);
