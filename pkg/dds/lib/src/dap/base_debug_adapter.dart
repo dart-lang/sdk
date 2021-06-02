@@ -9,6 +9,9 @@ import 'protocol_common.dart';
 import 'protocol_generated.dart';
 import 'protocol_stream.dart';
 
+typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);
+typedef _NullableFromJsonHandler<T> = T? Function(Map<String, Object?>?);
+
 /// A base class for debug adapters.
 ///
 /// Communicates over a [ByteStreamServerChannel] and turns messages into
@@ -138,8 +141,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   );
 
   /// Wraps a fromJson handler for requests that allow null arguments.
-  T? Function(Map<String, Object?>?) _allowNullArg<T extends RequestArguments>(
-    T Function(Map<String, Object?>) fromJson,
+  _NullableFromJsonHandler<T> _allowNullArg<T extends RequestArguments>(
+    _FromJsonHandler<T> fromJson,
   ) {
     return (data) => data == null ? null : fromJson(data);
   }

@@ -7,12 +7,10 @@ import 'package:test/test.dart';
 import 'test_support.dart';
 
 main() {
-  setUpAll(startServerAndClient);
-  tearDownAll(stopServerAndClient);
-
-  group('noDebug', () {
-    test('runs a simple script', () async {
-      final testFile = createTestFile(r'''
+  testDap((dap) async {
+    group('noDebug', () {
+      test('runs a simple script', () async {
+        final testFile = dap.createTestFile(r'''
 void main(List<String> args) async {
   print('Hello!');
   print('World!');
@@ -20,22 +18,23 @@ void main(List<String> args) async {
 }
     ''');
 
-      final outputEvents = await dapClient.collectOutput(
-        launch: () => dapClient.launch(
-          testFile.path,
-          noDebug: true,
-          args: ['one', 'two'],
-        ),
-      );
+        final outputEvents = await dap.client.collectOutput(
+          launch: () => dap.client.launch(
+            testFile.path,
+            noDebug: true,
+            args: ['one', 'two'],
+          ),
+        );
 
-      final output = outputEvents.map((e) => e.output).join();
-      expectLines(output, [
-        'Hello!',
-        'World!',
-        'args: [one, two]',
-        '',
-        'Exited.',
-      ]);
+        final output = outputEvents.map((e) => e.output).join();
+        expectLines(output, [
+          'Hello!',
+          'World!',
+          'args: [one, two]',
+          '',
+          'Exited.',
+        ]);
+      });
     });
   });
 }
