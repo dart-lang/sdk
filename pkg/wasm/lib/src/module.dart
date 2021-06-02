@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'runtime.dart';
-import 'function.dart';
-import 'wasmer_api.dart';
-import 'dart:typed_data';
 import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:ffi/ffi.dart';
+
+import 'function.dart';
+import 'runtime.dart';
+import 'wasmer_api.dart';
 
 /// WasmModule is a compiled module that can be instantiated.
 class WasmModule {
@@ -165,7 +167,6 @@ class WasmInstanceBuilder {
       throw Exception("Import is not a function: $imp");
     }
 
-    var argTypes = runtime.getArgTypes(imp.funcType);
     var returnType = runtime.getReturnType(imp.funcType);
     var wasmFnImport = calloc<_WasmFnImport>();
     wasmFnImport.ref.returnType = returnType;
@@ -241,7 +242,7 @@ class WasmInstance {
         var mem = runtime.externToMemory(e);
         _exportedMemory = mem;
         if (_wasiEnv != nullptr) {
-          runtime.wasiEnvSetMemory(_wasiEnv as Pointer<WasmerWasiEnv>, mem);
+          runtime.wasiEnvSetMemory(_wasiEnv, mem);
         }
       }
     }

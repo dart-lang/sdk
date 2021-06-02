@@ -699,7 +699,7 @@ class _WasiStreamIterator implements Iterator<List<int>> {
   Function _reader;
   Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
   int _length = 0;
-  _WasiStreamIterator(this._env, this._reader) {}
+  _WasiStreamIterator(this._env, this._reader);
 
   bool moveNext() {
     _length = _reader(_env, _buf, _bufferLength);
@@ -712,7 +712,7 @@ class _WasiStreamIterator implements Iterator<List<int>> {
 class _WasiStreamIterable extends Iterable<List<int>> {
   Pointer<WasmerWasiEnv> _env;
   Function _reader;
-  _WasiStreamIterable(this._env, this._reader) {}
+  _WasiStreamIterable(this._env, this._reader);
   @override
   Iterator<List<int>> get iterator => _WasiStreamIterator(_env, _reader);
 }

@@ -6,9 +6,9 @@
 // library. Usage:
 // dart brotli.dart input.txt
 
-import 'dart:convert';
 import "dart:io";
 import "dart:typed_data";
+
 import "package:wasm/wasm.dart";
 
 // Brotli compression parameters.
