@@ -43,7 +43,6 @@ namespace dart {
   F(Field, host_offset_or_field_id_)                                           \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
-  F(Script, compile_time_constants_)                                           \
   F(Script, line_starts_)                                                      \
   F(Script, debug_positions_)                                                  \
   F(Script, kernel_program_info_)                                              \
