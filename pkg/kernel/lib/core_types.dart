@@ -371,6 +371,15 @@ class CoreTypes {
   late final Procedure initializedCellFinalValueSetter = index.getMember(
       'dart:_late_helper', '_InitializedCell', 'set:finalValue') as Procedure;
 
+  late final Procedure lateReadCheck =
+      index.getTopLevelProcedure('dart:_late_helper', '_lateReadCheck');
+
+  late final Procedure lateWriteOnceCheck =
+      index.getTopLevelProcedure('dart:_late_helper', '_lateWriteOnceCheck');
+
+  late final Procedure lateInitializeOnceCheck = index.getTopLevelProcedure(
+      'dart:_late_helper', '_lateInitializeOnceCheck');
+
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
         new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);

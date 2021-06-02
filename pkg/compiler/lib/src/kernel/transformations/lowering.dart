@@ -5,6 +5,8 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import '../../options.dart';
 import 'factory_specializer.dart';
 import 'late_lowering.dart';
 
@@ -13,12 +15,9 @@ import 'late_lowering.dart';
 ///
 /// Each transformation is applied locally to AST nodes of certain types after
 /// transforming children nodes.
-void transformLibraries(
-    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    {bool omitLateNames}) {
-  assert(omitLateNames != null);
-  final transformer =
-      _Lowering(coreTypes, hierarchy, omitLateNames: omitLateNames);
+void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, CompilerOptions options) {
+  final transformer = _Lowering(coreTypes, hierarchy, options);
   libraries.forEach(transformer.visitLibrary);
 
   // Do a second pass to remove/replace now-unused nodes.
@@ -34,10 +33,10 @@ class _Lowering extends Transformer {
 
   Member _currentMember;
 
-  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, {bool omitLateNames})
-      : assert(omitLateNames != null),
-        factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
-        _lateLowering = LateLowering(coreTypes, omitLateNames: omitLateNames);
+  _Lowering(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions _options)
+      : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
+        _lateLowering = LateLowering(coreTypes, _options);
 
   void transformAdditionalExports(Library node) {
     _lateLowering.transformAdditionalExports(node);
@@ -86,6 +85,12 @@ class _Lowering extends Transformer {
     _currentMember = node;
     node.transformChildren(this);
     return _lateLowering.transformField(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitFieldInitializer(FieldInitializer node) {
+    node.transformChildren(this);
+    return _lateLowering.transformFieldInitializer(node, _currentMember);
   }
 
   @override
