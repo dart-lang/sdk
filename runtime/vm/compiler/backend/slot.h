@@ -52,6 +52,7 @@ class ParsedFunction;
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
+  V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
   V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
   V(Context, UntaggedContext, parent, Context, FINAL)                          \
   V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
@@ -237,6 +238,7 @@ class Slot : public ZoneAllocated {
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
   bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
+  bool IsImmutableLengthSlot() const;
 
   const char* Name() const;
 

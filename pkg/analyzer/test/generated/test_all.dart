@@ -22,6 +22,7 @@ import 'invalid_code_test.dart' as invalid_code;
 import 'issues_test.dart' as issues;
 import 'java_core_test.dart' as java_core_test;
 import 'java_io_test.dart' as java_io_test;
+import 'new_as_identifier_parser_test.dart' as new_as_identifier_parser;
 import 'nnbd_parser_test.dart' as nnbd_parser;
 import 'non_error_parser_test.dart' as non_error_parser;
 import 'non_error_resolver_test.dart' as non_error_resolver;
@@ -63,6 +64,7 @@ main() {
     issues.main();
     java_core_test.main();
     java_io_test.main();
+    new_as_identifier_parser.main();
     nnbd_parser.main();
     non_error_parser.main();
     non_error_resolver.main();

@@ -11805,14 +11805,6 @@ void Script::set_load_timestamp(int64_t value) const {
   StoreNonPointer(&untag()->load_timestamp_, value);
 }
 
-void Script::SetLocationOffset(intptr_t line_offset,
-                               intptr_t col_offset) const {
-  ASSERT(line_offset >= 0);
-  ASSERT(col_offset >= 0);
-  StoreNonPointer(&untag()->line_offset_, line_offset);
-  StoreNonPointer(&untag()->col_offset_, col_offset);
-}
-
 bool Script::IsValidTokenPosition(TokenPosition token_pos) const {
   const TokenPosition& max_position = MaxPosition();
   // We may end up with scripts that have the empty string as a source file
@@ -12033,7 +12025,6 @@ ScriptPtr Script::New(const String& url,
   result.set_resolved_url(
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
-  result.SetLocationOffset(0, 0);
   NOT_IN_PRECOMPILED(result.SetLazyLookupSourceAndLineStarts(false));
   NOT_IN_PRECOMPILED(result.SetHasCachedMaxPosition(false));
   result.set_kernel_script_index(0);

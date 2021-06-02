@@ -19,10 +19,10 @@ class DapTestClient {
   final Socket _socket;
   final ByteStreamServerChannel _channel;
   late final StreamSubscription<String> _subscription;
+
   final Logger? _logger;
   final bool captureVmServiceTraffic;
   final _requestWarningDuration = const Duration(seconds: 2);
-
   final Map<int, _OutgoingRequest> _pendingRequests = {};
   final _eventController = StreamController<Event>.broadcast();
   int _seq = 1;

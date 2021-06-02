@@ -1513,8 +1513,6 @@ class ScriptSerializationCluster : public SerializationCluster {
       ScriptPtr script = objects_[i];
       AutoTraceObjectName(script, script->untag()->url());
       WriteFromTo(script);
-      s->Write<int32_t>(script->untag()->line_offset_);
-      s->Write<int32_t>(script->untag()->col_offset_);
       if (s->kind() != Snapshot::kFullAOT) {
         // Clear out the max position cache in snapshots to ensure no
         // differences in the snapshot due to triggering caching vs. not.
@@ -1556,8 +1554,6 @@ class ScriptDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(script, kScriptCid,
                                      Script::InstanceSize());
       ReadFromTo(script);
-      script->untag()->line_offset_ = d->Read<int32_t>();
-      script->untag()->col_offset_ = d->Read<int32_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
       script->untag()->flags_and_max_position_ = d->Read<int32_t>();
 #endif

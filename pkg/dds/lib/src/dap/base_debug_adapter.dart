@@ -9,6 +9,9 @@ import 'protocol_common.dart';
 import 'protocol_generated.dart';
 import 'protocol_stream.dart';
 
+typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);
+typedef _NullableFromJsonHandler<T> = T? Function(Map<String, Object?>?);
+
 /// A base class for debug adapters.
 ///
 /// Communicates over a [ByteStreamServerChannel] and turns messages into
@@ -30,6 +33,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   /// that corresponds to the arguments it expects (these may differ between
   /// Dart CLI, Dart tests, Flutter, Flutter tests).
   TLaunchArgs Function(Map<String, Object?>) get parseLaunchArgs;
+
+  FutureOr<void> attachRequest(
+    Request request,
+    TLaunchArgs args,
+    void Function(void) sendResponse,
+  );
 
   FutureOr<void> configurationDoneRequest(
     Request request,
@@ -138,8 +147,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   );
 
   /// Wraps a fromJson handler for requests that allow null arguments.
-  T? Function(Map<String, Object?>?) _allowNullArg<T extends RequestArguments>(
-    T Function(Map<String, Object?>) fromJson,
+  _NullableFromJsonHandler<T> _allowNullArg<T extends RequestArguments>(
+    _FromJsonHandler<T> fromJson,
   ) {
     return (data) => data == null ? null : fromJson(data);
   }
@@ -161,6 +170,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
       handle(request, initializeRequest, InitializeRequestArguments.fromJson);
     } else if (request.command == 'launch') {
       handle(request, launchRequest, parseLaunchArgs);
+    } else if (request.command == 'attach') {
+      handle(request, attachRequest, parseLaunchArgs);
     } else if (request.command == 'terminate') {
       handle(
         request,

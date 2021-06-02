@@ -627,16 +627,19 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   UNREACHABLE();
 }
 
-// Allocate a new closure and initializes its function field with the argument
-// and all other fields to null.
+// Allocate a new closure and initializes its function and context fields with
+// the arguments and all other fields to null.
+// Arg0: function.
+// Arg1: context.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 1) {
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& context = Context::CheckedHandle(zone, arguments.ArgAt(1));
   const Closure& closure = Closure::Handle(
-      zone, Closure::New(
-                Object::null_type_arguments(), Object::null_type_arguments(),
-                Object::null_type_arguments(), function,
-                Context::Handle(Context::null()), SpaceForRuntimeAllocation()));
+      zone,
+      Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
+                   Object::null_type_arguments(), function, context,
+                   SpaceForRuntimeAllocation()));
   arguments.SetReturn(closure);
 }
 

@@ -350,7 +350,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (constructorDeclaration != null) {
       _addSuggestion(Keyword.THIS);
     }
-    if (entity is Token && (entity as Token).type == TokenType.CLOSE_PAREN) {
+    final entity = this.entity;
+    if (entity is Token && entity.type == TokenType.CLOSE_PAREN) {
       _addSuggestion(Keyword.COVARIANT);
       _addSuggestion(Keyword.DYNAMIC);
       _addSuggestion(Keyword.VOID);
@@ -358,8 +359,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestion(Keyword.REQUIRED);
       }
     } else if (entity is FormalParameter) {
-      var beginToken = (entity as FormalParameter).beginToken;
-      if (request.target.offset == beginToken.end) {
+      var beginToken = entity.beginToken;
+      var offset = request.target.offset;
+      if (beginToken.offset <= offset && offset <= beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
         _addSuggestion(Keyword.DYNAMIC);
         _addSuggestion(Keyword.VOID);

@@ -1592,8 +1592,28 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
 
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     const Function& target) {
+  // The function cannot be local and have parent generic functions.
+  ASSERT(!target.HasGenericParent());
+
   Fragment fragment;
   fragment += Constant(target);
+
+  // Allocate a context that closes over `this`.
+  // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
+  const LocalScope* implicit_closure_scope =
+      MakeImplicitClosureScope(Z, Class::Handle(Z, target.Owner()));
+  fragment += AllocateContext(implicit_closure_scope->context_slots());
+  LocalVariable* context = MakeTemporary();
+
+  // Store `this`.  The context doesn't need a parent pointer because it doesn't
+  // close over anything else.
+  fragment += LoadLocal(context);
+  fragment += LoadLocal(parsed_function_->receiver_var());
+  fragment += StoreNativeField(
+      Slot::GetContextVariableSlotFor(
+          thread_, *implicit_closure_scope->context_variables()[0]),
+      StoreInstanceFieldInstr::Kind::kInitializing);
+
   fragment += AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 
@@ -1605,22 +1625,6 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
                                  StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
-  // The function cannot be local and have parent generic functions.
-  ASSERT(!target.HasGenericParent());
-
-  // Allocate a context that closes over `this`.
-  // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
-  const LocalScope* implicit_closure_scope =
-      MakeImplicitClosureScope(Z, Class::Handle(Z, target.Owner()));
-  fragment += AllocateContext(implicit_closure_scope->context_slots());
-  LocalVariable* context = MakeTemporary();
-
-  // Store the context in the closure.
-  fragment += LoadLocal(closure);
-  fragment += LoadLocal(context);
-  fragment += StoreNativeField(Slot::Closure_context(),
-                               StoreInstanceFieldInstr::Kind::kInitializing);
-
   if (target.IsGeneric()) {
     // Only generic functions need to have properly initialized
     // delayed_type_arguments.
@@ -1629,15 +1633,6 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     fragment += StoreNativeField(Slot::Closure_delayed_type_arguments(),
                                  StoreInstanceFieldInstr::Kind::kInitializing);
   }
-
-  // The context is on top of the operand stack.  Store `this`.  The context
-  // doesn't need a parent pointer because it doesn't close over anything
-  // else.
-  fragment += LoadLocal(parsed_function_->receiver_var());
-  fragment += StoreNativeField(
-      Slot::GetContextVariableSlotFor(
-          thread_, *implicit_closure_scope->context_variables()[0]),
-      StoreInstanceFieldInstr::Kind::kInitializing);
 
   return fragment;
 }

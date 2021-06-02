@@ -1859,6 +1859,7 @@ class Parser {
   Token parseQualifiedRest(Token token, IdentifierContext context) {
     token = token.next!;
     assert(optional('.', token));
+    _tryRewriteNewToIdentifier(token, context);
     Token period = token;
     token = ensureIdentifier(token, context);
     listener.handleQualified(period);
@@ -2399,6 +2400,7 @@ class Parser {
   Token ensureIdentifier(Token token, IdentifierContext context) {
     // ignore: unnecessary_null_comparison
     assert(context != null);
+    _tryRewriteNewToIdentifier(token, context);
     Token identifier = token.next!;
     if (identifier.kind != IDENTIFIER_TOKEN) {
       identifier = context.ensureIdentifier(token, this);
@@ -2408,6 +2410,43 @@ class Parser {
     }
     listener.handleIdentifier(identifier, context);
     return identifier;
+  }
+
+  /// Returns `true` if [token] is either an identifier or a `new` token.  This
+  /// can be used to match identifiers in contexts where a constructor name can
+  /// appear, since `new` can be used to refer to the unnamed constructor.
+  bool _isNewOrIdentifier(Token token) {
+    if (token.isIdentifier) return true;
+    if (token.kind == KEYWORD_TOKEN) {
+      final String? value = token.stringValue;
+      if (value == 'new') {
+        // Treat `new` as an identifier so that it can represent an unnamed
+        // constructor.
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// If the token following [token] is a `new` keyword, and [context] is a
+  /// context that permits `new` to be treated as an identifier, rewrites the
+  /// `new` token to an identifier token, and reports the rewritten token to the
+  /// listener.  Otherwise does nothing.
+  void _tryRewriteNewToIdentifier(Token token, IdentifierContext context) {
+    if (!context.allowsNewAsIdentifier) return;
+    Token identifier = token.next!;
+    if (identifier.kind == KEYWORD_TOKEN) {
+      final String? value = token.next!.stringValue;
+      if (value == 'new') {
+        // `new` after `.` is treated as an identifier so that it can represent
+        // an unnamed constructor.
+        Token replacementToken = rewriter.replaceTokenFollowing(
+            token,
+            new StringToken(TokenType.IDENTIFIER, identifier.lexeme,
+                token.next!.charOffset));
+        listener.handleNewAsIdentifier(replacementToken);
+      }
+    }
   }
 
   /// Checks whether the next token is (directly) an identifier. If this returns
@@ -3073,6 +3112,10 @@ class Parser {
       next = token.next!;
       if (optional('.', next)) {
         token = next;
+        Token? afterIdentifier = token.next!.next;
+        if (afterIdentifier != null && optional('(', afterIdentifier)) {
+          _tryRewriteNewToIdentifier(token, IdentifierContext.fieldInitializer);
+        }
         next = token.next!;
         if (next.isIdentifier) {
           token = next;
@@ -3153,6 +3196,8 @@ class Parser {
     Token next = token.next!;
     if (optional('.', next)) {
       token = next;
+      _tryRewriteNewToIdentifier(
+          token, IdentifierContext.constructorReferenceContinuation);
       next = token.next!;
       if (next.kind != IDENTIFIER_TOKEN) {
         next = IdentifierContext.expressionContinuation
@@ -5183,7 +5228,7 @@ class Parser {
             Token afterTypeArguments = endTypeArguments.next!;
             if (optional(".", afterTypeArguments)) {
               Token afterPeriod = afterTypeArguments.next!;
-              if (afterPeriod.isIdentifier &&
+              if (_isNewOrIdentifier(afterPeriod) &&
                   optional('(', afterPeriod.next!)) {
                 return parseImplicitCreationExpression(token, typeArg);
               }
@@ -5283,6 +5328,7 @@ class Parser {
   }
 
   Token parsePrimary(Token token, IdentifierContext context) {
+    _tryRewriteNewToIdentifier(token, context);
     final int kind = token.next!.kind;
     if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token, context);

@@ -42,11 +42,11 @@ class WasmModule {
     var runtime = WasmRuntime();
     var imports = runtime.importDescriptors(_module);
     for (var imp in imports) {
-      description.write("import $imp\n");
+      description.write('import $imp\n');
     }
     var exports = runtime.exportDescriptors(_module);
     for (var exp in exports) {
-      description.write("export $exp\n");
+      description.write('export $exp\n');
     }
     return description.toString();
   }
@@ -83,7 +83,7 @@ class _WasmFnImport extends Struct {
 
   static void _call(Pointer<_WasmFnImport> imp, Pointer<WasmerValVec> rawArgs,
       Pointer<WasmerValVec> rawResult) {
-    Function fn = _wasmFnImportToFn[imp.address] as Function;
+    var fn = _wasmFnImportToFn[imp.address] as Function;
     var args = [];
     for (var i = 0; i < rawArgs.ref.length; ++i) {
       args.add(rawArgs.ref.data[i].toDynamic);
@@ -116,12 +116,12 @@ class _WasmImportOwner {}
 /// WasmInstanceBuilder is used collect all the imports that a WasmModule
 /// requires before it is instantiated.
 class WasmInstanceBuilder {
-  WasmModule _module;
+  final WasmModule _module;
   late List<WasmImportDescriptor> _importDescs;
-  Map<String, int> _importIndex;
-  Pointer<WasmerExternVec> _imports = calloc<WasmerExternVec>();
+  final Map<String, int> _importIndex;
+  final Pointer<WasmerExternVec> _imports = calloc<WasmerExternVec>();
   Pointer<WasmerWasiEnv> _wasiEnv = nullptr;
-  _WasmImportOwner _importOwner = _WasmImportOwner();
+  final _WasmImportOwner _importOwner = _WasmImportOwner();
 
   WasmInstanceBuilder(this._module) : _importIndex = {} {
     _importDescs = WasmRuntime().importDescriptors(_module._module);
@@ -129,17 +129,17 @@ class WasmInstanceBuilder {
     _imports.ref.data = calloc<Pointer<WasmerExtern>>(_importDescs.length);
     for (var i = 0; i < _importDescs.length; ++i) {
       var imp = _importDescs[i];
-      _importIndex["${imp.moduleName}::${imp.name}"] = i;
+      _importIndex['${imp.moduleName}::${imp.name}'] = i;
       _imports.ref.data[i] = nullptr;
     }
   }
 
   int _getIndex(String moduleName, String name) {
-    var index = _importIndex["${moduleName}::${name}"];
+    var index = _importIndex['${moduleName}::${name}'];
     if (index == null) {
-      throw Exception("Import not found: ${moduleName}::${name}");
+      throw Exception('Import not found: ${moduleName}::${name}');
     } else if (_imports.ref.data[index] != nullptr) {
-      throw Exception("Import already filled: ${moduleName}::${name}");
+      throw Exception('Import already filled: ${moduleName}::${name}');
     } else {
       return index;
     }
@@ -151,7 +151,7 @@ class WasmInstanceBuilder {
     var index = _getIndex(moduleName, name);
     var imp = _importDescs[index];
     if (imp.kind != WasmerExternKindMemory) {
-      throw Exception("Import is not a memory: $imp");
+      throw Exception('Import is not a memory: $imp');
     }
     _imports.ref.data[index] = WasmRuntime().memoryToExtern(memory._mem);
     return this;
@@ -164,7 +164,7 @@ class WasmInstanceBuilder {
     var runtime = WasmRuntime();
 
     if (imp.kind != WasmerExternKindFunction) {
-      throw Exception("Import is not a function: $imp");
+      throw Exception('Import is not a function: $imp');
     }
 
     var returnType = runtime.getReturnType(imp.funcType);
@@ -187,7 +187,7 @@ class WasmInstanceBuilder {
   WasmInstanceBuilder enableWasi(
       {bool captureStdout = false, bool captureStderr = false}) {
     if (_wasiEnv != nullptr) {
-      throw Exception("WASI is already enabled.");
+      throw Exception('WASI is already enabled.');
     }
     var runtime = WasmRuntime();
     var config = runtime.newWasiConfig();
@@ -202,7 +202,7 @@ class WasmInstanceBuilder {
   WasmInstance build() {
     for (var i = 0; i < _importDescs.length; ++i) {
       if (_imports.ref.data[i] == nullptr) {
-        throw Exception("Missing import: ${_importDescs[i]}");
+        throw Exception('Missing import: ${_importDescs[i]}');
       }
     }
     return WasmInstance(_module, _imports, _wasiEnv, _importOwner);
@@ -211,14 +211,14 @@ class WasmInstanceBuilder {
 
 /// WasmInstance is an instantiated WasmModule.
 class WasmInstance {
-  WasmModule _module;
+  final WasmModule _module;
   late Pointer<WasmerInstance> _instance;
   Pointer<WasmerMemory>? _exportedMemory;
-  Pointer<WasmerWasiEnv> _wasiEnv;
+  final Pointer<WasmerWasiEnv> _wasiEnv;
   Stream<List<int>>? _stdout;
   Stream<List<int>>? _stderr;
-  Map<String, WasmFunction> _functions = {};
-  _WasmImportOwner _importOwner;
+  final Map<String, WasmFunction> _functions = {};
+  final _WasmImportOwner _importOwner;
 
   WasmInstance(this._module, Pointer<WasmerExternVec> imports, this._wasiEnv,
       this._importOwner) {
@@ -231,7 +231,7 @@ class WasmInstance {
     for (var i = 0; i < exports.ref.length; ++i) {
       var e = exports.ref.data[i];
       var kind = runtime.externKind(exports.ref.data[i]);
-      String name = exportDescs[i].name;
+      var name = exportDescs[i].name;
       if (kind == WasmerExternKindFunction) {
         var f = runtime.externToFunction(e);
         var ft = exportDescs[i].funcType;
@@ -257,7 +257,7 @@ class WasmInstance {
   /// Returns the memory exported from this instance.
   WasmMemory get memory {
     if (_exportedMemory == null) {
-      throw Exception("Wasm module did not export its memory.");
+      throw Exception('Wasm module did not export its memory.');
     }
     return WasmMemory._fromExport(_exportedMemory as Pointer<WasmerMemory>);
   }

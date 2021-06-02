@@ -2214,4 +2214,9 @@ class ParserTestListener implements Listener {
     seen(openAngleBracket);
     doPrint('handleTypeArgumentApplication(' '$openAngleBracket)');
   }
+
+  void handleNewAsIdentifier(Token token) {
+    seen(token);
+    doPrint('handleNewAsIdentifier(' '$token)');
+  }
 }

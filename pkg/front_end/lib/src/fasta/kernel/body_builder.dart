@@ -6590,6 +6590,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     return name.isEmpty ? className : "$className.$name";
   }
+
+  @override
+  void handleNewAsIdentifier(Token token) {
+    // TODO(johnniwinther, paulberry): disable this error when the
+    // "constructor-tearoffs" feature is enabled.
+    addProblem(
+        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
+            libraryBuilder.enableConstructorTearoffsVersionInLibrary.toText()),
+        token.charOffset,
+        token.length);
+  }
 }
 
 abstract class EnsureLoaded {

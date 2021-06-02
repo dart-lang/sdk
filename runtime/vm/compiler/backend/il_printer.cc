@@ -657,10 +657,10 @@ void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void AllocationInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
-  if (InputCount() > 0) {
-    f->AddString(", ");
-  }
   if (Identity().IsNotAliased()) {
+    if (InputCount() > 0) {
+      f->AddString(", ");
+    }
     f->AddString("<not-aliased>");
   }
 }

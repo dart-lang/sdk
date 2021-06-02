@@ -971,8 +971,9 @@ class CompletionMetricsComputer {
         .toList();
     elementKinds.sort((first, second) => first.name.compareTo(second.name));
     for (var kind in elementKinds) {
-      table.add(toRow(
-          targetMetrics.map((metrics) => metrics.groupMrrComputers[kind]!)));
+      table.add(toRow(targetMetrics.map((metrics) =>
+          metrics.groupMrrComputers[kind] ??
+          MeanReciprocalRankComputer(kind.name))));
     }
     if (options.printMrrByLocation) {
       table.add(blankRow);

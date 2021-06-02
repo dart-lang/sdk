@@ -6138,6 +6138,27 @@ class AllocationInstr : public Definition {
     return InputCount();
   }
 
+  // Returns the slot in the allocated object that contains the value at the
+  // given input position. Returns nullptr if the input position is invalid
+  // or if the input is not stored in the object.
+  virtual const Slot* SlotForInput(intptr_t pos) { return nullptr; }
+
+  // Returns the input index that has a corresponding slot which is identical to
+  // the given slot. Returns a negative index if no such input found.
+  intptr_t InputForSlot(const Slot& slot) {
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      auto* const input_slot = SlotForInput(i);
+      if (input_slot != nullptr && input_slot->IsIdentical(slot)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  // Returns whether the allocated object has initialized fields and/or payload
+  // elements. Override for any subclass that returns an uninitialized object.
+  virtual bool ObjectIsInitialized() { return true; }
+
   PRINT_OPERANDS_TO_SUPPORT
 
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
@@ -6182,6 +6203,8 @@ class AllocateObjectInstr : public AllocationInstr {
     ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
     if (type_arguments != nullptr) {
       SetInputAt(kTypeArgumentsPos, type_arguments);
+      type_arguments_slot_ =
+          &Slot::GetTypeArgumentsSlotFor(Thread::Current(), cls);
     }
   }
 
@@ -6209,6 +6232,10 @@ class AllocateObjectInstr : public AllocationInstr {
     return Heap::IsAllocatableInNewSpace(cls.target_instance_size());
   }
 
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    return pos == kTypeArgumentsPos ? type_arguments_slot_ : nullptr;
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -6220,26 +6247,30 @@ class AllocateObjectInstr : public AllocationInstr {
 
   const Class& cls_;
   Value* type_arguments_;
+  const Slot* type_arguments_slot_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
 // Allocates and null initializes a closure object, given the closure function
-// as a value.
-class AllocateClosureInstr : public TemplateAllocation<1> {
+// and the context as values.
+class AllocateClosureInstr : public TemplateAllocation<2> {
  public:
-  enum Inputs { kFunctionPos = 0 };
+  enum Inputs { kFunctionPos = 0, kContextPos = 1 };
   AllocateClosureInstr(const InstructionSource& source,
                        Value* closure_function,
+                       Value* context,
                        intptr_t deopt_id)
       : TemplateAllocation(source, deopt_id) {
     SetInputAt(kFunctionPos, closure_function);
+    SetInputAt(kContextPos, context);
   }
 
   DECLARE_INSTRUCTION(AllocateClosure)
   virtual CompileType ComputeType() const;
 
   Value* closure_function() const { return inputs_[kFunctionPos]; }
+  Value* context() const { return inputs_[kContextPos]; }
 
   const Function& known_function() const {
     Value* const value = closure_function();
@@ -6248,6 +6279,17 @@ class AllocateClosureInstr : public TemplateAllocation<1> {
       return Function::Cast(value->BoundConstant());
     }
     return Object::null_function();
+  }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kFunctionPos:
+        return &Slot::Closure_function();
+      case kContextPos:
+        return &Slot::Closure_context();
+      default:
+        return TemplateAllocation::SlotForInput(pos);
+    }
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6278,6 +6320,8 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
     return compiler::target::WillAllocateNewOrRememberedContext(
         num_context_variables_);
   }
+
+  virtual bool ObjectIsInitialized() { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -6438,6 +6482,17 @@ class CreateArrayInstr : public TemplateArrayAllocation<2> {
         GetConstantNumElements());
   }
 
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kTypeArgumentsPos:
+        return &Slot::Array_type_arguments();
+      case kLengthPos:
+        return &Slot::Array_length();
+      default:
+        return TemplateArrayAllocation::SlotForInput(pos);
+    }
+  }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
@@ -6465,6 +6520,15 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
   virtual bool WillAllocateNewOrRemembered() const {
     // No write barriers are generated for typed data accesses.
     return false;
+  }
+
+  virtual const Slot* SlotForInput(intptr_t pos) {
+    switch (pos) {
+      case kLengthPos:
+        return &Slot::TypedDataBase_length();
+      default:
+        return TemplateArrayAllocation::SlotForInput(pos);
+    }
   }
 
  private:
@@ -6626,7 +6690,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  bool IsImmutableLengthLoad() const;
+  bool IsImmutableLengthLoad() const { return slot().IsImmutableLengthSlot(); }
 
   // Try evaluating this load against the given constant value of
   // the instance. Returns true if evaluation succeeded and

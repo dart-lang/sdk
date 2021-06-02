@@ -923,7 +923,8 @@ class Assembler : public AssemblerBase {
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
   void EnsureHasClassIdInDEBUG(intptr_t cid,
                                Register src,
-                               Register scratch) override;
+                               Register scratch,
+                               bool can_be_null = false) override;
 
   intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;

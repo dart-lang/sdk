@@ -209,6 +209,7 @@ struct AllocateBoxABI {
 struct AllocateClosureABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kFunctionReg = EBX;
+  static const Register kContextReg = ECX;
   static const Register kScratchReg = EDX;
 };
 

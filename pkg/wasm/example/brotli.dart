@@ -6,17 +6,17 @@
 // library. Usage:
 // dart brotli.dart input.txt
 
-import "dart:io";
-import "dart:typed_data";
+import 'dart:io';
+import 'dart:typed_data';
 
-import "package:wasm/wasm.dart";
+import 'package:wasm/wasm.dart';
 
 // Brotli compression parameters.
 const int kDefaultQuality = 11;
 const int kDefaultWindow = 22;
 const int kDefaultMode = 0;
 
-main(List<String> args) {
+void main(List<String> args) {
   var brotliPath = Platform.script.resolve('libbrotli.wasm');
   var moduleData = File(brotliPath.path).readAsBytesSync();
   var module = WasmModule(moduleData);
@@ -24,12 +24,12 @@ main(List<String> args) {
 
   var instance = module.instantiate().enableWasi().build();
   var memory = instance.memory;
-  var compress = instance.lookupFunction("BrotliEncoderCompress");
-  var decompress = instance.lookupFunction("BrotliDecoderDecompress");
+  var compress = instance.lookupFunction('BrotliEncoderCompress');
+  var decompress = instance.lookupFunction('BrotliDecoderDecompress');
 
-  print("Loading ${args[0]}");
+  print('Loading ${args[0]}');
   var inputData = File(args[0]).readAsBytesSync();
-  print("Input size: ${inputData.length} bytes");
+  print('Input size: ${inputData.length} bytes');
 
   // Grow the module's memory to get unused space to put our data.
   // [initial memory][input data][output data][size][decoded data][size]
@@ -48,36 +48,36 @@ main(List<String> args) {
   memoryView.setRange(
       outSizePtr, outSizePtr + 4, sizeBytes.buffer.asUint8List());
 
-  print("\nCompressing...");
+  print('\nCompressing...');
   var status = compress(kDefaultQuality, kDefaultWindow, kDefaultMode,
       inputData.length, inputPtr, outSizePtr, outputPtr);
-  print("Compression status: $status");
+  print('Compression status: $status');
 
   var compressedSize =
       ByteData.sublistView(memoryView, outSizePtr, outSizePtr + 4)
           .getUint32(0, Endian.host);
-  print("Compressed size: $compressedSize bytes");
+  print('Compressed size: $compressedSize bytes');
   var spaceSaving = 100 * (1 - compressedSize / inputData.length);
-  print("Space saving: ${spaceSaving.toStringAsFixed(2)}%");
+  print('Space saving: ${spaceSaving.toStringAsFixed(2)}%');
 
   var decSizeBytes = ByteData(4);
   decSizeBytes.setUint32(0, inputData.length, Endian.host);
   memoryView.setRange(
       decSizePtr, decSizePtr + 4, decSizeBytes.buffer.asUint8List());
 
-  print("\nDecompressing...");
+  print('\nDecompressing...');
   status = decompress(compressedSize, outputPtr, decSizePtr, decodedPtr);
-  print("Decompression status: $status");
+  print('Decompression status: $status');
 
   var decompressedSize =
       ByteData.sublistView(memoryView, decSizePtr, decSizePtr + 4)
           .getUint32(0, Endian.host);
-  print("Decompressed size: $decompressedSize bytes");
+  print('Decompressed size: $decompressedSize bytes');
 
-  print("\nVerifying decompression...");
+  print('\nVerifying decompression...');
   assert(inputData.length == decompressedSize);
   for (var i = 0; i < inputData.length; ++i) {
     assert(inputData[i] == memoryView[decodedPtr + i]);
   }
-  print("Decompression succeeded :)");
+  print('Decompression succeeded :)');
 }

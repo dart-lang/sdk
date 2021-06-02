@@ -11169,7 +11169,7 @@ var y = x is int ? 0 : 1;
 
 ### sdk_version_never
 
-_The type 'Never' wasn't supported until version 2.X.0, but this code is
+_The type 'Never' wasn't supported until version 2.12.0, but this code is
 required to be able to run on earlier versions._
 
 #### Description

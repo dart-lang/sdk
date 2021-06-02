@@ -4380,10 +4380,12 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   Fragment instructions = BuildExpression();
   LocalVariable* original_closure = MakeTemporary();
 
-  // Load the target function and allocate the closure.
+  // Load the target function and context and allocate the closure.
   instructions += LoadLocal(original_closure);
   instructions +=
       flow_graph_builder_->LoadNativeField(Slot::Closure_function());
+  instructions += LoadLocal(original_closure);
+  instructions += flow_graph_builder_->LoadNativeField(Slot::Closure_context());
   instructions += flow_graph_builder_->AllocateClosure();
   LocalVariable* new_closure = MakeTemporary();
 
@@ -4432,13 +4434,6 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_function_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
-
-  // Copy over the context.
-  instructions += LoadLocal(new_closure);
-  instructions += LoadLocal(original_closure);
-  instructions += flow_graph_builder_->LoadNativeField(Slot::Closure_context());
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_context(), StoreInstanceFieldInstr::Kind::kInitializing);
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
@@ -5604,6 +5599,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   Fragment instructions;
   instructions += Constant(function);
+  instructions += LoadLocal(parsed_function()->current_context_var());
   instructions += flow_graph_builder_->AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 
@@ -5633,12 +5629,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         Slot::Closure_delayed_type_arguments(),
         StoreInstanceFieldInstr::Kind::kInitializing);
   }
-
-  // Store the context in the closure.
-  instructions += LoadLocal(closure);
-  instructions += LoadLocal(parsed_function()->current_context_var());
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_context(), StoreInstanceFieldInstr::Kind::kInitializing);
 
   return instructions;
 }

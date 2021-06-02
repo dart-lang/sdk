@@ -1455,6 +1455,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNewAsIdentifier(Token token) {
+    listener?.handleNewAsIdentifier(token);
+  }
+
+  @override
   void handleNoArguments(Token token) {
     listener?.handleNoArguments(token);
   }

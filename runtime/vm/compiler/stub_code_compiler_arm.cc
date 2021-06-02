@@ -263,16 +263,19 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     __ Bind(&done);
   }
 
+  // Put context in right register for AllocateClosure call.
+  __ MoveRegister(AllocateClosureABI::kContextReg, R0);
+
   // Store receiver in context
-  __ ldr(R1, Address(FP, target::kWordSize * kReceiverOffset));
-  __ StoreIntoObject(R0, FieldAddress(R0, target::Context::variable_offset(0)),
-                     R1);
+  __ ldr(AllocateClosureABI::kScratchReg,
+         Address(FP, target::kWordSize * kReceiverOffset));
+  __ StoreIntoObject(AllocateClosureABI::kContextReg,
+                     FieldAddress(AllocateClosureABI::kContextReg,
+                                  target::Context::variable_offset(0)),
+                     AllocateClosureABI::kScratchReg);
 
-  // Pop function before pushing context.
+  // Pop function.
   __ Pop(AllocateClosureABI::kFunctionReg);
-
-  // Push context.
-  __ Push(R0);
 
   // Allocate closure. After this point, we only use the registers in
   // AllocateClosureABI.
@@ -282,11 +285,6 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ blx(AllocateClosureABI::kScratchReg);
 
   // Populate closure object.
-  __ Pop(AllocateClosureABI::kScratchReg);  // Pop context.
-  __ StoreIntoObject(AllocateClosureABI::kResultReg,
-                     FieldAddress(AllocateClosureABI::kResultReg,
-                                  target::Closure::context_offset()),
-                     AllocateClosureABI::kScratchReg);
   __ Pop(AllocateClosureABI::kScratchReg);  // Pop type arguments.
   __ StoreIntoObjectNoBarrier(
       AllocateClosureABI::kResultReg,

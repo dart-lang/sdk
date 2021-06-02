@@ -67,6 +67,9 @@ https://github.com/dart-lang/sdk/issues/46100
   'recommended' set of lints from `package:lints`. See https://dart.dev/go/core-lints
   for more information about these lints.
 
+* The `dart analyze` command has been extended to support specifying multiple
+  files or directories to analyze; see also https://github.com/dart-lang/sdk/issues/45352.
+
 #### Linter
 
 Updated the Linter to `1.5.0`, which includes:

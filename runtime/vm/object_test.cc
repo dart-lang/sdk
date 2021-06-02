@@ -2368,75 +2368,6 @@ ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   }
 }
 
-static void CheckLinesWithOffset(Zone* zone, const intptr_t offset) {
-  const char* url_chars = "";
-  // Nine lines, mix of \n, \r, \r\n line terminators, lines 3, 4, 7, and 8
-  // are non-empty. Ends with a \r as a double-check that the \r followed by
-  // \n check doesn't go out of bounds.
-  //
-  // Line starts:             1 2 3    4      5 6   7    8    9
-  const char* source_chars = "\n\nxyz\nabc\r\n\n\r\ndef\rghi\r";
-  const String& url = String::Handle(zone, String::New(url_chars));
-  const String& source = String::Handle(zone, String::New(source_chars));
-  const Script& script = Script::Handle(zone, Script::New(url, source));
-  EXPECT(!script.IsNull());
-  EXPECT(script.IsScript());
-  script.SetLocationOffset(offset, 10);
-  auto& str = String::Handle(zone);
-  str = script.GetLine(offset + 1);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 2);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 3);
-  EXPECT_STREQ("xyz", str.ToCString());
-  str = script.GetLine(offset + 4);
-  EXPECT_STREQ("abc", str.ToCString());
-  str = script.GetLine(offset + 5);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 6);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 7);
-  EXPECT_STREQ("def", str.ToCString());
-  str = script.GetLine(offset + 8);
-  EXPECT_STREQ("ghi", str.ToCString());
-  str = script.GetLine(offset + 9);
-  EXPECT_STREQ("", str.ToCString());
-  // Using "column" of \r at end of line for to_column.
-  str = script.GetSnippet(offset + 3, 1, offset + 7, 4);
-  EXPECT_STREQ("xyz\nabc\r\n\n\r\ndef", str.ToCString());
-  // Lines not in the range of (1-based) line indices in the source should
-  // return the empty string.
-  str = script.GetLine(-500);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(0);
-  EXPECT_STREQ("", str.ToCString());
-  if (offset > 0) {
-    str = script.GetLine(1);  // Absolute, not relative to offset.
-    EXPECT_STREQ("", str.ToCString());
-  }
-  if (offset > 2) {
-    str = script.GetLine(3);  // Absolute, not relative to offset.
-    EXPECT_STREQ("", str.ToCString());
-  }
-  str = script.GetLine(offset - 500);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 10);
-  EXPECT_STREQ("", str.ToCString());
-  str = script.GetLine(offset + 10000);
-  EXPECT_STREQ("", str.ToCString());
-  // Snippets not contained within the source should be the null string.
-  str = script.GetSnippet(-1, 1, 2, 2);
-  EXPECT(str.IsNull());
-  str = script.GetSnippet(offset - 1, 1, offset + 2, 2);
-  EXPECT(str.IsNull());
-  str = script.GetSnippet(offset + 5, 15, offset + 6, 2);
-  EXPECT(str.IsNull());
-  str = script.GetSnippet(offset + 20, 1, offset + 30, 1);
-  EXPECT(str.IsNull());
-}
-
 ISOLATE_UNIT_TEST_CASE(Script) {
   {
     const char* url_chars = "builtin:test-case";
@@ -2457,10 +2388,6 @@ ISOLATE_UNIT_TEST_CASE(Script) {
     EXPECT_EQ('n', str.CharAt(10));
     EXPECT_EQ('.', str.CharAt(21));
   }
-
-  CheckLinesWithOffset(Z, 0);
-  CheckLinesWithOffset(Z, 500);
-  CheckLinesWithOffset(Z, 10000);
 
   {
     const char* url_chars = "";

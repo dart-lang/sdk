@@ -1575,8 +1575,6 @@ class alignas(8) UntaggedScript : public UntaggedObject {
     return NULL;
   }
 
-  int32_t line_offset_;
-  int32_t col_offset_;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   int32_t flags_and_max_position_;
 

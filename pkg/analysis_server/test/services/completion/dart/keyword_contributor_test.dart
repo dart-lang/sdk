@@ -1151,6 +1151,69 @@ extension E on int {
     assertSuggestKeywords([Keyword.VAR]);
   }
 
+  Future<void> test_formalParameterList_beforeFunctionType() async {
+    addTestSource('void f(^void Function() g) {}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
+  Future<void> test_formalParameterList_named_init() async {
+    addTestSource('class A { foo({bool bar: ^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  Future<void> test_formalParameterList_named_init2() async {
+    addTestSource('class A { foo({bool bar: f^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  Future<void> test_formalParameterList_noPrefix() async {
+    addTestSource('class A { foo(^) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
+  Future<void> test_formalParameterList_noPrefix_func_parameter() async {
+    addTestSource('class A { foo(^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
+  Future<void> test_formalParameterList_positional_init() async {
+    addTestSource('class A { foo([bool bar = ^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  Future<void> test_formalParameterList_positional_init2() async {
+    addTestSource('class A { foo([bool bar = f^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  Future<void> test_formalParameterList_prefix() async {
+    addTestSource('class A { foo(t^) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
+  Future<void> test_formalParameterList_prefix_func_parameter() async {
+    addTestSource('class A { foo(v^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
   Future<void> test_function_async() async {
     addTestSource('main()^');
     await computeSuggestions();
@@ -2033,62 +2096,6 @@ f() => <int>{1, ^, 2};
     addTestSource('class A { foo() {bar.as^}}');
     await computeSuggestions();
     assertNoSuggestions();
-  }
-
-  Future<void> test_method_param_named_init() async {
-    addTestSource('class A { foo({bool bar: ^}) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
-  }
-
-  Future<void> test_method_param_named_init2() async {
-    addTestSource('class A { foo({bool bar: f^}) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
-  }
-
-  Future<void> test_method_param_noPrefix() async {
-    addTestSource('class A { foo(^) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(methodParameter);
-  }
-
-  Future<void> test_method_param_noPrefix_func_parameter() async {
-    addTestSource('class A { foo(^ Function(){}) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(methodParameter);
-  }
-
-  Future<void> test_method_param_positional_init() async {
-    addTestSource('class A { foo([bool bar = ^]) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
-  }
-
-  Future<void> test_method_param_positional_init2() async {
-    addTestSource('class A { foo([bool bar = f^]) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
-  }
-
-  Future<void> test_method_param_prefix() async {
-    addTestSource('class A { foo(t^) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(methodParameter);
-  }
-
-  Future<void> test_method_param_prefix_func_parameter() async {
-    addTestSource('class A { foo(v^ Function(){}) {}}');
-    await computeSuggestions();
-    expect(suggestions, isNotEmpty);
-    assertSuggestKeywords(methodParameter);
   }
 
   Future<void> test_method_type_params() async {

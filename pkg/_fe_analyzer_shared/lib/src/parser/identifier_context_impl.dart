@@ -147,6 +147,9 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
             isContinuation: true);
 
   @override
+  bool get allowsNewAsIdentifier => isContinuation;
+
+  @override
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
@@ -296,6 +299,9 @@ class ExpressionIdentifierContext extends IdentifierContext {
       : super('expressionContinuation', isContinuation: true);
 
   @override
+  bool get allowsNewAsIdentifier => isContinuation;
+
+  @override
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
@@ -408,6 +414,9 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
 class FieldInitializerIdentifierContext extends IdentifierContext {
   const FieldInitializerIdentifierContext()
       : super('fieldInitializer', isContinuation: true);
+
+  @override
+  bool get allowsNewAsIdentifier => true;
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -809,6 +818,9 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
 
   const MethodDeclarationIdentifierContext.operatorName()
       : super('operatorName', inDeclaration: true);
+
+  @override
+  bool get allowsNewAsIdentifier => isContinuation;
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {

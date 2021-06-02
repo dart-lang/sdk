@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test functions with void return type, and functions that take no args.
+import 'dart:typed_data';
 
-import "package:test/test.dart";
-import "package:wasm/wasm.dart";
-import "dart:typed_data";
+import 'package:test/test.dart';
+import 'package:wasm/wasm.dart';
 
 void main() {
-  test("void return type", () {
+  test('void return type', () {
     // int64_t x = 0;
     // void set(int64_t a, int64_t b) { x = a + b; }
     // int64_t get() { return x; }
     var data = Uint8List.fromList([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x0a, 0x02, 0x60,
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x0a, 0x02, 0x60, //
       0x02, 0x7e, 0x7e, 0x00, 0x60, 0x00, 0x01, 0x7e, 0x03, 0x03, 0x02, 0x00,
       0x01, 0x04, 0x05, 0x01, 0x70, 0x01, 0x01, 0x01, 0x05, 0x03, 0x01, 0x00,
       0x02, 0x06, 0x08, 0x01, 0x7f, 0x01, 0x41, 0x90, 0x88, 0x04, 0x0b, 0x07,
@@ -27,8 +27,8 @@ void main() {
     ]);
 
     var inst = WasmModule(data).instantiate().build();
-    var setFn = inst.lookupFunction("set");
-    var getFn = inst.lookupFunction("get");
+    var setFn = inst.lookupFunction('set');
+    var getFn = inst.lookupFunction('get');
     expect(setFn(123, 456), isNull);
     int n = getFn();
     expect(n, 123 + 456);

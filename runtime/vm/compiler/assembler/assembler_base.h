@@ -669,7 +669,8 @@ class AssemblerBase : public StackResource {
 
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
                                        Register src,
-                                       Register scratch) = 0;
+                                       Register scratch,
+                                       bool can_be_null = false) = 0;
 
   intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
 

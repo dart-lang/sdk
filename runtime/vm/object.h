@@ -4455,8 +4455,8 @@ class Script : public Object {
   void LookupSourceAndLineStarts(Zone* zone) const;
   GrowableObjectArrayPtr GenerateLineNumberArray() const;
 
-  intptr_t line_offset() const { return untag()->line_offset_; }
-  intptr_t col_offset() const { return untag()->col_offset_; }
+  intptr_t line_offset() const { return 0; }
+  intptr_t col_offset() const { return 0; }
   // Returns the max real token position for this script, or kNoSource
   // if there is no line starts information.
   TokenPosition MaxPosition() const;
@@ -4497,8 +4497,6 @@ class Script : public Object {
                        intptr_t from_column,
                        intptr_t to_line,
                        intptr_t to_column) const;
-
-  void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
   // For real token positions when line starts are available, returns whether or
   // not a GetTokenLocation call would succeed. Returns true for non-real token

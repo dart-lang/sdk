@@ -45,7 +45,7 @@ Uri getOutDir(Uri root) {
       return root.resolve('.dart_tool/wasm/');
     }
   } while (root != (root = root.resolve('..')));
-  throw Exception(".dart_tool/package_config.json not found");
+  throw Exception('.dart_tool/package_config.json not found');
 }
 
 String getOutLib(String target) {
@@ -183,15 +183,7 @@ Future<void> main(List<String> args) async {
   // Link wasmer, dart_api_dl, and finalizers to create the output library.
   await run('clang++', [
     '-shared',
-    '-Wl,--no-as-needed',
-    '-Wl,--fatal-warnings',
-    '-Wl,-z,now',
-    '-Wl,-z,noexecstack',
-    '-Wl,-z,relro',
-    '-Wl,--build-id=none',
     '-fPIC',
-    '-Wl,-O1',
-    '-Wl,--gc-sections',
     '-target',
     target,
     outDir.resolve('dart_api_dl.o').path,

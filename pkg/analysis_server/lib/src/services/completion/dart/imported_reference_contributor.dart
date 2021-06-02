@@ -28,6 +28,10 @@ class ImportedReferenceContributor extends DartCompletionContributor {
       if (libraryElement != null) {
         _buildSuggestions(request, builder, importElement.namespace,
             prefix: importElement.prefix?.name);
+        if (libraryElement.isDartCore &&
+            request.opType.includeTypeNameSuggestions) {
+          builder.suggestName('Never');
+        }
       }
     }
   }

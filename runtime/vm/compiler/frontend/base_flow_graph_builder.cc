@@ -890,9 +890,10 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
 }
 
 Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position) {
+  auto const context = Pop();
   auto const function = Pop();
-  auto* allocate = new (Z) AllocateClosureInstr(InstructionSource(position),
-                                                function, GetNextDeoptId());
+  auto* allocate = new (Z) AllocateClosureInstr(
+      InstructionSource(position), function, context, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
@@ -999,6 +1000,8 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   // here as these can be unoptimized call sites.
   LocalVariable* pointer = MakeTemporary();
 
+  code += Constant(target);
+
   auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       /*context_id=*/0, /*num_variables=*/1);
   code += AllocateContext(context_slots);
@@ -1008,17 +1011,10 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   code += LoadLocal(pointer);
   code += StoreNativeField(*context_slots[0]);
 
-  code += Constant(target);
   code += AllocateClosure();
-  LocalVariable* closure = MakeTemporary();
 
-  code += LoadLocal(closure);
-  code += LoadLocal(context);
-  code += StoreNativeField(Slot::Closure_context(),
-                           StoreInstanceFieldInstr::Kind::kInitializing);
-
-  // Drop address and context.
-  code += DropTempsPreserveTop(2);
+  // Drop address.
+  code += DropTempsPreserveTop(1);
 
   return code;
 }

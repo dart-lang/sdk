@@ -3227,6 +3227,20 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleNewAsIdentifier(Token token) {
+    if (!enableConstructorTearoffs) {
+      var feature = ExperimentalFeatures.constructor_tearoffs;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          token,
+          token);
+    }
+  }
+
+  @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
 

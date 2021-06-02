@@ -2792,6 +2792,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kGrowableObjectArray_data:
     case Slot::Kind::kContext_parent:
     case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kArray_type_arguments:
     case Slot::Kind::kClosure_context:
     case Slot::Kind::kClosure_delayed_type_arguments:
     case Slot::Kind::kClosure_function:

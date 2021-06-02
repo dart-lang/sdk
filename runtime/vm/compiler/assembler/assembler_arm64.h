@@ -1893,7 +1893,8 @@ class Assembler : public AssemblerBase {
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
   void EnsureHasClassIdInDEBUG(intptr_t cid,
                                Register src,
-                               Register scratch) override;
+                               Register scratch,
+                               bool can_be_null = false) override;
 
   // Reserve specifies how much space to reserve for the Dart stack.
   void SetupDartSP(intptr_t reserve = 4096);

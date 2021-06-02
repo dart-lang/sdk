@@ -102,6 +102,7 @@ class Wasmer%sVec extends Struct {
 
 byteVecToStringTemplate = '''
   Uint8List get list => data.asTypedList(length);
+  @override
   String toString() => utf8.decode(list);
 '''
 
