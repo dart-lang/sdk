@@ -501,7 +501,10 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
       "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
-      "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}]}],"
+      "\"_intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
+      "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
+      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}]}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -510,7 +513,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
-  char buffer[1024];
+  char buffer[4096];
   const char* kScript =
       "class Common {\n"
       "  func() {}\n"
@@ -553,27 +556,65 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
 
       // First receiver: "Common", called twice.
       "{\"receiver\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Common\"},"
+      "\"name\":\"Common\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
       "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"func\","
       "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Common\"},\"_kind\":\"RegularFunction\","
+      "\"name\":\"Common\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
+      "},\"_kind\":\"RegularFunction\","
       "\"static\":false,\"const\":false,\"_intrinsic\":false,"
-      "\"_native\":false},"
+      "\"_native\":false,"
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":17,\"endTokenPos\":25}},"
 
       "\"count\":2},"
 
       // Second receiver: "Uncommon", called once.
       "{\"receiver\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Uncommon\"},"
+      "\"name\":\"Uncommon\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
       "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"func\","
       "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Uncommon\"},\"_kind\":\"RegularFunction\","
+      "\"name\":\"Uncommon\","
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
+      "},\"_kind\":\"RegularFunction\","
       "\"static\":false,\"const\":false,\"_intrinsic\":false,"
-      "\"_native\":false},"
+      "\"_native\":false,"
+      "\"location\":{\"type\":\"SourceLocation\","
+      "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
+      "\"_kind\":\"kernel\"},\"tokenPos\":48,\"endTokenPos\":56}},"
 
       "\"count\":1}]}]}],"
 
@@ -584,7 +625,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
-  char buffer[1024];
+  char buffer[2048];
   const char* kScript =
       "helper0() {}\n"
       "helper1() {}\n"
@@ -614,16 +655,18 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
 
-      // One range compiled with one callsite (main).
+      // One range compiled with one callsite (main)m
       "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":48,\"compiled\":true,"
-      "\"callSites\":["
-      "{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":["
-      "{\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
+      "\"callSites\":[{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":[{"
+      "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
-      "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
-      "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}],"
-      "\"coverage\":{\"hits\":[26,37],\"misses\":[]}}],"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},\"_"
+      "kind\":\"RegularFunction\",\"static\":true,\"const\":false,\"_"
+      "intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
+      "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
+      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}],\"coverage\":{"
+      "\"hits\":[26,37],\"misses\":[]}}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","

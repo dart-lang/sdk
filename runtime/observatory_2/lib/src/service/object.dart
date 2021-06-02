@@ -4765,7 +4765,7 @@ void _upgradeCollection(collection, ServiceObjectOwner owner) {
 
 void _upgradeMap(Map map, ServiceObjectOwner owner) {
   map.forEach((k, v) {
-    if ((v is Map) && _isServiceMap(v)) {
+    if ((v is Map) && owner != null && _isServiceMap(v)) {
       map[k] = owner.getFromMap(v);
     } else if (v is List) {
       _upgradeList(v, owner);

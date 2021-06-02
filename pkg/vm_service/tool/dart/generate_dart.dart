@@ -1491,6 +1491,8 @@ class Type extends Member {
       gen.writeln('identityHashCode: 0,');
       gen.writeln('kind: InstanceKind.kNull,');
       gen.writeln("classRef: ClassRef(id: 'class/null',");
+      gen.writeln("library: LibraryRef(id: '', name: 'dart:core',");
+      gen.writeln("uri: 'dart:core',),");
       gen.writeln("name: 'Null',),");
       gen.writeln(')');
     }
@@ -1640,10 +1642,9 @@ class Type extends Member {
         }
       } else {
         String typesList = _typeRefListToString(field.type.types);
-        String nullable =
-            field.optional && field.type.name != 'dynamic' ? '?' : '';
+        String nullable = field.type.name != 'dynamic' ? '?' : '';
         gen.writeln("${field.generatableName} = "
-            "createServiceObject(json['${field.name}']${field.optional ? '' : '!'}, "
+            "createServiceObject(json['${field.name}'], "
             "$typesList) as ${field.type.name}$nullable;");
       }
     });

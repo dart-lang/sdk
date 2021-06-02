@@ -36,5 +36,6 @@ cipd create \
   -name dart/third_party/flutter/devtools \
   -in cipd_package \
   -install-mode copy \
+  -preserve-writable \
   -tag git_revision:$1
 

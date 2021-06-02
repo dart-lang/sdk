@@ -171,23 +171,24 @@ ISOLATE_UNIT_TEST_CASE(JSON_JSONStream_DartObject) {
   }
   char buffer[1024];
   ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  ElideJSONSubstring("objects", buffer, buffer);
   EXPECT_STREQ(
-      "[{\"type\":\"@Instance\","
-      "\"_vmType\":\"null\","
-      "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Null\"},"
-      "\"kind\":\"Null\","
-      "\"fixedId\":true,"
-      "\"id\":\"objects\\/null\","
-      "\"valueAsString\":\"null\"},"
-      "{\"object_key\":"
-      "{\"type\":\"@Instance\","
-      "\"_vmType\":\"null\","
-      "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Null\"},"
-      "\"kind\":\"Null\","
-      "\"fixedId\":true,"
-      "\"id\":\"objects\\/null\","
+      "[{\"type\":\"@Instance\",\"_vmType\":\"null\",\"class\":{\"type\":\"@"
+      "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"Null\",\"location\":{"
+      "\"type\":\"SourceLocation\",\"script\":{\"type\":\"@Script\","
+      "\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core\\/null.dart\",\"_"
+      "kind\":\"kernel\"},\"tokenPos\":925,\"endTokenPos\":1165},\"library\":{"
+      "\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart."
+      "core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\",\"fixedId\":true,"
+      "\"id\":\"\",\"valueAsString\":\"null\"},{\"object_key\":{\"type\":\"@"
+      "Instance\",\"_vmType\":\"null\",\"class\":{\"type\":\"@Class\","
+      "\"fixedId\":true,\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
+      "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+      "\"id\":\"\",\"uri\":\"dart:core\\/null.dart\",\"_kind\":\"kernel\"},"
+      "\"tokenPos\":925,\"endTokenPos\":1165},\"library\":{\"type\":\"@"
+      "Library\",\"fixedId\":true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":"
+      "\"dart:core\"}},\"kind\":\"Null\",\"fixedId\":true,\"id\":\"\","
       "\"valueAsString\":\"null\"}}]",
       buffer);
 }
