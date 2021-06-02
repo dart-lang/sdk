@@ -150,5 +150,18 @@ void main() {
           ]));
       expect(exitCode, 1);
     });
+
+    test('match_analyzer_organize_directives', () async {
+      var packagesFilePath = File('.packages').absolute.path;
+      await cli.run([
+        '--packages',
+        packagesFilePath,
+        '$integrationTestDir/directives_ordering/match_analyzer_organize_directives',
+        '--rules=directives_ordering'
+      ]);
+      // There are errors in the file due to missing imports, but no lints
+      // should fire.
+      expect(collectingOut.trim(), isNot(contains('[lint]')));
+    });
   });
 }
