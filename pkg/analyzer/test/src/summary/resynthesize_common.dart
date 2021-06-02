@@ -1026,6 +1026,36 @@ class C {
 ''');
   }
 
+  test_class_field_inheritedContextType_double() async {
+    var library = await checkLibrary('''
+abstract class A {
+  const A();
+  double get foo;
+}
+class B extends A {
+  const B();
+  final foo = 2;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  double get foo;
+  const A();
+}
+class B extends A {
+  final double foo;
+    constantInitializer
+      IntegerLiteral
+        literal: 2
+        staticType: double
+  const B();
+}
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_class_field_static() async {
     var library = await checkLibrary('class C { static int i; }');
     checkElementText(library, r'''
