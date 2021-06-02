@@ -335,7 +335,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     class MyClass {
       String aaa;
     }
-      
+
     /// before [bbb] after
     int double(int bbb) => bbb * 2;
     ''';
@@ -708,7 +708,7 @@ class MyClass {}
     final content = '''
     f({String a}) {
       f(a: a);
-    }    
+    }
     ''';
 
     final expected = [

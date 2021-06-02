@@ -52,7 +52,7 @@ class Future<T> {}
 ''');
 
     File(path.join(sdkPath, 'lib', 'fake', 'fake.dart')).writeAsStringSync(r'''
-class Fake {} 
+class Fake {}
 ''');
 
     var libsInternalDir = path.join(sdkPath, 'lib', '_internal');

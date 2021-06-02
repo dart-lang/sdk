@@ -68,7 +68,7 @@ class MyClass2 {/*4:INC*/
   @setterAnnotation1/*7:INC*/
   @setterAnnotation2/*7:EXC:ANNOTATIONS*/
   void set myThing(int value) {}
-  
+
   @methodAnnotation1/*8:INC*/
   @methodAnnotation2/*8:EXC:ANNOTATIONS*/
   void myMethod() {}

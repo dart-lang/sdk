@@ -373,7 +373,7 @@ void main() {new B().bar(^);}''');
   Future<void> test_ArgumentList_namedFieldParam_tear_off() async {
     addSource('/home/test/lib/a.dart', '''
 typedef void VoidCallback();
-        
+
 class Button {
   final VoidCallback onPressed;
   Button({this.onPressed});
@@ -387,8 +387,8 @@ class PageState {
   build() =>
     new Button(
       onPressed: ^
-    );  
-}    
+    );
+}
 ''');
     await computeSuggestions();
 
@@ -450,7 +450,7 @@ void main() {expect(foo: ^)}''');
   Future<void> test_ArgumentList_namedParam_tear_off() async {
     addSource('/home/test/lib/a.dart', '''
 typedef void VoidCallback();
-        
+
 class Button {
   Button({VoidCallback onPressed});
 }
@@ -463,8 +463,8 @@ class PageState {
   build() =>
     new Button(
       onPressed: ^
-    );  
-}    
+    );
+}
 ''');
     await computeSuggestions();
 
@@ -478,7 +478,7 @@ class PageState {
   Future<void> test_ArgumentList_namedParam_tear_off_1() async {
     addSource('/home/test/lib/a.dart', '''
 typedef void VoidCallback();
-        
+
 class Button {
   Button({VoidCallback onPressed, int x});
 }
@@ -491,8 +491,8 @@ class PageState {
   build() =>
     new Button(
       onPressed: ^
-    );  
-}    
+    );
+}
 ''');
     await computeSuggestions();
 
@@ -506,7 +506,7 @@ class PageState {
   Future<void> test_ArgumentList_namedParam_tear_off_2() async {
     addSource('/home/test/lib/a.dart', '''
 typedef void VoidCallback();
-        
+
 class Button {
   Button({ int x, VoidCallback onPressed);
 }
@@ -519,8 +519,8 @@ class PageState {
   build() =>
     new Button(
       onPressed: ^
-    );  
-}    
+    );
+}
 ''');
     await computeSuggestions();
 
