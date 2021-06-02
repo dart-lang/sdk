@@ -23,17 +23,17 @@ void main() {
       0xc8, 0x03, 0x10, 0x80, 0x80, 0x80, 0x80, 0x00, 0x0b,
     ]);
 
-    var report_x = -1;
-    var report_y = -1;
+    var reportX = -1;
+    var reportY = -1;
 
     var inst = WasmModule(data).instantiate().addFunction('env', 'report',
         (int x, int y) {
-      report_x = x;
-      report_y = y;
+      reportX = x;
+      reportY = y;
     }).build();
     var fn = inst.lookupFunction('reportStuff');
     fn();
-    expect(123, report_x);
-    expect(456, report_y);
+    expect(123, reportX);
+    expect(456, reportY);
   });
 }

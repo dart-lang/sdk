@@ -88,14 +88,14 @@ Future<void> run(String exe, List<String> args) async {
   process.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
-      .listen((line) => print(line));
+      .listen(print);
   process.stderr
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((line) => stderr.writeln(line));
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
-    print('Command failed with exit code ${exitCode}');
+    print('Command failed with exit code $exitCode');
     exit(exitCode);
   }
 }
@@ -188,7 +188,7 @@ Future<void> main(List<String> args) async {
     target,
     outDir.resolve('dart_api_dl.o').path,
     outDir.resolve('finalizers.o').path,
-    outDir.resolve('' + target + '/release/libwasmer.a').path,
+    outDir.resolve('$target/release/libwasmer.a').path,
     '-o',
     outLib
   ]);

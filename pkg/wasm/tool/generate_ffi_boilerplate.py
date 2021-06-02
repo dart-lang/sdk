@@ -139,7 +139,7 @@ def getRuntimeMemb():
 
 def getRuntimeLoad():
     return '\n'.join([
-        "    %s = _lib.lookupFunction<NativeWasmer%sFn, Wasmer%sFn>('%s');" %
+        "    %s = _lib.lookupFunction<NativeWasmer%sFn, Wasmer%sFn>('%s',);" %
         (dartFnMembName(name), dartFnTypeName(name), dartFnTypeName(name), name)
         for name, _, _ in getFns()
     ])
@@ -380,10 +380,10 @@ def writeFile(filename, content):
 wasmerApiText = readFile('wasmer_api_template.dart.t')
 wasmerApiText = wasmerApiText.replace('/* <WASMER_API> */', getWasmerApi())
 wasmerApiText = wasmerApiText.replace('/* <GEN_DOC> */', genDoc)
-writeFile('wasmer_api.dart', wasmerApiText)
+writeFile('wasmer_api.g.dart', wasmerApiText)
 
 runtimeText = readFile('runtime_template.dart.t')
 runtimeText = runtimeText.replace('/* <RUNTIME_MEMB> */', getRuntimeMemb())
 runtimeText = runtimeText.replace('/* <RUNTIME_LOAD> */', getRuntimeLoad())
 runtimeText = runtimeText.replace('/* <GEN_DOC> */', genDoc)
-writeFile('runtime.dart', runtimeText)
+writeFile('runtime.g.dart', runtimeText)
