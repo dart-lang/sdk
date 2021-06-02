@@ -768,6 +768,9 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
       target::RoundedAllocationSize(target::Closure::InstanceSize());
   __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
                              AllocateClosureABI::kScratchReg);
+  __ EnsureHasClassIdInDEBUG(kContextCid, AllocateClosureABI::kContextReg,
+                             AllocateClosureABI::kScratchReg,
+                             /*can_be_null=*/true);
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ Comment("Inline allocation of uninitialized closure");
@@ -799,7 +802,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
     __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_function());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kContextReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_context());
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
@@ -834,7 +837,9 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
   __ PushRegister(AllocateClosureABI::kFunctionReg);
-  __ CallRuntime(kAllocateClosureRuntimeEntry, 1);
+  __ PushRegister(AllocateClosureABI::kContextReg);
+  __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
+  __ PopRegister(AllocateClosureABI::kContextReg);
   __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
   ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));

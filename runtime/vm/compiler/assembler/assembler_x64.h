@@ -885,7 +885,8 @@ class Assembler : public AssemblerBase {
 
   void EnsureHasClassIdInDEBUG(intptr_t cid,
                                Register src,
-                               Register scratch) override;
+                               Register scratch,
+                               bool can_be_null = false) override;
 
   // CheckClassIs fused with optimistic SmiUntag.
   // Value in the register object is untagged optimistically.

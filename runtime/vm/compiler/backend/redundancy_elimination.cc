@@ -227,6 +227,19 @@ class Place : public ValueObject {
     }
   }
 
+  // Construct a place from an allocation where the place represents a store to
+  // a slot that corresponds to the given input position.
+  // Otherwise, constructs a kNone place.
+  Place(AllocationInstr* alloc, intptr_t input_pos)
+      : flags_(0), instance_(nullptr), raw_selector_(0), id_(0) {
+    if (const Slot* slot = alloc->SlotForInput(input_pos)) {
+      set_representation(alloc->RequiredInputRepresentation(input_pos));
+      instance_ = alloc;
+      set_kind(kInstanceField);
+      instance_field_ = slot;
+    }
+  }
+
   bool IsConstant(Object* value) const {
     switch (kind()) {
       case kInstanceField:
@@ -1083,13 +1096,46 @@ class AliasedSet : public ZoneAllocated {
           }
         }
         return true;
+      } else if (auto* const alloc = instr->AsAllocation()) {
+        // Treat inputs to an allocation instruction exactly as if they were
+        // manually stored using a StoreInstanceField instruction.
+        if (alloc->Identity().IsAliased()) {
+          return true;
+        }
+        Place input_place(alloc, use->use_index());
+        if (HasLoadsFromPlace(alloc, &input_place)) {
+          return true;
+        }
+        if (alloc->Identity().IsUnknown()) {
+          alloc->SetIdentity(AliasIdentity::NotAliased());
+          aliasing_worklist_.Add(alloc);
+        }
       }
     }
     return false;
   }
 
+  void MarkDefinitionAsAliased(Definition* d) {
+    auto* const defn = d->OriginalDefinition();
+    if (defn->Identity().IsNotAliased()) {
+      defn->SetIdentity(AliasIdentity::Aliased());
+      identity_rollback_.Add(defn);
+
+      // Add to worklist to propagate the mark transitively.
+      aliasing_worklist_.Add(defn);
+    }
+  }
+
   // Mark any value stored into the given object as potentially aliased.
   void MarkStoredValuesEscaping(Definition* defn) {
+    // Find all inputs corresponding to fields if allocating an object.
+    if (auto* const alloc = defn->AsAllocation()) {
+      for (intptr_t i = 0; i < alloc->InputCount(); i++) {
+        if (auto* const slot = alloc->SlotForInput(i)) {
+          MarkDefinitionAsAliased(alloc->InputAt(i)->definition());
+        }
+      }
+    }
     // Find all stores into this object.
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
@@ -1100,15 +1146,8 @@ class AliasedSet : public ZoneAllocated {
       }
       if ((use->use_index() == StoreInstanceFieldInstr::kInstancePos) &&
           instr->IsStoreInstanceField()) {
-        StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
-        Definition* value = store->value()->definition()->OriginalDefinition();
-        if (value->Identity().IsNotAliased()) {
-          value->SetIdentity(AliasIdentity::Aliased());
-          identity_rollback_.Add(value);
-
-          // Add to worklist to propagate the mark transitively.
-          aliasing_worklist_.Add(value);
-        }
+        MarkDefinitionAsAliased(
+            instr->AsStoreInstanceField()->value()->definition());
       }
     }
   }
@@ -2014,31 +2053,56 @@ class LoadOptimizer : public ValueObject {
           continue;
         }
 
-        if (auto alloc = instr->AsAllocateObject()) {
+        if (auto* const alloc = instr->AsAllocation()) {
+          if (!alloc->ObjectIsInitialized()) {
+            // Since the allocated object is uninitialized, we can't forward
+            // any values from it.
+            continue;
+          }
           for (Value* use = alloc->input_use_list(); use != NULL;
                use = use->next_use()) {
-            // Look for all immediate loads/stores from this object.
             if (use->use_index() != 0) {
+              // Not a potential immediate load or store, since they take the
+              // instance as the first input.
               continue;
             }
+            intptr_t place_id = -1;
+            Definition* forward_def = nullptr;
             const Slot* slot = nullptr;
-            intptr_t place_id = 0;
-            if (auto load = use->instruction()->AsLoadField()) {
-              slot = &load->slot();
+            if (auto* const load = use->instruction()->AsLoadField()) {
               place_id = GetPlaceId(load);
-            } else if (auto store =
+              slot = &load->slot();
+            } else if (auto* const store =
                            use->instruction()->AsStoreInstanceField()) {
-              slot = &store->slot();
+              ASSERT(!alloc->IsArrayAllocation());
               place_id = GetPlaceId(store);
+              slot = &store->slot();
+            } else if (use->instruction()->IsLoadIndexed() ||
+                       use->instruction()->IsStoreIndexed()) {
+              ASSERT(alloc->IsArrayAllocation());
+              if (alloc->IsAllocateTypedData()) {
+                // Typed data payload elements are unboxed and initialized to
+                // zero, so don't forward a tagged null value.
+                continue;
+              }
+              if (aliased_set_->CanBeAliased(alloc)) {
+                continue;
+              }
+              place_id = GetPlaceId(use->instruction());
+              if (aliased_set_->places()[place_id]->kind() !=
+                  Place::kConstantIndexed) {
+                continue;
+              }
+              // Set initial value of array element to null.
+              forward_def = graph_->constant_null();
+            } else {
+              // Not an immediate load or store.
+              continue;
             }
 
+            ASSERT(place_id != -1);
             if (slot != nullptr) {
-              // Found a load/store. For object allocation, forward initial
-              // values of the fields to subsequent loads (and potential dead
-              // stores). For most fields, this is null, except for the type
-              // arguments slot. However, we do not forward an initial null
-              // value for final fields of escaping objects.
-              //
+              ASSERT(forward_def == nullptr);
               // Final fields are initialized in constructors. However, at the
               // same time we assume that known values of final fields can be
               // forwarded across side-effects. For an escaping object, one such
@@ -2051,89 +2115,20 @@ class LoadOptimizer : public ValueObject {
                 continue;
               }
 
-              Definition* forward_def = graph_->constant_null();
-              if (alloc->type_arguments() != nullptr) {
-                const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
-                    graph_->thread(), alloc->cls());
-                if (slot->IsIdentical(type_args_slot)) {
-                  forward_def = alloc->type_arguments()->definition();
-                }
+              const intptr_t pos = alloc->InputForSlot(*slot);
+              if (pos != -1) {
+                forward_def = alloc->InputAt(pos)->definition();
+              } else {
+                // Fields not provided as an input to the instruction are
+                // initialized to null during allocation.
+                forward_def = graph_->constant_null();
               }
-              gen->Add(place_id);
-              if (out_values == nullptr) out_values = CreateBlockOutValues();
-              (*out_values)[place_id] = forward_def;
-            }
-          }
-          continue;
-        } else if (auto alloc = instr->AsAllocateClosure()) {
-          for (Value* use = alloc->input_use_list(); use != nullptr;
-               use = use->next_use()) {
-            // Look for all immediate loads/stores from this object.
-            if (use->use_index() != 0) {
-              continue;
-            }
-            const Slot* slot = nullptr;
-            intptr_t place_id = 0;
-            if (auto load = use->instruction()->AsLoadField()) {
-              slot = &load->slot();
-              place_id = GetPlaceId(load);
-            } else if (auto store =
-                           use->instruction()->AsStoreInstanceField()) {
-              slot = &store->slot();
-              place_id = GetPlaceId(store);
             }
 
-            if (slot != nullptr) {
-              // Found a load/store. Initialize current value of the field
-              // to null.
-              //
-              // Note that unlike objects in general, there is no _Closure
-              // constructor in Dart code, but instead the FlowGraphBuilder
-              // explicitly initializes each non-null closure field in the flow
-              // graph with StoreInstanceField instructions post-allocation.
-              Definition* forward_def = graph_->constant_null();
-              // Forward values passed as AllocateClosureInstr inputs.
-              if (slot->IsIdentical(Slot::Closure_function())) {
-                forward_def = alloc->closure_function()->definition();
-              }
-              gen->Add(place_id);
-              if (out_values == nullptr) out_values = CreateBlockOutValues();
-              (*out_values)[place_id] = forward_def;
-            }
-          }
-          continue;
-        } else if (auto alloc = instr->AsCreateArray()) {
-          for (Value* use = alloc->input_use_list(); use != nullptr;
-               use = use->next_use()) {
-            // Look for all immediate loads/stores from this object.
-            if (use->use_index() != 0) {
-              continue;
-            }
-            intptr_t place_id = -1;
-            Definition* forward_def = nullptr;
-            if (auto load = use->instruction()->AsLoadField()) {
-              if (load->slot().IsTypeArguments()) {
-                place_id = GetPlaceId(load);
-                forward_def = alloc->type_arguments()->definition();
-              }
-            } else if (use->instruction()->IsLoadIndexed() ||
-                       use->instruction()->IsStoreIndexed()) {
-              if (aliased_set_->CanBeAliased(alloc)) {
-                continue;
-              }
-              place_id = GetPlaceId(use->instruction());
-              if (aliased_set_->places()[place_id]->kind() !=
-                  Place::kConstantIndexed) {
-                continue;
-              }
-              // Set initial value of array element to null.
-              forward_def = graph_->constant_null();
-            }
-            if (forward_def != nullptr) {
-              gen->Add(place_id);
-              if (out_values == nullptr) out_values = CreateBlockOutValues();
-              (*out_values)[place_id] = forward_def;
-            }
+            ASSERT(forward_def != nullptr);
+            gen->Add(place_id);
+            if (out_values == nullptr) out_values = CreateBlockOutValues();
+            (*out_values)[place_id] = forward_def;
           }
           continue;
         }
@@ -3098,12 +3093,14 @@ static bool IsSupportedAllocation(Instruction* instr) {
 enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 
 // Check if the use is safe for allocation sinking. Allocation sinking
-// candidates can only be used at store instructions:
+// candidates can only be used as inputs to store and allocation instructions:
 //
 //     - any store into the allocation candidate itself is unconditionally safe
 //       as it just changes the rematerialization state of this candidate;
-//     - store into another object is only safe if another object is allocation
-//       candidate.
+//     - store into another object is only safe if the other object is
+//       an allocation candidate.
+//     - use as input to another allocation is only safe if the other allocation
+//       is a candidate.
 //
 // We use a simple fix-point algorithm to discover the set of valid candidates
 // (see CollectCandidates method), that's why this IsSafeUse can operate in two
@@ -3122,6 +3119,12 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 
   if (use->instruction()->IsMaterializeObject()) {
     return true;
+  }
+
+  if (auto* const alloc = use->instruction()->AsAllocation()) {
+    return IsSupportedAllocation(alloc) &&
+           ((check_type == kOptimisticCheck) ||
+            alloc->Identity().IsAllocationSinkingCandidate());
   }
 
   if (auto* store = use->instruction()->AsStoreInstanceField()) {
@@ -3191,10 +3194,13 @@ static bool IsAllocationSinkingCandidate(Definition* alloc,
 // If the given use is a store into an object then return an object we are
 // storing into.
 static Definition* StoreDestination(Value* use) {
-  if (auto store = use->instruction()->AsStoreInstanceField()) {
+  if (auto* const alloc = use->instruction()->AsAllocation()) {
+    return alloc;
+  }
+  if (auto* const store = use->instruction()->AsStoreInstanceField()) {
     return store->instance()->definition();
   }
-  if (auto store = use->instruction()->AsStoreIndexed()) {
+  if (auto* const store = use->instruction()->AsStoreIndexed()) {
     return store->array()->definition();
   }
   return nullptr;
@@ -3222,11 +3228,36 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
               alloc->ssa_temp_index());
   }
 
-  // As an allocation sinking candidate it is only used in stores to its own
-  // fields. Remove these stores.
-  for (Value* use = alloc->input_use_list(); use != NULL;
-       use = alloc->input_use_list()) {
-    use->instruction()->RemoveFromGraph();
+  // As an allocation sinking candidate, remove stores to this candidate.
+  // Do this in a two-step process, as this allocation may be used multiple
+  // times in a single instruction (e.g., as the instance and the value in
+  // a StoreInstanceField). This means multiple entries may be removed from the
+  // use list when removing instructions, not just the current one, so
+  // Value::Iterator cannot be safely used.
+  GrowableArray<Instruction*> stores_to_remove;
+  for (Value* use = alloc->input_use_list(); use != nullptr;
+       use = use->next_use()) {
+    Instruction* const instr = use->instruction();
+    Definition* const instance = StoreDestination(use);
+    // All uses of a candidate should be stores or other allocations.
+    ASSERT(instance != nullptr);
+    if (instance == alloc) {
+      // An allocation instruction cannot be a direct input to itself.
+      ASSERT(!instr->IsAllocation());
+      stores_to_remove.Add(instr);
+    } else {
+      // The candidate is being stored into another candidate, either through
+      // a store instruction or as the input to a to-be-eliminated allocation,
+      // so this instruction will be removed with the other candidate.
+      ASSERT(candidates_.Contains(instance));
+    }
+  }
+
+  for (auto* const store : stores_to_remove) {
+    // Avoid calling RemoveFromGraph() more than once on the same instruction.
+    if (store->previous() != nullptr) {
+      store->RemoveFromGraph();
+    }
   }
 
 // There should be no environment uses. The pass replaced them with
@@ -3236,7 +3267,7 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
     ASSERT(use->instruction()->IsMaterializeObject());
   }
 #endif
-  ASSERT(alloc->input_use_list() == NULL);
+
   alloc->RemoveFromGraph();
 }
 
@@ -3482,7 +3513,8 @@ void AllocationSinking::Optimize() {
 
   // At this point we have computed the state of object at each deoptimization
   // point and we can eliminate it. Loads inserted above were forwarded so there
-  // are no uses of the allocation just as in the begging of the pass.
+  // are no uses of the allocation outside other candidates to eliminate, just
+  // as in the beginning of the pass.
   for (intptr_t i = 0; i < candidates_.length(); i++) {
     EliminateAllocation(candidates_[i]);
   }
@@ -3511,14 +3543,10 @@ void AllocationSinking::DetachMaterializations() {
 }
 
 // Add a field/offset to the list of fields if it is not yet present there.
-static bool AddSlot(ZoneGrowableArray<const Slot*>* slots, const Slot& slot) {
-  for (auto s : *slots) {
-    if (s == &slot) {
-      return false;
-    }
+static void AddSlot(ZoneGrowableArray<const Slot*>* slots, const Slot& slot) {
+  if (!slots->Contains(&slot)) {
+    slots->Add(&slot);
   }
-  slots->Add(&slot);
-  return true;
 }
 
 // Find deoptimization exit for the given materialization assuming that all
@@ -3711,6 +3739,8 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
   for (Value* use = alloc->input_use_list(); use != NULL;
        use = use->next_use()) {
     if (StoreDestination(use) == alloc) {
+      // Allocation instructions cannot be used in as inputs to themselves.
+      ASSERT(!use->instruction()->AsAllocation());
       if (auto store = use->instruction()->AsStoreInstanceField()) {
         AddSlot(slots, store->slot());
       } else if (auto store = use->instruction()->AsStoreIndexed()) {
@@ -3729,26 +3759,17 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     }
   }
 
-  if (auto alloc_object = alloc->AsAllocateObject()) {
-    if (alloc_object->type_arguments() != nullptr) {
-      AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
-                                                   alloc_object->cls()));
+  if (auto* const allocation = alloc->AsAllocation()) {
+    for (intptr_t pos = 0; pos < allocation->InputCount(); pos++) {
+      if (auto* const slot = allocation->SlotForInput(pos)) {
+        // Don't add slots for immutable length slots if not already added
+        // above, as they are already represented as the number of elements in
+        // the MaterializeObjectInstr.
+        if (!slot->IsImmutableLengthSlot()) {
+          AddSlot(slots, *slot);
+        }
+      }
     }
-  }
-  if (auto alloc_closure = alloc->AsAllocateClosure()) {
-    // Add slots for any instruction inputs. Any closure slots not listed below
-    // that are non-null are explicitly initialized post-allocation using
-    // StoreInstanceField instructions.
-    AddSlot(slots, Slot::Closure_function());
-  }
-  if (alloc->IsCreateArray()) {
-    AddSlot(
-        slots,
-        Slot::GetTypeArgumentsSlotFor(
-            flow_graph_->thread(),
-            Class::Handle(
-                Z,
-                flow_graph_->isolate_group()->object_store()->array_class())));
   }
 
   // Collect all instructions that mention this object in the environment.

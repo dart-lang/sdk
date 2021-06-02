@@ -831,7 +831,8 @@ class Assembler : public AssemblerBase {
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
   void EnsureHasClassIdInDEBUG(intptr_t cid,
                                Register src,
-                               Register scratch) override;
+                               Register scratch,
+                               bool can_be_null = false) override;
 
   void SmiUntagOrCheckClass(Register object,
                             intptr_t class_id,

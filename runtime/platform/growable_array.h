@@ -66,6 +66,21 @@ class BaseGrowableArray : public B {
     length_ = length;
   }
 
+  inline bool Contains(const T& other,
+                       bool isEqual(const T&, const T&) = nullptr) const {
+    for (const auto& value : *this) {
+      if (value == other) {
+        // Value identity should imply isEqual.
+        ASSERT(isEqual == nullptr || isEqual(value, other));
+        return true;
+      }
+      if (isEqual != nullptr && isEqual(value, other)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void Add(const T& value) {
     Resize(length() + 1);
     Last() = value;
