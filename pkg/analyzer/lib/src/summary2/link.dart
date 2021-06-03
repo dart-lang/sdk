@@ -251,12 +251,6 @@ class LinkInputLibrary {
     required this.units,
   });
 
-  @Deprecated('Use LinkInputLibrary() with instead')
-  LinkInputLibrary.tmp1({
-    required this.source,
-    required this.units,
-  });
-
   Uri get uri => source.uri;
 
   String get uriStr => '$uri';
@@ -270,15 +264,6 @@ class LinkInputUnit {
   final ast.CompilationUnit unit;
 
   LinkInputUnit({
-    required this.partDirectiveIndex,
-    this.partUriStr,
-    required this.source,
-    required this.isSynthetic,
-    required this.unit,
-  });
-
-  @Deprecated('Use LinkInputUnit() with instead')
-  LinkInputUnit.tmp1({
     required this.partDirectiveIndex,
     this.partUriStr,
     required this.source,
