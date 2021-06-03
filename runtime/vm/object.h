@@ -417,8 +417,8 @@ class Object {
     return obj->untag()->GetHeaderHash();
   }
 
-  static void SetCachedHash(ObjectPtr obj, uint32_t hash) {
-    obj->untag()->SetHeaderHash(hash);
+  static uint32_t SetCachedHashIfNotSet(ObjectPtr obj, uint32_t hash) {
+    return obj->untag()->SetHeaderHashIfNotSet(hash);
   }
 #endif
 
@@ -9079,7 +9079,8 @@ class String : public Instance {
       return result;
     }
     result = String::Hash(*this, 0, this->Length());
-    SetCachedHash(ptr(), result);
+    uword set_hash = SetCachedHashIfNotSet(ptr(), result);
+    ASSERT(set_hash == result);
     return result;
   }
 
@@ -9326,8 +9327,18 @@ class String : public Instance {
     return Smi::Value(obj->untag()->hash_);
   }
 
-  static void SetCachedHash(StringPtr obj, uint32_t hash) {
+  static uint32_t SetCachedHashIfNotSet(StringPtr obj, uint32_t hash) {
+    ASSERT(Smi::Value(obj->untag()->hash_) == 0 ||
+           Smi::Value(obj->untag()->hash_) == static_cast<intptr_t>(hash));
+    return SetCachedHash(obj, hash);
+  }
+  static uint32_t SetCachedHash(StringPtr obj, uint32_t hash) {
     obj->untag()->hash_ = Smi::New(hash);
+    return hash;
+  }
+#else
+  static uint32_t SetCachedHash(StringPtr obj, uint32_t hash) {
+    return Object::SetCachedHashIfNotSet(obj, hash);
   }
 #endif
 
@@ -9344,7 +9355,10 @@ class String : public Instance {
     untag()->set_length(Smi::New(value));
   }
 
-  void SetHash(intptr_t value) const { SetCachedHash(ptr(), value); }
+  void SetHash(intptr_t value) const {
+    const intptr_t hash_set = SetCachedHashIfNotSet(ptr(), value);
+    ASSERT(hash_set == value);
+  }
 
   template <typename HandleType, typename ElementType, typename CallbackType>
   static void ReadFromImpl(SnapshotReader* reader,

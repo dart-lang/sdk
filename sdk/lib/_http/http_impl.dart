@@ -1583,7 +1583,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     headers._finalize();
 
     // Write headers.
-    headers._build(buffer);
+    headers._build(buffer,
+        skipZeroContentLength: method == "CONNECT" ||
+            method == "DELETE" ||
+            method == "GET" ||
+            method == "HEAD");
     buffer.addByte(_CharCode.CR);
     buffer.addByte(_CharCode.LF);
     Uint8List headerBytes = buffer.takeBytes();

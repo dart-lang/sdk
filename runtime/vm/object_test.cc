@@ -4335,7 +4335,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
 }
 
 ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
-  char buffer[1024];
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
   Isolate* isolate = Isolate::Current();
 
   // Class reference
@@ -4343,7 +4345,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     cls.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
 
     EXPECT_STREQ(
@@ -4366,7 +4370,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         Function::Handle(Resolver::ResolveFunction(Z, cls, func_name));
     ASSERT(!func.IsNull());
     func.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
@@ -4392,7 +4398,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     Library& lib =
         Library::Handle(isolate->group()->object_store()->core_library());
     lib.PrintJSON(&js, true);
-    ElideJSONSubstring("libraries", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("libraries", json_str, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}",
@@ -4402,7 +4410,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   {
     JSONStream js;
     Bool::True().PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"Bool\",\"class\":{\"type\":\"@"
@@ -4421,7 +4431,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Integer& smi = Integer::Handle(Integer::New(7));
     smi.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("_Smi@", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
@@ -4441,7 +4453,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Integer& smi = Integer::Handle(Integer::New(Mint::kMinValue));
     smi.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Mint@", buffer, buffer);
@@ -4462,7 +4476,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Double& dub = Double::Handle(Double::New(0.1234));
     dub.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Double@", buffer, buffer);
@@ -4483,7 +4499,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const String& str = String::Handle(String::New("dw"));
     str.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_OneByteString@", buffer, buffer);
@@ -4504,7 +4522,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Array& array = Array::Handle(Array::New(0));
     array.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_List@", buffer, buffer);
@@ -4525,7 +4545,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     const GrowableObjectArray& array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     array.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_GrowableList@", buffer, buffer);
@@ -4547,7 +4569,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     const LinkedHashMap& array =
         LinkedHashMap::Handle(LinkedHashMap::NewDefault());
     array.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_InternalLinkedHashMap@", buffer, buffer);
@@ -4569,7 +4593,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Instance& tag = Instance::Handle(isolate->default_tag());
     tag.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_UserTag@", buffer, buffer);
@@ -4597,7 +4623,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     Instance& type =
         Instance::Handle(isolate->group()->object_store()->bool_type());
     type.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_Type@", buffer, buffer);
@@ -4628,7 +4656,9 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   {
     JSONStream js;
     Object::null_object().PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    const char* json_str = js.ToCString();
+    ASSERT(strlen(json_str) < kBufferSize);
+    ElideJSONSubstring("classes", json_str, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"null\",\"class\":{\"type\":\"@"

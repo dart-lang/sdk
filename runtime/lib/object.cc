@@ -52,19 +52,15 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Object_setHashIfNotSetYet, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
-  const intptr_t current_hash = GetHash(isolate, arguments->NativeArgAt(0));
-  if (current_hash != 0) {
-    return Smi::New(current_hash);
-  }
 #if defined(HASH_IN_OBJECT_HEADER)
-  Object::SetCachedHash(arguments->NativeArgAt(0), hash.Value());
+  return Smi::New(
+      Object::SetCachedHashIfNotSet(arguments->NativeArgAt(0), hash.Value()));
 #else
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  Heap* heap = isolate->group()->heap();
-  heap->SetHash(instance.ptr(), hash.Value());
+  Heap* heap = thread->heap();
+  return Smi::New(heap->SetHashIfNotSet(instance.ptr(), hash.Value()));
 #endif
-  return hash.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Object_toString, 0, 1) {

@@ -1323,7 +1323,7 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
           counter_ += 2011;  // The year Dart was announced and a prime.
           counter_ &= 0x3fffffff;
           if (counter_ == 0) counter_++;
-          Object::SetCachedHash(obj, counter_);
+          Object::SetCachedHashIfNotSet(obj, counter_);
         }
       }
 #endif
@@ -1431,7 +1431,7 @@ void Object::FinalizeReadOnlyObject(ObjectPtr object) {
     OneByteStringPtr str = static_cast<OneByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
       intptr_t hash = String::Hash(str);
-      String::SetCachedHash(str, hash);
+      String::SetCachedHashIfNotSet(str, hash);
     }
     intptr_t size = OneByteString::UnroundedSize(str);
     ASSERT(size <= str->untag()->HeapSize());
@@ -1441,7 +1441,7 @@ void Object::FinalizeReadOnlyObject(ObjectPtr object) {
     TwoByteStringPtr str = static_cast<TwoByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
       intptr_t hash = String::Hash(str);
-      String::SetCachedHash(str, hash);
+      String::SetCachedHashIfNotSet(str, hash);
     }
     ASSERT(String::GetCachedHash(str) != 0);
     intptr_t size = TwoByteString::UnroundedSize(str);
@@ -1453,14 +1453,14 @@ void Object::FinalizeReadOnlyObject(ObjectPtr object) {
         static_cast<ExternalOneByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
       intptr_t hash = String::Hash(str);
-      String::SetCachedHash(str, hash);
+      String::SetCachedHashIfNotSet(str, hash);
     }
   } else if (cid == kExternalTwoByteStringCid) {
     ExternalTwoByteStringPtr str =
         static_cast<ExternalTwoByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
       intptr_t hash = String::Hash(str);
-      String::SetCachedHash(str, hash);
+      String::SetCachedHashIfNotSet(str, hash);
     }
   } else if (cid == kCodeSourceMapCid) {
     CodeSourceMapPtr map = CodeSourceMap::RawCast(object);
@@ -2592,6 +2592,9 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
+#if defined(HASH_IN_OBJECT_HEADER)
+  tags = UntaggedObject::HashTag::update(0, tags);
+#endif
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
 }
 
@@ -23712,7 +23715,9 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
-    result.SetHash(0);
+#if !defined(HASH_IN_OBJECT_HEADER)
+    result.ptr()->untag()->set_hash(Smi::New(0));
+#endif
   }
   return TwoByteString::raw(result);
 }
@@ -23869,7 +23874,9 @@ ExternalOneByteStringPtr ExternalOneByteString::New(
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
-    result.SetHash(0);
+#if !defined(HASH_IN_OBJECT_HEADER)
+    result.ptr()->untag()->set_hash(Smi::New(0));
+#endif
     SetExternalData(result, data, peer);
   }
   AddFinalizer(result, peer, callback, external_allocation_size);
@@ -23899,7 +23906,9 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
-    result.SetHash(0);
+#if !defined(HASH_IN_OBJECT_HEADER)
+    result.ptr()->untag()->set_hash(Smi::New(0));
+#endif
     SetExternalData(result, data, peer);
   }
   AddFinalizer(result, peer, callback, external_allocation_size);

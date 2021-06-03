@@ -169,8 +169,12 @@ ISOLATE_UNIT_TEST_CASE(JSON_JSONStream_DartObject) {
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("object_key", Object::Handle(Object::null()));
   }
-  char buffer[1024];
-  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 2048;
+  char buffer[kBufferSize];
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
   ElideJSONSubstring("libraries", buffer, buffer);
   ElideJSONSubstring("objects", buffer, buffer);
   EXPECT_STREQ(
