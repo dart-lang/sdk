@@ -4,59 +4,11 @@
 
 /* <GEN_DOC> */
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:ffi';
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:ffi/ffi.dart';
-import 'wasmer_api.dart';
+// ignore_for_file: cascade_invocations
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: unused_field
 
-class WasmImportDescriptor {
-  int kind;
-  String moduleName;
-  String name;
-  Pointer<WasmerFunctype> funcType;
-  WasmImportDescriptor(this.kind, this.moduleName, this.name, this.funcType);
-
-  @override
-  String toString() {
-    var kindName = wasmerExternKindName(kind);
-    if (kind == WasmerExternKindFunction) {
-      var runtime = WasmRuntime();
-      var sig = WasmRuntime.getSignatureString('${moduleName}::${name}',
-          runtime.getArgTypes(funcType), runtime.getReturnType(funcType));
-      return '$kindName: $sig';
-    } else {
-      return '$kindName: ${moduleName}::${name}';
-    }
-  }
-}
-
-class WasmExportDescriptor {
-  int kind;
-  String name;
-  Pointer<WasmerFunctype> funcType;
-  WasmExportDescriptor(this.kind, this.name, this.funcType);
-
-  @override
-  String toString() {
-    var kindName = wasmerExternKindName(kind);
-    if (kind == WasmerExternKindFunction) {
-      var runtime = WasmRuntime();
-      var sig = WasmRuntime.getSignatureString(
-          name, runtime.getArgTypes(funcType), runtime.getReturnType(funcType));
-      return '$kindName: $sig';
-    } else {
-      return '$kindName: ${name}';
-    }
-  }
-}
-
-class _WasmTrapsEntry {
-  dynamic exception;
-  _WasmTrapsEntry(this.exception);
-}
+part of 'runtime.dart';
 
 class WasmRuntime {
   static WasmRuntime? _inst;
@@ -64,39 +16,10 @@ class WasmRuntime {
   DynamicLibrary _lib;
   late Pointer<WasmerEngine> _engine;
   Map<int, _WasmTrapsEntry> traps = {};
+
 /* <RUNTIME_MEMB> */
 
-  factory WasmRuntime() {
-    return _inst ??= WasmRuntime._init();
-  }
-
-  static String _getLibName() {
-    if (Platform.isMacOS) return 'libwasmer.dylib';
-    if (Platform.isLinux) return 'libwasmer.so';
-    // TODO(dartbug.com/37882): Support more platforms.
-    throw Exception('Wasm not currently supported on this platform');
-  }
-
-  static String? _getLibPathFrom(Uri root) {
-    // The dynamic library created by pub run wasm:setup is located relative to
-    // the package_config.json file, so walk up from the script directory until
-    // we find it.
-    do {
-      if (File.fromUri(root.resolve('.dart_tool/package_config.json'))
-          .existsSync()) {
-        return root.resolve('.dart_tool/wasm/' + _getLibName()).path;
-      }
-    } while (root != (root = root.resolve('..')));
-    return null;
-  }
-
-  static String _getLibPath() {
-    var path = _getLibPathFrom(Platform.script.resolve('./'));
-    if (path != null) return path;
-    path = _getLibPathFrom(Directory.current.uri);
-    if (path != null) return path;
-    throw Exception('Wasm library not found. Did you `pub run wasm:setup`?');
-  }
+  factory WasmRuntime() => _inst ??= WasmRuntime._init();
 
   WasmRuntime._init() : _lib = DynamicLibrary.open(_getLibPath()) {
 /* <RUNTIME_LOAD> */
@@ -111,13 +34,19 @@ class WasmRuntime {
 
   Pointer<WasmerStore> newStore(Object owner) {
     var store = _checkNotEqual(
-        _store_new(_engine), nullptr, 'Failed to create Wasm store.');
+      _store_new(_engine),
+      nullptr,
+      'Failed to create Wasm store.',
+    );
     _set_finalizer_for_store(owner, store);
     return store;
   }
 
   Pointer<WasmerModule> compile(
-      Object owner, Pointer<WasmerStore> store, Uint8List data) {
+    Object owner,
+    Pointer<WasmerStore> store,
+    Uint8List data,
+  ) {
     var dataPtr = calloc<Uint8>(data.length);
     for (var i = 0; i < data.length; ++i) {
       dataPtr[i] = data[i];
@@ -147,8 +76,13 @@ class WasmRuntime {
       var fnType = kind == WasmerExternKindFunction
           ? _externtype_as_functype(extern)
           : nullptr;
-      exps.add(WasmExportDescriptor(
-          kind, _exporttype_name(exp).ref.toString(), fnType));
+      exps.add(
+        WasmExportDescriptor(
+          kind,
+          _exporttype_name(exp).ref.toString(),
+          fnType,
+        ),
+      );
     }
     calloc.free(exportsVec);
     return exps;
@@ -165,11 +99,14 @@ class WasmRuntime {
       var fnType = kind == WasmerExternKindFunction
           ? _externtype_as_functype(extern)
           : nullptr;
-      imps.add(WasmImportDescriptor(
+      imps.add(
+        WasmImportDescriptor(
           kind,
           _importtype_module(imp).ref.toString(),
           _importtype_name(imp).ref.toString(),
-          fnType));
+          fnType,
+        ),
+      );
     }
     calloc.free(importsVec);
     return imps;
@@ -185,6 +122,7 @@ class WasmRuntime {
       var entry = traps[trap.address];
       if (entry != null) {
         traps.remove(entry);
+        // ignore: only_throw_errors
         throw entry.exception;
       } else {
         var trapMessage = calloc<WasmerByteVec>();
@@ -198,8 +136,12 @@ class WasmRuntime {
     }
   }
 
-  Pointer<WasmerInstance> instantiate(Object owner, Pointer<WasmerStore> store,
-      Pointer<WasmerModule> module, Pointer<WasmerExternVec> imports) {
+  Pointer<WasmerInstance> instantiate(
+    Object owner,
+    Pointer<WasmerStore> store,
+    Pointer<WasmerModule> module,
+    Pointer<WasmerExternVec> imports,
+  ) {
     var trap = calloc<Pointer<WasmerTrap>>();
     trap.value = nullptr;
     var inst = _instance_new(store, module, imports, trap);
@@ -222,17 +164,13 @@ class WasmRuntime {
     calloc.free(exports);
   }
 
-  int externKind(Pointer<WasmerExtern> extern) {
-    return _extern_kind(extern);
-  }
+  int externKind(Pointer<WasmerExtern> extern) => _extern_kind(extern);
 
-  Pointer<WasmerFunc> externToFunction(Pointer<WasmerExtern> extern) {
-    return _extern_as_func(extern);
-  }
+  Pointer<WasmerFunc> externToFunction(Pointer<WasmerExtern> extern) =>
+      _extern_as_func(extern);
 
-  Pointer<WasmerExtern> functionToExtern(Pointer<WasmerFunc> func) {
-    return _func_as_extern(func);
-  }
+  Pointer<WasmerExtern> functionToExtern(Pointer<WasmerFunc> func) =>
+      _func_as_extern(func);
 
   List<int> getArgTypes(Pointer<WasmerFunctype> funcType) {
     var types = <int>[];
@@ -253,21 +191,27 @@ class WasmRuntime {
     return _valtype_kind(rets.ref.data[0]);
   }
 
-  void call(Pointer<WasmerFunc> func, Pointer<WasmerValVec> args,
-      Pointer<WasmerValVec> results, String source) {
+  void call(
+    Pointer<WasmerFunc> func,
+    Pointer<WasmerValVec> args,
+    Pointer<WasmerValVec> results,
+    String source,
+  ) {
     maybeThrowTrap(_func_call(func, args, results), source);
   }
 
-  Pointer<WasmerMemory> externToMemory(Pointer<WasmerExtern> extern) {
-    return _extern_as_memory(extern);
-  }
+  Pointer<WasmerMemory> externToMemory(Pointer<WasmerExtern> extern) =>
+      _extern_as_memory(extern);
 
-  Pointer<WasmerExtern> memoryToExtern(Pointer<WasmerMemory> memory) {
-    return _memory_as_extern(memory);
-  }
+  Pointer<WasmerExtern> memoryToExtern(Pointer<WasmerMemory> memory) =>
+      _memory_as_extern(memory);
 
   Pointer<WasmerMemory> newMemory(
-      Object owner, Pointer<WasmerStore> store, int pages, int? maxPages) {
+    Object owner,
+    Pointer<WasmerStore> store,
+    int pages,
+    int? maxPages,
+  ) {
     var limPtr = calloc<WasmerLimits>();
     limPtr.ref.min = pages;
     limPtr.ref.max = maxPages ?? wasm_limits_max_default;
@@ -276,39 +220,48 @@ class WasmRuntime {
     _checkNotEqual(memType, nullptr, 'Failed to create memory type.');
     _set_finalizer_for_memorytype(owner, memType);
     var memory = _checkNotEqual(
-        _memory_new(store, memType), nullptr, 'Failed to create memory.');
+      _memory_new(store, memType),
+      nullptr,
+      'Failed to create memory.',
+    );
     _set_finalizer_for_memory(owner, memory);
     return memory;
   }
 
   void growMemory(Pointer<WasmerMemory> memory, int deltaPages) {
     _checkNotEqual(
-        _memory_grow(memory, deltaPages), 0, 'Failed to grow memory.');
+      _memory_grow(memory, deltaPages),
+      0,
+      'Failed to grow memory.',
+    );
   }
 
-  int memoryLength(Pointer<WasmerMemory> memory) {
-    return _memory_size(memory);
-  }
+  int memoryLength(Pointer<WasmerMemory> memory) => _memory_size(memory);
 
-  Uint8List memoryView(Pointer<WasmerMemory> memory) {
-    return _memory_data(memory).asTypedList(_memory_data_size(memory));
-  }
+  Uint8List memoryView(Pointer<WasmerMemory> memory) =>
+      _memory_data(memory).asTypedList(_memory_data_size(memory));
 
   Pointer<WasmerFunc> newFunc(
-      Object owner,
-      Pointer<WasmerStore> store,
-      Pointer<WasmerFunctype> funcType,
-      Pointer func,
-      Pointer env,
-      Pointer finalizer) {
+    Object owner,
+    Pointer<WasmerStore> store,
+    Pointer<WasmerFunctype> funcType,
+    Pointer func,
+    Pointer env,
+    Pointer finalizer,
+  ) {
     var f = _func_new_with_env(
-        store, funcType, func.cast(), env.cast(), finalizer.cast());
+      store,
+      funcType,
+      func.cast(),
+      env.cast(),
+      finalizer.cast(),
+    );
     _checkNotEqual(f, nullptr, 'Failed to create function.');
     _set_finalizer_for_func(owner, f);
     return f;
   }
 
-  Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, dynamic exception) {
+  Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, Object exception) {
     var msg = calloc<WasmerByteVec>();
     msg.ref.data = calloc<Uint8>();
     msg.ref.data[0] = 0;
@@ -339,29 +292,38 @@ class WasmRuntime {
     _wasi_config_inherit_stderr(config);
   }
 
-  Pointer<WasmerWasiEnv> newWasiEnv(Pointer<WasmerWasiConfig> config) {
-    return _checkNotEqual(
-        _wasi_env_new(config), nullptr, 'Failed to create WASI environment.');
-  }
+  Pointer<WasmerWasiEnv> newWasiEnv(Pointer<WasmerWasiConfig> config) =>
+      _checkNotEqual(
+        _wasi_env_new(config),
+        nullptr,
+        'Failed to create WASI environment.',
+      );
 
   void wasiEnvSetMemory(
-      Pointer<WasmerWasiEnv> env, Pointer<WasmerMemory> memory) {
+    Pointer<WasmerWasiEnv> env,
+    Pointer<WasmerMemory> memory,
+  ) {
     _wasi_env_set_memory(env, memory);
   }
 
-  void getWasiImports(Pointer<WasmerStore> store, Pointer<WasmerModule> mod,
-      Pointer<WasmerWasiEnv> env, Pointer<WasmerExternVec> imports) {
-    _checkNotEqual(_wasi_get_imports(store, mod, env, imports), 0,
-        'Failed to fill WASI imports.');
+  void getWasiImports(
+    Pointer<WasmerStore> store,
+    Pointer<WasmerModule> mod,
+    Pointer<WasmerWasiEnv> env,
+    Pointer<WasmerExternVec> imports,
+  ) {
+    _checkNotEqual(
+      _wasi_get_imports(store, mod, env, imports),
+      0,
+      'Failed to fill WASI imports.',
+    );
   }
 
-  Stream<List<int>> getWasiStdoutStream(Pointer<WasmerWasiEnv> env) {
-    return Stream.fromIterable(_WasiStreamIterable(env, _wasi_env_read_stdout));
-  }
+  Stream<List<int>> getWasiStdoutStream(Pointer<WasmerWasiEnv> env) =>
+      Stream.fromIterable(_WasiStreamIterable(env, _wasi_env_read_stdout));
 
-  Stream<List<int>> getWasiStderrStream(Pointer<WasmerWasiEnv> env) {
-    return Stream.fromIterable(_WasiStreamIterable(env, _wasi_env_read_stderr));
-  }
+  Stream<List<int>> getWasiStderrStream(Pointer<WasmerWasiEnv> env) =>
+      Stream.fromIterable(_WasiStreamIterable(env, _wasi_env_read_stderr));
 
   String _getLastError() {
     var length = _wasmer_last_error_length();
@@ -380,34 +342,10 @@ class WasmRuntime {
   }
 
   static String getSignatureString(
-      String name, List<int> argTypes, int returnType) {
-    return '${wasmerValKindName(returnType)} $name'
-        "(${argTypes.map(wasmerValKindName).join(", ")})";
-  }
-}
-
-class _WasiStreamIterator implements Iterator<List<int>> {
-  static final int _bufferLength = 1024;
-  final Pointer<WasmerWasiEnv> _env;
-  final Function _reader;
-  final Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
-  int _length = 0;
-  _WasiStreamIterator(this._env, this._reader);
-
-  @override
-  bool moveNext() {
-    _length = _reader(_env, _buf, _bufferLength);
-    return true;
-  }
-
-  @override
-  List<int> get current => _buf.asTypedList(_length);
-}
-
-class _WasiStreamIterable extends Iterable<List<int>> {
-  final Pointer<WasmerWasiEnv> _env;
-  final Function _reader;
-  _WasiStreamIterable(this._env, this._reader);
-  @override
-  Iterator<List<int>> get iterator => _WasiStreamIterator(_env, _reader);
+    String name,
+    List<int> argTypes,
+    int returnType,
+  ) =>
+      '${wasmerValKindName(returnType)} '
+      "$name(${argTypes.map(wasmerValKindName).join(", ")})";
 }

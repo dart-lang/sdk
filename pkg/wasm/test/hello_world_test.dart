@@ -173,8 +173,8 @@ void main() {
     ]);
 
     late WasmMemory mem;
-    var out = '';
-    var getI32 = (int p) {
+    var out = StringBuffer();
+    int getI32(int p) {
       // Read a little-endian I32.
       var n = 0;
       for (var i = p + 3; i >= p; --i) {
@@ -182,28 +182,29 @@ void main() {
         n += mem[i];
       }
       return n;
-    };
+    }
+
     var inst = WasmModule(data)
         .instantiate()
         .addFunction('wasi_unstable', 'fd_write',
-            (int fd, int iovs, int iovs_len, int unused) {
+            (int fd, int iovs, int iovsLen, int unused) {
       // iovs points to an array of length iovs_len. Each element is two I32s,
       // a char* and a length.
-      var o = '';
-      for (var i = 0; i < iovs_len; ++i) {
+      var o = StringBuffer();
+      for (var i = 0; i < iovsLen; ++i) {
         var str = getI32(iovs + 8 * i);
         var len = getI32(iovs + 4 + 8 * i);
         for (var j = 0; j < len; ++j) {
-          o += String.fromCharCode(mem[str + j]);
+          o.write(String.fromCharCode(mem[str + j]));
         }
       }
-      out += o;
+      out.write(o.toString());
       return o.length;
     }).build();
     mem = inst.memory;
 
     var fn = inst.lookupFunction('_start');
     fn();
-    expect(out, 'hello, world!\n');
+    expect(out.toString(), 'hello, world!\n');
   });
 }

@@ -36,16 +36,16 @@ void main() {
     var addF64 = inst.lookupFunction('addF64');
     var addF32 = inst.lookupFunction('addF32');
 
-    int i64 = addI64(0x123456789ABCDEF, 0xFEDCBA987654321);
+    var i64 = addI64(0x123456789ABCDEF, 0xFEDCBA987654321) as int;
     expect(i64, 0x1111111111111110);
 
-    int i32 = addI32(0xABCDEF, 0xFEDCBA);
+    var i32 = addI32(0xABCDEF, 0xFEDCBA) as int;
     expect(i32, 0x1aaaaa9);
 
-    double f64 = addF64(1234.5678, 8765.4321);
+    var f64 = addF64(1234.5678, 8765.4321) as double;
     expect(f64, closeTo(9999.9999, 1e-6));
 
-    double f32 = addF32(1234.5678, 8765.4321);
+    var f32 = addF32(1234.5678, 8765.4321) as double;
     expect(f32, closeTo(9999.9999, 1e-3));
   });
 }

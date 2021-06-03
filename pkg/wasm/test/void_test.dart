@@ -30,7 +30,7 @@ void main() {
     var setFn = inst.lookupFunction('set');
     var getFn = inst.lookupFunction('get');
     expect(setFn(123, 456), isNull);
-    int n = getFn();
+    var n = getFn() as int;
     expect(n, 123 + 456);
   });
 }

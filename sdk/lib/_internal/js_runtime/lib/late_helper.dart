@@ -4,7 +4,7 @@
 
 library _late_helper;
 
-import 'dart:_internal' show LateError;
+import 'dart:_internal' show LateError, createSentinel, isSentinel;
 
 void throwLateFieldADI(String fieldName) => throw LateError.fieldADI(fieldName);
 
@@ -108,4 +108,24 @@ class _InitializedCell {
     if (!identical(_value, this)) throw LateError.localAI(_name);
     _value = v;
   }
+}
+
+// Helpers for lowering late instance fields:
+// TODO(fishythefish): Support specialization of sentinels based on type.
+
+@pragma('dart2js:noInline')
+@pragma('dart2js:as:trust')
+T _lateReadCheck<T>(Object? value, String name) {
+  if (isSentinel(value)) throw LateError.fieldNI(name);
+  return value as T;
+}
+
+@pragma('dart2js:noInline')
+void _lateWriteOnceCheck(Object? value, String name) {
+  if (!isSentinel(value)) throw LateError.fieldAI(name);
+}
+
+@pragma('dart2js:noInline')
+void _lateInitializeOnceCheck(Object? value, String name) {
+  if (!isSentinel(value)) throw LateError.fieldADI(name);
 }

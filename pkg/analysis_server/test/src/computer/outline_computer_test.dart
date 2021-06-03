@@ -1026,9 +1026,9 @@ mixin M<N> {
     var unitOutline = await _computeOutline('''
 class A {
   int fieldA, fieldB = 2;
-  
+
   int fieldC;
-  
+
   /// Documentation.
   int fieldD;
 }
@@ -1071,10 +1071,10 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldC');
 
-      expect(outline.offset, 41);
+      expect(outline.offset, 39);
       expect(outline.length, 11);
 
-      expect(outline.codeOffset, 45);
+      expect(outline.codeOffset, 43);
       expect(outline.codeLength, 6);
     }
 
@@ -1085,10 +1085,10 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldD');
 
-      expect(outline.offset, 58);
+      expect(outline.offset, 54);
       expect(outline.length, 32);
 
-      expect(outline.codeOffset, 83);
+      expect(outline.codeOffset, 79);
       expect(outline.codeLength, 6);
     }
   }
@@ -1136,7 +1136,7 @@ class B {}
     var unitOutline = await _computeOutline('''
 class A {
   int methodA() {}
-  
+
   /// Documentation.
   @override
   int methodB() {}
@@ -1166,10 +1166,10 @@ class A {
       expect(element.kind, ElementKind.METHOD);
       expect(element.name, 'methodB');
 
-      expect(outline.offset, 34);
+      expect(outline.offset, 32);
       expect(outline.length, 49);
 
-      expect(outline.codeOffset, 67);
+      expect(outline.codeOffset, 65);
       expect(outline.codeLength, 16);
     }
   }

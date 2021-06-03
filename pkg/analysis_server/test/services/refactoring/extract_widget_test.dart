@@ -547,7 +547,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String foo;
-  
+
   MyWidget(this.foo);
 
   @override
@@ -577,7 +577,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String foo;
-  
+
   MyWidget(this.foo);
 
   @override
@@ -622,7 +622,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String field;
-  
+
   MyWidget(this.field);
 
   @override
@@ -638,7 +638,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String field;
-  
+
   MyWidget(this.field);
 
   @override
@@ -760,7 +760,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   String field;
-  
+
   MyWidget(this.field);
 
   @override
@@ -955,7 +955,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String _field;
-  
+
   MyWidget(this._field);
 
   @override
@@ -971,7 +971,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String _field;
-  
+
   MyWidget(this._field);
 
   @override
@@ -1003,7 +1003,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   final int field;
   final String _field;
-  
+
   MyWidget(this.field, this._field);
 
   @override
@@ -1020,7 +1020,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   final int field;
   final String _field;
-  
+
   MyWidget(this.field, this._field);
 
   @override
@@ -1053,7 +1053,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String field;
-  
+
   MyWidget(this.field);
 
   @override
@@ -1075,7 +1075,7 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   final String field;
-  
+
   MyWidget(this.field);
 
   @override

@@ -30,7 +30,7 @@ class B extends A {
   int b = 0;
 }
 extension E on B {
-  void e() { 
+  void e() {
     ^
   }
 }
@@ -49,7 +49,7 @@ class B extends A {
   set b(int b) { }
 }
 extension E on B {
-  void e() { 
+  void e() {
     ^
   }
 }
@@ -68,7 +68,7 @@ class B extends A {
   void b() { }
 }
 extension E on B {
-  void e() { 
+  void e() {
     ^
   }
 }
@@ -85,7 +85,7 @@ class A<T> {
 }
 
 extension E on A<int> {
-  void e() { 
+  void e() {
     ^
   }
 }

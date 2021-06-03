@@ -228,7 +228,7 @@ extension E on int {
 main() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -251,7 +251,7 @@ extension E on int {
 main() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }
@@ -271,7 +271,7 @@ extension E on int {
 main() {
   0.test;
   0.test = 2;
-  
+
   E(0).test;
   E(0).test = 3;
 }
@@ -294,7 +294,7 @@ extension E on int {
 main() {
   0.newName;
   0.newName = 2;
-  
+
   E(0).newName;
   E(0).newName = 3;
 }

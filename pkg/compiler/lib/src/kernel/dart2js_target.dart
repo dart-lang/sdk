@@ -17,6 +17,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 
+import '../options.dart';
 import 'invocation_mirror_constants.dart';
 import 'transformations/lowering.dart' as lowering show transformLibraries;
 
@@ -77,17 +78,20 @@ class Dart2jsTarget extends Target {
   @override
   final String name;
 
-  final bool omitLateNames;
+  final CompilerOptions options;
 
   Map<String, ir.Class> _nativeClasses;
 
-  Dart2jsTarget(this.name, this.flags, {this.omitLateNames = false});
+  Dart2jsTarget(this.name, this.flags, {this.options});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  final int enabledLateLowerings = _enabledLateLowerings;
+  int get enabledLateLowerings =>
+      (options != null && options.experimentLateInstanceVariables)
+          ? LateLowering.none
+          : _enabledLateLowerings;
 
   @override
   bool get supportsLateLoweringSentinel => true;
@@ -161,8 +165,7 @@ class Dart2jsTarget extends Target {
               _nativeClasses)
           .visitLibrary(library);
     }
-    lowering.transformLibraries(libraries, coreTypes, hierarchy,
-        omitLateNames: omitLateNames);
+    lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
   }
 

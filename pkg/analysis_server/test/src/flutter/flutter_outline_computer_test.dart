@@ -449,7 +449,7 @@ import 'package:flutter/widgets.dart';
 class WidgetA extends StatelessWidget {
   final Widget top;
   final Widget bottom;
-  
+
   WidgetA({this.top, this.bottom});
 }
 ''');

@@ -72,7 +72,8 @@ class ConstantInitializersResolver {
     }
   }
 
-  void _resolveVariable(VariableElement element) {
+  void _resolveVariable(PropertyInducingElement element) {
+    element as PropertyInducingElementImpl;
     if (element.isSynthetic) return;
 
     var variable = linker.getLinkingNode(element) as VariableDeclaration;
@@ -80,14 +81,22 @@ class ConstantInitializersResolver {
 
     var declarationList = variable.parent as VariableDeclarationList;
     var typeNode = declarationList.type;
-    if (typeNode != null) {
-      if (declarationList.isConst ||
-          declarationList.isFinal && _enclosingClassHasConstConstructor) {
-        var astResolver =
-            AstResolver(linker, _unitElement, _scope, variable.initializer!);
-        astResolver.resolveExpression(() => variable.initializer!,
-            contextType: typeNode.type);
-      }
+
+    DartType contextType;
+    if (element.hasTypeInferred) {
+      contextType = element.type;
+    } else if (typeNode != null) {
+      contextType = typeNode.typeOrThrow;
+    } else {
+      contextType = DynamicTypeImpl.instance;
+    }
+
+    if (declarationList.isConst ||
+        declarationList.isFinal && _enclosingClassHasConstConstructor) {
+      var astResolver =
+          AstResolver(linker, _unitElement, _scope, variable.initializer!);
+      astResolver.resolveExpression(() => variable.initializer!,
+          contextType: contextType);
     }
 
     if (element is ConstVariableElement) {
@@ -426,6 +435,10 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
+    if (_elementImpl.hasTypeInferred) {
+      return const <_InferenceNode>[];
+    }
+
     _resolveInitializer(forDependencies: true);
 
     var collector = _InferenceDependenciesCollector();
@@ -440,14 +453,16 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   void evaluate() {
+    if (_elementImpl.hasTypeInferred) {
+      return;
+    }
+
     _resolveInitializer(forDependencies: false);
 
-    if (!_elementImpl.hasTypeInferred) {
-      var initializerType = _node.initializer!.typeOrThrow;
-      initializerType = _refineType(initializerType);
-      _elementImpl.type = initializerType;
-      _elementImpl.hasTypeInferred = true;
-    }
+    var initializerType = _node.initializer!.typeOrThrow;
+    initializerType = _refineType(initializerType);
+    _elementImpl.type = initializerType;
+    _elementImpl.hasTypeInferred = true;
 
     isEvaluated = true;
   }
@@ -455,6 +470,7 @@ class _VariableInferenceNode extends _InferenceNode {
   @override
   void markCircular(List<_InferenceNode> cycle) {
     _elementImpl.type = DynamicTypeImpl.instance;
+    _elementImpl.hasTypeInferred = true;
 
     var cycleNames = <String>{};
     for (var inferenceNode in cycle) {

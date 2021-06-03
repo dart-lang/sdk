@@ -25,15 +25,12 @@ class WasmModule {
 
   /// Returns a WasmInstanceBuilder that is used to add all the imports that the
   /// module needs, and then instantiate it.
-  WasmInstanceBuilder instantiate() {
-    return WasmInstanceBuilder(this);
-  }
+  WasmInstanceBuilder instantiate() => WasmInstanceBuilder(this);
 
   /// Create a new memory with the given number of initial pages, and optional
   /// maximum number of pages.
-  WasmMemory createMemory(int pages, [int? maxPages]) {
-    return WasmMemory._create(_store, pages, maxPages);
-  }
+  WasmMemory createMemory(int pages, [int? maxPages]) =>
+      WasmMemory._create(_store, pages, maxPages);
 
   /// Returns a description of all of the module's imports and exports, for
   /// debugging.
@@ -52,8 +49,11 @@ class WasmModule {
   }
 }
 
-Pointer<WasmerTrap> _wasmFnImportTrampoline(Pointer<_WasmFnImport> imp,
-    Pointer<WasmerValVec> args, Pointer<WasmerValVec> results) {
+Pointer<WasmerTrap> _wasmFnImportTrampoline(
+  Pointer<_WasmFnImport> imp,
+  Pointer<WasmerValVec> args,
+  Pointer<WasmerValVec> results,
+) {
   try {
     _WasmFnImport._call(imp, args, results);
   } catch (exception) {
@@ -68,12 +68,16 @@ void _wasmFnImportFinalizer(Pointer<_WasmFnImport> imp) {
 }
 
 final _wasmFnImportTrampolineNative = Pointer.fromFunction<
-    Pointer<WasmerTrap> Function(Pointer<_WasmFnImport>, Pointer<WasmerValVec>,
-        Pointer<WasmerValVec>)>(_wasmFnImportTrampoline);
+    Pointer<WasmerTrap> Function(
+  Pointer<_WasmFnImport>,
+  Pointer<WasmerValVec>,
+  Pointer<WasmerValVec>,
+)>(_wasmFnImportTrampoline);
 final _wasmFnImportToFn = <int, Function>{};
 final _wasmFnImportFinalizerNative =
     Pointer.fromFunction<Void Function(Pointer<_WasmFnImport>)>(
-        _wasmFnImportFinalizer);
+  _wasmFnImportFinalizer,
+);
 
 class _WasmFnImport extends Struct {
   @Int32()
@@ -81,30 +85,34 @@ class _WasmFnImport extends Struct {
 
   external Pointer<WasmerStore> store;
 
-  static void _call(Pointer<_WasmFnImport> imp, Pointer<WasmerValVec> rawArgs,
-      Pointer<WasmerValVec> rawResult) {
+  static void _call(
+    Pointer<_WasmFnImport> imp,
+    Pointer<WasmerValVec> rawArgs,
+    Pointer<WasmerValVec> rawResult,
+  ) {
     var fn = _wasmFnImportToFn[imp.address] as Function;
     var args = [];
     for (var i = 0; i < rawArgs.ref.length; ++i) {
       args.add(rawArgs.ref.data[i].toDynamic);
     }
     assert(
-        rawResult.ref.length == 1 || imp.ref.returnType == WasmerValKindVoid);
+      rawResult.ref.length == 1 || imp.ref.returnType == WasmerValKindVoid,
+    );
     var result = Function.apply(fn, args);
     if (imp.ref.returnType != WasmerValKindVoid) {
       rawResult.ref.data[0].kind = imp.ref.returnType;
       switch (imp.ref.returnType) {
         case WasmerValKindI32:
-          rawResult.ref.data[0].i32 = result;
+          rawResult.ref.data[0].i32 = result as int;
           break;
         case WasmerValKindI64:
-          rawResult.ref.data[0].i64 = result;
+          rawResult.ref.data[0].i64 = result as int;
           break;
         case WasmerValKindF32:
-          rawResult.ref.data[0].f32 = result;
+          rawResult.ref.data[0].f32 = result as int;
           break;
         case WasmerValKindF64:
-          rawResult.ref.data[0].f64 = result;
+          rawResult.ref.data[0].f64 = result as int;
           break;
       }
     }
@@ -135,11 +143,11 @@ class WasmInstanceBuilder {
   }
 
   int _getIndex(String moduleName, String name) {
-    var index = _importIndex['${moduleName}::${name}'];
+    var index = _importIndex['$moduleName::$name'];
     if (index == null) {
-      throw Exception('Import not found: ${moduleName}::${name}');
+      throw Exception('Import not found: $moduleName::$name');
     } else if (_imports.ref.data[index] != nullptr) {
-      throw Exception('Import already filled: ${moduleName}::${name}');
+      throw Exception('Import already filled: $moduleName::$name');
     } else {
       return index;
     }
@@ -147,7 +155,10 @@ class WasmInstanceBuilder {
 
   /// Add a WasmMemory to the imports.
   WasmInstanceBuilder addMemory(
-      String moduleName, String name, WasmMemory memory) {
+    String moduleName,
+    String name,
+    WasmMemory memory,
+  ) {
     var index = _getIndex(moduleName, name);
     var imp = _importDescs[index];
     if (imp.kind != WasmerExternKindMemory) {
@@ -173,19 +184,22 @@ class WasmInstanceBuilder {
     wasmFnImport.ref.store = _module._store;
     _wasmFnImportToFn[wasmFnImport.address] = fn;
     var fnImp = runtime.newFunc(
-        _importOwner,
-        _module._store,
-        imp.funcType,
-        _wasmFnImportTrampolineNative,
-        wasmFnImport,
-        _wasmFnImportFinalizerNative);
+      _importOwner,
+      _module._store,
+      imp.funcType,
+      _wasmFnImportTrampolineNative,
+      wasmFnImport,
+      _wasmFnImportFinalizerNative,
+    );
     _imports.ref.data[index] = runtime.functionToExtern(fnImp);
     return this;
   }
 
   /// Enable WASI and add the default WASI imports.
-  WasmInstanceBuilder enableWasi(
-      {bool captureStdout = false, bool captureStderr = false}) {
+  WasmInstanceBuilder enableWasi({
+    bool captureStdout = false,
+    bool captureStderr = false,
+  }) {
     if (_wasiEnv != nullptr) {
       throw Exception('WASI is already enabled.');
     }
@@ -205,7 +219,7 @@ class WasmInstanceBuilder {
         throw Exception('Missing import: ${_importDescs[i]}');
       }
     }
-    return WasmInstance(_module, _imports, _wasiEnv, _importOwner);
+    return WasmInstance(_module, _imports, _wasiEnv);
   }
 }
 
@@ -218,10 +232,12 @@ class WasmInstance {
   Stream<List<int>>? _stdout;
   Stream<List<int>>? _stderr;
   final Map<String, WasmFunction> _functions = {};
-  final _WasmImportOwner _importOwner;
 
-  WasmInstance(this._module, Pointer<WasmerExternVec> imports, this._wasiEnv,
-      this._importOwner) {
+  WasmInstance(
+    this._module,
+    Pointer<WasmerExternVec> imports,
+    this._wasiEnv,
+  ) {
     var runtime = WasmRuntime();
     _instance =
         runtime.instantiate(this, _module._store, _module._module, imports);
@@ -236,7 +252,11 @@ class WasmInstance {
         var f = runtime.externToFunction(e);
         var ft = exportDescs[i].funcType;
         _functions[name] = WasmFunction(
-            name, f, runtime.getArgTypes(ft), runtime.getReturnType(ft));
+          name,
+          f,
+          runtime.getArgTypes(ft),
+          runtime.getReturnType(ft),
+        );
       } else if (kind == WasmerExternKindMemory) {
         // WASM currently allows only one memory per module.
         var mem = runtime.externToMemory(e);
@@ -250,9 +270,7 @@ class WasmInstance {
 
   /// Searches the instantiated module for the given function. Returns null if
   /// it is not found.
-  dynamic lookupFunction(String name) {
-    return _functions[name];
-  }
+  dynamic lookupFunction(String name) => _functions[name];
 
   /// Returns the memory exported from this instance.
   WasmMemory get memory {
@@ -301,9 +319,7 @@ class WasmMemory {
   static const int kPageSizeInBytes = 64 * 1024;
 
   /// Returns the length of the memory in pages.
-  int get lengthInPages {
-    return WasmRuntime().memoryLength(_mem);
-  }
+  int get lengthInPages => WasmRuntime().memoryLength(_mem);
 
   /// Returns the length of the memory in bytes.
   int get lengthInBytes => _view.lengthInBytes;
@@ -321,8 +337,7 @@ class WasmMemory {
 
   /// Grow the memory by deltaPages.
   void grow(int deltaPages) {
-    var runtime = WasmRuntime();
-    runtime.growMemory(_mem, deltaPages);
+    var runtime = WasmRuntime()..growMemory(_mem, deltaPages);
     _view = runtime.memoryView(_mem);
   }
 }

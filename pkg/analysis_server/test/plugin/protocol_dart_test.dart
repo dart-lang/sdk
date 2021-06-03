@@ -25,7 +25,7 @@ class ConvertElementNullableTest extends AbstractSingleUnitTest {
   Future<void> test_CONSTRUCTOR_required_parameters_1() async {
     writeTestPackageConfig(meta: true);
     await resolveTestCode('''
-import 'package:meta/meta.dart';    
+import 'package:meta/meta.dart';
 class A {
   const A.myConstructor(int a, {int b, @required int c});
 }''');
@@ -40,7 +40,7 @@ class A {
   Future<void> test_CONSTRUCTOR_required_parameters_2() async {
     writeTestPackageConfig(meta: true);
     await resolveTestCode('''
-import 'package:meta/meta.dart';    
+import 'package:meta/meta.dart';
 class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c});
 }''');
@@ -57,7 +57,7 @@ class A {
     writeTestPackageConfig(meta: true);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-import 'package:meta/meta.dart';    
+import 'package:meta/meta.dart';
 class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c, int a});
 }''');
@@ -138,7 +138,7 @@ class A {
   Future<void> test_CONSTRUCTOR_required_parameters_1() async {
     writeTestPackageConfig(meta: true);
     await resolveTestCode('''
-import 'package:meta/meta.dart';    
+import 'package:meta/meta.dart';
 class A {
   const A.myConstructor(int a, {int? b, required int c});
 }''');
@@ -153,7 +153,7 @@ class A {
   Future<void> test_CONSTRUCTOR_required_parameters_2() async {
     writeTestPackageConfig(meta: true);
     await resolveTestCode('''
-import 'package:meta/meta.dart';    
+import 'package:meta/meta.dart';
 class A {
   const A.myConstructor(int a, {int? b, required int d, required int c});
 }''');
@@ -170,7 +170,7 @@ class A {
     writeTestPackageConfig(meta: true);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-import 'package:meta/meta.dart';    
+import 'package:meta/meta.dart';
 class A {
   const A.myConstructor(int a, {int b, required int d, required int c, int a});
 }''');

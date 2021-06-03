@@ -43,14 +43,23 @@ void main(List<String> args) {
 
   memoryView.setRange(inputPtr, inputPtr + inputData.length, inputData);
 
-  var sizeBytes = ByteData(4);
-  sizeBytes.setUint32(0, inputData.length, Endian.host);
+  var sizeBytes = ByteData(4)..setUint32(0, inputData.length, Endian.host);
   memoryView.setRange(
-      outSizePtr, outSizePtr + 4, sizeBytes.buffer.asUint8List());
+    outSizePtr,
+    outSizePtr + 4,
+    sizeBytes.buffer.asUint8List(),
+  );
 
   print('\nCompressing...');
-  var status = compress(kDefaultQuality, kDefaultWindow, kDefaultMode,
-      inputData.length, inputPtr, outSizePtr, outputPtr);
+  var status = compress(
+    kDefaultQuality,
+    kDefaultWindow,
+    kDefaultMode,
+    inputData.length,
+    inputPtr,
+    outSizePtr,
+    outputPtr,
+  );
   print('Compression status: $status');
 
   var compressedSize =
@@ -60,10 +69,12 @@ void main(List<String> args) {
   var spaceSaving = 100 * (1 - compressedSize / inputData.length);
   print('Space saving: ${spaceSaving.toStringAsFixed(2)}%');
 
-  var decSizeBytes = ByteData(4);
-  decSizeBytes.setUint32(0, inputData.length, Endian.host);
+  var decSizeBytes = ByteData(4)..setUint32(0, inputData.length, Endian.host);
   memoryView.setRange(
-      decSizePtr, decSizePtr + 4, decSizeBytes.buffer.asUint8List());
+    decSizePtr,
+    decSizePtr + 4,
+    decSizeBytes.buffer.asUint8List(),
+  );
 
   print('\nDecompressing...');
   status = decompress(compressedSize, outputPtr, decSizePtr, decodedPtr);

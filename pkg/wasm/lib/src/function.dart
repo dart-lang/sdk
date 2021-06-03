@@ -31,9 +31,8 @@ class WasmFunction {
   }
 
   @override
-  String toString() {
-    return WasmRuntime.getSignatureString(_name, _argTypes, _returnType);
-  }
+  String toString() =>
+      WasmRuntime.getSignatureString(_name, _argTypes, _returnType);
 
   bool _fillArg(dynamic arg, int i) {
     switch (_argTypes[i]) {
