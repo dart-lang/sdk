@@ -1567,6 +1567,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(StringPtr, url)
   VISIT_FROM(url)
   COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, compile_time_constants)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, constant_coverage)
@@ -1615,11 +1616,11 @@ class alignas(8) UntaggedScript : public UntaggedObject {
 #endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  int32_t kernel_script_index_;
   int64_t load_timestamp_;
+  int32_t kernel_script_index_;
 #else
-  int64_t load_timestamp_;
   int32_t kernel_script_index_;
+  int64_t load_timestamp_;
 #endif
 };
 

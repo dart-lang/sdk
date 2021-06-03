@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
+#if defined(DART_USE_TCMALLOC) && defined(DEBUG)
 
 #include "platform/assert.h"
 #include "vm/globals.h"
@@ -200,4 +200,4 @@ ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
 
 };  // namespace dart
 
-#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
+#endif  // defined(DART_USE_TCMALLOC) && !defined(DEBUG)

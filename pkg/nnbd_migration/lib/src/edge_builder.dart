@@ -1912,6 +1912,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       typeName.visitChildren(this);
+      // If the type name is followed by a `/*!*/` comment, it is considered to
+      // apply to the type and not to the "as" expression.  In order to prevent
+      // a future call to _handleNullCheck from interpreting it as applying to
+      // the "as" expression, we need to store the `/*!*/` comment in
+      // _nullCheckHints.
+      var token = typeName.endToken;
+      _nullCheckHints[token] = getPostfixHint(token);
       typeNameVisited(
           typeName); // Note this has been visited to TypeNameTracker.
       return null;
@@ -2264,11 +2271,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _dispatch(AstNode node, {bool skipNullCheckHint = false}) {
     try {
       var type = node?.accept(this);
-      if (!skipNullCheckHint &&
-          node is Expression &&
-          // A /*!*/ hint following an AsExpression should be interpreted as a
-          // nullability hint for the type, not a null-check hint.
-          node is! AsExpression) {
+      if (!skipNullCheckHint && node is Expression) {
         type = _handleNullCheckHint(node, type);
       }
       return type;

@@ -251,6 +251,54 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_ambiguous_bang_hint_after_as() async {
+    var content = '''
+T f<T>(Object/*?*/ x) => x as T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `x as T`, so we shouldn't produce `(x as T)!`.
+    var expected = '''
+T f<T>(Object? x) => x as T;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_bang_hint_after_as_assigned() async {
+    var content = '''
+T f<T>(Object/*?*/ x, T/*!*/ y) => y = x as T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `y = x as T`, so we shouldn't produce `(y = x as T)!`.
+    var expected = '''
+T f<T>(Object? x, T y) => y = x as T;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_bang_hint_after_is() async {
+    var content = '''
+bool f<T>(Object/*?*/ x) => x is T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `x is T`, so we shouldn't produce `(x is T)!`.
+    var expected = '''
+bool f<T>(Object? x) => x is T;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_ambiguous_bang_hint_after_is_conditional() async {
+    var content = '''
+dynamic f<T>(Object/*?*/ x, dynamic y) => y ? y : x is T/*!*/;
+''';
+    // The `/*!*/` is considered to apply to the type `T`, not to the expression
+    // `y ? y : x is T`, so we shouldn't produce `(y ? y : x is T)!`.
+    var expected = '''
+dynamic f<T>(Object? x, dynamic y) => y ? y : x is T;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_ambiguous_closure_parameter_in_local_variable() async {
     var content = '''
 Object f<T>(Object Function(T) callback, Object obj) => 0;
@@ -2308,34 +2356,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable_method() async {
-    var content = '''
-class C {}
-extension E on C/*!*/ {
-  void m() {}
-}
-void f(C c, bool b) {
-  if (b) {
-    c.m();
-  }
-}
-void g() => f(null, false);
-''';
-    var expected = '''
-class C {}
-extension E on C {
-  void m() {}
-}
-void f(C? c, bool b) {
-  if (b) {
-    c!.m();
-  }
-}
-void g() => f(null, false);
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   Future<void> test_extension_null_check_non_nullable_binary() async {
     var content = '''
 class C {}
@@ -2364,27 +2384,27 @@ void g() => f(null, false);
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable_prefix() async {
+  Future<void> test_extension_null_check_non_nullable_generic() async {
     var content = '''
 class C {}
-extension E on C/*!*/ {
-  void operator-() {}
+extension E<T extends Object/*!*/> on T/*!*/ {
+  void m() {}
 }
 void f(C c, bool b) {
   if (b) {
-    -c;
+    c.m();
   }
 }
 void g() => f(null, false);
 ''';
     var expected = '''
 class C {}
-extension E on C {
-  void operator-() {}
+extension E<T extends Object> on T {
+  void m() {}
 }
 void f(C? c, bool b) {
   if (b) {
-    -c!;
+    c!.m();
   }
 }
 void g() => f(null, false);
@@ -2420,10 +2440,10 @@ void g() => f(null, false);
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable_generic() async {
+  Future<void> test_extension_null_check_non_nullable_method() async {
     var content = '''
 class C {}
-extension E<T extends Object/*!*/> on T/*!*/ {
+extension E on C/*!*/ {
   void m() {}
 }
 void f(C c, bool b) {
@@ -2435,12 +2455,40 @@ void g() => f(null, false);
 ''';
     var expected = '''
 class C {}
-extension E<T extends Object> on T {
+extension E on C {
   void m() {}
 }
 void f(C? c, bool b) {
   if (b) {
     c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_prefix() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void operator-() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    -c;
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void operator-() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    -c!;
   }
 }
 void g() => f(null, false);

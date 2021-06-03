@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/cider/rename.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -31,8 +30,8 @@ class A {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.element.name, 'bar');
-    expect(refactor.offset, _correctionContext.offset);
+    expect(refactor!.refactoringElement.element.name, 'bar');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
   void test_canRename_function() {
@@ -42,8 +41,8 @@ void ^foo() {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.element.name, 'foo');
-    expect(refactor.offset, _correctionContext.offset);
+    expect(refactor!.refactoringElement.element.name, 'foo');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
   void test_canRename_label() {
@@ -58,8 +57,8 @@ main() {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.element.name, 'myLabel');
-    expect(refactor.offset, _correctionContext.offset);
+    expect(refactor!.refactoringElement.element.name, 'myLabel');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
   void test_canRename_local() {
@@ -70,8 +69,8 @@ void foo() {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.element.name, 'a');
-    expect(refactor.offset, _correctionContext.offset);
+    expect(refactor!.refactoringElement.element.name, 'a');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
   void test_canRename_method() {
@@ -82,8 +81,8 @@ extension E on int {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.element.name, 'foo');
-    expect(refactor.offset, _correctionContext.offset);
+    expect(refactor!.refactoringElement.element.name, 'foo');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
   void test_canRename_operator() {
@@ -104,11 +103,11 @@ void foo(int ^bar) {
 ''');
 
     expect(refactor, isNotNull);
-    expect(refactor!.element.name, 'bar');
-    expect(refactor.offset, _correctionContext.offset);
+    expect(refactor!.refactoringElement.element.name, 'bar');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  RenameRefactoringElement? _compute(String content) {
+  CanRenameResponse? _compute(String content) {
     _updateFile(content);
 
     return CiderRenameComputer(
