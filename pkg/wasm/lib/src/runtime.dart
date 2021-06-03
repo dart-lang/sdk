@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
+import 'shared.dart';
 import 'wasmer_api.dart';
 
 part 'runtime.g.dart';
@@ -99,23 +100,16 @@ class _WasiStreamIterable extends Iterable<List<int>> {
 }
 
 String _getLibName() {
-  if (Platform.isMacOS) return 'libwasmer.dylib';
-  if (Platform.isLinux) return 'libwasmer.so';
+  if (Platform.isMacOS) return appleLib;
+  if (Platform.isLinux) return linuxLib;
   // TODO(dartbug.com/37882): Support more platforms.
   throw Exception('Wasm not currently supported on this platform');
 }
 
 String? _getLibPathFrom(Uri root) {
-  // The dynamic library created by pub run wasm:setup is located relative to
-  // the package_config.json file, so walk up from the script directory until
-  // we find it.
-  do {
-    if (File.fromUri(root.resolve('.dart_tool/package_config.json'))
-        .existsSync()) {
-      return root.resolve('.dart_tool/wasm/${_getLibName()}').path;
-    }
-  } while (root != (root = root.resolve('..')));
-  return null;
+  final pkgRoot = packageRootUri(root);
+
+  return pkgRoot?.resolve('$wasmToolDir${_getLibName()}').path;
 }
 
 String _getLibPath() {
@@ -123,5 +117,5 @@ String _getLibPath() {
   if (path != null) return path;
   path = _getLibPathFrom(Directory.current.uri);
   if (path != null) return path;
-  throw Exception('Wasm library not found. Did you `pub run wasm:setup`?');
+  throw Exception('Wasm library not found. Did you `$invocationString`?');
 }
