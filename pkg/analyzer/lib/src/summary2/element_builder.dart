@@ -345,11 +345,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
-
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/46039
-    // element.hasImplicitType = node.type == null && node.parameters == null;
-    element.hasImplicitType = false;
-
+    element.hasImplicitType = node.type == null && node.parameters == null;
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
