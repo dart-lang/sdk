@@ -1,3 +1,6 @@
+# 2.0.1
+- Update `package:vm_service` to ^7.0.0.
+
 # 2.0.0
 - **Breaking change:** add null safety support.
 - **Breaking change:** minimum Dart SDK revision bumped to 2.12.0.
