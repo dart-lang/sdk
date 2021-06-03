@@ -2239,16 +2239,28 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     }
   }
 
-  TRACE_ALLOC(THR_Print("assigning free register "));
-  TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
-  TRACE_ALLOC(THR_Print(" to v%" Pd "\n", unallocated->vreg()));
-
   if (free_until != kMaxPosition) {
     // There was an intersection. Split unallocated.
     TRACE_ALLOC(THR_Print("  splitting at %" Pd "\n", free_until));
     LiveRange* tail = unallocated->SplitAt(free_until);
     AddToUnallocated(tail);
+
+    // If unallocated represents a constant value and does not have
+    // any uses then avoid using a register for it.
+    if (unallocated->first_use() == NULL) {
+      if (unallocated->vreg() >= 0) {
+        LiveRange* parent = GetLiveRange(unallocated->vreg());
+        if (parent->spill_slot().IsConstant()) {
+          Spill(unallocated);
+          return true;
+        }
+      }
+    }
   }
+
+  TRACE_ALLOC(THR_Print("  assigning free register "));
+  TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
+  TRACE_ALLOC(THR_Print(" to v%" Pd "\n", unallocated->vreg()));
 
   registers_[candidate]->Add(unallocated);
   unallocated->set_assigned_location(MakeRegisterLocation(candidate));
