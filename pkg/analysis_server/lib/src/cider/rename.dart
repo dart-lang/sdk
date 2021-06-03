@@ -4,9 +4,18 @@
 
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
+
+class CanRenameResponse {
+  final LineInfo lineInfo;
+  final RenameRefactoringElement refactoringElement;
+  final String oldName;
+
+  CanRenameResponse(this.lineInfo, this.refactoringElement, this.oldName);
+}
 
 class CiderRenameComputer {
   final FileResolver _fileResolver;
@@ -15,7 +24,7 @@ class CiderRenameComputer {
 
   /// Check if the identifier at the [line], [column] for the file at the
   /// [filePath] can be renamed.
-  RenameRefactoringElement? canRename(String filePath, int line, int column) {
+  CanRenameResponse? canRename(String filePath, int line, int column) {
     var resolvedUnit = _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
@@ -35,7 +44,11 @@ class CiderRenameComputer {
     if (!_canRenameElement(element)) {
       return null;
     }
-    return RenameRefactoring.getElementToRename(node, element);
+    var refactoring = RenameRefactoring.getElementToRename(node, element);
+    if (refactoring != null) {
+      return CanRenameResponse(lineInfo, refactoring, element.displayName);
+    }
+    return null;
   }
 
   bool _canRenameElement(Element element) {
