@@ -2071,9 +2071,8 @@ abstract class ModularNamer {
   FixedNames get fixedNames;
 
   /// Returns a variable use for accessing constants.
-  jsAst.Expression globalObjectForConstant(ConstantValue constant) {
-    return DeferredHolderExpression(
-        DeferredHolderExpressionKind.globalObjectForConstant, constant);
+  jsAst.Expression globalObjectForConstants() {
+    return DeferredHolderExpression.forConstants();
   }
 
   /// Returns a variable use for accessing static state.

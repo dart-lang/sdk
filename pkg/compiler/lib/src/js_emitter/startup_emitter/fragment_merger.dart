@@ -109,7 +109,6 @@ import '../model.dart';
 /// sent to the client.
 
 class EmittedOutputUnit {
-  final Fragment fragment;
   final OutputUnit outputUnit;
   final List<Library> libraries;
   final js.Statement classPrototypes;
@@ -125,7 +124,6 @@ class EmittedOutputUnit {
   final js.Statement nativeSupport;
 
   EmittedOutputUnit(
-      this.fragment,
       this.outputUnit,
       this.libraries,
       this.classPrototypes,
@@ -142,7 +140,6 @@ class EmittedOutputUnit {
 
   CodeFragment toCodeFragment(Program program) {
     return CodeFragment(
-        [fragment],
         [outputUnit],
         libraries,
         classPrototypes,
@@ -204,7 +201,6 @@ class PreFragment {
       return seedEmittedOutputUnit.toCodeFragment(program);
     } else {
       var seedOutputUnit = seedEmittedOutputUnit.outputUnit;
-      List<Fragment> fragments = [];
       List<Library> libraries = [];
       List<OutputUnit> outputUnits = [seedOutputUnit];
       List<js.Statement> classPrototypes = [];
@@ -223,7 +219,6 @@ class PreFragment {
         if (seedOutputUnit != thatOutputUnit) {
           program.mergeOutputUnitMetadata(seedOutputUnit, thatOutputUnit);
           outputUnits.add(thatOutputUnit);
-          fragments.add(emittedOutputUnit.fragment);
         }
         libraries.addAll(emittedOutputUnit.libraries);
         classPrototypes.add(emittedOutputUnit.classPrototypes);
@@ -239,7 +234,6 @@ class PreFragment {
         nativeSupport.add(emittedOutputUnit.nativeSupport);
       }
       return CodeFragment(
-          fragments,
           outputUnits,
           libraries,
           js.Block(classPrototypes),
@@ -322,7 +316,6 @@ class PreFragment {
 }
 
 class CodeFragment {
-  final List<Fragment> fragments;
   final List<OutputUnit> outputUnits;
   final List<Library> libraries;
   final js.Statement classPrototypes;
@@ -339,7 +332,6 @@ class CodeFragment {
   final js.Expression deferredTypes;
 
   CodeFragment(
-      this.fragments,
       this.outputUnits,
       this.libraries,
       this.classPrototypes,
@@ -396,8 +388,6 @@ class CodeFragment {
     }
     return outputUnitStrings.join('+');
   }
-
-  OutputUnit get canonicalOutputUnit => outputUnits.first;
 }
 
 class FinalizedFragment {
@@ -410,7 +400,7 @@ class FinalizedFragment {
   // TODO(joshualitt): Refactor this to more clearly disambiguate between
   // [OutputUnits](units of deferred merging), fragments(units of emitted code),
   // and files.
-  OutputUnit get canonicalOutputUnit => codeFragments.first.canonicalOutputUnit;
+  OutputUnit get canonicalOutputUnit => codeFragments.first.outputUnits.first;
 
   @override
   String toString() {
