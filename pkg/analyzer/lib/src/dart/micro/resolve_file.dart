@@ -875,7 +875,7 @@ class _LibraryContext {
             partIndex++;
 
             inputUnits.add(
-              link2.LinkInputUnit.tmp1(
+              link2.LinkInputUnit(
                 // TODO(scheglov) bad, group part data
                 partDirectiveIndex: partIndex - 1,
                 partUriStr: partUriStr,
@@ -887,7 +887,7 @@ class _LibraryContext {
           }
 
           inputLibraries.add(
-            link2.LinkInputLibrary.tmp1(
+            link2.LinkInputLibrary(
               source: librarySource,
               units: inputUnits,
             ),

@@ -135,7 +135,7 @@ class _Builder {
 
     CompilationUnit definingUnit = _parse(source);
     inputUnits.add(
-      LinkInputUnit.tmp1(
+      LinkInputUnit(
         partDirectiveIndex: null,
         source: source,
         isSynthetic: false,
@@ -154,7 +154,7 @@ class _Builder {
         Source partSource = context.sourceFactory.resolveUri(source, partUri)!;
         CompilationUnit partUnit = _parse(partSource);
         inputUnits.add(
-          LinkInputUnit.tmp1(
+          LinkInputUnit(
             partUriStr: partUri,
             partDirectiveIndex: partDirectiveIndex++,
             source: partSource,
@@ -166,7 +166,7 @@ class _Builder {
     }
 
     inputLibraries.add(
-      LinkInputLibrary.tmp1(
+      LinkInputLibrary(
         source: source,
         units: inputUnits,
       ),
