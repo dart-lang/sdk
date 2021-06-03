@@ -246,9 +246,12 @@ class LinkInputLibrary {
   final Source source;
   final List<LinkInputUnit> units;
 
-  @Deprecated('Use LinkInputLibrary.tmp1() with instead')
-  LinkInputLibrary(this.source, this.units);
+  LinkInputLibrary({
+    required this.source,
+    required this.units,
+  });
 
+  @Deprecated('Use LinkInputLibrary() with instead')
   LinkInputLibrary.tmp1({
     required this.source,
     required this.units,
@@ -266,14 +269,15 @@ class LinkInputUnit {
   final bool isSynthetic;
   final ast.CompilationUnit unit;
 
-  @Deprecated('Use LinkInputUnit.tmp1() with instead')
-  LinkInputUnit(
+  LinkInputUnit({
+    required this.partDirectiveIndex,
     this.partUriStr,
-    this.source,
-    this.isSynthetic,
-    this.unit,
-  ) : partDirectiveIndex = null;
+    required this.source,
+    required this.isSynthetic,
+    required this.unit,
+  });
 
+  @Deprecated('Use LinkInputUnit() with instead')
   LinkInputUnit.tmp1({
     required this.partDirectiveIndex,
     this.partUriStr,

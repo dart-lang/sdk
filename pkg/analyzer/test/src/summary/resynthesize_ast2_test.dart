@@ -59,7 +59,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
       var inputUnits = <LinkInputUnit>[];
       _addLibraryUnits(source, unit, inputUnits, featureSet);
       inputLibraries.add(
-        LinkInputLibrary.tmp1(
+        LinkInputLibrary(
           source: source,
           units: inputUnits,
         ),
@@ -147,7 +147,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     FeatureSet featureSet,
   ) {
     units.add(
-      LinkInputUnit.tmp1(
+      LinkInputUnit(
         partDirectiveIndex: null,
         source: definingSource,
         isSynthetic: false,
@@ -170,7 +170,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
           var text = _readSafely(partSource.fullName);
           var unit = parseText(text, featureSet);
           units.add(
-            LinkInputUnit.tmp1(
+            LinkInputUnit(
               partDirectiveIndex: partDirectiveIndex,
               partUriStr: relativeUriStr,
               source: partSource,
@@ -200,7 +200,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
     var units = <LinkInputUnit>[];
     _addLibraryUnits(source, unit, units, featureSet);
     libraries.add(
-      LinkInputLibrary.tmp1(
+      LinkInputLibrary(
         source: source,
         units: units,
       ),
