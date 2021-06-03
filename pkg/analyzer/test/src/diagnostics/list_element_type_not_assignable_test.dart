@@ -11,12 +11,19 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListElementTypeNotAssignableTest);
     defineReflectiveTests(ListElementTypeNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(ListElementTypeNotAssignableWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ListElementTypeNotAssignableTest extends PubPackageResolutionTest
-    with ListElementTypeNotAssignableTestCases {}
+    with ListElementTypeNotAssignableTestCases {
+  test_const_stringQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <String?>[null];
+''');
+  }
+}
 
 mixin ListElementTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
@@ -68,6 +75,32 @@ var v = const <int>[if (true) a];
     ]);
   }
 
+  test_const_intInt() async {
+    await assertNoErrorsInCode(r'''
+var v1 = <int> [42];
+var v2 = const <int> [42];
+''');
+  }
+
+  test_const_intNull_dynamic() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+    ], legacy: []);
+    await assertErrorsInCode('''
+const a = null;
+var v = const <int>[a];
+''', errors);
+  }
+
+  test_const_intNull_value() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
+    ], legacy: []);
+    await assertErrorsInCode('''
+var v = const <int>[null];
+''', errors);
+  }
+
   test_const_spread_intInt() async {
     await assertNoErrorsInCode('''
 var v = const <int>[...[0, 1]];
@@ -91,29 +124,9 @@ var v = const <String>[x];
     ]);
   }
 
-  test_const_stringNull() async {
-    await assertNoErrorsInCode('''
-var v = const <String?>[null];
-''');
-  }
-
-  test_const_stringNull_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic x = null;
-var v = const <String>[x];
-''');
-  }
-
   test_const_voidInt() async {
     await assertNoErrorsInCode('''
 var v = const <void>[42];
-''');
-  }
-
-  test_element_type_is_assignable() async {
-    await assertNoErrorsInCode(r'''
-var v1 = <int> [42];
-var v2 = const <int> [42];
 ''');
   }
 
@@ -237,3 +250,8 @@ void f(Iterable<num> a) {
     ]);
   }
 }
+
+@reflectiveTest
+class ListElementTypeNotAssignableWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, ListElementTypeNotAssignableTestCases {}
