@@ -318,6 +318,26 @@ class UntaggedObject {
     }
 
     template <class TagBitField>
+    typename TagBitField::Type UpdateConditional(
+        typename TagBitField::Type value_to_be_set,
+        typename TagBitField::Type conditional_old_value) {
+      T old_tags = tags_.load(std::memory_order_relaxed);
+      while (true) {
+        // This operation is only performed if the condition is met.
+        auto old_value = TagBitField::decode(old_tags);
+        if (old_value != conditional_old_value) {
+          return old_value;
+        }
+        T new_tags = TagBitField::update(value_to_be_set, old_tags);
+        if (tags_.compare_exchange_weak(old_tags, new_tags,
+                                        std::memory_order_relaxed)) {
+          return value_to_be_set;
+        }
+        // [old_tags] was updated to it's current value.
+      }
+    }
+
+    template <class TagBitField>
     bool TryAcquire() {
       T mask = TagBitField::encode(true);
       T old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
@@ -426,7 +446,9 @@ class UntaggedObject {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   uint32_t GetHeaderHash() const { return tags_.Read<HashTag>(); }
-  void SetHeaderHash(uint32_t h) { tags_.Update<HashTag>(h); }
+  uint32_t SetHeaderHashIfNotSet(uint32_t h) {
+    return tags_.UpdateConditional<HashTag>(h, /*conditional_old_value=*/0);
+  }
 #endif
 
   intptr_t HeapSize() const {

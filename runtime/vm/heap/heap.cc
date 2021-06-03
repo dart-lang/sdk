@@ -893,6 +893,17 @@ void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
   }
 }
 
+intptr_t Heap::SetWeakEntryIfNonExistent(ObjectPtr raw_obj,
+                                         WeakSelector sel,
+                                         intptr_t val) {
+  if (!raw_obj->IsSmiOrOldObject()) {
+    return new_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
+  } else {
+    ASSERT(raw_obj->IsSmiOrOldObject());
+    return old_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
+  }
+}
+
 void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
       !before_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;

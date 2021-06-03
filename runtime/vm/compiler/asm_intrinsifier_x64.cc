@@ -1455,23 +1455,35 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
 
 void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  Label already_set;
-  __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
-  __ movl(RDX, FieldAddress(RAX, target::String::hash_offset()));
-  __ testl(RDX, RDX);
-  __ j(NOT_ZERO, &already_set, AssemblerBase::kNearJump);
-  __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
-  __ SmiUntag(RDX);
-  __ shlq(RDX, Immediate(target::UntaggedObject::kHashTagPos));
-  // lock+orq is an atomic read-modify-write.
-  __ lock();
-  __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
-  __ movq(RAX, Address(RSP, +1 * target::kWordSize));
-  __ ret();
-  __ Bind(&already_set);
-  __ movl(RAX, RDX);
+  ASSERT(target::String::hash_offset() == 4);
+
+  __ movq(RBX, Address(RSP, +2 * target::kWordSize));  // Object.
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));  // Value.
+  __ SmiUntag(RCX);
+  __ MoveRegister(RDX, RCX);
+  __ shlq(RDX, Immediate(32));
+
+  Label retry, success, already_in_rax;
+  __ Bind(&retry);
+  // RAX is used by "cmpxchgq" as comparison value (if comparison succeeds the
+  // store is performed).
+  __ movq(RAX, FieldAddress(RBX, 0));
+  __ TestImmediate(RAX, Immediate(0xffffffff00000000));
+  __ BranchIf(NOT_ZERO, &already_in_rax);
+  __ MoveRegister(RSI, RAX);
+  __ orq(RSI, RDX);
+  __ LockCmpxchgq(FieldAddress(RBX, 0), RSI);
+  __ BranchIf(NOT_ZERO, &retry);
+  // Fall-through with RCX containing new hash value (untagged)
+  __ Bind(&success);
+  __ SmiTag(RCX);
+  __ MoveRegister(RAX, RCX);
+  __ Ret();
+
+  __ Bind(&already_in_rax);
+  __ shrq(RAX, Immediate(32));
   __ SmiTag(RAX);
-  __ ret();
+  __ Ret();
 }
 
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,

@@ -1346,7 +1346,7 @@ uint32_t HeapSnapshotWriter::GetHashHelper(Thread* thread, ObjectPtr obj) {
   if (hash == 0) {
     ASSERT(!thread->heap()->old_space()->IsObjectFromImagePages(obj));
     hash = GenerateHash(thread->random());
-    Object::SetCachedHash(obj, hash);
+    Object::SetCachedHashIfNotSet(obj, hash);
   }
 #else
   Heap* heap = thread->heap();
@@ -1354,7 +1354,7 @@ uint32_t HeapSnapshotWriter::GetHashHelper(Thread* thread, ObjectPtr obj) {
   if (hash == 0) {
     ASSERT(!heap->old_space()->IsObjectFromImagePages(obj));
     hash = GenerateHash(thread->random());
-    heap->SetHash(obj, hash);
+    heap->SetHashIfNotSet(obj, hash);
   }
 #endif
   return hash;

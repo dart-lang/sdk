@@ -224,7 +224,7 @@ InstancePtr InstanceMorpher::Morph(const Instance& instance) const {
   }
 #if defined(HASH_IN_OBJECT_HEADER)
   const uint32_t hash = Object::GetCachedHash(instance.ptr());
-  Object::SetCachedHash(result.ptr(), hash);
+  Object::SetCachedHashIfNotSet(result.ptr(), hash);
 #endif
 
   // Morph the context from instance to result using mapping_.

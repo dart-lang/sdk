@@ -1601,25 +1601,26 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
 
 void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  Label already_set;
-  __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Object.
-  __ ldr(R1, FieldAddress(R0, target::String::hash_offset(), kFourBytes),
-         kUnsignedFourBytes);
-  __ cbnz(&already_set, R1, kFourBytes);
-  __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Value.
+  __ ldp(/*Value=*/R1, /*Object=*/R0, Address(SP, 0, Address::PairOffset));
   // R0: Untagged address of header word (ldxr/stxr do not support offsets).
   __ sub(R0, R0, Operand(kHeapObjectTag));
   __ SmiUntag(R1);
   __ LslImmediate(R3, R1, target::UntaggedObject::kHashTagPos);
-  Label retry;
+
+  Label retry, already_set_in_r4;
   __ Bind(&retry);
   __ ldxr(R2, R0, kEightBytes);
+  __ LsrImmediate(R4, R2, target::UntaggedObject::kHashTagPos);
+  __ cbnz(&already_set_in_r4, R4);
   __ orr(R2, R2, Operand(R3));
   __ stxr(R4, R2, R0, kEightBytes);
   __ cbnz(&retry, R4);
   // Fall-through with R1 containing new hash value (untagged).
-  __ Bind(&already_set);
   __ SmiTag(R0, R1);
+  __ ret();
+  __ Bind(&already_set_in_r4);
+  __ clrex();
+  __ SmiTag(R0, R4);
   __ ret();
 }
 
