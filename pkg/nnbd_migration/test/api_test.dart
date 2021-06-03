@@ -2308,34 +2308,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable_method() async {
-    var content = '''
-class C {}
-extension E on C/*!*/ {
-  void m() {}
-}
-void f(C c, bool b) {
-  if (b) {
-    c.m();
-  }
-}
-void g() => f(null, false);
-''';
-    var expected = '''
-class C {}
-extension E on C {
-  void m() {}
-}
-void f(C? c, bool b) {
-  if (b) {
-    c!.m();
-  }
-}
-void g() => f(null, false);
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   Future<void> test_extension_null_check_non_nullable_binary() async {
     var content = '''
 class C {}
@@ -2364,27 +2336,27 @@ void g() => f(null, false);
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable_prefix() async {
+  Future<void> test_extension_null_check_non_nullable_generic() async {
     var content = '''
 class C {}
-extension E on C/*!*/ {
-  void operator-() {}
+extension E<T extends Object/*!*/> on T/*!*/ {
+  void m() {}
 }
 void f(C c, bool b) {
   if (b) {
-    -c;
+    c.m();
   }
 }
 void g() => f(null, false);
 ''';
     var expected = '''
 class C {}
-extension E on C {
-  void operator-() {}
+extension E<T extends Object> on T {
+  void m() {}
 }
 void f(C? c, bool b) {
   if (b) {
-    -c!;
+    c!.m();
   }
 }
 void g() => f(null, false);
@@ -2420,10 +2392,10 @@ void g() => f(null, false);
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable_generic() async {
+  Future<void> test_extension_null_check_non_nullable_method() async {
     var content = '''
 class C {}
-extension E<T extends Object/*!*/> on T/*!*/ {
+extension E on C/*!*/ {
   void m() {}
 }
 void f(C c, bool b) {
@@ -2435,12 +2407,40 @@ void g() => f(null, false);
 ''';
     var expected = '''
 class C {}
-extension E<T extends Object> on T {
+extension E on C {
   void m() {}
 }
 void f(C? c, bool b) {
   if (b) {
     c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_prefix() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void operator-() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    -c;
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void operator-() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    -c!;
   }
 }
 void g() => f(null, false);
