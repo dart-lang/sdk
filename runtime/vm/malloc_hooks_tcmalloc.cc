@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
+#if defined(DART_USE_TCMALLOC) && defined(DEBUG)
 
 #include "vm/malloc_hooks.h"
 
@@ -421,4 +421,4 @@ void MallocHooksState::RecordFreeHook(const void* ptr) {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
+#endif  // defined(DART_USE_TCMALLOC) && !defined(DEBUG)
