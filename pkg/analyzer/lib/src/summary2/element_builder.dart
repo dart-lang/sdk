@@ -956,7 +956,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       if (property == null) {
         var variable = TopLevelVariableElementImpl(name, -1);
         variable.isSynthetic = true;
-        variable.isFinal = accessorElement.isGetter;
         _enclosingContext.addTopLevelVariable(name, variable);
         property = variable;
       }
@@ -967,7 +966,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       if (property == null) {
         var field = FieldElementImpl(name, -1);
         field.isSynthetic = true;
-        field.isFinal = accessorElement.isGetter;
+        field.isStatic = accessorElement.isStatic;
         _enclosingContext.addField(name, field);
         property = field;
       }
