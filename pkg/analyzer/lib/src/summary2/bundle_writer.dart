@@ -547,6 +547,15 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
+  void writeOptionalTypeList(List<DartType>? types) {
+    if (types != null) {
+      writeBool(true);
+      _writeTypeList(types);
+    } else {
+      writeBool(false);
+    }
+  }
+
   void writeType(DartType? type) {
     if (type == null) {
       writeByte(Tag.NullType);

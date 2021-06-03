@@ -575,7 +575,7 @@ class AstBinaryReader {
       typeArguments,
       arguments,
     );
-    _readExpressionResolution(node);
+    _readInvocationExpression(node);
     return node;
   }
 
@@ -748,8 +748,8 @@ class AstBinaryReader {
   }
 
   void _readInvocationExpression(InvocationExpressionImpl node) {
-    // TODO(scheglov) typeArgumentTypes and staticInvokeType?
-    node.typeArgumentTypes = [];
+    node.staticInvokeType = _reader.readType();
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
     _readExpressionResolution(node);
   }
 

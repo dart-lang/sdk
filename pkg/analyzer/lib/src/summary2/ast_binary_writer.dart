@@ -790,8 +790,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void _storeInvocationExpression(InvocationExpression node) {
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
     _storeExpression(node);
-    // TODO(scheglov) typeArgumentTypes and staticInvokeType?
   }
 
   void _storeNormalFormalParameter(

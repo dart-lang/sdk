@@ -3012,7 +3012,7 @@ const int a;
             staticType: int Function()
             token: abs
           operator: ..
-          staticInvokeType: null
+          staticInvokeType: int Function()
           staticType: int
       staticType: int
       target: IntegerLiteral
@@ -3908,8 +3908,10 @@ const int b;
         staticElement: self::@function::f
         staticType: T Function<T>(T)
         token: f
-      staticInvokeType: null
+      staticInvokeType: int Function(int)
       staticType: int
+      typeArgumentTypes
+        int
       typeArguments: TypeArgumentList
         arguments
           TypeName
