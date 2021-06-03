@@ -96,6 +96,26 @@
       "minified": "foo[x[bar]]"
     },
     {
+      "original": "(foo) => bar",
+      "expected": "#=>#",
+      "minified": "foo=>bar"
+    },
+    {
+      "original": "(foo) => {}",
+      "expected": "#=>{}",
+      "minified": "foo=>{}"
+    },
+    {
+      "original": "((a, b) => foo)()",
+      "expected": "((#,#)=>#)()",
+      "minified": "((a,b)=>foo)()"
+    },
+    {
+      "original": "(x) => (y) => z + y",
+      "expected": "#=>#=>#+#",
+      "minified": "x=>y=>z+y"
+    },
+    {
       "original": "x << 5",
       "expected": "#<<5",
       "minified": "x<<5"
@@ -109,6 +129,11 @@
       "original": "a = {'b': 1, 'c': 2}",
       "expected": "#={b:1,c:2}",
       "minified": "a={b:1,c:2}"
+    },
+    {
+      "original": "a = {'b': 1, foo() { }}",
+      "expected": "#={b:1,\nfoo(){}}",
+      "minified": "a={b:1,\nfoo(){}}"
     },
     {
       "original": "foo([1, 2, 3])",

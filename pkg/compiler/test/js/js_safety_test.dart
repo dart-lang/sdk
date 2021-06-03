@@ -94,6 +94,11 @@ void main() {
   // Placeholders in an immediate call are ok.
   test('(function(a,b){a++;b++;return a+b})(#, #)', 2);
 
+  test('(() => {})()', 0);
+  test('((a,b) => {#})(#, #)', 0);
+  // Placeholders in an immediate call are ok.
+  test('((a,b) => {a++;b++;return a+b})(#, #)', 2);
+
   test('# ? # : #', 1);
   test('(# ? 1 : #, #)', 1);
   test('(# ? # : 2, #)', 1);
@@ -102,4 +107,8 @@ void main() {
   test('{A:#, B:#, C:#}', 3);
   test('[#,#,#,#]', 4);
   test('[,,,,#,#,,,]', 2);
+
+  test('function(){return #;}', 0);
+  test('{A: function() {return #;}}', 0);
+  test('{#() {return #;}}', 0);
 }
