@@ -5,12 +5,31 @@
 // Builds the wasmer runtime library, to by used by package:wasm. Requires
 // rustc, cargo, clang, and clang++. If a target triple is not specified, it
 // will default to the host target.
-// Usage: dart setup.dart [target-triple]
+// Usage: dart run wasm:setup [target-triple]
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' hide exit;
 
-Uri getSdkDir() {
+Future<void> main(List<String> args) async {
+  if (args.length > 1) {
+    print('Usage: dart run wasm:setup [target-triple]');
+    exitCode = 64; // bad usage
+    return;
+  }
+
+  final target = args.isNotEmpty ? args[0] : await _getTargetTriple();
+
+  try {
+    await _main(target);
+  } on ProcessException catch (e) {
+    final invocation = [e.executable, ...e.arguments].join(' ');
+    print('FAILED with exit code ${e.errorCode} `$invocation`');
+    exitCode = 70; // software error
+    return;
+  }
+}
+
+Uri _getSdkDir() {
   // The common case, and how cli_util.dart computes the Dart SDK directory,
   // path.dirname called twice on Platform.resolvedExecutable.
   final exe = Uri.file(Platform.resolvedExecutable);
@@ -37,7 +56,7 @@ Uri getSdkDir() {
   return commonSdkDir;
 }
 
-Uri getOutDir(Uri root) {
+Uri _getOutDir(Uri root) {
   // Traverse up until we see a `.dart_tool/package_config.json` file.
   do {
     if (File.fromUri(root.resolve('.dart_tool/package_config.json'))
@@ -48,7 +67,7 @@ Uri getOutDir(Uri root) {
   throw Exception('.dart_tool/package_config.json not found');
 }
 
-String getOutLib(String target) {
+String _getOutLib(String target) {
   final os = RegExp(r'^.*-.*-(.*)').firstMatch(target)?.group(1) ?? '';
   if (os == 'darwin' || os == 'ios') {
     return 'libwasmer.dylib';
@@ -58,9 +77,10 @@ String getOutLib(String target) {
   return 'libwasmer.so';
 }
 
-Future<String> getTargetTriple() async {
+Future<String> _getTargetTriple() async {
+  final _regexp = RegExp(r'^([^=]+)="(.*)"$');
   final process = await Process.start('rustc', ['--print', 'cfg']);
-  process.stderr
+  final sub = process.stderr
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((line) => stderr.writeln(line));
@@ -68,10 +88,11 @@ Future<String> getTargetTriple() async {
   await process.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
-      .listen((line) {
-    final match = RegExp(r'^([^=]+)="(.*)"$').firstMatch(line);
+      .forEach((line) {
+    final match = _regexp.firstMatch(line);
     if (match != null) cfg[match.group(1)!] = match.group(2);
-  }).asFuture();
+  });
+  await sub.cancel();
   var arch = cfg['target_arch'] ?? 'unknown';
   var vendor = cfg['target_vendor'] ?? 'unknown';
   var os = cfg['target_os'] ?? 'unknown';
@@ -82,35 +103,21 @@ Future<String> getTargetTriple() async {
       .join('-');
 }
 
-Future<void> run(String exe, List<String> args) async {
+Future<void> _run(String exe, List<String> args) async {
   print('\n$exe ${args.join(' ')}\n');
-  final process = await Process.start(exe, args);
-  process.stdout
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen(print);
-  process.stderr
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen((line) => stderr.writeln(line));
-  final exitCode = await process.exitCode;
-  if (exitCode != 0) {
-    print('Command failed with exit code $exitCode');
-    exit(exitCode);
+  final process =
+      await Process.start(exe, args, mode: ProcessStartMode.inheritStdio);
+  final result = await process.exitCode;
+  if (result != 0) {
+    throw ProcessException(exe, args, '', result);
   }
 }
 
-Future<void> main(List<String> args) async {
-  if (args.length > 1) {
-    print('Usage: dart setup.dart [target-triple]');
-    exit(1);
-  }
-
-  final target = args.isNotEmpty ? args[0] : await getTargetTriple();
-  final sdkDir = getSdkDir();
+Future<void> _main(String target) async {
+  final sdkDir = _getSdkDir();
   final binDir = Platform.script;
-  final outDir = getOutDir(binDir);
-  final outLib = outDir.resolve(getOutLib(target)).path;
+  final outDir = _getOutDir(binDir);
+  final outLib = outDir.resolve(_getOutLib(target)).path;
 
   print('Dart SDK directory: ${sdkDir.path}');
   print('Script directory: ${binDir.path}');
@@ -119,7 +126,7 @@ Future<void> main(List<String> args) async {
   print('Output library: $outLib');
 
   // Build wasmer crate.
-  await run('cargo', [
+  await _run('cargo', [
     'build',
     '--target',
     target,
@@ -141,7 +148,7 @@ Future<void> main(List<String> args) async {
   }
 
   // Build dart_api_dl.o.
-  await run('clang', [
+  await _run('clang', [
     '-DDART_SHARED_LIB',
     '-DNDEBUG',
     '-fno-exceptions',
@@ -160,7 +167,7 @@ Future<void> main(List<String> args) async {
   ]);
 
   // Build finalizers.o.
-  await run('clang++', [
+  await _run('clang++', [
     '-DDART_SHARED_LIB',
     '-DNDEBUG',
     '-fno-exceptions',
@@ -181,7 +188,7 @@ Future<void> main(List<String> args) async {
   ]);
 
   // Link wasmer, dart_api_dl, and finalizers to create the output library.
-  await run('clang++', [
+  await _run('clang++', [
     '-shared',
     '-fPIC',
     '-target',
