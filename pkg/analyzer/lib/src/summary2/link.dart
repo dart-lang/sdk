@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
+import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -25,6 +26,8 @@ import 'package:analyzer/src/summary2/variance_builder.dart';
 var timerLinkingLinkingBundle = Stopwatch();
 var timerLinkingRemoveBundle = Stopwatch();
 
+/// Note that AST units and tokens of [inputLibraries] will be damaged.
+///
 /// TODO(scheglov) deprecate `withInformative`.
 LinkResult link(
   LinkedElementFactory elementFactory,
@@ -104,6 +107,7 @@ class Linker {
     _resolveDefaultValues();
     _resolveMetadata();
     _collectMixinSuperInvokedNames();
+    _detachNodes();
   }
 
   void _collectMixinSuperInvokedNames() {
@@ -176,6 +180,12 @@ class Linker {
     elementFactory.createTypeProviders(coreLib, asyncLib);
 
     inheritance = InheritanceManager3();
+  }
+
+  void _detachNodes() {
+    for (var builder in builders.values) {
+      detachElementsFromNodes(builder.element);
+    }
   }
 
   void _performTopLevelInference() {
