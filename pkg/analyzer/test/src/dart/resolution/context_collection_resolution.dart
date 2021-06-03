@@ -347,20 +347,47 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 }
 
 class PubspecYamlFileConfig {
+  final String? name;
   final String? sdkVersion;
+  final List<PubspecYamlFileDependency> dependencies;
 
-  PubspecYamlFileConfig({this.sdkVersion});
+  PubspecYamlFileConfig({
+    this.name,
+    this.sdkVersion,
+    this.dependencies = const [],
+  });
 
   String toContent() {
     var buffer = StringBuffer();
+
+    if (name != null) {
+      buffer.writeln('name: $name');
+    }
 
     if (sdkVersion != null) {
       buffer.writeln('environment:');
       buffer.writeln("  sdk: '$sdkVersion'");
     }
 
+    if (dependencies.isNotEmpty) {
+      buffer.writeln('dependencies:');
+      for (var dependency in dependencies) {
+        buffer.writeln('  ${dependency.name}: ${dependency.version}');
+      }
+    }
+
     return buffer.toString();
   }
+}
+
+class PubspecYamlFileDependency {
+  final String name;
+  final String version;
+
+  PubspecYamlFileDependency({
+    required this.name,
+    this.version = 'any',
+  });
 }
 
 mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
