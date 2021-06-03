@@ -690,6 +690,7 @@ class CompilerTest : public AllStatic {
 //
 //    out = "\"id\":\"\""
 //
+// WARNING: This function is not safe to use if `in` is bigger than `out`!
 void ElideJSONSubstring(const char* prefix, const char* in, char* out);
 
 template <typename T>
