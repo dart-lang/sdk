@@ -42,6 +42,7 @@
     was abandoned more than 5 years ago and is not supported by most browsers.
     The `dart:web_sql` library has been documented as unsupported and deprecated
     for many years as well and but wasn't annotated properly until now.
+
 ### Dart VM
 
 *   **Breaking Change** [#45071][]: `Dart_NewWeakPersistentHandle`'s and
@@ -55,17 +56,25 @@
 
 #### Dart command line
 
-*   **Breaking Change** [#46100][]: The standalone `dart2native` has been marked
-deprecated, and now prints a warning message. It's replacement is the `dart
-compile exe` and `dart compile aot-snapshot` commands, which offer the same
-functionality. The `dart2native` tool will be discontinued (removed from the
-Dart SDK) in Dart 2.15.
+*   **Breaking Change** [#46100][]: The standalone `dart2native` tool has been
+    marked deprecated, and now prints a warning message. Its replacements are
+    the `dart compile exe` and `dart compile aot-snapshot` commands, which offer
+    the same functionality. The `dart2native` tool will be removed from the Dart
+    SDK in Dart 2.15.
 
-https://github.com/dart-lang/sdk/issues/46100
+*   **Breaking Change**: The standalone `dartfmt` tool has been marked
+    deprecated, and now prints a warning message. Instead, use `dart format`.
+    The `dartfmt` tool will be removed from the Dart SDK in Dart 2.15.
 
-* The `dart create` command has been updated to create projects that use the new
-  'recommended' set of lints from `package:lints`. See https://dart.dev/go/core-lints
-  for more information about these lints.
+    Note that `dart format` has [a different set of options and
+    defaults][dartfmt cli] than `dartfmt`.
+
+*   The `dart create` command has been updated to create projects that use the
+    new 'recommended' set of lints from `package:lints`. See
+    https://dart.dev/go/core-lints for more information about these lints.
+
+[#46100]: https://github.com/dart-lang/sdk/issues/46100
+[dartfmt cli]: https://github.com/dart-lang/dart_style/wiki/CLI-Changes
 
 * The `dart analyze` command has been extended to support specifying multiple
   files or directories to analyze; see also https://github.com/dart-lang/sdk/issues/45352.

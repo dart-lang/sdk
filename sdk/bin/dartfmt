@@ -6,6 +6,9 @@
 # Run dart_style/bin/format.dart on the Dart VM. This script assumes the Dart
 # repo's directory structure.
 
+echo "Warning: 'dartfmt' is deprecated. Please use 'dart format'." 1>&2
+echo "(See https://github.com/dart-lang/dart_style/wiki/CLI-Changes.)" 1>&2
+
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do
