@@ -82,6 +82,7 @@ void main() {
   test('# + #[#]', MAY);
   test('#()', MAY);
   test('(function(){})()', MAY);
+  test('(() => {})()', MAY);
 
   test('new Date(#)', MAY);
   test('# in #', MAY);

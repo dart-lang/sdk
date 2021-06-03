@@ -192,4 +192,40 @@ void main() {
   // Stacked assignment.
   testExpression("a = b = c");
   testExpression("var a = b = c");
+  // Arrow functions.
+  testExpression("(x) => x", "x => x");
+  testExpression("(x, y) => {\n  return x + y;\n}");
+  testExpression("() => 42");
+  testExpression('() => ({foo: "bar"})');
+  testExpression("() => {}", """
+() => {
+}""");
+  testExpression("(() => 1)()");
+  testExpression("((x) => x)(y)", "(x => x)(y)");
+  testExpression("(() => {x = 1;})()", """
+(() => {
+  x = 1;
+})()""");
+  // Arrow functions with operators.
+  testExpression("a = (b) => c", "a = b => c");
+  testExpression("a = ((b) => b)(c)", "a = (b => b)(c)");
+  testExpression("(x) => (y) => z + y", "x => y => z + y");
+  testExpression("!((x) => (y) => x + y)", "!(x => y => x + y)");
+  testExpression("(x) => !((y) => x + y)", "x => !(y => x + y)");
+  testExpression("(x) => (y) => !(x + y)", "x => y => !(x + y)");
+  testExpression("((x) => (y) => x + y) && z", "(x => y => x + y) && z");
+  testExpression("(x) => (((y) => x + y) && z)", "x => (y => x + y) && z");
+  testExpression("(x) => (y) => ((x + y) && z)", "x => y => x + y && z");
+  testExpression("z && ((x) => (y) => x + y)", "z && (x => y => x + y)");
+  testExpression("(x) => (z && ((y) => x + y))", "x => z && (y => x + y)");
+  testExpression("(x) => (y) => (z && x + y)", "x => y => z && x + y");
+  testExpression("(x) => (y) => ((z && x) + y)", "x => y => (z && x) + y");
+  // Methods.
+  testExpression("{ foo() {}, bar() {}, }", """
+{
+  foo() {
+  },
+  bar() {
+  }
+}""");
 }

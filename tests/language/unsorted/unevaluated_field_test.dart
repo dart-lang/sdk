@@ -6,12 +6,12 @@
 
 import "package:expect/expect.dart";
 
-const int gx =
+const int? gx =
     const bool.hasEnvironment("x") ? const int.fromEnvironment("x") : null;
 
 class A {
-  final int x = gx;
-  final int y =
+  final int? x = gx;
+  final int? y =
       const bool.hasEnvironment("y") ? const int.fromEnvironment("y") : null;
   const A();
 }

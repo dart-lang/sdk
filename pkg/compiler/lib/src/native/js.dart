@@ -19,7 +19,7 @@ class HasCapturedPlaceholders extends js.BaseVisitor {
   bool found = false;
 
   @override
-  visitFun(js.Fun node) {
+  visitFunctionExpression(js.FunctionExpression node) {
     ++enclosingFunctions;
     node.visitChildren(this);
     --enclosingFunctions;

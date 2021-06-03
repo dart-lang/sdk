@@ -459,9 +459,10 @@ class MiniJsParser {
   static const QUERY = 13;
   static const COLON = 14;
   static const SEMICOLON = 15;
-  static const HASH = 16;
-  static const WHITESPACE = 17;
-  static const OTHER = 18;
+  static const ARROW = 16;
+  static const HASH = 17;
+  static const WHITESPACE = 18;
+  static const OTHER = 19;
 
   // Make sure that ]] is two symbols.
   bool singleCharCategory(int category) => category >= DOT;
@@ -502,6 +503,8 @@ class MiniJsParser {
         return "COLON";
       case SEMICOLON:
         return "SEMICOLON";
+      case ARROW:
+        return "ARROW";
       case HASH:
         return "HASH";
       case WHITESPACE:
@@ -751,11 +754,16 @@ class MiniJsParser {
           error("Unparseable number");
         }
       } else if (cat == SYMBOL) {
-        int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
-        if (binaryPrecendence == null && !UNARY_OPERATORS.contains(lastToken)) {
-          error("Unknown operator");
+        if (lastToken == '=>') {
+          lastCategory = ARROW;
+        } else {
+          int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
+          if (binaryPrecendence == null &&
+              !UNARY_OPERATORS.contains(lastToken)) {
+            error("Unknown operator");
+          }
+          if (isAssignment(lastToken)) lastCategory = ASSIGNMENT;
         }
-        if (isAssignment(lastToken)) lastCategory = ASSIGNMENT;
       } else if (cat == ALPHA) {
         if (OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS.contains(lastToken)) {
           lastCategory = SYMBOL;
@@ -840,9 +848,7 @@ class MiniJsParser {
         return new VariableUse(last);
       }
     } else if (acceptCategory(LPAREN)) {
-      Expression expression = parseExpression();
-      expectCategory(RPAREN);
-      return expression;
+      return parseExpressionOrArrowFunction();
     } else if (acceptCategory(STRING)) {
       return new LiteralString(last);
     } else if (acceptCategory(NUMERIC)) {
@@ -851,7 +857,6 @@ class MiniJsParser {
       return parseObjectInitializer();
     } else if (acceptCategory(LSQUARE)) {
       var values = <Expression>[];
-
       while (true) {
         if (acceptCategory(COMMA)) {
           values.add(new ArrayHole());
@@ -892,7 +897,6 @@ class MiniJsParser {
 
   Expression parseFun() {
     List<Parameter> params = <Parameter>[];
-
     expectCategory(LPAREN);
     if (!acceptCategory(RPAREN)) {
       for (;;) {
@@ -934,32 +938,40 @@ class MiniJsParser {
     List<Property> properties = <Property>[];
     for (;;) {
       if (acceptCategory(RBRACE)) break;
-      // Limited subset: keys are identifiers, no 'get' or 'set' properties.
-      Literal propertyName;
-      String identifier = lastToken;
-      if (acceptCategory(ALPHA)) {
-        propertyName = LiteralString(identifier);
-      } else if (acceptCategory(STRING)) {
-        propertyName = LiteralString(identifier);
-      } else if (acceptCategory(SYMBOL)) {
-        // e.g. void
-        propertyName = LiteralString(identifier);
-      } else if (acceptCategory(HASH)) {
-        var nameOrPosition = parseHash();
-        InterpolatedLiteral interpolatedLiteral =
-            new InterpolatedLiteral(nameOrPosition);
-        interpolatedValues.add(interpolatedLiteral);
-        propertyName = interpolatedLiteral;
-      } else {
-        error('Expected property name');
-      }
-      expectCategory(COLON);
-      Expression value = parseAssignment();
-      properties.add(new Property(propertyName, value));
+      properties.add(parseMethodDefinitionOrProperty());
       if (acceptCategory(RBRACE)) break;
       expectCategory(COMMA);
     }
     return new ObjectInitializer(properties);
+  }
+
+  Property parseMethodDefinitionOrProperty() {
+    // Limited subset: keys are identifiers, no 'get' or 'set' properties.
+    Literal propertyName;
+    String identifier = lastToken;
+    if (acceptCategory(ALPHA)) {
+      propertyName = LiteralString(identifier);
+    } else if (acceptCategory(STRING)) {
+      propertyName = LiteralString(identifier);
+    } else if (acceptCategory(SYMBOL)) {
+      // e.g. void
+      propertyName = LiteralString(identifier);
+    } else if (acceptCategory(HASH)) {
+      var nameOrPosition = parseHash();
+      InterpolatedLiteral interpolatedLiteral =
+          new InterpolatedLiteral(nameOrPosition);
+      interpolatedValues.add(interpolatedLiteral);
+      propertyName = interpolatedLiteral;
+    } else {
+      error('Expected property name');
+    }
+    if (acceptCategory(COLON)) {
+      Expression value = parseAssignment();
+      return new Property(propertyName, value);
+    } else {
+      Expression fun = parseFun();
+      return new MethodDefinition(propertyName, fun);
+    }
   }
 
   Expression parseMember() {
@@ -1131,6 +1143,43 @@ class MiniJsParser {
       expression = new Binary(',', expression, right);
     }
     return expression;
+  }
+
+  Expression parseExpressionOrArrowFunction() {
+    if (acceptCategory(RPAREN)) {
+      expectCategory(ARROW);
+      return parseArrowFunctionBody(<Parameter>[]);
+    }
+    List<Expression> expressions = [parseAssignment()];
+    while (acceptCategory(COMMA)) {
+      expressions.add(parseAssignment());
+    }
+    expectCategory(RPAREN);
+    if (acceptCategory(ARROW)) {
+      var params = <Parameter>[];
+      for (Expression e in expressions) {
+        if (e is VariableUse) {
+          params.add(new Parameter(e.name));
+        } else if (e is InterpolatedExpression) {
+          params.add(InterpolatedParameter(e.nameOrPosition));
+        } else {
+          error("Expected arrow function parameter list");
+        }
+      }
+      return parseArrowFunctionBody(params);
+    }
+    return expressions.reduce((Expression value, Expression element) =>
+        new Binary(',', value, element));
+  }
+
+  Expression parseArrowFunctionBody(List<Parameter> params) {
+    Node body;
+    if (acceptCategory(LBRACE)) {
+      body = parseBlock();
+    } else {
+      body = parseAssignment();
+    }
+    return new ArrowFunction(params, body);
   }
 
   VariableDeclarationList parseVariableDeclarationList() {

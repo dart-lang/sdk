@@ -48,6 +48,7 @@ abstract class NodeVisitor<T> {
 
   T visitNamedFunction(NamedFunction node);
   T visitFun(Fun node);
+  T visitArrowFunction(ArrowFunction node);
 
   T visitDeferredStatement(DeferredStatement node);
   T visitDeferredExpression(DeferredExpression node);
@@ -69,6 +70,7 @@ abstract class NodeVisitor<T> {
   T visitArrayHole(ArrayHole node);
   T visitObjectInitializer(ObjectInitializer node);
   T visitProperty(Property node);
+  T visitMethodDefinition(MethodDefinition node);
   T visitRegExpLiteral(RegExpLiteral node);
 
   T visitAwait(Await node);
@@ -149,7 +151,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitThis(This node) => visitParameter(node);
 
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
-  T visitFun(Fun node) => visitExpression(node);
+  T visitFunctionExpression(FunctionExpression node) => visitExpression(node);
+  T visitFun(Fun node) => visitFunctionExpression(node);
+  T visitArrowFunction(ArrowFunction node) => visitFunctionExpression(node);
 
   T visitToken(DeferredToken node) => visitExpression(node);
 
@@ -175,6 +179,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitArrayHole(ArrayHole node) => visitExpression(node);
   T visitObjectInitializer(ObjectInitializer node) => visitExpression(node);
   T visitProperty(Property node) => visitNode(node);
+  T visitMethodDefinition(MethodDefinition node) => visitNode(node);
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
@@ -244,6 +249,7 @@ abstract class NodeVisitor1<R, A> {
 
   R visitNamedFunction(NamedFunction node, A arg);
   R visitFun(Fun node, A arg);
+  R visitArrowFunction(ArrowFunction node, A arg);
 
   R visitDeferredStatement(DeferredStatement node, A arg);
   R visitDeferredExpression(DeferredExpression node, A arg);
@@ -265,6 +271,7 @@ abstract class NodeVisitor1<R, A> {
   R visitArrayHole(ArrayHole node, A arg);
   R visitObjectInitializer(ObjectInitializer node, A arg);
   R visitProperty(Property node, A arg);
+  R visitMethodDefinition(MethodDefinition node, A arg);
   R visitRegExpLiteral(RegExpLiteral node, A arg);
 
   R visitAwait(Await node, A arg);
@@ -355,6 +362,7 @@ class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
 
   R visitNamedFunction(NamedFunction node, A arg) => visitExpression(node, arg);
   R visitFun(Fun node, A arg) => visitExpression(node, arg);
+  R visitArrowFunction(ArrowFunction node, A arg) => visitExpression(node, arg);
 
   R visitToken(DeferredToken node, A arg) => visitExpression(node, arg);
 
@@ -385,6 +393,7 @@ class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
   R visitObjectInitializer(ObjectInitializer node, A arg) =>
       visitExpression(node, arg);
   R visitProperty(Property node, A arg) => visitNode(node, arg);
+  R visitMethodDefinition(MethodDefinition node, A arg) => visitNode(node, arg);
   R visitRegExpLiteral(RegExpLiteral node, A arg) => visitExpression(node, arg);
 
   R visitInterpolatedNode(InterpolatedNode node, A arg) => visitNode(node, arg);
@@ -1466,9 +1475,18 @@ class NamedFunction extends Expression {
   int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
-class Fun extends Expression {
-  final List<Parameter> params;
+abstract class FunctionExpression extends Expression {
+  Node body;
+  List<Parameter> params;
+  AsyncModifier asyncModifier;
+}
+
+class Fun extends FunctionExpression {
+  @override
   final Block body;
+  @override
+  final List<Parameter> params;
+  @override
   final AsyncModifier asyncModifier;
 
   Fun(this.params, this.body, {this.asyncModifier: AsyncModifier.sync});
@@ -1491,6 +1509,38 @@ class Fun extends Expression {
   Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
 
   int get precedenceLevel => LEFT_HAND_SIDE;
+}
+
+class ArrowFunction extends FunctionExpression {
+  @override
+  final Node body;
+  @override
+  final List<Parameter> params;
+  @override
+  final AsyncModifier asyncModifier;
+
+  ArrowFunction(this.params, this.body,
+      {this.asyncModifier: AsyncModifier.sync});
+
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrowFunction(this);
+
+  R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
+      visitor.visitArrowFunction(this, arg);
+
+  void visitChildren<T>(NodeVisitor<T> visitor) {
+    for (Parameter param in params) param.accept(visitor);
+    body.accept(visitor);
+  }
+
+  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
+    for (Parameter param in params) param.accept1(visitor, arg);
+    body.accept1(visitor, arg);
+  }
+
+  ArrowFunction _clone() =>
+      new ArrowFunction(params, body, asyncModifier: asyncModifier);
+
+  int get precedenceLevel => ASSIGNMENT;
 }
 
 class AsyncModifier {
@@ -1811,6 +1861,38 @@ class Property extends Node {
   }
 
   Property _clone() => new Property(name, value);
+}
+
+class MethodDefinition extends Node implements Property {
+  @override
+  final Expression name;
+  final Fun function;
+
+  MethodDefinition(this.name, this.function);
+
+  @override
+  Fun get value => function;
+
+  @override
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitMethodDefinition(this);
+
+  R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
+      visitor.visitMethodDefinition(this, arg);
+
+  @override
+  void visitChildren<T>(NodeVisitor<T> visitor) {
+    name.accept(visitor);
+    function.accept(visitor);
+  }
+
+  @override
+  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
+    name.accept1(visitor, arg);
+    function.accept1(visitor, arg);
+  }
+
+  @override
+  MethodDefinition _clone() => MethodDefinition(name, function);
 }
 
 /// Tag class for all interpolated positions.

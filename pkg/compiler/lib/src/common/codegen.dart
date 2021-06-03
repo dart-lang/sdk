@@ -874,6 +874,7 @@ enum JsNodeKind {
   await,
   regExpLiteral,
   property,
+  methodDefinition,
   objectInitializer,
   arrayHole,
   arrayInitializer,
@@ -889,6 +890,7 @@ enum JsNodeKind {
   literalBool,
   modularExpression,
   function,
+  arrowFunction,
   namedFunction,
   access,
   parameter,
@@ -939,6 +941,7 @@ class JsNodeTags {
   static const String await = 'js-await';
   static const String regExpLiteral = 'js-regExpLiteral';
   static const String property = 'js-property';
+  static const String methodDefinition = 'js-methodDefinition';
   static const String objectInitializer = 'js-objectInitializer';
   static const String arrayHole = 'js-arrayHole';
   static const String arrayInitializer = 'js-arrayInitializer';
@@ -954,6 +957,7 @@ class JsNodeTags {
   static const String literalBool = 'js-literalBool';
   static const String modularExpression = 'js-modularExpression';
   static const String function = 'js-function';
+  static const String arrowFunction = 'js-arrowFunction';
   static const String namedFunction = 'js-namedFunction';
   static const String access = 'js-access';
   static const String parameter = 'js-parameter';
@@ -1096,6 +1100,16 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     visit(node.name);
     visit(node.value);
     sink.end(JsNodeTags.property);
+    _writeInfo(node);
+  }
+
+  @override
+  void visitMethodDefinition(js.MethodDefinition node) {
+    sink.writeEnum(JsNodeKind.methodDefinition);
+    sink.begin(JsNodeTags.methodDefinition);
+    visit(node.name);
+    visit(node.function);
+    sink.end(JsNodeTags.methodDefinition);
     _writeInfo(node);
   }
 
@@ -1268,6 +1282,17 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     visit(node.body);
     sink.writeEnum(node.asyncModifier);
     sink.end(JsNodeTags.function);
+    _writeInfo(node);
+  }
+
+  @override
+  void visitArrowFunction(js.ArrowFunction node) {
+    sink.writeEnum(JsNodeKind.arrowFunction);
+    sink.begin(JsNodeTags.function);
+    visitList(node.params);
+    visit(node.body);
+    sink.writeEnum(node.asyncModifier);
+    sink.end(JsNodeTags.arrowFunction);
     _writeInfo(node);
   }
 
@@ -1697,6 +1722,13 @@ class JsNodeDeserializer {
         node = new js.Property(name, value);
         source.end(JsNodeTags.property);
         break;
+      case JsNodeKind.methodDefinition:
+        source.begin(JsNodeTags.methodDefinition);
+        js.Expression name = read();
+        js.Expression function = read();
+        node = new js.MethodDefinition(name, function);
+        source.end(JsNodeTags.methodDefinition);
+        break;
       case JsNodeKind.objectInitializer:
         source.begin(JsNodeTags.objectInitializer);
         List<js.Property> properties = readList();
@@ -1787,6 +1819,15 @@ class JsNodeDeserializer {
             source.readEnum(js.AsyncModifier.values);
         node = new js.Fun(params, body, asyncModifier: asyncModifier);
         source.end(JsNodeTags.function);
+        break;
+      case JsNodeKind.arrowFunction:
+        source.begin(JsNodeTags.arrowFunction);
+        List<js.Parameter> params = readList();
+        js.Block body = read();
+        js.AsyncModifier asyncModifier =
+            source.readEnum(js.AsyncModifier.values);
+        node = new js.ArrowFunction(params, body, asyncModifier: asyncModifier);
+        source.end(JsNodeTags.arrowFunction);
         break;
       case JsNodeKind.namedFunction:
         source.begin(JsNodeTags.namedFunction);

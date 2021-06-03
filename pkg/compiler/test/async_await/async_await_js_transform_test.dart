@@ -669,7 +669,7 @@ function(g) {
 
   testAsyncTransform("""
   function(a, h) async {
-    var x = {"a": foo1(), "b": await foo2(), "c": foo3()};
+    var x = {"a": foo1(), "b": await foo2(), "c": foo3(), foo4() {}};
     x["a"] = 2; // Different assignments
     (await foo()).a = 3;
     x[await foo()] = 4;
@@ -693,7 +693,10 @@ function(a, h) {
           return awaitHelper(foo2(), body);
         case 2:
           // returning from await.
-          x = {a: __temp1, b: __result, c: foo3()};
+          x = {a: __temp1, b: __result, c: foo3(),
+            foo4() {
+            }
+          };
           x.a = 2;
           __goto = 3;
           return awaitHelper(foo(), body);

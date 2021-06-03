@@ -667,7 +667,7 @@ class Printer implements NodeVisitor {
             // ({a: 2, b: 3}.toString()).
             (newAtStatementBegin &&
                 (node is NamedFunction ||
-                    node is Fun ||
+                    node is FunctionExpression ||
                     node is ObjectInitializer));
     if (needsParentheses) {
       inForInit = false;
@@ -1102,6 +1102,51 @@ class Printer implements NodeVisitor {
   }
 
   @override
+  void visitArrowFunction(ArrowFunction fun) {
+    VarCollector vars = new VarCollector();
+    vars.visitArrowFunction(fun);
+    currentNode.closingPosition = arrowFunctionOut(fun, vars);
+  }
+
+  int arrowFunctionOut(ArrowFunction fun, VarCollector vars) {
+    // TODO: support static, get/set, async, and generators.
+    localNamer.enterScope(vars);
+    final List<Parameter> params = fun.params;
+    if (params.length == 1 && params.first is VariableReference) {
+      visitNestedExpression(params.single, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
+    } else {
+      out("(");
+      if (params != null) {
+        visitCommaSeparated(fun.params, PRIMARY,
+            newInForInit: false, newAtStatementBegin: false);
+      }
+      out(")");
+    }
+    spaceOut();
+    out("=>");
+    spaceOut();
+    int closingPosition;
+    Node body = fun.body;
+    if (body is Block) {
+      closingPosition =
+          blockOut(body, shouldIndent: false, needsNewline: false);
+    } else {
+      // Object initializers require parentheses to disambiguate
+      // AssignmentExpression from FunctionBody. See:
+      // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
+      bool needsParens = body is ObjectInitializer;
+      if (needsParens) out("(");
+      visitNestedExpression(body, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
+      if (needsParens) out(")");
+      closingPosition = _charCount - 1;
+    }
+    localNamer.leaveScope();
+    return closingPosition;
+  }
+
+  @override
   visitDeferredExpression(DeferredExpression node) {
     // Continue printing with the expression value.
     assert(node.precedenceLevel == node.value.precedenceLevel);
@@ -1252,6 +1297,41 @@ class Printer implements NodeVisitor {
 
   @override
   void visitProperty(Property node) {
+    propertyNameOut(node);
+    out(":");
+    spaceOut();
+    visitNestedExpression(node.value, ASSIGNMENT,
+        newInForInit: false, newAtStatementBegin: false);
+  }
+
+  @override
+  visitMethodDefinition(MethodDefinition node) {
+    VarCollector vars = new VarCollector();
+    vars.visitMethodDefinition(node);
+    startNode(node.function);
+    currentNode.closingPosition = methodOut(node, vars);
+    endNode(node.function);
+  }
+
+  int methodOut(MethodDefinition node, VarCollector vars) {
+    // TODO: support static, get/set, async, and generators.
+    propertyNameOut(node);
+    Fun fun = node.function;
+    localNamer.enterScope(vars);
+    out("(");
+    if (fun.params != null) {
+      visitCommaSeparated(fun.params, PRIMARY,
+          newInForInit: false, newAtStatementBegin: false);
+    }
+    out(")");
+    spaceOut();
+    int closingPosition =
+        blockOut(fun.body, shouldIndent: false, needsNewline: false);
+    localNamer.leaveScope();
+    return closingPosition;
+  }
+
+  void propertyNameOut(Property node) {
     startNode(node.name);
     Node name = undefer(node.name);
     if (name is LiteralString) {
@@ -1266,10 +1346,6 @@ class Printer implements NodeVisitor {
       throw StateError('Unexpected Property name: $name');
     }
     endNode(node.name);
-    out(":");
-    spaceOut();
-    visitNestedExpression(node.value, ASSIGNMENT,
-        newInForInit: false, newAtStatementBegin: false);
   }
 
   void _outPropertyName(String name) {
@@ -1423,7 +1499,7 @@ class VarCollector extends BaseVisitor {
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
 
-  void collectVarsInFunction(Fun fun) {
+  void collectVarsInFunction(FunctionExpression fun) {
     if (!nested) {
       nested = true;
       if (fun.params != null) {
@@ -1431,7 +1507,7 @@ class VarCollector extends BaseVisitor {
           params.add(fun.params[i].name);
         }
       }
-      visitBlock(fun.body);
+      fun.body.accept(this);
       nested = false;
     }
   }
@@ -1446,7 +1522,16 @@ class VarCollector extends BaseVisitor {
     collectVarsInFunction(namedFunction.function);
   }
 
+  void visitMethodDefinition(MethodDefinition method) {
+    // Note that we don't bother collecting the name of the function.
+    collectVarsInFunction(method.function);
+  }
+
   void visitFun(Fun fun) {
+    collectVarsInFunction(fun);
+  }
+
+  void visitArrowFunction(ArrowFunction fun) {
     collectVarsInFunction(fun);
   }
 

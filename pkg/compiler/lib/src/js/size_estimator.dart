@@ -448,8 +448,10 @@ class SizeEstimator implements NodeVisitor {
         // ({a: 2, b: 3}.toString()).
         (newAtStatementBegin &&
             (node is NamedFunction ||
-                node is Fun ||
-                node is ObjectInitializer));
+                node is FunctionExpression ||
+                node is ObjectInitializer)) ||
+        // (() => x)()
+        (requiredPrecedence == CALL && node is ArrowFunction);
     if (needsParentheses) {
       inForInit = false;
       atStatementBegin = false;
@@ -821,6 +823,45 @@ class SizeEstimator implements NodeVisitor {
   }
 
   @override
+  void visitArrowFunction(ArrowFunction fun) {
+    VarCollector vars = new VarCollector();
+    vars.visitArrowFunction(fun);
+    arrowFunctionOut(fun, vars);
+  }
+
+  int arrowFunctionOut(ArrowFunction fun, VarCollector vars) {
+    // TODO: support static, get/set, async, and generators.
+    if (fun.params.length == 1 && fun.params.first is VariableReference) {
+      visitNestedExpression(fun.params.single, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
+    } else {
+      out("(");
+      if (fun.params != null) {
+        visitCommaSeparated(fun.params, PRIMARY,
+            newInForInit: false, newAtStatementBegin: false);
+      }
+      out(")");
+    }
+    out("=>");
+    int closingPosition;
+    Node body = fun.body;
+    if (body is Block) {
+      closingPosition = blockOut(body);
+    } else {
+      // Object initializers require parentheses to disambiguate
+      // AssignmentExpression from FunctionBody. See:
+      // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
+      bool needsParens = body is ObjectInitializer;
+      if (needsParens) out("(");
+      visitNestedExpression(body, ASSIGNMENT,
+          newInForInit: false, newAtStatementBegin: false);
+      if (needsParens) out(")");
+      closingPosition = charCount - 1;
+    }
+    return closingPosition;
+  }
+
+  @override
   visitDeferredExpression(DeferredExpression node) {
     if (node.isFinalized) {
       // Continue printing with the expression value.
@@ -967,6 +1008,34 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitProperty(Property node) {
+    propertyNameOut(node);
+    out(':'); // ':'
+    visitNestedExpression(node.value, ASSIGNMENT,
+        newInForInit: false, newAtStatementBegin: false);
+  }
+
+  @override
+  void visitMethodDefinition(MethodDefinition node) {
+    VarCollector vars = new VarCollector();
+    vars.visitMethodDefinition(node);
+    methodOut(node, vars);
+  }
+
+  int methodOut(MethodDefinition node, VarCollector vars) {
+    // TODO: support static, get/set, async, and generators.
+    propertyNameOut(node);
+    Fun fun = node.function;
+    out("(");
+    if (fun.params != null) {
+      visitCommaSeparated(fun.params, PRIMARY,
+          newInForInit: false, newAtStatementBegin: false);
+    }
+    out(")");
+    int closingPosition = blockOut(fun.body);
+    return closingPosition;
+  }
+
+  void propertyNameOut(Property node) {
     Node name = node.name;
     if (name is LiteralString) {
       String text = literalStringToString(name);
@@ -987,9 +1056,6 @@ class SizeEstimator implements NodeVisitor {
       LiteralNumber nameNumber = node.name;
       out(nameNumber.value); // '${nameNumber.value}'
     }
-    out(':'); // ':'
-    visitNestedExpression(node.value, ASSIGNMENT,
-        newInForInit: false, newAtStatementBegin: false);
   }
 
   @override

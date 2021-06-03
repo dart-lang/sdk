@@ -763,6 +763,10 @@ abstract class AstNodeImpl implements AstNode {
     return root;
   }
 
+  void detachFromParent() {
+    _parent = null;
+  }
+
   @override
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
