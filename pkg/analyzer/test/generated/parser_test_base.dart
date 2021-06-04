@@ -818,9 +818,9 @@ class ParserProxy extends analyzer.Parser {
         null,
         null,
         null,
-        Tokens.OPEN_CURLY_BRACKET /* leftBracket */,
+        Tokens.openCurlyBracket() /* leftBracket */,
         <ClassMember>[],
-        Tokens.CLOSE_CURLY_BRACKET /* rightBracket */,
+        Tokens.closeCurlyBracket() /* rightBracket */,
       );
       // TODO(danrubel): disambiguate between class and mixin
       currentToken = fastaParser.parseClassMember(currentToken, className);

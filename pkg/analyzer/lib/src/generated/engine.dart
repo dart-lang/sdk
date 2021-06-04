@@ -187,8 +187,6 @@ abstract class AnalysisOptions {
   VersionConstraint? get sdkVersionConstraint;
 
   /// Return the opaque signature of the options.
-  ///
-  /// The length of the list is guaranteed to equal [signatureLength].
   Uint32List get signature;
 
   /// Return `true` if analyzer should use the Dart 2.0 Front End parser.
@@ -199,8 +197,6 @@ abstract class AnalysisOptions {
 
   /// Determine whether two signatures returned by [signature] are equal.
   static bool signaturesEqual(Uint32List a, Uint32List b) {
-    assert(a.length == AnalysisOptionsImpl.signatureLength);
-    assert(b.length == AnalysisOptionsImpl.signatureLength);
     if (a.length != b.length) {
       return false;
     }
@@ -216,9 +212,6 @@ abstract class AnalysisOptions {
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
 class AnalysisOptionsImpl implements AnalysisOptions {
-  /// The length of the list returned by `signature` getters.
-  static const int signatureLength = 4;
-
   /// The cached [unlinkedSignature].
   Uint32List? _unlinkedSignature;
 
@@ -419,8 +412,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Hash and convert to Uint32List.
-      List<int> bytes = buffer.toByteList();
-      _signature = Uint8List.fromList(bytes).buffer.asUint32List();
+      _signature = buffer.toUint32List();
     }
     return _signature!;
   }
@@ -436,8 +428,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Hash and convert to Uint32List.
-      List<int> bytes = buffer.toByteList();
-      _signatureForElements = Uint8List.fromList(bytes).buffer.asUint32List();
+      _signatureForElements = buffer.toUint32List();
     }
     return _signatureForElements!;
   }
@@ -463,8 +454,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Hash and convert to Uint32List.
-      List<int> bytes = buffer.toByteList();
-      _unlinkedSignature = Uint8List.fromList(bytes).buffer.asUint32List();
+      return buffer.toUint32List();
     }
     return _unlinkedSignature!;
   }

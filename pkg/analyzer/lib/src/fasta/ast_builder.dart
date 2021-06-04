@@ -248,13 +248,13 @@ class AstBuilder extends StackListener {
       extensionKeyword: extensionKeyword,
       name: name,
       typeParameters: typeParameters,
-      onKeyword: Tokens.ON,
+      onKeyword: Tokens.on_(),
       extendedType: ast.typeName(
         _tmpSimpleIdentifier(),
         null,
       ), // extendedType is set in [endExtensionDeclaration]
-      leftBracket: Tokens.OPEN_CURLY_BRACKET,
-      rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+      leftBracket: Tokens.openCurlyBracket(),
+      rightBracket: Tokens.closeCurlyBracket(),
       members: [],
     );
 
@@ -1670,7 +1670,7 @@ class AstBuilder extends StackListener {
         asKeyword,
         prefix,
         combinators,
-        semicolon ?? Tokens.SEMICOLON));
+        semicolon ?? Tokens.semicolon()));
   }
 
   @override
@@ -2344,7 +2344,7 @@ class AstBuilder extends StackListener {
           type: type,
           variables: variables,
         ),
-        semicolon ?? Tokens.SEMICOLON));
+        semicolon ?? Tokens.semicolon()));
   }
 
   @override
@@ -2528,9 +2528,9 @@ class AstBuilder extends StackListener {
       extendsClause,
       withClause,
       implementsClause,
-      Tokens.OPEN_CURLY_BRACKET, // leftBracket
+      Tokens.openCurlyBracket(), // leftBracket
       <ClassMember>[],
-      Tokens.CLOSE_CURLY_BRACKET, // rightBracket
+      Tokens.closeCurlyBracket(), // rightBracket
     );
 
     classDeclaration!.nativeClause = nativeClause;
@@ -3166,9 +3166,9 @@ class AstBuilder extends StackListener {
       typeParameters,
       onClause,
       implementsClause,
-      Tokens.OPEN_CURLY_BRACKET, // leftBracket
+      Tokens.openCurlyBracket(), // leftBracket
       <ClassMember>[],
-      Tokens.CLOSE_CURLY_BRACKET, // rightBracket
+      Tokens.closeCurlyBracket(), // rightBracket
     );
     declarations.add(mixinDeclaration!);
   }
