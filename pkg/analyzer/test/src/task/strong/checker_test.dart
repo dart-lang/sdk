@@ -2796,6 +2796,7 @@ m() {
   f();
 }
 ''', [
+      error(HintCode.DEPRECATED_IMPLEMENTS_FUNCTION, 197, 8),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 332, 1),
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 341, 1),
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 346, 1),

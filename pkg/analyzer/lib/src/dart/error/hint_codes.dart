@@ -322,6 +322,15 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try renaming the class.");
 
   /**
+   * According to the specification: If a class or mixin declaration implements
+   * Function, it has no effect.
+   */
+  static const HintCode DEPRECATED_IMPLEMENTS_FUNCTION = HintCode(
+      'DEPRECATED_IMPLEMENTS_FUNCTION',
+      "Implementing 'Function' has no effect.",
+      correction: "Try removing 'Function' from the 'implements' clause.");
+
+  /**
    * Parameters:
    * 0: the name of the member
    */

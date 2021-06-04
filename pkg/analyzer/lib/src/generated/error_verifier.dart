@@ -1584,6 +1584,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// extends/implements/mixes in `Function`.
   void _checkForBadFunctionUse(ClassDeclaration node) {
     var extendsClause = node.extendsClause;
+    var implementsClause = node.implementsClause;
     var withClause = node.withClause;
 
     if (node.name.name == "Function") {
@@ -1596,6 +1597,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
             HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+      }
+    }
+
+    if (implementsClause != null) {
+      for (var interface in implementsClause.interfaces) {
+        var type = interface.type;
+        if (type != null && type.isDartCoreFunction) {
+          errorReporter.reportErrorForNode(
+            HintCode.DEPRECATED_IMPLEMENTS_FUNCTION,
+            interface,
+          );
+          break;
+        }
       }
     }
 

@@ -1255,6 +1255,22 @@ class E {
 ''');
   }
 
+  test_class_interfaces_Function() async {
+    var library = await checkLibrary('''
+class A {}
+class B {}
+class C implements A, Function, B {}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B {
+}
+class C implements A, B {
+}
+''');
+  }
+
   test_class_interfaces_unresolved() async {
     var library = await checkLibrary(
         'class C implements X, Y, Z {} class X {} class Z {}',
