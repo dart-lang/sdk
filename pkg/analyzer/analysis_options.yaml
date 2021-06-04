@@ -30,6 +30,7 @@ linter:
     - avoid_dynamic_calls
     - avoid_unused_constructor_parameters
     - await_only_futures
+    - depend_on_referenced_packages
     - empty_statements
     - iterable_contains_unrelated_type
     - list_remove_unrelated_type

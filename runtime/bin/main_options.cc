@@ -10,6 +10,7 @@
 
 #include "bin/dartdev_isolate.h"
 #include "bin/error_exit.h"
+#include "bin/file_system_watcher.h"
 #include "bin/options.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
@@ -482,6 +483,9 @@ bool Options::ParseArguments(int argc,
   SSLCertContext::set_bypass_trusting_system_roots(
       Options::bypass_trusting_system_roots());
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
+
+  FileSystemWatcher::set_delayed_filewatch_callback(
+      Options::delayed_filewatch_callback());
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);

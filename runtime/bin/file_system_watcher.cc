@@ -14,6 +14,8 @@
 namespace dart {
 namespace bin {
 
+bool FileSystemWatcher::delayed_filewatch_callback_ = false;
+
 void FUNCTION_NAME(FileSystemWatcher_IsSupported)(Dart_NativeArguments args) {
   Dart_SetBooleanReturnValue(args, FileSystemWatcher::IsSupported());
 }

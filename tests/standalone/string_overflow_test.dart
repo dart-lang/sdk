@@ -4,13 +4,21 @@
 
 // Test to ensure that the VM does not have an integer overflow issue
 // when concatenating strings.
+// See https://github.com/dart-lang/sdk/issues/11214
 
 import "package:expect/expect.dart";
 
 main() {
   String a = "a";
-  for (; a.length < 256 * 1024 * 1024;) a = a + a;
 
-  var concat = "$a$a$a$a$a$a$a$a";
-  Expect.equals(concat.length, 2147483648);
+  var caughtOutOfMemoryException = false;
+  try {
+    while (true) {
+      a = "$a$a$a$a$a$a$a$a";
+    }
+  } on OutOfMemoryError {
+    caughtOutOfMemoryException = true;
+  }
+  Expect.isTrue(caughtOutOfMemoryException);
+  Expect.isTrue(a.startsWith('aaaaa') && a.length > 1024);
 }
