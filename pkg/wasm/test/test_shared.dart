@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
+import 'package:wasm/src/wasm_error.dart';
 
-Matcher throwsExceptionWithToString(Object matcher) => throwsA(
-      isA<Exception>().having((p0) => p0.toString(), 'toString', matcher),
+Matcher throwsWasmError(Object messageMatcher) => throwsA(
+      isA<WasmError>().having((p0) => p0.message, 'message', messageMatcher),
     );

@@ -12,24 +12,41 @@ import 'dart:typed_data';
 import 'package:wasm/wasm.dart';
 
 // Brotli compression parameters.
-const int kDefaultQuality = 11;
-const int kDefaultWindow = 22;
-const int kDefaultMode = 0;
+const _kDefaultQuality = 11;
+const _kDefaultWindow = 22;
+const _kDefaultMode = 0;
 
 void main(List<String> args) {
+  if (args.length != 1) {
+    print('Requires one argument: a path to the input file.');
+    exitCode = 64; // bad usage
+    return;
+  }
+
+  final inputFilePath = args.single;
+
+  print('Loading "$inputFilePath"...');
+  var inputDataFile = File(inputFilePath);
+  if (!inputDataFile.existsSync()) {
+    print('Input file "$inputFilePath" does not exist.');
+    exitCode = 66; // no input file
+    return;
+  }
+
+  var inputData = inputDataFile.readAsBytesSync();
+  print('Input size: ${inputData.length} bytes');
+
+  print('\nLoading wasm module');
   var brotliPath = Platform.script.resolve('libbrotli.wasm');
   var moduleData = File(brotliPath.path).readAsBytesSync();
   var module = WasmModule(moduleData);
   print(module.describe());
 
-  var instance = module.instantiate().enableWasi().build();
+  var builder = module.builder()..enableWasi();
+  var instance = builder.build();
   var memory = instance.memory;
   var compress = instance.lookupFunction('BrotliEncoderCompress');
   var decompress = instance.lookupFunction('BrotliDecoderDecompress');
-
-  print('Loading ${args[0]}');
-  var inputData = File(args[0]).readAsBytesSync();
-  print('Input size: ${inputData.length} bytes');
 
   // Grow the module's memory to get unused space to put our data.
   // [initial memory][input data][output data][size][decoded data][size]
@@ -52,9 +69,9 @@ void main(List<String> args) {
 
   print('\nCompressing...');
   var status = compress(
-    kDefaultQuality,
-    kDefaultWindow,
-    kDefaultMode,
+    _kDefaultQuality,
+    _kDefaultWindow,
+    _kDefaultMode,
     inputData.length,
     inputPtr,
     outSizePtr,

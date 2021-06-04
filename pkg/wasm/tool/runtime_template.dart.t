@@ -11,21 +11,20 @@
 part of 'runtime.dart';
 
 class WasmRuntime {
-  static WasmRuntime? _inst;
-
-  DynamicLibrary _lib;
-  late Pointer<WasmerEngine> _engine;
-  Map<int, _WasmTrapsEntry> traps = {};
+  static final WasmRuntime _inst = WasmRuntime._init();
+  final DynamicLibrary _lib;
+  final _traps = <int, _WasmTrapsEntry>{};
+  late final Pointer<WasmerEngine> _engine;
 
 /* <RUNTIME_MEMB> */
 
-  factory WasmRuntime() => _inst ??= WasmRuntime._init();
+  factory WasmRuntime() => _inst;
 
   WasmRuntime._init() : _lib = DynamicLibrary.open(_getLibPath()) {
 /* <RUNTIME_LOAD> */
 
     if (_Dart_InitializeApiDL(NativeApi.initializeApiDLData) != 0) {
-      throw Exception('Failed to initialize Dart API');
+      throw WasmError('Failed to initialize Dart API');
     }
     _engine = _engine_new();
     _checkNotEqual(_engine, nullptr, 'Failed to initialize Wasm engine.');
@@ -73,11 +72,11 @@ class WasmRuntime {
       var exp = exportsVec.ref.data[i];
       var extern = _exporttype_type(exp);
       var kind = _externtype_kind(extern);
-      var fnType = kind == WasmerExternKindFunction
+      var fnType = kind == wasmerExternKindFunction
           ? _externtype_as_functype(extern)
           : nullptr;
       exps.add(
-        WasmExportDescriptor(
+        WasmExportDescriptor._(
           kind,
           _exporttype_name(exp).ref.toString(),
           fnType,
@@ -96,11 +95,11 @@ class WasmRuntime {
       var imp = importsVec.ref.data[i];
       var extern = _importtype_type(imp);
       var kind = _externtype_kind(extern);
-      var fnType = kind == WasmerExternKindFunction
+      var fnType = kind == wasmerExternKindFunction
           ? _externtype_as_functype(extern)
           : nullptr;
       imps.add(
-        WasmImportDescriptor(
+        WasmImportDescriptor._(
           kind,
           _importtype_module(imp).ref.toString(),
           _importtype_name(imp).ref.toString(),
@@ -119,19 +118,19 @@ class WasmRuntime {
       // with a corresponding exception, and their memory is managed using a
       // finalizer on the _WasmTrapsEntry. Traps can also be created by WASM
       // code, and in that case we delete them in this function.
-      var entry = traps[trap.address];
+      var entry = _traps.remove(trap.address);
       if (entry != null) {
-        traps.remove(entry);
         // ignore: only_throw_errors
         throw entry.exception;
       } else {
+        // TODO: code path not hit in tests!
         var trapMessage = calloc<WasmerByteVec>();
         _trap_message(trap, trapMessage);
         var message = 'Wasm trap when calling $source: ${trapMessage.ref}';
         _byte_vec_delete(trapMessage);
         calloc.free(trapMessage);
         _trap_delete(trap);
-        throw Exception(message);
+        throw WasmError(message);
       }
     }
   }
@@ -184,9 +183,9 @@ class WasmRuntime {
   int getReturnType(Pointer<WasmerFunctype> funcType) {
     var rets = _functype_results(funcType);
     if (rets.ref.length == 0) {
-      return WasmerValKindVoid;
+      return wasmerValKindVoid;
     } else if (rets.ref.length > 1) {
-      throw Exception('Multiple return values are not supported');
+      throw WasmError('Multiple return values are not supported');
     }
     return _valtype_kind(rets.ref.data[0]);
   }
@@ -214,7 +213,7 @@ class WasmRuntime {
   ) {
     var limPtr = calloc<WasmerLimits>();
     limPtr.ref.min = pages;
-    limPtr.ref.max = maxPages ?? wasm_limits_max_default;
+    limPtr.ref.max = maxPages ?? wasmLimitsMaxDefault;
     var memType = _memorytype_new(limPtr);
     calloc.free(limPtr);
     _checkNotEqual(memType, nullptr, 'Failed to create memory type.');
@@ -272,7 +271,7 @@ class WasmRuntime {
     _checkNotEqual(trap, nullptr, 'Failed to create trap.');
     var entry = _WasmTrapsEntry(exception);
     _set_finalizer_for_trap(entry, trap);
-    traps[trap.address] = entry;
+    _traps[trap.address] = entry;
     return trap;
   }
 
@@ -336,7 +335,7 @@ class WasmRuntime {
 
   T _checkNotEqual<T>(T x, T y, String errorMessage) {
     if (x == y) {
-      throw Exception('$errorMessage\n${_getLastError()}');
+      throw WasmError('$errorMessage\n${_getLastError()}'.trim());
     }
     return x;
   }

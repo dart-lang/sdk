@@ -26,11 +26,12 @@ void main() {
     var reportX = -1;
     var reportY = -1;
 
-    var inst = WasmModule(data).instantiate().addFunction('env', 'report',
-        (int x, int y) {
-      reportX = x;
-      reportY = y;
-    }).build();
+    var inst = (WasmModule(data).builder()
+          ..addFunction('env', 'report', (int x, int y) {
+            reportX = x;
+            reportY = y;
+          }))
+        .build();
     var fn = inst.lookupFunction('reportStuff');
     fn();
     expect(123, reportX);

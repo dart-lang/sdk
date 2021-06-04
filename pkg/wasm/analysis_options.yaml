@@ -13,6 +13,7 @@ linter:
   - avoid_redundant_argument_values
   - avoid_renaming_method_parameters
   - avoid_returning_null_for_void
+  - avoid_returning_this
   - avoid_unused_constructor_parameters
   - await_only_futures
   - cancel_subscriptions
@@ -25,6 +26,7 @@ linter:
   - implementation_imports
   - iterable_contains_unrelated_type
   - join_return_with_assignment
+  - library_private_types_in_public_api
   - lines_longer_than_80_chars
   - list_remove_unrelated_type
   - missing_whitespace_between_adjacent_strings

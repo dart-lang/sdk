@@ -61,7 +61,7 @@ Uri _getSdkDir() {
 Uri _getOutDir(Uri root) {
   final pkgRoot = packageRootUri(root);
   if (pkgRoot == null) {
-    throw Exception('$pkgConfigFile not found');
+    throw ArgumentError('Could not find "$pkgConfigFile" within "$root".');
   }
   return pkgRoot.resolve(wasmToolDir);
 }

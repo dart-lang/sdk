@@ -26,7 +26,7 @@ void main() {
       0x80, 0x08, 0x0b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ]);
 
-    var inst = WasmModule(data).instantiate().build();
+    var inst = WasmModule(data).builder().build();
     var setFn = inst.lookupFunction('set');
     var getFn = inst.lookupFunction('get');
     expect(setFn(123, 456), isNull);

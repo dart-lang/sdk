@@ -22,7 +22,7 @@ void main() {
       0x7e, 0x0b,
     ]);
 
-    var inst = WasmModule(data).instantiate().build();
+    var inst = WasmModule(data).builder().build();
     var fn = inst.lookupFunction('square');
 
     expect(() => fn(), throwsA(isArgumentError));

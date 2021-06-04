@@ -8,6 +8,8 @@ import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:wasm/wasm.dart';
 
+import 'test_shared.dart';
+
 void main() {
   test('corrupted module', () {
     var data = Uint8List.fromList([
@@ -17,6 +19,14 @@ void main() {
       0x7e, 0x0b,
     ]);
 
-    expect(() => WasmModule(data), throwsA(isException));
+    expect(
+      () => WasmModule(data),
+      throwsWasmError(
+        allOf(
+          contains('Wasm module compile failed.'),
+          contains('Validation error: Bad magic number (at offset 0)'),
+        ),
+      ),
+    );
   });
 }

@@ -184,23 +184,24 @@ void main() {
       return n;
     }
 
-    var inst = WasmModule(data)
-        .instantiate()
-        .addFunction('wasi_unstable', 'fd_write',
-            (int fd, int iovs, int iovsLen, int unused) {
-      // iovs points to an array of length iovs_len. Each element is two I32s,
-      // a char* and a length.
-      var o = StringBuffer();
-      for (var i = 0; i < iovsLen; ++i) {
-        var str = getI32(iovs + 8 * i);
-        var len = getI32(iovs + 4 + 8 * i);
-        for (var j = 0; j < len; ++j) {
-          o.write(String.fromCharCode(mem[str + j]));
+    var builder = WasmModule(data).builder()
+      ..addFunction('wasi_unstable', 'fd_write',
+          (int fd, int iovs, int iovsLen, int unused) {
+        // iovs points to an array of length iovs_len. Each element is two I32s,
+        // a char* and a length.
+        var o = StringBuffer();
+        for (var i = 0; i < iovsLen; ++i) {
+          var str = getI32(iovs + 8 * i);
+          var len = getI32(iovs + 4 + 8 * i);
+          for (var j = 0; j < len; ++j) {
+            o.write(String.fromCharCode(mem[str + j]));
+          }
         }
-      }
-      out.write(o.toString());
-      return o.length;
-    }).build();
+        out.write(o.toString());
+        return o.length;
+      });
+
+    var inst = builder.build();
     mem = inst.memory;
 
     var fn = inst.lookupFunction('_start');

@@ -172,7 +172,7 @@ void main() {
     ]);
 
     var inst =
-        WasmModule(data).instantiate().enableWasi(captureStdout: true).build();
+        (WasmModule(data).builder()..enableWasi(captureStdout: true)).build();
 
     var fn = inst.lookupFunction('_start');
     fn();

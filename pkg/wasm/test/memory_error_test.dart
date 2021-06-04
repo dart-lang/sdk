@@ -8,6 +8,8 @@ import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:wasm/wasm.dart';
 
+import 'test_shared.dart';
+
 void main() {
   test('memory errors', () {
     // Empty wasm module.
@@ -16,10 +18,19 @@ void main() {
     ]);
     var module = WasmModule(data);
 
-    expect(() => module.createMemory(1000000000), throwsA(isException));
+    expect(
+      () => module.createMemory(1000000000),
+      throwsWasmError(startsWith('Failed to create memory.')),
+    );
     var mem = module.createMemory(100);
-    expect(() => mem.grow(1000000000), throwsA(isException));
+    expect(
+      () => mem.grow(1000000000),
+      throwsWasmError('Failed to grow memory.'),
+    );
     mem = module.createMemory(100, 200);
-    expect(() => mem.grow(300), throwsA(isException));
+    expect(
+      () => mem.grow(300),
+      throwsWasmError('Failed to grow memory.'),
+    );
   });
 }

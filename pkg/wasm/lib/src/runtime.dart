@@ -11,22 +11,23 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 
 import 'shared.dart';
+import 'wasm_error.dart';
 import 'wasmer_api.dart';
 
 part 'runtime.g.dart';
 
 class WasmImportDescriptor {
-  int kind;
-  String moduleName;
-  String name;
-  Pointer<WasmerFunctype> funcType;
+  final int kind;
+  final String moduleName;
+  final String name;
+  final Pointer<WasmerFunctype> funcType;
 
-  WasmImportDescriptor(this.kind, this.moduleName, this.name, this.funcType);
+  WasmImportDescriptor._(this.kind, this.moduleName, this.name, this.funcType);
 
   @override
   String toString() {
     var kindName = wasmerExternKindName(kind);
-    if (kind == WasmerExternKindFunction) {
+    if (kind == wasmerExternKindFunction) {
       var runtime = WasmRuntime();
       var sig = WasmRuntime.getSignatureString(
         '$moduleName::$name',
@@ -41,16 +42,16 @@ class WasmImportDescriptor {
 }
 
 class WasmExportDescriptor {
-  int kind;
-  String name;
-  Pointer<WasmerFunctype> funcType;
+  final int kind;
+  final String name;
+  final Pointer<WasmerFunctype> funcType;
 
-  WasmExportDescriptor(this.kind, this.name, this.funcType);
+  WasmExportDescriptor._(this.kind, this.name, this.funcType);
 
   @override
   String toString() {
     var kindName = wasmerExternKindName(kind);
-    if (kind == WasmerExternKindFunction) {
+    if (kind == wasmerExternKindFunction) {
       var runtime = WasmRuntime();
       var sig = WasmRuntime.getSignatureString(
         name,
@@ -65,16 +66,16 @@ class WasmExportDescriptor {
 }
 
 class _WasmTrapsEntry {
-  Object exception;
+  final Object exception;
 
   _WasmTrapsEntry(this.exception);
 }
 
 class _WasiStreamIterator implements Iterator<List<int>> {
   static const int _bufferLength = 1024;
+  final Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
   final Pointer<WasmerWasiEnv> _env;
   final Function _reader;
-  final Pointer<Uint8> _buf = calloc<Uint8>(_bufferLength);
   int _length = 0;
 
   _WasiStreamIterator(this._env, this._reader);
@@ -103,7 +104,7 @@ String _getLibName() {
   if (Platform.isMacOS) return appleLib;
   if (Platform.isLinux) return linuxLib;
   // TODO(dartbug.com/37882): Support more platforms.
-  throw Exception('Wasm not currently supported on this platform');
+  throw WasmError('Wasm not currently supported on this platform');
 }
 
 String? _getLibPathFrom(Uri root) {
@@ -117,5 +118,5 @@ String _getLibPath() {
   if (path != null) return path;
   path = _getLibPathFrom(Directory.current.uri);
   if (path != null) return path;
-  throw Exception('Wasm library not found. Did you `$invocationString`?');
+  throw WasmError('Wasm library not found. Did you `$invocationString`?');
 }

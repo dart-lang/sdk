@@ -25,26 +25,24 @@ void main() {
       0x80, 0x80, 0x00, 0x10, 0x81, 0x80, 0x80, 0x80, 0x00, 0x0b,
     ]);
 
-    var calledB = false;
     var thrownException = Exception('Hello exception!');
-    var inst = WasmModule(data).instantiate().addFunction('env', 'a', () {
-      throw thrownException;
-    }).addFunction('env', 'b', () {
-      calledB = true;
-    }).build();
+    var inst = (WasmModule(data).builder()
+          ..addFunction('env', 'a', () {
+            throw thrownException;
+          })
+          ..addFunction('env', 'b', () {
+            fail('should not get here!');
+          }))
+        .build();
+
     var fn = inst.lookupFunction('fn');
     expect(() => fn(), throwsA(thrownException));
-    expect(calledB, isFalse);
 
-    var calledA = false;
-    inst = WasmModule(data).instantiate().addFunction('env', 'a', () {
-      calledA = true;
-    }).addFunction('env', 'b', () {
-      calledB = true;
-    }).build();
+    inst = (WasmModule(data).builder()
+          ..addFunction('env', 'a', expectAsync0(() => null))
+          ..addFunction('env', 'b', expectAsync0(() => null)))
+        .build();
     fn = inst.lookupFunction('fn');
     fn();
-    expect(calledA, isTrue);
-    expect(calledB, isTrue);
   });
 }

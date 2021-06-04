@@ -132,8 +132,8 @@ def getWasmerApi():
 
 def getRuntimeMemb():
     return '\n'.join([
-        "  late Wasmer%sFn %s;" % (dartFnTypeName(name), dartFnMembName(name))
-        for name, _, _ in getFns()
+        "  late final Wasmer%sFn %s;" %
+        (dartFnTypeName(name), dartFnMembName(name)) for name, _, _ in getFns()
     ])
 
 

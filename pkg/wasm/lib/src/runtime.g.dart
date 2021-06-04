@@ -13,98 +13,99 @@
 part of 'runtime.dart';
 
 class WasmRuntime {
-  static WasmRuntime? _inst;
+  static final WasmRuntime _inst = WasmRuntime._init();
+  final DynamicLibrary _lib;
+  final _traps = <int, _WasmTrapsEntry>{};
+  late final Pointer<WasmerEngine> _engine;
 
-  DynamicLibrary _lib;
-  late Pointer<WasmerEngine> _engine;
-  Map<int, _WasmTrapsEntry> traps = {};
+  late final WasmerDartInitializeApiDLFn _Dart_InitializeApiDL;
+  late final WasmerSetFinalizerForEngineFn _set_finalizer_for_engine;
+  late final WasmerSetFinalizerForFuncFn _set_finalizer_for_func;
+  late final WasmerSetFinalizerForInstanceFn _set_finalizer_for_instance;
+  late final WasmerSetFinalizerForMemoryFn _set_finalizer_for_memory;
+  late final WasmerSetFinalizerForMemorytypeFn _set_finalizer_for_memorytype;
+  late final WasmerSetFinalizerForModuleFn _set_finalizer_for_module;
+  late final WasmerSetFinalizerForStoreFn _set_finalizer_for_store;
+  late final WasmerSetFinalizerForTrapFn _set_finalizer_for_trap;
+  late final WasmerWasiConfigInheritStderrFn _wasi_config_inherit_stderr;
+  late final WasmerWasiConfigInheritStdoutFn _wasi_config_inherit_stdout;
+  late final WasmerWasiConfigNewFn _wasi_config_new;
+  late final WasmerWasiEnvDeleteFn _wasi_env_delete;
+  late final WasmerWasiEnvNewFn _wasi_env_new;
+  late final WasmerWasiEnvReadStderrFn _wasi_env_read_stderr;
+  late final WasmerWasiEnvReadStdoutFn _wasi_env_read_stdout;
+  late final WasmerWasiEnvSetMemoryFn _wasi_env_set_memory;
+  late final WasmerWasiGetImportsFn _wasi_get_imports;
+  late final WasmerByteVecDeleteFn _byte_vec_delete;
+  late final WasmerByteVecNewFn _byte_vec_new;
+  late final WasmerByteVecNewEmptyFn _byte_vec_new_empty;
+  late final WasmerByteVecNewUninitializedFn _byte_vec_new_uninitialized;
+  late final WasmerEngineDeleteFn _engine_delete;
+  late final WasmerEngineNewFn _engine_new;
+  late final WasmerExporttypeNameFn _exporttype_name;
+  late final WasmerExporttypeTypeFn _exporttype_type;
+  late final WasmerExporttypeVecDeleteFn _exporttype_vec_delete;
+  late final WasmerExporttypeVecNewFn _exporttype_vec_new;
+  late final WasmerExporttypeVecNewEmptyFn _exporttype_vec_new_empty;
+  late final WasmerExporttypeVecNewUninitializedFn
+      _exporttype_vec_new_uninitialized;
+  late final WasmerExternAsFuncFn _extern_as_func;
+  late final WasmerExternAsMemoryFn _extern_as_memory;
+  late final WasmerExternDeleteFn _extern_delete;
+  late final WasmerExternKindFn _extern_kind;
+  late final WasmerExternVecDeleteFn _extern_vec_delete;
+  late final WasmerExternVecNewFn _extern_vec_new;
+  late final WasmerExternVecNewEmptyFn _extern_vec_new_empty;
+  late final WasmerExternVecNewUninitializedFn _extern_vec_new_uninitialized;
+  late final WasmerExterntypeAsFunctypeFn _externtype_as_functype;
+  late final WasmerExterntypeDeleteFn _externtype_delete;
+  late final WasmerExterntypeKindFn _externtype_kind;
+  late final WasmerFuncAsExternFn _func_as_extern;
+  late final WasmerFuncCallFn _func_call;
+  late final WasmerFuncDeleteFn _func_delete;
+  late final WasmerFuncNewWithEnvFn _func_new_with_env;
+  late final WasmerFunctypeDeleteFn _functype_delete;
+  late final WasmerFunctypeParamsFn _functype_params;
+  late final WasmerFunctypeResultsFn _functype_results;
+  late final WasmerImporttypeModuleFn _importtype_module;
+  late final WasmerImporttypeNameFn _importtype_name;
+  late final WasmerImporttypeTypeFn _importtype_type;
+  late final WasmerImporttypeVecDeleteFn _importtype_vec_delete;
+  late final WasmerImporttypeVecNewFn _importtype_vec_new;
+  late final WasmerImporttypeVecNewEmptyFn _importtype_vec_new_empty;
+  late final WasmerImporttypeVecNewUninitializedFn
+      _importtype_vec_new_uninitialized;
+  late final WasmerInstanceDeleteFn _instance_delete;
+  late final WasmerInstanceExportsFn _instance_exports;
+  late final WasmerInstanceNewFn _instance_new;
+  late final WasmerMemoryAsExternFn _memory_as_extern;
+  late final WasmerMemoryDataFn _memory_data;
+  late final WasmerMemoryDataSizeFn _memory_data_size;
+  late final WasmerMemoryDeleteFn _memory_delete;
+  late final WasmerMemoryGrowFn _memory_grow;
+  late final WasmerMemoryNewFn _memory_new;
+  late final WasmerMemorySizeFn _memory_size;
+  late final WasmerMemorytypeDeleteFn _memorytype_delete;
+  late final WasmerMemorytypeNewFn _memorytype_new;
+  late final WasmerModuleDeleteFn _module_delete;
+  late final WasmerModuleExportsFn _module_exports;
+  late final WasmerModuleImportsFn _module_imports;
+  late final WasmerModuleNewFn _module_new;
+  late final WasmerStoreDeleteFn _store_delete;
+  late final WasmerStoreNewFn _store_new;
+  late final WasmerTrapDeleteFn _trap_delete;
+  late final WasmerTrapMessageFn _trap_message;
+  late final WasmerTrapNewFn _trap_new;
+  late final WasmerValtypeDeleteFn _valtype_delete;
+  late final WasmerValtypeKindFn _valtype_kind;
+  late final WasmerValtypeVecDeleteFn _valtype_vec_delete;
+  late final WasmerValtypeVecNewFn _valtype_vec_new;
+  late final WasmerValtypeVecNewEmptyFn _valtype_vec_new_empty;
+  late final WasmerValtypeVecNewUninitializedFn _valtype_vec_new_uninitialized;
+  late final WasmerWasmerLastErrorLengthFn _wasmer_last_error_length;
+  late final WasmerWasmerLastErrorMessageFn _wasmer_last_error_message;
 
-  late WasmerDartInitializeApiDLFn _Dart_InitializeApiDL;
-  late WasmerSetFinalizerForEngineFn _set_finalizer_for_engine;
-  late WasmerSetFinalizerForFuncFn _set_finalizer_for_func;
-  late WasmerSetFinalizerForInstanceFn _set_finalizer_for_instance;
-  late WasmerSetFinalizerForMemoryFn _set_finalizer_for_memory;
-  late WasmerSetFinalizerForMemorytypeFn _set_finalizer_for_memorytype;
-  late WasmerSetFinalizerForModuleFn _set_finalizer_for_module;
-  late WasmerSetFinalizerForStoreFn _set_finalizer_for_store;
-  late WasmerSetFinalizerForTrapFn _set_finalizer_for_trap;
-  late WasmerWasiConfigInheritStderrFn _wasi_config_inherit_stderr;
-  late WasmerWasiConfigInheritStdoutFn _wasi_config_inherit_stdout;
-  late WasmerWasiConfigNewFn _wasi_config_new;
-  late WasmerWasiEnvDeleteFn _wasi_env_delete;
-  late WasmerWasiEnvNewFn _wasi_env_new;
-  late WasmerWasiEnvReadStderrFn _wasi_env_read_stderr;
-  late WasmerWasiEnvReadStdoutFn _wasi_env_read_stdout;
-  late WasmerWasiEnvSetMemoryFn _wasi_env_set_memory;
-  late WasmerWasiGetImportsFn _wasi_get_imports;
-  late WasmerByteVecDeleteFn _byte_vec_delete;
-  late WasmerByteVecNewFn _byte_vec_new;
-  late WasmerByteVecNewEmptyFn _byte_vec_new_empty;
-  late WasmerByteVecNewUninitializedFn _byte_vec_new_uninitialized;
-  late WasmerEngineDeleteFn _engine_delete;
-  late WasmerEngineNewFn _engine_new;
-  late WasmerExporttypeNameFn _exporttype_name;
-  late WasmerExporttypeTypeFn _exporttype_type;
-  late WasmerExporttypeVecDeleteFn _exporttype_vec_delete;
-  late WasmerExporttypeVecNewFn _exporttype_vec_new;
-  late WasmerExporttypeVecNewEmptyFn _exporttype_vec_new_empty;
-  late WasmerExporttypeVecNewUninitializedFn _exporttype_vec_new_uninitialized;
-  late WasmerExternAsFuncFn _extern_as_func;
-  late WasmerExternAsMemoryFn _extern_as_memory;
-  late WasmerExternDeleteFn _extern_delete;
-  late WasmerExternKindFn _extern_kind;
-  late WasmerExternVecDeleteFn _extern_vec_delete;
-  late WasmerExternVecNewFn _extern_vec_new;
-  late WasmerExternVecNewEmptyFn _extern_vec_new_empty;
-  late WasmerExternVecNewUninitializedFn _extern_vec_new_uninitialized;
-  late WasmerExterntypeAsFunctypeFn _externtype_as_functype;
-  late WasmerExterntypeDeleteFn _externtype_delete;
-  late WasmerExterntypeKindFn _externtype_kind;
-  late WasmerFuncAsExternFn _func_as_extern;
-  late WasmerFuncCallFn _func_call;
-  late WasmerFuncDeleteFn _func_delete;
-  late WasmerFuncNewWithEnvFn _func_new_with_env;
-  late WasmerFunctypeDeleteFn _functype_delete;
-  late WasmerFunctypeParamsFn _functype_params;
-  late WasmerFunctypeResultsFn _functype_results;
-  late WasmerImporttypeModuleFn _importtype_module;
-  late WasmerImporttypeNameFn _importtype_name;
-  late WasmerImporttypeTypeFn _importtype_type;
-  late WasmerImporttypeVecDeleteFn _importtype_vec_delete;
-  late WasmerImporttypeVecNewFn _importtype_vec_new;
-  late WasmerImporttypeVecNewEmptyFn _importtype_vec_new_empty;
-  late WasmerImporttypeVecNewUninitializedFn _importtype_vec_new_uninitialized;
-  late WasmerInstanceDeleteFn _instance_delete;
-  late WasmerInstanceExportsFn _instance_exports;
-  late WasmerInstanceNewFn _instance_new;
-  late WasmerMemoryAsExternFn _memory_as_extern;
-  late WasmerMemoryDataFn _memory_data;
-  late WasmerMemoryDataSizeFn _memory_data_size;
-  late WasmerMemoryDeleteFn _memory_delete;
-  late WasmerMemoryGrowFn _memory_grow;
-  late WasmerMemoryNewFn _memory_new;
-  late WasmerMemorySizeFn _memory_size;
-  late WasmerMemorytypeDeleteFn _memorytype_delete;
-  late WasmerMemorytypeNewFn _memorytype_new;
-  late WasmerModuleDeleteFn _module_delete;
-  late WasmerModuleExportsFn _module_exports;
-  late WasmerModuleImportsFn _module_imports;
-  late WasmerModuleNewFn _module_new;
-  late WasmerStoreDeleteFn _store_delete;
-  late WasmerStoreNewFn _store_new;
-  late WasmerTrapDeleteFn _trap_delete;
-  late WasmerTrapMessageFn _trap_message;
-  late WasmerTrapNewFn _trap_new;
-  late WasmerValtypeDeleteFn _valtype_delete;
-  late WasmerValtypeKindFn _valtype_kind;
-  late WasmerValtypeVecDeleteFn _valtype_vec_delete;
-  late WasmerValtypeVecNewFn _valtype_vec_new;
-  late WasmerValtypeVecNewEmptyFn _valtype_vec_new_empty;
-  late WasmerValtypeVecNewUninitializedFn _valtype_vec_new_uninitialized;
-  late WasmerWasmerLastErrorLengthFn _wasmer_last_error_length;
-  late WasmerWasmerLastErrorMessageFn _wasmer_last_error_message;
-
-  factory WasmRuntime() => _inst ??= WasmRuntime._init();
+  factory WasmRuntime() => _inst;
 
   WasmRuntime._init() : _lib = DynamicLibrary.open(_getLibPath()) {
     _Dart_InitializeApiDL = _lib.lookupFunction<
@@ -447,7 +448,7 @@ class WasmRuntime {
     );
 
     if (_Dart_InitializeApiDL(NativeApi.initializeApiDLData) != 0) {
-      throw Exception('Failed to initialize Dart API');
+      throw WasmError('Failed to initialize Dart API');
     }
     _engine = _engine_new();
     _checkNotEqual(_engine, nullptr, 'Failed to initialize Wasm engine.');
@@ -495,11 +496,11 @@ class WasmRuntime {
       var exp = exportsVec.ref.data[i];
       var extern = _exporttype_type(exp);
       var kind = _externtype_kind(extern);
-      var fnType = kind == WasmerExternKindFunction
+      var fnType = kind == wasmerExternKindFunction
           ? _externtype_as_functype(extern)
           : nullptr;
       exps.add(
-        WasmExportDescriptor(
+        WasmExportDescriptor._(
           kind,
           _exporttype_name(exp).ref.toString(),
           fnType,
@@ -518,11 +519,11 @@ class WasmRuntime {
       var imp = importsVec.ref.data[i];
       var extern = _importtype_type(imp);
       var kind = _externtype_kind(extern);
-      var fnType = kind == WasmerExternKindFunction
+      var fnType = kind == wasmerExternKindFunction
           ? _externtype_as_functype(extern)
           : nullptr;
       imps.add(
-        WasmImportDescriptor(
+        WasmImportDescriptor._(
           kind,
           _importtype_module(imp).ref.toString(),
           _importtype_name(imp).ref.toString(),
@@ -541,20 +542,14 @@ class WasmRuntime {
       // with a corresponding exception, and their memory is managed using a
       // finalizer on the _WasmTrapsEntry. Traps can also be created by WASM
       // code, and in that case we delete them in this function.
-      var entry = traps[trap.address];
-      if (entry != null) {
-        traps.remove(entry);
-        // ignore: only_throw_errors
-        throw entry.exception;
-      } else {
-        var trapMessage = calloc<WasmerByteVec>();
-        _trap_message(trap, trapMessage);
-        var message = 'Wasm trap when calling $source: ${trapMessage.ref}';
-        _byte_vec_delete(trapMessage);
-        calloc.free(trapMessage);
-        _trap_delete(trap);
-        throw Exception(message);
+      var entry = _traps.remove(trap.address);
+      if (entry == null) {
+        throw WasmError(
+          'This case is not (yet) supported. Please file an issue on pkg:wasm.',
+        );
       }
+      // ignore: only_throw_errors
+      throw entry.exception;
     }
   }
 
@@ -606,9 +601,9 @@ class WasmRuntime {
   int getReturnType(Pointer<WasmerFunctype> funcType) {
     var rets = _functype_results(funcType);
     if (rets.ref.length == 0) {
-      return WasmerValKindVoid;
+      return wasmerValKindVoid;
     } else if (rets.ref.length > 1) {
-      throw Exception('Multiple return values are not supported');
+      throw WasmError('Multiple return values are not supported');
     }
     return _valtype_kind(rets.ref.data[0]);
   }
@@ -636,7 +631,7 @@ class WasmRuntime {
   ) {
     var limPtr = calloc<WasmerLimits>();
     limPtr.ref.min = pages;
-    limPtr.ref.max = maxPages ?? wasm_limits_max_default;
+    limPtr.ref.max = maxPages ?? wasmLimitsMaxDefault;
     var memType = _memorytype_new(limPtr);
     calloc.free(limPtr);
     _checkNotEqual(memType, nullptr, 'Failed to create memory type.');
@@ -694,7 +689,7 @@ class WasmRuntime {
     _checkNotEqual(trap, nullptr, 'Failed to create trap.');
     var entry = _WasmTrapsEntry(exception);
     _set_finalizer_for_trap(entry, trap);
-    traps[trap.address] = entry;
+    _traps[trap.address] = entry;
     return trap;
   }
 
@@ -758,7 +753,7 @@ class WasmRuntime {
 
   T _checkNotEqual<T>(T x, T y, String errorMessage) {
     if (x == y) {
-      throw Exception('$errorMessage\n${_getLastError()}');
+      throw WasmError('$errorMessage\n${_getLastError()}'.trim());
     }
     return x;
   }

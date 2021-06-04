@@ -2,5 +2,5 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export 'src/function.dart';
 export 'src/module.dart';
+export 'src/wasm_error.dart';

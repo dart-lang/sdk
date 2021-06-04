@@ -6,8 +6,6 @@
 // To regenerate the file, use the following command
 // "generate_ffi_boilerplate.py".
 
-// ignore_for_file: constant_identifier_names
-
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
@@ -15,29 +13,29 @@ import 'dart:typed_data';
 part 'wasmer_api.g.dart';
 
 // wasm_valkind_enum
-const int WasmerValKindI32 = 0;
-const int WasmerValKindI64 = 1;
-const int WasmerValKindF32 = 2;
-const int WasmerValKindF64 = 3;
+const int wasmerValKindI32 = 0;
+const int wasmerValKindI64 = 1;
+const int wasmerValKindF32 = 2;
+const int wasmerValKindF64 = 3;
 // The void tag is not part of the C API. It's used to represent the return type
 // of a void function.
-const int WasmerValKindVoid = -1;
+const int wasmerValKindVoid = -1;
 
 // wasm_externkind_enum
-const int WasmerExternKindFunction = 0;
-const int WasmerExternKindGlobal = 1;
-const int WasmerExternKindTable = 2;
-const int WasmerExternKindMemory = 3;
+const int wasmerExternKindFunction = 0;
+const int wasmerExternKindGlobal = 1;
+const int wasmerExternKindTable = 2;
+const int wasmerExternKindMemory = 3;
 
 String wasmerExternKindName(int kind) {
   switch (kind) {
-    case WasmerExternKindFunction:
+    case wasmerExternKindFunction:
       return 'function';
-    case WasmerExternKindGlobal:
+    case wasmerExternKindGlobal:
       return 'global';
-    case WasmerExternKindTable:
+    case wasmerExternKindTable:
       return 'table';
-    case WasmerExternKindMemory:
+    case wasmerExternKindMemory:
       return 'memory';
     default:
       return 'unknown';
@@ -46,15 +44,15 @@ String wasmerExternKindName(int kind) {
 
 String wasmerValKindName(int kind) {
   switch (kind) {
-    case WasmerValKindI32:
+    case wasmerValKindI32:
       return 'int32';
-    case WasmerValKindI64:
+    case wasmerValKindI64:
       return 'int64';
-    case WasmerValKindF32:
+    case wasmerValKindF32:
       return 'float32';
-    case WasmerValKindF64:
+    case wasmerValKindF64:
       return 'float64';
-    case WasmerValKindVoid:
+    case wasmerValKindVoid:
       return 'void';
     default:
       return 'unknown';
@@ -97,23 +95,23 @@ class WasmerVal extends Struct {
   set f64(num val) =>
       _val = ByteData(8)..setFloat64(0, val as double, Endian.host);
 
-  bool get isI32 => kind == WasmerValKindI32;
+  bool get isI32 => kind == wasmerValKindI32;
 
-  bool get isI64 => kind == WasmerValKindI64;
+  bool get isI64 => kind == wasmerValKindI64;
 
-  bool get isF32 => kind == WasmerValKindF32;
+  bool get isF32 => kind == wasmerValKindF32;
 
-  bool get isF64 => kind == WasmerValKindF64;
+  bool get isF64 => kind == wasmerValKindF64;
 
   dynamic get toDynamic {
     switch (kind) {
-      case WasmerValKindI32:
+      case wasmerValKindI32:
         return i32;
-      case WasmerValKindI64:
+      case wasmerValKindI64:
         return i64;
-      case WasmerValKindF32:
+      case wasmerValKindF32:
         return f32;
-      case WasmerValKindF64:
+      case wasmerValKindF64:
         return f64;
     }
   }
@@ -129,4 +127,4 @@ class WasmerLimits extends Struct {
 }
 
 // Default maximum, which indicates no upper limit.
-const int wasm_limits_max_default = 0xffffffff;
+const int wasmLimitsMaxDefault = 0xffffffff;
