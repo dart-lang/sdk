@@ -247,7 +247,7 @@ ${parser.usage}
 ''');
 }
 
-String qualify(LintRule r) => r.name.toString() + describeMaturity(r);
+String qualify(LintRule r) => r.name + describeMaturity(r);
 
 String toDescription(LintRule r) =>
     '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';

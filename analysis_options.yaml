@@ -44,6 +44,7 @@ linter:
 #    - lines_longer_than_80_chars # under review (see #1068)
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
+    - noop_primitive_operations
 #    - one_member_abstracts
     - only_throw_errors
     - package_api_docs
@@ -61,6 +62,7 @@ linter:
 #    - prefer_mixin
     - prefer_null_aware_method_calls
     - prefer_relative_imports
+    - depend_on_referenced_packages
 #    - public_member_api_docs
 #    - sort_constructors_first
     - sort_pub_dependencies
