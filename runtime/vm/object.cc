@@ -11603,10 +11603,6 @@ void Script::LoadSourceFromKernel(const uint8_t* kernel_buffer,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-void Script::set_compile_time_constants(const Array& value) const {
-  untag()->set_compile_time_constants(value.ptr());
-}
-
 void Script::set_kernel_program_info(const KernelProgramInfo& info) const {
   untag()->set_kernel_program_info(info.ptr());
 }

@@ -4464,11 +4464,6 @@ class Script : public Object {
   // The load time in milliseconds since epoch.
   int64_t load_timestamp() const { return untag()->load_timestamp_; }
 
-  ArrayPtr compile_time_constants() const {
-    return untag()->compile_time_constants();
-  }
-  void set_compile_time_constants(const Array& value) const;
-
   KernelProgramInfoPtr kernel_program_info() const {
     return untag()->kernel_program_info();
   }
