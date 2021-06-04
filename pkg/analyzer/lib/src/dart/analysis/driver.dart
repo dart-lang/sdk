@@ -993,8 +993,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   ApiSignature getResolvedUnitKeyByPath(String path) {
     _throwIfNotAbsolutePath(path);
-    ApiSignature signature = getUnitKeyByPath(path);
     var file = fsState.getFileForPath(path);
+
+    var signature = ApiSignature();
+    signature.addUint32List(_saltForResolution);
+    signature.addString(file.transitiveSignature);
     signature.addString(file.contentHash);
     return signature;
   }
@@ -1152,15 +1155,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
-  }
-
-  ApiSignature getUnitKeyByPath(String path) {
-    _throwIfNotAbsolutePath(path);
-    var file = fsState.getFileForPath(path);
-    ApiSignature signature = ApiSignature();
-    signature.addUint32List(_saltForResolution);
-    signature.addString(file.transitiveSignature);
-    return signature;
   }
 
   /// Return `true` is the file with the given absolute [uri] is a library,
