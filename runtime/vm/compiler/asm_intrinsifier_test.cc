@@ -57,8 +57,14 @@ ISOLATE_UNIT_TEST_CASE(AsmIntrinsifier_SetHashIfNotSetYet) {
             DartEntry::InvokeFunction(function, args, args_descriptor_array));
   EXPECT_EQ(smi42.ptr(), Smi::New(GetHash(I, obj.ptr())));
 
+  // We test setting the maximum value our core libraries would use when
+  // installing an identity hash code (see
+  // sdk/lib/_internal/vm/lib/object_patch.dart:Object._objectHashCode)
+  //
+  // This value is representable as a positive Smi on all architectures (even
+  // compressed pointers).
+  const auto& smiMax = Smi::Handle(Smi::New(0x40000000 - 1));
   const auto& obj2 = Object::Handle(Instance::New(object_class));
-  const auto& smiMax = Smi::Handle(Smi::New(0xffffffff));
 
   // Initialized to 0
   EXPECT_EQ(smi0.ptr(), Smi::New(GetHash(I, obj2.ptr())));
