@@ -84,9 +84,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
   static const int DATA_VERSION = 143;
 
-  /// The length of the list returned by [_computeDeclaredVariablesSignature].
-  static const int _declaredVariablesSignatureLength = 4;
-
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
   static int allowedNumberOfContextsToWrite = 10;
@@ -132,19 +129,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   api.AnalysisContext? analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
-  final Uint32List _saltForUnlinked =
-      Uint32List(2 + AnalysisOptionsImpl.signatureLength);
+  Uint32List _saltForUnlinked = Uint32List(0);
 
   /// The salt to mix into all hashes used as keys for elements.
-  final Uint32List _saltForElements = Uint32List(1 +
-      AnalysisOptionsImpl.signatureLength +
-      _declaredVariablesSignatureLength);
+  Uint32List _saltForElements = Uint32List(0);
 
   /// The salt to mix into all hashes used as keys for linked data.
-  final Uint32List _saltForResolution = Uint32List(3 +
-      AnalysisOptionsImpl.signatureLength +
-      AnalysisOptionsImpl.signatureLength +
-      _declaredVariablesSignatureLength);
+  Uint32List _saltForResolution = Uint32List(0);
 
   /// The set of priority files, that should be analyzed sooner.
   final _priorityFiles = <String>{};
@@ -1522,6 +1513,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _changeHook(null);
   }
 
+  void _addDeclaredVariablesToSignature(ApiSignature buffer) {
+    var variableNames = declaredVariables.variableNames;
+    buffer.addInt(variableNames.length);
+
+    for (var name in variableNames) {
+      var value = declaredVariables.get(name);
+      buffer.addString(name);
+      buffer.addString(value!);
+    }
+  }
+
   /// Implementation for [changeFile].
   void _changeFile(String path) {
     _fileTracker.changeFile(path);
@@ -1652,22 +1654,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         throw _ExceptionState(exception, stackTrace, contextKey);
       }
     });
-  }
-
-  Uint32List _computeDeclaredVariablesSignature() {
-    var buffer = ApiSignature();
-
-    var variableNames = declaredVariables.variableNames;
-    buffer.addInt(variableNames.length);
-
-    for (var name in variableNames) {
-      var value = declaredVariables.get(name);
-      buffer.addString(name);
-      buffer.addString(value!);
-    }
-
-    var bytes = buffer.toByteList();
-    return Uint8List.fromList(bytes).buffer.asUint32List();
   }
 
   ErrorsResult? _computeErrors({
@@ -1871,60 +1857,38 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   void _fillSaltForElements() {
-    var index = 0;
-
-    _saltForElements[index] = DATA_VERSION;
-    index++;
-
-    _saltForElements.setAll(index, _analysisOptions.signatureForElements);
-    index += AnalysisOptionsImpl.signatureLength;
-
-    _saltForResolution.setAll(index, _computeDeclaredVariablesSignature());
-    index += _declaredVariablesSignatureLength;
+    var buffer = ApiSignature();
+    buffer.addInt(DATA_VERSION);
+    buffer.addUint32List(_analysisOptions.signatureForElements);
+    _addDeclaredVariablesToSignature(buffer);
+    _saltForElements = buffer.toUint32List();
   }
 
   void _fillSaltForResolution() {
-    var index = 0;
+    var buffer = ApiSignature();
+    buffer.addInt(DATA_VERSION);
+    buffer.addBool(enableIndex);
+    buffer.addBool(enableDebugResolutionMarkers);
+    buffer.addUint32List(_analysisOptions.signature);
+    _addDeclaredVariablesToSignature(buffer);
 
-    _saltForResolution[index] = DATA_VERSION;
-    index++;
-
-    _saltForResolution[index] = enableIndex ? 1 : 0;
-    index++;
-
-    _saltForResolution[index] = enableDebugResolutionMarkers ? 1 : 0;
-    index++;
-
-    // TODO(scheglov) Just combine everything into one signature.
     {
-      var buffer = ApiSignature();
-
       var workspace = analysisContext?.contextRoot.workspace;
       // TODO(scheglov) Generalize?
       if (workspace is PubWorkspace) {
         buffer.addString(workspace.pubspecContent ?? '');
       }
-
-      var bytes = buffer.toByteList();
-      _saltForResolution.setAll(
-        index,
-        // TODO(scheglov) Add a special method to ApiSignature?
-        Uint8List.fromList(bytes).buffer.asUint32List(),
-      );
-      index += AnalysisOptionsImpl.signatureLength;
     }
 
-    _saltForResolution.setAll(index, _analysisOptions.signature);
-    index += AnalysisOptionsImpl.signatureLength;
-
-    _saltForResolution.setAll(index, _computeDeclaredVariablesSignature());
-    index += _declaredVariablesSignatureLength;
+    _saltForResolution = buffer.toUint32List();
   }
 
   void _fillSaltForUnlinked() {
-    _saltForUnlinked[0] = DATA_VERSION;
-    _saltForUnlinked[1] = enableIndex ? 1 : 0;
-    _saltForUnlinked.setAll(2, _analysisOptions.unlinkedSignature);
+    var buffer = ApiSignature();
+    buffer.addInt(DATA_VERSION);
+    buffer.addBool(enableIndex);
+    buffer.addUint32List(_analysisOptions.unlinkedSignature);
+    _saltForUnlinked = buffer.toUint32List();
   }
 
   /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set

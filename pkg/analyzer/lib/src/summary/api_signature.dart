@@ -122,6 +122,12 @@ class ApiSignature {
     return hex.encode(toByteList());
   }
 
+  /// Return the MD5 hash of the data collected so far as [Uint32List].
+  Uint32List toUint32List() {
+    var bytes = toByteList();
+    return Uint8List.fromList(bytes).buffer.asUint32List();
+  }
+
   /// Ensure that [spaceNeeded] bytes can be added to [_data] at [_offset]
   /// (copying it to a larger object if necessary).
   void _makeRoom(int spaceNeeded) {
