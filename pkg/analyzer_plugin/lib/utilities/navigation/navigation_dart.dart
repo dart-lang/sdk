@@ -52,6 +52,12 @@ class _DartNavigationCollector {
       this.collector, this.requestedOffset, this.requestedLength);
 
   void _addRegion(int offset, int length, Element? element) {
+    if (element != null && element.isSynthetic) {
+      var parent = element.enclosingElement;
+      if (parent is EnumElementImpl) {
+        element = parent;
+      }
+    }
     if (element is FieldFormalParameterElement) {
       element = element.field;
     }
