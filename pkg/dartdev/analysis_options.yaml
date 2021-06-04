@@ -13,6 +13,7 @@ analyzer:
 linter:
   rules:
     - always_declare_return_types
+    - depend_on_referenced_packages
     - directives_ordering
     - overridden_fields
     - prefer_single_quotes

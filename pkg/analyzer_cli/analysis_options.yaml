@@ -11,6 +11,7 @@ analyzer:
 linter:
   rules:
     avoid_unused_constructor_parameters: true
+    depend_on_referenced_packages: true
     directives_ordering: true
 
     # We import heavily from package:analyzer/src.
