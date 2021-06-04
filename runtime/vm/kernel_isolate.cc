@@ -127,7 +127,8 @@ class RunKernelTask : public ThreadPool::Task {
     // isolate_ was set as side effect of create callback.
     ASSERT(KernelIsolate::IsKernelIsolate(isolate));
 
-    isolate->message_handler()->Run(Dart::thread_pool(), NULL, ShutdownIsolate,
+    isolate->message_handler()->Run(isolate->group()->thread_pool(), NULL,
+                                    ShutdownIsolate,
                                     reinterpret_cast<uword>(isolate));
   }
 
