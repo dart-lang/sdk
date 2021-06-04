@@ -11,7 +11,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Sort child properties last in widget instance creations.';
 
 const _details = r'''
-Sort child properties last in widget instance creations.  This improves
+Sort arguments to end with a Widget in widget instance creations.  This improves
 readability and plays nicest with UI as Code visualization in IDEs with UI as
 Code Guides in editors (such as IntelliJ) where Properties in the correct order
 appear clearly associated with the constructor call and separated from the
@@ -75,9 +75,8 @@ return Scaffold(
 );
 ```
 
-Exception: It's allowed to have parameter with a function expression after the
-`child` property.
-
+Exception: It's allowed to have function expression arguments after the last
+Widget argument.
 ''';
 
 class SortChildPropertiesLast extends LintRule implements NodeLintRule {
@@ -108,31 +107,25 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     var arguments = node.argumentList.arguments;
-    if (arguments.length < 2 ||
-        isChildArg(arguments.last) ||
-        arguments.where(isChildArg).length != 1) {
+    if (arguments.length < 2 || isWidgetProperty(arguments.last.staticType)) {
       return;
     }
 
-    var onlyClosuresAfterChild = arguments.reversed
-        .takeWhile((argument) => !isChildArg(argument))
-        .toList()
-        .reversed
-        .where((element) =>
-            element is NamedExpression &&
-            element.expression is! FunctionExpression)
-        .isEmpty;
-    if (!onlyClosuresAfterChild) {
-      rule.reportLint(arguments.firstWhere(isChildArg));
-    }
-  }
+    var lastWidgetIndex =
+        arguments.lastIndexWhere((e) => isWidgetProperty(e.staticType));
 
-  static bool isChildArg(Expression e) {
-    if (e is NamedExpression) {
-      var name = e.name.label.name;
-      return (name == 'child' || name == 'children') &&
-          isWidgetProperty(e.staticType);
+    // no widget argument
+    if (lastWidgetIndex == -1) {
+      return;
     }
-    return false;
+
+    var onlyClosuresAfterLastWidget = arguments
+        .skip(lastWidgetIndex + 1)
+        .where(
+            (e) => e is NamedExpression && e.expression is! FunctionExpression)
+        .isEmpty;
+    if (!onlyClosuresAfterLastWidget) {
+      rule.reportLint(arguments[lastWidgetIndex]);
+    }
   }
 }
