@@ -54,23 +54,6 @@ abstract class ErrorCode {
         // ignore: unnecessary_null_comparison
         assert(isUnresolvedIdentifier != null);
 
-  @Deprecated('Use the default constructor')
-  const ErrorCode.temporary2({
-    String? correction,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
-    required String message,
-    required String name,
-    required String uniqueName,
-  }) : this(
-          correction: correction,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
-          name: name,
-          uniqueName: uniqueName,
-        );
-
   /**
    * The template used to create the correction to be displayed for this error,
    * or `null` if there is no correction information for this error. The
