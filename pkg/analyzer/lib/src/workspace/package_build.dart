@@ -190,6 +190,13 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
       this, PackageMapUriResolver(provider, packageMap));
 
+  @override
+  String? get pubspecContent {
+    try {
+      return _pubspecFile.readAsStringSync();
+    } catch (_) {}
+  }
+
   /// For some package file, which may or may not be a package source (it could
   /// be in `bin/`, `web/`, etc), find where its built counterpart will exist if
   /// its a generated source.

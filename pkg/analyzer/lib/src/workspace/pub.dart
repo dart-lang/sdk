@@ -31,6 +31,13 @@ class PubWorkspace extends SimpleWorkspace {
     _theOnlyPackage = PubWorkspacePackage(root, this);
   }
 
+  /// Return the content of the pubspec file, `null` if cannot be read.
+  String? get pubspecContent {
+    try {
+      return _pubspecFile.readAsStringSync();
+    } catch (_) {}
+  }
+
   @override
   WorkspacePackage? findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);

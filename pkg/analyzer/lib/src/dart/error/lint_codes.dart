@@ -39,13 +39,6 @@ class LintCode extends ErrorCode {
       other is LintCode && uniqueName == other.uniqueName;
 }
 
-@Deprecated('Use SecurityLintCode and its uniqueName')
-class LintCodeWithUniqueName extends LintCode {
-  const LintCodeWithUniqueName(String name, String uniqueName, String message,
-      {String? correction})
-      : super(name, message, uniqueName: uniqueName, correction: correction);
-}
-
 /// Defines security-related best practice recommendations.
 ///
 /// The primary difference from [LintCode]s is that these codes cannot be
@@ -58,12 +51,4 @@ class SecurityLintCode extends LintCode {
 
   @override
   bool get isIgnorable => false;
-}
-
-@Deprecated('Use SecurityLintCode and its uniqueName')
-class SecurityLintCodeWithUniqueName extends SecurityLintCode {
-  const SecurityLintCodeWithUniqueName(
-      String name, String uniqueName, String message,
-      {String? correction})
-      : super(name, message, uniqueName: uniqueName, correction: correction);
 }

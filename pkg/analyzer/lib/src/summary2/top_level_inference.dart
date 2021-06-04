@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -153,7 +152,7 @@ class _ConstructorInferenceNode extends _InferenceNode {
   _ConstructorInferenceNode(this._walker, this._constructor) {
     for (var parameter in _constructor.parameters) {
       if (parameter is FieldFormalParameterElementImpl) {
-        if (_hasImplicitType(parameter)) {
+        if (parameter.hasImplicitType) {
           var field = parameter.field;
           if (field != null) {
             _parameters.add(
@@ -233,18 +232,6 @@ class _ConstructorInferenceNode extends _InferenceNode {
       parameter.type = DynamicTypeImpl.instance;
     }
     isEvaluated = true;
-  }
-
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/46039
-  bool _hasImplicitType(FieldFormalParameterElementImpl parameter) {
-    var parameterNode = _walker._linker.getLinkingNode(parameter);
-    if (parameterNode is DefaultFormalParameter) {
-      parameterNode = parameterNode.parameter;
-    }
-    return parameterNode is FieldFormalParameterImpl &&
-        parameterNode.type == null &&
-        parameterNode.parameters == null;
-    // return parameter.hasImplicitType;
   }
 }
 

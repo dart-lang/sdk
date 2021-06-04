@@ -43,6 +43,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
@@ -141,6 +142,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The salt to mix into all hashes used as keys for linked data.
   final Uint32List _saltForResolution = Uint32List(3 +
+      AnalysisOptionsImpl.signatureLength +
       AnalysisOptionsImpl.signatureLength +
       _declaredVariablesSignatureLength);
 
@@ -1898,6 +1900,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     _saltForResolution[index] = enableDebugResolutionMarkers ? 1 : 0;
     index++;
+
+    // TODO(scheglov) Just combine everything into one signature.
+    {
+      var buffer = ApiSignature();
+
+      var workspace = analysisContext?.contextRoot.workspace;
+      // TODO(scheglov) Generalize?
+      if (workspace is PubWorkspace) {
+        buffer.addString(workspace.pubspecContent ?? '');
+      }
+
+      var bytes = buffer.toByteList();
+      _saltForResolution.setAll(
+        index,
+        // TODO(scheglov) Add a special method to ApiSignature?
+        Uint8List.fromList(bytes).buffer.asUint32List(),
+      );
+      index += AnalysisOptionsImpl.signatureLength;
+    }
 
     _saltForResolution.setAll(index, _analysisOptions.signature);
     index += AnalysisOptionsImpl.signatureLength;
