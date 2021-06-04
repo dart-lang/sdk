@@ -49,7 +49,8 @@ namespace bin {
   V(enable_service_port_fallback, enable_service_port_fallback)                \
   V(disable_dart_dev, disable_dart_dev)                                        \
   V(long_ssl_cert_evaluation, long_ssl_cert_evaluation)                        \
-  V(bypass_trusting_system_roots, bypass_trusting_system_roots)
+  V(bypass_trusting_system_roots, bypass_trusting_system_roots)                \
+  V(delayed_filewatch_callback, delayed_filewatch_callback)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

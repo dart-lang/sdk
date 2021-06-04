@@ -61,7 +61,6 @@ class FSEventsWatcher {
          int write_fd,
          bool recursive)
         : watcher_(watcher),
-          ready_(false),
           base_path_length_(strlen(base_path)),
           path_ref_(CFStringCreateWithCString(NULL,
                                               base_path,
@@ -74,9 +73,14 @@ class FSEventsWatcher {
     }
 
     ~Node() {
-      Stop();
+      // This is invoked outside of [Callback] execution because
+      // [context.release] callback is invoked when [FSEventStream] is
+      // deallocated, the same [FSEventStream] that [Callback] gets a reference
+      // to during its execution. [Callback] holding a reference prevents stream
+      // from deallocation.
       close(write_fd_);
       CFRelease(path_ref_);
+      watcher_ = nullptr;  // this is to catch access-after-free in Callback
     }
 
     void set_ref(FSEventStreamRef ref) { ref_ = ref; }
@@ -85,6 +89,9 @@ class FSEventsWatcher {
       FSEventStreamContext context;
       memset(&context, 0, sizeof(context));
       context.info = reinterpret_cast<void*>(this);
+      context.release = [](const void* info) {
+        delete static_cast<const Node*>(info);
+      };
       CFArrayRef array = CFArrayCreate(
           NULL, reinterpret_cast<const void**>(&path_ref_), 1, NULL);
       FSEventStreamRef ref = FSEventStreamCreate(
@@ -93,7 +100,6 @@ class FSEventsWatcher {
       CFRelease(array);
 
       set_ref(ref);
-      ready_.store(true, std::memory_order_release);
 
       FSEventStreamScheduleWithRunLoop(ref_, watcher_->run_loop_,
                                        kCFRunLoopDefaultMode);
@@ -103,15 +109,12 @@ class FSEventsWatcher {
     }
 
     void Stop() {
-      ASSERT(ready_);
       FSEventStreamStop(ref_);
       FSEventStreamInvalidate(ref_);
       FSEventStreamRelease(ref_);
-      ready_.store(false, std::memory_order_release);
     }
 
     FSEventsWatcher* watcher() const { return watcher_; }
-    bool ready() const { return ready_.load(std::memory_order_acquire); }
     intptr_t base_path_length() const { return base_path_length_; }
     int read_fd() const { return read_fd_; }
     int write_fd() const { return write_fd_; }
@@ -119,7 +122,6 @@ class FSEventsWatcher {
 
    private:
     FSEventsWatcher* watcher_;
-    std::atomic<bool> ready_;
     intptr_t base_path_length_;
     CFStringRef path_ref_;
     int read_fd_;
@@ -218,12 +220,15 @@ class FSEventsWatcher {
                        void* event_paths,
                        const FSEventStreamEventFlags event_flags[],
                        const FSEventStreamEventId event_ids[]) {
-    Node* node = reinterpret_cast<Node*>(client);
+    if (FileSystemWatcher::delayed_filewatch_callback()) {
+      // Used in tests to highlight race between callback invocation
+      // and unwatching the file path, Node destruction
+      TimerUtils::Sleep(1000 /* ms */);
+    }
+    Node* node = static_cast<Node*>(client);
+    RELEASE_ASSERT(node->watcher() != nullptr);
     ASSERT(Thread::Compare(node->watcher()->threadId_,
                            Thread::GetCurrentThreadId()));
-    if (!node->ready()) {
-      return;
-    }
     for (size_t i = 0; i < num_events; i++) {
       char* path = reinterpret_cast<char**>(event_paths)[i];
       FSEvent event;
@@ -274,7 +279,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   USE(id);
-  delete reinterpret_cast<FSEventsWatcher::Node*>(path_id);
+  reinterpret_cast<FSEventsWatcher::Node*>(path_id)->Stop();
 }
 
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
