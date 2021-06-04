@@ -885,17 +885,17 @@ class ClassElementImpl extends AbstractClassElementImpl
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [
         astFactory.superConstructorInvocation(
-          Tokens.SUPER,
-          isNamed ? Tokens.PERIOD : null,
+          Tokens.super_(),
+          isNamed ? Tokens.period() : null,
           isNamed
               ? (astFactory.simpleIdentifier(
                   StringToken(TokenType.STRING, superclassConstructor.name, -1),
                 )..staticElement = superclassConstructor)
               : null,
           astFactory.argumentList(
-            Tokens.OPEN_PAREN,
+            Tokens.openParenthesis(),
             argumentsForSuperInvocation,
-            Tokens.CLOSE_PAREN,
+            Tokens.closeParenthesis(),
           ),
         )..staticElement = superclassConstructor,
       ];

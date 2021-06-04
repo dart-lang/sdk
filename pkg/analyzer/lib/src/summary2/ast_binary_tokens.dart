@@ -8,101 +8,23 @@ import 'package:analyzer/src/summary2/tokens_context.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 
 class Tokens {
-  static final ABSTRACT = TokenFactory.tokenFromKeyword(Keyword.ABSTRACT);
-  static final ARROW = TokenFactory.tokenFromType(TokenType.FUNCTION);
-  static final AS = TokenFactory.tokenFromKeyword(Keyword.AS);
-  static final ASSERT = TokenFactory.tokenFromKeyword(Keyword.ASSERT);
-  static final AT = TokenFactory.tokenFromType(TokenType.AT);
-  static final ASYNC = TokenFactory.tokenFromKeyword(Keyword.ASYNC);
-  static final AWAIT = TokenFactory.tokenFromKeyword(Keyword.AWAIT);
-  static final BANG = TokenFactory.tokenFromType(TokenType.BANG);
-  static final BREAK = TokenFactory.tokenFromKeyword(Keyword.BREAK);
-  static final CASE = TokenFactory.tokenFromKeyword(Keyword.CASE);
-  static final CATCH = TokenFactory.tokenFromKeyword(Keyword.CATCH);
-  static final CLASS = TokenFactory.tokenFromKeyword(Keyword.CLASS);
-  static final CLOSE_CURLY_BRACKET =
-      TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET);
-  static final CLOSE_PAREN = TokenFactory.tokenFromType(TokenType.CLOSE_PAREN);
-  static final CLOSE_SQUARE_BRACKET =
-      TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET);
-  static final COLON = TokenFactory.tokenFromType(TokenType.COLON);
-  static final COMMA = TokenFactory.tokenFromType(TokenType.COMMA);
-  static final CONST = TokenFactory.tokenFromKeyword(Keyword.CONST);
-  static final CONTINUE = TokenFactory.tokenFromKeyword(Keyword.CONTINUE);
-  static final COVARIANT = TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
-  static final DEFERRED = TokenFactory.tokenFromKeyword(Keyword.DEFERRED);
-  static final ELSE = TokenFactory.tokenFromKeyword(Keyword.ELSE);
-  static final EXTERNAL = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-  static final FACTORY = TokenFactory.tokenFromKeyword(Keyword.FACTORY);
-  static final DEFAULT = TokenFactory.tokenFromKeyword(Keyword.DEFAULT);
-  static final DO = TokenFactory.tokenFromKeyword(Keyword.DO);
-  static final ENUM = TokenFactory.tokenFromKeyword(Keyword.ENUM);
-  static final EQ = TokenFactory.tokenFromType(TokenType.EQ);
-  static final EXPORT = TokenFactory.tokenFromKeyword(Keyword.EXPORT);
-  static final EXTENDS = TokenFactory.tokenFromKeyword(Keyword.EXTENDS);
-  static final EXTENSION = TokenFactory.tokenFromKeyword(Keyword.EXTENSION);
-  static final FINAL = TokenFactory.tokenFromKeyword(Keyword.FINAL);
-  static final FINALLY = TokenFactory.tokenFromKeyword(Keyword.FINALLY);
-  static final FOR = TokenFactory.tokenFromKeyword(Keyword.FOR);
-  static final FUNCTION = TokenFactory.tokenFromKeyword(Keyword.FUNCTION);
-  static final GET = TokenFactory.tokenFromKeyword(Keyword.GET);
-  static final GT = TokenFactory.tokenFromType(TokenType.GT);
-  static final HASH = TokenFactory.tokenFromType(TokenType.HASH);
-  static final HIDE = TokenFactory.tokenFromKeyword(Keyword.HIDE);
-  static final IF = TokenFactory.tokenFromKeyword(Keyword.IF);
-  static final IMPLEMENTS = TokenFactory.tokenFromKeyword(Keyword.IMPORT);
-  static final IMPORT = TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS);
-  static final IN = TokenFactory.tokenFromKeyword(Keyword.IN);
-  static final IS = TokenFactory.tokenFromKeyword(Keyword.IS);
-  static final LATE = TokenFactory.tokenFromKeyword(Keyword.LATE);
-  static final LIBRARY = TokenFactory.tokenFromKeyword(Keyword.LIBRARY);
-  static final LT = TokenFactory.tokenFromType(TokenType.LT);
-  static final MIXIN = TokenFactory.tokenFromKeyword(Keyword.MIXIN);
-  static final NATIVE = TokenFactory.tokenFromKeyword(Keyword.NATIVE);
-  static final NEW = TokenFactory.tokenFromKeyword(Keyword.NEW);
-  static final NULL = TokenFactory.tokenFromKeyword(Keyword.NULL);
-  static final OF = TokenFactory.tokenFromKeyword(Keyword.OF);
-  static final ON = TokenFactory.tokenFromKeyword(Keyword.ON);
-  static final OPEN_CURLY_BRACKET =
-      TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET);
-  static final OPEN_PAREN = TokenFactory.tokenFromType(TokenType.OPEN_PAREN);
-  static final OPEN_SQUARE_BRACKET =
-      TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET);
-  static final OPERATOR = TokenFactory.tokenFromKeyword(Keyword.OPERATOR);
-  static final PART = TokenFactory.tokenFromKeyword(Keyword.PART);
-  static final PERIOD = TokenFactory.tokenFromType(TokenType.PERIOD);
-  static final PERIOD_PERIOD =
-      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD);
-  static final PERIOD_PERIOD_PERIOD =
-      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD);
-  static final PERIOD_PERIOD_PERIOD_QUESTION =
-      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
-  static final QUESTION = TokenFactory.tokenFromType(TokenType.QUESTION);
-  static final QUESTION_PERIOD =
-      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD);
-  static final QUESTION_PERIOD_PERIOD =
-      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD_PERIOD);
-  static final REQUIRED = TokenFactory.tokenFromKeyword(Keyword.REQUIRED);
-  static final RETHROW = TokenFactory.tokenFromKeyword(Keyword.RETHROW);
-  static final RETURN = TokenFactory.tokenFromKeyword(Keyword.RETURN);
-  static final SEMICOLON = TokenFactory.tokenFromType(TokenType.SEMICOLON);
-  static final SET = TokenFactory.tokenFromKeyword(Keyword.SET);
-  static final SHOW = TokenFactory.tokenFromKeyword(Keyword.SHOW);
-  static final STAR = TokenFactory.tokenFromType(TokenType.STAR);
-  static final STATIC = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-  static final STRING_INTERPOLATION_EXPRESSION =
-      TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION);
-  static final SUPER = TokenFactory.tokenFromKeyword(Keyword.SUPER);
-  static final SWITCH = TokenFactory.tokenFromKeyword(Keyword.SWITCH);
-  static final SYNC = TokenFactory.tokenFromKeyword(Keyword.SYNC);
-  static final THIS = TokenFactory.tokenFromKeyword(Keyword.THIS);
-  static final THROW = TokenFactory.tokenFromKeyword(Keyword.THROW);
-  static final TRY = TokenFactory.tokenFromKeyword(Keyword.TRY);
-  static final TYPEDEF = TokenFactory.tokenFromKeyword(Keyword.TYPEDEF);
-  static final VAR = TokenFactory.tokenFromKeyword(Keyword.VAR);
-  static final WITH = TokenFactory.tokenFromKeyword(Keyword.WITH);
-  static final WHILE = TokenFactory.tokenFromKeyword(Keyword.WHILE);
-  static final YIELD = TokenFactory.tokenFromKeyword(Keyword.YIELD);
+  static Token as_() => TokenFactory.tokenFromKeyword(Keyword.AS);
+
+  static Token assert_() => TokenFactory.tokenFromKeyword(Keyword.ASSERT);
+
+  static Token async_() => TokenFactory.tokenFromKeyword(Keyword.ASYNC);
+
+  static Token at() => TokenFactory.tokenFromType(TokenType.AT);
+
+  static Token await_() => TokenFactory.tokenFromKeyword(Keyword.AWAIT);
+
+  static Token bang() => TokenFactory.tokenFromType(TokenType.BANG);
+
+  static Token break_() => TokenFactory.tokenFromKeyword(Keyword.BREAK);
+
+  static Token case_() => TokenFactory.tokenFromKeyword(Keyword.CASE);
+
+  static Token catch_() => TokenFactory.tokenFromKeyword(Keyword.CATCH);
 
   static Token? choose(bool if1, Token then1, bool if2, Token then2,
       [bool? if3, Token? then3]) {
@@ -112,9 +34,167 @@ class Tokens {
     return null;
   }
 
+  static Token class_() => TokenFactory.tokenFromKeyword(Keyword.CLASS);
+
+  static Token closeCurlyBracket() =>
+      TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET);
+
+  static Token closeParenthesis() =>
+      TokenFactory.tokenFromType(TokenType.CLOSE_PAREN);
+
+  static Token closeSquareBracket() =>
+      TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET);
+
+  static Token colon() => TokenFactory.tokenFromType(TokenType.COLON);
+
+  static Token comma() => TokenFactory.tokenFromType(TokenType.COMMA);
+
+  static Token const_() => TokenFactory.tokenFromKeyword(Keyword.CONST);
+
+  static Token continue_() => TokenFactory.tokenFromKeyword(Keyword.CONTINUE);
+
+  static Token covariant_() => TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+
+  static Token default_() => TokenFactory.tokenFromKeyword(Keyword.DEFAULT);
+
+  static Token do_() => TokenFactory.tokenFromKeyword(Keyword.DO);
+
+  static Token else_() => TokenFactory.tokenFromKeyword(Keyword.ELSE);
+
+  static Token enum_() => TokenFactory.tokenFromKeyword(Keyword.ENUM);
+
+  static Token eq() => TokenFactory.tokenFromType(TokenType.EQ);
+
+  static Token export_() => TokenFactory.tokenFromKeyword(Keyword.EXPORT);
+
+  static Token extends_() => TokenFactory.tokenFromKeyword(Keyword.EXTENDS);
+
+  static Token extension_() => TokenFactory.tokenFromKeyword(Keyword.EXTENSION);
+
+  static Token external_() => TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+
+  static Token factory_() => TokenFactory.tokenFromKeyword(Keyword.FACTORY);
+
+  static Token final_() => TokenFactory.tokenFromKeyword(Keyword.FINAL);
+
+  static Token finally_() => TokenFactory.tokenFromKeyword(Keyword.FINALLY);
+
+  static Token for_() => TokenFactory.tokenFromKeyword(Keyword.FOR);
+
   static Token fromType(UnlinkedTokenType type) {
     return TokenFactory.tokenFromType(
       TokensContext.binaryToAstTokenType(type),
     );
   }
+
+  static Token function() => TokenFactory.tokenFromKeyword(Keyword.FUNCTION);
+
+  static Token get_() => TokenFactory.tokenFromKeyword(Keyword.GET);
+
+  static Token gt() => TokenFactory.tokenFromType(TokenType.GT);
+
+  static Token hash() => TokenFactory.tokenFromType(TokenType.HASH);
+
+  static Token hide_() => TokenFactory.tokenFromKeyword(Keyword.HIDE);
+
+  static Token if_() => TokenFactory.tokenFromKeyword(Keyword.IF);
+
+  static Token implements_() => TokenFactory.tokenFromKeyword(Keyword.IMPORT);
+
+  static Token import_() => TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS);
+
+  static Token in_() => TokenFactory.tokenFromKeyword(Keyword.IN);
+
+  static Token is_() => TokenFactory.tokenFromKeyword(Keyword.IS);
+
+  static Token late_() => TokenFactory.tokenFromKeyword(Keyword.LATE);
+
+  static Token library_() => TokenFactory.tokenFromKeyword(Keyword.LIBRARY);
+
+  static Token lt() => TokenFactory.tokenFromType(TokenType.LT);
+
+  static Token mixin_() => TokenFactory.tokenFromKeyword(Keyword.MIXIN);
+
+  static Token native_() => TokenFactory.tokenFromKeyword(Keyword.NATIVE);
+
+  static Token new_() => TokenFactory.tokenFromKeyword(Keyword.NEW);
+
+  static Token null_() => TokenFactory.tokenFromKeyword(Keyword.NULL);
+
+  static Token of_() => TokenFactory.tokenFromKeyword(Keyword.OF);
+
+  static Token on_() => TokenFactory.tokenFromKeyword(Keyword.ON);
+
+  static Token openCurlyBracket() =>
+      TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET);
+
+  static Token openParenthesis() =>
+      TokenFactory.tokenFromType(TokenType.OPEN_PAREN);
+
+  static Token openSquareBracket() =>
+      TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET);
+
+  static Token operator_() => TokenFactory.tokenFromKeyword(Keyword.OPERATOR);
+
+  static Token part_() => TokenFactory.tokenFromKeyword(Keyword.PART);
+
+  static Token period() => TokenFactory.tokenFromType(TokenType.PERIOD);
+
+  static Token periodPeriod() =>
+      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD);
+
+  static Token periodPeriodPeriod() =>
+      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD);
+
+  static Token periodPeriodPeriodQuestion() =>
+      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
+
+  static Token question() => TokenFactory.tokenFromType(TokenType.QUESTION);
+
+  static Token questionPeriod() =>
+      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD);
+
+  static Token questionPeriodPeriod() =>
+      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD_PERIOD);
+
+  static Token required_() => TokenFactory.tokenFromKeyword(Keyword.REQUIRED);
+
+  static Token rethrow_() => TokenFactory.tokenFromKeyword(Keyword.RETHROW);
+
+  static Token return_() => TokenFactory.tokenFromKeyword(Keyword.RETURN);
+
+  static Token semicolon() => TokenFactory.tokenFromType(TokenType.SEMICOLON);
+
+  static Token set_() => TokenFactory.tokenFromKeyword(Keyword.SET);
+
+  static Token show_() => TokenFactory.tokenFromKeyword(Keyword.SHOW);
+
+  static Token star() => TokenFactory.tokenFromType(TokenType.STAR);
+
+  static Token static_() => TokenFactory.tokenFromKeyword(Keyword.STATIC);
+
+  static Token stringInterpolationExpression() =>
+      TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION);
+
+  static Token super_() => TokenFactory.tokenFromKeyword(Keyword.SUPER);
+
+  static Token switch_() => TokenFactory.tokenFromKeyword(Keyword.SWITCH);
+
+  static Token sync_() => TokenFactory.tokenFromKeyword(Keyword.SYNC);
+
+  static Token this_() => TokenFactory.tokenFromKeyword(Keyword.THIS);
+
+  static Token throw_() => TokenFactory.tokenFromKeyword(Keyword.THROW);
+
+  static Token try_() => TokenFactory.tokenFromKeyword(Keyword.TRY);
+
+  static Token typedef_() => TokenFactory.tokenFromKeyword(Keyword.TYPEDEF);
+
+  static Token var_() => TokenFactory.tokenFromKeyword(Keyword.VAR);
+
+  static Token while_() => TokenFactory.tokenFromKeyword(Keyword.WHILE);
+
+  static Token with_() => TokenFactory.tokenFromKeyword(Keyword.WITH);
+
+  static Token yield_() => TokenFactory.tokenFromKeyword(Keyword.YIELD);
 }

@@ -1009,7 +1009,7 @@ class ToSourceVisitor2Test {
         'var e in l',
         astFactory.forEachPartsWithDeclaration(
             loopVariable: AstTestFactory.declaredIdentifier3('e'),
-            inKeyword: Tokens.IN,
+            inKeyword: Tokens.in_(),
             iterable: AstTestFactory.identifier3('l')));
   }
 
@@ -1018,7 +1018,7 @@ class ToSourceVisitor2Test {
         'e in l',
         astFactory.forEachPartsWithIdentifier(
             identifier: AstTestFactory.identifier3('e'),
-            inKeyword: Tokens.IN,
+            inKeyword: Tokens.in_(),
             iterable: AstTestFactory.identifier3('l')));
   }
 
@@ -1065,13 +1065,13 @@ class ToSourceVisitor2Test {
     _assertSource(
       'for (e in l) 0',
       astFactory.forElement(
-          forKeyword: Tokens.FOR,
-          leftParenthesis: Tokens.OPEN_PAREN,
+          forKeyword: Tokens.for_(),
+          leftParenthesis: Tokens.openParenthesis(),
           forLoopParts: astFactory.forEachPartsWithIdentifier(
               identifier: AstTestFactory.identifier3('e'),
-              inKeyword: Tokens.IN,
+              inKeyword: Tokens.in_(),
               iterable: AstTestFactory.identifier3('l')),
-          rightParenthesis: Tokens.CLOSE_PAREN,
+          rightParenthesis: Tokens.closeParenthesis(),
           body: AstTestFactory.integer(0)),
     );
   }
@@ -1270,9 +1270,9 @@ class ToSourceVisitor2Test {
         astFactory.forPartsWithDeclarations(
             variables: AstTestFactory.variableDeclarationList2(
                 Keyword.VAR, [AstTestFactory.variableDeclaration('v')]),
-            leftSeparator: Tokens.SEMICOLON,
+            leftSeparator: Tokens.semicolon(),
             condition: AstTestFactory.identifier3('b'),
-            rightSeparator: Tokens.SEMICOLON,
+            rightSeparator: Tokens.semicolon(),
             updaters: [AstTestFactory.identifier3('u')]));
   }
 
@@ -1281,9 +1281,9 @@ class ToSourceVisitor2Test {
         'v; b; u',
         astFactory.forPartsWithExpression(
             initialization: AstTestFactory.identifier3('v'),
-            leftSeparator: Tokens.SEMICOLON,
+            leftSeparator: Tokens.semicolon(),
             condition: AstTestFactory.identifier3('b'),
-            rightSeparator: Tokens.SEMICOLON,
+            rightSeparator: Tokens.semicolon(),
             updaters: [AstTestFactory.identifier3('u')]));
   }
 
@@ -1291,13 +1291,13 @@ class ToSourceVisitor2Test {
     _assertSource(
       'for (e in l) s;',
       astFactory.forStatement(
-          forKeyword: Tokens.FOR,
-          leftParenthesis: Tokens.OPEN_PAREN,
+          forKeyword: Tokens.for_(),
+          leftParenthesis: Tokens.openParenthesis(),
           forLoopParts: astFactory.forEachPartsWithIdentifier(
               identifier: AstTestFactory.identifier3('e'),
-              inKeyword: Tokens.IN,
+              inKeyword: Tokens.in_(),
               iterable: AstTestFactory.identifier3('l')),
-          rightParenthesis: Tokens.CLOSE_PAREN,
+          rightParenthesis: Tokens.closeParenthesis(),
           body: AstTestFactory.expressionStatement(
               AstTestFactory.identifier3('s'))),
     );
@@ -1673,12 +1673,12 @@ class ToSourceVisitor2Test {
     _assertSource(
         'if (b) 1 else 0',
         astFactory.ifElement(
-            ifKeyword: Tokens.IF,
-            leftParenthesis: Tokens.OPEN_PAREN,
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
             condition: AstTestFactory.identifier3('b'),
-            rightParenthesis: Tokens.CLOSE_PAREN,
+            rightParenthesis: Tokens.closeParenthesis(),
             thenElement: AstTestFactory.integer(1),
-            elseKeyword: Tokens.ELSE,
+            elseKeyword: Tokens.else_(),
             elseElement: AstTestFactory.integer(0)));
   }
 
@@ -1686,10 +1686,10 @@ class ToSourceVisitor2Test {
     _assertSource(
         'if (b) 1',
         astFactory.ifElement(
-            ifKeyword: Tokens.IF,
-            leftParenthesis: Tokens.OPEN_PAREN,
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
             condition: AstTestFactory.identifier3('b'),
-            rightParenthesis: Tokens.CLOSE_PAREN,
+            rightParenthesis: Tokens.closeParenthesis(),
             thenElement: AstTestFactory.integer(1)));
   }
 
@@ -1918,23 +1918,23 @@ class ToSourceVisitor2Test {
         astFactory.listLiteral(
             null,
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-            Tokens.OPEN_SQUARE_BRACKET,
+            Tokens.openSquareBracket(),
             [
               AstTestFactory.integer(0),
               astFactory.forElement(
-                  forKeyword: Tokens.FOR,
-                  leftParenthesis: Tokens.OPEN_PAREN,
+                  forKeyword: Tokens.for_(),
+                  leftParenthesis: Tokens.openParenthesis(),
                   forLoopParts: astFactory.forEachPartsWithIdentifier(
                       identifier: AstTestFactory.identifier3('e'),
-                      inKeyword: Tokens.IN,
+                      inKeyword: Tokens.in_(),
                       iterable: AstTestFactory.identifier3('l')),
-                  rightParenthesis: Tokens.CLOSE_PAREN,
+                  rightParenthesis: Tokens.closeParenthesis(),
                   body: AstTestFactory.integer(0)),
               astFactory.ifElement(
-                  ifKeyword: Tokens.IF,
-                  leftParenthesis: Tokens.OPEN_PAREN,
+                  ifKeyword: Tokens.if_(),
+                  leftParenthesis: Tokens.openParenthesis(),
                   condition: AstTestFactory.identifier3('b'),
-                  rightParenthesis: Tokens.CLOSE_PAREN,
+                  rightParenthesis: Tokens.closeParenthesis(),
                   thenElement: AstTestFactory.integer(1)),
               astFactory.spreadElement(
                   spreadOperator: TokenFactory.tokenFromType(
@@ -1942,11 +1942,11 @@ class ToSourceVisitor2Test {
                   expression: astFactory.listLiteral(
                       null,
                       null,
-                      Tokens.OPEN_SQUARE_BRACKET,
+                      Tokens.openSquareBracket(),
                       [AstTestFactory.integer(0)],
-                      Tokens.CLOSE_SQUARE_BRACKET))
+                      Tokens.closeSquareBracket()))
             ],
-            Tokens.CLOSE_SQUARE_BRACKET));
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_const() {
@@ -1973,9 +1973,9 @@ class ToSourceVisitor2Test {
         astFactory.listLiteral(
             TokenFactory.tokenFromKeyword(Keyword.CONST),
             null,
-            Tokens.OPEN_SQUARE_BRACKET,
+            Tokens.openSquareBracket(),
             [AstTestFactory.integer(0)],
-            Tokens.CLOSE_SQUARE_BRACKET));
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_withConst_withTypeArgs() {
@@ -1984,16 +1984,16 @@ class ToSourceVisitor2Test {
         astFactory.listLiteral(
             TokenFactory.tokenFromKeyword(Keyword.CONST),
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-            Tokens.OPEN_SQUARE_BRACKET,
+            Tokens.openSquareBracket(),
             [AstTestFactory.integer(0)],
-            Tokens.CLOSE_SQUARE_BRACKET));
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_withoutConst_withoutTypeArgs() {
     _assertSource(
         '[0]',
-        astFactory.listLiteral(null, null, Tokens.OPEN_SQUARE_BRACKET,
-            [AstTestFactory.integer(0)], Tokens.CLOSE_SQUARE_BRACKET));
+        astFactory.listLiteral(null, null, Tokens.openSquareBracket(),
+            [AstTestFactory.integer(0)], Tokens.closeSquareBracket()));
   }
 
   void test_visitListLiteral_withoutConst_withTypeArgs() {
@@ -2002,9 +2002,9 @@ class ToSourceVisitor2Test {
         astFactory.listLiteral(
             null,
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-            Tokens.OPEN_SQUARE_BRACKET,
+            Tokens.openSquareBracket(),
             [AstTestFactory.integer(0)],
-            Tokens.CLOSE_SQUARE_BRACKET));
+            Tokens.closeSquareBracket()));
   }
 
   void test_visitMapLiteral_const() {
@@ -2395,7 +2395,7 @@ class ToSourceVisitor2Test {
     _assertSource(
       "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
       astFactory.setOrMapLiteral(
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         typeArguments: AstTestFactory.typeArgumentList([
           AstTestFactory.typeName4('String'),
           AstTestFactory.typeName4('String')
@@ -2403,33 +2403,33 @@ class ToSourceVisitor2Test {
         elements: [
           AstTestFactory.mapLiteralEntry3('a', 'b'),
           astFactory.forElement(
-              forKeyword: Tokens.FOR,
-              leftParenthesis: Tokens.OPEN_PAREN,
+              forKeyword: Tokens.for_(),
+              leftParenthesis: Tokens.openParenthesis(),
               forLoopParts: astFactory.forEachPartsWithIdentifier(
                 identifier: AstTestFactory.identifier3('c'),
-                inKeyword: Tokens.IN,
+                inKeyword: Tokens.in_(),
                 iterable: AstTestFactory.identifier3('d'),
               ),
-              rightParenthesis: Tokens.CLOSE_PAREN,
+              rightParenthesis: Tokens.closeParenthesis(),
               body: AstTestFactory.mapLiteralEntry3('e', 'f')),
           astFactory.ifElement(
-            ifKeyword: Tokens.IF,
-            leftParenthesis: Tokens.OPEN_PAREN,
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
             condition: AstTestFactory.identifier3('g'),
-            rightParenthesis: Tokens.CLOSE_PAREN,
+            rightParenthesis: Tokens.closeParenthesis(),
             thenElement: AstTestFactory.mapLiteralEntry3('h', 'i'),
           ),
           astFactory.spreadElement(
             spreadOperator:
                 TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
             expression: astFactory.setOrMapLiteral(
-              leftBracket: Tokens.OPEN_CURLY_BRACKET,
+              leftBracket: Tokens.openCurlyBracket(),
               elements: [AstTestFactory.mapLiteralEntry3('j', 'k')],
-              rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+              rightBracket: Tokens.closeCurlyBracket(),
             ),
           )
         ],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2438,10 +2438,10 @@ class ToSourceVisitor2Test {
     _assertSource(
       "const {'a' : 'b'}",
       astFactory.setOrMapLiteral(
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
         elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2455,9 +2455,9 @@ class ToSourceVisitor2Test {
           AstTestFactory.typeName4('String'),
           AstTestFactory.typeName4('String')
         ]),
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2466,9 +2466,9 @@ class ToSourceVisitor2Test {
     _assertSource(
       "{'a' : 'b'}",
       astFactory.setOrMapLiteral(
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2481,9 +2481,9 @@ class ToSourceVisitor2Test {
           AstTestFactory.typeName4('String'),
           AstTestFactory.typeName4('String')
         ]),
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2494,24 +2494,24 @@ class ToSourceVisitor2Test {
       astFactory.setOrMapLiteral(
         typeArguments:
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [
           AstTestFactory.integer(0),
           astFactory.forElement(
-              forKeyword: Tokens.FOR,
-              leftParenthesis: Tokens.OPEN_PAREN,
+              forKeyword: Tokens.for_(),
+              leftParenthesis: Tokens.openParenthesis(),
               forLoopParts: astFactory.forEachPartsWithIdentifier(
                 identifier: AstTestFactory.identifier3('e'),
-                inKeyword: Tokens.IN,
+                inKeyword: Tokens.in_(),
                 iterable: AstTestFactory.identifier3('l'),
               ),
-              rightParenthesis: Tokens.CLOSE_PAREN,
+              rightParenthesis: Tokens.closeParenthesis(),
               body: AstTestFactory.integer(0)),
           astFactory.ifElement(
-            ifKeyword: Tokens.IF,
-            leftParenthesis: Tokens.OPEN_PAREN,
+            ifKeyword: Tokens.if_(),
+            leftParenthesis: Tokens.openParenthesis(),
             condition: AstTestFactory.identifier3('b'),
-            rightParenthesis: Tokens.CLOSE_PAREN,
+            rightParenthesis: Tokens.closeParenthesis(),
             thenElement: AstTestFactory.integer(1),
           ),
           astFactory.spreadElement(
@@ -2520,13 +2520,13 @@ class ToSourceVisitor2Test {
             expression: astFactory.listLiteral(
               null,
               null,
-              Tokens.OPEN_SQUARE_BRACKET,
+              Tokens.openSquareBracket(),
               [AstTestFactory.integer(0)],
-              Tokens.CLOSE_SQUARE_BRACKET,
+              Tokens.closeSquareBracket(),
             ),
           )
         ],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2536,9 +2536,9 @@ class ToSourceVisitor2Test {
       'const {0}',
       astFactory.setOrMapLiteral(
         constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.integer(0)],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2550,9 +2550,9 @@ class ToSourceVisitor2Test {
         constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
         typeArguments:
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.integer(0)],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2561,9 +2561,9 @@ class ToSourceVisitor2Test {
     _assertSource(
       '{0}',
       astFactory.setOrMapLiteral(
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.integer(0)],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2574,9 +2574,9 @@ class ToSourceVisitor2Test {
       astFactory.setOrMapLiteral(
         typeArguments:
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
-        leftBracket: Tokens.OPEN_CURLY_BRACKET,
+        leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.integer(0)],
-        rightBracket: Tokens.CLOSE_CURLY_BRACKET,
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     );
   }
@@ -2633,9 +2633,9 @@ class ToSourceVisitor2Test {
             expression: astFactory.listLiteral(
                 null,
                 null,
-                Tokens.OPEN_SQUARE_BRACKET,
+                Tokens.openSquareBracket(),
                 [AstTestFactory.integer(0)],
-                Tokens.CLOSE_SQUARE_BRACKET)));
+                Tokens.closeSquareBracket())));
   }
 
   @failingTest
@@ -2650,9 +2650,9 @@ class ToSourceVisitor2Test {
             expression: astFactory.listLiteral(
                 null,
                 null,
-                Tokens.OPEN_SQUARE_BRACKET,
+                Tokens.openSquareBracket(),
                 [AstTestFactory.integer(0)],
-                Tokens.CLOSE_SQUARE_BRACKET)));
+                Tokens.closeSquareBracket())));
   }
 
   void test_visitStringInterpolation() {
