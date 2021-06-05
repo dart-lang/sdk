@@ -36,6 +36,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// If `true`, types should be printed with nullability suffixes.
   final bool _withNullability;
 
+  /// If `true`, selected tokens and nodes should be printed with offsets.
+  final bool _withOffsets;
+
   String _indent = '';
 
   ResolvedAstPrinter({
@@ -44,10 +47,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required String indent,
     CodeLinesProvider? codeLinesProvider,
     bool withNullability = false,
+    bool withOffsets = false,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
         _codeLinesProvider = codeLinesProvider,
         _withNullability = withNullability,
+        _withOffsets = withOffsets,
         _indent = indent;
 
   @override
@@ -68,6 +73,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('Annotation');
     _withIndent(() {
       _writeNode('arguments', node.arguments);
+      _writeOffset('atSign.offset', node.atSign.offset);
       _writeNode('constructorName', node.constructorName);
       _writeElement('element', node.element);
       _writeNode('name', node.name);
@@ -1173,6 +1179,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
+      _writeOffset('offset', node.offset);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writeToken('token', node.token);
@@ -1788,6 +1795,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  void _writeOffset(String name, int offset) {
+    if (_withOffsets) {
+      _writelnWithIndent('$name: $offset');
+    }
+  }
+
   void _writeParameterElements(List<ParameterElement> parameters) {
     _writelnWithIndent('parameters');
     _withIndent(() {
@@ -1833,8 +1846,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _writeToken(String name, Token? token) {
     if (token != null) {
-      _sink.write(_indent);
-      _sink.writeln('$name: $token');
+      _writelnWithIndent('$name: $token');
+      _withIndent(() {
+        _writeOffset('offset', token.offset);
+      });
     }
   }
 
@@ -1848,8 +1863,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var type in types) {
-          _sink.write(_indent);
-          _sink.writeln('$type');
+          _writelnWithIndent('$type');
         }
       });
     }

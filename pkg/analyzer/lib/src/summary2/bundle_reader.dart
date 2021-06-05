@@ -81,6 +81,7 @@ class BundleReader {
 }
 
 class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
   void Function()? _readMembers;
   void Function()? applyInformativeDataToMembers;
 
@@ -117,6 +118,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -139,6 +141,8 @@ class CompilationUnitElementLinkedData
 
 class ConstructorElementLinkedData
     extends ElementLinkedData<ConstructorElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   ConstructorElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -160,6 +164,7 @@ class ConstructorElementLinkedData
           reader.readElement() as ConstructorElement?;
       element.constantInitializers = reader._readNodeList();
     }
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -256,6 +261,8 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 }
 
 class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   EnumElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -283,11 +290,15 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
         unitElement: element.enclosingElement,
       );
     }
+
+    applyConstantOffsets?.perform();
   }
 }
 
 class ExtensionElementLinkedData
     extends ElementLinkedData<ExtensionElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   ExtensionElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -302,10 +313,13 @@ class ExtensionElementLinkedData
     );
     _readTypeParameters(reader, element.typeParameters);
     element.extendedType = reader.readRequiredType();
+    applyConstantOffsets?.perform();
   }
 }
 
 class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   FieldElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -327,10 +341,13 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
         ConstantContextForExpressionImpl(initializer);
       }
     }
+    applyConstantOffsets?.perform();
   }
 }
 
 class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   FunctionElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -346,6 +363,7 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -1219,6 +1237,8 @@ class LibraryReader {
 }
 
 class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   MethodElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -1235,10 +1255,13 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
+    applyConstantOffsets?.perform();
   }
 }
 
 class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   MixinElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -1254,11 +1277,14 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    applyConstantOffsets?.perform();
   }
 }
 
 class PropertyAccessorElementLinkedData
     extends ElementLinkedData<PropertyAccessorElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   PropertyAccessorElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -1276,6 +1302,8 @@ class PropertyAccessorElementLinkedData
 
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
+
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -1706,6 +1734,8 @@ class ResolutionReader {
 
 class TopLevelVariableElementLinkedData
     extends ElementLinkedData<TopLevelVariableElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   TopLevelVariableElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -1726,6 +1756,7 @@ class TopLevelVariableElementLinkedData
         ConstantContextForExpressionImpl(initializer);
       }
     }
+    applyConstantOffsets?.perform();
   }
 }
 
