@@ -19,6 +19,12 @@ class InlineInvocation extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.INLINE_INVOCATION;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   List<Object> get fixArguments => ['add'];
 
   @override

@@ -17,6 +17,12 @@ class ConvertToRelativeImport extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_RELATIVE_IMPORT;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;
 
   @override

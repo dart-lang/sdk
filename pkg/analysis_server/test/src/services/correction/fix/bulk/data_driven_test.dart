@@ -507,12 +507,16 @@ class NoProducerOverlapsTest {
 
     final dataDrivenCodes = <String>{};
     final bulkFixCodes = FixProcessor.lintProducerMap.entries
-        .where((e) => e.value.where((fix) => fix.canBeBulkApplied).isNotEmpty)
+        .where((e) => e.value
+            .where((generator) => generator().canBeAppliedInBulk)
+            .isNotEmpty)
         .map((e) => e.key);
     final nonDataDrivenCodes = <String>{
       ...bulkFixCodes,
       ...FixProcessor.nonLintProducerMap.entries
-          .where((e) => e.value.where((fix) => fix.canBeBulkApplied).isNotEmpty)
+          .where((e) => e.value
+              .where((generator) => generator().canBeAppliedInBulk)
+              .isNotEmpty)
           .map((e) => e.key.uniqueName),
     };
 

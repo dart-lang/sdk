@@ -22,22 +22,20 @@ class FixProcessorMapTest {
     _testMap(FixProcessor.nonLintProducerMap.values);
   }
 
-  void _testInfo(FixInfo info) {
-    for (var generator in info.generators) {
-      var producer = generator();
-      var className = producer.runtimeType.toString();
-      expect(producer.fixKind, isNotNull, reason: '$className.fixKind');
-      if (info.canBeAppliedToFile) {
-        expect(producer.multiFixKind, isNotNull,
-            reason: '$className.multiFixKind');
-      }
+  void _testGenerator(ProducerGenerator generator) {
+    var producer = generator();
+    var className = producer.runtimeType.toString();
+    expect(producer.fixKind, isNotNull, reason: '$className.fixKind');
+    if (producer.canBeAppliedToFile) {
+      expect(producer.multiFixKind, isNotNull,
+          reason: '$className.multiFixKind');
     }
   }
 
-  void _testMap(Iterable<List<FixInfo>> values) {
-    for (var list in values) {
-      for (var info in list) {
-        _testInfo(info);
+  void _testMap(Iterable<List<ProducerGenerator>> values) {
+    for (var generators in values) {
+      for (var generator in generators) {
+        _testGenerator(generator);
       }
     }
   }

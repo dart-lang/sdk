@@ -18,6 +18,12 @@ class ConvertToMapLiteral extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_MAP_LITERAL;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_MAP_LITERAL;
 
   @override

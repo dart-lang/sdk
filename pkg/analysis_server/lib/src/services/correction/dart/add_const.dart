@@ -10,6 +10,14 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddConst extends CorrectionProducer {
   @override
+  bool canBeAppliedInBulk;
+
+  @override
+  bool canBeAppliedToFile;
+
+  AddConst(this.canBeAppliedInBulk, this.canBeAppliedToFile);
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_CONST;
 
   @override
@@ -46,5 +54,11 @@ class AddConst extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddConst newInstance() => AddConst();
+  static AddConst toDeclaration() => AddConst(true, true);
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  // TODO(brianwilkerson) This fix can produce changes that are inconsistent
+  //  with the `unnecessary_const` lint. Fix it and then enable it for both
+  //  uses.
+  static AddConst toInvocation() => AddConst(false, false);
 }

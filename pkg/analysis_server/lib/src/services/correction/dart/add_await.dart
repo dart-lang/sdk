@@ -9,6 +9,12 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddAwait extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_AWAIT;
 
   @override

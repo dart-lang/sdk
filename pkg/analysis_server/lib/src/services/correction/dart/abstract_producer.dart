@@ -318,6 +318,27 @@ abstract class SingleCorrectionProducer extends _AbstractCorrectionProducer {
   /// if this producer doesn't support assists.
   AssistKind? get assistKind => null;
 
+  /// Return `true` if this producer can be used to fix diagnostics across
+  /// multiple files. Cases where this will return `false` include fixes for
+  /// which
+  /// - the modified regions can overlap, and
+  /// - fixes that have not been tested to ensure that they can be used this
+  ///   way.
+  bool get canBeAppliedInBulk => false;
+
+  /// Return `true` if this producer can be used to fix multiple diagnostics in
+  /// the same file. Cases where this will return `false` include fixes for
+  /// which
+  /// - the modified regions can overlap,
+  /// - the fix for one diagnostic would fix all diagnostics with the same code,
+  ///   and,
+  /// - fixes that have not been tested to ensure that they can be used this
+  ///   way.
+  ///
+  /// Producers that return `true` should return non-null values from both
+  /// [multiFixKind] and [multiFixArguments].
+  bool get canBeAppliedToFile => false;
+
   /// Return the length of the error message being fixed, or `null` if there is
   /// no diagnostic.
   int? get errorLength => diagnostic?.problemMessage.length;

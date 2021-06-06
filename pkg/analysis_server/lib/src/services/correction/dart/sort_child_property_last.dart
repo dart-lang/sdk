@@ -18,6 +18,12 @@ class SortChildPropertyLast extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.SORT_CHILD_PROPERTY_LAST;
 
   @override

@@ -17,6 +17,12 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;
 
   @override

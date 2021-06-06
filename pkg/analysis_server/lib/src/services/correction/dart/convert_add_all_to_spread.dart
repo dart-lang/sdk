@@ -29,6 +29,12 @@ class ConvertAddAllToSpread extends CorrectionProducer {
       : DartAssistKind.CONVERT_TO_SPREAD;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   List<Object> get fixArguments => _args;
 
   @override

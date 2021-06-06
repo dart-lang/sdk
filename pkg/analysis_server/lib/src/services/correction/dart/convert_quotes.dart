@@ -108,6 +108,12 @@ class ConvertToSingleQuotes extends ConvertQuotes {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
   @override

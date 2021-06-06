@@ -16,6 +16,12 @@ class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_IF_ELEMENT;
 
   @override

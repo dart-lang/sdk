@@ -225,23 +225,13 @@ class BulkFixProcessor {
   ) sync* {
     final errorCode = diagnostic.errorCode;
     if (errorCode is LintCode) {
-      var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
-      for (var fix in fixes) {
-        if (fix.canBeBulkApplied) {
-          final generators = fix.generators;
-          yield* generators.map((g) => g().fixKind).whereNotNull();
-        }
-      }
+      yield* _producableFixesFromGenerators(
+          FixProcessor.lintProducerMap[errorCode.name]);
       return;
     }
 
-    var fixes = FixProcessor.nonLintProducerMap[errorCode] ?? [];
-    for (var fix in fixes) {
-      if (fix.canBeBulkApplied) {
-        final generators = fix.generators;
-        yield* generators.map((g) => g().fixKind).whereNotNull();
-      }
-    }
+    yield* _producableFixesFromGenerators(
+        FixProcessor.nonLintProducerMap[errorCode]);
 
     final multiGenerators = nonLintMultiProducerMap[errorCode];
     if (multiGenerators != null) {
@@ -349,13 +339,12 @@ class BulkFixProcessor {
       }
     }
 
-    Future<void> bulkApply(List<FixInfo> fixes, String codeName) async {
-      for (var fix in fixes) {
-        if (fix.canBeBulkApplied) {
-          final generators = fix.generators;
-          for (var generator in generators) {
-            await generate(generator(), codeName);
-          }
+    Future<void> bulkApply(
+        List<ProducerGenerator> generators, String codeName) async {
+      for (var generator in generators) {
+        var producer = generator();
+        if (producer.canBeAppliedInBulk) {
+          await generate(producer, codeName);
         }
       }
     }
@@ -364,11 +353,11 @@ class BulkFixProcessor {
     try {
       var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
-        await bulkApply(fixes, codeName);
+        var generators = FixProcessor.lintProducerMap[errorCode.name] ?? [];
+        await bulkApply(generators, codeName);
       } else {
-        var fixes = FixProcessor.nonLintProducerMap[errorCode] ?? [];
-        await bulkApply(fixes, codeName);
+        var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
+        await bulkApply(generators, codeName);
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
@@ -385,6 +374,22 @@ class BulkFixProcessor {
           'Exception generating fix for ${errorCode.name} in ${result.path}',
           e,
           s);
+    }
+  }
+
+  Iterable<FixKind> _producableFixesFromGenerators(
+      List<ProducerGenerator>? generators) sync* {
+    if (generators == null) {
+      return;
+    }
+    for (var generator in generators) {
+      var producer = generator();
+      if (producer.canBeAppliedInBulk) {
+        var fixKind = producer.fixKind;
+        if (fixKind != null) {
+          yield fixKind;
+        }
+      }
     }
   }
 

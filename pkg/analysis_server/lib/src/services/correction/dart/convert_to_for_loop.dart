@@ -11,6 +11,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertForEachToForLoop extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_FOR_EACH_TO_FOR_LOOP;
 
   @override

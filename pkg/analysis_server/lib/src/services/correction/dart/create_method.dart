@@ -19,7 +19,13 @@ class CreateMethod extends CorrectionProducer {
 
   String _memberName = '';
 
-  CreateMethod(this._kind);
+  @override
+  bool canBeAppliedInBulk;
+
+  @override
+  bool canBeAppliedToFile;
+
+  CreateMethod(this._kind, this.canBeAppliedInBulk, this.canBeAppliedToFile);
 
   @override
   List<Object> get fixArguments => [_memberName];
@@ -201,11 +207,12 @@ class CreateMethod extends CorrectionProducer {
   /// (operator =) or `hashCode` method based on the existing other half of the
   /// pair. Used as a tear-off in `FixProcessor`.
   static CreateMethod equalsOrHashCode() =>
-      CreateMethod(_MethodKind.equalsOrHashCode);
+      CreateMethod(_MethodKind.equalsOrHashCode, true, true);
 
   /// Return an instance of this class that will create a method based on an
   /// invocation of an undefined method. Used as a tear-off in `FixProcessor`.
-  static CreateMethod method() => CreateMethod(_MethodKind.method);
+  static CreateMethod method() =>
+      CreateMethod(_MethodKind.method, false, false);
 }
 
 /// A representation of the kind of element that should be suggested.

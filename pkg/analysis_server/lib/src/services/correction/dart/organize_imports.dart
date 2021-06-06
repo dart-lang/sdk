@@ -11,6 +11,15 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class OrganizeImports extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  // The fix is to sort all the directives, which will already fix all of the
+  // diagnostics in the file, so there's no value in providing a separate
+  // fix-all option to the user.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.ORGANIZE_IMPORTS;
 
   @override

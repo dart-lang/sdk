@@ -224,26 +224,28 @@ class FixInFileProcessor {
 
     var fixes = <Fix>[];
     for (var generator in generators) {
-      _FixState fixState = _EmptyFixState(
-        ChangeBuilder(workspace: workspace),
-      );
-      for (var error in errors) {
-        var fixContext = DartFixContextImpl(
-          instrumentationService,
-          workspace,
-          resolveResult,
-          error,
-          (name) => [],
-          extensionCache: context.extensionCache,
+      if (generator().canBeAppliedToFile) {
+        _FixState fixState = _EmptyFixState(
+          ChangeBuilder(workspace: workspace),
         );
-        fixState = await _fixError(fixContext, fixState, generator(), error);
-      }
-      if (fixState is _NotEmptyFixState) {
-        var sourceChange = fixState.builder.sourceChange;
-        if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
-          var fixKind = fixState.fixKind;
-          sourceChange.message = fixKind.message;
-          fixes.add(Fix(fixKind, sourceChange));
+        for (var error in errors) {
+          var fixContext = DartFixContextImpl(
+            instrumentationService,
+            workspace,
+            resolveResult,
+            error,
+            (name) => [],
+            extensionCache: context.extensionCache,
+          );
+          fixState = await _fixError(fixContext, fixState, generator(), error);
+        }
+        if (fixState is _NotEmptyFixState) {
+          var sourceChange = fixState.builder.sourceChange;
+          if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
+            var fixKind = fixState.fixKind;
+            sourceChange.message = fixKind.message;
+            fixes.add(Fix(fixKind, sourceChange));
+          }
         }
       }
     }
@@ -292,758 +294,266 @@ class FixInFileProcessor {
 
   List<ProducerGenerator> _getGenerators(
       ErrorCode errorCode, CorrectionProducerContext context) {
-    var producers = <ProducerGenerator>[];
     if (errorCode is LintCode) {
-      var fixInfos = FixProcessor.lintProducerMap[errorCode.name] ?? [];
-      for (var fixInfo in fixInfos) {
-        if (fixInfo.canBeAppliedToFile) {
-          producers.addAll(fixInfo.generators);
-        }
-      }
+      return FixProcessor.lintProducerMap[errorCode.name] ?? [];
     } else {
-      var fixInfos = FixProcessor.nonLintProducerMap[errorCode] ?? [];
-      for (var fixInfo in fixInfos) {
-        if (fixInfo.canBeAppliedToFile) {
-          producers.addAll(fixInfo.generators);
-        }
-      }
       // todo (pq): consider support for multiGenerators
+      return FixProcessor.nonLintProducerMap[errorCode] ?? [];
     }
-    return producers;
   }
-}
-
-class FixInfo {
-  final bool canBeAppliedToFile;
-
-  final bool canBeBulkApplied;
-
-  final List<ProducerGenerator> generators;
-
-  const FixInfo({
-    required this.canBeAppliedToFile,
-    required this.canBeBulkApplied,
-    required this.generators,
-  });
-
-  const FixInfo.single(this.generators)
-      : canBeAppliedToFile = false,
-        canBeBulkApplied = false;
 }
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
-  /// A map from the names of lint rules to a list of generators used to create
-  /// the correction producers used to build fixes for those diagnostics. The
-  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
-  static const Map<String, List<FixInfo>> lintProducerMap = {
+  /// A map from the names of lint rules to a list of the generators that are
+  /// used to create correction producers. The generators are then used to build
+  /// fixes for those diagnostics. The generators used for non-lint diagnostics
+  /// are in the [nonLintProducerMap].
+  static const Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddReturnType.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddReturnType.newInstance,
     ],
     LintNames.always_require_non_null_named_parameters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddRequired.newInstance,
-        ],
-      )
+      AddRequired.newInstance,
     ],
     LintNames.always_specify_types: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddTypeAnnotation.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddTypeAnnotation.newInstance,
     ],
     LintNames.annotate_overrides: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddOverride.newInstance,
-        ],
-      )
+      AddOverride.newInstance,
     ],
     LintNames.avoid_annotating_with_dynamic: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_empty_else: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyElse.newInstance,
-        ],
-      )
+      RemoveEmptyElse.newInstance,
     ],
     LintNames.avoid_function_literals_in_foreach_calls: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertForEachToForLoop.newInstance,
-        ],
-      )
+      ConvertForEachToForLoop.newInstance,
     ],
     LintNames.avoid_init_to_null: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveInitializer.newInstance,
-        ],
-      )
+      RemoveInitializer.newInstance,
     ],
     LintNames.avoid_private_typedef_functions: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          InlineTypedef.newInstance,
-        ],
-      )
+      InlineTypedef.newInstance,
     ],
     LintNames.avoid_redundant_argument_values: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveArgument.newInstance,
-        ],
-      )
+      RemoveArgument.newInstance,
     ],
     LintNames.avoid_relative_lib_imports: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToPackageImport.newInstance,
-        ],
-      )
+      ConvertToPackageImport.newInstance,
     ],
     LintNames.avoid_return_types_on_setters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_returning_null_for_future: [
-      FixInfo(
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddAsync.newInstance,
-          WrapInFuture.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddAsync.newInstance,
+      WrapInFuture.newInstance,
     ],
     LintNames.avoid_returning_null_for_void: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveReturnedValue.newInstance,
-        ],
-      )
+      RemoveReturnedValue.newInstance,
     ],
     LintNames.avoid_single_cascade_in_expression_statements: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          // TODO(brianwilkerson) This fix should be applied to some non-lint
-          //  diagnostics and should also be available as an assist.
-          ReplaceCascadeWithDot.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) This fix should be applied to some non-lint
+      //  diagnostics and should also be available as an assist.
+      ReplaceCascadeWithDot.newInstance,
     ],
     LintNames.avoid_types_as_parameter_names: [
-      FixInfo(
-        canBeAppliedToFile: false,
-        canBeBulkApplied: false,
-        generators: [
-          ConvertToOnType.newInstance,
-        ],
-      )
+      ConvertToOnType.newInstance,
     ],
     LintNames.avoid_types_on_closure_parameters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithIdentifier.newInstance,
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      ReplaceWithIdentifier.newInstance,
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_unused_constructor_parameters: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnusedParameter.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      RemoveUnusedParameter.newInstance,
     ],
     LintNames.await_only_futures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveAwait.newInstance,
-        ],
-      )
+      RemoveAwait.newInstance,
     ],
     LintNames.curly_braces_in_flow_control_structures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          UseCurlyBraces.newInstance,
-        ],
-      )
+      UseCurlyBraces.newInstance,
     ],
     LintNames.diagnostic_describe_all_properties: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddDiagnosticPropertyReference.newInstance,
-        ],
-      )
+      AddDiagnosticPropertyReference.newInstance,
     ],
     LintNames.directives_ordering: [
-      FixInfo(
-        canBeAppliedToFile: false, // Fix will sort all directives.
-        canBeBulkApplied: true,
-        generators: [
-          OrganizeImports.newInstance,
-        ],
-      )
+      OrganizeImports.newInstance,
     ],
     LintNames.empty_catches: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyCatch.newInstance,
-        ],
-      )
+      RemoveEmptyCatch.newInstance,
     ],
     LintNames.empty_constructor_bodies: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyConstructorBody.newInstance,
-        ],
-      )
+      RemoveEmptyConstructorBody.newInstance,
     ],
     LintNames.empty_statements: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveEmptyStatement.newInstance,
-          ReplaceWithBrackets.newInstance,
-        ],
-      )
+      RemoveEmptyStatement.newInstance,
+      ReplaceWithBrackets.newInstance,
     ],
     LintNames.hash_and_equals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          CreateMethod.equalsOrHashCode,
-        ],
-      )
+      CreateMethod.equalsOrHashCode,
     ],
     LintNames.no_duplicate_case_values: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveDuplicateCase.newInstance,
-        ],
-      )
+      RemoveDuplicateCase.newInstance,
     ],
     LintNames.non_constant_identifier_names: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RenameToCamelCase.newInstance,
-        ],
-      )
+      RenameToCamelCase.newInstance,
     ],
     LintNames.null_closures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceNullWithClosure.newInstance,
-        ],
-      )
+      ReplaceNullWithClosure.newInstance,
     ],
     LintNames.omit_local_variable_types: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithVar.newInstance,
-        ],
-      )
+      ReplaceWithVar.newInstance,
     ],
     LintNames.prefer_adjacent_string_concatenation: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveOperator.newInstance,
-        ],
-      )
+      RemoveOperator.newInstance,
     ],
     LintNames.prefer_collection_literals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToListLiteral.newInstance,
-          ConvertToMapLiteral.newInstance,
-          ConvertToSetLiteral.newInstance,
-        ],
-      )
+      ConvertToListLiteral.newInstance,
+      ConvertToMapLiteral.newInstance,
+      ConvertToSetLiteral.newInstance,
     ],
     LintNames.prefer_conditional_assignment: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithConditionalAssignment.newInstance,
-        ],
-      )
+      ReplaceWithConditionalAssignment.newInstance,
     ],
     LintNames.prefer_const_constructors: [
-      FixInfo(
-        canBeAppliedToFile: false,
-        // Can produce results incompatible w/ `unnecessary_const`
-        canBeBulkApplied: false,
-        generators: [
-          AddConst.newInstance,
-          ReplaceNewWithConst.newInstance,
-        ],
-      )
+      AddConst.toInvocation,
+      ReplaceNewWithConst.newInstance,
     ],
     LintNames.prefer_const_constructors_in_immutables: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddConst.newInstance,
-        ],
-      )
+      AddConst.toDeclaration,
     ],
     LintNames.prefer_const_declarations: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceFinalWithConst.newInstance,
-        ],
-      )
+      ReplaceFinalWithConst.newInstance,
     ],
     LintNames.prefer_contains: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToContains.newInstance,
-        ],
-      )
+      ConvertToContains.newInstance,
     ],
     LintNames.prefer_equal_for_default_values: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceColonWithEquals.newInstance,
-        ],
-      )
+      ReplaceColonWithEquals.newInstance,
     ],
     LintNames.prefer_expression_function_bodies: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          ConvertToExpressionFunctionBody.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          MakeFinal.newInstance,
-        ],
-      )
+      MakeFinal.newInstance,
     ],
     LintNames.prefer_final_in_for_each: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          MakeFinal.newInstance,
-        ],
-      )
+      MakeFinal.newInstance,
     ],
     LintNames.prefer_final_locals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          MakeFinal.newInstance,
-        ],
-      )
+      MakeFinal.newInstance,
     ],
     LintNames.prefer_for_elements_to_map_fromIterable: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertMapFromIterableToForLiteral.newInstance,
-        ],
-      )
+      ConvertMapFromIterableToForLiteral.newInstance,
     ],
     LintNames.prefer_generic_function_type_aliases: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToGenericFunctionSyntax.newInstance,
-        ],
-      )
+      ConvertToGenericFunctionSyntax.newInstance,
     ],
     LintNames.prefer_if_elements_to_conditional_expressions: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertConditionalExpressionToIfElement.newInstance,
-        ],
-      )
+      ConvertConditionalExpressionToIfElement.newInstance,
     ],
     LintNames.prefer_is_empty: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithIsEmpty.newInstance,
-        ],
-      )
+      ReplaceWithIsEmpty.newInstance,
     ],
     LintNames.prefer_is_not_empty: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          UseIsNotEmpty.newInstance,
-        ],
-      )
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_if_null_operators: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToIfNull.newInstance,
-        ],
-      )
+      ConvertToIfNull.newInstance,
     ],
     LintNames.prefer_inlined_adds: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertAddAllToSpread.newInstance,
-          InlineInvocation.newInstance,
-        ],
-      )
+      ConvertAddAllToSpread.newInstance,
+      InlineInvocation.newInstance,
     ],
     LintNames.prefer_int_literals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToIntLiteral.newInstance,
-        ],
-      )
+      ConvertToIntLiteral.newInstance,
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          ReplaceWithInterpolation.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      ReplaceWithInterpolation.newInstance,
     ],
     LintNames.prefer_is_not_operator: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertIntoIsNot.newInstance,
-        ],
-      )
+      ConvertIntoIsNot.newInstance,
     ],
     LintNames.prefer_iterable_whereType: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToWhereType.newInstance,
-        ],
-      )
+      ConvertToWhereType.newInstance,
     ],
     LintNames.prefer_null_aware_operators: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToNullAware.newInstance,
-        ],
-      )
+      ConvertToNullAware.newInstance,
     ],
     LintNames.prefer_relative_imports: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToRelativeImport.newInstance,
-        ],
-      )
+      ConvertToRelativeImport.newInstance,
     ],
     LintNames.prefer_single_quotes: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToSingleQuotes.newInstance,
-        ],
-      )
+      ConvertToSingleQuotes.newInstance,
     ],
     LintNames.prefer_spread_collections: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertAddAllToSpread.newInstance,
-        ],
-      )
+      ConvertAddAllToSpread.newInstance,
     ],
     LintNames.slash_for_doc_comments: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertDocumentationIntoLine.newInstance,
-        ],
-      )
+      ConvertDocumentationIntoLine.newInstance,
     ],
     LintNames.sort_child_properties_last: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          SortChildPropertyLast.newInstance,
-        ],
-      )
+      SortChildPropertyLast.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          AddTypeAnnotation.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      AddTypeAnnotation.newInstance,
     ],
     LintNames.type_init_formals: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveTypeAnnotation.newInstance,
-        ],
-      )
+      RemoveTypeAnnotation.newInstance,
     ],
     LintNames.unawaited_futures: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          AddAwait.newInstance,
-        ],
-      )
+      AddAwait.newInstance,
     ],
     LintNames.unnecessary_brace_in_string_interps: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveInterpolationBraces.newInstance,
-        ],
-      )
+      RemoveInterpolationBraces.newInstance,
     ],
     LintNames.unnecessary_const: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryConst.newInstance,
-        ],
-      )
+      RemoveUnnecessaryConst.newInstance,
     ],
     LintNames.unnecessary_final: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceFinalWithVar.newInstance,
-        ],
-      )
+      ReplaceFinalWithVar.newInstance,
     ],
     LintNames.unnecessary_lambdas: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithTearOff.newInstance,
-        ],
-      )
+      ReplaceWithTearOff.newInstance,
     ],
     LintNames.unnecessary_new: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryNew.newInstance,
-        ],
-      )
+      RemoveUnnecessaryNew.newInstance,
     ],
     LintNames.unnecessary_null_in_if_null_operators: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveIfNullOperator.newInstance,
-        ],
-      )
+      RemoveIfNullOperator.newInstance,
     ],
     LintNames.unnecessary_nullable_for_final_variable_declarations: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveQuestionMark.newInstance,
-        ],
-      )
+      RemoveQuestionMark.newInstance,
     ],
     LintNames.unnecessary_overrides: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveMethodDeclaration.newInstance,
-        ],
-      )
+      RemoveMethodDeclaration.newInstance,
     ],
     LintNames.unnecessary_parenthesis: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryParentheses.newInstance,
-        ],
-      )
+      RemoveUnnecessaryParentheses.newInstance,
     ],
     LintNames.unnecessary_string_interpolations: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveUnnecessaryStringInterpolation.newInstance,
-        ],
-      )
+      RemoveUnnecessaryStringInterpolation.newInstance,
     ],
     LintNames.unnecessary_this: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveThisExpression.newInstance,
-        ],
-      )
+      RemoveThisExpression.newInstance,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
-      FixInfo(
-        // todo (pq): enable when tested
-        canBeAppliedToFile: false,
-        // not currently supported; TODO(pq): consider adding
-        canBeBulkApplied: false,
-        generators: [
-          ReplaceWithEightDigitHex.newInstance,
-        ],
-      )
+      // TODO(brianwilkerson) Consider applying in bulk.
+      ReplaceWithEightDigitHex.newInstance,
     ],
     LintNames.use_function_type_syntax_for_parameters: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ConvertToGenericFunctionSyntax.newInstance,
-        ],
-      )
+      ConvertToGenericFunctionSyntax.newInstance,
     ],
     LintNames.use_rethrow_when_possible: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          UseRethrow.newInstance,
-        ],
-      )
+      UseRethrow.newInstance,
     ],
   };
 
@@ -1187,471 +697,442 @@ class FixProcessor extends BaseProcessor {
     ],
   };
 
-  /// A map from error codes to a list of generators used to create the
-  /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintProducerMap].
-  static const Map<ErrorCode, List<FixInfo>> nonLintProducerMap = {
+  /// A map from error codes to a list of the generators that are used to create
+  /// correction producers. The generators are then used to build fixes for
+  /// those diagnostics. The generators used for lint rules are in the
+  /// [lintProducerMap].
+  static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
-      FixInfo.single([MakeFieldNotFinal.newInstance]),
-      FixInfo.single([AddLate.newInstance]),
+      MakeFieldNotFinal.newInstance,
+      AddLate.newInstance,
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
-      FixInfo.single([MakeVariableNotFinal.newInstance]),
+      MakeVariableNotFinal.newInstance,
     ],
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
-      FixInfo.single([AddNullCheck.newInstance]),
-      FixInfo.single([WrapInText.newInstance]),
+      AddNullCheck.newInstance,
+      WrapInText.newInstance,
     ],
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
-      FixInfo.single([AddAsync.newInstance]),
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
-      FixInfo.single([AddAsync.newInstance]),
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY: [
-      FixInfo.single([AddAsync.missingReturn]),
+      AddAsync.missingReturn,
     ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
-      FixInfo.single([ChangeTo.classOrMixin]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateMixin.newInstance]),
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      FixInfo.single([CreateMissingOverrides.newInstance]),
-      FixInfo.single([CreateNoSuchMethod.newInstance]),
-      FixInfo.single([MakeClassAbstract.newInstance]),
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
-      FixInfo.single([UseConst.newInstance]),
+      UseConst.newInstance,
     ],
     CompileTimeErrorCode.CONST_INSTANCE_FIELD: [
-      FixInfo.single([AddStatic.newInstance]),
+      AddStatic.newInstance,
     ],
     CompileTimeErrorCode.CONST_WITH_NON_CONST: [
-      FixInfo.single([RemoveConst.newInstance]),
+      RemoveConst.newInstance,
     ],
     CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
-      FixInfo.single([ReplaceWithFilled.newInstance]),
+      ReplaceWithFilled.newInstance,
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
-      FixInfo.single([ChangeTo.classOrMixin]),
+      ChangeTo.classOrMixin,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
-      FixInfo.single([ChangeTo.classOrMixin]),
-      FixInfo.single([CreateClass.newInstance]),
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
-      FixInfo.single([ReplaceWithExtensionName.newInstance]),
+      ReplaceWithExtensionName.newInstance,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
-      FixInfo.single([CreateConstructor.newInstance]),
+      CreateConstructor.newInstance,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
-      FixInfo.single([CreateConstructor.newInstance]),
-      FixInfo.single([ConvertToNamedArguments.newInstance]),
+      CreateConstructor.newInstance,
+      ConvertToNamedArguments.newInstance,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
-      FixInfo.single([AddLate.newInstance]),
-      FixInfo.single([CreateConstructorForFinalFields.newInstance]),
+      AddLate.newInstance,
+      CreateConstructorForFinalFields.newInstance,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
-      FixInfo.single([AddFieldFormalParameters.newInstance]),
+      AddFieldFormalParameters.newInstance,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
-      FixInfo.single([AddFieldFormalParameters.newInstance]),
+      AddFieldFormalParameters.newInstance,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
-      FixInfo.single([AddFieldFormalParameters.newInstance]),
+      AddFieldFormalParameters.newInstance,
     ],
     CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
-      FixInfo.single([ReplaceReturnTypeFuture.newInstance]),
+      ReplaceReturnTypeFuture.newInstance,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
-      FixInfo.single([ChangeTo.classOrMixin]),
-      FixInfo.single([CreateClass.newInstance]),
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
-      FixInfo.single([CreateField.newInstance]),
+      CreateField.newInstance,
     ],
     CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
-      FixInfo.single([ChangeToStaticAccess.newInstance]),
+      ChangeToStaticAccess.newInstance,
     ],
     CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
-      FixInfo.single([ChangeToNearestPreciseValue.newInstance]),
+      ChangeToNearestPreciseValue.newInstance,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
-      FixInfo.single([ChangeTo.annotation]),
-      FixInfo.single([CreateClass.newInstance]),
+      ChangeTo.annotation,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.INVALID_ASSIGNMENT: [
-      FixInfo.single([AddExplicitCast.newInstance]),
-      FixInfo.single([AddNullCheck.newInstance]),
-      FixInfo.single([ChangeTypeAnnotation.newInstance]),
-      FixInfo.single([MakeVariableNullable.newInstance]),
+      AddExplicitCast.newInstance,
+      AddNullCheck.newInstance,
+      ChangeTypeAnnotation.newInstance,
+      MakeVariableNullable.newInstance,
     ],
     CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
-      FixInfo.single([RemoveParenthesesInGetterInvocation.newInstance]),
+      RemoveParenthesesInGetterInvocation.newInstance,
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
-      FixInfo.single([AddRequiredKeyword.newInstance]),
-      FixInfo.single([MakeVariableNullable.newInstance]),
+      AddRequiredKeyword.newInstance,
+      MakeVariableNullable.newInstance,
     ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
-      FixInfo.single([AddMissingRequiredArgument.newInstance]),
+      AddMissingRequiredArgument.newInstance,
     ],
     CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
-      FixInfo.single([ExtendClassForMixin.newInstance]),
+      ExtendClassForMixin.newInstance,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
-      FixInfo.single([ChangeTo.classOrMixin]),
-      FixInfo.single([CreateClass.newInstance]),
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
-      FixInfo.single([ChangeTo.classOrMixin]),
+      ChangeTo.classOrMixin,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
-      FixInfo.single([CreateConstructor.newInstance]),
+      CreateConstructor.newInstance,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
         [
-      FixInfo.single([CreateMissingOverrides.newInstance]),
-      FixInfo.single([CreateNoSuchMethod.newInstance]),
-      FixInfo.single([MakeClassAbstract.newInstance]),
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
-      FixInfo.single([CreateMissingOverrides.newInstance]),
-      FixInfo.single([CreateNoSuchMethod.newInstance]),
-      FixInfo.single([MakeClassAbstract.newInstance]),
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
-      FixInfo.single([CreateMissingOverrides.newInstance]),
-      FixInfo.single([CreateNoSuchMethod.newInstance]),
-      FixInfo.single([MakeClassAbstract.newInstance]),
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
-      FixInfo.single([CreateMissingOverrides.newInstance]),
-      FixInfo.single([CreateNoSuchMethod.newInstance]),
-      FixInfo.single([MakeClassAbstract.newInstance]),
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
-      FixInfo.single([CreateMissingOverrides.newInstance]),
-      FixInfo.single([CreateNoSuchMethod.newInstance]),
-      FixInfo.single([MakeClassAbstract.newInstance]),
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.NON_BOOL_CONDITION: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          AddNeNull.newInstance,
-        ],
-      ),
+      AddNeNull.newInstance,
     ],
     CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateMixin.newInstance]),
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.NOT_A_TYPE: [
-      FixInfo.single([ChangeTo.classOrMixin]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateMixin.newInstance]),
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
-      FixInfo.single([AddLate.newInstance]),
+      AddLate.newInstance,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
-      FixInfo.single([RemoveQuestionMark.newInstance]),
+      RemoveQuestionMark.newInstance,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE: [
-      FixInfo.single([RemoveQuestionMark.newInstance]),
+      RemoveQuestionMark.newInstance,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE: [
-      FixInfo.single([RemoveQuestionMark.newInstance]),
+      RemoveQuestionMark.newInstance,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
-      FixInfo.single([RemoveQuestionMark.newInstance]),
+      RemoveQuestionMark.newInstance,
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
-      FixInfo.single([MakeReturnTypeNullable.newInstance]),
+      MakeReturnTypeNullable.newInstance,
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
-      FixInfo.single([MakeReturnTypeNullable.newInstance]),
+      MakeReturnTypeNullable.newInstance,
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
-      FixInfo.single([ChangeTo.classOrMixin]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateMixin.newInstance]),
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD: [
-      FixInfo.single([AddNullCheck.newInstance]),
-      FixInfo.single([ConvertToNullAwareSpread.newInstance]),
+      AddNullCheck.newInstance,
+      ConvertToNullAwareSpread.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH: [
-      FixInfo.single([AddNullCheck.newInstance]),
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
-      FixInfo.single([ChangeTo.annotation]),
-      FixInfo.single([CreateClass.newInstance]),
+      ChangeTo.annotation,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
-      FixInfo.single([ChangeTo.classOrMixin]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateMixin.newInstance]),
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          ReplaceBooleanWithBool.newInstance,
-        ],
-      ),
+      ReplaceBooleanWithBool.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
-      FixInfo.single([ChangeTo.getterOrSetter]),
-      FixInfo.single([CreateGetter.newInstance]),
+      ChangeTo.getterOrSetter,
+      CreateGetter.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
-      FixInfo.single([ChangeTo.method]),
-      FixInfo.single([CreateMethod.method]),
+      ChangeTo.method,
+      CreateMethod.method,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
-      FixInfo.single([ChangeTo.getterOrSetter]),
-      FixInfo.single([CreateSetter.newInstance]),
+      ChangeTo.getterOrSetter,
+      CreateSetter.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
-      FixInfo.single([ChangeTo.function]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateFunction.newInstance]),
+      ChangeTo.function,
+      CreateClass.newInstance,
+      CreateFunction.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
-      FixInfo.single([ChangeTo.getterOrSetter]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateField.newInstance]),
-      FixInfo.single([CreateGetter.newInstance]),
-      FixInfo.single([CreateLocalVariable.newInstance]),
-      FixInfo.single([CreateMethodOrFunction.newInstance]),
-      FixInfo.single([CreateMixin.newInstance]),
+      ChangeTo.getterOrSetter,
+      CreateClass.newInstance,
+      CreateField.newInstance,
+      CreateGetter.newInstance,
+      CreateLocalVariable.newInstance,
+      CreateMethodOrFunction.newInstance,
+      CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
-      FixInfo.single([ChangeTo.getterOrSetter]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateField.newInstance]),
-      FixInfo.single([CreateGetter.newInstance]),
-      FixInfo.single([CreateLocalVariable.newInstance]),
-      FixInfo.single([CreateMethodOrFunction.newInstance]),
-      FixInfo.single([CreateMixin.newInstance]),
-      FixInfo.single([CreateSetter.newInstance]),
+      ChangeTo.getterOrSetter,
+      CreateClass.newInstance,
+      CreateField.newInstance,
+      CreateGetter.newInstance,
+      CreateLocalVariable.newInstance,
+      CreateMethodOrFunction.newInstance,
+      CreateMixin.newInstance,
+      CreateSetter.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [
-      FixInfo.single([AddAsync.newInstance]),
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
-      FixInfo.single([ChangeTo.method]),
-      FixInfo.single([CreateClass.newInstance]),
-      FixInfo.single([CreateFunction.newInstance]),
-      FixInfo.single([CreateMethod.method]),
+      ChangeTo.method,
+      CreateClass.newInstance,
+      CreateFunction.newInstance,
+      CreateMethod.method,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-      FixInfo.single([AddMissingParameterNamed.newInstance]),
-      FixInfo.single([ConvertFlutterChild.newInstance]),
-      FixInfo.single([ConvertFlutterChildren.newInstance]),
+      AddMissingParameterNamed.newInstance,
+      ConvertFlutterChild.newInstance,
+      ConvertFlutterChildren.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
-      FixInfo.single([ChangeTo.getterOrSetter]),
-      FixInfo.single([CreateField.newInstance]),
-      FixInfo.single([CreateSetter.newInstance]),
+      ChangeTo.getterOrSetter,
+      CreateField.newInstance,
+      CreateSetter.newInstance,
     ],
     CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
       // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
-      FixInfo.single([QualifyReference.newInstance]),
+      QualifyReference.newInstance,
     ],
     CompileTimeErrorCode
         .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
       // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
       //  method or setter. The existing producers would need to be updated so
       //  that only the appropriate subset is generated.
-      FixInfo.single([QualifyReference.newInstance]),
+      QualifyReference.newInstance,
     ],
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
-      FixInfo.single([CreateFile.newInstance]),
+      CreateFile.newInstance,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      FixInfo.single([MoveTypeArgumentsToClass.newInstance]),
-      FixInfo.single([RemoveTypeArguments.newInstance]),
+      MoveTypeArgumentsToClass.newInstance,
+      RemoveTypeArguments.newInstance,
     ],
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
-      FixInfo.single([MakeReturnTypeNullable.newInstance]),
+      MakeReturnTypeNullable.newInstance,
     ],
 
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
-      FixInfo.single([ReplaceWithNullAware.newInstance]),
+      ReplaceWithNullAware.newInstance,
     ],
     HintCode.DEAD_CODE: [
-      FixInfo.single([RemoveDeadCode.newInstance]),
+      RemoveDeadCode.newInstance,
     ],
     HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
-      FixInfo.single([RemoveDeadCode.newInstance]),
+      RemoveDeadCode.newInstance,
     ],
     HintCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
-      FixInfo.single([RemoveDeadCode.newInstance]),
+      RemoveDeadCode.newInstance,
     ],
     HintCode.DIVISION_OPTIMIZATION: [
-      FixInfo.single([UseEffectiveIntegerDivision.newInstance]),
+      UseEffectiveIntegerDivision.newInstance,
     ],
     HintCode.DUPLICATE_HIDDEN_NAME: [
-      FixInfo.single([RemoveNameFromCombinator.newInstance]),
+      RemoveNameFromCombinator.newInstance,
     ],
     HintCode.DUPLICATE_IMPORT: [
-      FixInfo.single([RemoveUnusedImport.newInstance]),
+      RemoveUnusedImport.newInstance,
     ],
     HintCode.DUPLICATE_SHOWN_NAME: [
-      FixInfo.single([RemoveNameFromCombinator.newInstance]),
+      RemoveNameFromCombinator.newInstance,
     ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
     HintCode.INVALID_FACTORY_ANNOTATION: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.INVALID_IMMUTABLE_ANNOTATION: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.INVALID_LITERAL_ANNOTATION: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.INVALID_REQUIRED_NAMED_PARAM: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.INVALID_SEALED_ANNOTATION: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.MISSING_REQUIRED_PARAM: [
-      FixInfo.single([AddMissingRequiredArgument.newInstance]),
+      AddMissingRequiredArgument.newInstance,
     ],
     HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
-      FixInfo.single([AddMissingRequiredArgument.newInstance]),
+      AddMissingRequiredArgument.newInstance,
     ],
     HintCode.MISSING_RETURN: [
-      FixInfo.single([AddAsync.missingReturn]),
+      AddAsync.missingReturn,
     ],
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
-      FixInfo.single([RemoveQuestionMark.newInstance]),
+      RemoveQuestionMark.newInstance,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
-      FixInfo.single([RemoveAnnotation.newInstance]),
+      RemoveAnnotation.newInstance,
     ],
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
     HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
+      UpdateSdkConstraints.version_2_2_2,
     ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      FixInfo.single([UpdateSdkConstraints.version_2_1_0]),
+      UpdateSdkConstraints.version_2_1_0,
     ],
     HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
+      UpdateSdkConstraints.version_2_2_2,
     ],
     HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
+      UpdateSdkConstraints.version_2_2_2,
     ],
     HintCode.SDK_VERSION_EXTENSION_METHODS: [
-      FixInfo.single([UpdateSdkConstraints.version_2_6_0]),
+      UpdateSdkConstraints.version_2_6_0,
     ],
     HintCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
+      UpdateSdkConstraints.version_2_2_2,
     ],
     HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
+      UpdateSdkConstraints.version_2_2_2,
     ],
     HintCode.SDK_VERSION_SET_LITERAL: [
-      FixInfo.single([UpdateSdkConstraints.version_2_2_0]),
+      UpdateSdkConstraints.version_2_2_0,
     ],
     HintCode.SDK_VERSION_UI_AS_CODE: [
-      FixInfo.single([UpdateSdkConstraints.version_2_2_2]),
+      UpdateSdkConstraints.version_2_2_2,
     ],
     HintCode.TYPE_CHECK_IS_NOT_NULL: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          UseNotEqNull.newInstance,
-        ],
-      ),
+      UseNotEqNull.newInstance,
     ],
     HintCode.TYPE_CHECK_IS_NULL: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          UseEqEqNull.newInstance,
-        ],
-      ),
+      UseEqEqNull.newInstance,
     ],
     HintCode.UNDEFINED_HIDDEN_NAME: [
-      FixInfo.single([RemoveNameFromCombinator.newInstance]),
+      RemoveNameFromCombinator.newInstance,
     ],
     HintCode.UNDEFINED_SHOWN_NAME: [
-      FixInfo.single([RemoveNameFromCombinator.newInstance]),
+      RemoveNameFromCombinator.newInstance,
     ],
     HintCode.UNNECESSARY_CAST: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnnecessaryCast.newInstance,
-        ],
-      ),
+      RemoveUnnecessaryCast.newInstance,
     ],
 //    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
-      FixInfo.single([RemoveComparison.newInstance]),
+      RemoveComparison.newInstance,
     ],
     HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
-      FixInfo.single([RemoveComparison.newInstance]),
+      RemoveComparison.newInstance,
     ],
 //    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
 // TODO(brianwilkerson) Add a fix to remove the type check.
@@ -1660,79 +1141,55 @@ class FixProcessor extends BaseProcessor {
 // TODO(brianwilkerson) Add a fix to remove the type check.
 //    ],
     HintCode.UNUSED_CATCH_CLAUSE: [
-      FixInfo.single([RemoveUnusedCatchClause.newInstance]),
+      RemoveUnusedCatchClause.newInstance,
     ],
     HintCode.UNUSED_CATCH_STACK: [
-      FixInfo.single([RemoveUnusedCatchStack.newInstance]),
+      RemoveUnusedCatchStack.newInstance,
     ],
     HintCode.UNUSED_ELEMENT: [
-      FixInfo.single([RemoveUnusedElement.newInstance]),
+      RemoveUnusedElement.newInstance,
     ],
     HintCode.UNUSED_FIELD: [
-      FixInfo.single([RemoveUnusedField.newInstance]),
+      RemoveUnusedField.newInstance,
     ],
     HintCode.UNUSED_IMPORT: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: false,
-        generators: [
-          RemoveUnusedImport.newInstance,
-        ],
-      ),
+      RemoveUnusedImport.newInstance,
     ],
     HintCode.UNUSED_LABEL: [
-      FixInfo.single([RemoveUnusedLabel.newInstance]),
+      RemoveUnusedLabel.newInstance,
     ],
     HintCode.UNUSED_LOCAL_VARIABLE: [
-      FixInfo.single([RemoveUnusedLocalVariable.newInstance]),
+      RemoveUnusedLocalVariable.newInstance,
     ],
     HintCode.UNUSED_SHOWN_NAME: [
-      FixInfo.single([RemoveNameFromCombinator.newInstance]),
+      RemoveNameFromCombinator.newInstance,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
-      FixInfo.single([InsertSemicolon.newInstance]),
+      InsertSemicolon.newInstance,
     ],
     ParserErrorCode.GETTER_WITH_PARAMETERS: [
-      FixInfo.single([RemoveParametersInGetterDeclaration.newInstance]),
+      RemoveParametersInGetterDeclaration.newInstance,
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
-      FixInfo.single([AddTypeAnnotation.newInstance]),
+      AddTypeAnnotation.newInstance,
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
-      FixInfo.single([ReplaceVarWithDynamic.newInstance]),
+      ReplaceVarWithDynamic.newInstance,
     ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
-      FixInfo.single([RemoveDeadIfNull.newInstance]),
+      RemoveDeadIfNull.newInstance,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithNotNullAware.newInstance,
-        ],
-      ),
+      ReplaceWithNotNullAware.newInstance,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          ReplaceWithNotNullAware.newInstance,
-        ],
-      ),
+      ReplaceWithNotNullAware.newInstance,
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
-      FixInfo.single([AddMissingEnumCaseClauses.newInstance]),
+      AddMissingEnumCaseClauses.newInstance,
     ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
-      FixInfo(
-        canBeAppliedToFile: true,
-        canBeBulkApplied: true,
-        generators: [
-          RemoveNonNullAssertion.newInstance,
-        ],
-      ),
+      RemoveNonNullAssertion.newInstance,
     ],
   };
 
@@ -1803,18 +1260,14 @@ class FixProcessor extends BaseProcessor {
 
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
-      var fixes = lintProducerMap[errorCode.name] ?? [];
-      for (var fix in fixes) {
-        for (var generator in fix.generators) {
-          await compute(generator());
-        }
+      var generators = lintProducerMap[errorCode.name] ?? [];
+      for (var generator in generators) {
+        await compute(generator());
       }
     } else {
-      var fixes = nonLintProducerMap[errorCode] ?? [];
-      for (var fix in fixes) {
-        for (var generator in fix.generators) {
-          await compute(generator());
-        }
+      var generators = nonLintProducerMap[errorCode] ?? [];
+      for (var generator in generators) {
+        await compute(generator());
       }
       var multiGenerators = nonLintMultiProducerMap[errorCode];
       if (multiGenerators != null) {

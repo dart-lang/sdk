@@ -18,6 +18,12 @@ class ConvertToNullAware extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_NULL_AWARE;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE;
 
   @override

@@ -17,6 +17,12 @@ class ReplaceWithVar extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.REPLACE_WITH_VAR;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;
 
   @override
