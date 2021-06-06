@@ -1771,6 +1771,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the name of the type variable
+   */
+  static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
+    "'{0}' can't be used to name both a type variable and a member in "
+        "this mixin.",
+    correction: "Try renaming either the type variable or the member.",
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
+  );
+
+  /**
    * It is a compile time error if a generic extension declares a member with
    * the same basename as the name of any of the extension's type parameters.
    */
@@ -1781,6 +1794,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "this extension.",
     correction: "Try renaming either the type variable or the member.",
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
+  );
+
+  /**
+   * Parameters:
+   * 0: the name of the type variable
+   */
+  static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MIXIN =
+      CompileTimeErrorCode(
+    'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
+    "'{0}' can't be used to name both a type variable and the mixin in "
+        "which the type variable is defined.",
+    correction: "Try renaming either the type variable or the mixin.",
+    uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
   );
 
   /**
