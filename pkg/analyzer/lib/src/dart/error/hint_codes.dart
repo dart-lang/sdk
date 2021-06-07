@@ -307,12 +307,11 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * No parameters.
+   * `Function` should not be extended anymore.
    */
   static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
-      'DEPRECATED_SUBTYPE_OF_FUNCTION', "Extending 'Function' is deprecated.",
-      correction: "Try removing 'Function' from the 'extends' clause.",
-      uniqueName: 'DEPRECATED_EXTENDS_FUNCTION');
+      'DEPRECATED_EXTENDS_FUNCTION', "Extending 'Function' is deprecated.",
+      correction: "Try removing 'Function' from the 'extends' clause.");
 
   /**
    * Users should not create a class named `Function` anymore.
@@ -323,13 +322,13 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try renaming the class.");
 
   /**
-   * No parameters.
+   * According to the specification: If a class or mixin declaration implements
+   * Function, it has no effect.
    */
   static const HintCode DEPRECATED_IMPLEMENTS_FUNCTION = HintCode(
-      'DEPRECATED_SUBTYPE_OF_FUNCTION',
+      'DEPRECATED_IMPLEMENTS_FUNCTION',
       "Implementing 'Function' has no effect.",
-      correction: "Try removing 'Function' from the 'implements' clause.",
-      uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION');
+      correction: "Try removing 'Function' from the 'implements' clause.");
 
   /**
    * Parameters:
@@ -422,12 +421,11 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * No parameters.
+   * `Function` should not be mixed in anymore.
    */
   static const HintCode DEPRECATED_MIXIN_FUNCTION = HintCode(
-      'DEPRECATED_SUBTYPE_OF_FUNCTION', "Mixing in 'Function' is deprecated.",
-      correction: "Try removing 'Function' from the 'with' clause.",
-      uniqueName: 'DEPRECATED_MIXIN_FUNCTION');
+      'DEPRECATED_MIXIN_FUNCTION', "Mixing in 'Function' is deprecated.",
+      correction: "Try removing 'Function' from the 'with' clause.");
 
   /**
    * Hint to use the ~/ operator.
