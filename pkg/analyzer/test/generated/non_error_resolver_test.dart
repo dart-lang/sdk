@@ -1374,65 +1374,6 @@ typedef int f(@app int app);
 ''');
   }
 
-  test_functionWithoutCall() async {
-    await assertNoErrorsInCode(r'''
-abstract class A implements Function {
-}
-class B implements A {
-  void call() {}
-}
-class C extends A {
-  void call() {}
-}
-class D extends C {
-}
-''');
-  }
-
-  test_functionWithoutCall_doesNotImplementFunction() async {
-    await assertNoErrorsInCode("class A {}");
-  }
-
-  test_functionWithoutCall_staticCallMethod() async {
-    await assertNoErrorsInCode(r'''
-class A { }
-class B extends A {
-  static call() { }
-}
-''');
-  }
-
-  test_functionWithoutCall_withNoSuchMethod() async {
-    // 16078
-    await assertNoErrorsInCode(r'''
-class A implements Function {
-  noSuchMethod(inv) {
-    return 42;
-  }
-}
-''');
-  }
-
-  test_functionWithoutCall_withNoSuchMethod_mixin() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  noSuchMethod(inv) {}
-}
-class B extends Object with A implements Function {
-}
-''');
-  }
-
-  test_functionWithoutCall_withNoSuchMethod_superclass() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  noSuchMethod(inv) {}
-}
-class B extends A implements Function {
-}
-''');
-  }
-
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
     await assertNoErrorsInCode('''
 typedef Foo<S> = S Function<T>(T x);

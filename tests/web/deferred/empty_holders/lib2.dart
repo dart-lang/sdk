@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
+import 'lib_shared.dart';
 
-Matcher throwsExceptionWithToString(Object matcher) => throwsA(
-      isA<Exception>().having((p0) => p0.toString(), 'toString', matcher),
-    );
+void update() {
+  staticString = 'lib2';
+}
+
+String? value() => staticString;

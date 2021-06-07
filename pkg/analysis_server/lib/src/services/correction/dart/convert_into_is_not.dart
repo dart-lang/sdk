@@ -19,6 +19,12 @@ class ConvertIntoIsNot extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_IS_NOT;
 
   @override

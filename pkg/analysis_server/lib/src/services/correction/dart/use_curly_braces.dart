@@ -16,6 +16,12 @@ class UseCurlyBraces extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.USE_CURLY_BRACES;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_CURLY_BRACES;
 
   @override

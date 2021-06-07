@@ -18,6 +18,12 @@ class ReplaceWithIsEmpty extends CorrectionProducer {
   FixKind multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var binary = node.thisOrAncestorOfType<BinaryExpression>();
     if (binary == null) {

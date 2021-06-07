@@ -11,6 +11,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveInterpolationBraces extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_INTERPOLATION_BRACES;
 
   @override

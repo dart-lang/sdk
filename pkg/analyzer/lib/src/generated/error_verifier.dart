@@ -1584,6 +1584,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// extends/implements/mixes in `Function`.
   void _checkForBadFunctionUse(ClassDeclaration node) {
     var extendsClause = node.extendsClause;
+    var implementsClause = node.implementsClause;
     var withClause = node.withClause;
 
     if (node.name.name == "Function") {
@@ -1596,6 +1597,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
             HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+      }
+    }
+
+    if (implementsClause != null) {
+      for (var interface in implementsClause.interfaces) {
+        var type = interface.type;
+        if (type != null && type.isDartCoreFunction) {
+          errorReporter.reportErrorForNode(
+            HintCode.DEPRECATED_IMPLEMENTS_FUNCTION,
+            interface,
+          );
+          break;
+        }
       }
     }
 
@@ -1754,28 +1768,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify all conflicts between type variable and enclosing class.
   /// TODO(scheglov)
-  ///
-  /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
-  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
   void _checkForConflictingClassTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter
         in _enclosingClass!.typeParameters) {
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (_enclosingClass!.name == name) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
-            typeParameter,
-            [name]);
+        var code = _enclosingClass!.isMixin
+            ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
+            : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
+        errorReporter.reportErrorForElement(code, typeParameter, [name]);
       }
       // check members
       if (_enclosingClass!.getMethod(name) != null ||
           _enclosingClass!.getGetter(name) != null ||
           _enclosingClass!.getSetter(name) != null) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
-            typeParameter,
-            [name]);
+        var code = _enclosingClass!.isMixin
+            ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
+            : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
+        errorReporter.reportErrorForElement(code, typeParameter, [name]);
       }
     }
   }

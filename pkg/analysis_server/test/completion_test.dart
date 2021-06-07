@@ -1482,9 +1482,7 @@ class B extends A {
   }
 }''', <String>['1+fa', '1-fb', '1+ma', '1-mb']);
 
-    buildTests(
-        'testCompletion_superConstructorInvocation_noNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_noNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1492,13 +1490,9 @@ class A {
 }
 class B extends A {
   B() : super.!1
-}''',
-        <String>['1+fooA', '1+fooB', '1+bar'],
-        failingTests: '1');
+}''', <String>['1+fooA', '1+fooB', '1+bar']);
 
-    buildTests(
-        'testCompletion_superConstructorInvocation_withNamePrefix',
-        '''
+    buildTests('testCompletion_superConstructorInvocation_withNamePrefix', '''
 class A {
   A.fooA();
   A.fooB();
@@ -1506,9 +1500,7 @@ class A {
 }
 class B extends A {
   B() : super.f!1
-}''',
-        <String>['1+fooA', '1+fooB', '1-bar'],
-        failingTests: '1');
+}''', <String>['1+fooA', '1+fooB', '1-bar']);
 
     buildTests(
         'testCompletion_this_bad_inConstructorInitializer',

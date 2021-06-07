@@ -21,6 +21,12 @@ class RemoveConst extends _RemoveConst {
 
 class RemoveUnnecessaryConst extends _RemoveConst {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONST;
 
   @override

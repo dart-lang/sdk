@@ -127,10 +127,11 @@ class VerificationTests {
     group('VerificationTests | fixInFileFixesHaveBulkFixTests |', () {
       for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
-        for (var fixInfo in fixEntry.value) {
-          if (fixInfo.canBeAppliedToFile) {
+        for (var generator in fixEntry.value) {
+          var producer = generator();
+          if (producer.canBeAppliedToFile) {
             test('$errorCode |', () {
-              expect(fixInfo.canBeBulkApplied, isTrue);
+              expect(producer.canBeAppliedInBulk, isTrue);
             });
           }
         }
@@ -142,18 +143,16 @@ class VerificationTests {
     group('VerificationTests | fixInFileFixesHaveUniqueBulkFixes | lint |', () {
       for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
-        for (var fixInfo in fixEntry.value) {
-          if (fixInfo.canBeAppliedToFile) {
+        for (var generator in fixEntry.value) {
+          var producer = generator();
+          if (producer.canBeAppliedToFile) {
             test('$errorCode |', () {
-              for (var generator in fixInfo.generators) {
-                var g = generator();
-                var multiFixKind = g.multiFixKind;
-                var fixKind = g.fixKind;
-                if (multiFixKind != null) {
-                  expect(multiFixKind, isNot(equals(fixKind)));
-                }
+              var multiFixKind = producer.multiFixKind;
+              var fixKind = producer.fixKind;
+              if (multiFixKind != null) {
+                expect(multiFixKind, isNot(equals(fixKind)));
               }
-              expect(fixInfo.canBeBulkApplied, isTrue);
+              expect(producer.canBeAppliedInBulk, isTrue);
             });
           }
         }
@@ -168,18 +167,14 @@ class VerificationTests {
     group('VerificationTests | fixInFileFixKindsHaveMultiFixes | lint |', () {
       for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
-        for (var fixInfo in fixEntry.value) {
+        for (var generator in fixEntry.value) {
+          var producer = generator();
           // At least one generator should have a multiFix.
-          if (fixInfo.canBeAppliedToFile) {
+          if (producer.canBeAppliedToFile) {
             test('$errorCode |', () {
-              var generators = fixInfo.generators;
-              var foundMultiFix = false;
-              for (var i = 0; i < generators.length && !foundMultiFix; ++i) {
-                var generator = generators[i]();
-                foundMultiFix = generator.multiFixKind != null ||
-                    dynamicProducerTypes
-                        .contains(generator.runtimeType.toString());
-              }
+              var foundMultiFix = producer.multiFixKind != null ||
+                  dynamicProducerTypes
+                      .contains(producer.runtimeType.toString());
               expect(foundMultiFix, isTrue);
             });
           }

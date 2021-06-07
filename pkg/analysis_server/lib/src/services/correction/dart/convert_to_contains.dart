@@ -12,6 +12,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToContains extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_CONTAINS;
 
   @override

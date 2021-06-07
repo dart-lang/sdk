@@ -13,6 +13,9 @@ void main() {
     defineReflectiveTests(ConstructorCompletionTest);
     defineReflectiveTests(ExtensionCompletionTest);
     defineReflectiveTests(PropertyAccessorCompletionTest);
+    defineReflectiveTests(RedirectedConstructorCompletionTest);
+    defineReflectiveTests(RedirectingConstructorInvocationCompletionTest);
+    defineReflectiveTests(SuperConstructorInvocationCompletionTest);
   });
 }
 
@@ -219,5 +222,212 @@ class C {
     await getSuggestions();
     assertHasCompletion('x',
         elementKind: ElementKind.GETTER, isDeprecated: false);
+  }
+}
+
+@reflectiveTest
+class RedirectedConstructorCompletionTest extends CompletionTestCase {
+  @failingTest
+  Future<void> test_keywords() async {
+    addTestFile('''
+class A {
+  factory A() = ^
+}
+class B implements A {
+  B();
+}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('assert');
+    assertHasNoCompletion('super');
+    assertHasNoCompletion('this');
+  }
+
+  Future<void> test_namedConstructor_private() async {
+    addTestFile('''
+class A {
+  factory A() = ^
+}
+class B implements A {
+  B._();
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('B._');
+  }
+
+  Future<void> test_namedConstructor_public() async {
+    addTestFile('''
+class A {
+  factory A() = ^
+}
+class B implements A {
+  B.b();
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('B.b');
+  }
+
+  Future<void> test_sameConstructor() async {
+    addTestFile('''
+class A {
+  factory A() = ^
+}
+class B implements A {
+  B();
+}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('A');
+  }
+
+  Future<void> test_unnamedConstructor() async {
+    addTestFile('''
+class A {
+  factory A() = ^
+}
+class B implements A {
+  B();
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('B');
+  }
+
+  @failingTest
+  Future<void> test_unnamedConstructor_inDifferentLibrary() async {
+    newFile('/project/bin/b.dart', content: '''
+class B implements A {
+  B();
+}
+''');
+    addTestFile('''
+import 'b.dart';
+
+class A {
+  factory A() = ^
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('B');
+  }
+}
+
+@reflectiveTest
+class RedirectingConstructorInvocationCompletionTest
+    extends CompletionTestCase {
+  @failingTest
+  Future<void> test_instanceMember() async {
+    addTestFile('''
+class C {
+  C.c() {}
+  C() : this.^
+}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('toString');
+  }
+
+  Future<void> test_namedConstructor_private() async {
+    addTestFile('''
+class C {
+  C._() {}
+  C() : this.^
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('_');
+  }
+
+  Future<void> test_namedConstructor_public() async {
+    addTestFile('''
+class C {
+  C.c() {}
+  C() : this.^
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('c');
+  }
+
+  Future<void> test_sameConstructor() async {
+    addTestFile('''
+class C {
+  C.c() : this.^
+}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('c');
+  }
+
+  Future<void> test_unnamedConstructor() async {
+    addTestFile('''
+class C {
+  C() {}
+  C.c() : this.^
+}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('');
+  }
+}
+
+@reflectiveTest
+class SuperConstructorInvocationCompletionTest extends CompletionTestCase {
+  Future<void> test_namedConstructor_notVisible() async {
+    newFile('/project/bin/a.dart', content: '''
+class A {
+  A._() {}
+}
+''');
+    addTestFile('''
+import 'a.dart';
+
+class B extends A {
+  B() : super.^
+}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('_');
+  }
+
+  Future<void> test_namedConstructor_private() async {
+    addTestFile('''
+class A {
+  A._() {}
+}
+class B extends A {
+  B() : super.^
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('_');
+  }
+
+  Future<void> test_namedConstructor_public() async {
+    addTestFile('''
+class A {
+  A.a() {}
+}
+class B extends A {
+  B() : super.^
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('a');
+  }
+
+  Future<void> test_unnamedConstructor() async {
+    addTestFile('''
+class A {
+  A() {}
+}
+class B extends A {
+  B() : super.^
+}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('');
   }
 }

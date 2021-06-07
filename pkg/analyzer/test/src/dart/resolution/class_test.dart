@@ -141,24 +141,6 @@ class A extends Function {}
     assertType(a.supertype, 'Object');
   }
 
-  test_element_typeFunction_implements() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B {}
-class C implements A, Function, B {}
-''');
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-    var c = findElement.class_('C');
-    assertElementTypes(
-      c.interfaces,
-      [
-        interfaceTypeNone(a),
-        interfaceTypeNone(b),
-      ],
-    );
-  }
-
   test_element_typeFunction_with() async {
     await assertErrorsInCode(r'''
 class A {}

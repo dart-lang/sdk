@@ -22,6 +22,12 @@ class ReplaceCascadeWithDot extends CorrectionProducer {
   };
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_CASCADE_WITH_DOT;
 
   @override

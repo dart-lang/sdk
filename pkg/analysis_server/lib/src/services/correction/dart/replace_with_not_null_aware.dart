@@ -15,6 +15,12 @@ class ReplaceWithNotNullAware extends CorrectionProducer {
   String _newOperator = '';
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   List<Object> get fixArguments => [_newOperator];
 
   @override

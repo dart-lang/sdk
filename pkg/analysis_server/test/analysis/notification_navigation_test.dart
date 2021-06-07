@@ -391,6 +391,43 @@ class BBB {}
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
+  @failingTest
+  Future<void> test_enum_constant() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('a;');
+    assertHasTarget('a,');
+  }
+
+  Future<void> test_enum_index() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.a.index;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('index');
+    assertHasTarget('E {');
+  }
+
+  Future<void> test_enum_values() async {
+    addTestFile('''
+enum E { a, b }
+void f() {
+  E.values;
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('values');
+    assertHasTarget('E');
+  }
+
   Future<void> test_extension_on() async {
     addTestFile('''
 class C //1

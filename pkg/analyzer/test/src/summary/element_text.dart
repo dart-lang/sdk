@@ -52,8 +52,9 @@ void checkElementText(
   bool withCodeRanges = false,
   bool withConstElements = true,
   bool withExportScope = false,
-  bool withFullyResolvedAst = false,
   bool withOffsets = false,
+  bool withResolvedAst = false,
+  bool withResolvedAstOffsets = false,
   bool withSyntheticAccessors = false,
   bool withSyntheticFields = false,
   bool withTypes = false,
@@ -65,8 +66,9 @@ void checkElementText(
     withCodeRanges: withCodeRanges,
     withConstElements: withConstElements,
     withExportScope: withExportScope,
-    withFullyResolvedAst: withFullyResolvedAst,
     withOffsets: withOffsets,
+    withResolvedAst: withResolvedAst,
+    withResolvedAstOffsets: withResolvedAstOffsets,
     withSyntheticAccessors: withSyntheticAccessors,
     withSyntheticFields: withSyntheticFields,
     withTypes: withTypes,
@@ -135,8 +137,9 @@ class _ElementWriter {
   final bool withAliasElementArguments;
   final bool withCodeRanges;
   final bool withExportScope;
-  final bool withFullyResolvedAst;
   final bool withOffsets;
+  final bool withResolvedAst;
+  final bool withResolvedAstOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
@@ -152,8 +155,9 @@ class _ElementWriter {
     this.withCodeRanges = false,
     this.withConstElements = true,
     this.withExportScope = false,
-    this.withFullyResolvedAst = false,
     this.withOffsets = false,
+    this.withResolvedAst = false,
+    this.withResolvedAstOffsets = false,
     this.withSyntheticAccessors = false,
     this.withSyntheticFields = false,
     this.withTypes = false,
@@ -249,7 +253,7 @@ class _ElementWriter {
 
     buffer.writeln('}');
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
         _writeResolvedTypeParameters(e.typeParameters);
@@ -315,9 +319,10 @@ class _ElementWriter {
     }
 
     var initializers = (e as ConstructorElementImpl).constantInitializers;
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       buffer.writeln(';');
       _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
         if (initializers.isNotEmpty) {
           _writelnWithIndent('constantInitializers');
           _withIndent(() {
@@ -395,7 +400,7 @@ class _ElementWriter {
 
     buffer.writeln('}');
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
         _writeResolvedTypeParameters(e.typeParameters);
@@ -421,8 +426,10 @@ class _ElementWriter {
 
     buffer.writeln(' {}');
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
+        _writeResolvedTypeParameters(e.typeParameters);
+        _writeResolvedMetadata(e.metadata);
         _writeParameterElementDefaultValues(e.parameters);
       });
     }
@@ -455,7 +462,7 @@ class _ElementWriter {
 
       buffer.writeln(';');
 
-      if (withFullyResolvedAst) {
+      if (withResolvedAst) {
         _withIndent(() {
           _writeResolvedMetadata(e.metadata);
         });
@@ -508,7 +515,7 @@ class _ElementWriter {
   }
 
   void writeMetadata(Element e, String prefix, String separator) {
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       return;
     }
 
@@ -546,7 +553,7 @@ class _ElementWriter {
       buffer.writeln(' {}');
     }
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
         _writeResolvedTypeParameters(e.typeParameters);
         _writeResolvedMetadata(e.metadata);
@@ -849,7 +856,7 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    if (!withFullyResolvedAst) {
+    if (!withResolvedAst) {
       if (e.typeParameters.isNotEmpty) {
         buffer.write('/*');
         writeTypeParameterElements(e.typeParameters, withDefault: false);
@@ -963,6 +970,13 @@ class _ElementWriter {
     } else {
       buffer.writeln(' {}');
     }
+
+    if (withResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeParameterElementDefaultValues(e.parameters);
+      });
+    }
   }
 
   void writePropertyInducingElement(PropertyInducingElement e) {
@@ -1011,7 +1025,7 @@ class _ElementWriter {
 
     writeTypeInferenceError(e);
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       buffer.writeln(';');
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
@@ -1087,7 +1101,7 @@ class _ElementWriter {
 
     buffer.writeln(';');
 
-    if (withFullyResolvedAst) {
+    if (withResolvedAst) {
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
         _writeResolvedTypeParameters(e.typeParameters);
@@ -1155,7 +1169,7 @@ class _ElementWriter {
     List<TypeParameterElement> elements, {
     required bool withDefault,
   }) {
-    if (!withFullyResolvedAst) {
+    if (!withResolvedAst) {
       writeList<TypeParameterElement>('<', '>', elements, ', ', (e) {
         writeTypeParameterElement(e, withDefault: withDefault);
       });
@@ -1332,6 +1346,7 @@ class _ElementWriter {
         sink: buffer,
         indent: indent,
         withNullability: true,
+        withOffsets: withResolvedAstOffsets,
       ),
     );
   }

@@ -5,6 +5,8 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -22,6 +24,33 @@ Uint8List writeUnitInformative(CompilationUnit unit) {
   var sink = BufferedSink(byteSink);
   _InformativeDataWriter(sink).write(unit);
   return sink.flushAndTake();
+}
+
+/// We want to have actual offsets for tokens of various constants in the
+/// element model, such as metadata and constant initializers. But we read
+/// these additional pieces of resolution data later, on demand. So, these
+/// offsets are different from `nameOffset` for example, which are applied
+/// directly after creating corresponding elements during a library loading.
+class ApplyConstantOffsets {
+  Uint32List? _offsets;
+  void Function(_OffsetsApplier)? _function;
+
+  ApplyConstantOffsets(this._offsets, this._function);
+
+  void perform() {
+    var offsets = _offsets;
+    var function = _function;
+    if (offsets != null && function != null) {
+      var applier = _OffsetsApplier(
+        _SafeListIterator(offsets),
+      );
+      function.call(applier);
+      // Clear the references to possible closure data.
+      // TODO(scheglov) We want to null the whole `linkedData` instead.
+      _offsets = null;
+      _function = null;
+    }
+  }
 }
 
 class InformativeDataApplier {
@@ -127,6 +156,17 @@ class InformativeDataApplier {
           element.parameters_unresolved,
           info.parameters,
         );
+
+        var linkedData = element.linkedData;
+        if (linkedData is PropertyAccessorElementLinkedData) {
+          linkedData.applyConstantOffsets = ApplyConstantOffsets(
+            info.constantOffsets,
+            (applier) {
+              applier.applyToMetadata(element);
+              applier.applyToTypeParameters(element.typeParameters);
+            },
+          );
+        }
       },
     );
   }
@@ -145,6 +185,13 @@ class InformativeDataApplier {
     );
 
     var linkedData = element.linkedData as ClassElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+      },
+    );
     linkedData.applyInformativeDataToMembers = () {
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);
@@ -164,6 +211,15 @@ class InformativeDataApplier {
     _applyToTypeParameters(
       element.typeParameters_unresolved,
       info.typeParameters,
+    );
+
+    var linkedData = element.linkedData as ClassElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+      },
     );
   }
 
@@ -201,6 +257,14 @@ class InformativeDataApplier {
           element.parameters_unresolved,
           info.parameters,
         );
+
+        var linkedData = element.linkedData as ConstructorElementLinkedData;
+        linkedData.applyConstantOffsets = ApplyConstantOffsets(
+          info.constantOffsets,
+          (applier) {
+            applier.applyToMetadata(element);
+          },
+        );
       },
     );
   }
@@ -224,6 +288,15 @@ class InformativeDataApplier {
         element.documentationComment = info.documentationComment;
       },
     );
+
+    var linkedData = element.linkedData as EnumElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToEnumConstants(element.constants);
+      },
+    );
   }
 
   void _applyToExtensionDeclaration(
@@ -241,6 +314,15 @@ class InformativeDataApplier {
     _applyToFields(element.fields, info.fields);
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
+
+    var linkedData = element.linkedData as ExtensionElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+      },
+    );
   }
 
   void _applyToFields(
@@ -259,6 +341,15 @@ class InformativeDataApplier {
         (element.setter as PropertyAccessorElementImpl?)?.nameOffset =
             info.nameOffset;
         element.documentationComment = info.documentationComment;
+
+        var linkedData = element.linkedData as FieldElementLinkedData;
+        linkedData.applyConstantOffsets = ApplyConstantOffsets(
+          info.constantOffsets,
+          (applier) {
+            applier.applyToMetadata(element);
+            applier.applyToConstantInitializer(element);
+          },
+        );
       },
     );
   }
@@ -295,6 +386,15 @@ class InformativeDataApplier {
     _applyToFormalParameters(
       element.parameters_unresolved,
       info.parameters,
+    );
+
+    var linkedData = element.linkedData as FunctionElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+      },
     );
   }
 
@@ -381,6 +481,15 @@ class InformativeDataApplier {
           element.parameters_unresolved,
           info.parameters,
         );
+
+        var linkedData = element.linkedData as MethodElementLinkedData;
+        linkedData.applyConstantOffsets = ApplyConstantOffsets(
+          info.constantOffsets,
+          (applier) {
+            applier.applyToMetadata(element);
+            applier.applyToTypeParameters(element.typeParameters);
+          },
+        );
       },
     );
   }
@@ -401,6 +510,15 @@ class InformativeDataApplier {
     _applyToFields(element.fields, info.fields);
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
+
+    var linkedData = element.linkedData as MixinElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+      },
+    );
   }
 
   void _applyToTopLevelVariable(
@@ -415,6 +533,15 @@ class InformativeDataApplier {
     (element.setter as PropertyAccessorElementImpl?)?.nameOffset =
         info.nameOffset;
     element.documentationComment = info.documentationComment;
+
+    var linkedData = element.linkedData as TopLevelVariableElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToConstantInitializer(element);
+      },
+    );
   }
 
   void _applyToTypeParameters(
@@ -443,6 +570,7 @@ class _InfoClassDeclaration {
   final List<_InfoFieldDeclaration> fields;
   final List<_InfoMethodDeclaration> accessors;
   final List<_InfoMethodDeclaration> methods;
+  final Uint32List constantOffsets;
 
   factory _InfoClassDeclaration(SummaryDataReader reader,
       {int nameOffsetDelta = 0}) {
@@ -466,6 +594,7 @@ class _InfoClassDeclaration {
       methods: reader.readTypedList(
         () => _InfoMethodDeclaration(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -479,6 +608,7 @@ class _InfoClassDeclaration {
     required this.fields,
     required this.accessors,
     required this.methods,
+    required this.constantOffsets,
   });
 }
 
@@ -488,6 +618,7 @@ class _InfoClassTypeAlias {
   final int nameOffset;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
+  final Uint32List constantOffsets;
 
   factory _InfoClassTypeAlias(SummaryDataReader reader) {
     return _InfoClassTypeAlias._(
@@ -498,6 +629,7 @@ class _InfoClassTypeAlias {
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -507,6 +639,7 @@ class _InfoClassTypeAlias {
     required this.nameOffset,
     required this.documentationComment,
     required this.typeParameters,
+    required this.constantOffsets,
   });
 }
 
@@ -535,6 +668,7 @@ class _InfoConstructorDeclaration {
   final int nameEnd;
   final String? documentationComment;
   final List<_InfoFormalParameter> parameters;
+  final Uint32List constantOffsets;
 
   factory _InfoConstructorDeclaration(SummaryDataReader reader) {
     return _InfoConstructorDeclaration._(
@@ -547,6 +681,7 @@ class _InfoConstructorDeclaration {
       parameters: reader.readTypedList(
         () => _InfoFormalParameter(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -558,6 +693,7 @@ class _InfoConstructorDeclaration {
     required this.nameEnd,
     required this.documentationComment,
     required this.parameters,
+    required this.constantOffsets,
   });
 }
 
@@ -590,6 +726,7 @@ class _InfoEnumDeclaration {
   final int nameOffset;
   final String? documentationComment;
   final List<_InfoEnumConstantDeclaration> constants;
+  final Uint32List constantOffsets;
 
   factory _InfoEnumDeclaration(SummaryDataReader reader) {
     return _InfoEnumDeclaration._(
@@ -600,6 +737,7 @@ class _InfoEnumDeclaration {
       constants: reader.readTypedList(
         () => _InfoEnumConstantDeclaration(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -609,6 +747,7 @@ class _InfoEnumDeclaration {
     required this.nameOffset,
     required this.documentationComment,
     required this.constants,
+    required this.constantOffsets,
   });
 }
 
@@ -636,6 +775,7 @@ class _InfoFieldDeclaration {
   final int codeLength;
   final int nameOffset;
   final String? documentationComment;
+  final Uint32List constantOffsets;
 
   factory _InfoFieldDeclaration(SummaryDataReader reader) {
     return _InfoFieldDeclaration._(
@@ -643,6 +783,7 @@ class _InfoFieldDeclaration {
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -651,6 +792,7 @@ class _InfoFieldDeclaration {
     required this.codeLength,
     required this.nameOffset,
     required this.documentationComment,
+    required this.constantOffsets,
   });
 }
 
@@ -691,6 +833,7 @@ class _InfoFunctionDeclaration {
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
+  final Uint32List constantOffsets;
 
   factory _InfoFunctionDeclaration(SummaryDataReader reader) {
     return _InfoFunctionDeclaration._(
@@ -704,6 +847,7 @@ class _InfoFunctionDeclaration {
       parameters: reader.readTypedList(
         () => _InfoFormalParameter(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -714,6 +858,7 @@ class _InfoFunctionDeclaration {
     required this.documentationComment,
     required this.typeParameters,
     required this.parameters,
+    required this.constantOffsets,
   });
 }
 
@@ -824,6 +969,7 @@ class _InfoMethodDeclaration {
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
+  final Uint32List constantOffsets;
 
   factory _InfoMethodDeclaration(SummaryDataReader reader) {
     return _InfoMethodDeclaration._(
@@ -837,6 +983,7 @@ class _InfoMethodDeclaration {
       parameters: reader.readTypedList(
         () => _InfoFormalParameter(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -847,6 +994,7 @@ class _InfoMethodDeclaration {
     required this.documentationComment,
     required this.typeParameters,
     required this.parameters,
+    required this.constantOffsets,
   });
 }
 
@@ -887,6 +1035,10 @@ class _InformativeDataWriter {
       _writeFields(node.members);
       _writeGettersSetters(node.members);
       _writeMethods(node.members);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+      );
     });
 
     sink.writeList2<ClassTypeAlias>(unit.declarations, (node) {
@@ -895,6 +1047,10 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+      );
     });
 
     sink.writeList2<EnumDeclaration>(unit.declarations, (node) {
@@ -908,6 +1064,10 @@ class _InformativeDataWriter {
         sink.writeUInt30(node.name.offset);
         _writeDocumentationComment(node);
       });
+      _writeOffsets(
+        metadata: node.metadata,
+        enumConstants: node.constants,
+      );
     });
 
     sink.writeList2<ExtensionDeclaration>(unit.declarations, (node) {
@@ -920,6 +1080,10 @@ class _InformativeDataWriter {
       _writeFields(node.members);
       _writeGettersSetters(node.members);
       _writeMethods(node.members);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+      );
     });
 
     sink.writeList2<FunctionDeclaration>(
@@ -934,6 +1098,10 @@ class _InformativeDataWriter {
         _writeDocumentationComment(node);
         _writeTypeParameters(node.functionExpression.typeParameters);
         _writeFormalParameters(node.functionExpression.parameters);
+        _writeOffsets(
+          metadata: node.metadata,
+          typeParameters: node.functionExpression.typeParameters,
+        );
       },
     );
 
@@ -948,6 +1116,10 @@ class _InformativeDataWriter {
       _writeDocumentationComment(node);
       _writeTypeParameters(node.functionExpression.typeParameters);
       _writeFormalParameters(node.functionExpression.parameters);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.functionExpression.typeParameters,
+      );
     });
 
     sink.writeList2<FunctionTypeAlias>(unit.declarations, (node) {
@@ -977,6 +1149,10 @@ class _InformativeDataWriter {
       _writeFields(node.members);
       _writeGettersSetters(node.members);
       _writeMethods(node.members);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+      );
     });
 
     sink.writeList<VariableDeclaration>(
@@ -984,13 +1160,7 @@ class _InformativeDataWriter {
           .whereType<TopLevelVariableDeclaration>()
           .expand((declaration) => declaration.variables.variables)
           .toList(),
-      (node) {
-        var codeOffset = _codeOffsetForVariable(node);
-        sink.writeUInt30(codeOffset);
-        sink.writeUInt30(node.end - codeOffset);
-        sink.writeUInt30(node.name.offset);
-        _writeDocumentationComment(node);
-      },
+      _writeTopLevelVariable,
     );
   }
 
@@ -1020,6 +1190,9 @@ class _InformativeDataWriter {
       sink.writeUInt30(nameNode.end);
       _writeDocumentationComment(node);
       _writeFormalParameters(node.parameters);
+      _writeOffsets(
+        metadata: node.metadata,
+      );
     });
   }
 
@@ -1044,6 +1217,14 @@ class _InformativeDataWriter {
         sink.writeUInt30(node.end - codeOffset);
         sink.writeUInt30(node.name.offset);
         _writeDocumentationComment(node);
+
+        // TODO(scheglov) Replace with some kind of double-iterating list.
+        var declaration = node.parent!.parent as FieldDeclaration;
+
+        var collector = _OffsetsCollector();
+        declaration.metadata.accept(collector);
+        node.initializer?.accept(collector);
+        sink.writeUint30List(collector.offsets);
       },
     );
   }
@@ -1079,6 +1260,10 @@ class _InformativeDataWriter {
         _writeDocumentationComment(node);
         _writeTypeParameters(node.typeParameters);
         _writeFormalParameters(node.parameters);
+        _writeOffsets(
+          metadata: node.metadata,
+          typeParameters: node.typeParameters,
+        );
       },
     );
   }
@@ -1110,8 +1295,44 @@ class _InformativeDataWriter {
         _writeDocumentationComment(node);
         _writeTypeParameters(node.typeParameters);
         _writeFormalParameters(node.parameters);
+        _writeOffsets(
+          metadata: node.metadata,
+          typeParameters: node.typeParameters,
+        );
       },
     );
+  }
+
+  void _writeOffsets({
+    NodeList<Annotation>? metadata,
+    TypeParameterList? typeParameters,
+    List<EnumConstantDeclaration>? enumConstants,
+  }) {
+    var collector = _OffsetsCollector();
+    metadata?.accept(collector);
+    typeParameters?.typeParameters.accept(collector);
+    if (enumConstants != null) {
+      for (var enumConstant in enumConstants) {
+        enumConstant.metadata.accept(collector);
+      }
+    }
+    sink.writeUint30List(collector.offsets);
+  }
+
+  void _writeTopLevelVariable(VariableDeclaration node) {
+    var codeOffset = _codeOffsetForVariable(node);
+    sink.writeUInt30(codeOffset);
+    sink.writeUInt30(node.end - codeOffset);
+    sink.writeUInt30(node.name.offset);
+    _writeDocumentationComment(node);
+
+    // TODO(scheglov) Replace with some kind of double-iterating list.
+    var declaration = node.parent!.parent as TopLevelVariableDeclaration;
+
+    var collector = _OffsetsCollector();
+    declaration.metadata.accept(collector);
+    node.initializer?.accept(collector);
+    sink.writeUint30List(collector.offsets);
   }
 
   void _writeTypeParameters(TypeParameterList? parameterList) {
@@ -1129,6 +1350,7 @@ class _InfoTopLevelVariable {
   final int codeLength;
   final int nameOffset;
   final String? documentationComment;
+  final Uint32List constantOffsets;
 
   factory _InfoTopLevelVariable(SummaryDataReader reader) {
     return _InfoTopLevelVariable._(
@@ -1136,6 +1358,7 @@ class _InfoTopLevelVariable {
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -1144,6 +1367,7 @@ class _InfoTopLevelVariable {
     required this.codeLength,
     required this.nameOffset,
     required this.documentationComment,
+    required this.constantOffsets,
   });
 }
 
@@ -1251,6 +1475,218 @@ class _InfoUnit {
     required this.mixinDeclarations,
     required this.topLevelVariable,
   });
+}
+
+class _OffsetsApplier extends RecursiveAstVisitor<void> {
+  final _SafeListIterator<int> _iterator;
+
+  _OffsetsApplier(this._iterator);
+
+  void applyToConstantInitializer(Element element) {
+    if (element is ConstVariableElement) {
+      var initializer = element.constantInitializer;
+      if (initializer != null) {
+        initializer.accept(this);
+      }
+    }
+  }
+
+  void applyToEnumConstants(List<FieldElement> constants) {
+    for (var constant in constants) {
+      applyToMetadata(constant);
+    }
+  }
+
+  void applyToMetadata(Element element) {
+    for (var annotation in element.metadata) {
+      var node = (annotation as ElementAnnotationImpl).annotationAst;
+      node.accept(this);
+    }
+  }
+
+  void applyToTypeParameters(List<TypeParameterElement> typeParameters) {
+    for (var typeParameter in typeParameters) {
+      applyToMetadata(typeParameter);
+    }
+  }
+
+  @override
+  void visitAnnotation(Annotation node) {
+    _applyToToken(node.atSign);
+    super.visitAnnotation(node);
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    _applyToToken(node.leftParenthesis);
+    _applyToToken(node.rightParenthesis);
+    super.visitArgumentList(node);
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    _applyToToken(node.literal);
+  }
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    _applyToToken(node.literal);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    _applyToToken(node.leftBracket);
+    _applyToToken(node.rightBracket);
+    super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _applyToToken(node.keyword);
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    _applyToToken(node.literal);
+  }
+
+  @override
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    _applyToToken(node.leftParenthesis);
+    _applyToToken(node.rightParenthesis);
+    super.visitParenthesizedExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _applyToToken(node.operator);
+    super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    _applyToToken(node.token);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    _applyToToken(node.literal);
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    _applyToToken(node.throwKeyword);
+    super.visitThrowExpression(node);
+  }
+
+  void _applyToToken(Token? token) {
+    if (token != null) {
+      var offset = _iterator.take();
+      if (offset != null) {
+        token.offset = offset;
+      }
+    }
+  }
+}
+
+class _OffsetsCollector extends RecursiveAstVisitor<void> {
+  final List<int> offsets = [];
+
+  @override
+  void visitAnnotation(Annotation node) {
+    _addToken(node.atSign);
+    super.visitAnnotation(node);
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    _addToken(node.leftParenthesis);
+    _addToken(node.rightParenthesis);
+    super.visitArgumentList(node);
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    _addToken(node.literal);
+  }
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    _addToken(node.literal);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    _addToken(node.leftBracket);
+    _addToken(node.rightBracket);
+    super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _addToken(node.keyword);
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    _addToken(node.literal);
+  }
+
+  @override
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    _addToken(node.leftParenthesis);
+    _addToken(node.rightParenthesis);
+    super.visitParenthesizedExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _addToken(node.operator);
+    super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    _addToken(node.token);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    _addToken(node.literal);
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    _addToken(node.throwKeyword);
+    super.visitThrowExpression(node);
+  }
+
+  void _addToken(Token? token) {
+    if (token != null) {
+      offsets.add(token.offset);
+    }
+  }
+}
+
+class _SafeListIterator<T> {
+  final List<T> _elements;
+  int _index = 0;
+
+  _SafeListIterator(this._elements);
+
+  bool get hasNext {
+    return _index < _elements.length;
+  }
+
+  T? take() {
+    if (hasNext) {
+      return _elements[_index++];
+    } else {
+      return null;
+    }
+  }
 }
 
 extension on String {

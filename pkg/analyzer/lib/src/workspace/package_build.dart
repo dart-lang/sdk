@@ -11,10 +11,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -190,8 +192,8 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
       this, PackageMapUriResolver(provider, packageMap));
 
-  @override
-  String? get pubspecContent {
+  /// Return the content of the pubspec file, `null` if cannot be read.
+  String? get _pubspecContent {
     try {
       return _pubspecFile.readAsStringSync();
     } catch (_) {}
@@ -223,6 +225,12 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
     path.Context context = provider.pathContext;
     assert(context.isRelative(filePath), 'Not a relative path: $filePath');
     return context.join('lib', filePath);
+  }
+
+  @internal
+  @override
+  void contributeToResolutionSalt(ApiSignature buffer) {
+    buffer.addString(_pubspecContent ?? '');
   }
 
   @override
@@ -334,11 +342,9 @@ class PackageBuildWorkspacePackage extends WorkspacePackage
     implements PubWorkspacePackage {
   @override
   late final Pubspec? pubspec = () {
-    try {
-      final content = workspace._pubspecFile.readAsStringSync();
+    final content = workspace._pubspecContent;
+    if (content != null) {
       return Pubspec.parse(content);
-    } catch (_) {
-      // Pubspec will be null.
     }
   }();
 

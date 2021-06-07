@@ -37,13 +37,11 @@ typedef ObjectPtr (*BootstrapNativeFunction)(Thread* thread,
                                              Zone* zone,
                                              NativeArguments* arguments);
 
-#define NATIVE_ENTRY_FUNCTION(name) BootstrapNatives::DN_##name
-
 #define DEFINE_NATIVE_ENTRY(name, type_argument_count, argument_count)         \
   static ObjectPtr DN_Helper##name(Isolate* isolate, Thread* thread,           \
                                    Zone* zone, NativeArguments* arguments);    \
-  ObjectPtr NATIVE_ENTRY_FUNCTION(name)(Thread * thread, Zone * zone,          \
-                                        NativeArguments * arguments) {         \
+  ObjectPtr BootstrapNatives::DN_##name(Thread* thread, Zone* zone,            \
+                                        NativeArguments* arguments) {          \
     TRACE_NATIVE_CALL("%s", "" #name);                                         \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     /* Note: a longer type arguments vector may be passed */                   \

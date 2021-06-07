@@ -43,7 +43,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/workspace/pub.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
@@ -82,7 +81,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 143;
+  static const int DATA_VERSION = 144;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1872,13 +1871,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     buffer.addUint32List(_analysisOptions.signature);
     _addDeclaredVariablesToSignature(buffer);
 
-    {
-      var workspace = analysisContext?.contextRoot.workspace;
-      // TODO(scheglov) Generalize?
-      if (workspace is PubWorkspace) {
-        buffer.addString(workspace.pubspecContent ?? '');
-      }
-    }
+    var workspace = analysisContext?.contextRoot.workspace;
+    workspace?.contributeToResolutionSalt(buffer);
 
     _saltForResolution = buffer.toUint32List();
   }

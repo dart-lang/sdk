@@ -18,6 +18,12 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX;
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
   @override

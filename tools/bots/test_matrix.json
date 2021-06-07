@@ -3357,14 +3357,6 @@
           ]
         },
         {
-          "name": "analyze pkg/wasm",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/wasm"
-          ]
-        },
-        {
           "name": "analyze pkg/dds",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [

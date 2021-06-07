@@ -11,6 +11,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceFinalWithVar extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REPLACE_FINAL_WITH_VAR;
 
   @override

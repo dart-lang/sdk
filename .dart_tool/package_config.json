@@ -770,12 +770,6 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "wasm",
-      "rootUri": "../pkg/wasm",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",

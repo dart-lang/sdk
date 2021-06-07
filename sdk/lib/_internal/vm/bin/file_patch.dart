@@ -112,7 +112,7 @@ abstract class _FileSystemWatcher {
   @patch
   static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
-    if (Platform.isLinux) {
+    if (Platform.isLinux || Platform.isAndroid) {
       return new _InotifyFileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isWindows) {
