@@ -576,7 +576,8 @@ Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
 Fragment BaseFlowGraphBuilder::RedefinitionWithType(const AbstractType& type) {
   auto redefinition = new (Z) RedefinitionInstr(Pop());
   redefinition->set_constrained_type(
-      new (Z) CompileType(CompileType::FromAbstractType(type)));
+      new (Z) CompileType(CompileType::FromAbstractType(
+          type, CompileType::kCanBeNull, CompileType::kCannotBeSentinel)));
   Push(redefinition);
   return Fragment(redefinition);
 }

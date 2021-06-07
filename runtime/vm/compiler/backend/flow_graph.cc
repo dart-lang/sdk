@@ -1479,8 +1479,9 @@ void FlowGraph::RenameRecursive(
             // Check if phi corresponds to the same slot.
             auto* phis = phi->block()->phis();
             if ((index < phis->length()) && (*phis)[index] == phi) {
-              phi->UpdateType(
-                  CompileType::FromAbstractType(load->local().type()));
+              phi->UpdateType(CompileType::FromAbstractType(
+                  load->local().type(), CompileType::kCanBeNull,
+                  /*can_be_sentinel=*/load->local().is_late()));
             } else {
               ASSERT(IsCompiledForOsr() && (phi->block()->stack_depth() > 0));
             }
@@ -2006,7 +2007,8 @@ static void UnboxPhi(PhiInstr* phi, bool is_aot) {
     }
   }
 
-  if ((unboxed == kTagged) && phi->Type()->IsInt()) {
+  if ((unboxed == kTagged) && phi->Type()->IsInt() &&
+      !phi->Type()->can_be_sentinel()) {
     // Conservatively unbox phis that:
     //   - are proven to be of type Int;
     //   - fit into 64bits range;
@@ -2059,6 +2061,7 @@ static void UnboxPhi(PhiInstr* phi, bool is_aot) {
   // to how we treat doubles and other boxed numeric types).
   // In JIT mode only unbox phis which are not fully known to be Smi.
   if ((unboxed == kTagged) && phi->Type()->IsInt() &&
+      !phi->Type()->can_be_sentinel() &&
       (is_aot || phi->Type()->ToCid() != kSmiCid)) {
     unboxed = kUnboxedInt64;
   }

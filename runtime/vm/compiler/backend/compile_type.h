@@ -27,6 +27,8 @@ class GrowableArray;
 // It captures the following properties:
 //    - whether the value can potentially be null or if it is definitely not
 //      null;
+//    - whether the value can potentially be sentinel or if it is definitely
+//      not sentinel;
 //    - concrete class id of the value or kDynamicCid if unknown statically;
 //    - abstract super type of the value, where the concrete type of the value
 //      in runtime is guaranteed to be sub type of this type.
@@ -36,27 +38,42 @@ class GrowableArray;
 // operation for the lattice.
 class CompileType : public ZoneAllocated {
  public:
-  static const bool kNullable = true;
-  static const bool kNonNullable = false;
+  static constexpr bool kCanBeNull = true;
+  static constexpr bool kCannotBeNull = false;
 
-  CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
-      : is_nullable_(is_nullable), cid_(cid), type_(type) {}
+  static constexpr bool kCanBeSentinel = true;
+  static constexpr bool kCannotBeSentinel = false;
+
+  CompileType(bool can_be_null,
+              bool can_be_sentinel,
+              intptr_t cid,
+              const AbstractType* type)
+      : can_be_null_(can_be_null),
+        can_be_sentinel_(can_be_sentinel),
+        cid_(cid),
+        type_(type) {}
 
   CompileType(const CompileType& other)
       : ZoneAllocated(),
-        is_nullable_(other.is_nullable_),
+        can_be_null_(other.can_be_null_),
+        can_be_sentinel_(other.can_be_sentinel_),
         cid_(other.cid_),
         type_(other.type_) {}
 
   CompileType& operator=(const CompileType& other) {
     // This intentionally does not change the owner of this type.
-    is_nullable_ = other.is_nullable_;
+    can_be_null_ = other.can_be_null_;
+    can_be_sentinel_ = other.can_be_sentinel_;
     cid_ = other.cid_;
     type_ = other.type_;
     return *this;
   }
 
-  bool is_nullable() const { return is_nullable_; }
+  bool is_nullable() const { return can_be_null_; }
+
+  // Return true if value of this type can be Object::sentinel().
+  // Such values cannot be unboxed.
+  bool can_be_sentinel() const { return can_be_sentinel_; }
 
   // Return type such that concrete value's type in runtime is guaranteed to
   // be subtype of it.
@@ -88,10 +105,6 @@ class CompileType : public ZoneAllocated {
   // against given type.
   bool IsInstanceOf(const AbstractType& other);
 
-  // Create a new CompileType representing given combination of class id and
-  // abstract type. The pair is assumed to be coherent.
-  static CompileType Create(intptr_t cid, const AbstractType& type);
-
   // Return the non-nullable version of this type.
   CompileType CopyNonNullable() {
     if (IsNull()) {
@@ -100,28 +113,32 @@ class CompileType : public ZoneAllocated {
       return None();
     }
 
-    return CompileType(kNonNullable, cid_, type_);
+    return CompileType(kCannotBeNull, can_be_sentinel_, cid_, type_);
   }
 
-  static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
-    return CompileType(is_nullable, cid, nullptr);
+  // Return the non-sentinel version of this type.
+  CompileType CopyNonSentinel() {
+    return CompileType(can_be_null_, kCannotBeSentinel, cid_, type_);
   }
 
   // Create a new CompileType representing given abstract type.
   // By default nullability of values is determined by type.
   // CompileType can be further constrained to non-nullable values by
-  // passing kNonNullable as an optional parameter.
+  // passing kCannotBeNull as |can_be_null| parameter.
   static CompileType FromAbstractType(const AbstractType& type,
-                                      bool is_nullable = kNullable);
+                                      bool can_be_null,
+                                      bool can_be_sentinel);
 
   // Create a new CompileType representing a value with the given class id.
-  // Resulting CompileType is nullable only if cid is kDynamicCid or kNullCid.
+  // Resulting CompileType can be null only if cid is kDynamicCid or kNullCid.
+  // Resulting CompileType can be sentinel only if cid is kDynamicCid or
+  // kSentinelCid.
   static CompileType FromCid(intptr_t cid);
 
   // Create None CompileType. It is the bottom of the lattice and is used to
   // represent type of the phi that was not yet inferred.
   static CompileType None() {
-    return CompileType(kNullable, kIllegalCid, nullptr);
+    return CompileType(kCanBeNull, kCanBeSentinel, kIllegalCid, nullptr);
   }
 
   // Create Dynamic CompileType. It is the top of the lattice and is used to
@@ -147,12 +164,12 @@ class CompileType : public ZoneAllocated {
 
   // Create nullable Smi type.
   static CompileType NullableSmi() {
-    return CreateNullable(kNullable, kSmiCid);
+    return CompileType(kCanBeNull, kCannotBeSentinel, kSmiCid, nullptr);
   }
 
   // Create nullable Mint type.
   static CompileType NullableMint() {
-    return CreateNullable(kNullable, kMintCid);
+    return CompileType(kCanBeNull, kCannotBeSentinel, kMintCid, nullptr);
   }
 
   // Create non-nullable Double type.
@@ -175,7 +192,8 @@ class CompileType : public ZoneAllocated {
 
   // Return true if this and other types are the same.
   bool IsEqualTo(CompileType* other) {
-    return (is_nullable_ == other->is_nullable_) &&
+    return (can_be_null_ == other->can_be_null_) &&
+           (can_be_sentinel_ == other->can_be_sentinel_) &&
            (ToNullableCid() == other->ToNullableCid()) &&
            (compiler::IsEqualType(*ToAbstractType(), *other->ToAbstractType()));
   }
@@ -258,7 +276,8 @@ class CompileType : public ZoneAllocated {
   Definition* owner() const { return owner_; }
 
  private:
-  bool is_nullable_;
+  bool can_be_null_;
+  bool can_be_sentinel_;
   classid_t cid_;
   const AbstractType* type_;
   Definition* owner_ = nullptr;
