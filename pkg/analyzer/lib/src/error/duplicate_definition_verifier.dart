@@ -196,6 +196,9 @@ class DuplicateDefinitionVerifier {
         }
         definedGetters[name] = accessor;
       }
+      for (ClassElement class_ in element.classes) {
+        definedGetters[class_.name] = class_;
+      }
       for (ClassElement type in element.enums) {
         definedGetters[type.name] = type;
       }
@@ -210,9 +213,6 @@ class DuplicateDefinitionVerifier {
       }
       for (TypeAliasElement alias in element.typeAliases) {
         definedGetters[alias.name] = alias;
-      }
-      for (ClassElement type in element.types) {
-        definedGetters[type.name] = type;
       }
     }
 

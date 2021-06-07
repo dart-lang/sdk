@@ -87,7 +87,7 @@ class InformativeDataApplier {
         _applyToAccessors(unitElement.accessors, unitInfo.accessors);
 
         forCorrespondingPairs(
-          unitElement.types
+          unitElement.classes
               .where((element) => !element.isMixinApplication)
               .toList(),
           unitInfo.classDeclarations,
@@ -95,7 +95,7 @@ class InformativeDataApplier {
         );
 
         forCorrespondingPairs(
-          unitElement.types
+          unitElement.classes
               .where((element) => element.isMixinApplication)
               .toList(),
           unitInfo.classTypeAliases,

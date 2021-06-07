@@ -64,9 +64,10 @@ class RedirectingContributor extends DartCompletionContributor {
         }
         var typeSystem = libraryElement.typeSystem;
         for (var unit in libraryElement.units) {
-          for (var type in unit.types) {
-            if (typeSystem.isSubtypeOf(type.thisType, classElement.thisType)) {
-              for (var constructor in type.constructors) {
+          for (var class_ in unit.classes) {
+            if (typeSystem.isSubtypeOf(
+                class_.thisType, classElement.thisType)) {
+              for (var constructor in class_.constructors) {
                 if (constructor != constructorElement &&
                     constructor.isAccessibleIn(request.libraryElement)) {
                   builder.suggestConstructor(constructor);

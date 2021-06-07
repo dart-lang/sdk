@@ -41,9 +41,9 @@ class ConstantInitializersResolver {
       _library = builder.element;
       for (var unit in _library.units) {
         _unitElement = unit as CompilationUnitElementImpl;
+        unit.classes.forEach(_resolveClassFields);
         unit.extensions.forEach(_resolveExtensionFields);
         unit.mixins.forEach(_resolveClassFields);
-        unit.types.forEach(_resolveClassFields);
 
         _scope = builder.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
@@ -319,10 +319,10 @@ class _InitializerInference {
     for (var builder in _linker.builders.values) {
       for (var unit in builder.element.units) {
         _unitElement = unit as CompilationUnitElementImpl;
+        unit.classes.forEach(_addClassConstructorFieldFormals);
+        unit.classes.forEach(_addClassElementFields);
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins.forEach(_addClassElementFields);
-        unit.types.forEach(_addClassConstructorFieldFormals);
-        unit.types.forEach(_addClassElementFields);
 
         _scope = builder.scope;
         for (var element in unit.topLevelVariables) {

@@ -2032,7 +2032,7 @@ main() {
 
     ResolvedUnitResult result = await driver.getResultValid(path);
     expect(result, isNotNull);
-    expect(result.unit!.declaredElement!.types.map((e) => e.name), ['A']);
+    expect(result.unit!.declaredElement!.classes.map((e) => e.name), ['A']);
   }
 
   test_getResult_recursiveFlatten() async {
@@ -2292,7 +2292,7 @@ import 'package:test/b.dart';
     newFile(path, content: 'class A {}');
     var unitResult = await driver.getUnitElement2(path);
     unitResult as UnitElementResult;
-    expect(unitResult.element.types.map((e) => e.name), ['A']);
+    expect(unitResult.element.classes.map((e) => e.name), ['A']);
   }
 
   @deprecated

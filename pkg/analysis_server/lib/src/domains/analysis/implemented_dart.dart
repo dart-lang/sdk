@@ -21,7 +21,7 @@ class ImplementedComputer {
     for (var element in unitElement.mixins) {
       await _computeForClassElement(element);
     }
-    for (var element in unitElement.types) {
+    for (var element in unitElement.classes) {
       await _computeForClassElement(element);
     }
   }

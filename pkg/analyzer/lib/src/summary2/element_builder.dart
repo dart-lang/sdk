@@ -52,6 +52,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void buildDeclarationElements(CompilationUnit unit) {
     unit.declarations.accept(this);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
+    _unitElement.classes = _enclosingContext.classes;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
@@ -60,7 +61,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         .whereType<TopLevelVariableElementImpl>()
         .toList();
     _unitElement.typeAliases = _enclosingContext.typeAliases;
-    _unitElement.types = _enclosingContext.classes;
   }
 
   /// Build exports and imports, metadata into [_libraryElement].

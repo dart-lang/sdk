@@ -51,7 +51,7 @@ class ElementWalker {
   ElementWalker.forCompilationUnit(CompilationUnitElement element)
       : element = element,
         _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _classes = element.types,
+        _classes = element.classes,
         _enums = element.enums,
         _extensions = element.extensions,
         _functions = element.functions,

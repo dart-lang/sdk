@@ -191,7 +191,7 @@ class FindElement extends _FindElementBase {
       findInExecutables(mixin.methods);
     }
 
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       findInExecutables(class_.accessors);
       findInExecutables(class_.constructors);
       findInExecutables(class_.methods);
@@ -279,7 +279,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       findInClass(class_);
     }
 
@@ -321,7 +321,7 @@ abstract class _FindElementBase {
   CompilationUnitElement get unitElement;
 
   ClassElement class_(String name) {
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       if (class_.name == name) {
         return class_;
       }
@@ -330,7 +330,7 @@ abstract class _FindElementBase {
   }
 
   ClassElement classOrMixin(String name) {
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       if (class_.name == name) {
         return class_;
       }
@@ -346,7 +346,7 @@ abstract class _FindElementBase {
   ConstructorElement constructor(String name, {String? of}) {
     assert(name != '');
     ConstructorElement? result;
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       if (of == null || class_.name == of) {
         for (var constructor in class_.constructors) {
           if (constructor.name == name) {
@@ -403,7 +403,7 @@ abstract class _FindElementBase {
       findIn(enum_.fields);
     }
 
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       if (of != null && class_.name != of) {
         continue;
       }
@@ -458,7 +458,7 @@ abstract class _FindElementBase {
       findIn(extension_.accessors);
     }
 
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       if (of != null && class_.name != of) {
         continue;
       }
@@ -499,7 +499,7 @@ abstract class _FindElementBase {
       findIn(extension_.methods);
     }
 
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       if (of != null && class_.name != of) {
         continue;
       }
@@ -531,7 +531,7 @@ abstract class _FindElementBase {
   ParameterElement parameter(String name) {
     ParameterElement? result;
 
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       for (var constructor in class_.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter.name == name) {
@@ -571,7 +571,7 @@ abstract class _FindElementBase {
       findIn(extension_.accessors);
     }
 
-    for (var class_ in unitElement.types) {
+    for (var class_ in unitElement.classes) {
       if (of != null && class_.name != of) {
         continue;
       }

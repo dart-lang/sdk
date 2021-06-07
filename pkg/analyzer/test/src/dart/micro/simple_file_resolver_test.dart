@@ -729,14 +729,14 @@ class A {}
     var element = fileResolver.getLibraryByUri(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.types, hasLength(1));
+    expect(element.definingCompilationUnit.classes, hasLength(1));
   }
 
   test_getLibraryByUri_notExistingFile() {
     var element = fileResolver.getLibraryByUri(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.types, isEmpty);
+    expect(element.definingCompilationUnit.classes, isEmpty);
   }
 
   test_getLibraryByUri_partOf() {

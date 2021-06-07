@@ -1184,7 +1184,7 @@ class _ElementWriter {
     }
     e.typeAliases.forEach(writeTypeAliasElement);
     e.enums.forEach(writeClassElement);
-    e.types.forEach(writeClassElement);
+    e.classes.forEach(writeClassElement);
     e.mixins.forEach(writeClassElement);
     e.extensions.forEach(writeExtensionElement);
     e.topLevelVariables.forEach(writePropertyInducingElement);
