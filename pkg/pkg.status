@@ -125,6 +125,7 @@ analyzer/test/generated/strong_mode_driver_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_test: Slow, Pass
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
+analyzer/tool/experiments/experiments_test: Skip # https://github.com/dart-lang/sdk/issues/46277
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow, Pass
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
 dartdev/test/*: Slow, Pass
