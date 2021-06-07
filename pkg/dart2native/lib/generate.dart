@@ -3,32 +3,30 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-
 import 'package:path/path.dart' as path;
-
 import 'dart2native.dart';
 
 final Directory binDir = File(Platform.resolvedExecutable).parent;
 final String executableSuffix = Platform.isWindows ? '.exe' : '';
 final String dartaotruntime =
-    path.join(binDir.path, 'dartaotruntime$executableSuffix');
+    path.join(binDir.path, 'dartaotruntime${executableSuffix}');
 final String genKernel =
     path.join(binDir.path, 'snapshots', 'gen_kernel.dart.snapshot');
 final String genSnapshot =
-    path.join(binDir.path, 'utils', 'gen_snapshot$executableSuffix');
+    path.join(binDir.path, 'utils', 'gen_snapshot${executableSuffix}');
 final String productPlatformDill = path.join(
     binDir.parent.path, 'lib', '_internal', 'vm_platform_strong_product.dill');
 
 Future<void> generateNative({
   String kind = 'exe',
-  required String sourceFile,
-  String? outputFile,
-  String? debugFile,
-  String? packages,
-  required List<String> defines,
+  String sourceFile,
+  String outputFile,
+  String debugFile,
+  String packages,
+  List<String> defines,
   String enableExperiment = '',
   bool enableAsserts = false,
-  bool? soundNullSafety,
+  bool soundNullSafety,
   bool verbose = false,
   String verbosity = 'all',
   List<String> extraOptions = const [],
@@ -39,13 +37,17 @@ Future<void> generateNative({
     if (packages != null) {
       packages = path.canonicalize(path.normalize(packages));
     }
-    final Kind outputKind = {'aot': Kind.aot, 'exe': Kind.exe}[kind]!;
+    final Kind outputKind = {
+      'aot': Kind.aot,
+      'exe': Kind.exe,
+    }[kind];
     final sourceWithoutDart = sourcePath.replaceFirst(RegExp(r'\.dart$'), '');
-    final outputPath = path.canonicalize(path.normalize(outputFile ??
-        {
-          Kind.aot: '$sourceWithoutDart.aot',
-          Kind.exe: '$sourceWithoutDart.exe',
-        }[outputKind]!));
+    final outputPath = path.canonicalize(path.normalize(outputFile != null
+        ? outputFile
+        : {
+            Kind.aot: '${sourceWithoutDart}.aot',
+            Kind.exe: '${sourceWithoutDart}.exe',
+          }[outputKind]));
     final debugPath =
         debugFile != null ? path.canonicalize(path.normalize(debugFile)) : null;
 
@@ -88,14 +90,8 @@ Future<void> generateNative({
     final String snapshotFile = (outputKind == Kind.aot
         ? outputPath
         : path.join(tempDir.path, 'snapshot.aot'));
-    final snapshotResult = await generateAotSnapshot(
-      genSnapshot,
-      kernelFile,
-      snapshotFile,
-      enableAsserts,
-      extraOptions,
-      debugFile: debugPath,
-    );
+    final snapshotResult = await generateAotSnapshot(genSnapshot, kernelFile,
+        snapshotFile, debugPath, enableAsserts, extraOptions);
     if (snapshotResult.exitCode != 0) {
       stderr.writeln(snapshotResult.stdout);
       stderr.writeln(snapshotResult.stderr);
@@ -117,7 +113,7 @@ Future<void> generateNative({
       }
     }
 
-    print('Generated: $outputPath');
+    print('Generated: ${outputPath}');
   } finally {
     tempDir.deleteSync(recursive: true);
   }
