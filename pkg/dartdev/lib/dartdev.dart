@@ -231,6 +231,7 @@ class DartdevRunner extends CommandRunner<int> {
       exitCode = 1;
     } finally {
       stopwatch.stop();
+
       if (analytics.enabled) {
         unawaited(
           analytics.sendTiming(
@@ -240,6 +241,7 @@ class DartdevRunner extends CommandRunner<int> {
           ),
         );
       }
+
       // Set the exitCode, if it wasn't set in the catch block above.
       exitCode ??= 0;
 
@@ -265,7 +267,8 @@ class DartdevRunner extends CommandRunner<int> {
         analytics.enabled = true;
       }
       analytics.close();
-      return exitCode;
     }
+
+    return exitCode;
   }
 }

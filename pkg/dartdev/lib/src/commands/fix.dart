@@ -128,12 +128,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       var fileCount = 0;
       var fixCount = 0;
 
-      details.forEach((d) {
+      for (var d in details) {
         ++fileCount;
-        d.fixes.forEach((f) {
+        for (var f in d.fixes) {
           fixCount += f.occurrences;
-        });
-      });
+        }
+      }
 
       if (dryRun) {
         log.stdout('');

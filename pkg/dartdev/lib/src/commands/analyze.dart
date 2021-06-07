@@ -207,7 +207,7 @@ class AnalyzeCommand extends DartdevCommand {
       }
 
       // Emit "file:line:col * Error message. Correction (code)."
-      var message = ansi.emphasized('${error.message}');
+      var message = ansi.emphasized(error.message);
       if (error.correction != null) {
         message += ' ${error.correction}';
       }

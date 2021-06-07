@@ -28,7 +28,7 @@ class WebSimpleGenerator extends DefaultGenerator {
   @override
   String getInstallInstructions(
     String directory,
-    String scriptName,
+    String scriptPath,
   ) =>
       '  cd ${p.relative(directory)}\n'
       '  dart pub global activate webdev\n'

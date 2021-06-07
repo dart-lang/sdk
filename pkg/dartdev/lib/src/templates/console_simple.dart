@@ -24,7 +24,7 @@ class ConsoleSimpleGenerator extends DefaultGenerator {
   @override
   String getInstallInstructions(
     String directory,
-    String scriptName,
+    String scriptPath,
   ) =>
       super.getInstallInstructions(directory, null);
 }
