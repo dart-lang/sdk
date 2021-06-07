@@ -50,10 +50,19 @@ class ExampleTypedLiteral {
   external get b;
 }
 
-class ExampleTearoff {
+class DartClass {
   int x = 3;
-  foo() => x;
+  int getX() => x;
 }
+
+class GenericDartClass<T> {
+  final T myT;
+  GenericDartClass(this.myT);
+
+  T getT() => myT;
+}
+
+T getTopLevelGenerics<T>(T t) => t;
 
 String _getBarWithSideEffect() {
   var x = 5;
@@ -346,9 +355,19 @@ main() {
       String expected = dartFunction();
       expect(f.a, equals(expected));
 
-      // Using a tearoff as the property value
-      js_util.setProperty(f, 'tearoff', allowInterop(ExampleTearoff().foo));
+      // Using a tearoff as the property value.
+      js_util.setProperty(f, 'tearoff', allowInterop(DartClass().getX));
       expect(js_util.callMethod(f, 'tearoff', []), equals(3));
+
+      // Set property to instance method calls.
+      js_util.setProperty(f, 'a', DartClass().getX());
+      expect(f.a, equals(3));
+      js_util.setProperty(f, 'a', GenericDartClass<int>(5).getT());
+      expect(f.a, equals(5));
+
+      // Set property using a generics wrapper on value.
+      js_util.setProperty(f, 'a', getTopLevelGenerics<int>(10));
+      expect(f.a, equals(10));
     });
   });
 
