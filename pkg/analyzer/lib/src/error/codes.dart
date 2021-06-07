@@ -333,16 +333,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // Because map and set literals use the same delimiters (`{` and `}`), the
   // analyzer looks at the type arguments and the elements to determine which
-  // kind of literal you meant. When there are no type arguments and all of the
-  // elements are spread elements (which are allowed in both kinds of literals),
-  // then the analyzer uses the types of the expressions that are being spread.
-  // If all of the expressions have the type `Iterable`, then it's a set
-  // literal; if they all have the type `Map`, then it's a map literal.
+  // kind of literal you meant. When there are no type arguments, then the
+  // analyzer uses the types of the elements. If all of the elements are literal
+  // map entries and all of the spread operators are spreading a `Map` then it's
+  // a `Map`. If none of the elements are literal map entries and all of the
+  // spread operators are spreading an `Iterable`, then it's a `Set`. If neither
+  // of those is true then it's ambiguous.
   //
-  // The analyzer produces this diagnostic when some of the expressions being
-  // spread have the type `Iterable` and others have the type `Map`, making it
-  // impossible for the analyzer to determine whether you are writing a map
-  // literal or a set literal.
+  // The analyzer produces this diagnostic when at least one element is a
+  // literal map entry or a spread operator spreading a `Map`, and at least one
+  // element is neither of these, making it impossible for the analyzer to
+  // determine whether you are writing a map literal or a set literal.
   //
   // #### Examples
   //
@@ -379,9 +380,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH =
       CompileTimeErrorCode(
           'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
-          "This literal contains both 'Map' and 'Iterable' spreads, "
-              "which makes it impossible to determine whether the literal is "
-              "a map or a set.",
+          "The literal can't be either a map or a set because it contains at "
+              "least one literal map entry or a spread operator spreading a "
+              "'Map', and at least one element which is neither of these.",
           correction:
               "Try removing or changing some of the elements so that all of "
               "the elements are consistent.",
