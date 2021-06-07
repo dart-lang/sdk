@@ -42,8 +42,7 @@ void main(List<String> args) async {
           'Exited.',
         ]);
       });
-      // Tests are temporarily skipped while failing bots are being investigated.
-      // The code being tested is not currently used by anything other than tests.
-    }, skip: true);
+      // These tests can be slow due to starting up the external server process.
+    }, timeout: Timeout.none);
   });
 }

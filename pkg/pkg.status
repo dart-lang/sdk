@@ -129,6 +129,7 @@ analyzer/tool/experiments/experiments_test: Skip # https://github.com/dart-lang/
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow, Pass
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
 dartdev/test/*: Slow, Pass
+dds/test/dap/integration/*: Slow, Pass
 
 [ $runtime != vm ]
 dds/test/*: SkipByDesign # Only meant to run on vm

@@ -80,8 +80,10 @@ class DapTestSession {
   FutureOr<DapTestClient> _startClient(DapTestServer server) async {
     // Since we don't get a signal from the DAP server when it's ready and we
     // just started it, add a short retry to connections.
+    // Since the bots can be quite slow, it may take 6-7 seconds for the server
+    // to initially start up (including compilation).
     var attempt = 1;
-    while (attempt++ <= 20) {
+    while (attempt++ <= 100) {
       try {
         return await DapTestClient.connect(server.port);
       } catch (e) {
@@ -89,8 +91,19 @@ class DapTestSession {
       }
     }
 
-    throw 'Failed to connect to DAP server on port ${server.port}'
-        ' after $attempt attempts. Did the server start correctly?';
+    final errorMessage = StringBuffer();
+    errorMessage.writeln(
+      'Failed to connect to DAP server on port ${server.port}'
+      ' after $attempt attempts. Did the server start correctly?',
+    );
+
+    final serverErrorLogs = server.errorLogs;
+    if (serverErrorLogs.isNotEmpty) {
+      errorMessage.writeln('Server errors:');
+      errorMessage.writeAll(serverErrorLogs);
+    }
+
+    throw Exception(errorMessage.toString());
   }
 
   /// Starts a DAP server that can be shared across tests.

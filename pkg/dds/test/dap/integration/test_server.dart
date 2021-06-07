@@ -15,6 +15,7 @@ abstract class DapTestServer {
   String get host;
   int get port;
   FutureOr<void> stop();
+  List<String> get errorLogs;
 }
 
 /// An instance of a DAP server running in-process (to aid debugging).
@@ -29,6 +30,7 @@ class InProcessDapTestServer extends DapTestServer {
 
   String get host => _server.host;
   int get port => _server.port;
+  List<String> get errorLogs => const []; // In-proc errors just throw in-line.
 
   @override
   FutureOr<void> stop() async {
@@ -56,16 +58,24 @@ class OutOfProcessDapTestServer extends DapTestServer {
   final Process _process;
   final int port;
   final String host;
+  final List<String> _errors = [];
+
+  List<String> get errorLogs => _errors;
 
   OutOfProcessDapTestServer._(this._process, this.host, this.port) {
     // The DAP server should generally not write to stdout/stderr (unless -v is
     // passed), but it may do if it fails to start or crashes. If this happens,
     // ensure these are included in the test output.
     _process.stdout.transform(utf8.decoder).listen(print);
-    _process.stderr.transform(utf8.decoder).listen((s) => throw s);
+    _process.stderr.transform(utf8.decoder).listen((s) {
+      _errors.add(s);
+      throw s;
+    });
     unawaited(_process.exitCode.then((code) {
+      final message = 'Out-of-process DAP server terminated with code $code';
+      _errors.add(message);
       if (!_isShuttingDown && code != 0) {
-        throw 'Out-of-process DAP server terminated with code $code';
+        throw message;
       }
     }));
   }
