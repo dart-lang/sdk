@@ -214,7 +214,7 @@
       "name": "dart2native",
       "rootUri": "../pkg/dart2native",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.12"
     },
     {
       "name": "dart_internal",

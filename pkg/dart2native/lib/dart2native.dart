@@ -44,7 +44,7 @@ Future<ProcessResult> generateAotKernel(
     String platformDill,
     String sourceFile,
     String kernelFile,
-    String packages,
+    String? packages,
     List<String> defines,
     {String enableExperiment = '',
     List<String> extraGenKernelOptions = const []}) {
@@ -52,10 +52,10 @@ Future<ProcessResult> generateAotKernel(
     genKernel,
     '--platform',
     platformDill,
-    if (enableExperiment.isNotEmpty) '--enable-experiment=${enableExperiment}',
+    if (enableExperiment.isNotEmpty) '--enable-experiment=$enableExperiment',
     '--aot',
     '-Ddart.vm.product=true',
-    ...(defines.map((d) => '-D${d}')),
+    ...(defines.map((d) => '-D$d')),
     if (packages != null) ...['--packages', packages],
     '-o',
     kernelFile,
@@ -65,15 +65,16 @@ Future<ProcessResult> generateAotKernel(
 }
 
 Future generateAotSnapshot(
-    String genSnapshot,
-    String kernelFile,
-    String snapshotFile,
-    String debugFile,
-    bool enableAsserts,
-    List<String> extraGenSnapshotOptions) {
+  String genSnapshot,
+  String kernelFile,
+  String snapshotFile,
+  bool enableAsserts,
+  List<String> extraGenSnapshotOptions, {
+  String? debugFile,
+}) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
-    '--elf=${snapshotFile}',
+    '--elf=$snapshotFile',
     if (debugFile != null) '--save-debugging-info=$debugFile',
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',

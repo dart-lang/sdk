@@ -21,10 +21,12 @@ Generates an executable or an AOT snapshot from <main-dart-file>.
 
 Future<void> main(List<String> args) async {
   // If we're outputting to a terminal, wrap usage text to that width.
-  int outputLineWidth;
+  int? outputLineWidth;
   try {
     outputLineWidth = stdout.terminalColumns;
-  } catch (_) {/* Ignore. */}
+  } catch (_) {
+    /* Ignore. */
+  }
 
   final ArgParser parser = ArgParser(usageLineLength: outputLineWidth)
     ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
@@ -103,7 +105,7 @@ Sets the verbosity level used for filtering messages during compilation.
   final String sourceFile = parsedArgs.rest[0];
   if (!FileSystemEntity.isFileSync(sourceFile)) {
     stderr.writeln(
-        '"${sourceFile}" is not a file. See \'--help\' for more information.');
+        '"$sourceFile" is not a file. See \'--help\' for more information.');
     await stderr.flush();
     exit(1);
   }
@@ -115,7 +117,7 @@ Sets the verbosity level used for filtering messages during compilation.
         outputFile: parsedArgs['output'],
         debugFile: parsedArgs['save-debugging-info'],
         packages: parsedArgs['packages'],
-        defines: parsedArgs['define'],
+        defines: parsedArgs['define'] ?? [],
         enableExperiment: parsedArgs['enable-experiment'],
         enableAsserts: parsedArgs['enable-asserts'],
         soundNullSafety: parsedArgs['sound-null-safety'],
