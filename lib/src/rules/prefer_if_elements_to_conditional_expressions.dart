@@ -37,6 +37,7 @@ Widget build(BuildContext context) {
     ]
   );
 }
+```
 ''';
 
 class PreferIfElementsToConditionalExpressions extends LintRule
