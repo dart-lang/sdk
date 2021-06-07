@@ -68,9 +68,21 @@ void useGoodTypedClosureArgument() {
   _testingList.forEach((final int element) => print(element + 4)); // OK
 }
 
-void badMixed(String bad, final String good) { // LINT
+void badMixedLast(String bad, final String good) { // LINT
   print(bad);
   print(good);
+}
+
+void badMixedFirst(final String goodFirst, String badSecond) { // LINT
+  print(goodFirst);
+  print(badSecond);
+}
+
+// LINT [+1]
+void badMixedMiddle(String goodFirst, final String badSecond, String badThird) { // LINT
+  print(goodFirst);
+  print(badSecond);
+  print(badThird);
 }
 
 void goodMultiple(final String bad, final String good) { // OK
@@ -110,8 +122,8 @@ class C {
     return C(value);
   }
 
-  void set badContents(int contents) => _contents = setting; // LINT
-  void set goodContents(final int contents) => _contents = setting; // OK
+  void set badContents(int contents) => _contents = contents; // LINT
+  void set goodContents(final int contents) => _contents = contents; // OK
 
   int get contentValue => _contents + 4; // OK
 
