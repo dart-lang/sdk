@@ -83,7 +83,7 @@
 
 Updated the Linter to `1.5.0`, which includes:
 
-- (internal) migrated to `SecurityLintCode` instead of deprecated 
+- (internal) migrated to `SecurityLintCode` instead of deprecated
   `SecurityLintCodeWithUniqueName`.
 - (internal) fixed `avoid_types_as_parameter_names` to skip field formal
   parameters.
@@ -185,6 +185,20 @@ Updated the Linter to `1.5.0`, which includes:
       f<int>(3);
     }
     ```
+
+## 2.13.2 - 2021-06-09
+
+This is a patch release that fixes:
+
+* a Dart compiler crash (issue [flutter/flutter#83094][]).
+* an analysis server deadlock causing it to stop responding to IDE requests
+  (issue [#45996][]).
+* an analyzer crash when analyzing against `package:meta` `v1.4.0` (issue
+  [#46183][]).
+
+[flutter/flutter#83094]: https://github.com/flutter/flutter/issues/83094
+[#45996]: https://github.com/dart-lang/sdk/issues/45996
+[#46183]: https://github.com/dart-lang/sdk/issues/46183
 
 ## 2.13.1 - 2021-05-25
 
