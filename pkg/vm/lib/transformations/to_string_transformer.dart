@@ -39,9 +39,6 @@ class ToStringVisitor extends RecursiveVisitor {
       final className = constant.classNode.name;
       final libraryUri =
           constant.classNode.enclosingLibrary.importUri.toString();
-      if (className == '_KeepToString' && libraryUri == 'dart:ui') {
-        return true;
-      }
       if (className == 'pragma' && libraryUri == 'dart:core') {
         for (var fieldRef in constant.fieldValues.keys) {
           if (fieldRef.asField.name.text == 'name') {
