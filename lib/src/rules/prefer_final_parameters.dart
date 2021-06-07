@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameters != null) {
       for (var param in parameters.parameters) {
         if (param.isFinal || param.isConst || param is FieldFormalParameter) {
-          return;
+          continue;
         }
         var declaredElement = param.declaredElement;
         if (declaredElement != null &&
