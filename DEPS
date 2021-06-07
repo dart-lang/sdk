@@ -497,14 +497,25 @@ deps = {
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 
-  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/clang": {
+  Var("dart_root") + "/buildtools/" + Var("host_os") + "-x64/clang": {
       "packages": [
           {
-              "package": "fuchsia/third_party/clang/${{platform}}",
+              "package": "fuchsia/third_party/clang/" + Var("host_os") + "-amd64",
               "version": "git_revision:" + Var("clang_revision"),
           },
       ],
-      "condition": "(host_os == 'linux' or host_os == 'mac') and (host_cpu == 'x64' or host_cpu == 'arm64')",
+      # TODO(https://fxbug.dev/73385): Use arm64 toolchain on arm64 when it exists.
+      "condition": "host_cpu == x64 and (host_os == linux or host_os == mac) or host_cpu == arm64 and host_os == mac",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/buildtools/linux-arm64/clang": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/clang/linux-arm64",
+              "version": "git_revision:" + Var("clang_revision"),
+          },
+      ],
+      "condition": "host_os == 'linux' and host_cpu == 'arm64'",
       "dep_type": "cipd",
   },
 
