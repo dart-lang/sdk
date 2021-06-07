@@ -79,9 +79,9 @@ void badMixedFirst(final String goodFirst, String badSecond) { // LINT
 }
 
 // LINT [+1]
-void badMixedMiddle(String goodFirst, final String badSecond, String badThird) { // LINT
-  print(goodFirst);
-  print(badSecond);
+void badMixedMiddle(String badFirst, final String goodSecond, String badThird) { // LINT
+  print(badFirst);
+  print(goodSecond);
   print(badThird);
 }
 
