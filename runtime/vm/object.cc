@@ -25049,7 +25049,7 @@ ClosurePtr Closure::New() {
 }
 
 FunctionTypePtr Closure::GetInstantiatedSignature(Zone* zone) const {
-  Function& fun = Function::Handle(zone, function());
+  const Function& fun = Function::Handle(zone, function());
   FunctionType& sig = FunctionType::Handle(zone, fun.signature());
   TypeArguments& fn_type_args =
       TypeArguments::Handle(zone, function_type_arguments());
