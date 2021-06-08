@@ -68,9 +68,7 @@ class _DartNavigationCollector {
       return;
     }
     // Discard elements that don't span the offset/range given (if provided).
-    if (requestedOffset != null &&
-        (offset > requestedOffset! + (requestedLength ?? 0) ||
-            offset + length < requestedOffset!)) {
+    if (!_isWithinRequestedRange(offset, length)) {
       return;
     }
     var converter = AnalyzerConverter();
@@ -152,6 +150,26 @@ class _DartNavigationCollector {
 
     return converter.locationFromElement(element,
         offset: codeOffset, length: codeLength);
+  }
+
+  /// Checks if offset/length intersect with the range the user requested
+  /// navigation regions for.
+  ///
+  /// If the request did not specify a range, always returns true.
+  bool _isWithinRequestedRange(int offset, int length) {
+    final requestedOffset = this.requestedOffset;
+    if (requestedOffset == null) {
+      return true;
+    }
+    if (offset > requestedOffset + (requestedLength ?? 0)) {
+      // Starts after the requested range.
+      return false;
+    }
+    if (offset + length < requestedOffset) {
+      // Ends before the requested range.
+      return false;
+    }
+    return true;
   }
 
   static ElementDeclarationResult? _parsedDeclaration(Element element) {
@@ -243,11 +261,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         // TODO(brianwilkerson) If the analyzer ever resolves the URI to a
         //  library, use that library element to create the region.
         var uriNode = node.uri;
-        computer.collector.addRegion(
-            uriNode.offset,
-            uriNode.length,
-            protocol.ElementKind.LIBRARY,
-            protocol.Location(source.fullName, 0, 0, 0, 0, 0, 0));
+        if (computer._isWithinRequestedRange(uriNode.offset, uriNode.length)) {
+          computer.collector.addRegion(
+              uriNode.offset,
+              uriNode.length,
+              protocol.ElementKind.LIBRARY,
+              protocol.Location(source.fullName, 0, 0, 0, 0, 0, 0));
+        }
       }
     }
     super.visitConfiguration(node);
