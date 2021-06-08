@@ -24,7 +24,7 @@ def BuildArchitectures():
     if BUILD_OS == 'linux':
         return ['ia32', 'x64', 'arm', 'arm64']
     elif BUILD_OS == 'macos':
-        return BUILD_ARCHITECTURE
+        return [BUILD_ARCHITECTURE]
     else:
         return ['ia32', 'x64']
 
