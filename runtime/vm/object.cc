@@ -11103,8 +11103,7 @@ ObjectPtr Field::EvaluateInitializer() const {
 }
 
 static intptr_t GetListLength(const Object& value) {
-  if (value.IsTypedData() || value.IsTypedDataView() ||
-      value.IsExternalTypedData()) {
+  if (value.IsTypedDataBase()) {
     return TypedDataBase::Cast(value).Length();
   } else if (value.IsArray()) {
     return Array::Cast(value).Length();
@@ -23571,21 +23570,7 @@ OneByteStringPtr OneByteString::New(const String& other_one_byte_string,
   return OneByteString::raw(result);
 }
 
-OneByteStringPtr OneByteString::New(const TypedData& other_typed_data,
-                                    intptr_t other_start_index,
-                                    intptr_t other_len,
-                                    Heap::Space space) {
-  const String& result = String::Handle(OneByteString::New(other_len, space));
-  ASSERT(other_typed_data.ElementSizeInBytes() == 1);
-  if (other_len > 0) {
-    NoSafepointScope no_safepoint;
-    memmove(OneByteString::DataStart(result),
-            other_typed_data.DataAddr(other_start_index), other_len);
-  }
-  return OneByteString::raw(result);
-}
-
-OneByteStringPtr OneByteString::New(const ExternalTypedData& other_typed_data,
+OneByteStringPtr OneByteString::New(const TypedDataBase& other_typed_data,
                                     intptr_t other_start_index,
                                     intptr_t other_len,
                                     Heap::Space space) {
@@ -23765,21 +23750,7 @@ TwoByteStringPtr TwoByteString::New(const String& str, Heap::Space space) {
   return TwoByteString::raw(result);
 }
 
-TwoByteStringPtr TwoByteString::New(const TypedData& other_typed_data,
-                                    intptr_t other_start_index,
-                                    intptr_t other_len,
-                                    Heap::Space space) {
-  const String& result = String::Handle(TwoByteString::New(other_len, space));
-  if (other_len > 0) {
-    NoSafepointScope no_safepoint;
-    memmove(TwoByteString::DataStart(result),
-            other_typed_data.DataAddr(other_start_index),
-            other_len * sizeof(uint16_t));
-  }
-  return TwoByteString::raw(result);
-}
-
-TwoByteStringPtr TwoByteString::New(const ExternalTypedData& other_typed_data,
+TwoByteStringPtr TwoByteString::New(const TypedDataBase& other_typed_data,
                                     intptr_t other_start_index,
                                     intptr_t other_len,
                                     Heap::Space space) {

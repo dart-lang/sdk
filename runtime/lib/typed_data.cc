@@ -47,20 +47,9 @@ static void LengthCheck(intptr_t len, intptr_t max) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_length, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
-  if (instance.IsTypedData()) {
-    const TypedData& array = TypedData::Cast(instance);
-    return Smi::New(array.Length());
-  }
-  if (instance.IsExternalTypedData()) {
-    const ExternalTypedData& array = ExternalTypedData::Cast(instance);
-    return Smi::New(array.Length());
-  }
-  const String& error = String::Handle(String::NewFormatted(
-      "Expected a TypedData object but found %s", instance.ToCString()));
-  Exceptions::ThrowArgumentError(error);
-  return Integer::null();
+DEFINE_NATIVE_ENTRY(TypedDataBase_length, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, array, arguments->NativeArgAt(0));
+  return Smi::New(array.Length());
 }
 
 DEFINE_NATIVE_ENTRY(TypedDataView_offsetInBytes, 0, 1) {
@@ -70,13 +59,6 @@ DEFINE_NATIVE_ENTRY(TypedDataView_offsetInBytes, 0, 1) {
   return TypedDataView::Cast(instance).offset_in_bytes();
 }
 
-DEFINE_NATIVE_ENTRY(TypedDataView_length, 0, 1) {
-  // "this" is either a _*ArrayView class or _ByteDataView.
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
-  ASSERT(instance.IsTypedDataView());
-  return TypedDataView::Cast(instance).length();
-}
-
 DEFINE_NATIVE_ENTRY(TypedDataView_typedData, 0, 1) {
   // "this" is either a _*ArrayView class or _ByteDataView.
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
@@ -84,15 +66,12 @@ DEFINE_NATIVE_ENTRY(TypedDataView_typedData, 0, 1) {
   return TypedDataView::Cast(instance).typed_data();
 }
 
-template <typename DstType, typename SrcType>
-static BoolPtr CopyData(const Instance& dst,
-                        const Instance& src,
+static BoolPtr CopyData(const TypedDataBase& dst_array,
+                        const TypedDataBase& src_array,
                         const Smi& dst_start,
                         const Smi& src_start,
                         const Smi& length,
                         bool clamped) {
-  const DstType& dst_array = DstType::Cast(dst);
-  const SrcType& src_array = SrcType::Cast(src);
   const intptr_t dst_offset_in_bytes = dst_start.Value();
   const intptr_t src_offset_in_bytes = src_start.Value();
   const intptr_t length_in_bytes = length.Value();
@@ -101,12 +80,11 @@ static BoolPtr CopyData(const Instance& dst,
   ASSERT(Utils::RangeCheck(dst_offset_in_bytes, length_in_bytes,
                            dst_array.LengthInBytes()));
   if (clamped) {
-    TypedData::ClampedCopy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
-                                             src_array, src_offset_in_bytes,
-                                             length_in_bytes);
+    TypedData::ClampedCopy(dst_array, dst_offset_in_bytes, src_array,
+                           src_offset_in_bytes, length_in_bytes);
   } else {
-    TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes, src_array,
-                                      src_offset_in_bytes, length_in_bytes);
+    TypedData::Copy(dst_array, dst_offset_in_bytes, src_array,
+                    src_offset_in_bytes, length_in_bytes);
   }
   return Bool::True().ptr();
 }
@@ -136,13 +114,13 @@ static bool IsUint8(intptr_t cid) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
-  const Instance& dst =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(TypedDataBase_setRange, 0, 7) {
+  const TypedDataBase& dst =
+      TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Smi& dst_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
   const Smi& length = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
-  const Instance& src =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const TypedDataBase& src =
+      TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(3));
   const Smi& src_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(4));
   const Smi& to_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(5));
   const Smi& from_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(6));
@@ -156,25 +134,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
   const intptr_t from_cid = from_cid_smi.Value();
 
   const bool needs_clamping = IsClamped(to_cid) && !IsUint8(from_cid);
-  if (dst.IsTypedData()) {
-    if (src.IsTypedData()) {
-      return CopyData<TypedData, TypedData>(dst, src, dst_start, src_start,
-                                            length, needs_clamping);
-    } else if (src.IsExternalTypedData()) {
-      return CopyData<TypedData, ExternalTypedData>(
-          dst, src, dst_start, src_start, length, needs_clamping);
-    }
-  } else if (dst.IsExternalTypedData()) {
-    if (src.IsTypedData()) {
-      return CopyData<ExternalTypedData, TypedData>(
-          dst, src, dst_start, src_start, length, needs_clamping);
-    } else if (src.IsExternalTypedData()) {
-      return CopyData<ExternalTypedData, ExternalTypedData>(
-          dst, src, dst_start, src_start, length, needs_clamping);
-    }
-  }
-  UNREACHABLE();
-  return Bool::False().ptr();
+  return CopyData(dst, src, dst_start, src_start, length, needs_clamping);
 }
 
 // Native methods for typed data allocation are recognized and implemented
@@ -203,19 +163,26 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 // into a _Smi.
 //
 // Argument 0 is type arguments and is ignored.
+static InstancePtr NewTypedDataView(intptr_t cid,
+                                    intptr_t element_size,
+                                    Zone* zone,
+                                    NativeArguments* arguments) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, typed_data,
+                               arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offset, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, len, arguments->NativeArgAt(3));
+  const intptr_t backing_length = typed_data.LengthInBytes();
+  const intptr_t offset_in_bytes = offset.Value();
+  const intptr_t length = len.Value();
+  AlignmentCheck(offset_in_bytes, element_size);
+  LengthCheck(offset_in_bytes + length * element_size, backing_length);
+  return TypedDataView::New(cid, typed_data, offset_in_bytes, length);
+}
+
 #define TYPED_DATA_VIEW_NEW(native_name, cid)                                  \
   DEFINE_NATIVE_ENTRY(native_name, 0, 4) {                                     \
-    GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, typed_data,                    \
-                                 arguments->NativeArgAt(1));                   \
-    GET_NON_NULL_NATIVE_ARGUMENT(Smi, offset, arguments->NativeArgAt(2));      \
-    GET_NON_NULL_NATIVE_ARGUMENT(Smi, len, arguments->NativeArgAt(3));         \
-    const intptr_t backing_length = typed_data.LengthInBytes();                \
-    const intptr_t offset_in_bytes = offset.Value();                           \
-    const intptr_t length = len.Value();                                       \
-    const intptr_t element_size = TypedDataBase::ElementSizeInBytes(cid);      \
-    AlignmentCheck(offset_in_bytes, element_size);                             \
-    LengthCheck(offset_in_bytes + length * element_size, backing_length);      \
-    return TypedDataView::New(cid, typed_data, offset_in_bytes, length);       \
+    return NewTypedDataView(cid, TypedDataBase::ElementSizeInBytes(cid), zone, \
+                            arguments);                                        \
   }
 
 #define TYPED_DATA_NEW_NATIVE(name)                                            \
@@ -228,53 +195,27 @@ TYPED_DATA_VIEW_NEW(TypedDataView_ByteDataView_new, kByteDataViewCid)
 
 #define TYPED_DATA_GETTER(getter, object, ctor, access_size)                   \
   DEFINE_NATIVE_ENTRY(TypedData_##getter, 0, 2) {                              \
-    GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
+    GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, array,                         \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
                                  arguments->NativeArgAt(1));                   \
-    if (instance.IsTypedData()) {                                              \
-      const TypedData& array = TypedData::Cast(instance);                      \
-      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
-                 access_size);                                                 \
-      return object::ctor(array.getter(offsetInBytes.Value()));                \
-    }                                                                          \
-    if (instance.IsExternalTypedData()) {                                      \
-      const ExternalTypedData& array = ExternalTypedData::Cast(instance);      \
-      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
-                 access_size);                                                 \
-      return object::ctor(array.getter(offsetInBytes.Value()));                \
-    }                                                                          \
-    const String& error = String::Handle(String::NewFormatted(                 \
-        "Expected a TypedData object but found %s", instance.ToCString()));    \
-    Exceptions::ThrowArgumentError(error);                                     \
-    return object::null();                                                     \
+    RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),      \
+               access_size);                                                   \
+    return object::ctor(array.getter(offsetInBytes.Value()));                  \
   }
 
 #define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
                           access_type)                                         \
   DEFINE_NATIVE_ENTRY(TypedData_##setter, 0, 3) {                              \
-    GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
+    GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, array,                         \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
                                  arguments->NativeArgAt(1));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));    \
-    if (instance.IsTypedData()) {                                              \
-      const TypedData& array = TypedData::Cast(instance);                      \
-      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
-                 access_size);                                                 \
-      array.setter(offsetInBytes.Value(),                                      \
-                   static_cast<access_type>(value.get_object_value()));        \
-    } else if (instance.IsExternalTypedData()) {                               \
-      const ExternalTypedData& array = ExternalTypedData::Cast(instance);      \
-      RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),    \
-                 access_size);                                                 \
-      array.setter(offsetInBytes.Value(),                                      \
-                   static_cast<access_type>(value.get_object_value()));        \
-    } else {                                                                   \
-      const String& error = String::Handle(String::NewFormatted(               \
-          "Expected a TypedData object but found %s", instance.ToCString()));  \
-      Exceptions::ThrowArgumentError(error);                                   \
-    }                                                                          \
+    RangeCheck(offsetInBytes.Value(), access_size, array.LengthInBytes(),      \
+               access_size);                                                   \
+    array.setter(offsetInBytes.Value(),                                        \
+                 static_cast<access_type>(value.get_object_value()));          \
     return Object::null();                                                     \
   }
 

@@ -318,8 +318,7 @@ namespace dart {
   V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0x17a2cbc0)                     \
   V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0xea0577df)                  \
   V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0x8af8aa58)                 \
-  V(_TypedList, get:length, TypedListLength, 0x5850f06b)                       \
-  V(_TypedListView, get:length, TypedListViewLength, 0x5850f06b)               \
+  V(_TypedListBase, get:length, TypedListBaseLength, 0x5850f06b)               \
   V(_ByteDataView, get:length, ByteDataViewLength, 0x5850f06b)                 \
   V(_Float32x4, get:x, Float32x4ShuffleX, 0x3a398530)                          \
   V(_Float32x4, get:y, Float32x4ShuffleY, 0x27cae053)                          \

@@ -3211,17 +3211,14 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     // Pass through errors.
     return list;
   }
-  if (obj.IsTypedData()) {
-    GET_LIST_LENGTH(Z, TypedData, obj, len);
+  if (obj.IsTypedDataBase()) {
+    GET_LIST_LENGTH(Z, TypedDataBase, obj, len);
   }
   if (obj.IsArray()) {
     GET_LIST_LENGTH(Z, Array, obj, len);
   }
   if (obj.IsGrowableObjectArray()) {
     GET_LIST_LENGTH(Z, GrowableObjectArray, obj, len);
-  }
-  if (obj.IsExternalTypedData()) {
-    GET_LIST_LENGTH(Z, ExternalTypedData, obj, len);
   }
   CHECK_CALLBACK_STATE(T);
 
@@ -3464,63 +3461,22 @@ static ObjectPtr ThrowArgumentError(const char* exception_message) {
   }                                                                            \
   return Api::NewError("Invalid length passed in to access array elements");
 
-template <typename T>
-static Dart_Handle CopyBytes(const T& array,
-                             intptr_t offset,
-                             uint8_t* native_array,
-                             intptr_t length) {
-  ASSERT(array.ElementSizeInBytes() == 1);
-  NoSafepointScope no_safepoint;
-  memmove(native_array, reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
-          length);
-  return Api::Success();
-}
-
 DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                                             intptr_t offset,
                                             uint8_t* native_array,
                                             intptr_t length) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(list));
-  if (obj.IsTypedData()) {
-    const TypedData& array = TypedData::Cast(obj);
+  if (obj.IsTypedDataBase()) {
+    const TypedDataBase& array = TypedDataBase::Cast(obj);
     if (array.ElementSizeInBytes() == 1) {
-      if (!Utils::RangeCheck(offset, length, array.Length())) {
-        return Api::NewError(
-            "Invalid length passed in to access list elements");
+      if (Utils::RangeCheck(offset, length, array.Length())) {
+        NoSafepointScope no_safepoint;
+        memmove(native_array,
+                reinterpret_cast<uint8_t*>(array.DataAddr(offset)), length);
+        return Api::Success();
       }
-      return CopyBytes(array, offset, native_array, length);
-    }
-  }
-  if (obj.IsExternalTypedData()) {
-    const ExternalTypedData& external_array = ExternalTypedData::Cast(obj);
-    if (external_array.ElementSizeInBytes() == 1) {
-      if (!Utils::RangeCheck(offset, length, external_array.Length())) {
-        return Api::NewError(
-            "Invalid length passed in to access list elements");
-      }
-      return CopyBytes(external_array, offset, native_array, length);
-    }
-  }
-  if (IsTypedDataViewClassId(obj.GetClassId())) {
-    const auto& view = TypedDataView::Cast(obj);
-    if (view.ElementSizeInBytes() == 1) {
-      const intptr_t view_length = Smi::Value(view.length());
-      if (!Utils::RangeCheck(offset, length, view_length)) {
-        return Api::NewError(
-            "Invalid length passed in to access list elements");
-      }
-      const auto& data = Instance::Handle(view.typed_data());
-      if (data.IsTypedData()) {
-        const TypedData& array = TypedData::Cast(data);
-        if (array.ElementSizeInBytes() == 1) {
-          const intptr_t data_offset =
-              Smi::Value(view.offset_in_bytes()) + offset;
-          // Range check already performed on the view object.
-          ASSERT(Utils::RangeCheck(data_offset, length, array.Length()));
-          return CopyBytes(array, data_offset, native_array, length);
-        }
-      }
+      return Api::NewError("Invalid length passed in to access list elements");
     }
   }
   if (obj.IsArray()) {
@@ -3590,8 +3546,8 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t length) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(list));
-  if (obj.IsTypedData()) {
-    const TypedData& array = TypedData::Cast(obj);
+  if (obj.IsTypedDataBase()) {
+    const TypedDataBase& array = TypedDataBase::Cast(obj);
     if (array.ElementSizeInBytes() == 1) {
       if (Utils::RangeCheck(offset, length, array.Length())) {
         NoSafepointScope no_safepoint;
