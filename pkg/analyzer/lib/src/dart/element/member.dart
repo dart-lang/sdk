@@ -522,6 +522,9 @@ abstract class Member implements Element {
   bool get hasUseResult => _declaration.hasUseResult;
 
   @override
+  bool get hasVisibleForOverriding => _declaration.hasVisibleForOverriding;
+
+  @override
   bool get hasVisibleForTemplate => _declaration.hasVisibleForTemplate;
 
   @override

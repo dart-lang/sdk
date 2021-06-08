@@ -1243,6 +1243,17 @@ class HintCode extends AnalyzerErrorCode {
 
   /**
    * This hint is generated anywhere where a member annotated with
+   * `@visibleForOverriding` is used for another purpose than overriding it.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER = HintCode(
+      'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
+      "The member '{0}' can only be used for overriding.");
+
+  /**
+   * This hint is generated anywhere where a member annotated with
    * `@visibleForTemplate` is used outside of a "template" Dart file.
    *
    * Parameters:
@@ -1318,6 +1329,15 @@ class HintCode extends AnalyzerErrorCode {
       "The member '{0}' is annotated with '{1}', but this annotation is only "
           "meaningful on declarations of public members.",
       hasPublishedDocs: true);
+
+  /// Hint when an `@visibleForOverriding` annotation is used on something that
+  /// isn't an interface member.
+  static const HintCode INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION = HintCode(
+    'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
+    "The declaration '{0}' is annotated with 'visibleForOverriding'. As '{0}' "
+        "is not an interface member that could be overriden, the annotation is "
+        'meaningless.',
+  );
 
   /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
