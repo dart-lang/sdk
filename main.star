@@ -104,8 +104,11 @@ JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
 def to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
 
-def mac():
-    return {"os": "Mac"}
+def mac(cpu = None):
+    dimensions = {"os": "Mac"}
+    if cpu:
+        dimensions["cpu"] = cpu
+    return dimensions
 
 def windows():
     return {"os": "Windows"}
@@ -1081,6 +1084,12 @@ dart_ci_sandbox_builder(
     on_cq = True,
     experiment_percentage = 5,
 )
+dart_ci_sandbox_builder(
+    "vm-kernel-mac-release-arm64",
+    category = "vm|kernel|m1r",
+    channels = ["try", "dev"],
+    dimensions = mac(cpu = "arm64"),
+)
 dart_vm_nightly_builder(
     "vm-kernel-win-debug-ia32",
     category = "vm|kernel|wd3",
@@ -1476,6 +1485,14 @@ dart_ci_builder(
     dimensions = mac(),
     lkgr = True,
 )
+dart_ci_builder(
+    "dart-sdk-mac-arm64",
+    category = "sdk|m1",
+    channels = ["try", "dev"],
+    dimensions = mac(cpu = "arm64"),
+    lkgr = True,
+)
+
 dart_ci_builder(
     "dart-sdk-win",
     category = "sdk|w",
