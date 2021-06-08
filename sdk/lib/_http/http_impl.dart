@@ -2796,8 +2796,8 @@ class _HttpClient implements HttpClient {
       _HttpProfileData? profileData) {
     Iterator<_Proxy> proxies = proxyConf.proxies.iterator;
 
-    Future<_ConnectionInfo> connect(error) {
-      if (!proxies.moveNext()) return new Future.error(error);
+    Future<_ConnectionInfo> connect(error, stackTrace) {
+      if (!proxies.moveNext()) return new Future.error(error, stackTrace);
       _Proxy proxy = proxies.current;
       String host = proxy.isDirect ? uriHost : proxy.host!;
       int port = proxy.isDirect ? uriPort : proxy.port!;
@@ -2807,7 +2807,7 @@ class _HttpClient implements HttpClient {
           .catchError(connect);
     }
 
-    return connect(new HttpException("No proxies given"));
+    return connect(new HttpException("No proxies given"), StackTrace.current);
   }
 
   _SiteCredentials? _findCredentials(Uri url, [_AuthenticationScheme? scheme]) {
