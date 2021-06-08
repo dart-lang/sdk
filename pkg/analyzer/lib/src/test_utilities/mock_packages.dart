@@ -37,7 +37,6 @@ const _Protected protected = const _Protected();
 const Required required = const Required();
 const _Sealed sealed = const _Sealed();
 const UseResult useResult = UseResult();
-const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
 
 class _AlwaysThrows {
@@ -88,9 +87,6 @@ class _Sealed {
 class UseResult {
   final String reason;
   const UseResult([this.reason = '']);
-}
-class _VisibleForOverriding {
-  const _VisibleForOverriding();
 }
 class _VisibleForTesting {
   const _VisibleForTesting();
