@@ -1833,6 +1833,7 @@
         "vm-kernel-linux-debug-x64c",
         "vm-kernel-mac-product-x64",
         "vm-kernel-mac-product-x64c",
+        "vm-kernel-mac-release-arm64",
         "vm-kernel-mac-release-x64",
         "vm-kernel-mac-release-x64c",
         "vm-kernel-mac-debug-x64",
@@ -2839,13 +2840,6 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
-          "name": "run AOT and Exe smoke tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/bots/aot_smoke_tests.dart"
-          ]
-        },
-        {
           "name": "build api docs",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [
@@ -2856,7 +2850,8 @@
     },
     {
       "builders": [
-        "dart-sdk-mac"
+        "dart-sdk-mac",
+        "dart-sdk-mac-arm64"
       ],
       "meta": {
         "description": "This configuration is used by the sdk-builders for MacOS."
@@ -2866,7 +2861,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--arch=x64",
             "--mode=release",
             "--check-clean",
             "create_sdk"
@@ -2878,13 +2872,6 @@
         {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
-        },
-        {
-          "name": "run AOT and Exe smoke tests",
-          "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/bots/aot_smoke_tests.dart"
-          ]
         }
       ]
     },
@@ -2909,13 +2896,6 @@
         {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
-        },
-        {
-          "name": "run AOT and Exe smoke tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart.exe",
-          "arguments": [
-            "tools/bots/aot_smoke_tests.dart"
-          ]
         }
       ]
     },
@@ -3628,7 +3608,7 @@
         {
           "name": "analyze flutter/plugins",
           "script": "tools/bots/flutter/analyze_flutter_plugins.sh"
-        }        
+        }
       ]
     },
     {

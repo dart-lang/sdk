@@ -26,10 +26,11 @@ static CompileType ParameterType(LocalVariable* param,
                                  Representation representation = kTagged) {
   return param->was_type_checked_by_caller()
              ? CompileType::FromAbstractType(param->type(),
-                                             representation == kTagged)
+                                             representation == kTagged,
+                                             CompileType::kCannotBeSentinel)
              : ((representation == kTagged)
                     ? CompileType::Dynamic()
-                    : CompileType::FromCid(kDynamicCid).CopyNonNullable());
+                    : CompileType::Dynamic().CopyNonNullable());
 }
 
 bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
@@ -357,7 +358,8 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling() {
   store_type_args += LoadFpRelativeSlot(
       compiler::target::kWordSize *
           (1 + compiler::target::frame_layout.param_end_from_fp),
-      CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
+      CompileType(CompileType::kCanBeNull, CompileType::kCannotBeSentinel,
+                  kTypeArgumentsCid, nullptr));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
 

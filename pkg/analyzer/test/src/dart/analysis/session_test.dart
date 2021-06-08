@@ -182,7 +182,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     var result = await session.getUnitElementValid(file.path);
     expect(result.state, ResultState.VALID);
     expect(result.path, file.path);
-    expect(result.element.types, hasLength(1));
+    expect(result.element.classes, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
@@ -1008,7 +1008,7 @@ class B {}
     expect(unitResult.session, session);
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.element.types, hasLength(2));
+    expect(unitResult.element.classes, hasLength(2));
   }
 
   test_resourceProvider() async {

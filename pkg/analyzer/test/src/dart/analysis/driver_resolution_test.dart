@@ -6268,7 +6268,7 @@ main() {
 
     var myLibrary = myImport.importedLibrary!;
     var myUnit = myLibrary.definingCompilationUnit;
-    var myClass = myUnit.types.single;
+    var myClass = myUnit.classes.single;
     var myTypeAlias = myUnit.typeAliases.single;
     var myTopVariable = myUnit.topLevelVariables[0];
     var myTopFunction = myUnit.functions.single;
@@ -7377,7 +7377,7 @@ class C<T> {
     var cNode = unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
     TypeParameterElement tElement = cElement.typeParameters[0];
-    expect(cElement, same(unitElement.types[0]));
+    expect(cElement, same(unitElement.classes[0]));
 
     {
       FieldElement aElement = cElement.getField('a')!;
@@ -7661,11 +7661,11 @@ class C<T extends A, U extends List<A>, V> {}
 
     var aNode = unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
-    expect(aElement, same(unitElement.types[0]));
+    expect(aElement, same(unitElement.classes[0]));
 
     var cNode = unit.declarations[1] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
-    expect(cElement, same(unitElement.types[1]));
+    expect(cElement, same(unitElement.classes[1]));
 
     {
       TypeParameter tNode = cNode.typeParameters!.typeParameters[0];

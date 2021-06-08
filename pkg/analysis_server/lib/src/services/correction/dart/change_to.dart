@@ -82,7 +82,7 @@ class ChangeTo extends CorrectionProducer {
       // Check elements of this library.
       if (prefixName == null) {
         for (var unit in resolvedResult.libraryElement.units) {
-          finder._updateList(unit.types);
+          finder._updateList(unit.classes);
         }
       }
       // Check elements from imports.

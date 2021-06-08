@@ -261,6 +261,11 @@ class Slot : public ZoneAllocated {
 
   bool is_compressed() const { return IsCompressedBit::decode(flags_); }
 
+  // Returns true if load from this slot can return sentinel value.
+  bool is_sentinel_visible() const {
+    return IsSentinelVisibleBit::decode(flags_);
+  }
+
   // Static type of the slots if any.
   //
   // A value that is read from the slot is guaranteed to be assignable to its
@@ -316,6 +321,8 @@ class Slot : public ZoneAllocated {
   using IsNullableBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
   using IsGuardedBit = BitField<int8_t, bool, IsNullableBit::kNextBit, 1>;
   using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
+  using IsSentinelVisibleBit =
+      BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {

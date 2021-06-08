@@ -547,7 +547,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var length = _reader.readUInt30();
-    unitElement.types = List.generate(length, (index) {
+    unitElement.classes = List.generate(length, (index) {
       return _readClassElement(unitElement, unitReference);
     });
   }

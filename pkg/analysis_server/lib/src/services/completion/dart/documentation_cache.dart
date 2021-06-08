@@ -105,7 +105,10 @@ class DocumentationCache {
     for (var element in compilationUnit.functions) {
       elementMap.cacheTopLevelElement(dartdocDirectiveInfo, element);
     }
-    for (var element in [...compilationUnit.mixins, ...compilationUnit.types]) {
+    for (var element in [
+      ...compilationUnit.mixins,
+      ...compilationUnit.classes
+    ]) {
       var parentKey =
           elementMap.cacheTopLevelElement(dartdocDirectiveInfo, element);
       if (parentKey != null) {

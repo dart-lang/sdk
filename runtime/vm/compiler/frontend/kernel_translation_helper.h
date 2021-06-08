@@ -976,9 +976,10 @@ struct InferredTypeMetadata {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(
               zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
-          IsNullable());
+          IsNullable(), CompileType::kCannotBeSentinel);
     } else {
-      return CompileType::CreateNullable(IsNullable(), cid);
+      return CompileType(IsNullable(), CompileType::kCannotBeSentinel, cid,
+                         nullptr);
     }
   }
 };

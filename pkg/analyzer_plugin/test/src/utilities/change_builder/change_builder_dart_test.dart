@@ -2898,7 +2898,7 @@ class B extends A {
         targetElement = unitResult!.declaredElement!.mixins
             .firstWhere((e) => e.name == targetMixinName);
       } else {
-        targetElement = unitResult!.declaredElement!.types
+        targetElement = unitResult!.declaredElement!.classes
             .firstWhere((e) => e.name == targetClassName);
       }
     }

@@ -156,7 +156,7 @@ class LibraryScope extends EnclosedScope {
     compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);
-    compilationUnit.types.forEach(_addGetter);
+    compilationUnit.classes.forEach(_addGetter);
   }
 }
 

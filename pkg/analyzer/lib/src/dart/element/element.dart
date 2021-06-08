@@ -937,6 +937,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// contained in this compilation unit.
   List<PropertyAccessorElement> _accessors = const [];
 
+  /// A list containing all of the classes contained in this compilation unit.
+  List<ClassElement> _classes = const [];
+
   /// A list containing all of the enums contained in this compilation unit.
   List<ClassElement> _enums = const [];
 
@@ -961,9 +964,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// unit.
   List<TypeAliasElement> _typeAliases = const [];
 
-  /// A list containing all of the classes contained in this compilation unit.
-  List<ClassElement> _types = const [];
-
   /// A list containing all of the variables contained in this compilation unit.
   List<TopLevelVariableElement> _variables = const [];
 
@@ -985,6 +985,25 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
     _accessors = accessors;
+  }
+
+  @override
+  List<ClassElement> get classes {
+    return _classes;
+  }
+
+  /// Set the classes contained in this compilation unit to [classes].
+  set classes(List<ClassElement> classes) {
+    for (ClassElement class_ in classes) {
+      // Another implementation of ClassElement is _DeferredClassElement,
+      // which is used to resynthesize classes lazily. We cannot cast it
+      // to ClassElementImpl, and it already can provide correct values of the
+      // 'enclosingElement' property.
+      if (class_ is ClassElementImpl) {
+        class_.enclosingElement = this;
+      }
+    }
+    _classes = classes;
   }
 
   @override
@@ -1120,23 +1139,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   TypeParameterizedElementMixin? get typeParameterContext => null;
 
+  @Deprecated('Use classes instead')
   @override
   List<ClassElement> get types {
-    return _types;
-  }
-
-  /// Set the types contained in this compilation unit to the given [types].
-  set types(List<ClassElement> types) {
-    for (ClassElement type in types) {
-      // Another implementation of ClassElement is _DeferredClassElement,
-      // which is used to resynthesize classes lazily. We cannot cast it
-      // to ClassElementImpl, and it already can provide correct values of the
-      // 'enclosingElement' property.
-      if (type is ClassElementImpl) {
-        type.enclosingElement = this;
-      }
-    }
-    _types = types;
+    return _classes;
   }
 
   @override
@@ -1164,9 +1170,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ClassElement? getType(String className) {
-    for (ClassElement type in types) {
-      if (type.name == className) {
-        return type;
+    for (ClassElement class_ in classes) {
+      if (class_.name == className) {
+        return class_;
       }
     }
     return null;
@@ -1183,12 +1189,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
+    safelyVisitChildren(classes, visitor);
     safelyVisitChildren(enums, visitor);
     safelyVisitChildren(extensions, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(mixins, visitor);
     safelyVisitChildren(typeAliases, visitor);
-    safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
   }
 }
@@ -3869,13 +3875,13 @@ class LibraryElementImpl extends _ExistingElementImpl
   Iterable<Element> get topLevelElements sync* {
     for (var unit in units) {
       yield* unit.accessors;
+      yield* unit.classes;
       yield* unit.enums;
       yield* unit.extensions;
       yield* unit.functions;
       yield* unit.mixins;
       yield* unit.topLevelVariables;
       yield* unit.typeAliases;
-      yield* unit.types;
     }
   }
 

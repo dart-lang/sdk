@@ -33,6 +33,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -1991,6 +1992,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     } catch (_) {
       // We might get an exception while parsing to access parts.
       // Ignore, continue with the exception that we are reporting now.
+    }
+
+    if (exception is CaughtExceptionWithFiles) {
+      for (var nested in exception.fileContentMap.entries) {
+        fileContentMap['nested-${nested.key}'] = nested.value;
+      }
     }
 
     _exceptionController.add(

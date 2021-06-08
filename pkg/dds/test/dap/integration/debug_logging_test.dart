@@ -31,6 +31,7 @@ void main(List<String> args) async {
           'Exited.',
         ]);
       });
-    });
+      // These tests can be slow due to starting up the external server process.
+    }, timeout: Timeout.none);
   });
 }

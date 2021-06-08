@@ -9375,7 +9375,7 @@ class B extends A {
   dynamic m(Stream<dynamic> p) {}
 }
 ''');
-    ClassElement b = library.definingCompilationUnit.types[0];
+    ClassElement b = library.definingCompilationUnit.classes[0];
     ParameterElement p = b.methods[0].parameters[0];
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
@@ -12835,7 +12835,7 @@ class C {
   int m() => 0;
 }
 ''');
-    var c = library.definingCompilationUnit.types.single;
+    var c = library.definingCompilationUnit.classes.single;
     var m = c.methods.single;
     expect(m.hasImplicitReturnType, isFalse);
   }
@@ -12846,7 +12846,7 @@ class C {
   m() => 0;
 }
 ''');
-    var c = library.definingCompilationUnit.types.single;
+    var c = library.definingCompilationUnit.classes.single;
     var m = c.methods.single;
     expect(m.hasImplicitReturnType, isTrue);
   }

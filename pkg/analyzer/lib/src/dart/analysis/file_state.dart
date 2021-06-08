@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -399,7 +400,15 @@ class FileState {
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
-    return _parse(errorListener);
+    try {
+      return _parse(errorListener);
+    } catch (exception, stackTrace) {
+      throw CaughtExceptionWithFiles(
+        exception,
+        stackTrace,
+        {path: content},
+      );
+    }
   }
 
   /// Read the file content and ensure that all of the file properties are

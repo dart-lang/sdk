@@ -56,7 +56,7 @@ class Search {
       if (searchedFiles.add(file, this)) {
         var unitResult = await _driver.getUnitElement2(file);
         if (unitResult is UnitElementResult) {
-          unitResult.element.types.forEach(addElements);
+          unitResult.element.classes.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
         }
       }
@@ -178,13 +178,13 @@ class Search {
       if (unitResult is UnitElementResult) {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
+        unitElement.classes.forEach(addElement);
         unitElement.enums.forEach(addElement);
         unitElement.extensions.forEach(addElement);
         unitElement.functions.forEach(addElement);
         unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
         unitElement.typeAliases.forEach(addElement);
-        unitElement.types.forEach(addElement);
       }
     }
     return elements;

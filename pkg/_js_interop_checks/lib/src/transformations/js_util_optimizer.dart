@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/kernel.dart';
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
@@ -26,20 +28,41 @@ class JsUtilOptimizer extends Transformer {
   final Iterable<Procedure> _allowedInteropJsUtilTargets;
   final Procedure _allowInteropTarget;
 
-  JsUtilOptimizer(CoreTypes coreTypes)
+  final CoreTypes _coreTypes;
+  final StatefulStaticTypeContext _staticTypeContext;
+
+  JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _jsTarget =
-            coreTypes.index.getTopLevelMember('dart:_foreign_helper', 'JS'),
+            _coreTypes.index.getTopLevelMember('dart:_foreign_helper', 'JS'),
         _getPropertyTarget =
-            coreTypes.index.getTopLevelMember('dart:js_util', 'getProperty'),
+            _coreTypes.index.getTopLevelMember('dart:js_util', 'getProperty'),
         _setPropertyTarget =
-            coreTypes.index.getTopLevelMember('dart:js_util', 'setProperty'),
-        _setPropertyUncheckedTarget = coreTypes.index
+            _coreTypes.index.getTopLevelMember('dart:js_util', 'setProperty'),
+        _setPropertyUncheckedTarget = _coreTypes.index
             .getTopLevelMember('dart:js_util', '_setPropertyUnchecked'),
         _allowInteropTarget =
-            coreTypes.index.getTopLevelMember('dart:js', 'allowInterop'),
+            _coreTypes.index.getTopLevelMember('dart:js', 'allowInterop'),
         _allowedInteropJsUtilTargets = _allowedInteropJsUtilMembers.map(
             (member) =>
-                coreTypes.index.getTopLevelMember('dart:js_util', member)) {}
+                _coreTypes.index.getTopLevelMember('dart:js_util', member)),
+        _staticTypeContext = StatefulStaticTypeContext.stacked(
+            TypeEnvironment(_coreTypes, hierarchy)) {}
+
+  @override
+  visitLibrary(Library lib) {
+    _staticTypeContext.enterLibrary(lib);
+    lib.transformChildren(this);
+    _staticTypeContext.leaveLibrary(lib);
+    return lib;
+  }
+
+  @override
+  defaultMember(Member node) {
+    _staticTypeContext.enterMember(node);
+    node.transformChildren(this);
+    _staticTypeContext.leaveMember(node);
+    return node;
+  }
 
   /// Replaces js_util method calls with optimization when possible.
   ///
@@ -96,39 +119,32 @@ class JsUtilOptimizer extends Transformer {
       ..fileOffset = node.fileOffset;
   }
 
-  /// Returns whether the given TreeNode is guaranteed to be allowed to interop
-  /// with JS.
+  /// Returns whether the given Expression is guaranteed to be allowed to
+  /// interop with JS.
   ///
   /// Returns true when the node is guaranteed to be not a function:
-  ///    - has a DartType that is NullType or an InterfaceType that is not
-  ///      Function or Object
+  ///    - has a static DartType that is NullType or an InterfaceType that is
+  ///      not Function or Object
   /// Also returns true for allowed method calls within the JavaScript domain:
   ///        - dart:_foreign_helper JS
   ///        - dart:js `allowInterop`
   ///        - dart:js_util and any of the `_allowedInteropJsUtilMembers`
-  bool _allowedInterop(TreeNode node) {
+  bool _allowedInterop(Expression node) {
     // TODO(rileyporter): Detect functions that have been wrapped at some point
     // with `allowInterop`
-    // TODO(rileyporter): Use staticTypeContext to generalize type checking and
-    // allow more non-function types. Currently, we skip all literal types.
-    var checkType;
-    if (node is VariableGet) {
-      checkType = node.variable.type;
-    }
-
     if (node is StaticInvocation) {
       if (node.target == _allowInteropTarget) return true;
       if (node.target == _jsTarget) return true;
       if (_allowedInteropJsUtilTargets.contains(node.target)) return true;
-      checkType = node.target.function.returnType;
     }
 
-    if (checkType is InterfaceType) {
-      return checkType.classNode.name != 'Function' &&
-          checkType.classNode.name != 'Object';
+    var type = node.getStaticType(_staticTypeContext);
+    if (type is InterfaceType) {
+      return type.classNode != _coreTypes.functionClass &&
+          type.classNode != _coreTypes.objectClass;
     } else {
       // Only other DartType guaranteed to not be a function.
-      return checkType is NullType;
+      return type is NullType;
     }
   }
 }

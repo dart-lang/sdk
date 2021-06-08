@@ -386,6 +386,10 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// setters) contained in this compilation unit.
   List<PropertyAccessorElement> get accessors;
 
+  /// Return a list containing all of the classes contained in this compilation
+  /// unit.
+  List<ClassElement> get classes;
+
   @override
   LibraryElement get enclosingElement;
 
@@ -431,6 +435,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 
   /// Return a list containing all of the classes contained in this compilation
   /// unit.
+  @Deprecated('Use classes instead')
   List<ClassElement> get types;
 
   /// Return the enum defined in this compilation unit that has the given

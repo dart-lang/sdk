@@ -154,7 +154,7 @@ class Dart2jsTarget extends Target {
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.

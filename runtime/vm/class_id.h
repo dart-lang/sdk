@@ -217,6 +217,8 @@ enum ClassId : intptr_t {
   kNumPredefinedCids,
 };
 
+constexpr ClassId kSentinelCid = kNeverCid;
+
 // Keep these in sync with the cid numbering above.
 const int kTypedDataCidRemainderInternal = 0;
 const int kTypedDataCidRemainderView = 1;

@@ -81,4 +81,69 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxInt64Phi) {
 }
 #endif  // defined(TARGET_ARCH_IS_64_BIT)
 
+ISOLATE_UNIT_TEST_CASE(FlowGraph_LateVariablePhiUnboxing) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+  auto loop_header = H.JoinEntry();
+  auto loop_body = H.TargetEntry();
+  auto loop_exit = H.TargetEntry();
+
+  ConstantInstr* sentinel = H.flow_graph()->GetConstant(Object::sentinel());
+
+  PhiInstr* loop_var;
+  PhiInstr* late_var;
+  Definition* add1;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    builder.AddInstruction(new GotoInstr(loop_header, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), loop_header);
+    loop_var = H.Phi(loop_header,
+                     {{normal_entry, H.IntConstant(0)}, {loop_body, &add1}});
+    builder.AddPhi(loop_var);
+    loop_var->UpdateType(CompileType::Int());
+    loop_var->UpdateType(CompileType::FromAbstractType(
+        Type::ZoneHandle(Type::IntType()), CompileType::kCannotBeNull,
+        CompileType::kCanBeSentinel));
+    late_var =
+        H.Phi(loop_header, {{normal_entry, sentinel}, {loop_body, &add1}});
+    builder.AddPhi(late_var);
+    builder.AddBranch(new RelationalOpInstr(
+                          InstructionSource(), Token::kLT, new Value(loop_var),
+                          new Value(H.IntConstant(10)), kMintCid,
+                          S.GetNextDeoptId(), Instruction::kNotSpeculative),
+                      loop_body, loop_exit);
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), loop_body);
+    add1 = builder.AddDefinition(new BinaryInt64OpInstr(
+        Token::kADD, new Value(loop_var), new Value(H.IntConstant(1)),
+        S.GetNextDeoptId(), Instruction::kNotSpeculative));
+    builder.AddInstruction(new GotoInstr(loop_header, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), loop_exit);
+    builder.AddReturn(new Value(late_var));
+  }
+
+  H.FinishGraph();
+
+  FlowGraphTypePropagator::Propagate(H.flow_graph());
+  H.flow_graph()->SelectRepresentations();
+
+#if defined(TARGET_ARCH_IS_64_BIT)
+  EXPECT_PROPERTY(loop_var, it.representation() == kUnboxedInt64);
+#endif
+  EXPECT_PROPERTY(late_var, it.representation() == kTagged);
+}
+
 }  // namespace dart

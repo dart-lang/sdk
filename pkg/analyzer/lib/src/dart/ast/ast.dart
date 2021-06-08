@@ -2038,7 +2038,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   LanguageVersionToken? get languageVersionToken {
-    Token? comment = beginToken.precedingComments;
+    Token? targetToken = beginToken;
+    if (targetToken.type == TokenType.SCRIPT_TAG) {
+      targetToken = targetToken.next;
+    }
+
+    Token? comment = targetToken?.precedingComments;
     while (comment != null) {
       if (comment is LanguageVersionToken) {
         return comment;

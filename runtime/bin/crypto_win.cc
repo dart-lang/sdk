@@ -11,9 +11,18 @@
 namespace dart {
 namespace bin {
 
+// see https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+#endif
+
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
-  return SUCCEEDED(BCryptGenRandom(NULL, buffer, (ULONG)count,
-                                   BCRYPT_USE_SYSTEM_PREFERRED_RNG));
+  if (count <= 0) {
+    return true;
+  }
+  return NT_SUCCESS(BCryptGenRandom(/*hAlgorithm=*/nullptr, buffer,
+                                    (ULONG)count,
+                                    BCRYPT_USE_SYSTEM_PREFERRED_RNG));
 }
 
 }  // namespace bin

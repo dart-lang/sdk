@@ -106,7 +106,7 @@ vars = {
   "dart_style_rev": "f17c23e0eea9a870601c19d904e2a9c1a7c81470",
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "305713608c25106d95f9114418d895e08d1a9e9c",
+  "dartdoc_rev" : "b733d4952dbd25374d55e28476a5f44bd60ed63f",
   "devtools_rev" : "b3bf672474a2bff82f33e1176aa803539baa0d60+1",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
@@ -497,14 +497,25 @@ deps = {
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 
-  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/clang": {
+  Var("dart_root") + "/buildtools/" + Var("host_os") + "-x64/clang": {
       "packages": [
           {
-              "package": "fuchsia/third_party/clang/${{platform}}",
+              "package": "fuchsia/third_party/clang/" + Var("host_os") + "-amd64",
               "version": "git_revision:" + Var("clang_revision"),
           },
       ],
-      "condition": "(host_os == 'linux' or host_os == 'mac') and (host_cpu == 'x64' or host_cpu == 'arm64')",
+      # TODO(https://fxbug.dev/73385): Use arm64 toolchain on arm64 when it exists.
+      "condition": "host_cpu == x64 and (host_os == linux or host_os == mac) or host_cpu == arm64 and host_os == mac",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/buildtools/linux-arm64/clang": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/clang/linux-arm64",
+              "version": "git_revision:" + Var("clang_revision"),
+          },
+      ],
+      "condition": "host_os == 'linux' and host_cpu == 'arm64'",
       "dep_type": "cipd",
   },
 

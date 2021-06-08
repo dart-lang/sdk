@@ -229,6 +229,9 @@ class NamespaceBuilder {
     for (PropertyAccessorElement element in compilationUnit.accessors) {
       _addIfPublic(definedNames, element);
     }
+    for (ClassElement element in compilationUnit.classes) {
+      _addIfPublic(definedNames, element);
+    }
     for (ClassElement element in compilationUnit.enums) {
       _addIfPublic(definedNames, element);
     }
@@ -242,9 +245,6 @@ class NamespaceBuilder {
       _addIfPublic(definedNames, element);
     }
     for (TypeAliasElement element in compilationUnit.typeAliases) {
-      _addIfPublic(definedNames, element);
-    }
-    for (ClassElement element in compilationUnit.types) {
       _addIfPublic(definedNames, element);
     }
   }
