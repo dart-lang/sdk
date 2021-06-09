@@ -533,7 +533,7 @@
       "options": {
         "use-sdk": true,
         "dart2js-options": [
-          "--no-legacy-javascript"
+          "--canary"
         ]
       }
     },
@@ -687,7 +687,7 @@
         "builder-tag": "dart2js_modern",
         "use-sdk": true,
         "dart2js-options": [
-          "--no-legacy-javascript"
+          "--canary"
         ]
       }
     },
@@ -2612,7 +2612,7 @@
           ]
         },
         {
-          "name": "dart2js --no-legacy-javascript smoke tests",
+          "name": "dart2js --canary smoke tests",
           "arguments": [
             "-ndart2js-modern-linux-d8",
             "--dart2js-batch",

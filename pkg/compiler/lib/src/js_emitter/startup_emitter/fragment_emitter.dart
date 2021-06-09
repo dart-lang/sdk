@@ -1042,7 +1042,7 @@ class FragmentEmitter {
       // to `inherit(P.Object, null)` in the generated code. See if we can
       // remove that.
 
-      if (_options.legacyJavaScript) {
+      if (_options.features.legacyJavaScript.isEnabled) {
         // IE11 might require us to set 'constructor' but we aren't 100% sure.
         properties
             .add(js.Property(js.string("constructor"), classReference(cls)));
@@ -1870,7 +1870,7 @@ class FragmentEmitter {
 
     globals.add(js.Property(
         js.string(ARRAY_RTI_PROPERTY),
-        _options.legacyJavaScript
+        _options.features.legacyJavaScript.isEnabled
             ? js.js(
                 r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
                 r'    ? Symbol("$ti")'

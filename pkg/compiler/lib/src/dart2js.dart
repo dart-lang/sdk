@@ -13,7 +13,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
-import 'options.dart' show CompilerOptions;
+import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -135,6 +135,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   Map<String, String> environment = new Map<String, String>();
   ReadStrategy readStrategy = ReadStrategy.fromDart;
   WriteStrategy writeStrategy = WriteStrategy.toJs;
+  FeatureOptions features = FeatureOptions();
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -564,8 +565,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
     new OptionHandler(Flags.omitAsCasts, passThrough),
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
-    new OptionHandler(Flags.legacyJavaScript, passThrough),
-    new OptionHandler(Flags.noLegacyJavaScript, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
     new OptionHandler(Flags.soundNullSafety, setNullSafetyMode),
@@ -604,6 +603,18 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
     new OptionHandler(Flags.experimentLateInstanceVariables, passThrough),
     new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
+
+    // Wire up feature flags.
+    OptionHandler(Flags.canary, passThrough),
+    OptionHandler(Flags.noShipping, passThrough),
+    for (var feature in features.shipping)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.shipping)
+      OptionHandler('--no-${feature.flag}', passThrough),
+    for (var feature in features.canary)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.canary)
+      OptionHandler('--no-${feature.flag}', passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*|--define=.+=.*|--define', addInEnvironment,
@@ -974,6 +985,7 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      featureOptions: features,
       librariesSpecificationUri: librariesSpecificationUri,
       platformBinaries: platformBinaries,
       onError: (String message) => fail(message),
