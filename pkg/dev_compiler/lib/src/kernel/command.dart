@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
-import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
@@ -444,13 +443,11 @@ Future<CompilerResult> _compile(List<String> args,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         emitDebugMetadata: options.emitDebugMetadata,
-        emitDebugSymbols: options.emitDebugSymbols,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
         fullDillUri: fullDillUri,
         customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
-        compiler: compiler,
         component: compiledLibraries);
 
     outFiles.add(file.writeAsString(jsCode.code));
@@ -461,11 +458,6 @@ Future<CompilerResult> _compile(List<String> args,
     if (jsCode.metadata != null) {
       outFiles.add(
           File('$output.metadata').writeAsString(json.encode(jsCode.metadata)));
-    }
-
-    if (jsCode.symbols != null) {
-      outFiles.add(
-          File('$output.symbols').writeAsString(json.encode(jsCode.symbols)));
     }
   }
 
@@ -643,13 +635,7 @@ class JSCode {
   /// see: https://goto.google.com/dart-web-debugger-metadata
   final ModuleMetadata metadata;
 
-  /// Module debug symbols.
-  ///
-  /// The [symbols] is a contract between compiler and the debugger,
-  /// helping the debugger map between dart and JS objects.
-  final ModuleSymbols symbols;
-
-  JSCode(this.code, this.sourceMap, {this.symbols, this.metadata});
+  JSCode(this.code, this.sourceMap, {this.metadata});
 }
 
 /// Converts [moduleTree] to [JSCode], using [format].
@@ -660,14 +646,12 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
     bool emitDebugMetadata = false,
-    bool emitDebugSymbols = false,
     String jsUrl,
     String mapUrl,
     String fullDillUri,
     String sourceMapBase,
     String customScheme,
     String multiRootOutputPath,
-    ProgramCompiler compiler,
     Component component}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
@@ -682,8 +666,8 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   }
 
   var tree = transformModuleFormat(format, moduleTree);
-  var namer = js_ast.TemporaryNamer(tree);
-  tree.accept(js_ast.Printer(opts, printer, localNamer: namer));
+  tree.accept(
+      js_ast.Printer(opts, printer, localNamer: js_ast.TemporaryNamer(tree)));
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
@@ -726,15 +710,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
       ? _emitMetadata(moduleTree, component, mapUrl, jsUrl, fullDillUri)
       : null;
 
-  var debugSymbols =
-      emitDebugSymbols ? _emitSymbols(compiler, component) : null;
-
-  return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
-}
-
-ModuleSymbols _emitSymbols(ProgramCompiler compiler, Component component) {
-  // TODO(annagrin): collect module symbols.
-  return ModuleSymbols();
+  return JSCode(text, builtMap, metadata: debugMetadata);
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
