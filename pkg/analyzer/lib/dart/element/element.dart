@@ -686,9 +686,16 @@ abstract class Element implements AnalysisTarget {
   /// If [withNullability] is `false`, nullability suffixes will not be
   /// included into the presentation.
   ///
+  /// If [multiline] is `true`, the string may be wrapped over multiple lines
+  /// with newlines to improve formatting. For example function signatures may
+  /// be formatted as if they had trailing commas.
+  ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
-  String getDisplayString({required bool withNullability});
+  String getDisplayString({
+    required bool withNullability,
+    bool multiline = false,
+  });
 
   /// Return a display name for the given element that includes the path to the
   /// compilation unit in which the type is defined. If [shortName] is `null`

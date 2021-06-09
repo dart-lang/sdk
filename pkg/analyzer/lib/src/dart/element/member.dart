@@ -576,10 +576,14 @@ abstract class Member implements Element {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  String getDisplayString({required bool withNullability}) {
+  String getDisplayString({
+    required bool withNullability,
+    bool multiline = false,
+  }) {
     var builder = ElementDisplayStringBuilder(
       skipAllDynamicArguments: false,
       withNullability: withNullability,
+      multiline: multiline,
     );
     appendTo(builder);
     return builder.toString();
