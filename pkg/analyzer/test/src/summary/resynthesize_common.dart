@@ -108,8 +108,12 @@ mixin ResynthesizeTestCases on AbstractResynthesizeTest {
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
     checkElementText(library, r'''
-abstract class C {
-}
+library
+  definingUnit
+    classes
+      abstract class C @15
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -122,17 +126,35 @@ class F {}
 class G {}
 ''');
     checkElementText(library, r'''
-class alias C extends D with E, F, G {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
-class F {
-}
-class G {
-}
+library
+  definingUnit
+    classes
+      class alias C @6
+        supertype: D
+        mixins
+          E
+          F
+          G
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @32
+        constructors
+          synthetic @-1
+      class E @43
+        constructors
+          synthetic @-1
+      class F @54
+        constructors
+          synthetic @-1
+      class G @65
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -143,13 +165,27 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-abstract class alias C extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      abstract class alias C @15
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @35
+        constructors
+          synthetic @-1
+      class E @46
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -164,16 +200,28 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-class alias C extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      class alias C @22
+        documentationComment: /**\n * Docs\n */
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @43
+        constructors
+          synthetic @-1
+      class E @54
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -188,16 +236,28 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-/// aaa
-/// b
-/// cc
-class alias C extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      class alias C @27
+        documentationComment: /// aaa\n/// b\n/// cc
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @48
+        constructors
+          synthetic @-1
+      class E @59
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -212,16 +272,28 @@ class C = D with E;
 class D {}
 class E {}''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-class alias C extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      class alias C @66
+        documentationComment: /**\n * Docs\n */
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @87
+        constructors
+          synthetic @-1
+      class E @98
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -233,15 +305,37 @@ class B<B1> {}
 class C<C1> {}
 ''');
     checkElementText(library, r'''
-class alias Z extends A with B<int>, C<double> {
-  synthetic Z() : super();
-}
-class A {
-}
-class B<B1> {
-}
-class C<C1> {
-}
+library
+  definingUnit
+    classes
+      class alias Z @6
+        supertype: A
+        mixins
+          B<int>
+          C<double>
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+      class A @42
+        constructors
+          synthetic @-1
+      class B @53
+        typeParameters
+          covariant B1 @55
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class C @68
+        typeParameters
+          covariant C1 @70
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -252,13 +346,31 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class alias C<T extends C<dynamic>> extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class alias C @6
+        typeParameters
+          covariant T @8
+            bound: C<dynamic>
+            defaultType: dynamic
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @39
+        constructors
+          synthetic @-1
+      class E @50
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -271,13 +383,30 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-class alias C<T> extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      class alias C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @29
+        constructors
+          synthetic @-1
+      class E @40
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -290,13 +419,27 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-class alias C extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      class alias C @6
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @26
+        constructors
+          synthetic @-1
+      class E @37
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -314,34 +457,44 @@ import "a.dart";
 class M {}
 class MixinApp = Base with M;
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/a.dart';
-class M {
-}
-class alias MixinApp extends Base with M {
-  synthetic const MixinApp();
-    constantInitializers
-      SuperConstructorInvocation
-        argumentList: ArgumentList
-        staticElement: package:test/a.dart::@class::Base::@constructor::•
-  synthetic const MixinApp.named();
-    constantInitializers
-      SuperConstructorInvocation
-        argumentList: ArgumentList
-        constructorName: SimpleIdentifier
-          staticElement: package:test/a.dart::@class::Base::@constructor::named
-          staticType: null
-          token: named
-        staticElement: package:test/a.dart::@class::Base::@constructor::named
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class M @23
+        constructors
+          synthetic @-1
+      class alias MixinApp @34
+        supertype: Base
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: package:test/a.dart::@class::Base::@constructor::•
+          synthetic const named @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: package:test/a.dart::@class::Base::@constructor::named
+                  staticType: null
+                  token: named @-1
+                staticElement: package:test/a.dart::@class::Base::@constructor::named
+''');
   }
 
   test_class_alias_with_forwarding_constructors() async {
-    addLibrarySource('/a.dart', '''
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
 class Base {
   bool x = true;
   Base._priv();
@@ -362,29 +515,148 @@ class M {}
 class MixinApp = Base with M;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-class M {
-}
-class alias MixinApp extends Base with M {
-  synthetic MixinApp() : super();
-  synthetic MixinApp.noArgs() : super.
-        noArgs/*location: a.dart;Base;noArgs*/();
-  synthetic MixinApp.requiredArg(dynamic x) : super.
-        requiredArg/*location: a.dart;Base;requiredArg*/(
-        x/*location: test.dart;MixinApp;requiredArg;x*/);
-  synthetic MixinApp.positionalArg([bool x = true]) : super.
-        positionalArg/*location: a.dart;Base;positionalArg*/(
-        x/*location: test.dart;MixinApp;positionalArg;x*/);
-  synthetic MixinApp.positionalArg2([final bool x = true]) : super.
-        positionalArg2/*location: a.dart;Base;positionalArg2*/(
-        x/*location: test.dart;MixinApp;positionalArg2;x*/);
-  synthetic MixinApp.namedArg({int x: 42}) : super.
-        namedArg/*location: a.dart;Base;namedArg*/(
-        x/*location: test.dart;MixinApp;namedArg;x*/);
-  synthetic MixinApp.namedArg2({final bool x: true}) : super.
-        namedArg2/*location: a.dart;Base;namedArg2*/(
-        x/*location: test.dart;MixinApp;namedArg2;x*/);
-}
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class M @23
+        constructors
+          synthetic @-1
+      class alias MixinApp @34
+        supertype: Base
+        mixins
+          M
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: package:test/a.dart::@class::Base::@constructor::•
+          synthetic noArgs @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: package:test/a.dart::@class::Base::@constructor::noArgs
+                  staticType: null
+                  token: noArgs @-1
+                staticElement: package:test/a.dart::@class::Base::@constructor::noArgs
+          synthetic requiredArg @-1
+            parameters
+              requiredPositional x @-1
+                type: dynamic
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: x@-1
+                      staticType: dynamic
+                      token: x @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: package:test/a.dart::@class::Base::@constructor::requiredArg
+                  staticType: null
+                  token: requiredArg @-1
+                staticElement: package:test/a.dart::@class::Base::@constructor::requiredArg
+          synthetic positionalArg @-1
+            parameters
+              optionalPositional x @-1
+                type: bool
+                constantInitializer
+                  BooleanLiteral
+                    literal: true @0
+                    staticType: bool
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: x@-1
+                      staticType: bool
+                      token: x @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg
+                  staticType: null
+                  token: positionalArg @-1
+                staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg
+          synthetic positionalArg2 @-1
+            parameters
+              optionalPositional final x @-1
+                type: bool
+                constantInitializer
+                  BooleanLiteral
+                    literal: true @0
+                    staticType: bool
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: x@-1
+                      staticType: bool
+                      token: x @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg2
+                  staticType: null
+                  token: positionalArg2 @-1
+                staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg2
+          synthetic namedArg @-1
+            parameters
+              optionalNamed x @-1
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 42 @0
+                    staticType: int
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: x@-1
+                      staticType: int
+                      token: x @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: package:test/a.dart::@class::Base::@constructor::namedArg
+                  staticType: null
+                  token: namedArg @-1
+                staticElement: package:test/a.dart::@class::Base::@constructor::namedArg
+          synthetic namedArg2 @-1
+            parameters
+              optionalNamed final x @-1
+                type: bool
+                constantInitializer
+                  BooleanLiteral
+                    literal: true @0
+                    staticType: bool
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: x@-1
+                      staticType: bool
+                      token: x @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: package:test/a.dart::@class::Base::@constructor::namedArg2
+                  staticType: null
+                  token: namedArg2 @-1
+                staticElement: package:test/a.dart::@class::Base::@constructor::namedArg2
 ''');
   }
 
@@ -397,17 +669,55 @@ class M {}
 class MixinApp = Base with M;
 ''');
     checkElementText(library, r'''
-class Base<T> {
-  Base.ctor(T t, List<T> l);
-}
-class M {
-}
-class alias MixinApp extends Base<dynamic> with M {
-  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) : super.
-        ctor/*location: test.dart;Base;ctor*/(
-        t/*location: test.dart;MixinApp;ctor;t*/,
-        l/*location: test.dart;MixinApp;ctor;l*/);
-}
+library
+  definingUnit
+    classes
+      class Base @6
+        typeParameters
+          covariant T @11
+            defaultType: dynamic
+        constructors
+          ctor @23
+            periodOffset: 22
+            nameEnd: 27
+            parameters
+              requiredPositional t @30
+                type: T
+              requiredPositional l @41
+                type: List<T>
+      class M @53
+        constructors
+          synthetic @-1
+      class alias MixinApp @64
+        supertype: Base<dynamic>
+        mixins
+          M
+        constructors
+          synthetic ctor @-1
+            parameters
+              requiredPositional t @-1
+                type: dynamic
+              requiredPositional l @-1
+                type: List<dynamic>
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: t@-1
+                      staticType: dynamic
+                      token: t @-1
+                    SimpleIdentifier
+                      staticElement: l@-1
+                      staticType: List<dynamic>
+                      token: l @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::Base::@constructor::ctor
+                  staticType: null
+                  token: ctor @-1
+                staticElement: self::@class::Base::@constructor::ctor
 ''');
   }
 
@@ -420,17 +730,58 @@ class M {}
 class MixinApp<U> = Base<List<U>> with M;
 ''');
     checkElementText(library, r'''
-class Base<T> {
-  Base.ctor(T t, List<T> l);
-}
-class M {
-}
-class alias MixinApp<U> extends Base<List<U>> with M {
-  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) : super.
-        ctor/*location: test.dart;Base;ctor*/(
-        t/*location: test.dart;MixinApp;ctor;t*/,
-        l/*location: test.dart;MixinApp;ctor;l*/);
-}
+library
+  definingUnit
+    classes
+      class Base @6
+        typeParameters
+          covariant T @11
+            defaultType: dynamic
+        constructors
+          ctor @23
+            periodOffset: 22
+            nameEnd: 27
+            parameters
+              requiredPositional t @30
+                type: T
+              requiredPositional l @41
+                type: List<T>
+      class M @53
+        constructors
+          synthetic @-1
+      class alias MixinApp @64
+        typeParameters
+          covariant U @73
+            defaultType: dynamic
+        supertype: Base<List<U>>
+        mixins
+          M
+        constructors
+          synthetic ctor @-1
+            parameters
+              requiredPositional t @-1
+                type: List<U>
+              requiredPositional l @-1
+                type: List<List<U>>
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: t@-1
+                      staticType: List<U>
+                      token: t @-1
+                    SimpleIdentifier
+                      staticElement: l@-1
+                      staticType: List<List<U>>
+                      token: l @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::Base::@constructor::ctor
+                  staticType: null
+                  token: ctor @-1
+                staticElement: self::@class::Base::@constructor::ctor
 ''');
   }
 
@@ -445,80 +796,143 @@ class E {
   int x;
 }''');
     checkElementText(library, r'''
-class alias C extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-  int x;
-  int get a {}
-  void set b(int i) {}
-  void f() {}
-}
+library
+  definingUnit
+    classes
+      class alias C @6
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @26
+        constructors
+          synthetic @-1
+      class E @37
+        fields
+          x @105
+            type: int
+          synthetic a @-1
+            type: int
+          synthetic b @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @105
+            returnType: int
+          synthetic set x @105
+            parameters
+              requiredPositional _x @105
+                type: int
+            returnType: void
+          get a @51
+            returnType: int
+          set b @73
+            parameters
+              requiredPositional i @79
+                type: int
+            returnType: void
+        methods
+          f @92
+            returnType: void
 ''');
   }
 
   test_class_constructor_const() async {
     var library = await checkLibrary('class C { const C(); }');
     checkElementText(library, r'''
-class C {
-  const C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const @16
 ''');
   }
 
   test_class_constructor_const_external() async {
     var library = await checkLibrary('class C { external const C(); }');
     checkElementText(library, r'''
-class C {
-  external const C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          external const @25
 ''');
   }
 
   test_class_constructor_explicit_named() async {
     var library = await checkLibrary('class C { C.foo(); }');
     checkElementText(library, r'''
-class C {
-  C.foo();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          foo @12
+            periodOffset: 11
+            nameEnd: 15
 ''');
   }
 
   test_class_constructor_explicit_type_params() async {
     var library = await checkLibrary('class C<T, U> { C(); }');
     checkElementText(library, r'''
-class C<T, U> {
-  C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          @16
 ''');
   }
 
   test_class_constructor_explicit_unnamed() async {
     var library = await checkLibrary('class C { C(); }');
     checkElementText(library, r'''
-class C {
-  C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @10
 ''');
   }
 
   test_class_constructor_external() async {
     var library = await checkLibrary('class C { external C(); }');
     checkElementText(library, r'''
-class C {
-  external C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          external @19
 ''');
   }
 
   test_class_constructor_factory() async {
     var library = await checkLibrary('class C { factory C() => throw 0; }');
     checkElementText(library, r'''
-class C {
-  factory C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          factory @18
 ''');
   }
 
@@ -526,30 +940,78 @@ class C {
     var library =
         await checkLibrary('class C { dynamic x; C(dynamic this.x); }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final dynamic this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @18
+            type: dynamic
+        constructors
+          @21
+            parameters
+              requiredPositional final this.x @36
+                type: dynamic
+        accessors
+          synthetic get x @18
+            returnType: dynamic
+          synthetic set x @18
+            parameters
+              requiredPositional _x @18
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_constructor_field_formal_dynamic_typed() async {
     var library = await checkLibrary('class C { dynamic x; C(int this.x); }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final int this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @18
+            type: dynamic
+        constructors
+          @21
+            parameters
+              requiredPositional final this.x @32
+                type: int
+        accessors
+          synthetic get x @18
+            returnType: dynamic
+          synthetic set x @18
+            parameters
+              requiredPositional _x @18
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_constructor_field_formal_dynamic_untyped() async {
     var library = await checkLibrary('class C { dynamic x; C(this.x); }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final dynamic this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @18
+            type: dynamic
+        constructors
+          @21
+            parameters
+              requiredPositional final this.x @28
+                type: dynamic
+        accessors
+          synthetic get x @18
+            returnType: dynamic
+          synthetic set x @18
+            parameters
+              requiredPositional _x @18
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -561,10 +1023,29 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final dynamic Function(double) this.x/*(double b)*/);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @16
+            type: dynamic
+        constructors
+          @21
+            parameters
+              requiredPositional final this.x @28
+                type: dynamic Function(double)
+                parameters
+                  requiredPositional b @-1
+                    type: double
+        accessors
+          synthetic get x @16
+            returnType: dynamic
+          synthetic set x @16
+            parameters
+              requiredPositional _x @16
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -576,10 +1057,29 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final int Function(double) this.x/*(double b)*/);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @16
+            type: dynamic
+        constructors
+          @21
+            parameters
+              requiredPositional final this.x @32
+                type: int Function(double)
+                parameters
+                  requiredPositional b @-1
+                    type: double
+        accessors
+          synthetic get x @16
+            returnType: dynamic
+          synthetic set x @16
+            parameters
+              requiredPositional _x @16
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -591,10 +1091,32 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  dynamic Function() f;
-  C(final List<U> Function<T, U>(T) this.f/*<T, U>*//*(T t)*/);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          f @23
+            type: dynamic Function()
+        constructors
+          @28
+            parameters
+              requiredPositional final this.f @43
+                type: List<U> Function<T, U>(T)
+                typeParameters
+                  covariant T @-1
+                  covariant U @-1
+                parameters
+                  requiredPositional t @-1
+                    type: T
+        accessors
+          synthetic get f @23
+            returnType: dynamic Function()
+          synthetic set f @23
+            parameters
+              requiredPositional _f @23
+                type: dynamic Function()
+            returnType: void
 ''');
   }
 
@@ -603,11 +1125,35 @@ class C {
     var library = await checkLibrary('class C { C(this.x); int x; String x; }',
         allowErrors: true);
     checkElementText(library, r'''
-class C {
-  int x;
-  String x;
-  C(final int this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @25
+            type: int
+          x @35
+            type: String
+        constructors
+          @10
+            parameters
+              requiredPositional final this.x @17
+                type: int
+        accessors
+          synthetic get x @25
+            returnType: int
+          synthetic set x @25
+            parameters
+              requiredPositional _x @25
+                type: int
+            returnType: void
+          synthetic get x @35
+            returnType: String
+          synthetic set x @35
+            parameters
+              requiredPositional _x @35
+                type: String
+            returnType: void
 ''');
   }
 
@@ -616,9 +1162,15 @@ class C {
     var library =
         await checkLibrary('class C { C(this.x); }', allowErrors: true);
     checkElementText(library, r'''
-class C {
-  C(final dynamic this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @10
+            parameters
+              requiredPositional final this.x @17
+                type: dynamic
 ''');
   }
 
@@ -626,135 +1178,331 @@ class C {
     var library = await checkLibrary('class C { num x; C(dynamic this.x); }',
         allowErrors: true);
     checkElementText(library, r'''
-class C {
-  num x;
-  C(final dynamic this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: num
+        constructors
+          @17
+            parameters
+              requiredPositional final this.x @32
+                type: dynamic
+        accessors
+          synthetic get x @14
+            returnType: num
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: num
+            returnType: void
 ''');
   }
 
   test_class_constructor_field_formal_typed_typed() async {
     var library = await checkLibrary('class C { num x; C(int this.x); }');
     checkElementText(library, r'''
-class C {
-  num x;
-  C(final int this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: num
+        constructors
+          @17
+            parameters
+              requiredPositional final this.x @28
+                type: int
+        accessors
+          synthetic get x @14
+            returnType: num
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: num
+            returnType: void
 ''');
   }
 
   test_class_constructor_field_formal_typed_untyped() async {
     var library = await checkLibrary('class C { num x; C(this.x); }');
     checkElementText(library, r'''
-class C {
-  num x;
-  C(final num this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: num
+        constructors
+          @17
+            parameters
+              requiredPositional final this.x @24
+                type: num
+        accessors
+          synthetic get x @14
+            returnType: num
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: num
+            returnType: void
 ''');
   }
 
   test_class_constructor_field_formal_untyped_dynamic() async {
     var library = await checkLibrary('class C { var x; C(dynamic this.x); }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final dynamic this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: dynamic
+        constructors
+          @17
+            parameters
+              requiredPositional final this.x @32
+                type: dynamic
+        accessors
+          synthetic get x @14
+            returnType: dynamic
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_constructor_field_formal_untyped_typed() async {
     var library = await checkLibrary('class C { var x; C(int this.x); }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final int this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: dynamic
+        constructors
+          @17
+            parameters
+              requiredPositional final this.x @28
+                type: int
+        accessors
+          synthetic get x @14
+            returnType: dynamic
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_constructor_field_formal_untyped_untyped() async {
     var library = await checkLibrary('class C { var x; C(this.x); }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(final dynamic this.x);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: dynamic
+        constructors
+          @17
+            parameters
+              requiredPositional final this.x @24
+                type: dynamic
+        accessors
+          synthetic get x @14
+            returnType: dynamic
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_constructor_fieldFormal_named_noDefault() async {
     var library = await checkLibrary('class C { int x; C({this.x}); }');
     checkElementText(library, r'''
-class C {
-  int x;
-  C({final int this.x});
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: int
+        constructors
+          @17
+            parameters
+              optionalNamed final this.x @25
+                type: int
+        accessors
+          synthetic get x @14
+            returnType: int
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_constructor_fieldFormal_named_withDefault() async {
     var library = await checkLibrary('class C { int x; C({this.x: 42}); }');
     checkElementText(library, r'''
-class C {
-  int x;
-  C({final int this.x: 42});
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: int
+        constructors
+          @17
+            parameters
+              optionalNamed final this.x @25
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 42 @0
+                    staticType: int
+        accessors
+          synthetic get x @14
+            returnType: int
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_constructor_fieldFormal_optional_noDefault() async {
     var library = await checkLibrary('class C { int x; C([this.x]); }');
     checkElementText(library, r'''
-class C {
-  int x;
-  C([final int this.x]);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: int
+        constructors
+          @17
+            parameters
+              optionalPositional final this.x @25
+                type: int
+        accessors
+          synthetic get x @14
+            returnType: int
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_constructor_fieldFormal_optional_withDefault() async {
     var library = await checkLibrary('class C { int x; C([this.x = 42]); }');
     checkElementText(library, r'''
-class C {
-  int x;
-  C([final int this.x = 42]);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: int
+        constructors
+          @17
+            parameters
+              optionalPositional final this.x @25
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 42 @0
+                    staticType: int
+        accessors
+          synthetic get x @14
+            returnType: int
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_constructor_implicit() async {
     var library = await checkLibrary('class C {}');
     checkElementText(library, r'''
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_constructor_implicit_type_params() async {
     var library = await checkLibrary('class C<T, U> {}');
     checkElementText(library, r'''
-class C<T, U> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_constructor_params() async {
     var library = await checkLibrary('class C { C(x, int y); }');
     checkElementText(library, r'''
-class C {
-  C(dynamic x, int y);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @10
+            parameters
+              requiredPositional x @12
+                type: dynamic
+              requiredPositional y @19
+                type: int
 ''');
   }
 
   test_class_constructors() async {
     var library = await checkLibrary('class C { C.foo(); C.bar(); }');
     checkElementText(library, r'''
-class C {
-  C.foo();
-  C.bar();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          foo @12
+            periodOffset: 11
+            nameEnd: 15
+          bar @21
+            periodOffset: 20
+            nameEnd: 24
 ''');
   }
 
@@ -765,11 +1513,13 @@ class C {
  */
 class C {}''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @22
+        documentationComment: /**\n * Docs\n */
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -812,43 +1562,46 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-/**
- * bbb
- */
-class A {
-}
-/// bbb
-/// ccc
-class B {
-}
-/**
- * ccc
- */
-class C {
-}
-/// ddd
-class D {
-}
-/**
- * aaa
- */
-class E {
-}
+library
+  definingUnit
+    classes
+      class A @36
+        documentationComment: /**\n * bbb\n */
+        constructors
+          synthetic @-1
+      class B @79
+        documentationComment: /// bbb\n/// ccc
+        constructors
+          synthetic @-1
+      class C @122
+        documentationComment: /**\n * ccc\n */
+        constructors
+          synthetic @-1
+      class D @173
+        documentationComment: /// ddd
+        constructors
+          synthetic @-1
+      class E @207
+        documentationComment: /**\n * aaa\n */
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_documented_tripleSlash() async {
     var library = await checkLibrary('''
-/// aaa
-/// bbbb
-/// cc
+/// first
+/// second
+/// third
 class C {}''');
     checkElementText(library, r'''
-/// aaa
-/// bbbb
-/// cc
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @37
+        documentationComment: /// first\n/// second\n/// third
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -862,26 +1615,32 @@ class C {}
 class D {}
 class E {}''');
     checkElementText(library, r'''
-/**
- * Docs referring to [D] and [E]
- */
-class C {
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      class C @47
+        documentationComment: /**\n * Docs referring to [D] and [E]\n */
+        constructors
+          synthetic @-1
+      class D @59
+        constructors
+          synthetic @-1
+      class E @70
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_documented_with_windows_line_endings() async {
     var library = await checkLibrary('/**\r\n * Docs\r\n */\r\nclass C {}');
     checkElementText(library, r'''
-/**
- * Docs
- */
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @25
+        documentationComment: /**\n * Docs\n */
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -893,11 +1652,13 @@ class C {
  */
 class C {}''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @66
+        documentationComment: /**\n * Docs\n */
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -933,46 +1694,121 @@ class Annotation {
   const Annotation.named();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-/// Comment 1
-/// Comment 2
-@Annotation()
-class BeforeMeta {
-}
-/// Comment 1
-/// Comment 2
-@Annotation.named()
-class BeforeMetaNamed {
-}
-/// Comment 1
-/// Comment 2
-@Annotation()
-class AfterMeta {
-}
-/// Comment 2
-@Annotation()
-class AroundMeta {
-}
-/// Doc comment.
-@Annotation()
-class DocBeforeMetaNotDocAfter {
-}
-class Annotation {
-  const Annotation();
-  const Annotation.named();
-}
-''',
-        withConstElements: false);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class BeforeMeta @48
+        documentationComment: /// Comment 1\n/// Comment 2
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @39
+              rightParenthesis: ) @40
+            atSign.offset: 28
+            element: self::@class::Annotation::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::Annotation
+              staticType: null
+              token: Annotation @29
+        constructors
+          synthetic @-1
+      class BeforeMetaNamed @117
+        documentationComment: /// Comment 1\n/// Comment 2
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @108
+              rightParenthesis: ) @109
+            atSign.offset: 91
+            element: self::@class::Annotation::@constructor::named
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: self::@class::Annotation::@constructor::named
+                staticType: null
+                token: named @103
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@class::Annotation
+                staticType: null
+                token: Annotation @92
+              staticElement: self::@class::Annotation::@constructor::named
+              staticType: null
+        constructors
+          synthetic @-1
+      class AfterMeta @185
+        documentationComment: /// Comment 1\n/// Comment 2
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @148
+              rightParenthesis: ) @149
+            atSign.offset: 137
+            element: self::@class::Annotation::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::Annotation
+              staticType: null
+              token: Annotation @138
+        constructors
+          synthetic @-1
+      class AroundMeta @247
+        documentationComment: /// Comment 2
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @224
+              rightParenthesis: ) @225
+            atSign.offset: 213
+            element: self::@class::Annotation::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::Annotation
+              staticType: null
+              token: Annotation @214
+        constructors
+          synthetic @-1
+      class DocBeforeMetaNotDocAfter @319
+        documentationComment: /// Doc comment.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @290
+              rightParenthesis: ) @291
+            atSign.offset: 279
+            element: self::@class::Annotation::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::Annotation
+              staticType: null
+              token: Annotation @280
+        constructors
+          synthetic @-1
+      class Annotation @354
+        constructors
+          const @375
+          const named @408
+            periodOffset: 407
+            nameEnd: 413
+''');
   }
 
   test_class_field_const() async {
     var library = await checkLibrary('class C { static const int i = 0; }');
     checkElementText(library, r'''
-class C {
-  static const int i = 0;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const i @27
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @31
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get i @27
+            returnType: int
 ''');
   }
 
@@ -980,9 +1816,22 @@ class C {
     var library =
         await checkLibrary('class C { static late const int i = 0; }');
     checkElementText(library, r'''
-class C {
-  static late const int i = 0;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static late const i @32
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @36
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get i @32
+            returnType: int
 ''');
   }
 
@@ -994,35 +1843,73 @@ class A {
   set foo(int newValue) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  final int foo;
-  synthetic int get foo {}
-  void set foo(int newValue) {}
-  A(final int this.foo);
-}
-''',
-        withSyntheticFields: true,
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final foo @22
+            type: int
+        constructors
+          @29
+            parameters
+              requiredPositional final this.foo @36
+                type: int
+        accessors
+          synthetic get foo @22
+            returnType: int
+          set foo @48
+            parameters
+              requiredPositional newValue @56
+                type: int
+            returnType: void
+''');
   }
 
   test_class_field_implicit_type() async {
     var library = await checkLibrary('class C { var x; }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @14
+            returnType: dynamic
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_field_implicit_type_late() async {
     var library = await checkLibrary('class C { late var x; }');
     checkElementText(library, r'''
-class C {
-  late dynamic x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          late x @19
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @19
+            returnType: dynamic
+          synthetic set x @19
+            parameters
+              requiredPositional _x @19
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -1037,50 +1924,111 @@ class B extends A {
   final foo = 2;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-abstract class A {
-  double get foo;
-  const A();
-}
-class B extends A {
-  final double foo;
-    constantInitializer
-      IntegerLiteral
-        literal: 2
-        staticType: double
-  const B();
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @15
+        fields
+          synthetic foo @-1
+            type: double
+        constructors
+          const @27
+        accessors
+          abstract get foo @45
+            returnType: double
+      class B @58
+        supertype: A
+        fields
+          final foo @93
+            type: double
+            constantInitializer
+              IntegerLiteral
+                literal: 2 @99
+                staticType: double
+        constructors
+          const @80
+        accessors
+          synthetic get foo @93
+            returnType: double
+''');
   }
 
   test_class_field_static() async {
     var library = await checkLibrary('class C { static int i; }');
     checkElementText(library, r'''
-class C {
-  static int i;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static i @21
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get i @21
+            returnType: int
+          synthetic static set i @21
+            parameters
+              requiredPositional _i @21
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_field_static_late() async {
     var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''
-class C {
-  static late int i;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static late i @26
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get i @26
+            returnType: int
+          synthetic static set i @26
+            parameters
+              requiredPositional _i @26
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_fields() async {
     var library = await checkLibrary('class C { int i; int j; }');
     checkElementText(library, r'''
-class C {
-  int i;
-  int j;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          i @14
+            type: int
+          j @21
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get i @14
+            returnType: int
+          synthetic set i @14
+            parameters
+              requiredPositional _i @14
+                type: int
+            returnType: void
+          synthetic get j @21
+            returnType: int
+          synthetic set j @21
+            parameters
+              requiredPositional _j @21
+                type: int
+            returnType: void
 ''');
   }
 
@@ -1090,16 +2038,25 @@ class C {
   late int foo;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class C {
-  late int foo;
-  synthetic int get foo {}
-  synthetic void set foo(int _foo) {}
-}
-''',
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          late foo @21
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @21
+            returnType: int
+          synthetic set foo @21
+            parameters
+              requiredPositional _foo @21
+                type: int
+            returnType: void
+''');
   }
 
   test_class_fields_late_final() async {
@@ -1108,16 +2065,25 @@ class C {
   late final int foo;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class C {
-  late final int foo;
-  synthetic int get foo {}
-  synthetic void set foo(int _foo) {}
-}
-''',
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          late final foo @27
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @27
+            returnType: int
+          synthetic set foo @27
+            parameters
+              requiredPositional _foo @27
+                type: int
+            returnType: void
+''');
   }
 
   test_class_fields_late_final_initialized() async {
@@ -1126,41 +2092,73 @@ class C {
   late final int foo = 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class C {
-  late final int foo;
-  synthetic int get foo {}
-}
-''',
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          late final foo @27
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @27
+            returnType: int
+''');
   }
 
   test_class_getter_abstract() async {
     var library = await checkLibrary('abstract class C { int get x; }');
     checkElementText(library, r'''
-abstract class C {
-  int get x;
-}
+library
+  definingUnit
+    classes
+      abstract class C @15
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          abstract get x @27
+            returnType: int
 ''');
   }
 
   test_class_getter_external() async {
     var library = await checkLibrary('class C { external int get x; }');
     checkElementText(library, r'''
-class C {
-  external int get x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          external get x @27
+            returnType: int
 ''');
   }
 
   test_class_getter_implicit_return_type() async {
     var library = await checkLibrary('class C { get x => null; }');
     checkElementText(library, r'''
-class C {
-  dynamic get x {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          get x @14
+            returnType: dynamic
 ''');
   }
 
@@ -1171,33 +2169,59 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  external int get x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          external get x @20
+            returnType: int
 ''');
   }
 
   test_class_getter_static() async {
     var library = await checkLibrary('class C { static int get x => null; }');
-    checkElementText(
-        library,
-        r'''
-class C {
-  synthetic static int x;
-  static int get x {}
-}
-''',
-        withSyntheticFields: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic static x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          static get x @25
+            returnType: int
+''');
   }
 
   test_class_getters() async {
     var library =
         await checkLibrary('class C { int get x => null; get y => null; }');
     checkElementText(library, r'''
-class C {
-  int get x {}
-  dynamic get y {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+          synthetic y @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          get x @18
+            returnType: int
+          get y @33
+            returnType: dynamic
 ''');
   }
 
@@ -1208,16 +2232,25 @@ class C {
   void set x(int value) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class C {
-  synthetic int x;
-  int get x {}
-  void set x(int value) {}
-}
-''',
-        withSyntheticFields: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get x @20
+            returnType: int
+          set x @39
+            parameters
+              requiredPositional value @45
+                type: int
+            returnType: void
+''');
   }
 
   test_class_implicitField_setterFirst() async {
@@ -1227,16 +2260,25 @@ class C {
   int get x => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class C {
-  synthetic int x;
-  void set x(int value) {}
-  int get x {}
-}
-''',
-        withSyntheticFields: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set x @21
+            parameters
+              requiredPositional value @27
+                type: int
+            returnType: void
+          get x @47
+            returnType: int
+''');
   }
 
   test_class_interfaces() async {
@@ -1246,12 +2288,21 @@ class D {}
 class E {}
 ''');
     checkElementText(library, r'''
-class C implements D, E {
-}
-class D {
-}
-class E {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        interfaces
+          D
+          E
+        constructors
+          synthetic @-1
+      class D @33
+        constructors
+          synthetic @-1
+      class E @44
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1262,12 +2313,21 @@ class B {}
 class C implements A, Function, B {}
 ''');
     checkElementText(library, r'''
-class A {
-}
-class B {
-}
-class C implements A, B {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @17
+        constructors
+          synthetic @-1
+      class C @28
+        interfaces
+          A
+          B
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1276,30 +2336,51 @@ class C implements A, B {
         'class C implements X, Y, Z {} class X {} class Z {}',
         allowErrors: true);
     checkElementText(library, r'''
-class C implements X, Z {
-}
-class X {
-}
-class Z {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        interfaces
+          X
+          Z
+        constructors
+          synthetic @-1
+      class X @36
+        constructors
+          synthetic @-1
+      class Z @47
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_method_abstract() async {
     var library = await checkLibrary('abstract class C { f(); }');
     checkElementText(library, r'''
-abstract class C {
-  dynamic f();
-}
+library
+  definingUnit
+    classes
+      abstract class C @15
+        constructors
+          synthetic @-1
+        methods
+          abstract f @19
+            returnType: dynamic
 ''');
   }
 
   test_class_method_external() async {
     var library = await checkLibrary('class C { external f(); }');
     checkElementText(library, r'''
-class C {
-  external dynamic f() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          external f @19
+            returnType: dynamic
 ''');
   }
 
@@ -1311,11 +2392,19 @@ class B extends A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-}
-class B extends A {
-  void A() {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @17
+        supertype: A
+        constructors
+          synthetic @-1
+        methods
+          A @38
+            returnType: void
 ''');
   }
 
@@ -1326,37 +2415,67 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  external int m() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          external m @16
+            returnType: int
 ''');
   }
 
   test_class_method_params() async {
     var library = await checkLibrary('class C { f(x, y) {} }');
     checkElementText(library, r'''
-class C {
-  dynamic f(dynamic x, dynamic y) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @10
+            parameters
+              requiredPositional x @12
+                type: dynamic
+              requiredPositional y @15
+                type: dynamic
+            returnType: dynamic
 ''');
   }
 
   test_class_method_static() async {
     var library = await checkLibrary('class C { static f() {} }');
     checkElementText(library, r'''
-class C {
-  static dynamic f() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          static f @17
+            returnType: dynamic
 ''');
   }
 
   test_class_methods() async {
     var library = await checkLibrary('class C { f() {} g() {} }');
     checkElementText(library, r'''
-class C {
-  dynamic f() {}
-  dynamic g() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @10
+            returnType: dynamic
+          g @17
+            returnType: dynamic
 ''');
   }
 
@@ -1369,17 +2488,29 @@ class F {}
 class G {}
 ''');
     checkElementText(library, r'''
-class C extends D with E, F, G {
-  synthetic C();
-}
-class D {
-}
-class E {
-}
-class F {
-}
-class G {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        mixins
+          E
+          F
+          G
+        constructors
+          synthetic @-1
+      class D @40
+        constructors
+          synthetic @-1
+      class E @51
+        constructors
+          synthetic @-1
+      class F @62
+        constructors
+          synthetic @-1
+      class G @73
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1391,15 +2522,31 @@ class B<B1> {}
 class C<C1> {}
 ''');
     checkElementText(library, r'''
-class Z extends A with B<int>, C<double> {
-  synthetic Z();
-}
-class A {
-}
-class B<B1> {
-}
-class C<C1> {
-}
+library
+  definingUnit
+    classes
+      class Z @6
+        supertype: A
+        mixins
+          B<int>
+          C<double>
+        constructors
+          synthetic @-1
+      class A @50
+        constructors
+          synthetic @-1
+      class B @61
+        typeParameters
+          covariant B1 @63
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class C @76
+        typeParameters
+          covariant C1 @78
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1408,13 +2555,22 @@ class C<C1> {
         'class C extends Object with X, Y, Z {} class X {} class Z {}',
         allowErrors: true);
     checkElementText(library, r'''
-class C extends Object with X, Z {
-  synthetic C();
-}
-class X {
-}
-class Z {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: Object
+        mixins
+          X
+          Z
+        constructors
+          synthetic @-1
+      class X @45
+        constructors
+          synthetic @-1
+      class Z @56
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1426,9 +2582,24 @@ class C<T extends F> {}
 typedef F(C value);
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(C<dynamic Function()> value);
-notSimplyBounded class C<T extends dynamic Function() = dynamic Function()> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic Function()
+            defaultType: dynamic Function()
+        constructors
+          synthetic @-1
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @32
+        aliasedType: dynamic Function(C<dynamic Function()>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional value @-1
+              type: C<dynamic Function()>
+          returnType: dynamic
 ''');
   }
 
@@ -1439,8 +2610,16 @@ notSimplyBounded class C<T extends dynamic Function() = dynamic Function()> {
 class C<T extends C<dynamic>> {}
 ''');
     checkElementText(library, r'''
-class C<T extends C<dynamic> = C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            bound: C<dynamic>
+            defaultType: C<dynamic>
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1450,10 +2629,23 @@ class C<T extends D> {}
 class D<T extends C> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends D<dynamic>> {
-}
-notSimplyBounded class D<T extends C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: D<dynamic>
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      notSimplyBounded class D @30
+        typeParameters
+          covariant T @32
+            bound: C<dynamic>
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1463,8 +2655,25 @@ typedef C<T extends D> = void Function();
 typedef D<T extends C> = void Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef C<T extends dynamic Function()> = void Function();
-notSimplyBounded typedef D<T extends dynamic Function()> = void Function();
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded C @8
+        typeParameters
+          unrelated T @10
+            bound: dynamic Function()
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
+      notSimplyBounded D @50
+        typeParameters
+          unrelated T @52
+            bound: dynamic Function()
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
@@ -1475,8 +2684,21 @@ typedef C<T extends D> = List<T>;
 typedef D<T extends C> = List<T>;
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef C<T extends dynamic> = List<T>;
-notSimplyBounded typedef D<T extends dynamic> = List<T>;
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded C @8
+        typeParameters
+          covariant T @10
+            bound: dynamic
+            defaultType: dynamic
+        aliasedType: List<T>
+      notSimplyBounded D @42
+        typeParameters
+          covariant T @44
+            bound: dynamic
+            defaultType: dynamic
+        aliasedType: List<T>
 ''');
   }
 
@@ -1486,10 +2708,23 @@ class C<T extends D> {}
 class D<T extends D> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends D<dynamic> = D<dynamic>> {
-}
-notSimplyBounded class D<T extends D<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: D<dynamic>
+            defaultType: D<dynamic>
+        constructors
+          synthetic @-1
+      notSimplyBounded class D @30
+        typeParameters
+          covariant T @32
+            bound: D<dynamic>
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1499,10 +2734,22 @@ class C<T extends D<T>> {}
 class D<T> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends D<T> = D<dynamic>> {
-}
-class D<T> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: D<T>
+            defaultType: D<dynamic>
+        constructors
+          synthetic @-1
+      class D @33
+        typeParameters
+          covariant T @35
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1514,10 +2761,23 @@ class C<T extends D<dynamic>> {}
 class D<T extends D<T>> {}
 ''');
     checkElementText(library, r'''
-class C<T extends D<dynamic> = D<dynamic>> {
-}
-notSimplyBounded class D<T extends D<T> = D<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            bound: D<dynamic>
+            defaultType: D<dynamic>
+        constructors
+          synthetic @-1
+      notSimplyBounded class D @39
+        typeParameters
+          covariant T @41
+            bound: D<T>
+            defaultType: D<dynamic>
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1526,8 +2786,16 @@ notSimplyBounded class D<T extends D<T> = D<dynamic>> {
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends void Function(T) = void Function(Never)> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: void Function(T)
+            defaultType: void Function(Never)
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1537,8 +2805,16 @@ notSimplyBounded class C<T extends void Function(T) = void Function(Never)> {
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends void Function(T*)* = void Function(Null*)*> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: void Function(T*)*
+            defaultType: void Function(Null*)*
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1547,8 +2823,16 @@ notSimplyBounded class C<T extends void Function(T*)* = void Function(Null*)*> {
 class C<T extends T Function()> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends T Function() = dynamic Function()> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: T Function()
+            defaultType: dynamic Function()
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1557,8 +2841,16 @@ notSimplyBounded class C<T extends T Function() = dynamic Function()> {
 class C<T extends void Function()> {}
 ''');
     checkElementText(library, r'''
-class C<T extends void Function() = void Function()> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            bound: void Function()
+            defaultType: void Function()
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1572,10 +2864,31 @@ typedef F(G value);
 typedef G(F value);
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(dynamic Function() value);
-notSimplyBounded typedef G = dynamic Function(dynamic Function() value);
-notSimplyBounded class C<T extends dynamic Function() = dynamic Function()> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic Function()
+            defaultType: dynamic Function()
+        constructors
+          synthetic @-1
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @32
+        aliasedType: dynamic Function(dynamic Function())
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional value @-1
+              type: dynamic Function()
+          returnType: dynamic
+      functionTypeAliasBased notSimplyBounded G @52
+        aliasedType: dynamic Function(dynamic Function())
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional value @-1
+              type: dynamic Function()
+          returnType: dynamic
 ''');
   }
 
@@ -1584,8 +2897,16 @@ notSimplyBounded class C<T extends dynamic Function() = dynamic Function()> {
 class C<T extends C> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: C<dynamic>
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1596,8 +2917,12 @@ notSimplyBounded class C<T extends C<dynamic>> {
 class C {}
 ''');
     checkElementText(library, r'''
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1607,10 +2932,22 @@ class C<T extends D> {}
 class D<T> {}
 ''');
     checkElementText(library, r'''
-class C<T extends D<dynamic> = D<dynamic>> {
-}
-class D<T> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            bound: D<dynamic>
+            defaultType: D<dynamic>
+        constructors
+          synthetic @-1
+      class D @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1621,8 +2958,15 @@ class D<T> {
 class C<T> {}
 ''');
     checkElementText(library, r'''
-class C<T> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1631,10 +2975,24 @@ class C<T> {
 class C {}
 C c;
 ''');
-    checkElementText(library, '''
-class C {
-}
-C c;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @13
+        type: C
+    accessors
+      synthetic static get c @13
+        returnType: C
+      synthetic static set c @13
+        parameters
+          requiredPositional _c @13
+            type: C
+        returnType: void
 ''');
   }
 
@@ -1643,10 +3001,24 @@ C c;
 class C {}
 C? c;
 ''');
-    checkElementText(library, '''
-class C {
-}
-C? c;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @14
+        type: C?
+    accessors
+      synthetic static get c @14
+        returnType: C?
+      synthetic static set c @14
+        parameters
+          requiredPositional _c @14
+            type: C?
+        returnType: void
 ''');
   }
 
@@ -1656,10 +3028,24 @@ C? c;
 class C {}
 C c;
 ''');
-    checkElementText(library, '''
-class C {
-}
-C* c;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @13
+        type: C*
+    accessors
+      synthetic static get c @13
+        returnType: C*
+      synthetic static set c @13
+        parameters
+          requiredPositional _c @13
+            type: C*
+        returnType: void
 ''');
   }
 
@@ -1667,9 +3053,21 @@ C* c;
     var library =
         await checkLibrary('abstract class C { void set x(int value); }');
     checkElementText(library, r'''
-abstract class C {
-  void set x(int value);
-}
+library
+  definingUnit
+    classes
+      abstract class C @15
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          abstract set x @28
+            parameters
+              requiredPositional value @34
+                type: int
+            returnType: void
 ''');
   }
 
@@ -1677,63 +3075,146 @@ abstract class C {
     var library =
         await checkLibrary('class C { external void set x(int value); }');
     checkElementText(library, r'''
-class C {
-  external void set x(int value);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          external set x @28
+            parameters
+              requiredPositional value @34
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_setter_implicit_param_type() async {
     var library = await checkLibrary('class C { void set x(value) {} }');
     checkElementText(library, r'''
-class C {
-  void set x(dynamic value) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @19
+            parameters
+              requiredPositional value @21
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_setter_implicit_return_type() async {
     var library = await checkLibrary('class C { set x(int value) {} }');
     checkElementText(library, r'''
-class C {
-  void set x(int value) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set x @14
+            parameters
+              requiredPositional value @20
+                type: int
+            returnType: void
 ''');
   }
 
   test_class_setter_invalid_named_parameter() async {
     var library = await checkLibrary('class C { void set x({a}) {} }');
     checkElementText(library, r'''
-class C {
-  void set x({dynamic a}) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @19
+            parameters
+              optionalNamed a @22
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_setter_invalid_no_parameter() async {
     var library = await checkLibrary('class C { void set x() {} }');
     checkElementText(library, r'''
-class C {
-  void set x() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @19
+            returnType: void
 ''');
   }
 
   test_class_setter_invalid_optional_parameter() async {
     var library = await checkLibrary('class C { void set x([a]) {} }');
     checkElementText(library, r'''
-class C {
-  void set x([dynamic a]) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @19
+            parameters
+              optionalPositional a @22
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_class_setter_invalid_too_many_parameters() async {
     var library = await checkLibrary('class C { void set x(a, b) {} }');
     checkElementText(library, r'''
-class C {
-  void set x(dynamic a, dynamic b) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @19
+            parameters
+              requiredPositional a @21
+                type: dynamic
+              requiredPositional b @24
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -1744,9 +3225,21 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  external void set x(int value);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          external set x @21
+            parameters
+              requiredPositional value @27
+                type: int
+            returnType: void
 ''');
   }
 
@@ -1754,9 +3247,21 @@ class C {
     var library =
         await checkLibrary('class C { static void set x(int value) {} }');
     checkElementText(library, r'''
-class C {
-  static void set x(int value) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic static x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          static set x @26
+            parameters
+              requiredPositional value @32
+                type: int
+            returnType: void
 ''');
   }
 
@@ -1768,10 +3273,28 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  void set x(int value) {}
-  void set y(dynamic value) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+          synthetic y @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @21
+            parameters
+              requiredPositional value @27
+                type: int
+            returnType: void
+          set y @43
+            parameters
+              requiredPositional value @45
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -1781,10 +3304,16 @@ class C extends D {}
 class D {}
 ''');
     checkElementText(library, r'''
-class C extends D {
-}
-class D {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        constructors
+          synthetic @-1
+      class D @27
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1794,10 +3323,21 @@ class C extends D<int, double> {}
 class D<T1, T2> {}
 ''');
     checkElementText(library, r'''
-class C extends D<int, double> {
-}
-class D<T1, T2> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D<int, double>
+        constructors
+          synthetic @-1
+      class D @40
+        typeParameters
+          covariant T1 @42
+            defaultType: dynamic
+          covariant T2 @46
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1807,26 +3347,48 @@ class A<T> {}
 class B extends A<B> {}
 ''');
     checkElementText(library, r'''
-class A<T> {
-}
-class B extends A<B> {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @20
+        supertype: A<B>
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_supertype_unresolved() async {
     var library = await checkLibrary('class C extends D {}', allowErrors: true);
     checkElementText(library, r'''
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_type_parameters() async {
     var library = await checkLibrary('class C<T, U> {}');
     checkElementText(library, r'''
-class C<T, U> {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1836,50 +3398,97 @@ class C<T extends Object, U extends D> {}
 class D {}
 ''');
     checkElementText(library, r'''
-class C<T = Object, U extends D = D> {
-}
-class D {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            bound: Object
+            defaultType: Object
+          covariant U @26
+            bound: D
+            defaultType: D
+        constructors
+          synthetic @-1
+      class D @48
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_type_parameters_cycle_1of1() async {
     var library = await checkLibrary('class C<T extends T> {}');
-    checkElementText(
-        library,
-        r'''
-notSimplyBounded class C<T extends dynamic> {
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_class_type_parameters_cycle_2of3() async {
     var library = await checkLibrary(r'''
 class C<T extends V, U, V extends T> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-notSimplyBounded class C<T extends dynamic, U, V extends dynamic> {
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic
+            defaultType: dynamic
+          covariant U @21
+            defaultType: dynamic
+          covariant V @24
+            bound: dynamic
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_class_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('class C<T extends List<U>, U> {}');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends List<U> = List<dynamic>, U> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: List<U>
+            defaultType: List<dynamic>
+          covariant U @27
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_class_type_parameters_f_bound_simple() async {
     var library = await checkLibrary('class C<T extends U, U> {}');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends U, U> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: U
+            defaultType: dynamic
+          covariant U @21
+            defaultType: dynamic
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -1887,13 +3496,18 @@ notSimplyBounded class C<T extends U, U> {
     var library = await checkLibrary(r'''
 class A<T extends void Function(A)> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-notSimplyBounded class A<covariant T extends void Function(A<dynamic>)> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @6
+        typeParameters
+          covariant T @8
+            bound: void Function(A<dynamic>)
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_class_typeParameters_defaultType_cycle_genericFunctionType2() async {
@@ -1901,13 +3515,18 @@ notSimplyBounded class A<covariant T extends void Function(A<dynamic>)> {
     var library = await checkLibrary(r'''
 class C<T extends void Function<U extends C>()> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-notSimplyBounded class C<covariant T extends void Function<U extends C<dynamic>>()> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: void Function<U extends C<dynamic>>()
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
@@ -1917,14 +3536,35 @@ typedef F<X> = void Function(X);
 
 class A<X extends F<X>> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<contravariant X> = void Function(X* );
-notSimplyBounded class A<covariant X extends void Function(X*)* = void Function(Null*)*> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @40
+        typeParameters
+          covariant X @42
+            bound: void Function(X*)*
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                X*
+            defaultType: void Function(Null*)*
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                Null*
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          contravariant X @10
+            defaultType: dynamic
+        aliasedType: void Function(X*)*
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: X*
+          returnType: void
+''');
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_nullSafe() async {
@@ -1933,14 +3573,35 @@ typedef F<X> = void Function(X);
 
 class A<X extends F<X>> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<contravariant X> = void Function(X );
-notSimplyBounded class A<covariant X extends void Function(X) = void Function(Never)> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @40
+        typeParameters
+          covariant X @42
+            bound: void Function(X)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                X
+            defaultType: void Function(Never)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                Never
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          contravariant X @10
+            defaultType: dynamic
+        aliasedType: void Function(X)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: X
+          returnType: void
+''');
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_covariant_nullSafe() async {
@@ -1949,14 +3610,32 @@ typedef F<X> = X Function();
 
 class A<X extends F<X>> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<covariant X> = X Function();
-notSimplyBounded class A<covariant X extends X Function() = dynamic Function()> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @36
+        typeParameters
+          covariant X @38
+            bound: X Function()
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                X
+            defaultType: dynamic Function()
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          covariant X @10
+            defaultType: dynamic
+        aliasedType: X Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: X
+''');
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_invariant_legacy() async {
@@ -1965,14 +3644,35 @@ typedef F<X> = X Function(X);
 
 class A<X extends F<X>> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<invariant X> = X Function(X );
-notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dynamic)> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @37
+        typeParameters
+          covariant X @39
+            bound: X Function(X)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                X
+            defaultType: dynamic Function(dynamic)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          invariant X @10
+            defaultType: dynamic
+        aliasedType: X Function(X)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: X
+          returnType: X
+''');
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_invariant_nullSafe() async {
@@ -1981,14 +3681,35 @@ typedef F<X> = X Function(X);
 
 class A<X extends F<X>> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<invariant X> = X Function(X );
-notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dynamic)> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @37
+        typeParameters
+          covariant X @39
+            bound: X Function(X)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                X
+            defaultType: dynamic Function(dynamic)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          invariant X @10
+            defaultType: dynamic
+        aliasedType: X Function(X)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: X
+          returnType: X
+''');
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_both_legacy() async {
@@ -1997,8 +3718,16 @@ notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dy
 class A<X extends X Function(X)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class A<X extends X* Function(X*)* = dynamic Function(Null*)*> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @6
+        typeParameters
+          covariant X @8
+            bound: X* Function(X*)*
+            defaultType: dynamic Function(Null*)*
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -2007,8 +3736,16 @@ notSimplyBounded class A<X extends X* Function(X*)* = dynamic Function(Null*)*> 
 class A<X extends X Function(X)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class A<X extends X Function(X) = dynamic Function(Never)> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @6
+        typeParameters
+          covariant X @8
+            bound: X Function(X)
+            defaultType: dynamic Function(Never)
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -2018,8 +3755,16 @@ notSimplyBounded class A<X extends X Function(X) = dynamic Function(Never)> {
 class A<X extends void Function(X)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class A<X extends void Function(X*)* = void Function(Null*)*> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @6
+        typeParameters
+          covariant X @8
+            bound: void Function(X*)*
+            defaultType: void Function(Null*)*
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -2028,8 +3773,16 @@ notSimplyBounded class A<X extends void Function(X*)* = void Function(Null*)*> {
 class A<X extends void Function(X)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class A<X extends void Function(X) = void Function(Never)> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @6
+        typeParameters
+          covariant X @8
+            bound: void Function(X)
+            defaultType: void Function(Never)
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -2038,8 +3791,16 @@ notSimplyBounded class A<X extends void Function(X) = void Function(Never)> {
 class A<X extends X Function()> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class A<X extends X Function() = dynamic Function()> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @6
+        typeParameters
+          covariant X @8
+            bound: X Function()
+            defaultType: dynamic Function()
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -2048,8 +3809,16 @@ notSimplyBounded class A<X extends X Function() = dynamic Function()> {
 class A<X extends X Function()> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class A<X extends X Function() = dynamic Function()> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @6
+        typeParameters
+          covariant X @8
+            bound: X Function()
+            defaultType: dynamic Function()
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -2060,14 +3829,30 @@ typedef A<X> = List<void Function(X)>;
 
 class B<X extends A<X>> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef A<contravariant X> = List<void Function(X)>;
-notSimplyBounded class B<covariant X extends List<void Function(X)> = List<void Function(Never)>> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class B @46
+        typeParameters
+          covariant X @48
+            bound: List<void Function(X)>
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                X
+            defaultType: List<void Function(Never)>
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                Never
+        constructors
+          synthetic @-1
+    typeAliases
+      A @8
+        typeParameters
+          contravariant X @10
+            defaultType: dynamic
+        aliasedType: List<void Function(X)>
+''');
   }
 
   test_class_typeParameters_defaultType_typeAlias_interface_covariant() async {
@@ -2077,67 +3862,108 @@ typedef A<X> = Map<X, int>;
 
 class B<X extends A<X>> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef A<covariant X> = Map<X, int>;
-notSimplyBounded class B<covariant X extends Map<X, int> = Map<dynamic, int>> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class B @35
+        typeParameters
+          covariant X @37
+            bound: Map<X, int>
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                X
+            defaultType: Map<dynamic, int>
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      A @8
+        typeParameters
+          covariant X @10
+            defaultType: dynamic
+        aliasedType: Map<X, int>
+''');
   }
 
   test_class_typeParameters_variance_contravariant() async {
     var library = await checkLibrary('class C<in T> {}');
-    checkElementText(
-        library,
-        r'''
-class C<contravariant T> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          contravariant T @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_class_typeParameters_variance_covariant() async {
     var library = await checkLibrary('class C<out T> {}');
-    checkElementText(
-        library,
-        r'''
-class C<covariant T> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @12
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_class_typeParameters_variance_invariant() async {
     var library = await checkLibrary('class C<inout T> {}');
-    checkElementText(
-        library,
-        r'''
-class C<invariant T> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          invariant T @14
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_class_typeParameters_variance_multiple() async {
     var library = await checkLibrary('class C<inout T, in U, out V> {}');
-    checkElementText(
-        library,
-        r'''
-class C<invariant T, contravariant U, covariant V> {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          invariant T @14
+            defaultType: dynamic
+          contravariant U @20
+            defaultType: dynamic
+          covariant V @27
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_classes() async {
     var library = await checkLibrary('class C {} class D {}');
     checkElementText(library, r'''
-class C {
-}
-class D {
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+      class D @17
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -2149,7 +3975,11 @@ f() {
 }
 ''');
     checkElementText(library, r'''
-dynamic f() {}
+library
+  definingUnit
+    functions
+      f @0
+        returnType: dynamic
 ''');
   }
 
@@ -2158,7 +3988,14 @@ dynamic f() {}
 final f = <U, V>(U x, V y) => y;
 ''');
     checkElementText(library, r'''
-final V Function<U, V>(U, V) f;
+library
+  definingUnit
+    topLevelVariables
+      static final f @6
+        type: V Function<U, V>(U, V)
+    accessors
+      synthetic static get f @6
+        returnType: V Function<U, V>(U, V)
 ''');
   }
 
@@ -2169,12 +4006,18 @@ library lib;
 part "a.dart";
 ''');
     checkElementText(library, r'''
-library lib;
-part 'a.dart';
---------------------
-unit: a.dart
-
-final double Function(int) f;
+library
+  name: lib
+  nameOffset: 8
+  definingUnit
+  parts
+    a.dart
+      topLevelVariables
+        static final f @19
+          type: double Function(int)
+      accessors
+        synthetic static get f @19
+          returnType: double Function(int)
 ''');
   }
 
@@ -2207,32 +4050,89 @@ class CommentAroundAnnotation {}
     checkElementText(
         library,
         r'''
-class Raw/*codeOffset=0, codeLength=12*/ {
-}
-/// Comment 1.
-/// Comment 2.
-class HasDocComment/*codeOffset=14, codeLength=52*/ {
-}
-@Object()
-class HasAnnotation/*codeOffset=68, codeLength=32*/ {
-}
-/// Comment 1.
-/// Comment 2.
-@Object()
-class AnnotationThenComment/*codeOffset=102, codeLength=70*/ {
-}
-/// Comment 1.
-/// Comment 2.
-@Object()
-class CommentThenAnnotation/*codeOffset=174, codeLength=70*/ {
-}
-/// Comment 2.
-@Object()
-class CommentAroundAnnotation/*codeOffset=261, codeLength=57*/ {
-}
+library
+  definingUnit
+    classes
+      class Raw @6
+        codeOffset: 0
+        codeLength: 12
+        constructors
+          synthetic @-1
+      class HasDocComment @50
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 14
+        codeLength: 52
+        constructors
+          synthetic @-1
+      class HasAnnotation @84
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @75
+              rightParenthesis: ) @76
+            atSign.offset: 68
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @69
+        codeOffset: 68
+        codeLength: 32
+        constructors
+          synthetic @-1
+      class AnnotationThenComment @148
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @109
+              rightParenthesis: ) @110
+            atSign.offset: 102
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @103
+        codeOffset: 102
+        codeLength: 70
+        constructors
+          synthetic @-1
+      class CommentThenAnnotation @220
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @211
+              rightParenthesis: ) @212
+            atSign.offset: 204
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @205
+        codeOffset: 174
+        codeLength: 70
+        constructors
+          synthetic @-1
+      class CommentAroundAnnotation @292
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @268
+              rightParenthesis: ) @269
+            atSign.offset: 261
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @262
+        codeOffset: 261
+        codeLength: 57
+        constructors
+          synthetic @-1
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_class_namedMixin() async {
@@ -2268,42 +4168,159 @@ class CommentAroundAnnotation = Object with A, B;
     checkElementText(
         library,
         r'''
-class A/*codeOffset=0, codeLength=10*/ {
-}
-class B/*codeOffset=12, codeLength=10*/ {
-}
-class alias Raw/*codeOffset=24, codeLength=29*/ extends Object with A, B {
-  synthetic const Raw() : super();
-}
-/// Comment 1.
-/// Comment 2.
-class alias HasDocComment/*codeOffset=55, codeLength=69*/ extends Object with A, B {
-  synthetic const HasDocComment() : super();
-}
-@Object()
-class alias HasAnnotation/*codeOffset=126, codeLength=49*/ extends Object with A, B {
-  synthetic const HasAnnotation() : super();
-}
-/// Comment 1.
-/// Comment 2.
-@Object()
-class alias AnnotationThenComment/*codeOffset=177, codeLength=87*/ extends Object with A, B {
-  synthetic const AnnotationThenComment() : super();
-}
-/// Comment 1.
-/// Comment 2.
-@Object()
-class alias CommentThenAnnotation/*codeOffset=266, codeLength=87*/ extends Object with A, B {
-  synthetic const CommentThenAnnotation() : super();
-}
-/// Comment 2.
-@Object()
-class alias CommentAroundAnnotation/*codeOffset=370, codeLength=74*/ extends Object with A, B {
-  synthetic const CommentAroundAnnotation() : super();
-}
+library
+  definingUnit
+    classes
+      class A @6
+        codeOffset: 0
+        codeLength: 10
+        constructors
+          synthetic @-1
+      class B @18
+        codeOffset: 12
+        codeLength: 10
+        constructors
+          synthetic @-1
+      class alias Raw @30
+        codeOffset: 24
+        codeLength: 29
+        supertype: Object
+        mixins
+          A
+          B
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class alias HasDocComment @91
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 55
+        codeLength: 69
+        supertype: Object
+        mixins
+          A
+          B
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class alias HasAnnotation @142
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @133
+              rightParenthesis: ) @134
+            atSign.offset: 126
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @127
+        codeOffset: 126
+        codeLength: 49
+        supertype: Object
+        mixins
+          A
+          B
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class alias AnnotationThenComment @223
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @184
+              rightParenthesis: ) @185
+            atSign.offset: 177
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @178
+        codeOffset: 177
+        codeLength: 87
+        supertype: Object
+        mixins
+          A
+          B
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class alias CommentThenAnnotation @312
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @303
+              rightParenthesis: ) @304
+            atSign.offset: 296
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @297
+        codeOffset: 266
+        codeLength: 87
+        supertype: Object
+        mixins
+          A
+          B
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class alias CommentAroundAnnotation @401
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @377
+              rightParenthesis: ) @378
+            atSign.offset: 370
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @371
+        codeOffset: 370
+        codeLength: 74
+        supertype: Object
+        mixins
+          A
+          B
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_constructor() async {
@@ -2339,29 +4356,96 @@ class C {
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=362*/ {
-  C/*codeOffset=12, codeLength=4*/();
-  C.raw/*codeOffset=20, codeLength=10*/();
-  /// Comment 1.
-  /// Comment 2.
-  C.hasDocComment/*codeOffset=34, codeLength=54*/();
-  @Object()
-  C.hasAnnotation/*codeOffset=92, codeLength=32*/();
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  C.annotationThenComment/*codeOffset=128, codeLength=74*/();
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  C.commentThenAnnotation/*codeOffset=206, codeLength=74*/();
-  /// Comment 2.
-  @Object()
-  C.commentAroundAnnotation/*codeOffset=301, codeLength=59*/();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        codeOffset: 0
+        codeLength: 362
+        constructors
+          @12
+            codeOffset: 12
+            codeLength: 4
+          raw @22
+            codeOffset: 20
+            codeLength: 10
+            periodOffset: 21
+            nameEnd: 25
+          hasDocComment @70
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            codeOffset: 34
+            codeLength: 54
+            periodOffset: 69
+            nameEnd: 83
+          hasAnnotation @106
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @99
+                  rightParenthesis: ) @100
+                atSign.offset: 92
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @93
+            codeOffset: 92
+            codeLength: 32
+            periodOffset: 105
+            nameEnd: 119
+          annotationThenComment @176
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @135
+                  rightParenthesis: ) @136
+                atSign.offset: 128
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @129
+            codeOffset: 128
+            codeLength: 74
+            periodOffset: 175
+            nameEnd: 197
+          commentThenAnnotation @254
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @247
+                  rightParenthesis: ) @248
+                atSign.offset: 240
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @241
+            codeOffset: 206
+            codeLength: 74
+            periodOffset: 253
+            nameEnd: 275
+          commentAroundAnnotation @332
+            documentationComment: /// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @308
+                  rightParenthesis: ) @309
+                atSign.offset: 301
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @302
+            codeOffset: 301
+            codeLength: 59
+            periodOffset: 331
+            nameEnd: 355
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_constructor_factory() async {
@@ -2397,29 +4481,96 @@ class C {
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=483*/ {
-  factory C/*codeOffset=12, codeLength=23*/();
-  factory C.raw/*codeOffset=39, codeLength=27*/();
-  /// Comment 1.
-  /// Comment 2.
-  factory C.hasDocComment/*codeOffset=70, codeLength=71*/();
-  @Object()
-  factory C.hasAnnotation/*codeOffset=145, codeLength=49*/();
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  factory C.annotationThenComment/*codeOffset=198, codeLength=91*/();
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  factory C.commentThenAnnotation/*codeOffset=293, codeLength=91*/();
-  /// Comment 2.
-  @Object()
-  factory C.commentAroundAnnotation/*codeOffset=405, codeLength=76*/();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        codeOffset: 0
+        codeLength: 483
+        constructors
+          factory @20
+            codeOffset: 12
+            codeLength: 23
+          factory raw @49
+            codeOffset: 39
+            codeLength: 27
+            periodOffset: 48
+            nameEnd: 52
+          factory hasDocComment @114
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            codeOffset: 70
+            codeLength: 71
+            periodOffset: 113
+            nameEnd: 127
+          factory hasAnnotation @167
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @152
+                  rightParenthesis: ) @153
+                atSign.offset: 145
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @146
+            codeOffset: 145
+            codeLength: 49
+            periodOffset: 166
+            nameEnd: 180
+          factory annotationThenComment @254
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @205
+                  rightParenthesis: ) @206
+                atSign.offset: 198
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @199
+            codeOffset: 198
+            codeLength: 91
+            periodOffset: 253
+            nameEnd: 275
+          factory commentThenAnnotation @349
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @334
+                  rightParenthesis: ) @335
+                atSign.offset: 327
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @328
+            codeOffset: 293
+            codeLength: 91
+            periodOffset: 348
+            nameEnd: 370
+          factory commentAroundAnnotation @444
+            documentationComment: /// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @412
+                  rightParenthesis: ) @413
+                atSign.offset: 405
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @406
+            codeOffset: 405
+            codeLength: 76
+            periodOffset: 443
+            nameEnd: 467
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_enum() async {
@@ -2431,17 +4582,45 @@ enum E {
     checkElementText(
         library,
         r'''
-enum E/*codeOffset=0, codeLength=26*/ {
-  synthetic final int index/*codeOffset=null, codeLength=null*/;
-  synthetic static const List<E> values/*codeOffset=null, codeLength=null*/;
-  static const E aaa/*codeOffset=11, codeLength=3*/;
-  static const E bbb/*codeOffset=16, codeLength=3*/;
-  static const E ccc/*codeOffset=21, codeLength=3*/;
-  String toString/*codeOffset=null, codeLength=null*/() {}
-}
+library
+  definingUnit
+    enums
+      enum E @5
+        codeOffset: 0
+        codeLength: 26
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const aaa @11
+            codeOffset: 11
+            codeLength: 3
+            type: E
+          static const bbb @16
+            codeOffset: 16
+            codeLength: 3
+            type: E
+          static const ccc @21
+            codeOffset: 21
+            codeLength: 3
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get aaa @-1
+            returnType: E
+          synthetic static get bbb @-1
+            returnType: E
+          synthetic static get ccc @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_extensions() async {
@@ -2475,34 +4654,89 @@ extension CommentAroundAnnotation on A {}
     checkElementText(
         library,
         r'''
-class A/*codeOffset=0, codeLength=10*/ {
-}
-extension Raw/*codeOffset=12, codeLength=21*/ on A {
-}
-/// Comment 1.
-/// Comment 2.
-extension HasDocComment/*codeOffset=35, codeLength=61*/ on A {
-}
-@Object()
-extension HasAnnotation/*codeOffset=98, codeLength=41*/ on A {
-}
-/// Comment 1.
-/// Comment 2.
-@Object()
-extension AnnotationThenComment/*codeOffset=141, codeLength=79*/ on A {
-}
-/// Comment 1.
-/// Comment 2.
-@Object()
-extension CommentThenAnnotation/*codeOffset=222, codeLength=79*/ on A {
-}
-/// Comment 2.
-@Object()
-extension CommentAroundAnnotation/*codeOffset=318, codeLength=66*/ on A {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        codeOffset: 0
+        codeLength: 10
+        constructors
+          synthetic @-1
+    extensions
+      Raw @22
+        codeOffset: 12
+        codeLength: 21
+        extendedType: A
+      HasDocComment @75
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 35
+        codeLength: 61
+        extendedType: A
+      HasAnnotation @118
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @105
+              rightParenthesis: ) @106
+            atSign.offset: 98
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @99
+        codeOffset: 98
+        codeLength: 41
+        extendedType: A
+      AnnotationThenComment @191
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @148
+              rightParenthesis: ) @149
+            atSign.offset: 141
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @142
+        codeOffset: 141
+        codeLength: 79
+        extendedType: A
+      CommentThenAnnotation @272
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @259
+              rightParenthesis: ) @260
+            atSign.offset: 252
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @253
+        codeOffset: 222
+        codeLength: 79
+        extendedType: A
+      CommentAroundAnnotation @353
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @325
+              rightParenthesis: ) @326
+            atSign.offset: 318
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @319
+        codeOffset: 318
+        codeLength: 66
+        extendedType: A
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_field() async {
@@ -2518,16 +4752,73 @@ class C {
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=115*/ {
-  int withInit/*codeOffset=12, codeLength=16*/;
-  int withoutInit/*codeOffset=33, codeLength=15*/;
-  int multiWithInit/*codeOffset=53, codeLength=21*/;
-  int multiWithoutInit/*codeOffset=76, codeLength=16*/;
-  int multiWithInit2/*codeOffset=94, codeLength=18*/;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        codeOffset: 0
+        codeLength: 115
+        fields
+          withInit @16
+            codeOffset: 12
+            codeLength: 16
+            type: int
+          withoutInit @37
+            codeOffset: 33
+            codeLength: 15
+            type: int
+          multiWithInit @57
+            codeOffset: 53
+            codeLength: 21
+            type: int
+          multiWithoutInit @76
+            codeOffset: 76
+            codeLength: 16
+            type: int
+          multiWithInit2 @94
+            codeOffset: 94
+            codeLength: 18
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get withInit @16
+            returnType: int
+          synthetic set withInit @16
+            parameters
+              requiredPositional _withInit @16
+                type: int
+            returnType: void
+          synthetic get withoutInit @37
+            returnType: int
+          synthetic set withoutInit @37
+            parameters
+              requiredPositional _withoutInit @37
+                type: int
+            returnType: void
+          synthetic get multiWithInit @57
+            returnType: int
+          synthetic set multiWithInit @57
+            parameters
+              requiredPositional _multiWithInit @57
+                type: int
+            returnType: void
+          synthetic get multiWithoutInit @76
+            returnType: int
+          synthetic set multiWithoutInit @76
+            parameters
+              requiredPositional _multiWithoutInit @76
+                type: int
+            returnType: void
+          synthetic get multiWithInit2 @94
+            returnType: int
+          synthetic set multiWithInit2 @94
+            parameters
+              requiredPositional _multiWithInit2 @94
+                type: int
+            returnType: void
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_field_annotations() async {
@@ -2559,43 +4850,224 @@ class C {
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=436*/ {
-  /// Comment 1.
-  /// Comment 2.
-  int hasDocComment/*codeOffset=12, codeLength=51*/;
-  /// Comment 1.
-  /// Comment 2.
-  int hasDocComment2/*codeOffset=65, codeLength=14*/;
-  @Object()
-  int hasAnnotation/*codeOffset=84, codeLength=29*/;
-  @Object()
-  int hasAnnotation2/*codeOffset=115, codeLength=14*/;
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  int annotationThenComment/*codeOffset=134, codeLength=71*/;
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  int annotationThenComment2/*codeOffset=207, codeLength=22*/;
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  int commentThenAnnotation/*codeOffset=234, codeLength=71*/;
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  int commentThenAnnotation2/*codeOffset=307, codeLength=22*/;
-  /// Comment 2.
-  @Object()
-  int commentAroundAnnotation/*codeOffset=351, codeLength=56*/;
-  /// Comment 2.
-  @Object()
-  int commentAroundAnnotation2/*codeOffset=409, codeLength=24*/;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        codeOffset: 0
+        codeLength: 436
+        fields
+          hasDocComment @50
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            codeOffset: 12
+            codeLength: 51
+            type: int
+          hasDocComment2 @65
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            codeOffset: 65
+            codeLength: 14
+            type: int
+          hasAnnotation @100
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @91
+                  rightParenthesis: ) @92
+                atSign.offset: 84
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @85
+            codeOffset: 84
+            codeLength: 29
+            type: int
+          hasAnnotation2 @115
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @91
+                  rightParenthesis: ) @92
+                atSign.offset: 84
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @85
+            codeOffset: 115
+            codeLength: 14
+            type: int
+          annotationThenComment @184
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @141
+                  rightParenthesis: ) @142
+                atSign.offset: 134
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @135
+            codeOffset: 134
+            codeLength: 71
+            type: int
+          annotationThenComment2 @207
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @141
+                  rightParenthesis: ) @142
+                atSign.offset: 134
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @135
+            codeOffset: 207
+            codeLength: 22
+            type: int
+          commentThenAnnotation @284
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @275
+                  rightParenthesis: ) @276
+                atSign.offset: 268
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @269
+            codeOffset: 234
+            codeLength: 71
+            type: int
+          commentThenAnnotation2 @307
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @275
+                  rightParenthesis: ) @276
+                atSign.offset: 268
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @269
+            codeOffset: 307
+            codeLength: 22
+            type: int
+          commentAroundAnnotation @384
+            documentationComment: /// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @358
+                  rightParenthesis: ) @359
+                atSign.offset: 351
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @352
+            codeOffset: 351
+            codeLength: 56
+            type: int
+          commentAroundAnnotation2 @409
+            documentationComment: /// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @358
+                  rightParenthesis: ) @359
+                atSign.offset: 351
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @352
+            codeOffset: 409
+            codeLength: 24
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get hasDocComment @50
+            returnType: int
+          synthetic set hasDocComment @50
+            parameters
+              requiredPositional _hasDocComment @50
+                type: int
+            returnType: void
+          synthetic get hasDocComment2 @65
+            returnType: int
+          synthetic set hasDocComment2 @65
+            parameters
+              requiredPositional _hasDocComment2 @65
+                type: int
+            returnType: void
+          synthetic get hasAnnotation @100
+            returnType: int
+          synthetic set hasAnnotation @100
+            parameters
+              requiredPositional _hasAnnotation @100
+                type: int
+            returnType: void
+          synthetic get hasAnnotation2 @115
+            returnType: int
+          synthetic set hasAnnotation2 @115
+            parameters
+              requiredPositional _hasAnnotation2 @115
+                type: int
+            returnType: void
+          synthetic get annotationThenComment @184
+            returnType: int
+          synthetic set annotationThenComment @184
+            parameters
+              requiredPositional _annotationThenComment @184
+                type: int
+            returnType: void
+          synthetic get annotationThenComment2 @207
+            returnType: int
+          synthetic set annotationThenComment2 @207
+            parameters
+              requiredPositional _annotationThenComment2 @207
+                type: int
+            returnType: void
+          synthetic get commentThenAnnotation @284
+            returnType: int
+          synthetic set commentThenAnnotation @284
+            parameters
+              requiredPositional _commentThenAnnotation @284
+                type: int
+            returnType: void
+          synthetic get commentThenAnnotation2 @307
+            returnType: int
+          synthetic set commentThenAnnotation2 @307
+            parameters
+              requiredPositional _commentThenAnnotation2 @307
+                type: int
+            returnType: void
+          synthetic get commentAroundAnnotation @384
+            returnType: int
+          synthetic set commentAroundAnnotation @384
+            parameters
+              requiredPositional _commentAroundAnnotation @384
+                type: int
+            returnType: void
+          synthetic get commentAroundAnnotation2 @409
+            returnType: int
+          synthetic set commentAroundAnnotation2 @409
+            parameters
+              requiredPositional _commentAroundAnnotation2 @409
+                type: int
+            returnType: void
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_function() async {
@@ -2627,26 +5099,83 @@ void commentAroundAnnotation() {}
     checkElementText(
         library,
         r'''
-void raw/*codeOffset=0, codeLength=13*/() {}
-/// Comment 1.
-/// Comment 2.
-void hasDocComment/*codeOffset=15, codeLength=53*/() {}
-@Object()
-void hasAnnotation/*codeOffset=70, codeLength=33*/() {}
-/// Comment 1.
-/// Comment 2.
-@Object()
-void annotationThenComment/*codeOffset=105, codeLength=71*/() {}
-/// Comment 1.
-/// Comment 2.
-@Object()
-void commentThenAnnotation/*codeOffset=178, codeLength=71*/() {}
-/// Comment 2.
-@Object()
-void commentAroundAnnotation/*codeOffset=266, codeLength=58*/() {}
+library
+  definingUnit
+    functions
+      raw @5
+        codeOffset: 0
+        codeLength: 13
+        returnType: void
+      hasDocComment @50
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 15
+        codeLength: 53
+        returnType: void
+      hasAnnotation @85
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @77
+              rightParenthesis: ) @78
+            atSign.offset: 70
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @71
+        codeOffset: 70
+        codeLength: 33
+        returnType: void
+      annotationThenComment @150
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @112
+              rightParenthesis: ) @113
+            atSign.offset: 105
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @106
+        codeOffset: 105
+        codeLength: 71
+        returnType: void
+      commentThenAnnotation @223
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @215
+              rightParenthesis: ) @216
+            atSign.offset: 208
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @209
+        codeOffset: 178
+        codeLength: 71
+        returnType: void
+      commentAroundAnnotation @296
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @273
+              rightParenthesis: ) @274
+            atSign.offset: 266
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @267
+        codeOffset: 266
+        codeLength: 58
+        returnType: void
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_functionTypeAlias() async {
@@ -2678,26 +5207,95 @@ typedef CommentAroundAnnotation();
     checkElementText(
         library,
         r'''
-typedef Raw/*codeOffset=0, codeLength=14*/ = dynamic Function();
-/// Comment 1.
-/// Comment 2.
-typedef HasDocComment/*codeOffset=16, codeLength=54*/ = dynamic Function();
-@Object()
-typedef HasAnnotation/*codeOffset=72, codeLength=34*/ = dynamic Function();
-/// Comment 1.
-/// Comment 2.
-@Object()
-typedef AnnotationThenComment/*codeOffset=108, codeLength=72*/ = dynamic Function();
-/// Comment 1.
-/// Comment 2.
-@Object()
-typedef CommentThenAnnotation/*codeOffset=182, codeLength=72*/ = dynamic Function();
-/// Comment 2.
-@Object()
-typedef CommentAroundAnnotation/*codeOffset=271, codeLength=59*/ = dynamic Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased Raw @8
+        codeOffset: 0
+        codeLength: 14
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      functionTypeAliasBased HasDocComment @54
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 16
+        codeLength: 54
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      functionTypeAliasBased HasAnnotation @90
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 72
+        codeLength: 34
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      functionTypeAliasBased AnnotationThenComment @156
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 108
+        codeLength: 72
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      functionTypeAliasBased CommentThenAnnotation @230
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 182
+        codeLength: 72
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      functionTypeAliasBased CommentAroundAnnotation @304
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 271
+        codeLength: 59
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_genericTypeAlias() async {
@@ -2729,26 +5327,95 @@ typedef CommentAroundAnnotation = Function();
     checkElementText(
         library,
         r'''
-typedef Raw/*codeOffset=0, codeLength=25*/ = dynamic Function();
-/// Comment 1.
-/// Comment 2.
-typedef HasDocComment/*codeOffset=27, codeLength=65*/ = dynamic Function();
-@Object()
-typedef HasAnnotation/*codeOffset=94, codeLength=45*/ = dynamic Function();
-/// Comment 1.
-/// Comment 2.
-@Object()
-typedef AnnotationThenComment/*codeOffset=141, codeLength=83*/ = dynamic Function();
-/// Comment 1.
-/// Comment 2.
-@Object()
-typedef CommentThenAnnotation/*codeOffset=226, codeLength=83*/ = dynamic Function();
-/// Comment 2.
-@Object()
-typedef CommentAroundAnnotation/*codeOffset=326, codeLength=70*/ = dynamic Function();
+library
+  definingUnit
+    typeAliases
+      Raw @8
+        codeOffset: 0
+        codeLength: 25
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      HasDocComment @65
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 27
+        codeLength: 65
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      HasAnnotation @112
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 94
+        codeLength: 45
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      AnnotationThenComment @189
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 141
+        codeLength: 83
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      CommentThenAnnotation @274
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 226
+        codeLength: 83
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+      CommentAroundAnnotation @359
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @0
+              rightParenthesis: ) @0
+            atSign.offset: 0
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @-1
+        codeOffset: 326
+        codeLength: 70
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_method() async {
@@ -2782,56 +5449,159 @@ class C {
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=372*/ {
-  void raw/*codeOffset=12, codeLength=13*/() {}
-  /// Comment 1.
-  /// Comment 2.
-  void hasDocComment/*codeOffset=29, codeLength=57*/() {}
-  @Object()
-  void hasAnnotation/*codeOffset=90, codeLength=35*/() {}
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  void annotationThenComment/*codeOffset=129, codeLength=77*/() {}
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  void commentThenAnnotation/*codeOffset=210, codeLength=77*/() {}
-  /// Comment 2.
-  @Object()
-  void commentAroundAnnotation/*codeOffset=308, codeLength=62*/() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        codeOffset: 0
+        codeLength: 372
+        constructors
+          synthetic @-1
+        methods
+          raw @17
+            codeOffset: 12
+            codeLength: 13
+            returnType: void
+          hasDocComment @68
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            codeOffset: 29
+            codeLength: 57
+            returnType: void
+          hasAnnotation @107
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @97
+                  rightParenthesis: ) @98
+                atSign.offset: 90
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @91
+            codeOffset: 90
+            codeLength: 35
+            returnType: void
+          annotationThenComment @180
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @136
+                  rightParenthesis: ) @137
+                atSign.offset: 129
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @130
+            codeOffset: 129
+            codeLength: 77
+            returnType: void
+          commentThenAnnotation @261
+            documentationComment: /// Comment 1.\n/// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @251
+                  rightParenthesis: ) @252
+                atSign.offset: 244
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @245
+            codeOffset: 210
+            codeLength: 77
+            returnType: void
+          commentAroundAnnotation @342
+            documentationComment: /// Comment 2.
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @315
+                  rightParenthesis: ) @316
+                atSign.offset: 308
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @309
+            codeOffset: 308
+            codeLength: 62
+            returnType: void
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_parameter() async {
     var library = await checkLibrary('''
 main({int a = 1, int b, int c = 2}) {}
 ''');
-    checkElementText(
-        library,
-        'dynamic main/*codeOffset=0, codeLength=38*/('
-        '{int a/*codeOffset=6, codeLength=9*/: 1}, '
-        '{int b/*codeOffset=17, codeLength=5*/}, '
-        '{int c/*codeOffset=24, codeLength=9*/: 2}) {}\n',
-        withCodeRanges: true,
-        withConstElements: false);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      main @0
+        parameters
+          optionalNamed a @10
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @0
+                staticType: int
+          optionalNamed b @21
+            type: int
+          optionalNamed c @28
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 2 @0
+                staticType: int
+        returnType: dynamic
+''');
   }
 
   test_codeRange_parameter_annotations() async {
     var library = await checkLibrary('''
 main(@Object() int a, int b, @Object() int c) {}
 ''');
-    checkElementText(
-        library,
-        'dynamic main/*codeOffset=0, codeLength=48*/('
-        '@Object() int a/*codeOffset=5, codeLength=15*/, '
-        'int b/*codeOffset=22, codeLength=5*/, '
-        '@Object() int c/*codeOffset=29, codeLength=15*/) {}\n',
-        withCodeRanges: true,
-        withConstElements: false);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      main @0
+        parameters
+          requiredPositional a @19
+            type: int
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                atSign.offset: 0
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @-1
+          requiredPositional b @26
+            type: int
+          requiredPositional c @43
+            type: int
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                atSign.offset: 0
+                element: dart:core::@class::Object::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: dart:core::@class::Object
+                  staticType: null
+                  token: Object @-1
+        returnType: dynamic
+''');
   }
 
   test_codeRange_topLevelVariable() async {
@@ -2845,14 +5615,67 @@ int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
     checkElementText(
         library,
         r'''
-int withInit/*codeOffset=0, codeLength=24*/;
-int withoutInit/*codeOffset=27, codeLength=15*/;
-int multiWithInit/*codeOffset=45, codeLength=21*/;
-int multiWithoutInit/*codeOffset=68, codeLength=16*/;
-int multiWithInit2/*codeOffset=86, codeLength=18*/;
+library
+  definingUnit
+    topLevelVariables
+      static withInit @4
+        codeOffset: 0
+        codeLength: 24
+        type: int
+      static withoutInit @31
+        codeOffset: 27
+        codeLength: 15
+        type: int
+      static multiWithInit @49
+        codeOffset: 45
+        codeLength: 21
+        type: int
+      static multiWithoutInit @68
+        codeOffset: 68
+        codeLength: 16
+        type: int
+      static multiWithInit2 @86
+        codeOffset: 86
+        codeLength: 18
+        type: int
+    accessors
+      synthetic static get withInit @4
+        returnType: int
+      synthetic static set withInit @4
+        parameters
+          requiredPositional _withInit @4
+            type: int
+        returnType: void
+      synthetic static get withoutInit @31
+        returnType: int
+      synthetic static set withoutInit @31
+        parameters
+          requiredPositional _withoutInit @31
+            type: int
+        returnType: void
+      synthetic static get multiWithInit @49
+        returnType: int
+      synthetic static set multiWithInit @49
+        parameters
+          requiredPositional _multiWithInit @49
+            type: int
+        returnType: void
+      synthetic static get multiWithoutInit @68
+        returnType: int
+      synthetic static set multiWithoutInit @68
+        parameters
+          requiredPositional _multiWithoutInit @68
+            type: int
+        returnType: void
+      synthetic static get multiWithInit2 @86
+        returnType: int
+      synthetic static set multiWithInit2 @86
+        parameters
+          requiredPositional _multiWithInit2 @86
+            type: int
+        returnType: void
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_topLevelVariable_annotations() async {
@@ -2882,41 +5705,218 @@ int commentAroundAnnotation, commentAroundAnnotation2;
     checkElementText(
         library,
         r'''
-/// Comment 1.
-/// Comment 2.
-int hasDocComment/*codeOffset=0, codeLength=47*/;
-/// Comment 1.
-/// Comment 2.
-int hasDocComment2/*codeOffset=49, codeLength=14*/;
-@Object()
-int hasAnnotation/*codeOffset=66, codeLength=27*/;
-@Object()
-int hasAnnotation2/*codeOffset=95, codeLength=14*/;
-/// Comment 1.
-/// Comment 2.
-@Object()
-int annotationThenComment/*codeOffset=112, codeLength=65*/;
-/// Comment 1.
-/// Comment 2.
-@Object()
-int annotationThenComment2/*codeOffset=179, codeLength=22*/;
-/// Comment 1.
-/// Comment 2.
-@Object()
-int commentThenAnnotation/*codeOffset=204, codeLength=65*/;
-/// Comment 1.
-/// Comment 2.
-@Object()
-int commentThenAnnotation2/*codeOffset=271, codeLength=22*/;
-/// Comment 2.
-@Object()
-int commentAroundAnnotation/*codeOffset=311, codeLength=52*/;
-/// Comment 2.
-@Object()
-int commentAroundAnnotation2/*codeOffset=365, codeLength=24*/;
+library
+  definingUnit
+    topLevelVariables
+      static hasDocComment @34
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 0
+        codeLength: 47
+        type: int
+      static hasDocComment2 @49
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        codeOffset: 49
+        codeLength: 14
+        type: int
+      static hasAnnotation @80
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @73
+              rightParenthesis: ) @74
+            atSign.offset: 66
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @67
+        codeOffset: 66
+        codeLength: 27
+        type: int
+      static hasAnnotation2 @95
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @73
+              rightParenthesis: ) @74
+            atSign.offset: 66
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @67
+        codeOffset: 95
+        codeLength: 14
+        type: int
+      static annotationThenComment @156
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @119
+              rightParenthesis: ) @120
+            atSign.offset: 112
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @113
+        codeOffset: 112
+        codeLength: 65
+        type: int
+      static annotationThenComment2 @179
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @119
+              rightParenthesis: ) @120
+            atSign.offset: 112
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @113
+        codeOffset: 179
+        codeLength: 22
+        type: int
+      static commentThenAnnotation @248
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @241
+              rightParenthesis: ) @242
+            atSign.offset: 234
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @235
+        codeOffset: 204
+        codeLength: 65
+        type: int
+      static commentThenAnnotation2 @271
+        documentationComment: /// Comment 1.\n/// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @241
+              rightParenthesis: ) @242
+            atSign.offset: 234
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @235
+        codeOffset: 271
+        codeLength: 22
+        type: int
+      static commentAroundAnnotation @340
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @318
+              rightParenthesis: ) @319
+            atSign.offset: 311
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @312
+        codeOffset: 311
+        codeLength: 52
+        type: int
+      static commentAroundAnnotation2 @365
+        documentationComment: /// Comment 2.
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @318
+              rightParenthesis: ) @319
+            atSign.offset: 311
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @312
+        codeOffset: 365
+        codeLength: 24
+        type: int
+    accessors
+      synthetic static get hasDocComment @34
+        returnType: int
+      synthetic static set hasDocComment @34
+        parameters
+          requiredPositional _hasDocComment @34
+            type: int
+        returnType: void
+      synthetic static get hasDocComment2 @49
+        returnType: int
+      synthetic static set hasDocComment2 @49
+        parameters
+          requiredPositional _hasDocComment2 @49
+            type: int
+        returnType: void
+      synthetic static get hasAnnotation @80
+        returnType: int
+      synthetic static set hasAnnotation @80
+        parameters
+          requiredPositional _hasAnnotation @80
+            type: int
+        returnType: void
+      synthetic static get hasAnnotation2 @95
+        returnType: int
+      synthetic static set hasAnnotation2 @95
+        parameters
+          requiredPositional _hasAnnotation2 @95
+            type: int
+        returnType: void
+      synthetic static get annotationThenComment @156
+        returnType: int
+      synthetic static set annotationThenComment @156
+        parameters
+          requiredPositional _annotationThenComment @156
+            type: int
+        returnType: void
+      synthetic static get annotationThenComment2 @179
+        returnType: int
+      synthetic static set annotationThenComment2 @179
+        parameters
+          requiredPositional _annotationThenComment2 @179
+            type: int
+        returnType: void
+      synthetic static get commentThenAnnotation @248
+        returnType: int
+      synthetic static set commentThenAnnotation @248
+        parameters
+          requiredPositional _commentThenAnnotation @248
+            type: int
+        returnType: void
+      synthetic static get commentThenAnnotation2 @271
+        returnType: int
+      synthetic static set commentThenAnnotation2 @271
+        parameters
+          requiredPositional _commentThenAnnotation2 @271
+            type: int
+        returnType: void
+      synthetic static get commentAroundAnnotation @340
+        returnType: int
+      synthetic static set commentAroundAnnotation @340
+        parameters
+          requiredPositional _commentAroundAnnotation @340
+            type: int
+        returnType: void
+      synthetic static get commentAroundAnnotation2 @365
+        returnType: int
+      synthetic static set commentAroundAnnotation2 @365
+        parameters
+          requiredPositional _commentAroundAnnotation2 @365
+            type: int
+        returnType: void
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_codeRange_type_parameter() async {
@@ -2927,12 +5927,31 @@ void f<U extends num> {}
     checkElementText(
         library,
         r'''
-class A/*codeOffset=0, codeLength=13*/<T/*codeOffset=8, codeLength=1*/> {
-}
-void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends num>() {}
+library
+  definingUnit
+    classes
+      class A @6
+        codeOffset: 0
+        codeLength: 13
+        typeParameters
+          covariant T @8
+            codeOffset: 8
+            codeLength: 1
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    functions
+      f @19
+        codeOffset: 14
+        codeLength: 24
+        typeParameters
+          covariant U @21
+            codeOffset: 21
+            codeLength: 13
+            bound: num
+        returnType: void
 ''',
-        withCodeRanges: true,
-        withConstElements: false);
+        withCodeRanges: true);
   }
 
   test_compilationUnit_nnbd_disabled_via_dart_directive() async {
@@ -2958,11 +5977,37 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
 const num a = 0;
 const b = a as int;
 ''');
-    checkElementText(library, '''
-const num a = 0;
-const int b =
-        a/*location: test.dart;a?*/ as
-        int/*location: dart:core;int*/;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @10
+        type: num
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @14
+            staticType: int
+      static const b @23
+        type: int
+        constantInitializer
+          AsExpression
+            asOperator: as @0
+            expression: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: num
+              token: a @27
+            staticType: int
+            type: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::int
+                staticType: null
+                token: int @32
+              type: int
+    accessors
+      synthetic static get a @10
+        returnType: num
+      synthetic static get b @23
+        returnType: int
 ''');
   }
 
@@ -2971,72 +6016,85 @@ const int b =
 const a = 0;
 const b = (a += 1);
 ''');
-    checkElementText(
-      library,
-      r'''
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-const int b;
-  constantInitializer
-    ParenthesizedExpression
-      expression: AssignmentExpression
-        leftHandSide: SimpleIdentifier
-          staticElement: <null>
-          staticType: null
-          token: a
-        operator: +=
-        readElement: self::@getter::a
-        readType: int
-        rightHandSide: IntegerLiteral
-          literal: 1
-          staticType: int
-        staticElement: dart:core::@class::num::@method::+
-        staticType: int
-        writeElement: self::@getter::a
-        writeType: dynamic
-      staticType: int
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: int
+        constantInitializer
+          ParenthesizedExpression
+            expression: AssignmentExpression
+              leftHandSide: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: a @24
+              operator: += @0
+              readElement: self::@getter::a
+              readType: int
+              rightHandSide: IntegerLiteral
+                literal: 1 @29
+                staticType: int
+              staticElement: dart:core::@class::num::@method::+
+              staticType: int
+              writeElement: self::@getter::a
+              writeType: dynamic
+            leftParenthesis: ( @23
+            rightParenthesis: ) @30
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+      synthetic static get b @19
+        returnType: int
+''');
   }
 
   test_const_cascadeExpression() async {
     var library = await checkLibrary(r'''
 const a = 0..isEven..abs();
 ''');
-    checkElementText(
-      library,
-      r'''
-const int a;
-  constantInitializer
-    CascadeExpression
-      cascadeSections
-        PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            staticElement: dart:core::@class::int::@getter::isEven
-            staticType: bool
-            token: isEven
-          staticType: bool
-        MethodInvocation
-          argumentList: ArgumentList
-          methodName: SimpleIdentifier
-            staticElement: dart:core::@class::int::@method::abs
-            staticType: int Function()
-            token: abs
-          operator: ..
-          staticInvokeType: int Function()
-          staticType: int
-      staticType: int
-      target: IntegerLiteral
-        literal: 0
-        staticType: int
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          CascadeExpression
+            cascadeSections
+              PropertyAccess
+                operator: .. @0
+                propertyName: SimpleIdentifier
+                  staticElement: dart:core::@class::int::@getter::isEven
+                  staticType: bool
+                  token: isEven @13
+                staticType: bool
+              MethodInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @24
+                  rightParenthesis: ) @25
+                methodName: SimpleIdentifier
+                  staticElement: dart:core::@class::int::@method::abs
+                  staticType: int Function()
+                  token: abs @21
+                operator: .. @0
+                staticInvokeType: int Function()
+                staticType: int
+            staticType: int
+            target: IntegerLiteral
+              literal: 0 @10
+              staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_const_classField() async {
@@ -3047,15 +6105,56 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  static const int f1 = 1;
-  static const int f2 =
-        C/*location: test.dart;C*/.
-        f1/*location: test.dart;C;f1?*/;
-  static const int f3 =
-        C/*location: test.dart;C*/.
-        f2/*location: test.dart;C;f2?*/;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const f1 @29
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @34
+                staticType: int
+          static const f2 @56
+            type: int
+            constantInitializer
+              PrefixedIdentifier
+                identifier: SimpleIdentifier
+                  staticElement: self::@class::C::@getter::f1
+                  staticType: int
+                  token: f1 @63
+                period: . @0
+                prefix: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @61
+                staticElement: self::@class::C::@getter::f1
+                staticType: int
+          static const f3 @67
+            type: int
+            constantInitializer
+              PrefixedIdentifier
+                identifier: SimpleIdentifier
+                  staticElement: self::@class::C::@getter::f2
+                  staticType: int
+                  token: f2 @74
+                period: . @0
+                prefix: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @72
+                staticElement: self::@class::C::@getter::f2
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get f1 @29
+            returnType: int
+          synthetic static get f2 @56
+            returnType: int
+          synthetic static get f3 @67
+            returnType: int
 ''');
   }
 
@@ -3069,17 +6168,89 @@ class C<T> {
 const Object x = const C(0);
 const Object y = const C.named(0);
 ''');
-    checkElementText(library, '''
-class C<T> {
-  final T t;
-  const C(final T this.t);
-  const C.named(final T this.t);
-}
-const Object x = const
-        C/*location: test.dart;C*/(0);
-const Object y = const
-        C/*location: test.dart;C*/.
-        named/*location: test.dart;C;named*/(0);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          final t @23
+            type: T
+        constructors
+          const @34
+            parameters
+              requiredPositional final this.t @41
+                type: T
+          const named @55
+            periodOffset: 54
+            nameEnd: 60
+            parameters
+              requiredPositional final this.t @66
+                type: T
+        accessors
+          synthetic get t @23
+            returnType: T
+    topLevelVariables
+      static const x @85
+        type: Object
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @97
+                  staticType: int
+              leftParenthesis: ( @96
+              rightParenthesis: ) @98
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::•
+                substitution: {T: int}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @95
+                type: C<int>
+            keyword: const @89
+            staticType: C<int>
+      static const y @114
+        type: Object
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @132
+                  staticType: int
+              leftParenthesis: ( @131
+              rightParenthesis: ) @133
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: ConstructorMember
+                  base: self::@class::C::@constructor::named
+                  substitution: {T: dynamic}
+                staticType: null
+                token: named @126
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::named
+                substitution: {T: int}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @124
+                type: C<int>
+            keyword: const @118
+            staticType: C<int>
+    accessors
+      synthetic static get x @85
+        returnType: Object
+      synthetic static get y @114
+        returnType: Object
 ''');
     var x = library.definingCompilationUnit.topLevelVariables[0]
         as TopLevelVariableElementImpl;
@@ -3104,10 +6275,22 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final int f = 42;
-  const C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final f @22
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 42 @26
+                staticType: int
+        constructors
+          const @38
+        accessors
+          synthetic get f @22
+            returnType: int
 ''');
   }
 
@@ -3117,40 +6300,53 @@ const a = [0];
 const b = 0;
 const c = a[b];
 ''');
-    checkElementText(
-      library,
-      r'''
-const List<int> a;
-  constantInitializer
-    ListLiteral
-      elements
-        IntegerLiteral
-          literal: 0
-          staticType: int
-      staticType: List<int>
-const int b;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-const int c;
-  constantInitializer
-    IndexExpression
-      index: SimpleIdentifier
-        staticElement: self::@getter::b
-        staticType: int
-        token: b
-      staticElement: MethodMember
-        base: dart:core::@class::List::@method::[]
-        substitution: {E: int}
-      staticType: int
-      target: SimpleIdentifier
-        staticElement: self::@getter::a
-        staticType: List<int>
-        token: a
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: List<int>
+        constantInitializer
+          ListLiteral
+            elements
+              IntegerLiteral
+                literal: 0 @11
+                staticType: int
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+      static const b @21
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @25
+            staticType: int
+      static const c @34
+        type: int
+        constantInitializer
+          IndexExpression
+            index: SimpleIdentifier
+              staticElement: self::@getter::b
+              staticType: int
+              token: b @40
+            leftBracket: [ @39
+            rightBracket: ] @41
+            staticElement: MethodMember
+              base: dart:core::@class::List::@method::[]
+              substitution: {E: int}
+            staticType: int
+            target: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: List<int>
+              token: a @38
+    accessors
+      synthetic static get a @6
+        returnType: List<int>
+      synthetic static get b @21
+        returnType: int
+      synthetic static get c @34
+        returnType: int
+''');
   }
 
   test_const_inference_downward_list() async {
@@ -3172,24 +6368,83 @@ const List<P> values = [
   P2<int>(),
 ];
 ''');
-    checkElementText(
-        library,
-        '''
-class P<T> {
-  const P();
-}
-class P1<T> extends P<T> {
-  const P1();
-}
-class P2<T> extends P<T> {
-  const P2();
-}
-const List<P<dynamic>> values = /*typeArgs=P<dynamic>*/[/*typeArgs=dynamic*/
-        P1/*location: test.dart;P1*/(),
-        P2/*location: test.dart;P2*/<
-        int/*location: dart:core;int*/>()];
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class P @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class P1 @35
+        typeParameters
+          covariant T @38
+            defaultType: dynamic
+        supertype: P<T>
+        constructors
+          const @64
+      class P2 @79
+        typeParameters
+          covariant T @82
+            defaultType: dynamic
+        supertype: P<T>
+        constructors
+          const @108
+    topLevelVariables
+      static const values @131
+        type: List<P<dynamic>>
+        constantInitializer
+          ListLiteral
+            elements
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @146
+                  rightParenthesis: ) @147
+                constructorName: ConstructorName
+                  staticElement: ConstructorMember
+                    base: self::@class::P1::@constructor::•
+                    substitution: {T: dynamic}
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: self::@class::P1
+                      staticType: null
+                      token: P1 @144
+                    type: P1<dynamic>
+                staticType: P1<dynamic>
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @159
+                  rightParenthesis: ) @160
+                constructorName: ConstructorName
+                  staticElement: ConstructorMember
+                    base: self::@class::P2::@constructor::•
+                    substitution: {T: int}
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: self::@class::P2
+                      staticType: null
+                      token: P2 @152
+                    type: P2<int>
+                    typeArguments: TypeArgumentList
+                      arguments
+                        TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::int
+                            staticType: null
+                            token: int @155
+                          type: int
+                      leftBracket: < @0
+                      rightBracket: > @0
+                staticType: P2<int>
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<P<dynamic>>
+    accessors
+      synthetic static get values @131
+        returnType: List<P<dynamic>>
+''');
   }
 
   test_const_invalid_field_const() async {
@@ -3200,11 +6455,40 @@ class C {
 int foo() => 42;
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C {
-  static const int f = 1 +
-        foo/*location: test.dart;foo*/();
-}
-int foo() {}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const f @25
+            type: int
+            constantInitializer
+              BinaryExpression
+                leftOperand: IntegerLiteral
+                  literal: 1 @29
+                  staticType: int
+                operator: + @0
+                rightOperand: MethodInvocation
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @36
+                    rightParenthesis: ) @37
+                  methodName: SimpleIdentifier
+                    staticElement: self::@function::foo
+                    staticType: int Function()
+                    token: foo @33
+                  staticInvokeType: int Function()
+                  staticType: int
+                staticElement: dart:core::@class::num::@method::+
+                staticInvokeType: null
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get f @25
+            returnType: int
+    functions
+      foo @46
+        returnType: int
 ''');
   }
 
@@ -3216,10 +6500,21 @@ class C {
 int foo() => 42;
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C {
-  final int f;
-}
-int foo() {}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final f @18
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @18
+            returnType: int
+    functions
+      foo @39
+        returnType: int
 ''');
   }
 
@@ -3239,9 +6534,36 @@ const v = 1 + foo();
 int foo() => 42;
 ''', allowErrors: true);
     checkElementText(library, r'''
-const int v = 1 +
-        foo/*location: test.dart;foo*/();
-int foo() {}
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @10
+              staticType: int
+            operator: + @0
+            rightOperand: MethodInvocation
+              argumentList: ArgumentList
+                leftParenthesis: ( @17
+                rightParenthesis: ) @18
+              methodName: SimpleIdentifier
+                staticElement: self::@function::foo
+                staticType: int Function()
+                token: foo @14
+              staticInvokeType: int Function()
+              staticType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticInvokeType: null
+            staticType: int
+    accessors
+      synthetic static get v @6
+        returnType: int
+    functions
+      foo @25
+        returnType: int
 ''');
   }
 
@@ -3251,9 +6573,35 @@ const int a = 0;
 const bool b = a + 5;
 ''', allowErrors: true);
     checkElementText(library, r'''
-const int a = 0;
-const bool b =
-        a/*location: test.dart;a?*/ + 5;
+library
+  definingUnit
+    topLevelVariables
+      static const a @10
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @14
+            staticType: int
+      static const b @28
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int
+              token: a @32
+            operator: + @0
+            rightOperand: IntegerLiteral
+              literal: 5 @36
+              staticType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticInvokeType: null
+            staticType: int
+    accessors
+      synthetic static get a @10
+        returnType: int
+      synthetic static get b @28
+        returnType: bool
 ''');
   }
 
@@ -3265,14 +6613,75 @@ class C<K, V> {
 const V = const C<int, String>.named(1, '222');
 ''');
     checkElementText(library, r'''
-class C<K, V> {
-  const C.named(K k, V v);
-}
-const C<int, String> V = const
-        C/*location: test.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>.
-        named/*location: test.dart;C;named*/(1, '222');
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant K @8
+            defaultType: dynamic
+          covariant V @11
+            defaultType: dynamic
+        constructors
+          const named @26
+            periodOffset: 25
+            nameEnd: 31
+            parameters
+              requiredPositional k @34
+                type: K
+              requiredPositional v @39
+                type: V
+    topLevelVariables
+      static const V @51
+        type: C<int, String>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 1 @82
+                  staticType: int
+                SimpleStringLiteral
+                  literal: '222' @85
+              leftParenthesis: ( @81
+              rightParenthesis: ) @90
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: ConstructorMember
+                  base: self::@class::C::@constructor::named
+                  substitution: {K: int, V: String}
+                staticType: null
+                token: named @76
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::named
+                substitution: {K: int, V: String}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @61
+                type: C<int, String>
+                typeArguments: TypeArgumentList
+                  arguments
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                        token: int @63
+                      type: int
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                        token: String @68
+                      type: String
+                  leftBracket: < @0
+                  rightBracket: > @0
+            keyword: const @55
+            staticType: C<int, String>
+    accessors
+      synthetic static get V @51
+        returnType: C<int, String>
 ''');
   }
 
@@ -3287,12 +6696,61 @@ import 'a.dart';
 const V = const C<int, String>.named(1, '222');
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const C<int, String> V = const
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>.
-        named/*location: a.dart;C;named*/(1, '222');
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const V @23
+        type: C<int, String>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 1 @54
+                  staticType: int
+                SimpleStringLiteral
+                  literal: '222' @57
+              leftParenthesis: ( @53
+              rightParenthesis: ) @62
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: ConstructorMember
+                  base: a.dart::@class::C::@constructor::named
+                  substitution: {K: int, V: String}
+                staticType: null
+                token: named @48
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::named
+                substitution: {K: int, V: String}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                  token: C @33
+                type: C<int, String>
+                typeArguments: TypeArgumentList
+                  arguments
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                        token: int @35
+                      type: int
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                        token: String @40
+                      type: String
+                  leftBracket: < @0
+                  rightBracket: > @0
+            keyword: const @27
+            staticType: C<int, String>
+    accessors
+      synthetic static get V @23
+        returnType: C<int, String>
 ''');
   }
 
@@ -3307,13 +6765,69 @@ import 'a.dart' as p;
 const V = const p.C<int, String>.named(1, '222');
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const C<int, String> V = const
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>.
-        named/*location: a.dart;C;named*/(1, '222');
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: C<int, String>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 1 @61
+                  staticType: int
+                SimpleStringLiteral
+                  literal: '222' @64
+              leftParenthesis: ( @60
+              rightParenthesis: ) @69
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: ConstructorMember
+                  base: a.dart::@class::C::@constructor::named
+                  substitution: {K: int, V: String}
+                staticType: null
+                token: named @55
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::named
+                substitution: {K: int, V: String}
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                    token: C @40
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: self::@prefix::p
+                    staticType: null
+                    token: p @38
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                type: C<int, String>
+                typeArguments: TypeArgumentList
+                  arguments
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                        token: int @42
+                      type: int
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                        token: String @47
+                      type: String
+                  leftBracket: < @0
+                  rightBracket: > @0
+            keyword: const @32
+            staticType: C<int, String>
+    accessors
+      synthetic static get V @28
+        returnType: C<int, String>
 ''');
   }
 
@@ -3325,11 +6839,40 @@ class C<K, V> {
 const V = const C();
 ''');
     checkElementText(library, r'''
-class C<K, V> {
-  const C();
-}
-const C<dynamic, dynamic> V = const
-        C/*location: test.dart;C*/();
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant K @8
+            defaultType: dynamic
+          covariant V @11
+            defaultType: dynamic
+        constructors
+          const @24
+    topLevelVariables
+      static const V @37
+        type: C<dynamic, dynamic>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::•
+                substitution: {K: dynamic, V: dynamic}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @47
+                type: C<dynamic, dynamic>
+            keyword: const @41
+            staticType: C<dynamic, dynamic>
+    accessors
+      synthetic static get V @37
+        returnType: C<dynamic, dynamic>
 ''');
   }
 
@@ -3341,13 +6884,56 @@ class C<K, V> {
 const V = const C<int, String>();
 ''');
     checkElementText(library, r'''
-class C<K, V> {
-  const C();
-}
-const C<int, String> V = const
-        C/*location: test.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>();
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant K @8
+            defaultType: dynamic
+          covariant V @11
+            defaultType: dynamic
+        constructors
+          const @24
+    topLevelVariables
+      static const V @37
+        type: C<int, String>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @61
+              rightParenthesis: ) @62
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::•
+                substitution: {K: int, V: String}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @47
+                type: C<int, String>
+                typeArguments: TypeArgumentList
+                  arguments
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                        token: int @49
+                      type: int
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                        token: String @54
+                      type: String
+                  leftBracket: < @0
+                  rightBracket: > @0
+            keyword: const @41
+            staticType: C<int, String>
+    accessors
+      synthetic static get V @37
+        returnType: C<int, String>
 ''');
   }
 
@@ -3362,11 +6948,49 @@ import 'a.dart';
 const V = const C<int, String>();
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const C<int, String> V = const
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>();
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const V @23
+        type: C<int, String>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::•
+                substitution: {K: int, V: String}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                  token: C @33
+                type: C<int, String>
+                typeArguments: TypeArgumentList
+                  arguments
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                        token: int @35
+                      type: int
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                        token: String @40
+                      type: String
+                  leftBracket: < @0
+                  rightBracket: > @0
+            keyword: const @27
+            staticType: C<int, String>
+    accessors
+      synthetic static get V @23
+        returnType: C<int, String>
 ''');
   }
 
@@ -3381,12 +7005,57 @@ import 'a.dart' as p;
 const V = const p.C<int, String>();
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const C<int, String> V = const
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/<
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>();
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: C<int, String>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @54
+              rightParenthesis: ) @55
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: a.dart::@class::C::@constructor::•
+                substitution: {K: int, V: String}
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                    token: C @40
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: self::@prefix::p
+                    staticType: null
+                    token: p @38
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                type: C<int, String>
+                typeArguments: TypeArgumentList
+                  arguments
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                        token: int @42
+                      type: int
+                    TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::String
+                        staticType: null
+                        token: String @47
+                      type: String
+                  leftBracket: < @0
+                  rightBracket: > @0
+            keyword: const @32
+            staticType: C<int, String>
+    accessors
+      synthetic static get V @28
+        returnType: C<int, String>
 ''');
   }
 
@@ -3398,14 +7067,77 @@ class C {
 const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 ''');
     checkElementText(library, r'''
-class C {
-  const C.named(bool a, int b, int c, {String d}, {double e});
-}
-const C V = const
-        C/*location: test.dart;C*/.
-        named/*location: test.dart;C;named*/(true, 1, 2,
-        d/*location: test.dart;C;named;d*/: 'ccc',
-        e/*location: test.dart;C;named;e*/: 3.4);
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const named @20
+            periodOffset: 19
+            nameEnd: 25
+            parameters
+              requiredPositional a @31
+                type: bool
+              requiredPositional b @38
+                type: int
+              requiredPositional c @45
+                type: int
+              optionalNamed d @56
+                type: String
+              optionalNamed e @66
+                type: double
+    topLevelVariables
+      static const V @79
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                BooleanLiteral
+                  literal: true @97
+                  staticType: bool
+                IntegerLiteral
+                  literal: 1 @103
+                  staticType: int
+                IntegerLiteral
+                  literal: 2 @106
+                  staticType: int
+                NamedExpression
+                  name: Label
+                    label: SimpleIdentifier
+                      staticElement: self::@class::C::@constructor::named::@parameter::d
+                      staticType: null
+                      token: d @109
+                  expression: SimpleStringLiteral
+                    literal: 'ccc' @112
+                NamedExpression
+                  name: Label
+                    label: SimpleIdentifier
+                      staticElement: self::@class::C::@constructor::named::@parameter::e
+                      staticType: null
+                      token: e @119
+                  expression: DoubleLiteral
+                    literal: 3.4 @122
+                    staticType: double
+              leftParenthesis: ( @96
+              rightParenthesis: ) @125
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: self::@class::C::@constructor::named
+                staticType: null
+                token: named @91
+              staticElement: self::@class::C::@constructor::named
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @89
+                type: C
+            keyword: const @83
+            staticType: C
+    accessors
+      synthetic static get V @79
+        returnType: C
 ''');
   }
 
@@ -3420,10 +7152,35 @@ import 'a.dart';
 const V = const C.named();
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const C V = const
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/();
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const V @23
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @40
+              rightParenthesis: ) @41
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: a.dart::@class::C::@constructor::named
+                staticType: null
+                token: named @35
+              staticElement: a.dart::@class::C::@constructor::named
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                  token: C @33
+                type: C
+            keyword: const @27
+            staticType: C
+    accessors
+      synthetic static get V @23
+        returnType: C
 ''');
   }
 
@@ -3438,11 +7195,43 @@ import 'a.dart' as p;
 const V = const p.C.named();
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const C V = const
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/();
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: a.dart::@class::C::@constructor::named
+                staticType: null
+                token: named @42
+              staticElement: a.dart::@class::C::@constructor::named
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                    token: C @40
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: self::@prefix::p
+                    staticType: null
+                    token: p @38
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                type: C
+            keyword: const @32
+            staticType: C
+    accessors
+      synthetic static get V @28
+        returnType: C
 ''');
   }
 
@@ -3452,11 +7241,37 @@ class C {}
 const V = const C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C {
-}
-const C V = const
-        C/*location: test.dart;C*/.
-        named/*location: null*/();
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const V @17
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @34
+              rightParenthesis: ) @35
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: named @29
+              staticElement: <null>
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @27
+                type: C
+            keyword: const @21
+            staticType: C
+    accessors
+      synthetic static get V @17
+        returnType: C
 ''');
   }
 
@@ -3465,9 +7280,37 @@ const C V = const
 const V = const C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = const
-        C/*location: null*/.
-        named/*location: null*/();
+library
+  definingUnit
+    topLevelVariables
+      static const V @6
+        type: dynamic
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @23
+              rightParenthesis: ) @24
+            constructorName: ConstructorName
+              staticElement: <null>
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: named @18
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: C @16
+                  staticElement: <null>
+                  staticType: null
+                type: dynamic
+            keyword: const @10
+            staticType: dynamic
+    accessors
+      synthetic static get V @6
+        returnType: dynamic
 ''');
   }
 
@@ -3481,11 +7324,43 @@ import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-import 'a.dart' as p;
-const C V = const
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        named/*location: null*/();
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: named @42
+              staticElement: <null>
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                    token: C @40
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: self::@prefix::p
+                    staticType: null
+                    token: p @38
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                type: C
+            keyword: const @32
+            staticType: C
+    accessors
+      synthetic static get V @28
+        returnType: C
 ''');
   }
 
@@ -3496,11 +7371,43 @@ import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        p/*location: test.dart;p*/.
-        C/*location: null*/.
-        named/*location: null*/();
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: dynamic
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @47
+              rightParenthesis: ) @48
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: named @42
+              staticElement: <null>
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: C @40
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: self::@prefix::p
+                    staticType: null
+                    token: p @38
+                  staticElement: <null>
+                  staticType: null
+                type: dynamic
+            keyword: const @32
+            staticType: dynamic
+    accessors
+      synthetic static get V @28
+        returnType: dynamic
 ''');
   }
 
@@ -3509,10 +7416,41 @@ const dynamic V = const
 const V = const p.C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = const
-        p/*location: null*/.
-        C/*location: null*/.
-        named/*location: null*/();
+library
+  definingUnit
+    topLevelVariables
+      static const V @6
+        type: dynamic
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @25
+              rightParenthesis: ) @26
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: named @20
+              staticElement: <null>
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: C @18
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: p @16
+                  staticElement: <null>
+                  staticType: null
+                type: dynamic
+            keyword: const @10
+            staticType: dynamic
+    accessors
+      synthetic static get V @6
+        returnType: dynamic
 ''');
   }
 
@@ -3522,11 +7460,40 @@ class C<T> {}
 const V = const C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C<T> {
-}
-const C<dynamic> V = const
-        C/*location: test.dart;C*/.
-        named/*location: null*/();
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const V @20
+        type: C<dynamic>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @37
+              rightParenthesis: ) @38
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: named @32
+              staticElement: <null>
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @30
+                type: C<dynamic>
+            keyword: const @24
+            staticType: C<dynamic>
+    accessors
+      synthetic static get V @20
+        returnType: C<dynamic>
 ''');
   }
 
@@ -3538,11 +7505,33 @@ class C {
 const V = const C();
 ''');
     checkElementText(library, r'''
-class C {
-  const C();
-}
-const C V = const
-        C/*location: test.dart;C*/();
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const @18
+    topLevelVariables
+      static const V @31
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @42
+              rightParenthesis: ) @43
+            constructorName: ConstructorName
+              staticElement: self::@class::C::@constructor::•
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @41
+                type: C
+            keyword: const @35
+            staticType: C
+    accessors
+      synthetic static get V @31
+        returnType: C
 ''');
   }
 
@@ -3557,9 +7546,31 @@ import 'a.dart';
 const V = const C();
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const C V = const
-        C/*location: a.dart;C*/();
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const V @23
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @34
+              rightParenthesis: ) @35
+            constructorName: ConstructorName
+              staticElement: a.dart::@class::C::@constructor::•
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                  token: C @33
+                type: C
+            keyword: const @27
+            staticType: C
+    accessors
+      synthetic static get V @23
+        returnType: C
 ''');
   }
 
@@ -3574,10 +7585,39 @@ import 'a.dart' as p;
 const V = const p.C();
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const C V = const
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/();
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @41
+              rightParenthesis: ) @42
+            constructorName: ConstructorName
+              staticElement: a.dart::@class::C::@constructor::•
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                    token: C @40
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: self::@prefix::p
+                    staticType: null
+                    token: p @38
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                type: C
+            keyword: const @32
+            staticType: C
+    accessors
+      synthetic static get V @28
+        returnType: C
 ''');
   }
 
@@ -3586,8 +7626,29 @@ const C V = const
 const V = const C();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = const
-        C/*location: null*/();
+library
+  definingUnit
+    topLevelVariables
+      static const V @6
+        type: dynamic
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @17
+              rightParenthesis: ) @18
+            constructorName: ConstructorName
+              staticElement: <null>
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: <null>
+                  staticType: null
+                  token: C @16
+                type: dynamic
+            keyword: const @10
+            staticType: dynamic
+    accessors
+      synthetic static get V @6
+        returnType: dynamic
 ''');
   }
 
@@ -3598,10 +7659,39 @@ import 'a.dart' as p;
 const V = const p.C();
 ''', allowErrors: true);
     checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic V = const
-        p/*location: test.dart;p*/.
-        C/*location: null*/();
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: dynamic
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @41
+              rightParenthesis: ) @42
+            constructorName: ConstructorName
+              staticElement: <null>
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: C @40
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: self::@prefix::p
+                    staticType: null
+                    token: p @38
+                  staticElement: <null>
+                  staticType: null
+                type: dynamic
+            keyword: const @32
+            staticType: dynamic
+    accessors
+      synthetic static get V @28
+        returnType: dynamic
 ''');
   }
 
@@ -3610,9 +7700,37 @@ const dynamic V = const
 const V = const p.C();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = const
-        p/*location: null*/.
-        C/*location: null*/();
+library
+  definingUnit
+    topLevelVariables
+      static const V @6
+        type: dynamic
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @19
+              rightParenthesis: ) @20
+            constructorName: ConstructorName
+              staticElement: <null>
+              type: TypeName
+                name: PrefixedIdentifier
+                  identifier: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: C @18
+                  period: . @0
+                  prefix: SimpleIdentifier
+                    staticElement: <null>
+                    staticType: null
+                    token: p @16
+                  staticElement: <null>
+                  staticType: null
+                type: dynamic
+            keyword: const @10
+            staticType: dynamic
+    accessors
+      synthetic static get V @6
+        returnType: dynamic
 ''');
   }
 
@@ -3621,11 +7739,37 @@ const dynamic V = const
 const a = 0;
 const b = a is int;
 ''');
-    checkElementText(library, '''
-const int a = 0;
-const bool b =
-        a/*location: test.dart;a?*/ is
-        int/*location: dart:core;int*/;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: bool
+        constantInitializer
+          IsExpression
+            expression: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int
+              token: a @23
+            isOperator: is @0
+            staticType: bool
+            type: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::int
+                staticType: null
+                token: int @28
+              type: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+      synthetic static get b @19
+        returnType: bool
 ''');
   }
 
@@ -3637,13 +7781,47 @@ class C {
 const int v = C.F.length;
 ''');
     checkElementText(library, r'''
-class C {
-  static const String F = '';
-}
-const int v =
-        C/*location: test.dart;C*/.
-        F/*location: test.dart;C;F?*/.
-        length/*location: dart:core;String;length?*/;
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const F @32
+            type: String
+            constantInitializer
+              SimpleStringLiteral
+                literal: '' @36
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get F @32
+            returnType: String
+    topLevelVariables
+      static const v @52
+        type: int
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @60
+            staticType: int
+            target: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: self::@class::C::@getter::F
+                staticType: String
+                token: F @58
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@class::C
+                staticType: null
+                token: C @56
+              staticElement: self::@class::C::@getter::F
+              staticType: String
+    accessors
+      synthetic static get v @52
+        returnType: int
 ''');
   }
 
@@ -3658,11 +7836,36 @@ import 'a.dart';
 const int v = C.F.length;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const int v =
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/.
-        length/*location: dart:core;String;length?*/;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const v @27
+        type: int
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @35
+            staticType: int
+            target: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: a.dart::@class::C::@getter::F
+                staticType: String
+                token: F @33
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: a.dart::@class::C
+                staticType: null
+                token: C @31
+              staticElement: a.dart::@class::C::@getter::F
+              staticType: String
+    accessors
+      synthetic static get v @27
+        returnType: int
 ''');
   }
 
@@ -3677,12 +7880,43 @@ import 'a.dart' as p;
 const int v = p.C.F.length;
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const int v =
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/.
-        length/*location: dart:core;String;length?*/;
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const v @32
+        type: int
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @42
+            staticType: int
+            target: PropertyAccess
+              operator: . @0
+              propertyName: SimpleIdentifier
+                staticElement: a.dart::@class::C::@getter::F
+                staticType: String
+                token: F @40
+              staticType: String
+              target: PrefixedIdentifier
+                identifier: SimpleIdentifier
+                  staticElement: a.dart::@class::C
+                  staticType: null
+                  token: C @38
+                period: . @0
+                prefix: SimpleIdentifier
+                  staticElement: self::@prefix::p
+                  staticType: null
+                  token: p @36
+                staticElement: a.dart::@class::C
+                staticType: null
+    accessors
+      synthetic static get v @32
+        returnType: int
 ''');
   }
 
@@ -3691,8 +7925,24 @@ const int v =
 const v = 'abc'.length;
 ''');
     checkElementText(library, r'''
-const int v = 'abc'.
-        length/*location: dart:core;String;length?*/;
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: int
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @16
+            staticType: int
+            target: SimpleStringLiteral
+              literal: 'abc' @10
+    accessors
+      synthetic static get v @6
+        returnType: int
 ''');
   }
 
@@ -3702,10 +7952,34 @@ const String S = 'abc';
 const v = S.length;
 ''');
     checkElementText(library, r'''
-const String S = 'abc';
-const int v =
-        S/*location: test.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
+library
+  definingUnit
+    topLevelVariables
+      static const S @13
+        type: String
+        constantInitializer
+          SimpleStringLiteral
+            literal: 'abc' @17
+      static const v @30
+        type: int
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @36
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@getter::S
+              staticType: String
+              token: S @34
+            staticElement: dart:core::@class::String::@getter::length
+            staticType: int
+    accessors
+      synthetic static get S @13
+        returnType: String
+      synthetic static get v @30
+        returnType: int
 ''');
   }
 
@@ -3718,10 +7992,29 @@ import 'a.dart';
 const v = S.length;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const int v =
-        S/*location: a.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const v @23
+        type: int
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @29
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: a.dart::@getter::S
+              staticType: String
+              token: S @27
+            staticElement: dart:core::@class::String::@getter::length
+            staticType: int
+    accessors
+      synthetic static get v @23
+        returnType: int
 ''');
   }
 
@@ -3734,11 +8027,36 @@ import 'a.dart' as p;
 const v = p.S.length;
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const int v =
-        p/*location: test.dart;p*/.
-        S/*location: a.dart;S?*/.
-        length/*location: dart:core;String;length?*/;
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const v @28
+        type: int
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @36
+            staticType: int
+            target: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: a.dart::@getter::S
+                staticType: String
+                token: S @34
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::p
+                staticType: null
+                token: p @32
+              staticElement: a.dart::@getter::S
+              staticType: String
+    accessors
+      synthetic static get v @28
+        returnType: int
 ''');
   }
 
@@ -3750,12 +8068,34 @@ class C {
 const v = C.length;
 ''');
     checkElementText(library, r'''
-class C {
-  static int length() {}
-}
-const int Function() v =
-        C/*location: test.dart;C*/.
-        length/*location: test.dart;C;length*/;
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          static length @23
+            returnType: int
+    topLevelVariables
+      static const v @47
+        type: int Function()
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: self::@class::C::@method::length
+              staticType: int Function()
+              token: length @53
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@class::C
+              staticType: null
+              token: C @51
+            staticElement: self::@class::C::@method::length
+            staticType: int Function()
+    accessors
+      synthetic static get v @47
+        returnType: int Function()
 ''');
   }
 
@@ -3763,26 +8103,83 @@ const int Function() v =
     var library = await checkLibrary('''
 const Object x = const <int>[if (true) 1];
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/>[if (true) 1];
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              IfElement
+                condition: BooleanLiteral
+                  literal: true @33
+                  staticType: bool
+                thenStatement: IntegerLiteral
+                  literal: 1 @39
+                  staticType: int
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_list_if_else() async {
     var library = await checkLibrary('''
 const Object x = const <int>[if (true) 1 else 2];
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/>[if (true) 1 else 2];
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              IfElement
+                condition: BooleanLiteral
+                  literal: true @33
+                  staticType: bool
+                elseStatement: IntegerLiteral
+                  literal: 2 @46
+                  staticType: int
+                thenStatement: IntegerLiteral
+                  literal: 1 @39
+                  staticType: int
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_list_inferredType() async {
@@ -3792,54 +8189,181 @@ const Object x = const <
     var library = await checkLibrary('''
 const Object x = const [1];
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const /*typeArgs=int*/[1];
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              IntegerLiteral
+                literal: 1 @24
+                staticType: int
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_list_spread() async {
     var library = await checkLibrary('''
 const Object x = const <int>[...<int>[1]];
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/>[...<
-        int/*location: dart:core;int*/>[1]];
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              SpreadElement
+                expressions: ListLiteral
+                  elements
+                    IntegerLiteral
+                      literal: 1 @38
+                      staticType: int
+                  leftBracket: [ @0
+                  rightBracket: ] @0
+                  staticType: List<int>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @33
+                        type: int
+                    leftBracket: < @0
+                    rightBracket: > @0
+                spreadOperator: ... @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_list_spread_null_aware() async {
     var library = await checkLibrary('''
 const Object x = const <int>[...?<int>[1]];
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/>[...?<
-        int/*location: dart:core;int*/>[1]];
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              SpreadElement
+                expressions: ListLiteral
+                  elements
+                    IntegerLiteral
+                      literal: 1 @39
+                      staticType: int
+                  leftBracket: [ @0
+                  rightBracket: ] @0
+                  staticType: List<int>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @34
+                        type: int
+                    leftBracket: < @0
+                    rightBracket: > @0
+                spreadOperator: ...? @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_map_if() async {
     var library = await checkLibrary('''
 const Object x = const <int, int>{if (true) 1: 2};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/,
-        int/*location: dart:core;int*/>{if (true) 1: 2}/*isMap*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              IfElement
+                condition: BooleanLiteral
+                  literal: true @38
+                  staticType: bool
+                thenStatement: SetOrMapLiteral
+                  key: IntegerLiteral
+                    literal: 1 @44
+                    staticType: int
+                  value: IntegerLiteral
+                    literal: 2 @47
+                    staticType: int
+            isMap: true
+            staticType: Map<int, int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @29
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
@@ -3847,14 +8371,11 @@ const Object x = const <
     var library = await checkLibrary('''
 const Object x = const <int, int>{if (true) 1: 2 else 3: 4];
 ''');
-    checkElementText(
-        library,
-        '''
+    checkElementText(library, r'''
 const Object x = const <
         int/*location: dart:core;int*/,
         int/*location: dart:core;int*/>{if (true) 1: 2 else 3: 4}/*isMap*/;
-''',
-        withTypes: true);
+''');
   }
 
   test_const_map_inferredType() async {
@@ -3864,86 +8385,216 @@ const Object x = const <
     var library = await checkLibrary('''
 const Object x = const {1: 1.0};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const /*typeArgs=int,double*/{1: 1.0}/*isMap*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              SetOrMapLiteral
+                key: IntegerLiteral
+                  literal: 1 @24
+                  staticType: int
+                value: DoubleLiteral
+                  literal: 1.0 @27
+                  staticType: double
+            isMap: true
+            staticType: Map<int, double>
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_map_spread() async {
     var library = await checkLibrary('''
 const Object x = const <int, int>{...<int, int>{1: 2}};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/,
-        int/*location: dart:core;int*/>{...<
-        int/*location: dart:core;int*/,
-        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              SpreadElement
+                expressions: SetOrMapLiteral
+                  elements
+                    SetOrMapLiteral
+                      key: IntegerLiteral
+                        literal: 1 @48
+                        staticType: int
+                      value: IntegerLiteral
+                        literal: 2 @51
+                        staticType: int
+                  isMap: true
+                  staticType: Map<int, int>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @38
+                        type: int
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @43
+                        type: int
+                    leftBracket: < @0
+                    rightBracket: > @0
+                spreadOperator: ... @0
+            isMap: true
+            staticType: Map<int, int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @29
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_map_spread_null_aware() async {
     var library = await checkLibrary('''
 const Object x = const <int, int>{...?<int, int>{1: 2}};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/,
-        int/*location: dart:core;int*/>{...?<
-        int/*location: dart:core;int*/,
-        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              SpreadElement
+                expressions: SetOrMapLiteral
+                  elements
+                    SetOrMapLiteral
+                      key: IntegerLiteral
+                        literal: 1 @49
+                        staticType: int
+                      value: IntegerLiteral
+                        literal: 2 @52
+                        staticType: int
+                  isMap: true
+                  staticType: Map<int, int>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @39
+                        type: int
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @44
+                        type: int
+                    leftBracket: < @0
+                    rightBracket: > @0
+                spreadOperator: ...? @0
+            isMap: true
+            staticType: Map<int, int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @29
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
+  /// TODO(scheglov) review location
   test_const_methodInvocation() async {
     var library = await checkLibrary(r'''
 T f<T>(T a) => a;
 const b = f<int>(0);
 ''');
-    checkElementText(
-      library,
-      r'''
-const int b;
-  constantInitializer
-    MethodInvocation
-      argumentList: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const b @24
+        type: int
+        constantInitializer
+          MethodInvocation
+            argumentList: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @35
+                  staticType: int
+              leftParenthesis: ( @34
+              rightParenthesis: ) @36
+            methodName: SimpleIdentifier
+              staticElement: self::@function::f
+              staticType: T Function<T>(T)
+              token: f @28
+            staticInvokeType: int Function(int)
             staticType: int
-      methodName: SimpleIdentifier
-        staticElement: self::@function::f
-        staticType: T Function<T>(T)
-        token: f
-      staticInvokeType: int Function(int)
-      staticType: int
-      typeArgumentTypes
-        int
-      typeArguments: TypeArgumentList
-        arguments
-          TypeName
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::int
-              staticType: null
-              token: int
-            type: int
-T f(T a) {}
-  typeParameters
-    T
-      bound: null
-      defaultType: null
-''',
-      withResolvedAst: true,
-    );
+            typeArgumentTypes
+              int
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @30
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get b @24
+        returnType: int
+    functions
+      f @2
+        typeParameters
+          covariant T @4
+        parameters
+          requiredPositional a @9
+            type: T
+        returnType: T
+''');
   }
 
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
@@ -3955,12 +8606,29 @@ class C {
 int foo() => 42;
 ''');
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C({final dynamic this.x:
-        foo/*location: test.dart;foo*/});
-}
-int foo() {}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          const @29
+            parameters
+              optionalNamed final this.x @37
+                type: dynamic
+                constantInitializer
+                  SimpleIdentifier
+                    staticElement: self::@function::foo
+                    staticType: int Function()
+                    token: foo @-1
+        accessors
+          synthetic get x @18
+            returnType: dynamic
+    functions
+      foo @53
+        returnType: int
 ''');
   }
 
@@ -3972,10 +8640,33 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C({final dynamic this.x: 1 + 2});
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          const @29
+            parameters
+              optionalNamed final this.x @37
+                type: dynamic
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    operator: + @0
+                    rightOperand: IntegerLiteral
+                      literal: 2 @0
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: null
+                    staticType: int
+        accessors
+          synthetic get x @18
+            returnType: dynamic
 ''');
   }
 
@@ -3987,10 +8678,33 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C([final dynamic this.x = 1 + 2]);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          const @29
+            parameters
+              optionalPositional final this.x @37
+                type: dynamic
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    operator: + @0
+                    rightOperand: IntegerLiteral
+                      literal: 2 @0
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: null
+                    staticType: int
+        accessors
+          synthetic get x @18
+            returnType: dynamic
 ''');
   }
 
@@ -4006,14 +8720,92 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C.positional([dynamic p = 1 + 2]);
-  const C.named({dynamic p: 1 + 2});
-  void methodPositional([dynamic p = 1 + 2]) {}
-  void methodPositionalWithoutDefault([dynamic p]) {}
-  void methodNamed({dynamic p: 1 + 2}) {}
-  void methodNamedWithoutDefault({dynamic p}) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const positional @20
+            periodOffset: 19
+            nameEnd: 30
+            parameters
+              optionalPositional p @32
+                type: dynamic
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    operator: + @0
+                    rightOperand: IntegerLiteral
+                      literal: 2 @0
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: null
+                    staticType: int
+          const named @55
+            periodOffset: 54
+            nameEnd: 60
+            parameters
+              optionalNamed p @62
+                type: dynamic
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    operator: + @0
+                    rightOperand: IntegerLiteral
+                      literal: 2 @0
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: null
+                    staticType: int
+        methods
+          methodPositional @81
+            parameters
+              optionalPositional p @99
+                type: dynamic
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    operator: + @0
+                    rightOperand: IntegerLiteral
+                      literal: 2 @0
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: null
+                    staticType: int
+            returnType: void
+          methodPositionalWithoutDefault @121
+            parameters
+              optionalPositional p @153
+                type: dynamic
+            returnType: void
+          methodNamed @167
+            parameters
+              optionalNamed p @180
+                type: dynamic
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    operator: + @0
+                    rightOperand: IntegerLiteral
+                      literal: 2 @0
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: null
+                    staticType: int
+            returnType: void
+          methodNamedWithoutDefault @201
+            parameters
+              optionalNamed p @228
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -4022,31 +8814,37 @@ class C {
 const a = 0;
 const b = a++;
 ''');
-    checkElementText(
-      library,
-      r'''
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-const int b;
-  constantInitializer
-    PostfixExpression
-      operand: SimpleIdentifier
-        staticElement: <null>
-        staticType: null
-        token: a
-      operator: ++
-      readElement: self::@getter::a
-      readType: int
-      staticElement: dart:core::@class::num::@method::+
-      staticType: int
-      writeElement: self::@getter::a
-      writeType: dynamic
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: int
+        constantInitializer
+          PostfixExpression
+            operand: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: a @23
+            operator: ++ @0
+            readElement: self::@getter::a
+            readType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticType: int
+            writeElement: self::@getter::a
+            writeType: dynamic
+    accessors
+      synthetic static get a @6
+        returnType: int
+      synthetic static get b @19
+        returnType: int
+''');
   }
 
   test_const_postfixExpression_nullCheck() async {
@@ -4054,27 +8852,33 @@ const int b;
 const int? a = 0;
 const b = a!;
 ''');
-    checkElementText(
-      library,
-      r'''
-const int? a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-const int b;
-  constantInitializer
-    PostfixExpression
-      operand: SimpleIdentifier
-        staticElement: self::@getter::a
-        staticType: int?
-        token: a
-      operator: !
-      staticElement: <null>
-      staticType: int
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @11
+        type: int?
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @15
+            staticType: int
+      static const b @24
+        type: int
+        constantInitializer
+          PostfixExpression
+            operand: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int?
+              token: a @28
+            operator: ! @0
+            staticElement: <null>
+            staticType: int
+    accessors
+      synthetic static get a @11
+        returnType: int?
+      synthetic static get b @24
+        returnType: int
+''');
   }
 
   test_const_prefixExpression_class_unaryMinus() async {
@@ -4082,27 +8886,33 @@ const int b;
 const a = 0;
 const b = -a;
 ''');
-    checkElementText(
-      library,
-      r'''
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-const int b;
-  constantInitializer
-    PrefixExpression
-      operand: SimpleIdentifier
-        staticElement: self::@getter::a
-        staticType: int
-        token: a
-      operator: -
-      staticElement: dart:core::@class::int::@method::unary-
-      staticType: int
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: int
+        constantInitializer
+          PrefixExpression
+            operand: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int
+              token: a @24
+            operator: - @23
+            staticElement: dart:core::@class::int::@method::unary-
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+      synthetic static get b @19
+        returnType: int
+''');
   }
 
   test_const_prefixExpression_extension_unaryMinus() async {
@@ -4117,23 +8927,27 @@ const a = const Object();
 import 'a.dart';
 const b = -a;
 ''');
-    checkElementText(
-      library,
-      r'''
-import 'package:test/a.dart';
-const int b;
-  constantInitializer
-    PrefixExpression
-      operand: SimpleIdentifier
-        staticElement: package:test/a.dart::@getter::a
-        staticType: Object
-        token: a
-      operator: -
-      staticElement: package:test/a.dart::@extension::E::@method::unary-
-      staticType: int
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    topLevelVariables
+      static const b @23
+        type: int
+        constantInitializer
+          PrefixExpression
+            operand: SimpleIdentifier
+              staticElement: package:test/a.dart::@getter::a
+              staticType: Object
+              token: a @28
+            operator: - @27
+            staticElement: package:test/a.dart::@extension::E::@method::unary-
+            staticType: int
+    accessors
+      synthetic static get b @23
+        returnType: int
+''');
   }
 
   test_const_prefixExpression_increment() async {
@@ -4141,31 +8955,37 @@ const int b;
 const a = 0;
 const b = ++a;
 ''');
-    checkElementText(
-      library,
-      r'''
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-const int b;
-  constantInitializer
-    PrefixExpression
-      operand: SimpleIdentifier
-        staticElement: <null>
-        staticType: null
-        token: a
-      operator: ++
-      readElement: self::@getter::a
-      readType: int
-      staticElement: dart:core::@class::num::@method::+
-      staticType: int
-      writeElement: self::@getter::a
-      writeType: dynamic
-''',
-      withResolvedAst: true,
-    );
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: int
+        constantInitializer
+          PrefixExpression
+            operand: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: a @25
+            operator: ++ @23
+            readElement: self::@getter::a
+            readType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticType: int
+            writeElement: self::@getter::a
+            writeType: dynamic
+    accessors
+      synthetic static get a @6
+        returnType: int
+      synthetic static get b @19
+        returnType: int
+''');
   }
 
   test_const_reference_staticField() async {
@@ -4176,12 +8996,41 @@ class C {
 const V = C.F;
 ''');
     checkElementText(library, r'''
-class C {
-  static const int F = 42;
-}
-const int V =
-        C/*location: test.dart;C*/.
-        F/*location: test.dart;C;F?*/;
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const F @29
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 42 @33
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get F @29
+            returnType: int
+    topLevelVariables
+      static const V @45
+        type: int
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: self::@class::C::@getter::F
+              staticType: int
+              token: F @51
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@class::C
+              staticType: null
+              token: C @49
+            staticElement: self::@class::C::@getter::F
+            staticType: int
+    accessors
+      synthetic static get V @45
+        returnType: int
 ''');
   }
 
@@ -4196,10 +9045,29 @@ import 'a.dart';
 const V = C.F;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const int V =
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const V @23
+        type: int
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: a.dart::@class::C::@getter::F
+              staticType: int
+              token: F @29
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: a.dart::@class::C
+              staticType: null
+              token: C @27
+            staticElement: a.dart::@class::C::@getter::F
+            staticType: int
+    accessors
+      synthetic static get V @23
+        returnType: int
 ''');
   }
 
@@ -4214,11 +9082,36 @@ import 'a.dart' as p;
 const V = p.C.F;
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const int V =
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        F/*location: a.dart;C;F?*/;
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: int
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: a.dart::@class::C::@getter::F
+              staticType: int
+              token: F @36
+            staticType: int
+            target: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: a.dart::@class::C
+                staticType: null
+                token: C @34
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::p
+                staticType: null
+                token: p @32
+              staticElement: a.dart::@class::C
+              staticType: null
+    accessors
+      synthetic static get V @28
+        returnType: int
 ''');
   }
 
@@ -4230,12 +9123,39 @@ class C {
 const V = C.m;
 ''');
     checkElementText(library, r'''
-class C {
-  static int m(int a, String b) {}
-}
-const int Function(int, String) V =
-        C/*location: test.dart;C*/.
-        m/*location: test.dart;C;m*/;
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          static m @23
+            parameters
+              requiredPositional a @29
+                type: int
+              requiredPositional b @39
+                type: String
+            returnType: int
+    topLevelVariables
+      static const V @57
+        type: int Function(int, String)
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: self::@class::C::@method::m
+              staticType: int Function(int, String)
+              token: m @63
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@class::C
+              staticType: null
+              token: C @61
+            staticElement: self::@class::C::@method::m
+            staticType: int Function(int, String)
+    accessors
+      synthetic static get V @57
+        returnType: int Function(int, String)
 ''');
   }
 
@@ -4250,10 +9170,29 @@ import 'a.dart';
 const V = C.m;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const int Function(int, String) V =
-        C/*location: a.dart;C*/.
-        m/*location: a.dart;C;m*/;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const V @23
+        type: int Function(int, String)
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: a.dart::@class::C::@method::m
+              staticType: int Function(int, String)
+              token: m @29
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: a.dart::@class::C
+              staticType: null
+              token: C @27
+            staticElement: a.dart::@class::C::@method::m
+            staticType: int Function(int, String)
+    accessors
+      synthetic static get V @23
+        returnType: int Function(int, String)
 ''');
   }
 
@@ -4268,11 +9207,36 @@ import 'a.dart' as p;
 const V = p.C.m;
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const int Function(int, String) V =
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/.
-        m/*location: a.dart;C;m*/;
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: int Function(int, String)
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: a.dart::@class::C::@method::m
+              staticType: int Function(int, String)
+              token: m @36
+            staticType: int Function(int, String)
+            target: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: a.dart::@class::C
+                staticType: null
+                token: C @34
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::p
+                staticType: null
+                token: p @32
+              staticElement: a.dart::@class::C
+              staticType: null
+    accessors
+      synthetic static get V @28
+        returnType: int Function(int, String)
 ''');
   }
 
@@ -4285,14 +9249,37 @@ extension E on A {
 const x = E.f;
 ''');
     checkElementText(library, r'''
-class A {
-}
-extension E on A {
-  static void f() {}
-}
-const void Function() x =
-        E/*location: test.dart;E*/.
-        f/*location: test.dart;E;f*/;
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+    extensions
+      E @21
+        extendedType: A
+        methods
+          static f @44
+            returnType: void
+    topLevelVariables
+      static const x @59
+        type: void Function()
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: self::@extension::E::@method::f
+              staticType: void Function()
+              token: f @65
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@extension::E
+              staticType: null
+              token: E @63
+            staticElement: self::@extension::E::@method::f
+            staticType: void Function()
+    accessors
+      synthetic static get x @59
+        returnType: void Function()
 ''');
   }
 
@@ -4302,9 +9289,22 @@ foo() {}
 const V = foo;
 ''');
     checkElementText(library, r'''
-const dynamic Function() V =
-        foo/*location: test.dart;foo*/;
-dynamic foo() {}
+library
+  definingUnit
+    topLevelVariables
+      static const V @15
+        type: dynamic Function()
+        constantInitializer
+          SimpleIdentifier
+            staticElement: self::@function::foo
+            staticType: dynamic Function()
+            token: foo @19
+    accessors
+      synthetic static get V @15
+        returnType: dynamic Function()
+    functions
+      foo @0
+        returnType: dynamic
 ''');
   }
 
@@ -4314,9 +9314,28 @@ R foo<P, R>(P p) {}
 const V = foo;
 ''');
     checkElementText(library, r'''
-const R Function<P, R>(P) V =
-        foo/*location: test.dart;foo*/;
-R foo<P, R>(P p) {}
+library
+  definingUnit
+    topLevelVariables
+      static const V @26
+        type: R Function<P, R>(P)
+        constantInitializer
+          SimpleIdentifier
+            staticElement: self::@function::foo
+            staticType: R Function<P, R>(P)
+            token: foo @30
+    accessors
+      synthetic static get V @26
+        returnType: R Function<P, R>(P)
+    functions
+      foo @2
+        typeParameters
+          covariant P @6
+          covariant R @9
+        parameters
+          requiredPositional p @14
+            type: P
+        returnType: R
 ''');
   }
 
@@ -4329,9 +9348,21 @@ import 'a.dart';
 const V = foo;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const dynamic Function() V =
-        foo/*location: a.dart;foo*/;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const V @23
+        type: dynamic Function()
+        constantInitializer
+          SimpleIdentifier
+            staticElement: a.dart::@function::foo
+            staticType: dynamic Function()
+            token: foo @27
+    accessors
+      synthetic static get V @23
+        returnType: dynamic Function()
 ''');
   }
 
@@ -4344,10 +9375,29 @@ import 'a.dart' as p;
 const V = p.foo;
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const dynamic Function() V =
-        p/*location: test.dart;p*/.
-        foo/*location: a.dart;foo*/;
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const V @28
+        type: dynamic Function()
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: a.dart::@function::foo
+              staticType: dynamic Function()
+              token: foo @34
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@prefix::p
+              staticType: null
+              token: p @32
+            staticElement: a.dart::@function::foo
+            staticType: dynamic Function()
+    accessors
+      synthetic static get V @28
+        returnType: dynamic Function()
 ''');
   }
 
@@ -4357,9 +9407,35 @@ const A = 1;
 const B = A + 2;
 ''');
     checkElementText(library, r'''
-const int A = 1;
-const int B =
-        A/*location: test.dart;A?*/ + 2;
+library
+  definingUnit
+    topLevelVariables
+      static const A @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 1 @10
+            staticType: int
+      static const B @19
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: SimpleIdentifier
+              staticElement: self::@getter::A
+              staticType: int
+              token: A @23
+            operator: + @0
+            rightOperand: IntegerLiteral
+              literal: 2 @27
+              staticType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticInvokeType: null
+            staticType: int
+    accessors
+      synthetic static get A @6
+        returnType: int
+      synthetic static get B @19
+        returnType: int
 ''');
   }
 
@@ -4372,9 +9448,29 @@ import 'a.dart';
 const B = A + 2;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const int B =
-        A/*location: a.dart;A?*/ + 2;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const B @23
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: SimpleIdentifier
+              staticElement: a.dart::@getter::A
+              staticType: int
+              token: A @27
+            operator: + @0
+            rightOperand: IntegerLiteral
+              literal: 2 @31
+              staticType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticInvokeType: null
+            staticType: int
+    accessors
+      synthetic static get B @23
+        returnType: int
 ''');
   }
 
@@ -4387,10 +9483,37 @@ import 'a.dart' as p;
 const B = p.A + 2;
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const int B =
-        p/*location: test.dart;p*/.
-        A/*location: a.dart;A?*/ + 2;
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const B @28
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: a.dart::@getter::A
+                staticType: int
+                token: A @34
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::p
+                staticType: null
+                token: p @32
+              staticElement: a.dart::@getter::A
+              staticType: int
+            operator: + @0
+            rightOperand: IntegerLiteral
+              literal: 2 @38
+              staticType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticInvokeType: null
+            staticType: int
+    accessors
+      synthetic static get B @28
+        returnType: int
 ''');
   }
 
@@ -4409,33 +9532,120 @@ const vEnum = E;
 const vFunctionTypeAlias = F;
 ''');
     checkElementText(library, r'''
-typedef F = dynamic Function(int a, String b);
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  static const E b;
-  static const E c;
-  String toString() {}
-}
-class C {
-}
-class D<T> {
-}
-const Type vDynamic =
-        dynamic/*location: dynamic*/;
-const Type vNull =
-        Null/*location: dart:core;Null*/;
-const Type vObject =
-        Object/*location: dart:core;Object*/;
-const Type vClass =
-        C/*location: test.dart;C*/;
-const Type vGenericClass =
-        D/*location: test.dart;D*/;
-const Type vEnum =
-        E/*location: test.dart;E*/;
-const Type vFunctionTypeAlias =
-        F/*location: test.dart;F*/;
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+      class D @17
+        typeParameters
+          covariant T @19
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    enums
+      enum E @30
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @33
+            type: E
+          static const b @36
+            type: E
+          static const c @39
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+          synthetic static get c @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    typeAliases
+      functionTypeAliasBased F @50
+        aliasedType: dynamic Function(int, String)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: int
+            requiredPositional b @-1
+              type: String
+          returnType: dynamic
+    topLevelVariables
+      static const vDynamic @76
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: dynamic@-1
+            staticType: Type
+            token: dynamic @87
+      static const vNull @102
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: dart:core::@class::Null
+            staticType: Type
+            token: Null @110
+      static const vObject @122
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: dart:core::@class::Object
+            staticType: Type
+            token: Object @132
+      static const vClass @146
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: self::@class::C
+            staticType: Type
+            token: C @155
+      static const vGenericClass @164
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: self::@class::D
+            staticType: Type
+            token: D @180
+      static const vEnum @189
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: self::@enum::E
+            staticType: Type
+            token: E @197
+      static const vFunctionTypeAlias @206
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: self::@typeAlias::F
+            staticType: Type
+            token: F @227
+    accessors
+      synthetic static get vDynamic @76
+        returnType: Type
+      synthetic static get vNull @102
+        returnType: Type
+      synthetic static get vObject @122
+        returnType: Type
+      synthetic static get vClass @146
+        returnType: Type
+      synthetic static get vGenericClass @164
+        returnType: Type
+      synthetic static get vEnum @189
+        returnType: Type
+      synthetic static get vFunctionTypeAlias @206
+        returnType: Type
 ''');
   }
 
@@ -4447,10 +9657,23 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-typedef F = dynamic Function();
-class C {
-  final List<dynamic Function()> f;
-}
+library
+  definingUnit
+    classes
+      class C @19
+        fields
+          final f @31
+            type: List<dynamic Function()>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @31
+            returnType: List<dynamic Function()>
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
 ''');
   }
 
@@ -4467,13 +9690,39 @@ const vEnum = E;
 const vFunctionTypeAlias = F;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const Type vClass =
-        C/*location: a.dart;C*/;
-const Type vEnum =
-        E/*location: a.dart;E*/;
-const Type vFunctionTypeAlias =
-        F/*location: a.dart;F*/;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const vClass @23
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: a.dart::@class::C
+            staticType: Type
+            token: C @32
+      static const vEnum @41
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: a.dart::@enum::E
+            staticType: Type
+            token: E @49
+      static const vFunctionTypeAlias @58
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: a.dart::@typeAlias::F
+            staticType: Type
+            token: F @79
+    accessors
+      synthetic static get vClass @23
+        returnType: Type
+      synthetic static get vEnum @41
+        returnType: Type
+      synthetic static get vFunctionTypeAlias @58
+        returnType: Type
 ''');
   }
 
@@ -4490,16 +9739,63 @@ const vEnum = p.E;
 const vFunctionTypeAlias = p.F;
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const Type vClass =
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/;
-const Type vEnum =
-        p/*location: test.dart;p*/.
-        E/*location: a.dart;E*/;
-const Type vFunctionTypeAlias =
-        p/*location: test.dart;p*/.
-        F/*location: a.dart;F*/;
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const vClass @28
+        type: Type
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: a.dart::@class::C
+              staticType: Type
+              token: C @39
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@prefix::p
+              staticType: null
+              token: p @37
+            staticElement: a.dart::@class::C
+            staticType: Type
+      static const vEnum @48
+        type: Type
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: a.dart::@enum::E
+              staticType: Type
+              token: E @58
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@prefix::p
+              staticType: null
+              token: p @56
+            staticElement: a.dart::@enum::E
+            staticType: Type
+      static const vFunctionTypeAlias @67
+        type: Type
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: a.dart::@typeAlias::F
+              staticType: Type
+              token: F @90
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@prefix::p
+              staticType: null
+              token: p @88
+            staticElement: a.dart::@typeAlias::F
+            staticType: Type
+    accessors
+      synthetic static get vClass @28
+        returnType: Type
+      synthetic static get vEnum @48
+        returnType: Type
+      synthetic static get vFunctionTypeAlias @67
+        returnType: Type
 ''');
   }
 
@@ -4510,9 +9806,21 @@ class C<T> {
 }
 ''');
     checkElementText(library, r'''
-class C<T> {
-  final List<T> f;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          final f @21
+            type: List<T>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @21
+            returnType: List<T>
 ''');
   }
 
@@ -4521,8 +9829,19 @@ class C<T> {
 const V = foo;
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V =
-        foo/*location: null*/;
+library
+  definingUnit
+    topLevelVariables
+      static const V @6
+        type: dynamic
+        constantInitializer
+          SimpleIdentifier
+            staticElement: <null>
+            staticType: dynamic
+            token: foo @10
+    accessors
+      synthetic static get V @6
+        returnType: dynamic
 ''');
   }
 
@@ -4532,11 +9851,31 @@ class C {}
 const V = C.foo;
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C {
-}
-const dynamic V =
-        C/*location: test.dart;C*/.
-        foo/*location: null*/;
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const V @17
+        type: dynamic
+        constantInitializer
+          PrefixedIdentifier
+            identifier: SimpleIdentifier
+              staticElement: <null>
+              staticType: dynamic
+              token: foo @23
+            period: . @0
+            prefix: SimpleIdentifier
+              staticElement: self::@class::C
+              staticType: null
+              token: C @21
+            staticElement: <null>
+            staticType: dynamic
+    accessors
+      synthetic static get V @17
+        returnType: dynamic
 ''');
   }
 
@@ -4549,11 +9888,36 @@ import 'foo.dart' as p;
 const V = p.C.foo;
 ''', allowErrors: true);
     checkElementText(library, r'''
-import 'foo.dart' as p;
-const dynamic V =
-        p/*location: test.dart;p*/.
-        C/*location: foo.dart;C*/.
-        foo/*location: null*/;
+library
+  imports
+    foo.dart as p @21
+  definingUnit
+    topLevelVariables
+      static const V @30
+        type: dynamic
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: <null>
+              staticType: dynamic
+              token: foo @38
+            staticType: dynamic
+            target: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: foo.dart::@class::C
+                staticType: null
+                token: C @36
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::p
+                staticType: null
+                token: p @34
+              staticElement: foo.dart::@class::C
+              staticType: null
+    accessors
+      synthetic static get V @30
+        returnType: dynamic
 ''');
   }
 
@@ -4561,13 +9925,39 @@ const dynamic V =
     var library = await checkLibrary('''
 const Object x = const <int>{if (true) 1};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/>{if (true) 1}/*isSet*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              IfElement
+                condition: BooleanLiteral
+                  literal: true @33
+                  staticType: bool
+                thenStatement: IntegerLiteral
+                  literal: 1 @39
+                  staticType: int
+            isMap: false
+            staticType: Set<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
@@ -4575,13 +9965,10 @@ const Object x = const <
     var library = await checkLibrary('''
 const Object x = const <int>{if (true) 1 else 2];
 ''');
-    checkElementText(
-        library,
-        '''
+    checkElementText(library, r'''
 const Object x = const <
         int/*location: dart:core;int*/>{if (true) 1 else 2}/*isSet*/;
-''',
-        withTypes: true);
+''');
   }
 
   test_const_set_inferredType() async {
@@ -4591,40 +9978,127 @@ const Object x = const <
     var library = await checkLibrary('''
 const Object x = const {1};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const /*typeArgs=int*/{1}/*isSet*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              IntegerLiteral
+                literal: 1 @24
+                staticType: int
+            isMap: false
+            staticType: Set<int>
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_set_spread() async {
     var library = await checkLibrary('''
 const Object x = const <int>{...<int>{1}};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/>{...<
-        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              SpreadElement
+                expressions: SetOrMapLiteral
+                  elements
+                    IntegerLiteral
+                      literal: 1 @38
+                      staticType: int
+                  isMap: false
+                  staticType: Set<int>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @33
+                        type: int
+                    leftBracket: < @0
+                    rightBracket: > @0
+                spreadOperator: ... @0
+            isMap: false
+            staticType: Set<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_set_spread_null_aware() async {
     var library = await checkLibrary('''
 const Object x = const <int>{...?<int>{1}};
 ''');
-    checkElementText(
-        library,
-        '''
-const Object x = const <
-        int/*location: dart:core;int*/>{...?<
-        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @13
+        type: Object
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              SpreadElement
+                expressions: SetOrMapLiteral
+                  elements
+                    IntegerLiteral
+                      literal: 1 @39
+                      staticType: int
+                  isMap: false
+                  staticType: Set<int>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @34
+                        type: int
+                    leftBracket: < @0
+                    rightBracket: > @0
+                spreadOperator: ...? @0
+            isMap: false
+            staticType: Set<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @24
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get x @13
+        returnType: Object
+''');
   }
 
   test_const_topLevel_binary() async {
@@ -4649,24 +10123,298 @@ const vLess = 1 < 2;
 const vLessEqual = 1 <= 2;
 ''');
     checkElementText(library, r'''
-const bool vEqual = 1 == 2;
-const bool vAnd = true && false;
-const bool vOr = false || true;
-const int vBitXor = 1 ^ 2;
-const int vBitAnd = 1 & 2;
-const int vBitOr = 1 | 2;
-const int vBitShiftLeft = 1 << 2;
-const int vBitShiftRight = 1 >> 2;
-const int vAdd = 1 + 2;
-const int vSubtract = 1 - 2;
-const int vMiltiply = 1 * 2;
-const double vDivide = 1 / 2;
-const int vFloorDivide = 1 ~/ 2;
-const int vModulo = 1 % 2;
-const bool vGreater = 1 > 2;
-const bool vGreaterEqual = 1 >= 2;
-const bool vLess = 1 < 2;
-const bool vLessEqual = 1 <= 2;
+library
+  definingUnit
+    topLevelVariables
+      static const vEqual @6
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @15
+              staticType: int
+            operator: == @0
+            rightOperand: IntegerLiteral
+              literal: 2 @20
+              staticType: int
+            staticElement: dart:core::@class::num::@method::==
+            staticInvokeType: null
+            staticType: bool
+      static const vAnd @29
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: BooleanLiteral
+              literal: true @36
+              staticType: bool
+            operator: && @0
+            rightOperand: BooleanLiteral
+              literal: false @44
+              staticType: bool
+            staticElement: <null>
+            staticInvokeType: null
+            staticType: bool
+      static const vOr @57
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: BooleanLiteral
+              literal: false @63
+              staticType: bool
+            operator: || @0
+            rightOperand: BooleanLiteral
+              literal: true @72
+              staticType: bool
+            staticElement: <null>
+            staticInvokeType: null
+            staticType: bool
+      static const vBitXor @84
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @94
+              staticType: int
+            operator: ^ @0
+            rightOperand: IntegerLiteral
+              literal: 2 @98
+              staticType: int
+            staticElement: dart:core::@class::int::@method::^
+            staticInvokeType: null
+            staticType: int
+      static const vBitAnd @107
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @117
+              staticType: int
+            operator: & @0
+            rightOperand: IntegerLiteral
+              literal: 2 @121
+              staticType: int
+            staticElement: dart:core::@class::int::@method::&
+            staticInvokeType: null
+            staticType: int
+      static const vBitOr @130
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @139
+              staticType: int
+            operator: | @0
+            rightOperand: IntegerLiteral
+              literal: 2 @143
+              staticType: int
+            staticElement: dart:core::@class::int::@method::|
+            staticInvokeType: null
+            staticType: int
+      static const vBitShiftLeft @152
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @168
+              staticType: int
+            operator: << @0
+            rightOperand: IntegerLiteral
+              literal: 2 @173
+              staticType: int
+            staticElement: dart:core::@class::int::@method::<<
+            staticInvokeType: null
+            staticType: int
+      static const vBitShiftRight @182
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @199
+              staticType: int
+            operator: >> @0
+            rightOperand: IntegerLiteral
+              literal: 2 @204
+              staticType: int
+            staticElement: dart:core::@class::int::@method::>>
+            staticInvokeType: null
+            staticType: int
+      static const vAdd @213
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @220
+              staticType: int
+            operator: + @0
+            rightOperand: IntegerLiteral
+              literal: 2 @224
+              staticType: int
+            staticElement: dart:core::@class::num::@method::+
+            staticInvokeType: null
+            staticType: int
+      static const vSubtract @233
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @245
+              staticType: int
+            operator: - @0
+            rightOperand: IntegerLiteral
+              literal: 2 @249
+              staticType: int
+            staticElement: dart:core::@class::num::@method::-
+            staticInvokeType: null
+            staticType: int
+      static const vMiltiply @258
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @270
+              staticType: int
+            operator: * @0
+            rightOperand: IntegerLiteral
+              literal: 2 @274
+              staticType: int
+            staticElement: dart:core::@class::num::@method::*
+            staticInvokeType: null
+            staticType: int
+      static const vDivide @283
+        type: double
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @293
+              staticType: int
+            operator: / @0
+            rightOperand: IntegerLiteral
+              literal: 2 @297
+              staticType: int
+            staticElement: dart:core::@class::num::@method::/
+            staticInvokeType: null
+            staticType: double
+      static const vFloorDivide @306
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @321
+              staticType: int
+            operator: ~/ @0
+            rightOperand: IntegerLiteral
+              literal: 2 @326
+              staticType: int
+            staticElement: dart:core::@class::num::@method::~/
+            staticInvokeType: null
+            staticType: int
+      static const vModulo @335
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @345
+              staticType: int
+            operator: % @0
+            rightOperand: IntegerLiteral
+              literal: 2 @349
+              staticType: int
+            staticElement: dart:core::@class::num::@method::%
+            staticInvokeType: null
+            staticType: int
+      static const vGreater @358
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @369
+              staticType: int
+            operator: > @0
+            rightOperand: IntegerLiteral
+              literal: 2 @373
+              staticType: int
+            staticElement: dart:core::@class::num::@method::>
+            staticInvokeType: null
+            staticType: bool
+      static const vGreaterEqual @382
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @398
+              staticType: int
+            operator: >= @0
+            rightOperand: IntegerLiteral
+              literal: 2 @403
+              staticType: int
+            staticElement: dart:core::@class::num::@method::>=
+            staticInvokeType: null
+            staticType: bool
+      static const vLess @412
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @420
+              staticType: int
+            operator: < @0
+            rightOperand: IntegerLiteral
+              literal: 2 @424
+              staticType: int
+            staticElement: dart:core::@class::num::@method::<
+            staticInvokeType: null
+            staticType: bool
+      static const vLessEqual @433
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @446
+              staticType: int
+            operator: <= @0
+            rightOperand: IntegerLiteral
+              literal: 2 @451
+              staticType: int
+            staticElement: dart:core::@class::num::@method::<=
+            staticInvokeType: null
+            staticType: bool
+    accessors
+      synthetic static get vEqual @6
+        returnType: bool
+      synthetic static get vAnd @29
+        returnType: bool
+      synthetic static get vOr @57
+        returnType: bool
+      synthetic static get vBitXor @84
+        returnType: int
+      synthetic static get vBitAnd @107
+        returnType: int
+      synthetic static get vBitOr @130
+        returnType: int
+      synthetic static get vBitShiftLeft @152
+        returnType: int
+      synthetic static get vBitShiftRight @182
+        returnType: int
+      synthetic static get vAdd @213
+        returnType: int
+      synthetic static get vSubtract @233
+        returnType: int
+      synthetic static get vMiltiply @258
+        returnType: int
+      synthetic static get vDivide @283
+        returnType: double
+      synthetic static get vFloorDivide @306
+        returnType: int
+      synthetic static get vModulo @335
+        returnType: int
+      synthetic static get vGreater @358
+        returnType: bool
+      synthetic static get vGreaterEqual @382
+        returnType: bool
+      synthetic static get vLess @412
+        returnType: bool
+      synthetic static get vLessEqual @433
+        returnType: bool
 ''');
   }
 
@@ -4675,7 +10423,40 @@ const bool vLessEqual = 1 <= 2;
 const vConditional = (1 == 2) ? 11 : 22;
 ''');
     checkElementText(library, r'''
-const int vConditional = (1 == 2) ? 11 : 22;
+library
+  definingUnit
+    topLevelVariables
+      static const vConditional @6
+        type: int
+        constantInitializer
+          ConditionalExpression
+            colon: : @0
+            condition: ParenthesizedExpression
+              expression: BinaryExpression
+                leftOperand: IntegerLiteral
+                  literal: 1 @22
+                  staticType: int
+                operator: == @0
+                rightOperand: IntegerLiteral
+                  literal: 2 @27
+                  staticType: int
+                staticElement: dart:core::@class::num::@method::==
+                staticInvokeType: null
+                staticType: bool
+              leftParenthesis: ( @21
+              rightParenthesis: ) @28
+              staticType: bool
+            elseExpression: IntegerLiteral
+              literal: 22 @37
+              staticType: int
+            question: ? @0
+            staticType: int
+            thenExpression: IntegerLiteral
+              literal: 11 @32
+              staticType: int
+    accessors
+      synthetic static get vConditional @6
+        returnType: int
 ''');
   }
 
@@ -4684,7 +10465,40 @@ const int vConditional = (1 == 2) ? 11 : 22;
 const vIdentical = (1 == 2) ? 11 : 22;
 ''');
     checkElementText(library, r'''
-const int vIdentical = (1 == 2) ? 11 : 22;
+library
+  definingUnit
+    topLevelVariables
+      static const vIdentical @6
+        type: int
+        constantInitializer
+          ConditionalExpression
+            colon: : @0
+            condition: ParenthesizedExpression
+              expression: BinaryExpression
+                leftOperand: IntegerLiteral
+                  literal: 1 @20
+                  staticType: int
+                operator: == @0
+                rightOperand: IntegerLiteral
+                  literal: 2 @25
+                  staticType: int
+                staticElement: dart:core::@class::num::@method::==
+                staticInvokeType: null
+                staticType: bool
+              leftParenthesis: ( @19
+              rightParenthesis: ) @26
+              staticType: bool
+            elseExpression: IntegerLiteral
+              literal: 22 @35
+              staticType: int
+            question: ? @0
+            staticType: int
+            thenExpression: IntegerLiteral
+              literal: 11 @30
+              staticType: int
+    accessors
+      synthetic static get vIdentical @6
+        returnType: int
 ''');
   }
 
@@ -4693,7 +10507,26 @@ const int vIdentical = (1 == 2) ? 11 : 22;
 const vIfNull = 1 ?? 2.0;
 ''');
     checkElementText(library, r'''
-const num vIfNull = 1 ?? 2.0;
+library
+  definingUnit
+    topLevelVariables
+      static const vIfNull @6
+        type: num
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @16
+              staticType: int
+            operator: ?? @0
+            rightOperand: DoubleLiteral
+              literal: 2.0 @21
+              staticType: double
+            staticElement: <null>
+            staticInvokeType: null
+            staticType: num
+    accessors
+      synthetic static get vIfNull @6
+        returnType: num
 ''');
   }
 
@@ -4714,19 +10547,143 @@ const vStringInterpolation = 'aaa ${true} ${42} bbb';
 const vSymbol = #aaa.bbb.ccc;
 ''');
     checkElementText(library, r'''
-const dynamic vNull = null;
-const bool vBoolFalse = false;
-const bool vBoolTrue = true;
-const int vIntPositive = 1;
-const int vIntNegative = -2;
-const int vIntLong1 = 9223372036854775807;
-const int vIntLong2 = -1;
-const int vIntLong3 = -9223372036854775808;
-const double vDouble = 2.3;
-const String vString = 'abc';
-const String vStringConcat = 'aaabbb';
-const String vStringInterpolation = 'aaa ${true} ${42} bbb';
-const Symbol vSymbol = #aaa.bbb.ccc;
+library
+  definingUnit
+    topLevelVariables
+      static const vNull @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      static const vBoolFalse @26
+        type: bool
+        constantInitializer
+          BooleanLiteral
+            literal: false @39
+            staticType: bool
+      static const vBoolTrue @52
+        type: bool
+        constantInitializer
+          BooleanLiteral
+            literal: true @64
+            staticType: bool
+      static const vIntPositive @76
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 1 @91
+            staticType: int
+      static const vIntNegative @100
+        type: int
+        constantInitializer
+          PrefixExpression
+            operand: IntegerLiteral
+              literal: 2 @116
+              staticType: int
+            operator: - @115
+            staticElement: dart:core::@class::int::@method::unary-
+            staticType: int
+      static const vIntLong1 @125
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 9223372036854775807 @137
+            staticType: int
+      static const vIntLong2 @163
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: -1 @175
+            staticType: int
+      static const vIntLong3 @201
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: -9223372036854775808 @213
+            staticType: int
+      static const vDouble @239
+        type: double
+        constantInitializer
+          DoubleLiteral
+            literal: 2.3 @249
+            staticType: double
+      static const vString @260
+        type: String
+        constantInitializer
+          SimpleStringLiteral
+            literal: 'abc' @270
+      static const vStringConcat @283
+        type: String
+        constantInitializer
+          AdjacentStrings
+            staticType: null
+            stringValue: aaabbb
+            strings
+              SimpleStringLiteral
+                literal: 'aaa' @299
+              SimpleStringLiteral
+                literal: 'bbb' @305
+      static const vStringInterpolation @318
+        type: String
+        constantInitializer
+          StringInterpolation
+            elements
+              InterpolationString
+                contents: aaa  @0
+              InterpolationExpression
+                expression: BooleanLiteral
+                  literal: true @348
+                  staticType: bool
+              InterpolationString
+                contents:   @0
+              InterpolationExpression
+                expression: IntegerLiteral
+                  literal: 42 @356
+                  staticType: int
+              InterpolationString
+                contents:  bbb @0
+            staticType: null
+            stringValue: null
+      static const vSymbol @372
+        type: Symbol
+        constantInitializer
+          SymbolLiteral
+            components
+              components: aaa
+                offset: 0
+              components: bbb
+                offset: 0
+              components: ccc
+                offset: 0
+            poundSign: # @0
+    accessors
+      synthetic static get vNull @6
+        returnType: dynamic
+      synthetic static get vBoolFalse @26
+        returnType: bool
+      synthetic static get vBoolTrue @52
+        returnType: bool
+      synthetic static get vIntPositive @76
+        returnType: int
+      synthetic static get vIntNegative @100
+        returnType: int
+      synthetic static get vIntLong1 @125
+        returnType: int
+      synthetic static get vIntLong2 @163
+        returnType: int
+      synthetic static get vIntLong3 @201
+        returnType: int
+      synthetic static get vDouble @239
+        returnType: double
+      synthetic static get vString @260
+        returnType: String
+      synthetic static get vStringConcat @283
+        returnType: String
+      synthetic static get vStringInterpolation @318
+        returnType: String
+      synthetic static get vSymbol @372
+        returnType: Symbol
 ''');
   }
 
@@ -4738,31 +10695,40 @@ const List<int?> b = [
   a?.length,
 ];
 ''');
-    checkElementText(
-        library,
-        r'''
-const String? a;
-  constantInitializer
-    SimpleStringLiteral
-      literal: ''
-const List<int?> b;
-  constantInitializer
-    ListLiteral
-      elements
-        PropertyAccess
-          operator: ?.
-          propertyName: SimpleIdentifier
-            staticElement: dart:core::@class::String::@getter::length
-            staticType: int
-            token: length
-          staticType: int?
-          target: SimpleIdentifier
-            staticElement: self::@getter::a
-            staticType: String?
-            token: a
-      staticType: List<int?>
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @14
+        type: String?
+        constantInitializer
+          SimpleStringLiteral
+            literal: '' @18
+      static const b @40
+        type: List<int?>
+        constantInitializer
+          ListLiteral
+            elements
+              PropertyAccess
+                operator: ?. @0
+                propertyName: SimpleIdentifier
+                  staticElement: dart:core::@class::String::@getter::length
+                  staticType: int
+                  token: length @51
+                staticType: int?
+                target: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: String?
+                  token: a @48
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int?>
+    accessors
+      synthetic static get a @14
+        returnType: String?
+      synthetic static get b @40
+        returnType: List<int?>
+''');
   }
 
   test_const_topLevel_parenthesis() async {
@@ -4772,10 +10738,87 @@ const int v2 = -(1 + 2);
 const int v3 = ('aaa' + 'bbb').length;
 ''');
     checkElementText(library, r'''
-const int v1 = (1 + 2) * 3;
-const int v2 = -(1 + 2);
-const int v3 = ('aaa' + 'bbb').
-        length/*location: dart:core;String;length?*/;
+library
+  definingUnit
+    topLevelVariables
+      static const v1 @10
+        type: int
+        constantInitializer
+          BinaryExpression
+            leftOperand: ParenthesizedExpression
+              expression: BinaryExpression
+                leftOperand: IntegerLiteral
+                  literal: 1 @16
+                  staticType: int
+                operator: + @0
+                rightOperand: IntegerLiteral
+                  literal: 2 @20
+                  staticType: int
+                staticElement: dart:core::@class::num::@method::+
+                staticInvokeType: null
+                staticType: int
+              leftParenthesis: ( @15
+              rightParenthesis: ) @21
+              staticType: int
+            operator: * @0
+            rightOperand: IntegerLiteral
+              literal: 3 @25
+              staticType: int
+            staticElement: dart:core::@class::num::@method::*
+            staticInvokeType: null
+            staticType: int
+      static const v2 @38
+        type: int
+        constantInitializer
+          PrefixExpression
+            operand: ParenthesizedExpression
+              expression: BinaryExpression
+                leftOperand: IntegerLiteral
+                  literal: 1 @45
+                  staticType: int
+                operator: + @0
+                rightOperand: IntegerLiteral
+                  literal: 2 @49
+                  staticType: int
+                staticElement: dart:core::@class::num::@method::+
+                staticInvokeType: null
+                staticType: int
+              leftParenthesis: ( @44
+              rightParenthesis: ) @50
+              staticType: int
+            operator: - @43
+            staticElement: dart:core::@class::int::@method::unary-
+            staticType: int
+      static const v3 @63
+        type: int
+        constantInitializer
+          PropertyAccess
+            operator: . @0
+            propertyName: SimpleIdentifier
+              staticElement: dart:core::@class::String::@getter::length
+              staticType: int
+              token: length @84
+            staticType: int
+            target: ParenthesizedExpression
+              expression: BinaryExpression
+                leftOperand: SimpleStringLiteral
+                  literal: 'aaa' @69
+                operator: + @0
+                rightOperand: SimpleStringLiteral
+                  literal: 'bbb' @77
+                staticElement: dart:core::@class::String::@method::+
+                staticInvokeType: null
+                staticType: String
+              leftParenthesis: ( @68
+              rightParenthesis: ) @82
+              staticType: String
+    accessors
+      synthetic static get v1 @10
+        returnType: int
+      synthetic static get v2 @38
+        returnType: int
+      synthetic static get v3 @63
+        returnType: int
 ''');
   }
 
@@ -4787,10 +10830,62 @@ const vNegate = -1;
 const vComplement = ~1;
 ''');
     checkElementText(library, r'''
-const bool vNotEqual = 1 != 2;
-const bool vNot = !true;
-const int vNegate = -1;
-const int vComplement = ~1;
+library
+  definingUnit
+    topLevelVariables
+      static const vNotEqual @6
+        type: bool
+        constantInitializer
+          BinaryExpression
+            leftOperand: IntegerLiteral
+              literal: 1 @18
+              staticType: int
+            operator: != @0
+            rightOperand: IntegerLiteral
+              literal: 2 @23
+              staticType: int
+            staticElement: dart:core::@class::num::@method::==
+            staticInvokeType: null
+            staticType: bool
+      static const vNot @32
+        type: bool
+        constantInitializer
+          PrefixExpression
+            operand: BooleanLiteral
+              literal: true @40
+              staticType: bool
+            operator: ! @39
+            staticElement: <null>
+            staticType: bool
+      static const vNegate @52
+        type: int
+        constantInitializer
+          PrefixExpression
+            operand: IntegerLiteral
+              literal: 1 @63
+              staticType: int
+            operator: - @62
+            staticElement: dart:core::@class::int::@method::unary-
+            staticType: int
+      static const vComplement @72
+        type: int
+        constantInitializer
+          PrefixExpression
+            operand: IntegerLiteral
+              literal: 1 @87
+              staticType: int
+            operator: ~ @86
+            staticElement: dart:core::@class::int::@method::~
+            staticType: int
+    accessors
+      synthetic static get vNotEqual @6
+        returnType: bool
+      synthetic static get vNot @32
+        returnType: bool
+      synthetic static get vNegate @52
+        returnType: int
+      synthetic static get vComplement @72
+        returnType: int
 ''');
   }
 
@@ -4799,7 +10894,18 @@ const int vComplement = ~1;
 const vSuper = super;
 ''');
     checkElementText(library, r'''
-const dynamic vSuper = super;
+library
+  definingUnit
+    topLevelVariables
+      static const vSuper @6
+        type: dynamic
+        constantInitializer
+          SuperExpression
+            staticType: dynamic
+            superKeyword: super @0
+    accessors
+      synthetic static get vSuper @6
+        returnType: dynamic
 ''');
   }
 
@@ -4808,7 +10914,18 @@ const dynamic vSuper = super;
 const vThis = this;
 ''');
     checkElementText(library, r'''
-const dynamic vThis = this;
+library
+  definingUnit
+    topLevelVariables
+      static const vThis @6
+        type: dynamic
+        constantInitializer
+          ThisExpression
+            staticType: dynamic
+            thisKeyword: this @0
+    accessors
+      synthetic static get vThis @6
+        returnType: dynamic
 ''');
   }
 
@@ -4817,7 +10934,20 @@ const dynamic vThis = this;
 const c = throw 42;
 ''');
     checkElementText(library, r'''
-const Never c = throw 42;
+library
+  definingUnit
+    topLevelVariables
+      static const c @6
+        type: Never
+        constantInitializer
+          ThrowExpression
+            expression: IntegerLiteral
+              literal: 42 @16
+              staticType: int
+            staticType: Never
+    accessors
+      synthetic static get c @6
+        returnType: Never
 ''');
   }
 
@@ -4827,7 +10957,20 @@ const Never c = throw 42;
 const c = throw 42;
 ''');
     checkElementText(library, r'''
-const dynamic c = throw 42;
+library
+  definingUnit
+    topLevelVariables
+      static const c @6
+        type: dynamic
+        constantInitializer
+          ThrowExpression
+            expression: IntegerLiteral
+              literal: 42 @16
+              staticType: int*
+            staticType: Never*
+    accessors
+      synthetic static get c @6
+        returnType: dynamic
 ''');
   }
 
@@ -4841,22 +10984,186 @@ const vInterfaceWithTypeArguments = const <List<String>>[];
 const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
 ''');
     checkElementText(library, r'''
-const List<Null> vNull = const <
-        Null/*location: dart:core;Null*/>[];
-const List<dynamic> vDynamic = const <
-        dynamic/*location: dynamic*/>[1, 2, 3];
-const List<int> vInterfaceNoTypeParameters = const <
-        int/*location: dart:core;int*/>[1, 2, 3];
-const List<List<dynamic>> vInterfaceNoTypeArguments = const <
-        List/*location: dart:core;List*/>[];
-const List<List<String>> vInterfaceWithTypeArguments = const <
-        List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>[];
-const List<Map<int, List<String>>> vInterfaceWithTypeArguments2 = const <
-        Map/*location: dart:core;Map*/<
-        int/*location: dart:core;int*/,
-        List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>>[];
+library
+  definingUnit
+    topLevelVariables
+      static const vNull @6
+        type: List<Null>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<Null>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::Null
+                    staticType: null
+                    token: Null @21
+                  type: Null
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vDynamic @36
+        type: List<dynamic>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              IntegerLiteral
+                literal: 1 @63
+                staticType: int
+              IntegerLiteral
+                literal: 2 @66
+                staticType: int
+              IntegerLiteral
+                literal: 3 @69
+                staticType: int
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<dynamic>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dynamic@-1
+                    staticType: null
+                    token: dynamic @54
+                  type: dynamic
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterfaceNoTypeParameters @79
+        type: List<int>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              IntegerLiteral
+                literal: 1 @120
+                staticType: int
+              IntegerLiteral
+                literal: 2 @123
+                staticType: int
+              IntegerLiteral
+                literal: 3 @126
+                staticType: int
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @115
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterfaceNoTypeArguments @136
+        type: List<List<dynamic>>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<List<dynamic>>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::List
+                    staticType: null
+                    token: List @171
+                  type: List<dynamic>
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterfaceWithTypeArguments @186
+        type: List<List<String>>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<List<String>>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::List
+                    staticType: null
+                    token: List @223
+                  type: List<String>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                          token: String @228
+                        type: String
+                    leftBracket: < @0
+                    rightBracket: > @0
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterfaceWithTypeArguments2 @246
+        type: List<Map<int, List<String>>>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<Map<int, List<String>>>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::Map
+                    staticType: null
+                    token: Map @284
+                  type: Map<int, List<String>>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::int
+                          staticType: null
+                          token: int @288
+                        type: int
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::List
+                          staticType: null
+                          token: List @293
+                        type: List<String>
+                        typeArguments: TypeArgumentList
+                          arguments
+                            TypeName
+                              name: SimpleIdentifier
+                                staticElement: dart:core::@class::String
+                                staticType: null
+                                token: String @298
+                              type: String
+                          leftBracket: < @0
+                          rightBracket: > @0
+                    leftBracket: < @0
+                    rightBracket: > @0
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get vNull @6
+        returnType: List<Null>
+      synthetic static get vDynamic @36
+        returnType: List<dynamic>
+      synthetic static get vInterfaceNoTypeParameters @79
+        returnType: List<int>
+      synthetic static get vInterfaceNoTypeArguments @136
+        returnType: List<List<dynamic>>
+      synthetic static get vInterfaceWithTypeArguments @186
+        returnType: List<List<String>>
+      synthetic static get vInterfaceWithTypeArguments2 @246
+        returnType: List<Map<int, List<String>>>
 ''');
   }
 
@@ -4867,9 +11174,32 @@ import 'a.dart';
 const v = const <C>[];
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-const List<C> v = const <
-        C/*location: a.dart;C*/>[];
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static const v @23
+        type: List<C>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<C>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                    token: C @34
+                  type: C
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get v @23
+        returnType: List<C>
 ''');
   }
 
@@ -4880,10 +11210,40 @@ import 'a.dart' as p;
 const v = const <p.C>[];
 ''');
     checkElementText(library, r'''
-import 'a.dart' as p;
-const List<C> v = const <
-        p/*location: test.dart;p*/.
-        C/*location: a.dart;C*/>[];
+library
+  imports
+    a.dart as p @19
+  definingUnit
+    topLevelVariables
+      static const v @28
+        type: List<C>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<C>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: PrefixedIdentifier
+                    identifier: SimpleIdentifier
+                      staticElement: a.dart::@class::C
+                      staticType: null
+                      token: C @41
+                    period: . @0
+                    prefix: SimpleIdentifier
+                      staticElement: self::@prefix::p
+                      staticType: null
+                      token: p @39
+                    staticElement: a.dart::@class::C
+                    staticType: null
+                  type: C
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get v @28
+        returnType: List<C>
 ''');
   }
 
@@ -4893,9 +11253,38 @@ typedef int F(String id);
 const v = const <F>[];
 ''');
     checkElementText(library, r'''
-typedef F = int Function(String id);
-const List<int Function(String)> v = const <
-        F/*location: test.dart;F*/>[];
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @12
+        aliasedType: int Function(String)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional id @-1
+              type: String
+          returnType: int
+    topLevelVariables
+      static const v @32
+        type: List<int Function(String)>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int Function(String)>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: self::@typeAlias::F
+                    staticType: null
+                    token: F @43
+                  type: int Function(String)
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get v @32
+        returnType: List<int Function(String)>
 ''');
   }
 
@@ -4907,19 +11296,120 @@ const vInterface = const <int, String>{};
 const vInterfaceWithTypeArguments = const <int, List<String>>{};
 ''');
     checkElementText(library, r'''
-const Map<dynamic, int> vDynamic1 = const <
-        dynamic/*location: dynamic*/,
-        int/*location: dart:core;int*/>{}/*isMap*/;
-const Map<int, dynamic> vDynamic2 = const <
-        int/*location: dart:core;int*/,
-        dynamic/*location: dynamic*/>{}/*isMap*/;
-const Map<int, String> vInterface = const <
-        int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>{}/*isMap*/;
-const Map<int, List<String>> vInterfaceWithTypeArguments = const <
-        int/*location: dart:core;int*/,
-        List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>{}/*isMap*/;
+library
+  definingUnit
+    topLevelVariables
+      static const vDynamic1 @6
+        type: Map<dynamic, int>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            isMap: true
+            staticType: Map<dynamic, int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dynamic@-1
+                    staticType: null
+                    token: dynamic @25
+                  type: dynamic
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @34
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vDynamic2 @48
+        type: Map<int, dynamic>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            isMap: true
+            staticType: Map<int, dynamic>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @67
+                  type: int
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dynamic@-1
+                    staticType: null
+                    token: dynamic @72
+                  type: dynamic
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterface @90
+        type: Map<int, String>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            isMap: true
+            staticType: Map<int, String>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @110
+                  type: int
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::String
+                    staticType: null
+                    token: String @115
+                  type: String
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterfaceWithTypeArguments @132
+        type: Map<int, List<String>>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            isMap: true
+            staticType: Map<int, List<String>>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @169
+                  type: int
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::List
+                    staticType: null
+                    token: List @174
+                  type: List<String>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                          token: String @179
+                        type: String
+                    leftBracket: < @0
+                    rightBracket: > @0
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get vDynamic1 @6
+        returnType: Map<dynamic, int>
+      synthetic static get vDynamic2 @48
+        returnType: Map<int, dynamic>
+      synthetic static get vInterface @90
+        returnType: Map<int, String>
+      synthetic static get vInterfaceWithTypeArguments @132
+        returnType: Map<int, List<String>>
 ''');
   }
 
@@ -4930,13 +11420,77 @@ const vInterface = const <int>{};
 const vInterfaceWithTypeArguments = const <List<String>>{};
 ''');
     checkElementText(library, r'''
-const Set<dynamic> vDynamic1 = const <
-        dynamic/*location: dynamic*/>{}/*isSet*/;
-const Set<int> vInterface = const <
-        int/*location: dart:core;int*/>{}/*isSet*/;
-const Set<List<String>> vInterfaceWithTypeArguments = const <
-        List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>{}/*isSet*/;
+library
+  definingUnit
+    topLevelVariables
+      static const vDynamic1 @6
+        type: Set<dynamic>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            isMap: false
+            staticType: Set<dynamic>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dynamic@-1
+                    staticType: null
+                    token: dynamic @25
+                  type: dynamic
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterface @43
+        type: Set<int>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            isMap: false
+            staticType: Set<int>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @63
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+      static const vInterfaceWithTypeArguments @77
+        type: Set<List<String>>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            isMap: false
+            staticType: Set<List<String>>
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::List
+                    staticType: null
+                    token: List @114
+                  type: List<String>
+                  typeArguments: TypeArgumentList
+                    arguments
+                      TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::String
+                          staticType: null
+                          token: String @119
+                        type: String
+                    leftBracket: < @0
+                    rightBracket: > @0
+              leftBracket: < @0
+              rightBracket: > @0
+    accessors
+      synthetic static get vDynamic1 @6
+        returnType: Set<dynamic>
+      synthetic static get vInterface @43
+        returnType: Set<int>
+      synthetic static get vInterfaceWithTypeArguments @77
+        returnType: Set<List<String>>
 ''');
   }
 
@@ -4945,7 +11499,30 @@ const Set<List<String>> vInterfaceWithTypeArguments = const <
 const v = const [1, 2, 3];
 ''');
     checkElementText(library, r'''
-const List<int> v = const [1, 2, 3];
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: List<int>
+        constantInitializer
+          ListLiteral
+            constKeyword: const @0
+            elements
+              IntegerLiteral
+                literal: 1 @17
+                staticType: int
+              IntegerLiteral
+                literal: 2 @20
+                staticType: int
+              IntegerLiteral
+                literal: 3 @23
+                staticType: int
+            leftBracket: [ @0
+            rightBracket: ] @0
+            staticType: List<int>
+    accessors
+      synthetic static get v @6
+        returnType: List<int>
 ''');
   }
 
@@ -4954,7 +11531,38 @@ const List<int> v = const [1, 2, 3];
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
     checkElementText(library, r'''
-const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'}/*isMap*/;
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: Map<int, String>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              SetOrMapLiteral
+                key: IntegerLiteral
+                  literal: 0 @17
+                  staticType: int
+                value: SimpleStringLiteral
+                  literal: 'aaa' @20
+              SetOrMapLiteral
+                key: IntegerLiteral
+                  literal: 1 @27
+                  staticType: int
+                value: SimpleStringLiteral
+                  literal: 'bbb' @30
+              SetOrMapLiteral
+                key: IntegerLiteral
+                  literal: 2 @37
+                  staticType: int
+                value: SimpleStringLiteral
+                  literal: 'ccc' @40
+            isMap: true
+            staticType: Map<int, String>
+    accessors
+      synthetic static get v @6
+        returnType: Map<int, String>
 ''');
   }
 
@@ -4963,7 +11571,29 @@ const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'}/*isMap*/;
 const v = const {0, 1, 2};
 ''');
     checkElementText(library, r'''
-const Set<int> v = const {0, 1, 2}/*isSet*/;
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: Set<int>
+        constantInitializer
+          SetOrMapLiteral
+            constKeyword: const @0
+            elements
+              IntegerLiteral
+                literal: 0 @17
+                staticType: int
+              IntegerLiteral
+                literal: 1 @20
+                staticType: int
+              IntegerLiteral
+                literal: 2 @23
+                staticType: int
+            isMap: false
+            staticType: Set<int>
+    accessors
+      synthetic static get v @6
+        returnType: Set<int>
 ''');
   }
 
@@ -4975,17 +11605,49 @@ final vValues = E.values;
 final vIndex = E.a.index;
 ''');
     checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  static const E b;
-  static const E c;
-  String toString() {}
-}
-final E vValue;
-final List<E> vValues;
-final int vIndex;
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @8
+            type: E
+          static const b @11
+            type: E
+          static const c @14
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+          synthetic static get c @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    topLevelVariables
+      static final vValue @23
+        type: E
+      static final vValues @43
+        type: List<E>
+      static final vIndex @69
+        type: int
+    accessors
+      synthetic static get vValue @23
+        returnType: E
+      synthetic static get vValues @43
+        returnType: List<E>
+      synthetic static get vIndex @69
+        returnType: int
 ''');
   }
 
@@ -4995,13 +11657,33 @@ enum E {a}
 final vToString = E.a.toString();
 ''');
     checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  String toString() {}
-}
-final String vToString;
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @8
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    topLevelVariables
+      static final vToString @17
+        type: String
+    accessors
+      synthetic static get vToString @17
+        returnType: String
 ''');
   }
 
@@ -5013,11 +11695,31 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  static const dynamic a =
-        b/*location: test.dart;C;b?*/;
-  static const dynamic b = null;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const a @25
+            type: dynamic
+            constantInitializer
+              SimpleIdentifier
+                staticElement: self::@class::C::@getter::b
+                staticType: dynamic
+                token: b @29
+          static const b @47
+            type: dynamic
+            constantInitializer
+              NullLiteral
+                literal: null @0
+                staticType: null
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get a @25
+            returnType: dynamic
+          synthetic static get b @47
+            returnType: dynamic
 ''');
   }
 
@@ -5029,11 +11731,26 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  static const dynamic Function() a =
-        m/*location: test.dart;C;m*/;
-  static dynamic m() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const a @25
+            type: dynamic Function()
+            constantInitializer
+              SimpleIdentifier
+                staticElement: self::@class::C::@method::m
+                staticType: dynamic Function()
+                token: m @29
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get a @25
+            returnType: dynamic Function()
+        methods
+          static m @41
+            returnType: dynamic
 ''');
   }
 
@@ -5046,12 +11763,13 @@ class C {
   C();
 }''');
     checkElementText(library, r'''
-class C {
-  /**
-   * Docs
-   */
-  C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @34
+            documentationComment: /**\n   * Docs\n   */
 ''');
   }
 
@@ -5062,10 +11780,29 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C(int x) : assert(
-        x/*location: test.dart;C;;x*/ >= 42);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const @18
+            parameters
+              requiredPositional x @24
+                type: int
+            constantInitializers
+              AssertInitializer
+                condition: BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    staticElement: x@24
+                    staticType: int
+                    token: x @-1
+                  operator: >= @0
+                  rightOperand: IntegerLiteral
+                    literal: 42 @0
+                    staticType: int
+                  staticElement: dart:core::@class::num::@method::>=
+                  staticInvokeType: null
+                  staticType: bool
 ''');
   }
 
@@ -5076,10 +11813,31 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C(int x) : assert(
-        x/*location: test.dart;C;;x*/ >= 42, 'foo');
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const @18
+            parameters
+              requiredPositional x @24
+                type: int
+            constantInitializers
+              AssertInitializer
+                condition: BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    staticElement: x@24
+                    staticType: int
+                    token: x @-1
+                  operator: >= @0
+                  rightOperand: IntegerLiteral
+                    literal: 42 @0
+                    staticType: int
+                  staticElement: dart:core::@class::num::@method::>=
+                  staticInvokeType: null
+                  staticType: bool
+                message: SimpleStringLiteral
+                  literal: 'foo' @0
 ''');
   }
 
@@ -5091,11 +11849,28 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C() :
-        x/*location: test.dart;C;x*/ = 42;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          const @29
+            constantInitializers
+              ConstructorFieldInitializer
+                equals: = @0
+                expression: IntegerLiteral
+                  literal: 42 @0
+                  staticType: int
+                fieldName: SimpleIdentifier
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
+                  token: x @-1
+        accessors
+          synthetic get x @18
+            returnType: dynamic
 ''');
   }
 
@@ -5109,13 +11884,38 @@ int foo() => 42;
 ''', allowErrors: true);
     // It is OK to keep non-constant initializers.
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C() :
-        x/*location: test.dart;C;x*/ =
-        foo/*location: test.dart;foo*/();
-}
-int foo() {}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          const @29
+            constantInitializers
+              ConstructorFieldInitializer
+                equals: = @0
+                expression: MethodInvocation
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  methodName: SimpleIdentifier
+                    staticElement: self::@function::foo
+                    staticType: int Function()
+                    token: foo @-1
+                  staticInvokeType: int Function()
+                  staticType: int
+                fieldName: SimpleIdentifier
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
+                  token: x @-1
+        accessors
+          synthetic get x @18
+            returnType: dynamic
+    functions
+      foo @52
+        returnType: int
 ''');
   }
 
@@ -5126,30 +11926,38 @@ class A {
   const A([int f = 0]) : _f = f;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  final int _f;
-  const A([int f]);
-    constantInitializers
-      ConstructorFieldInitializer
-        equals: =
-        expression: SimpleIdentifier
-          staticElement: self::@class::A::@constructor::•::@parameter::f
-          staticType: int
-          token: f
-        fieldName: SimpleIdentifier
-          staticElement: self::@class::A::@field::_f
-          staticType: null
-          token: _f
-    f
-      IntegerLiteral
-        literal: 0
-        staticType: int
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final _f @22
+            type: int
+        constructors
+          const @34
+            parameters
+              optionalPositional f @41
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @0
+                    staticType: int
+            constantInitializers
+              ConstructorFieldInitializer
+                equals: = @0
+                expression: SimpleIdentifier
+                  staticElement: self::@class::A::@constructor::•::@parameter::f
+                  staticType: int
+                  token: f @-1
+                fieldName: SimpleIdentifier
+                  staticElement: self::@class::A::@field::_f
+                  staticType: null
+                  token: _f @-1
+        accessors
+          synthetic get _f @22
+            returnType: int
+''');
   }
 
   test_constructor_initializers_field_withParameter() async {
@@ -5160,12 +11968,40 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C(int p) :
-        x/*location: test.dart;C;x*/ = 1 +
-        p/*location: test.dart;C;;p*/;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          const @29
+            parameters
+              requiredPositional p @35
+                type: int
+            constantInitializers
+              ConstructorFieldInitializer
+                equals: = @0
+                expression: BinaryExpression
+                  leftOperand: IntegerLiteral
+                    literal: 1 @0
+                    staticType: int
+                  operator: + @0
+                  rightOperand: SimpleIdentifier
+                    staticElement: p@35
+                    staticType: int
+                    token: p @-1
+                  staticElement: dart:core::@class::num::@method::+
+                  staticInvokeType: null
+                  staticType: int
+                fieldName: SimpleIdentifier
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
+                  token: x @-1
+        accessors
+          synthetic get x @18
+            returnType: dynamic
 ''');
   }
 
@@ -5181,14 +12017,59 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-class A<T> {
-  const A();
-}
-class B {
-  const B(dynamic x);
-  const B.f() = B : this(
-        A/*location: test.dart;A*/<Function()>());
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class B @34
+        constructors
+          const @46
+            parameters
+              requiredPositional x @56
+                type: dynamic
+          const f @70
+            periodOffset: 69
+            nameEnd: 71
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    InstanceCreationExpression
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @0
+                        rightParenthesis: ) @0
+                      constructorName: ConstructorName
+                        staticElement: ConstructorMember
+                          base: self::@class::A::@constructor::•
+                          substitution: {T: dynamic Function()}
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: self::@class::A
+                            staticType: null
+                            token: A @-1
+                          type: A<dynamic Function()>
+                          typeArguments: TypeArgumentList
+                            arguments
+                              GenericFunctionType
+                                declaredElement: GenericFunctionTypeElement
+                                  parameters
+                                  returnType: dynamic
+                                  type: dynamic Function()
+                                functionKeyword: Function @0
+                                parameters: FormalParameterList
+                                type: dynamic Function()
+                            leftBracket: < @0
+                            rightBracket: > @0
+                      staticType: A<dynamic Function()>
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::B::@constructor::•
+            redirectedConstructor: self::@class::B::@constructor::•
 ''');
   }
 
@@ -5201,25 +12082,33 @@ class B extends A {
   const B() : super(const []);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A(List<String> values);
-}
-class B extends A {
-  const B();
-    constantInitializers
-      SuperConstructorInvocation
-        argumentList: ArgumentList
-          arguments
-            ListLiteral
-              constKeyword: const
-              staticType: List<String>
-        staticElement: self::@class::A::@constructor::•
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional values @33
+                type: List<String>
+      class B @50
+        supertype: A
+        constructors
+          const @72
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    ListLiteral
+                      constKeyword: const @0
+                      leftBracket: [ @0
+                      rightBracket: ] @0
+                      staticType: List<String>
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+''');
   }
 
   test_constructor_initializers_superInvocation_named() async {
@@ -5232,13 +12121,35 @@ class C extends A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  const A.aaa(int p);
-}
-class C extends A {
-  const C() : super.
-        aaa/*location: test.dart;A;aaa*/(42);
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const aaa @20
+            periodOffset: 19
+            nameEnd: 23
+            parameters
+              requiredPositional p @28
+                type: int
+      class C @40
+        supertype: A
+        constructors
+          const @62
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 42 @0
+                      staticType: int
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::A::@constructor::aaa
+                  staticType: null
+                  token: aaa @-1
+                staticElement: self::@class::A::@constructor::aaa
 ''');
   }
 
@@ -5252,13 +12163,28 @@ class B extends A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  const A._();
-}
-class B extends A {
-  const B() : super.
-        _/*location: test.dart;A;_*/();
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const _ @20
+            periodOffset: 19
+            nameEnd: 21
+      class B @33
+        supertype: A
+        constructors
+          const @55
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::A::@constructor::_
+                  staticType: null
+                  token: _ @-1
+                staticElement: self::@class::A::@constructor::_
 ''');
   }
 
@@ -5272,14 +12198,46 @@ class C extends A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  const A.aaa(dynamic a, {int b});
-}
-class C extends A {
-  const C() : super.
-        aaa/*location: test.dart;A;aaa*/(1,
-        b/*location: test.dart;A;aaa;b*/: 2);
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const aaa @20
+            periodOffset: 19
+            nameEnd: 23
+            parameters
+              requiredPositional a @24
+                type: dynamic
+              optionalNamed b @32
+                type: int
+      class C @45
+        supertype: A
+        constructors
+          const @67
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          staticElement: self::@class::A::@constructor::aaa::@parameter::b
+                          staticType: null
+                          token: b @-1
+                      expression: IntegerLiteral
+                        literal: 2 @0
+                        staticType: int
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::A::@constructor::aaa
+                  staticType: null
+                  token: aaa @-1
+                staticElement: self::@class::A::@constructor::aaa
 ''');
   }
 
@@ -5293,12 +12251,31 @@ class C extends A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  const A(int p);
-}
-class C extends A {
-  const C.ccc() : super(42);
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional p @24
+                type: int
+      class C @36
+        supertype: A
+        constructors
+          const ccc @60
+            periodOffset: 59
+            nameEnd: 63
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 42 @0
+                      staticType: int
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
 ''');
   }
 
@@ -5309,23 +12286,33 @@ class A {
   const A.empty() : this(const []);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A(List<String> values);
-  const A.empty() = A;
-    constantInitializers
-      RedirectingConstructorInvocation
-        argumentList: ArgumentList
-          arguments
-            ListLiteral
-              constKeyword: const
-              staticType: List<String>
-        staticElement: self::@class::A::@constructor::•
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional values @33
+                type: List<String>
+          const empty @52
+            periodOffset: 51
+            nameEnd: 57
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    ListLiteral
+                      constKeyword: const @0
+                      leftBracket: [ @0
+                      rightBracket: ] @0
+                      staticType: List<String>
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+            redirectedConstructor: self::@class::A::@constructor::•
+''');
   }
 
   test_constructor_initializers_thisInvocation_named() async {
@@ -5336,11 +12323,37 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C() = C.named : this.
-        named/*location: test.dart;C;named*/(1, 'bbb');
-  const C.named(int a, String b);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const @18
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    SimpleStringLiteral
+                      literal: 'bbb' @0
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
+                  token: named @-1
+                staticElement: self::@class::C::@constructor::named
+            redirectedConstructor: self::@class::C::@constructor::named
+          const named @56
+            periodOffset: 55
+            nameEnd: 61
+            parameters
+              requiredPositional a @66
+                type: int
+              requiredPositional b @76
+                type: String
 ''');
   }
 
@@ -5352,12 +12365,44 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C() = C.named : this.
-        named/*location: test.dart;C;named*/(1,
-        b/*location: test.dart;C;named;b*/: 2);
-  const C.named(dynamic a, {int b});
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const @18
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          staticElement: self::@class::C::@constructor::named::@parameter::b
+                          staticType: null
+                          token: b @-1
+                      expression: IntegerLiteral
+                        literal: 2 @0
+                        staticType: int
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
+                  token: named @-1
+                staticElement: self::@class::C::@constructor::named
+            redirectedConstructor: self::@class::C::@constructor::named
+          const named @55
+            periodOffset: 54
+            nameEnd: 60
+            parameters
+              requiredPositional a @61
+                type: dynamic
+              optionalNamed b @69
+                type: int
 ''');
   }
 
@@ -5369,10 +12414,33 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C.named() = C : this(1, 'bbb');
-  const C(int a, String b);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const named @20
+            periodOffset: 19
+            nameEnd: 25
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 1 @0
+                      staticType: int
+                    SimpleStringLiteral
+                      literal: 'bbb' @0
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::C::@constructor::•
+            redirectedConstructor: self::@class::C::@constructor::•
+          const @54
+            parameters
+              requiredPositional a @60
+                type: int
+              requiredPositional b @70
+                type: String
 ''');
   }
 
@@ -5387,13 +12455,22 @@ class D extends C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  factory C() = D.named;
-  C._();
-}
-class D extends C {
-  D.named();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          factory @20
+            redirectedConstructor: self::@class::D::@constructor::named
+          _ @39
+            periodOffset: 38
+            nameEnd: 40
+      class D @52
+        supertype: C
+        constructors
+          named @70
+            periodOffset: 69
+            nameEnd: 75
 ''');
   }
 
@@ -5408,13 +12485,34 @@ class D<T, U> extends C<U, T> {
 }
 ''');
     checkElementText(library, r'''
-class C<T, U> {
-  factory C() = D<U, T>.named;
-  C._();
-}
-class D<T, U> extends C<U, T> {
-  D.named();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          factory @26
+            redirectedConstructor: ConstructorMember
+              base: self::@class::D::@constructor::named
+              substitution: {T: U, U: T}
+          _ @51
+            periodOffset: 50
+            nameEnd: 52
+      class D @64
+        typeParameters
+          covariant T @66
+            defaultType: dynamic
+          covariant U @69
+            defaultType: dynamic
+        supertype: C<U, T>
+        constructors
+          named @94
+            periodOffset: 93
+            nameEnd: 99
 ''');
   }
 
@@ -5431,14 +12529,42 @@ class C<T, U> extends A<U, T> {
 }
 ''');
     checkElementText(library, r'''
-typedef A<T, U> = C<T, U>;
-class B<T, U> {
-  factory B() = C<U, T>.named;
-  B._();
-}
-class C<T, U> extends C<U, T> {
-  C.named();
-}
+library
+  definingUnit
+    classes
+      class B @33
+        typeParameters
+          covariant T @35
+            defaultType: dynamic
+          covariant U @38
+            defaultType: dynamic
+        constructors
+          factory @53
+            redirectedConstructor: ConstructorMember
+              base: self::@class::C::@constructor::named
+              substitution: {T: U, U: T}
+          _ @78
+            periodOffset: 77
+            nameEnd: 79
+      class C @91
+        typeParameters
+          covariant T @93
+            defaultType: dynamic
+          covariant U @96
+            defaultType: dynamic
+        supertype: C<U, T>
+        constructors
+          named @121
+            periodOffset: 120
+            nameEnd: 126
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+          covariant U @13
+            defaultType: dynamic
+        aliasedType: C<T, U>
 ''');
   }
 
@@ -5457,11 +12583,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart';
-class C {
-  factory C() = D.named;
-  C._();
-}
+library
+  imports
+    foo.dart
+  definingUnit
+    classes
+      class C @25
+        constructors
+          factory @39
+            redirectedConstructor: foo.dart::@class::D::@constructor::named
+          _ @58
+            periodOffset: 57
+            nameEnd: 59
 ''');
   }
 
@@ -5480,11 +12613,25 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart';
-class C<T, U> {
-  factory C() = D<U, T>.named;
-  C._();
-}
+library
+  imports
+    foo.dart
+  definingUnit
+    classes
+      class C @25
+        typeParameters
+          covariant T @27
+            defaultType: dynamic
+          covariant U @30
+            defaultType: dynamic
+        constructors
+          factory @45
+            redirectedConstructor: ConstructorMember
+              base: foo.dart::@class::D::@constructor::named
+              substitution: {T: U, U: T}
+          _ @70
+            periodOffset: 69
+            nameEnd: 71
 ''');
   }
 
@@ -5503,11 +12650,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart' as foo;
-class C {
-  factory C() = D.named;
-  C._();
-}
+library
+  imports
+    foo.dart as foo @21
+  definingUnit
+    classes
+      class C @32
+        constructors
+          factory @46
+            redirectedConstructor: foo.dart::@class::D::@constructor::named
+          _ @69
+            periodOffset: 68
+            nameEnd: 70
 ''');
   }
 
@@ -5526,11 +12680,25 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart' as foo;
-class C<T, U> {
-  factory C() = D<U, T>.named;
-  C._();
-}
+library
+  imports
+    foo.dart as foo @21
+  definingUnit
+    classes
+      class C @32
+        typeParameters
+          covariant T @34
+            defaultType: dynamic
+          covariant U @37
+            defaultType: dynamic
+        constructors
+          factory @52
+            redirectedConstructor: ConstructorMember
+              base: foo.dart::@class::D::@constructor::named
+              substitution: {T: U, U: T}
+          _ @81
+            periodOffset: 80
+            nameEnd: 82
 ''');
   }
 
@@ -5541,9 +12709,15 @@ class C<E> {
 }
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C<E> {
-  factory C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant E @8
+            defaultType: dynamic
+        constructors
+          factory @23
 ''');
   }
 
@@ -5555,11 +12729,18 @@ class C<E> {
 }
 ''', allowErrors: true);
     checkElementText(library, r'''
-class D {
-}
-class C<E> {
-  factory C();
-}
+library
+  definingUnit
+    classes
+      class D @6
+        constructors
+          synthetic @-1
+      class C @17
+        typeParameters
+          covariant E @19
+            defaultType: dynamic
+        constructors
+          factory @34
 ''');
   }
 
@@ -5574,13 +12755,20 @@ class D extends C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  factory C() = D;
-  C._();
-}
-class D extends C {
-  D();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          factory @20
+            redirectedConstructor: self::@class::D::@constructor::•
+          _ @33
+            periodOffset: 32
+            nameEnd: 34
+      class D @46
+        supertype: C
+        constructors
+          @62
 ''');
   }
 
@@ -5595,13 +12783,32 @@ class D<T, U> extends C<U, T> {
 }
 ''');
     checkElementText(library, r'''
-class C<T, U> {
-  factory C() = D<U, T>;
-  C._();
-}
-class D<T, U> extends C<U, T> {
-  D();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          factory @26
+            redirectedConstructor: ConstructorMember
+              base: self::@class::D::@constructor::•
+              substitution: {T: U, U: T}
+          _ @45
+            periodOffset: 44
+            nameEnd: 46
+      class D @58
+        typeParameters
+          covariant T @60
+            defaultType: dynamic
+          covariant U @63
+            defaultType: dynamic
+        supertype: C<U, T>
+        constructors
+          @86
 ''');
   }
 
@@ -5618,14 +12825,40 @@ class C<T, U> extends B<U, T> {
 }
 ''');
     checkElementText(library, r'''
-typedef A<T, U> = C<T, U>;
-class B<T, U> {
-  factory B() = C<U, T>;
-  dynamic B_();
-}
-class C<T, U> extends B<U, T> {
-  C();
-}
+library
+  definingUnit
+    classes
+      class B @33
+        typeParameters
+          covariant T @35
+            defaultType: dynamic
+          covariant U @38
+            defaultType: dynamic
+        constructors
+          factory @53
+            redirectedConstructor: ConstructorMember
+              base: self::@class::C::@constructor::•
+              substitution: {T: U, U: T}
+        methods
+          abstract B_ @70
+            returnType: dynamic
+      class C @84
+        typeParameters
+          covariant T @86
+            defaultType: dynamic
+          covariant U @89
+            defaultType: dynamic
+        supertype: B<U, T>
+        constructors
+          @112
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+          covariant U @13
+            defaultType: dynamic
+        aliasedType: C<T, U>
 ''');
   }
 
@@ -5644,11 +12877,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart';
-class C {
-  factory C() = D;
-  C._();
-}
+library
+  imports
+    foo.dart
+  definingUnit
+    classes
+      class C @25
+        constructors
+          factory @39
+            redirectedConstructor: foo.dart::@class::D::@constructor::•
+          _ @52
+            periodOffset: 51
+            nameEnd: 53
 ''');
   }
 
@@ -5667,11 +12907,25 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart';
-class C<T, U> {
-  factory C() = D<U, T>;
-  C._();
-}
+library
+  imports
+    foo.dart
+  definingUnit
+    classes
+      class C @25
+        typeParameters
+          covariant T @27
+            defaultType: dynamic
+          covariant U @30
+            defaultType: dynamic
+        constructors
+          factory @45
+            redirectedConstructor: ConstructorMember
+              base: foo.dart::@class::D::@constructor::•
+              substitution: {T: U, U: T}
+          _ @64
+            periodOffset: 63
+            nameEnd: 65
 ''');
   }
 
@@ -5692,11 +12946,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart';
-class C {
-  factory C() = B;
-  C._();
-}
+library
+  imports
+    foo.dart
+  definingUnit
+    classes
+      class C @25
+        constructors
+          factory @39
+            redirectedConstructor: foo.dart::@class::B::@constructor::•
+          _ @52
+            periodOffset: 51
+            nameEnd: 53
 ''');
   }
 
@@ -5715,11 +12976,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart' as foo;
-class C {
-  factory C() = D;
-  C._();
-}
+library
+  imports
+    foo.dart as foo @21
+  definingUnit
+    classes
+      class C @32
+        constructors
+          factory @46
+            redirectedConstructor: foo.dart::@class::D::@constructor::•
+          _ @63
+            periodOffset: 62
+            nameEnd: 64
 ''');
   }
 
@@ -5738,11 +13006,25 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart' as foo;
-class C<T, U> {
-  factory C() = D<U, T>;
-  C._();
-}
+library
+  imports
+    foo.dart as foo @21
+  definingUnit
+    classes
+      class C @32
+        typeParameters
+          covariant T @34
+            defaultType: dynamic
+          covariant U @37
+            defaultType: dynamic
+        constructors
+          factory @52
+            redirectedConstructor: ConstructorMember
+              base: foo.dart::@class::D::@constructor::•
+              substitution: {T: U, U: T}
+          _ @75
+            periodOffset: 74
+            nameEnd: 76
 ''');
   }
 
@@ -5763,11 +13045,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'foo.dart' as foo;
-class C {
-  factory C() = B;
-  C._();
-}
+library
+  imports
+    foo.dart as foo @21
+  definingUnit
+    classes
+      class C @32
+        constructors
+          factory @46
+            redirectedConstructor: foo.dart::@class::B::@constructor::•
+          _ @63
+            periodOffset: 62
+            nameEnd: 64
 ''');
   }
 
@@ -5778,9 +13067,15 @@ class C<E> {
 }
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C<E> {
-  factory C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant E @8
+            defaultType: dynamic
+        constructors
+          factory @23
 ''');
   }
 
@@ -5797,14 +13092,23 @@ class C extends B {
 }
 ''');
     checkElementText(library, r'''
-typedef A = C;
-class B {
-  factory B() = C;
-  B._();
-}
-class C extends B {
-  C();
-}
+library
+  definingUnit
+    classes
+      class B @21
+        constructors
+          factory @35
+            redirectedConstructor: self::@class::C::@constructor::•
+          _ @48
+            periodOffset: 47
+            nameEnd: 49
+      class C @61
+        supertype: B
+        constructors
+          @77
+    typeAliases
+      A @8
+        aliasedType: C
 ''');
   }
 
@@ -5816,11 +13120,26 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C.named();
-  const C() = C.named : this.
-        named/*location: test.dart;C;named*/();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const named @20
+            periodOffset: 19
+            nameEnd: 25
+          const @37
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
+                  token: named @-1
+                staticElement: self::@class::C::@constructor::named
+            redirectedConstructor: self::@class::C::@constructor::named
 ''');
   }
 
@@ -5832,11 +13151,29 @@ class C<T> {
 }
 ''');
     checkElementText(library, r'''
-class C<T> {
-  const C.named();
-  const C() = C<T>.named : this.
-        named/*location: test.dart;C;named*/();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const named @23
+            periodOffset: 22
+            nameEnd: 28
+          const @40
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::C::@constructor::named
+                  staticType: null
+                  token: named @-1
+                staticElement: self::@class::C::@constructor::named
+            redirectedConstructor: self::@class::C::@constructor::named
 ''');
   }
 
@@ -5848,10 +13185,15 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  C.named();
-  C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          named @14
+            periodOffset: 13
+            nameEnd: 19
+          @25
 ''');
   }
 
@@ -5863,10 +13205,22 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  const C();
-  const C.named() = C : this();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          const @18
+          const named @33
+            periodOffset: 32
+            nameEnd: 38
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::C::@constructor::•
+            redirectedConstructor: self::@class::C::@constructor::•
 ''');
   }
 
@@ -5878,10 +13232,25 @@ class C<T> {
 }
 ''');
     checkElementText(library, r'''
-class C<T> {
-  const C();
-  const C.named() = C<T> : this();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+          const named @36
+            periodOffset: 35
+            nameEnd: 41
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::C::@constructor::•
+            redirectedConstructor: self::@class::C::@constructor::•
 ''');
   }
 
@@ -5893,10 +13262,15 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  C();
-  C.named();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @12
+          named @21
+            periodOffset: 20
+            nameEnd: 26
 ''');
   }
 
@@ -5912,18 +13286,69 @@ class D {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  const C() :
-        x/*location: test.dart;C;x*/ = const
-        D/*location: test.dart;D*/();
-}
-class D {
-  final dynamic x;
-  const D() :
-        x/*location: test.dart;D;x*/ = const
-        C/*location: test.dart;C*/();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          const @29
+            constantInitializers
+              ConstructorFieldInitializer
+                equals: = @0
+                expression: InstanceCreationExpression
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  constructorName: ConstructorName
+                    staticElement: self::@class::D::@constructor::•
+                    type: TypeName
+                      name: SimpleIdentifier
+                        staticElement: self::@class::D
+                        staticType: null
+                        token: D @-1
+                      type: D
+                  keyword: const @0
+                  staticType: D
+                fieldName: SimpleIdentifier
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
+                  token: x @-1
+        accessors
+          synthetic get x @18
+            returnType: dynamic
+      class D @58
+        fields
+          final x @70
+            type: dynamic
+        constructors
+          const @81
+            constantInitializers
+              ConstructorFieldInitializer
+                equals: = @0
+                expression: InstanceCreationExpression
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  constructorName: ConstructorName
+                    staticElement: self::@class::C::@constructor::•
+                    type: TypeName
+                      name: SimpleIdentifier
+                        staticElement: self::@class::C
+                        staticType: null
+                        token: C @-1
+                      type: C
+                  keyword: const @0
+                  staticType: C
+                fieldName: SimpleIdentifier
+                  staticElement: self::@class::D::@field::x
+                  staticType: null
+                  token: x @-1
+        accessors
+          synthetic get x @70
+            returnType: dynamic
 ''');
   }
 
@@ -5939,14 +13364,27 @@ class D {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final dynamic x;
-  C();
-}
-class D {
-  final dynamic x;
-  D();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: dynamic
+        constructors
+          @23
+        accessors
+          synthetic get x @18
+            returnType: dynamic
+      class D @50
+        fields
+          final x @62
+            type: dynamic
+        constructors
+          @67
+        accessors
+          synthetic get x @62
+            returnType: dynamic
 ''');
   }
 
@@ -5956,14 +13394,29 @@ class A<T> {
   const X({List<T> a = const []});
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A<T> {
-  dynamic X({List<T> a: const /*typeArgs=Never*/[]});
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          abstract X @21
+            parameters
+              optionalNamed a @32
+                type: List<T>
+                constantInitializer
+                  ListLiteral
+                    constKeyword: const @0
+                    leftBracket: [ @0
+                    rightBracket: ] @0
+                    staticType: List<Never>
+            returnType: dynamic
+''');
   }
 
   test_defaultValue_eliminateTypeParameters_legacy() async {
@@ -5973,14 +13426,29 @@ class A<T> {
   const X({List<T> a = const []});
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A<T> {
-  dynamic X({List<T*>* a: const /*typeArgs=Null**/[]});
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          abstract X @21
+            parameters
+              optionalNamed a @32
+                type: List<T*>*
+                constantInitializer
+                  ListLiteral
+                    constKeyword: const @0
+                    leftBracket: [ @0
+                    rightBracket: ] @0
+                    staticType: List<Null*>*
+            returnType: dynamic
+''');
   }
 
   test_defaultValue_genericFunction() async {
@@ -5995,13 +13463,54 @@ class X {
 }
 ''');
     checkElementText(library, r'''
-typedef F<T> = void Function(T v);
-class X {
-  final void Function(dynamic) f;
-  const X({final void Function(dynamic) this.f:
-        defaultF/*location: test.dart;defaultF*/});
-}
-void defaultF<T>(T v) {}
+library
+  definingUnit
+    classes
+      class X @57
+        fields
+          final f @71
+            type: void Function(dynamic)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                dynamic
+        constructors
+          const @82
+            parameters
+              optionalNamed final this.f @90
+                type: void Function(dynamic)
+                  aliasElement: self::@typeAlias::F
+                  aliasArguments
+                    dynamic
+                constantInitializer
+                  SimpleIdentifier
+                    staticElement: self::@function::defaultF
+                    staticType: void Function(dynamic)
+                    token: defaultF @-1
+        accessors
+          synthetic get f @71
+            returnType: void Function(dynamic)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                dynamic
+    typeAliases
+      functionTypeAliasBased F @13
+        typeParameters
+          contravariant T @15
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional v @-1
+              type: T
+          returnType: void
+    functions
+      defaultF @30
+        typeParameters
+          covariant T @39
+        parameters
+          requiredPositional v @44
+            type: T
+        returnType: void
 ''');
   }
 
@@ -6015,13 +13524,53 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-class A<T> {
-  const A();
-}
-class B {
-  void foo({dynamic a: const
-        A/*location: test.dart;A*/<Function()>()}) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class B @34
+        constructors
+          synthetic @-1
+        methods
+          foo @45
+            parameters
+              optionalNamed a @50
+                type: dynamic
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::A::@constructor::•
+                        substitution: {T: dynamic Function()}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::A
+                          staticType: null
+                          token: A @-1
+                        type: A<dynamic Function()>
+                        typeArguments: TypeArgumentList
+                          arguments
+                            GenericFunctionType
+                              declaredElement: GenericFunctionTypeElement
+                                parameters
+                                returnType: dynamic
+                                type: dynamic Function()
+                              functionKeyword: Function @0
+                              parameters: FormalParameterList
+                              type: dynamic Function()
+                          leftBracket: < @0
+                          rightBracket: > @0
+                    keyword: const @0
+                    staticType: A<dynamic Function()>
+            returnType: void
 ''');
   }
 
@@ -6029,24 +13578,32 @@ class B {
     var library = await checkLibrary('''
 void f( g({a: 0 is int}) ) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-void f(dynamic Function({dynamic a}) g) {}
-    g::a
-      IsExpression
-        expression: IntegerLiteral
-          literal: 0
-          staticType: int
-        staticType: bool
-        type: TypeName
-          name: SimpleIdentifier
-            staticElement: dart:core::@class::int
-            staticType: null
-            token: int
-          type: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional g @8
+            type: dynamic Function({dynamic a})
+            parameters
+              optionalNamed a @11
+                type: dynamic
+                constantInitializer
+                  IsExpression
+                    expression: IntegerLiteral
+                      literal: 0 @0
+                      staticType: int
+                    isOperator: is @0
+                    staticType: bool
+                    type: TypeName
+                      name: SimpleIdentifier
+                        staticElement: dart:core::@class::int
+                        staticType: null
+                        token: int @-1
+                      type: int
+        returnType: void
+''');
   }
 
   test_defaultValue_methodMember_legacy() async {
@@ -6054,29 +13611,36 @@ void f(dynamic Function({dynamic a}) g) {}
     var library = await checkLibrary('''
 void f([Comparator<T> compare = Comparable.compare]) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-void f([int* Function(dynamic, dynamic)* compare]) {}
-  compare
-    PrefixedIdentifier
-      identifier: SimpleIdentifier
-        staticElement: MethodMember
-          base: dart:core::@class::Comparable::@method::compare
-          substitution: {}
-        staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
-        token: compare
-      period: .
-      prefix: SimpleIdentifier
-        staticElement: dart:core::@class::Comparable
-        staticType: null
-        token: Comparable
-      staticElement: MethodMember
-        base: dart:core::@class::Comparable::@method::compare
-        substitution: {}
-      staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalPositional compare @22
+            type: int* Function(dynamic, dynamic)*
+              aliasElement: dart:core::@typeAlias::Comparator
+              aliasArguments
+                dynamic
+            constantInitializer
+              PrefixedIdentifier
+                identifier: SimpleIdentifier
+                  staticElement: MethodMember
+                    base: dart:core::@class::Comparable::@method::compare
+                    substitution: {}
+                  staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
+                  token: compare @-1
+                period: . @0
+                prefix: SimpleIdentifier
+                  staticElement: dart:core::@class::Comparable
+                  staticType: null
+                  token: Comparable @-1
+                staticElement: MethodMember
+                  base: dart:core::@class::Comparable::@method::compare
+                  substitution: {}
+                staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
+        returnType: void
+''');
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
@@ -6088,13 +13652,28 @@ extension E on A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-}
-extension E on A {
-  static void f() {}
-  static void g([Object p =
-        f/*location: test.dart;E;f*/]) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+    extensions
+      E @21
+        extendedType: A
+        methods
+          static f @44
+            returnType: void
+          static g @65
+            parameters
+              optionalPositional p @75
+                type: Object
+                constantInitializer
+                  SimpleIdentifier
+                    staticElement: self::@extension::E::@method::f
+                    staticType: void Function()
+                    token: f @-1
+            returnType: void
 ''');
   }
 
@@ -6107,18 +13686,45 @@ class C {
   void foo([B<int, double> b = const B()]) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class B<T1, T2> {
-  const B();
-}
-class C {
-  void foo([B<int, double> b = const /*typeArgs=int,double*/
-        B/*location: test.dart;B*/()]) {}
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @6
+        typeParameters
+          covariant T1 @8
+            defaultType: dynamic
+          covariant T2 @12
+            defaultType: dynamic
+        constructors
+          const @26
+      class C @39
+        constructors
+          synthetic @-1
+        methods
+          foo @50
+            parameters
+              optionalPositional b @70
+                type: B<int, double>
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T1: int, T2: double}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<int, double>
+                    keyword: const @0
+                    staticType: B<int, double>
+            returnType: void
+''');
   }
 
   test_defaultValue_refersToGenericClass_constructor() async {
@@ -6130,18 +13736,43 @@ class C<T> {
   const C([B<T> b = const B()]);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class B<T> {
-  const B();
-}
-class C<T> {
-  const C([B<T> b = const /*typeArgs=Never*/
-        B/*location: test.dart;B*/()]);
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class C @34
+        typeParameters
+          covariant T @36
+            defaultType: dynamic
+        constructors
+          const @49
+            parameters
+              optionalPositional b @57
+                type: B<T>
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T: Never}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<Never>
+                    keyword: const @0
+                    staticType: B<Never>
+''');
   }
 
   test_defaultValue_refersToGenericClass_constructor2() async {
@@ -6154,20 +13785,53 @@ class C<T> implements A<Iterable<T>> {
   const C([A<T> a = const B()]);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-abstract class A<T> {
-}
-class B<T> implements A<T> {
-  const B();
-}
-class C<T> implements A<Iterable<T>> {
-  const C([A<T> a = const /*typeArgs=Never*/
-        B/*location: test.dart;B*/()]);
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @15
+        typeParameters
+          covariant T @17
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @29
+        typeParameters
+          covariant T @31
+            defaultType: dynamic
+        interfaces
+          A<T>
+        constructors
+          const @60
+      class C @73
+        typeParameters
+          covariant T @75
+            defaultType: dynamic
+        interfaces
+          A<Iterable<T>>
+        constructors
+          const @114
+            parameters
+              optionalPositional a @122
+                type: A<T>
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T: Never}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<Never>
+                    keyword: const @0
+                    staticType: B<Never>
+''');
   }
 
   test_defaultValue_refersToGenericClass_constructor2_legacy() async {
@@ -6181,20 +13845,53 @@ class C<T> implements A<Iterable<T>> {
   const C([A<T> a = const B()]);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-abstract class A<T> {
-}
-class B<T> implements A<T*>* {
-  const B();
-}
-class C<T> implements A<Iterable<T*>*>* {
-  const C([A<T*>* a = const /*typeArgs=Null**/
-        B/*location: test.dart;B*/()]);
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @15
+        typeParameters
+          covariant T @17
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @29
+        typeParameters
+          covariant T @31
+            defaultType: dynamic
+        interfaces
+          A<T*>*
+        constructors
+          const @60
+      class C @73
+        typeParameters
+          covariant T @75
+            defaultType: dynamic
+        interfaces
+          A<Iterable<T*>*>*
+        constructors
+          const @114
+            parameters
+              optionalPositional a @122
+                type: A<T*>*
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T: Null*}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<Null*>*
+                    keyword: const @0
+                    staticType: B<Null*>*
+''');
   }
 
   test_defaultValue_refersToGenericClass_constructor_legacy() async {
@@ -6207,18 +13904,43 @@ class C<T> {
   const C([B<T> b = const B()]);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class B<T> {
-  const B();
-}
-class C<T> {
-  const C([B<T*>* b = const /*typeArgs=Null**/
-        B/*location: test.dart;B*/()]);
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class C @34
+        typeParameters
+          covariant T @36
+            defaultType: dynamic
+        constructors
+          const @49
+            parameters
+              optionalPositional b @57
+                type: B<T*>*
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T: Null*}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<Null*>*
+                    keyword: const @0
+                    staticType: B<Null*>*
+''');
   }
 
   test_defaultValue_refersToGenericClass_functionG() async {
@@ -6228,16 +13950,42 @@ class B<T> {
 }
 void foo<T>([B<T> b = const B()]) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class B<T> {
-  const B();
-}
-void foo<T>([B<T> b = const /*typeArgs=Never*/
-        B/*location: test.dart;B*/()]) {}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+    functions
+      foo @33
+        typeParameters
+          covariant T @37
+        parameters
+          optionalPositional b @46
+            type: B<T>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  staticElement: ConstructorMember
+                    base: self::@class::B::@constructor::•
+                    substitution: {T: Never}
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: self::@class::B
+                      staticType: null
+                      token: B @-1
+                    type: B<Never>
+                keyword: const @0
+                staticType: B<Never>
+        returnType: void
+''');
   }
 
   test_defaultValue_refersToGenericClass_methodG() async {
@@ -6249,18 +13997,45 @@ class C {
   void foo<T>([B<T> b = const B()]) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class B<T> {
-  const B();
-}
-class C {
-  void foo<T>([B<T> b = const /*typeArgs=Never*/
-        B/*location: test.dart;B*/()]) {}
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class C @34
+        constructors
+          synthetic @-1
+        methods
+          foo @45
+            typeParameters
+              covariant T @49
+            parameters
+              optionalPositional b @58
+                type: B<T>
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T: Never}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<Never>
+                    keyword: const @0
+                    staticType: B<Never>
+            returnType: void
+''');
   }
 
   test_defaultValue_refersToGenericClass_methodG_classG() async {
@@ -6272,18 +14047,50 @@ class C<E1> {
   void foo<E2>([B<E1, E2> b = const B()]) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class B<T1, T2> {
-  const B();
-}
-class C<E1> {
-  void foo<E2>([B<E1, E2> b = const /*typeArgs=Never,Never*/
-        B/*location: test.dart;B*/()]) {}
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @6
+        typeParameters
+          covariant T1 @8
+            defaultType: dynamic
+          covariant T2 @12
+            defaultType: dynamic
+        constructors
+          const @26
+      class C @39
+        typeParameters
+          covariant E1 @41
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          foo @54
+            typeParameters
+              covariant E2 @58
+            parameters
+              optionalPositional b @73
+                type: B<E1, E2>
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T1: Never, T2: Never}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<Never, Never>
+                    keyword: const @0
+                    staticType: B<Never, Never>
+            returnType: void
+''');
   }
 
   test_defaultValue_refersToGenericClass_methodNG() async {
@@ -6295,18 +14102,46 @@ class C<T> {
   void foo([B<T> b = const B()]) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class B<T> {
-  const B();
-}
-class C<T> {
-  void foo([B<T> b = const /*typeArgs=Never*/
-        B/*location: test.dart;B*/()]) {}
-}
-''',
-        withTypes: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class C @34
+        typeParameters
+          covariant T @36
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          foo @48
+            parameters
+              optionalPositional b @58
+                type: B<T>
+                constantInitializer
+                  InstanceCreationExpression
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    constructorName: ConstructorName
+                      staticElement: ConstructorMember
+                        base: self::@class::B::@constructor::•
+                        substitution: {T: Never}
+                      type: TypeName
+                        name: SimpleIdentifier
+                          staticElement: self::@class::B
+                          staticType: null
+                          token: B @-1
+                        type: B<Never>
+                    keyword: const @0
+                    staticType: B<Never>
+            returnType: void
+''');
   }
 
   test_duplicateDeclaration_class() async {
@@ -6320,14 +14155,40 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-}
-class A {
-  dynamic x;
-}
-class A {
-  int y;
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class A @17
+        fields
+          x @27
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @27
+            returnType: dynamic
+          synthetic set x @27
+            parameters
+              requiredPositional _x @27
+                type: dynamic
+            returnType: void
+      class A @38
+        fields
+          y @48
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get y @48
+            returnType: int
+          synthetic set y @48
+            parameters
+              requiredPositional _y @48
+                type: int
+            returnType: void
 ''');
   }
 
@@ -6340,18 +14201,45 @@ class X = B with M;
 mixin M {}
 ''');
     checkElementText(library, r'''
-class A {
-}
-class B {
-}
-class alias X extends A with M {
-  synthetic X() : super();
-}
-class alias X extends B with M {
-  synthetic X() : super();
-}
-mixin M on Object {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @17
+        constructors
+          synthetic @-1
+      class alias X @28
+        supertype: A
+        mixins
+          M
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+      class alias X @48
+        supertype: B
+        mixins
+          M
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::B::@constructor::•
+    mixins
+      mixin M @68
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -6361,21 +14249,57 @@ enum E {a, b}
 enum E {c, d, e}
 ''');
     checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  static const E b;
-  String toString() {}
-}
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E c;
-  static const E d;
-  static const E e;
-  String toString() {}
-}
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @8
+            type: E
+          static const b @11
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+      enum E @19
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const c @22
+            type: E
+          static const d @25
+            type: E
+          static const e @28
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get c @-1
+            returnType: E
+          synthetic static get d @-1
+            returnType: E
+          synthetic static get e @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
 ''');
   }
 
@@ -6391,16 +14315,41 @@ extension E on A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-}
-extension E on A {
-}
-extension E on A {
-  static dynamic x;
-}
-extension E on A {
-  static int y;
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+    extensions
+      E @21
+        extendedType: A
+      E @41
+        extendedType: A
+        fields
+          static x @63
+            type: dynamic
+        accessors
+          synthetic static get x @63
+            returnType: dynamic
+          synthetic static set x @63
+            parameters
+              requiredPositional _x @63
+                type: dynamic
+            returnType: void
+      E @78
+        extendedType: A
+        fields
+          static y @100
+            type: int
+        accessors
+          synthetic static get y @100
+            returnType: int
+          synthetic static set y @100
+            parameters
+              requiredPositional _y @100
+                type: int
+            returnType: void
 ''');
   }
 
@@ -6411,9 +14360,23 @@ void f(int a) {}
 void f([int b, double c]) {}
 ''');
     checkElementText(library, r'''
-void f() {}
-void f(int a) {}
-void f([int b], [double c]) {}
+library
+  definingUnit
+    functions
+      f @5
+        returnType: void
+      f @17
+        parameters
+          requiredPositional a @23
+            type: int
+        returnType: void
+      f @34
+        parameters
+          optionalPositional b @41
+            type: int
+          optionalPositional c @51
+            type: double
+        returnType: void
 ''');
   }
 
@@ -6424,9 +14387,29 @@ typedef void F(int a);
 typedef void F([int b, double c]);
 ''');
     checkElementText(library, r'''
-typedef F = void Function();
-typedef F = void Function(int a);
-typedef F = void Function([int b], [double c]);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
+      functionTypeAliasBased F @31
+        aliasedType: void Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: int
+          returnType: void
+      functionTypeAliasBased F @54
+        aliasedType: void Function([int, double])
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            optionalPositional b @-1
+              type: int
+            optionalPositional c @-1
+              type: double
+          returnType: void
 ''');
   }
 
@@ -6441,14 +14424,46 @@ mixin A {
 }
 ''');
     checkElementText(library, r'''
-mixin A on Object {
-}
-mixin A on Object {
-  dynamic x;
-}
-mixin A on Object {
-  int y;
-}
+library
+  definingUnit
+    mixins
+      mixin A @6
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+      mixin A @17
+        superclassConstraints
+          Object
+        fields
+          x @27
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @27
+            returnType: dynamic
+          synthetic set x @27
+            parameters
+              requiredPositional _x @27
+                type: dynamic
+            returnType: void
+      mixin A @38
+        superclassConstraints
+          Object
+        fields
+          y @48
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get y @48
+            returnType: int
+          synthetic set y @48
+            parameters
+              requiredPositional _y @48
+                type: int
+            returnType: void
 ''');
   }
 
@@ -6460,10 +14475,46 @@ var x = 1;
 var x = 2.3;
 ''');
     checkElementText(library, r'''
-bool x;
-dynamic x;
-int x;
-double x;
+library
+  definingUnit
+    topLevelVariables
+      static x @5
+        type: bool
+      static x @12
+        type: dynamic
+      static x @19
+        type: int
+      static x @30
+        type: double
+    accessors
+      synthetic static get x @5
+        returnType: bool
+      synthetic static set x @5
+        parameters
+          requiredPositional _x @5
+            type: bool
+        returnType: void
+      synthetic static get x @12
+        returnType: dynamic
+      synthetic static set x @12
+        parameters
+          requiredPositional _x @12
+            type: dynamic
+        returnType: void
+      synthetic static get x @19
+        returnType: int
+      synthetic static set x @19
+        parameters
+          requiredPositional _x @19
+            type: int
+        returnType: void
+      synthetic static get x @30
+        returnType: double
+      synthetic static set x @30
+        parameters
+          requiredPositional _x @30
+            type: double
+        returnType: void
 ''');
   }
 
@@ -6475,15 +14526,28 @@ double x;
  */
 enum E { v }''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
+library
+  definingUnit
+    enums
+      enum E @65
+        documentationComment: /**\n * Docs\n */
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const v @69
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get v @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
 ''');
   }
 
@@ -6498,17 +14562,33 @@ enum E {
   b
 }''');
     checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  /**
-   * aaa
-   */
-  static const E a;
-  /// bbb
-  static const E b;
-  String toString() {}
-}
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @32
+            documentationComment: /**\n   * aaa\n   */
+            type: E
+          static const b @47
+            documentationComment: /// bbb
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
 ''');
   }
 
@@ -6527,55 +14607,136 @@ enum E {
 
 const int annotation = 0;
 ''');
-    checkElementText(
-        library,
-        r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  /**
-   * aaa
-   */
-  @annotation
-  static const E a;
-  /// bbb
-  @annotation
-  static const E b;
-  String toString() {}
-}
-const int annotation = 0;
-''',
-        withConstElements: false);
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @46
+            documentationComment: /**\n   * aaa\n   */
+            metadata
+              Annotation
+                atSign.offset: 32
+                element: self::@getter::annotation
+                name: SimpleIdentifier
+                  staticElement: self::@getter::annotation
+                  staticType: null
+                  token: annotation @33
+            type: E
+          static const b @75
+            documentationComment: /// bbb
+            metadata
+              Annotation
+                atSign.offset: 61
+                element: self::@getter::annotation
+                name: SimpleIdentifier
+                  staticElement: self::@getter::annotation
+                  staticType: null
+                  token: annotation @62
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    topLevelVariables
+      static const annotation @91
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @104
+            staticType: int
+    accessors
+      synthetic static get annotation @91
+        returnType: int
+''');
   }
 
   test_enum_values() async {
     var library = await checkLibrary('enum E { v1, v2 }');
     checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v1;
-  static const E v2;
-  String toString() {}
-}
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const v1 @9
+            type: E
+          static const v2 @13
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get v1 @-1
+            returnType: E
+          synthetic static get v2 @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
 ''');
   }
 
   test_enums() async {
     var library = await checkLibrary('enum E1 { v1 } enum E2 { v2 }');
     checkElementText(library, r'''
-enum E1 {
-  synthetic final int index;
-  synthetic static const List<E1> values;
-  static const E1 v1;
-  String toString() {}
-}
-enum E2 {
-  synthetic final int index;
-  synthetic static const List<E2> values;
-  static const E2 v2;
-  String toString() {}
-}
+library
+  definingUnit
+    enums
+      enum E1 @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E1>
+          static const v1 @10
+            type: E1
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E1>
+          synthetic static get v1 @-1
+            returnType: E1
+        methods
+          toString @-1
+            returnType: String
+      enum E2 @20
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E2>
+          static const v2 @25
+            type: E2
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E2>
+          synthetic static get v2 @-1
+            returnType: E2
+        methods
+          toString @-1
+            returnType: String
 ''');
   }
 
@@ -6600,29 +14761,74 @@ class C extends Object with E, M {
 class D = Object with M, E;
 ''');
     checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  static const E b;
-  static const E c;
-  String toString() {}
-}
-class M {
-}
-class A {
-  dynamic foo() {}
-}
-class B implements M {
-  dynamic foo() {}
-}
-class C extends Object with M {
-  synthetic C();
-  dynamic foo() {}
-}
-class alias D extends Object with M {
-  synthetic const D() : super();
-}
+library
+  definingUnit
+    classes
+      class M @24
+        constructors
+          synthetic @-1
+      class A @36
+        constructors
+          synthetic @-1
+        methods
+          foo @52
+            returnType: dynamic
+      class B @70
+        interfaces
+          M
+        constructors
+          synthetic @-1
+        methods
+          foo @92
+            returnType: dynamic
+      class C @110
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic @-1
+        methods
+          foo @141
+            returnType: dynamic
+      class alias D @159
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @8
+            type: E
+          static const b @11
+            type: E
+          static const c @14
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+          synthetic static get c @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
 ''');
   }
 
@@ -6632,8 +14838,23 @@ typedef F(int p);
 main(F f) {}
 ''');
     checkElementText(library, r'''
-typedef F = dynamic Function(int p);
-dynamic main(dynamic Function(int) f) {}
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional p @-1
+              type: int
+          returnType: dynamic
+    functions
+      main @18
+        parameters
+          requiredPositional f @25
+            type: dynamic Function(int)
+              aliasElement: self::@typeAlias::F
+        returnType: dynamic
 ''');
   }
 
@@ -6643,11 +14864,12 @@ dynamic main(dynamic Function(int) f) {}
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  C: a.dart;C
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    C: a.dart;C
 ''',
         withExportScope: true);
   }
@@ -6662,11 +14884,12 @@ class _E {}
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  C: a.dart;C
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    C: a.dart;C
 ''',
         withExportScope: true);
   }
@@ -6686,11 +14909,12 @@ export 'foo.dart'
     checkElementText(
         library,
         r'''
-export 'foo.dart';
-
---------------------
-Exports:
-  A: foo.dart;A
+library
+  exports
+    foo.dart
+  definingUnit
+  exportScope
+    A: foo.dart;A
 ''',
         withExportScope: true);
     expect(library.exports[0].exportedLibrary!.source.shortName, 'foo.dart');
@@ -6712,11 +14936,12 @@ export 'foo.dart'
     checkElementText(
         library,
         r'''
-export 'foo_io.dart';
-
---------------------
-Exports:
-  A: foo_io.dart;A
+library
+  exports
+    foo_io.dart
+  definingUnit
+  exportScope
+    A: foo_io.dart;A
 ''',
         withExportScope: true);
     expect(library.exports[0].exportedLibrary!.source.shortName, 'foo_io.dart');
@@ -6738,11 +14963,12 @@ export 'foo.dart'
     checkElementText(
         library,
         r'''
-export 'foo_html.dart';
-
---------------------
-Exports:
-  A: foo_html.dart;A
+library
+  exports
+    foo_html.dart
+  definingUnit
+  exportScope
+    A: foo_html.dart;A
 ''',
         withExportScope: true);
     ExportElement export = library.exports[0];
@@ -6755,11 +14981,12 @@ Exports:
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  f: a.dart;f
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    f: a.dart;f
 ''',
         withExportScope: true);
   }
@@ -6768,7 +14995,10 @@ Exports:
     addLibrarySource('/a.dart', 'get f() => null;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
-export 'a.dart';
+library
+  exports
+    a.dart
+  definingUnit
 ''');
   }
 
@@ -6779,16 +15009,19 @@ export 'a.dart';
     checkElementText(
         library,
         r'''
-export 'dart:async' hide Stream, Future;
-
---------------------
-Exports:
-  Completer: dart:async;Completer
-  FutureOr: dart:async;FutureOr
-  StreamIterator: dart:async;dart:async/stream.dart;StreamIterator
-  StreamSubscription: dart:async;dart:async/stream.dart;StreamSubscription
-  StreamTransformer: dart:async;dart:async/stream.dart;StreamTransformer
-  Timer: dart:async;Timer
+library
+  exports
+    dart:async
+      combinators
+        hide: Stream, Future
+  definingUnit
+  exportScope
+    Completer: dart:async;Completer
+    FutureOr: dart:async;FutureOr
+    StreamIterator: dart:async;dart:async/stream.dart;StreamIterator
+    StreamSubscription: dart:async;dart:async/stream.dart;StreamSubscription
+    StreamTransformer: dart:async;dart:async/stream.dart;StreamTransformer
+    Timer: dart:async;Timer
 ''',
         withExportScope: true);
   }
@@ -6800,11 +15033,15 @@ Exports:
     checkElementText(
         library,
         r'''
-export 'dart:async' hide Stream show Future;
-
---------------------
-Exports:
-  Future: dart:async;Future
+library
+  exports
+    dart:async
+      combinators
+        hide: Stream
+        show: Future
+  definingUnit
+  exportScope
+    Future: dart:async;Future
 ''',
         withExportScope: true);
   }
@@ -6815,11 +15052,12 @@ Exports:
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  f=: a.dart;f=
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    f=: a.dart;f=
 ''',
         withExportScope: true);
   }
@@ -6831,12 +15069,15 @@ Exports:
     checkElementText(
         library,
         r'''
-export 'dart:async' show Future, Stream;
-
---------------------
-Exports:
-  Future: dart:async;Future
-  Stream: dart:async;dart:async/stream.dart;Stream
+library
+  exports
+    dart:async
+      combinators
+        show: Future, Stream
+  definingUnit
+  exportScope
+    Future: dart:async;Future
+    Stream: dart:async;dart:async/stream.dart;Stream
 ''',
         withExportScope: true);
   }
@@ -6850,12 +15091,15 @@ void set f(value) {}
     checkElementText(
         library,
         r'''
-export 'a.dart' show f;
-
---------------------
-Exports:
-  f: a.dart;f?
-  f=: a.dart;f=
+library
+  exports
+    a.dart
+      combinators
+        show: f
+  definingUnit
+  exportScope
+    f: a.dart;f?
+    f=: a.dart;f=
 ''',
         withExportScope: true);
   }
@@ -6866,11 +15110,12 @@ Exports:
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  F: a.dart;F
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    F: a.dart;F
 ''',
         withExportScope: true);
   }
@@ -6888,12 +15133,13 @@ export 'foo.dart';
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  x: a.dart;x?
-  x=: a.dart;x=
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    x: a.dart;x?
+    x=: a.dart;x=
 ''',
         withExportScope: true);
   }
@@ -6904,11 +15150,12 @@ Exports:
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  x: a.dart;x?
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    x: a.dart;x?
 ''',
         withExportScope: true);
   }
@@ -6919,11 +15166,12 @@ Exports:
     checkElementText(
         library,
         r'''
-export 'a.dart';
-
---------------------
-Exports:
-  x: a.dart;x?
+library
+  exports
+    a.dart
+  definingUnit
+  exportScope
+    x: a.dart;x?
 ''',
         withExportScope: true);
   }
@@ -6945,9 +15193,15 @@ import 'bar.dart';
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'bar.dart';
-class B extends A {
-}
+library
+  imports
+    bar.dart
+  definingUnit
+    classes
+      class B @25
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -6971,9 +15225,15 @@ import 'bar.dart';
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'bar.dart';
-class B extends A {
-}
+library
+  imports
+    bar.dart
+  definingUnit
+    classes
+      class B @25
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -6997,9 +15257,15 @@ import 'bar.dart';
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'bar.dart';
-class B extends A {
-}
+library
+  imports
+    bar.dart
+  definingUnit
+    classes
+      class B @25
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -7012,11 +15278,12 @@ class B extends A {
     checkElementText(
         library,
         r'''
-export 'a.dart';
-export 'b.dart';
-
---------------------
-Exports:
+library
+  exports
+    a.dart
+    b.dart
+  definingUnit
+  exportScope
 ''',
         withExportScope: true);
   }
@@ -7028,9 +15295,21 @@ class C<T> {
 }
 ''');
     checkElementText(library, r'''
-class C<T> {
-  final dynamic f;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          final f @21
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @21
+            returnType: dynamic
 ''');
   }
 
@@ -7041,11 +15320,12 @@ class C<T> {
 /// cc
 extension E on int {}''');
     checkElementText(library, r'''
-/// aaa
-/// bbbb
-/// cc
-extension E on int {
-}
+library
+  definingUnit
+    extensions
+      E @34
+        documentationComment: /// aaa\n/// bbbb\n/// cc
+        extendedType: int
 ''');
   }
 
@@ -7055,9 +15335,21 @@ extension E on int {
   static const x = 0;
 }''');
     checkElementText(library, r'''
-extension E on int {
-  static const int x = 0;
-}
+library
+  definingUnit
+    extensions
+      E @10
+        extendedType: int
+        fields
+          static const x @36
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @40
+                staticType: int
+        accessors
+          synthetic static get x @36
+            returnType: int
 ''');
   }
 
@@ -7067,10 +15359,24 @@ abstract class C {
   abstract int i;
 }
 ''');
-    checkElementText(library, '''
-abstract class C {
-  abstract int i;
-}
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class C @15
+        fields
+          abstract i @34
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic abstract get i @34
+            returnType: int
+          synthetic abstract set i @34
+            parameters
+              requiredPositional _i @34
+                type: int
+            returnType: void
 ''');
   }
 
@@ -7080,9 +15386,23 @@ class C {
   covariant int x;
 }''');
     checkElementText(library, r'''
-class C {
-  covariant int x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          covariant x @26
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @26
+            returnType: int
+          synthetic set x @26
+            parameters
+              requiredPositional covariant _x @26
+                type: int
+            returnType: void
 ''');
   }
 
@@ -7095,12 +15415,24 @@ class C {
   var x;
 }''');
     checkElementText(library, r'''
-class C {
-  /**
-   * Docs
-   */
-  dynamic x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @38
+            documentationComment: /**\n   * Docs\n   */
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @38
+            returnType: dynamic
+          synthetic set x @38
+            parameters
+              requiredPositional _x @38
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -7110,10 +15442,24 @@ abstract class C {
   external int i;
 }
 ''');
-    checkElementText(library, '''
-abstract class C {
-  external int i;
-}
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class C @15
+        fields
+          external i @34
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get i @34
+            returnType: int
+          synthetic set i @34
+            parameters
+              requiredPositional _i @34
+                type: int
+            returnType: void
 ''');
   }
 
@@ -7125,10 +15471,22 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final int x = 42;
-  const C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 42 @22
+                staticType: int
+        constructors
+          const @34
+        accessors
+          synthetic get x @18
+            returnType: int
 ''');
   }
 
@@ -7143,16 +15501,76 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-class A<T> {
-  const A();
-}
-class B {
-  final A<int Function(double)> f = const
-        A/*location: test.dart;A*/<
-        int/*location: dart:core;int*/ Function(
-        double/*location: dart:core;double*/ a)>();
-  const B();
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class B @34
+        fields
+          final f @46
+            type: A<int Function(double)>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @81
+                  rightParenthesis: ) @82
+                constructorName: ConstructorName
+                  staticElement: ConstructorMember
+                    base: self::@class::A::@constructor::•
+                    substitution: {T: int Function(double)}
+                  type: TypeName
+                    name: SimpleIdentifier
+                      staticElement: self::@class::A
+                      staticType: null
+                      token: A @56
+                    type: A<int Function(double)>
+                    typeArguments: TypeArgumentList
+                      arguments
+                        GenericFunctionType
+                          declaredElement: GenericFunctionTypeElement
+                            parameters
+                              a
+                                kind: required positional
+                                type: double
+                            returnType: int
+                            type: int Function(double)
+                          functionKeyword: Function @0
+                          parameters: FormalParameterList
+                            parameters
+                              SimpleFormalParameter
+                                declaredElement: a@-1
+                                declaredElementType: double
+                                identifier: SimpleIdentifier
+                                  staticElement: <null>
+                                  staticType: null
+                                  token: a @78
+                                type: TypeName
+                                  name: SimpleIdentifier
+                                    staticElement: dart:core::@class::double
+                                    staticType: null
+                                    token: double @71
+                                  type: double
+                          returnType: TypeName
+                            name: SimpleIdentifier
+                              staticElement: dart:core::@class::int
+                              staticType: null
+                              token: int @58
+                            type: int
+                          type: int Function(double)
+                      leftBracket: < @0
+                      rightBracket: > @0
+                keyword: const @50
+                staticType: A<int Function(double)>
+        constructors
+          const @93
+        accessors
+          synthetic get f @46
+            returnType: A<int Function(double)>
 ''');
   }
 
@@ -7163,9 +15581,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  final int x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @18
+            returnType: int
 ''');
   }
 
@@ -7173,31 +15600,82 @@ class C {
     var library = await checkLibrary('class C extends D { var v; C(this.v); }'
         ' abstract class D { int get v; }');
     checkElementText(library, r'''
-class C extends D {
-  int v;
-  C(final int this.v);
-}
-abstract class D {
-  int get v;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        fields
+          v @24
+            type: int
+        constructors
+          @27
+            parameters
+              requiredPositional final this.v @34
+                type: int
+        accessors
+          synthetic get v @24
+            returnType: int
+          synthetic set v @24
+            parameters
+              requiredPositional _v @24
+                type: int
+            returnType: void
+      abstract class D @55
+        fields
+          synthetic v @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          abstract get v @67
+            returnType: int
 ''');
   }
 
   test_field_inferred_type_nonStatic_explicit_initialized() async {
     var library = await checkLibrary('class C { num v = 0; }');
     checkElementText(library, r'''
-class C {
-  num v;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          v @14
+            type: num
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @14
+            returnType: num
+          synthetic set v @14
+            parameters
+              requiredPositional _v @14
+                type: num
+            returnType: void
 ''');
   }
 
   test_field_inferred_type_nonStatic_implicit_initialized() async {
     var library = await checkLibrary('class C { var v = 0; }');
     checkElementText(library, r'''
-class C {
-  int v;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          v @14
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @14
+            returnType: int
+          synthetic set v @14
+            parameters
+              requiredPositional _v @14
+                type: int
+            returnType: void
 ''');
   }
 
@@ -7205,12 +15683,33 @@ class C {
     var library = await checkLibrary(
         'class C extends D { var v; } abstract class D { int get v; }');
     checkElementText(library, r'''
-class C extends D {
-  int v;
-}
-abstract class D {
-  int get v;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        fields
+          v @24
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @24
+            returnType: int
+          synthetic set v @24
+            parameters
+              requiredPositional _v @24
+                type: int
+            returnType: void
+      abstract class D @44
+        fields
+          synthetic v @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          abstract get v @56
+            returnType: int
 ''');
   }
 
@@ -7226,40 +15725,72 @@ class B extends A {
   final f = [a];
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-abstract class A {
-  List<int> get f;
-  const A();
-}
-class B extends A {
-  final List<int> f;
-    constantInitializer
-      ListLiteral
-        elements
-          SimpleIdentifier
-            staticElement: self::@getter::a
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @28
+        fields
+          synthetic f @-1
+            type: List<int>
+        constructors
+          const @40
+        accessors
+          abstract get f @61
+            returnType: List<int>
+      class B @72
+        supertype: A
+        fields
+          final f @107
+            type: List<int>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@getter::a
+                    staticType: int
+                    token: a @112
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<int>
+        constructors
+          const @94
+        accessors
+          synthetic get f @107
+            returnType: List<int>
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
             staticType: int
-            token: a
-        staticType: List<int>
-  const B();
-}
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-''',
-        withResolvedAst: true);
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_field_inferred_type_static_implicit_initialized() async {
     var library = await checkLibrary('class C { static var v = 0; }');
     checkElementText(library, r'''
-class C {
-  static int v;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static v @21
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get v @21
+            returnType: int
+          synthetic static set v @21
+            parameters
+              requiredPositional _v @21
+                type: int
+            returnType: void
 ''');
   }
 
@@ -7269,9 +15800,22 @@ class C {
   static const x = 0;
 }''');
     checkElementText(library, r'''
-class C {
-  static const int x = 0;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static const x @25
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @29
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get x @25
+            returnType: int
 ''');
   }
 
@@ -7283,10 +15827,20 @@ class C {
   final b = a / 2;
 }''');
     checkElementText(library, r'''
-import 'a.dart';
-class C {
-  final double b;
-}
+library
+  imports
+    a.dart
+  definingUnit
+    classes
+      class C @23
+        fields
+          final b @35
+            type: double
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get b @35
+            returnType: double
 ''');
   }
 
@@ -7299,15 +15853,28 @@ class C {
   final b = a / 2;
 }''');
     checkElementText(library, r'''
-library lib;
-part 'a.dart';
-class C {
-  final double b;
-}
---------------------
-unit: a.dart
-
-final int a;
+library
+  name: lib
+  nameOffset: 8
+  definingUnit
+    classes
+      class C @34
+        fields
+          final b @46
+            type: double
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get b @46
+            returnType: double
+  parts
+    a.dart
+      topLevelVariables
+        static final a @19
+          type: int
+      accessors
+        synthetic static get a @19
+          returnType: int
 ''');
   }
 
@@ -7317,9 +15884,18 @@ class C {
   final x = 0;
 }''');
     checkElementText(library, r'''
-class C {
-  final int x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @18
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @18
+            returnType: int
 ''');
   }
 
@@ -7329,18 +15905,36 @@ class C {
   static final x = 0;
 }''');
     checkElementText(library, r'''
-class C {
-  static final int x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static final x @25
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get x @25
+            returnType: int
 ''');
   }
 
   test_field_static_final_untyped() async {
     var library = await checkLibrary('class C { static final x = 0; }');
     checkElementText(library, r'''
-class C {
-  static final int x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static final x @23
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get x @23
+            returnType: int
 ''');
   }
 
@@ -7352,9 +15946,23 @@ class C {
 ''');
 
     checkElementText(library, r'''
-class C {
-  Never a;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          a @16
+            type: Never
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get a @16
+            returnType: Never
+          synthetic set a @16
+            parameters
+              requiredPositional _a @16
+                type: Never
+            returnType: void
 ''');
   }
 
@@ -7372,28 +15980,71 @@ class C {
 ''');
 
     checkElementText(library, r'''
-import 'a.dart';
-class C {
-  int b;
-}
+library
+  imports
+    a.dart
+  definingUnit
+    classes
+      class C @23
+        fields
+          b @33
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get b @33
+            returnType: int
+          synthetic set b @33
+            parameters
+              requiredPositional _b @33
+                type: int
+            returnType: void
 ''');
   }
 
   test_field_typed() async {
     var library = await checkLibrary('class C { int x = 0; }');
     checkElementText(library, r'''
-class C {
-  int x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @14
+            returnType: int
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: int
+            returnType: void
 ''');
   }
 
   test_field_untyped() async {
     var library = await checkLibrary('class C { var x = 0; }');
     checkElementText(library, r'''
-class C {
-  int x;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @14
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @14
+            returnType: int
+          synthetic set x @14
+            parameters
+              requiredPositional _x @14
+                type: int
+            returnType: void
 ''');
   }
 
@@ -7408,23 +16059,35 @@ class C2  {
   C2();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class C1 {
-  final List<int> f1;
-    constantInitializer
-      ListLiteral
-        constKeyword: const
-        staticType: List<int>
-  const C1();
-}
-class C2 {
-  final List<int> f2;
-  C2();
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C1 @6
+        fields
+          final f1 @30
+            type: List<int>
+            constantInitializer
+              ListLiteral
+                constKeyword: const @0
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<int>
+        constructors
+          const @53
+        accessors
+          synthetic get f1 @30
+            returnType: List<int>
+      class C2 @67
+        fields
+          final f2 @91
+            type: List<int>
+        constructors
+          @108
+        accessors
+          synthetic get f2 @91
+            returnType: List<int>
+''');
   }
 
   test_function_async() async {
@@ -7433,8 +16096,13 @@ import 'dart:async';
 Future f() async {}
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-Future<dynamic> f() async {}
+library
+  imports
+    dart:async
+  definingUnit
+    functions
+      f @28 async
+        returnType: Future<dynamic>
 ''');
   }
 
@@ -7444,8 +16112,13 @@ import 'dart:async';
 Stream f() async* {}
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-Stream<dynamic> f() async* {}
+library
+  imports
+    dart:async
+  definingUnit
+    functions
+      f @28 async*
+        returnType: Stream<dynamic>
 ''');
   }
 
@@ -7457,17 +16130,23 @@ Stream<dynamic> f() async* {}
  */
 f() {}''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-dynamic f() {}
+library
+  definingUnit
+    functions
+      f @60
+        documentationComment: /**\n * Docs\n */
+        returnType: dynamic
 ''');
   }
 
   test_function_entry_point() async {
     var library = await checkLibrary('main() {}');
     checkElementText(library, r'''
-dynamic main() {}
+library
+  definingUnit
+    functions
+      main @0
+        returnType: dynamic
 ''');
   }
 
@@ -7475,7 +16154,10 @@ dynamic main() {}
     addLibrarySource('/a.dart', 'library a; main() {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
-export 'a.dart';
+library
+  exports
+    a.dart
+  definingUnit
 ''');
   }
 
@@ -7483,7 +16165,12 @@ export 'a.dart';
     addLibrarySource('/a.dart', 'library a; main() {}');
     var library = await checkLibrary('export "a.dart" hide main;');
     checkElementText(library, r'''
-export 'a.dart' hide main;
+library
+  exports
+    a.dart
+      combinators
+        hide: main
+  definingUnit
 ''');
   }
 
@@ -7491,19 +16178,26 @@ export 'a.dart' hide main;
     addSource('/a.dart', 'part of my.lib; main() {}');
     var library = await checkLibrary('library my.lib; part "a.dart";');
     checkElementText(library, r'''
-library my.lib;
-part 'a.dart';
---------------------
-unit: a.dart
-
-dynamic main() {}
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+  parts
+    a.dart
+      functions
+        main @16
+          returnType: dynamic
 ''');
   }
 
   test_function_external() async {
     var library = await checkLibrary('external f();');
     checkElementText(library, r'''
-external dynamic f() {}
+library
+  definingUnit
+    functions
+      external f @9
+        returnType: dynamic
 ''');
   }
 
@@ -7528,7 +16222,14 @@ f() => 0;
 void f(int this.a) {}
 ''');
     checkElementText(library, r'''
-void f(final int this.a) {}
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional final this.a @16
+            type: int
+        returnType: void
 ''');
   }
 
@@ -7536,16 +16237,20 @@ void f(final int this.a) {}
     var library = await checkLibrary('''
 void f({int this.a: 42}) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-void f({final int this.a}) {}
-  a
-    IntegerLiteral
-      literal: 42
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed final this.a @17
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 42 @0
+                staticType: int
+        returnType: void
+''');
   }
 
   test_function_parameter_fieldFormal_functionTyped() async {
@@ -7553,105 +16258,220 @@ void f({final int this.a}) {}
 void f(int this.a(int b)) {}
 ''');
     checkElementText(library, r'''
-void f(final int Function(int) this.a/*(int b)*/) {}
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional final this.a @16
+            type: int Function(int)
+            parameters
+              requiredPositional b @-1
+                type: int
+        returnType: void
 ''');
   }
 
   test_function_parameter_final() async {
     var library = await checkLibrary('f(final x) {}');
     checkElementText(library, r'''
-dynamic f(final dynamic x) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          requiredPositional final x @8
+            type: dynamic
+        returnType: dynamic
 ''');
   }
 
   test_function_parameter_kind_named() async {
     var library = await checkLibrary('f({x}) {}');
     checkElementText(library, r'''
-dynamic f({dynamic x}) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          optionalNamed x @3
+            type: dynamic
+        returnType: dynamic
 ''');
   }
 
   test_function_parameter_kind_positional() async {
     var library = await checkLibrary('f([x]) {}');
     checkElementText(library, r'''
-dynamic f([dynamic x]) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          optionalPositional x @3
+            type: dynamic
+        returnType: dynamic
 ''');
   }
 
   test_function_parameter_kind_required() async {
     var library = await checkLibrary('f(x) {}');
     checkElementText(library, r'''
-dynamic f(dynamic x) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          requiredPositional x @2
+            type: dynamic
+        returnType: dynamic
 ''');
   }
 
   test_function_parameter_parameters() async {
     var library = await checkLibrary('f(g(x, y)) {}');
     checkElementText(library, r'''
-dynamic f(dynamic Function(dynamic, dynamic) g/*(dynamic x, dynamic y)*/) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          requiredPositional g @2
+            type: dynamic Function(dynamic, dynamic)
+            parameters
+              requiredPositional x @4
+                type: dynamic
+              requiredPositional y @7
+                type: dynamic
+        returnType: dynamic
 ''');
   }
 
   test_function_parameter_return_type() async {
     var library = await checkLibrary('f(int g()) {}');
     checkElementText(library, r'''
-dynamic f(int Function() g) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          requiredPositional g @6
+            type: int Function()
+        returnType: dynamic
 ''');
   }
 
   test_function_parameter_return_type_void() async {
     var library = await checkLibrary('f(void g()) {}');
     checkElementText(library, r'''
-dynamic f(void Function() g) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          requiredPositional g @7
+            type: void Function()
+        returnType: dynamic
 ''');
   }
 
   test_function_parameter_type() async {
     var library = await checkLibrary('f(int i) {}');
     checkElementText(library, r'''
-dynamic f(int i) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          requiredPositional i @6
+            type: int
+        returnType: dynamic
 ''');
   }
 
   test_function_parameters() async {
     var library = await checkLibrary('f(x, y) {}');
     checkElementText(library, r'''
-dynamic f(dynamic x, dynamic y) {}
+library
+  definingUnit
+    functions
+      f @0
+        parameters
+          requiredPositional x @2
+            type: dynamic
+          requiredPositional y @5
+            type: dynamic
+        returnType: dynamic
 ''');
   }
 
   test_function_return_type() async {
     var library = await checkLibrary('int f() => null;');
     checkElementText(library, r'''
-int f() {}
+library
+  definingUnit
+    functions
+      f @4
+        returnType: int
 ''');
   }
 
   test_function_return_type_implicit() async {
     var library = await checkLibrary('f() => null;');
     checkElementText(library, r'''
-dynamic f() {}
+library
+  definingUnit
+    functions
+      f @0
+        returnType: dynamic
 ''');
   }
 
   test_function_return_type_void() async {
     var library = await checkLibrary('void f() {}');
     checkElementText(library, r'''
-void f() {}
+library
+  definingUnit
+    functions
+      f @5
+        returnType: void
 ''');
   }
 
   test_function_type_parameter() async {
     var library = await checkLibrary('T f<T, U>(U u) => null;');
     checkElementText(library, r'''
-T f<T, U>(U u) {}
+library
+  definingUnit
+    functions
+      f @2
+        typeParameters
+          covariant T @4
+          covariant U @7
+        parameters
+          requiredPositional u @12
+            type: U
+        returnType: T
 ''');
   }
 
   test_function_type_parameter_with_function_typed_parameter() async {
     var library = await checkLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
-void f<T, U>(T Function(U) x/*(U u)*/) {}
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+          covariant U @10
+        parameters
+          requiredPositional x @15
+            type: T Function(U)
+            parameters
+              requiredPositional u @19
+                type: U
+        returnType: void
 ''');
   }
 
@@ -7666,8 +16486,13 @@ void f<T, U>(T Function(U) x/*(U u)*/) {}
   test_functions() async {
     var library = await checkLibrary('f() {} g() {}');
     checkElementText(library, r'''
-dynamic f() {}
-dynamic g() {}
+library
+  definingUnit
+    functions
+      f @0
+        returnType: dynamic
+      g @7
+        returnType: dynamic
 ''');
   }
 
@@ -7708,12 +16533,21 @@ F<int> a;
     var library = await checkLibrary(r'''
 typedef void F<T>(T a);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<contravariant T> = void Function(T a);
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        typeParameters
+          contravariant T @15
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: T
+          returnType: void
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant2() async {
@@ -7721,13 +16555,31 @@ typedef F<contravariant T> = void Function(T a);
 typedef void F1<T>(T a);
 typedef F1<T> F2<T>();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<contravariant T> = void Function(T a);
-typedef F2<contravariant T> = void Function(T) Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F1 @13
+        typeParameters
+          contravariant T @16
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: T
+          returnType: void
+      functionTypeAliasBased F2 @39
+        typeParameters
+          contravariant T @42
+            defaultType: dynamic
+        aliasedType: void Function(T) Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void Function(T)
+            aliasElement: self::@typeAlias::F1
+            aliasArguments
+              T
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant3() async {
@@ -7735,37 +16587,67 @@ typedef F2<contravariant T> = void Function(T) Function();
 typedef F1<T> F2<T>();
 typedef void F1<T>(T a);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F2<contravariant T> = void Function(T) Function();
-typedef F1<contravariant T> = void Function(T a);
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F2 @14
+        typeParameters
+          contravariant T @17
+            defaultType: dynamic
+        aliasedType: void Function(T) Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void Function(T)
+            aliasElement: self::@typeAlias::F1
+            aliasArguments
+              T
+      functionTypeAliasBased F1 @36
+        typeParameters
+          contravariant T @39
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: T
+          returnType: void
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant() async {
     var library = await checkLibrary(r'''
 typedef T F<T>();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<covariant T> = T Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @10
+        typeParameters
+          covariant T @12
+            defaultType: dynamic
+        aliasedType: T Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant2() async {
     var library = await checkLibrary(r'''
 typedef List<T> F<T>();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<covariant T> = List<T> Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @16
+        typeParameters
+          covariant T @18
+            defaultType: dynamic
+        aliasedType: List<T> Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: List<T>
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant3() async {
@@ -7773,13 +16655,28 @@ typedef F<covariant T> = List<T> Function();
 typedef T F1<T>();
 typedef F1<T> F2<T>();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<covariant T> = T Function();
-typedef F2<covariant T> = T Function() Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F1 @10
+        typeParameters
+          covariant T @13
+            defaultType: dynamic
+        aliasedType: T Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T
+      functionTypeAliasBased F2 @33
+        typeParameters
+          covariant T @36
+            defaultType: dynamic
+        aliasedType: T Function() Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T Function()
+            aliasElement: self::@typeAlias::F1
+            aliasArguments
+              T
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_covariant4() async {
@@ -7787,25 +16684,55 @@ typedef F2<covariant T> = T Function() Function();
 typedef void F1<T>(T a);
 typedef void F2<T>(F1<T> a);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<contravariant T> = void Function(T a);
-typedef F2<covariant T> = void Function(void Function(T) a);
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F1 @13
+        typeParameters
+          contravariant T @16
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: T
+          returnType: void
+      functionTypeAliasBased F2 @38
+        typeParameters
+          covariant T @41
+            defaultType: dynamic
+        aliasedType: void Function(void Function(T))
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: void Function(T)
+                aliasElement: self::@typeAlias::F1
+                aliasArguments
+                  T
+          returnType: void
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_invariant() async {
     var library = await checkLibrary(r'''
 typedef T F<T>(T a);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<invariant T> = T Function(T a);
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @10
+        typeParameters
+          invariant T @12
+            defaultType: dynamic
+        aliasedType: T Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: T
+          returnType: T
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_invariant2() async {
@@ -7813,32 +16740,72 @@ typedef F<invariant T> = T Function(T a);
 typedef T F1<T>();
 typedef F1<T> F2<T>(T a);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<covariant T> = T Function();
-typedef F2<invariant T> = T Function() Function(T a);
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F1 @10
+        typeParameters
+          covariant T @13
+            defaultType: dynamic
+        aliasedType: T Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T
+      functionTypeAliasBased F2 @33
+        typeParameters
+          invariant T @36
+            defaultType: dynamic
+        aliasedType: T Function() Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: T
+          returnType: T Function()
+            aliasElement: self::@typeAlias::F1
+            aliasArguments
+              T
+''');
   }
 
   test_functionTypeAlias_typeParameters_variance_unrelated() async {
     var library = await checkLibrary(r'''
 typedef void F<T>(int a);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<unrelated T> = void Function(int a);
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        typeParameters
+          unrelated T @15
+            defaultType: dynamic
+        aliasedType: void Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: int
+          returnType: void
+''');
   }
 
   test_futureOr() async {
     var library = await checkLibrary('import "dart:async"; FutureOr<int> x;');
     checkElementText(library, r'''
-import 'dart:async';
-FutureOr<int> x;
+library
+  imports
+    dart:async
+  definingUnit
+    topLevelVariables
+      static x @35
+        type: FutureOr<int>
+    accessors
+      synthetic static get x @35
+        returnType: FutureOr<int>
+      synthetic static set x @35
+        parameters
+          requiredPositional _x @35
+            type: FutureOr<int>
+        returnType: void
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
@@ -7849,9 +16816,21 @@ FutureOr<int> x;
     var library =
         await checkLibrary('import "dart:async"; const x = FutureOr;');
     checkElementText(library, r'''
-import 'dart:async';
-const Type x =
-        FutureOr/*location: dart:async;FutureOr*/;
+library
+  imports
+    dart:async
+  definingUnit
+    topLevelVariables
+      static const x @27
+        type: Type
+        constantInitializer
+          SimpleIdentifier
+            staticElement: dart:async::@class::FutureOr
+            staticType: Type
+            token: FutureOr @31
+    accessors
+      synthetic static get x @27
+        returnType: Type
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
@@ -7868,10 +16847,33 @@ var x = f();
 var y = x.then((z) => z.asDouble());
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-FutureOr<int> x;
-dynamic y;
-FutureOr<int> f() {}
+library
+  imports
+    dart:async
+  definingUnit
+    topLevelVariables
+      static x @52
+        type: FutureOr<int>
+      static y @65
+        type: dynamic
+    accessors
+      synthetic static get x @52
+        returnType: FutureOr<int>
+      synthetic static set x @52
+        parameters
+          requiredPositional _x @52
+            type: FutureOr<int>
+        returnType: void
+      synthetic static get y @65
+        returnType: dynamic
+      synthetic static set y @65
+        parameters
+          requiredPositional _y @65
+            type: dynamic
+        returnType: void
+    functions
+      f @35
+        returnType: FutureOr<int>
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(2));
@@ -7887,8 +16889,20 @@ FutureOr<int> f() {}
     var library = await checkLibrary('''
 void Function() f;
 ''');
-    checkElementText(library, '''
-void Function() f;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static f @16
+        type: void Function()
+    accessors
+      synthetic static get f @16
+        returnType: void Function()
+      synthetic static set f @16
+        parameters
+          requiredPositional _f @16
+            type: void Function()
+        returnType: void
 ''');
   }
 
@@ -7896,8 +16910,20 @@ void Function() f;
     var library = await checkLibrary('''
 void Function()? f;
 ''');
-    checkElementText(library, '''
-void Function()? f;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static f @17
+        type: void Function()?
+    accessors
+      synthetic static get f @17
+        returnType: void Function()?
+      synthetic static set f @17
+        parameters
+          requiredPositional _f @17
+            type: void Function()?
+        returnType: void
 ''');
   }
 
@@ -7906,8 +16932,20 @@ void Function()? f;
     var library = await checkLibrary('''
 void Function() f;
 ''');
-    checkElementText(library, '''
-void Function()* f;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static f @16
+        type: void Function()*
+    accessors
+      synthetic static get f @16
+        returnType: void Function()*
+      synthetic static set f @16
+        parameters
+          requiredPositional _f @16
+            type: void Function()*
+        returnType: void
 ''');
   }
 
@@ -7921,9 +16959,28 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-class C<T, U> {
-  static void m<V, W>(V v, W w) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          static m @30
+            typeParameters
+              covariant V @32
+              covariant W @35
+            parameters
+              requiredPositional v @40
+                type: V
+              requiredPositional w @45
+                type: W
+            returnType: void
 ''');
   }
 
@@ -7932,7 +16989,11 @@ class C<T, U> {
 int Function(int a, String b) f() => null;
 ''');
     checkElementText(library, r'''
-int Function(int, String) f() {}
+library
+  definingUnit
+    functions
+      f @30
+        returnType: int Function(int, String)
 ''');
   }
 
@@ -7941,7 +17002,17 @@ int Function(int, String) f() {}
 void f(int Function(int a, String b) p(num c)) => null;
 ''');
     checkElementText(library, r'''
-void f(int Function(int, String) Function(num) p/*(num c)*/) {}
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional p @37
+            type: int Function(int, String) Function(num)
+            parameters
+              requiredPositional c @43
+                type: num
+        returnType: void
 ''');
   }
 
@@ -7950,7 +17021,16 @@ void f(int Function(int, String) Function(num) p/*(num c)*/) {}
 typedef F = void Function(String a) Function(int b);
 ''');
     checkElementText(library, r'''
-typedef F = void Function(String) Function(int b);
+library
+  definingUnit
+    typeAliases
+      F @8
+        aliasedType: void Function(String) Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional b @-1
+              type: int
+          returnType: void Function(String)
 ''');
   }
 
@@ -7961,9 +17041,15 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  int Function(int, String) m() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          m @42
+            returnType: int Function(int, String)
 ''');
   }
 
@@ -7972,7 +17058,14 @@ class C {
 void f(int Function(int a, String b) p) => null;
 ''');
     checkElementText(library, r'''
-void f(int Function(int, String) p) {}
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional p @37
+            type: int Function(int, String)
+        returnType: void
 ''');
   }
 
@@ -7981,7 +17074,19 @@ void f(int Function(int, String) p) {}
 int Function(int a, String b) v;
 ''');
     checkElementText(library, r'''
-int Function(int, String) v;
+library
+  definingUnit
+    topLevelVariables
+      static v @30
+        type: int Function(int, String)
+    accessors
+      synthetic static get v @30
+        returnType: int Function(int, String)
+      synthetic static set v @30
+        parameters
+          requiredPositional _v @30
+            type: int Function(int, String)
+        returnType: void
 ''');
   }
 
@@ -7994,63 +17099,68 @@ class A<T> {
 @A<int Function(String a)>()
 class B {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class B {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      element: ConstructorMember
-        base: self::@class::A::@constructor::•
-        substitution: {T: dynamic}
-      name: SimpleIdentifier
-        staticElement: self::@class::A
-        staticType: null
-        token: A
-      typeArguments: TypeArgumentList
-        arguments
-          GenericFunctionType
-            declaredElement: GenericFunctionTypeElement
-              parameters
-                a
-                  kind: required positional
-                  type: String
-              returnType: int
-              type: int Function(String)
-            functionKeyword: Function
-            parameters: FormalParameterList
-              parameters
-                SimpleFormalParameter
-                  declaredElement: a@-1
-                  declaredElementType: String
-                  identifier: SimpleIdentifier
-                    staticElement: <null>
-                    staticType: null
-                    token: a
-                  type: TypeName
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class B @64
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @55
+              rightParenthesis: ) @56
+            atSign.offset: 29
+            element: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: dynamic}
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @30
+            typeArguments: TypeArgumentList
+              arguments
+                GenericFunctionType
+                  declaredElement: GenericFunctionTypeElement
+                    parameters
+                      a
+                        kind: required positional
+                        type: String
+                    returnType: int
+                    type: int Function(String)
+                  functionKeyword: Function @0
+                  parameters: FormalParameterList
+                    parameters
+                      SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: String
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a @52
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::String
+                            staticType: null
+                            token: String @45
+                          type: String
+                  returnType: TypeName
                     name: SimpleIdentifier
-                      staticElement: dart:core::@class::String
+                      staticElement: dart:core::@class::int
                       staticType: null
-                      token: String
-                    type: String
-            returnType: TypeName
-              name: SimpleIdentifier
-                staticElement: dart:core::@class::int
-                staticType: null
-                token: int
-              type: int
-            type: int Function(String)
-''',
-        withResolvedAst: true);
+                      token: int @32
+                    type: int
+                  type: int Function(String)
+              leftBracket: < @0
+              rightBracket: > @0
+        constructors
+          synthetic @-1
+''');
   }
 
   test_genericFunction_asTypeArgument_ofAnnotation_topLevelVariable() async {
@@ -8062,62 +17172,76 @@ class A<T> {
 @A<int Function(String a)>()
 var v = 0;
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-int v;
-  metadata
-    Annotation
-      arguments: ArgumentList
-      element: ConstructorMember
-        base: self::@class::A::@constructor::•
-        substitution: {T: dynamic}
-      name: SimpleIdentifier
-        staticElement: self::@class::A
-        staticType: null
-        token: A
-      typeArguments: TypeArgumentList
-        arguments
-          GenericFunctionType
-            declaredElement: GenericFunctionTypeElement
-              parameters
-                a
-                  kind: required positional
-                  type: String
-              returnType: int
-              type: int Function(String)
-            functionKeyword: Function
-            parameters: FormalParameterList
-              parameters
-                SimpleFormalParameter
-                  declaredElement: a@-1
-                  declaredElementType: String
-                  identifier: SimpleIdentifier
-                    staticElement: <null>
-                    staticType: null
-                    token: a
-                  type: TypeName
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+    topLevelVariables
+      static v @62
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @55
+              rightParenthesis: ) @56
+            atSign.offset: 29
+            element: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: dynamic}
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @30
+            typeArguments: TypeArgumentList
+              arguments
+                GenericFunctionType
+                  declaredElement: GenericFunctionTypeElement
+                    parameters
+                      a
+                        kind: required positional
+                        type: String
+                    returnType: int
+                    type: int Function(String)
+                  functionKeyword: Function @0
+                  parameters: FormalParameterList
+                    parameters
+                      SimpleFormalParameter
+                        declaredElement: a@-1
+                        declaredElementType: String
+                        identifier: SimpleIdentifier
+                          staticElement: <null>
+                          staticType: null
+                          token: a @52
+                        type: TypeName
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::String
+                            staticType: null
+                            token: String @45
+                          type: String
+                  returnType: TypeName
                     name: SimpleIdentifier
-                      staticElement: dart:core::@class::String
+                      staticElement: dart:core::@class::int
                       staticType: null
-                      token: String
-                    type: String
-            returnType: TypeName
-              name: SimpleIdentifier
-                staticElement: dart:core::@class::int
-                staticType: null
-                token: int
-              type: int
-            type: int Function(String)
-''',
-        withResolvedAst: true);
+                      token: int @32
+                    type: int
+                  type: int Function(String)
+              leftBracket: < @0
+              rightBracket: > @0
+        type: int
+    accessors
+      synthetic static get v @62
+        returnType: int
+      synthetic static set v @62
+        parameters
+          requiredPositional _v @62
+            type: int
+        returnType: void
+''');
   }
 
   test_genericFunction_asTypeArgument_parameters_optionalNamed() async {
@@ -8128,73 +17252,81 @@ class A<T> {
 
 const v = A<String Function({int? a})>();
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-const A<String Function({int? a})> v;
-  constantInitializer
-    InstanceCreationExpression
-      argumentList: ArgumentList
-      constructorName: ConstructorName
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::•
-          substitution: {T: String Function({int? a})}
-        type: TypeName
-          name: SimpleIdentifier
-            staticElement: self::@class::A
-            staticType: null
-            token: A
-          type: A<String Function({int? a})>
-          typeArguments: TypeArgumentList
-            arguments
-              GenericFunctionType
-                declaredElement: GenericFunctionTypeElement
-                  parameters
-                    a
-                      kind: optional named
-                      type: int?
-                  returnType: String
-                  type: String Function({int? a})
-                functionKeyword: Function
-                parameters: FormalParameterList
-                  parameters
-                    DefaultFormalParameter
-                      declaredElement: a@-1
-                      declaredElementType: int?
-                      identifier: SimpleIdentifier
-                        staticElement: <null>
-                        staticType: null
-                        token: a
-                      parameter: SimpleFormalParameter
-                        declaredElement: a@-1
-                        declaredElementType: int?
-                        identifier: SimpleIdentifier
-                          staticElement: <null>
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+    topLevelVariables
+      static const v @35
+        type: A<String Function({int? a})>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @67
+              rightParenthesis: ) @68
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function({int? a})}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @39
+                type: A<String Function({int? a})>
+                typeArguments: TypeArgumentList
+                  arguments
+                    GenericFunctionType
+                      declaredElement: GenericFunctionTypeElement
+                        parameters
+                          a
+                            kind: optional named
+                            type: int?
+                        returnType: String
+                        type: String Function({int? a})
+                      functionKeyword: Function @0
+                      parameters: FormalParameterList
+                        parameters
+                          DefaultFormalParameter
+                            declaredElement: a@-1
+                            declaredElementType: int?
+                            identifier: SimpleIdentifier
+                              staticElement: <null>
+                              staticType: null
+                              token: a @63
+                            parameter: SimpleFormalParameter
+                              declaredElement: a@-1
+                              declaredElementType: int?
+                              identifier: SimpleIdentifier
+                                staticElement: <null>
+                                staticType: null
+                                token: a @63
+                              type: TypeName
+                                name: SimpleIdentifier
+                                  staticElement: dart:core::@class::int
+                                  staticType: null
+                                  token: int @58
+                                type: int?
+                      returnType: TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::String
                           staticType: null
-                          token: a
-                        type: TypeName
-                          name: SimpleIdentifier
-                            staticElement: dart:core::@class::int
-                            staticType: null
-                            token: int
-                          type: int?
-                returnType: TypeName
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::String
-                    staticType: null
-                    token: String
-                  type: String
-                type: String Function({int? a})
-      staticType: A<String Function({int? a})>
-''',
-        withResolvedAst: true);
+                          token: String @41
+                        type: String
+                      type: String Function({int? a})
+                  leftBracket: < @0
+                  rightBracket: > @0
+            staticType: A<String Function({int? a})>
+    accessors
+      synthetic static get v @35
+        returnType: A<String Function({int? a})>
+''');
   }
 
   test_genericFunction_asTypeArgument_parameters_optionalPositional() async {
@@ -8205,73 +17337,81 @@ class A<T> {
 
 const v = A<String Function([int? a])>();
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-const A<String Function([int?])> v;
-  constantInitializer
-    InstanceCreationExpression
-      argumentList: ArgumentList
-      constructorName: ConstructorName
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::•
-          substitution: {T: String Function([int?])}
-        type: TypeName
-          name: SimpleIdentifier
-            staticElement: self::@class::A
-            staticType: null
-            token: A
-          type: A<String Function([int?])>
-          typeArguments: TypeArgumentList
-            arguments
-              GenericFunctionType
-                declaredElement: GenericFunctionTypeElement
-                  parameters
-                    a
-                      kind: optional positional
-                      type: int?
-                  returnType: String
-                  type: String Function([int?])
-                functionKeyword: Function
-                parameters: FormalParameterList
-                  parameters
-                    DefaultFormalParameter
-                      declaredElement: a@-1
-                      declaredElementType: int?
-                      identifier: SimpleIdentifier
-                        staticElement: <null>
-                        staticType: null
-                        token: a
-                      parameter: SimpleFormalParameter
-                        declaredElement: a@-1
-                        declaredElementType: int?
-                        identifier: SimpleIdentifier
-                          staticElement: <null>
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+    topLevelVariables
+      static const v @35
+        type: A<String Function([int?])>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @67
+              rightParenthesis: ) @68
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function([int?])}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @39
+                type: A<String Function([int?])>
+                typeArguments: TypeArgumentList
+                  arguments
+                    GenericFunctionType
+                      declaredElement: GenericFunctionTypeElement
+                        parameters
+                          a
+                            kind: optional positional
+                            type: int?
+                        returnType: String
+                        type: String Function([int?])
+                      functionKeyword: Function @0
+                      parameters: FormalParameterList
+                        parameters
+                          DefaultFormalParameter
+                            declaredElement: a@-1
+                            declaredElementType: int?
+                            identifier: SimpleIdentifier
+                              staticElement: <null>
+                              staticType: null
+                              token: a @63
+                            parameter: SimpleFormalParameter
+                              declaredElement: a@-1
+                              declaredElementType: int?
+                              identifier: SimpleIdentifier
+                                staticElement: <null>
+                                staticType: null
+                                token: a @63
+                              type: TypeName
+                                name: SimpleIdentifier
+                                  staticElement: dart:core::@class::int
+                                  staticType: null
+                                  token: int @58
+                                type: int?
+                      returnType: TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::String
                           staticType: null
-                          token: a
-                        type: TypeName
-                          name: SimpleIdentifier
-                            staticElement: dart:core::@class::int
-                            staticType: null
-                            token: int
-                          type: int?
-                returnType: TypeName
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::String
-                    staticType: null
-                    token: String
-                  type: String
-                type: String Function([int?])
-      staticType: A<String Function([int?])>
-''',
-        withResolvedAst: true);
+                          token: String @41
+                        type: String
+                      type: String Function([int?])
+                  leftBracket: < @0
+                  rightBracket: > @0
+            staticType: A<String Function([int?])>
+    accessors
+      synthetic static get v @35
+        returnType: A<String Function([int?])>
+''');
   }
 
   test_genericFunction_asTypeArgument_parameters_requiredNamed() async {
@@ -8282,74 +17422,82 @@ class A<T> {
 
 const v = A<String Function({required int a})>();
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-const A<String Function({required int a})> v;
-  constantInitializer
-    InstanceCreationExpression
-      argumentList: ArgumentList
-      constructorName: ConstructorName
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::•
-          substitution: {T: String Function({required int a})}
-        type: TypeName
-          name: SimpleIdentifier
-            staticElement: self::@class::A
-            staticType: null
-            token: A
-          type: A<String Function({required int a})>
-          typeArguments: TypeArgumentList
-            arguments
-              GenericFunctionType
-                declaredElement: GenericFunctionTypeElement
-                  parameters
-                    a
-                      kind: required named
-                      type: int
-                  returnType: String
-                  type: String Function({required int a})
-                functionKeyword: Function
-                parameters: FormalParameterList
-                  parameters
-                    DefaultFormalParameter
-                      declaredElement: a@-1
-                      declaredElementType: int
-                      identifier: SimpleIdentifier
-                        staticElement: <null>
-                        staticType: null
-                        token: a
-                      parameter: SimpleFormalParameter
-                        declaredElement: a@-1
-                        declaredElementType: int
-                        identifier: SimpleIdentifier
-                          staticElement: <null>
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+    topLevelVariables
+      static const v @35
+        type: A<String Function({required int a})>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @75
+              rightParenthesis: ) @76
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function({required int a})}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @39
+                type: A<String Function({required int a})>
+                typeArguments: TypeArgumentList
+                  arguments
+                    GenericFunctionType
+                      declaredElement: GenericFunctionTypeElement
+                        parameters
+                          a
+                            kind: required named
+                            type: int
+                        returnType: String
+                        type: String Function({required int a})
+                      functionKeyword: Function @0
+                      parameters: FormalParameterList
+                        parameters
+                          DefaultFormalParameter
+                            declaredElement: a@-1
+                            declaredElementType: int
+                            identifier: SimpleIdentifier
+                              staticElement: <null>
+                              staticType: null
+                              token: a @71
+                            parameter: SimpleFormalParameter
+                              declaredElement: a@-1
+                              declaredElementType: int
+                              identifier: SimpleIdentifier
+                                staticElement: <null>
+                                staticType: null
+                                token: a @71
+                              requiredKeyword: required @0
+                              type: TypeName
+                                name: SimpleIdentifier
+                                  staticElement: dart:core::@class::int
+                                  staticType: null
+                                  token: int @67
+                                type: int
+                      returnType: TypeName
+                        name: SimpleIdentifier
+                          staticElement: dart:core::@class::String
                           staticType: null
-                          token: a
-                        requiredKeyword: required
-                        type: TypeName
-                          name: SimpleIdentifier
-                            staticElement: dart:core::@class::int
-                            staticType: null
-                            token: int
-                          type: int
-                returnType: TypeName
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::String
-                    staticType: null
-                    token: String
-                  type: String
-                type: String Function({required int a})
-      staticType: A<String Function({required int a})>
-''',
-        withResolvedAst: true);
+                          token: String @41
+                        type: String
+                      type: String Function({required int a})
+                  leftBracket: < @0
+                  rightBracket: > @0
+            staticType: A<String Function({required int a})>
+    accessors
+      synthetic static get v @35
+        returnType: A<String Function({required int a})>
+''');
   }
 
   test_genericFunction_asTypeArgument_parameters_requiredPositional() async {
@@ -8360,66 +17508,74 @@ class A<T> {
 
 const v = A<String Function(int a)>();
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-const A<String Function(int)> v;
-  constantInitializer
-    InstanceCreationExpression
-      argumentList: ArgumentList
-      constructorName: ConstructorName
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::•
-          substitution: {T: String Function(int)}
-        type: TypeName
-          name: SimpleIdentifier
-            staticElement: self::@class::A
-            staticType: null
-            token: A
-          type: A<String Function(int)>
-          typeArguments: TypeArgumentList
-            arguments
-              GenericFunctionType
-                declaredElement: GenericFunctionTypeElement
-                  parameters
-                    a
-                      kind: required positional
-                      type: int
-                  returnType: String
-                  type: String Function(int)
-                functionKeyword: Function
-                parameters: FormalParameterList
-                  parameters
-                    SimpleFormalParameter
-                      declaredElement: a@-1
-                      declaredElementType: int
-                      identifier: SimpleIdentifier
-                        staticElement: <null>
-                        staticType: null
-                        token: a
-                      type: TypeName
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+    topLevelVariables
+      static const v @35
+        type: A<String Function(int)>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @64
+              rightParenthesis: ) @65
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: String Function(int)}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @39
+                type: A<String Function(int)>
+                typeArguments: TypeArgumentList
+                  arguments
+                    GenericFunctionType
+                      declaredElement: GenericFunctionTypeElement
+                        parameters
+                          a
+                            kind: required positional
+                            type: int
+                        returnType: String
+                        type: String Function(int)
+                      functionKeyword: Function @0
+                      parameters: FormalParameterList
+                        parameters
+                          SimpleFormalParameter
+                            declaredElement: a@-1
+                            declaredElementType: int
+                            identifier: SimpleIdentifier
+                              staticElement: <null>
+                              staticType: null
+                              token: a @61
+                            type: TypeName
+                              name: SimpleIdentifier
+                                staticElement: dart:core::@class::int
+                                staticType: null
+                                token: int @57
+                              type: int
+                      returnType: TypeName
                         name: SimpleIdentifier
-                          staticElement: dart:core::@class::int
+                          staticElement: dart:core::@class::String
                           staticType: null
-                          token: int
-                        type: int
-                returnType: TypeName
-                  name: SimpleIdentifier
-                    staticElement: dart:core::@class::String
-                    staticType: null
-                    token: String
-                  type: String
-                type: String Function(int)
-      staticType: A<String Function(int)>
-''',
-        withResolvedAst: true);
+                          token: String @41
+                        type: String
+                      type: String Function(int)
+                  leftBracket: < @0
+                  rightBracket: > @0
+            staticType: A<String Function(int)>
+    accessors
+      synthetic static get v @35
+        returnType: A<String Function(int)>
+''');
   }
 
   test_genericFunction_boundOf_typeParameter_ofMixin() async {
@@ -8427,8 +17583,18 @@ const A<String Function(int)> v;
 mixin B<X extends void Function()> {}
 ''');
     checkElementText(library, r'''
-mixin B<X extends void Function() = void Function()> on Object {
-}
+library
+  definingUnit
+    mixins
+      mixin B @6
+        typeParameters
+          covariant X @8
+            bound: void Function()
+            defaultType: void Function()
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -8439,13 +17605,33 @@ mixin M {}
 class B = A<void Function()> with M;
 ''');
     checkElementText(library, r'''
-class A<T> {
-}
-class alias B extends A<void Function()> with M {
-  synthetic B() : super();
-}
-mixin M on Object {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class alias B @31
+        supertype: A<void Function()>
+        mixins
+          M
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+    mixins
+      mixin M @20
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -8455,8 +17641,28 @@ typedef F1 = Function<V1>(F2<V1>);
 typedef F2<V2> = V2 Function();
 ''');
     checkElementText(library, r'''
-typedef F1 = dynamic Function<V1>(V1 Function() );
-typedef F2<V2> = V2 Function();
+library
+  definingUnit
+    typeAliases
+      F1 @8
+        aliasedType: dynamic Function<V1>(V1 Function())
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant V1 @-1
+          parameters
+            requiredPositional @-1
+              type: V1 Function()
+                aliasElement: self::@typeAlias::F2
+                aliasArguments
+                  V1
+          returnType: dynamic
+      F2 @43
+        typeParameters
+          covariant V2 @46
+            defaultType: dynamic
+        aliasedType: V2 Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: V2
 ''');
   }
 
@@ -8490,7 +17696,20 @@ typedef F<T> = void Function<U>(int a);
 typedef F<X extends F> = Function(F);
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<X extends dynamic Function()> = dynamic Function(dynamic Function() );
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        typeParameters
+          unrelated X @10
+            bound: dynamic Function()
+            defaultType: dynamic
+        aliasedType: dynamic Function(dynamic Function())
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: dynamic Function()
+          returnType: dynamic
 ''');
   }
 
@@ -8499,7 +17718,14 @@ notSimplyBounded typedef F<X extends dynamic Function()> = dynamic Function(dyna
 Future<int> get foo async => 0;
 ''');
     checkElementText(library, r'''
-Future<int> get foo async {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: Future<int>
+    accessors
+      get foo @16 async
+        returnType: Future<int>
 ''');
   }
 
@@ -8509,8 +17735,16 @@ import 'dart:async';
 Stream<int> get foo async* {}
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-Stream<int> get foo async* {}
+library
+  imports
+    dart:async
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: Stream<int>
+    accessors
+      get foo @37 async*
+        returnType: Stream<int>
 ''');
   }
 
@@ -8522,17 +17756,29 @@ Stream<int> get foo async* {}
  */
 get x => null;''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-dynamic get x {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: dynamic
+    accessors
+      get x @64
+        documentationComment: /**\n * Docs\n */
+        returnType: dynamic
 ''');
   }
 
   test_getter_external() async {
     var library = await checkLibrary('external int get x;');
     checkElementText(library, r'''
-external int get x;
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      external get x @17
+        returnType: int
 ''');
   }
 
@@ -8540,12 +17786,28 @@ external int get x;
     var library = await checkLibrary(
         'class C extends D { get f => null; } abstract class D { int get f; }');
     checkElementText(library, r'''
-class C extends D {
-  int get f {}
-}
-abstract class D {
-  int get f;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        fields
+          synthetic f @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get f @24
+            returnType: int
+      abstract class D @52
+        fields
+          synthetic f @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          abstract get f @64
+            returnType: int
 ''');
   }
 
@@ -8554,15 +17816,32 @@ abstract class D {
 Iterator<int> get foo sync* {}
 ''');
     checkElementText(library, r'''
-Iterator<int> get foo sync* {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: Iterator<int>
+    accessors
+      get foo @18 sync*
+        returnType: Iterator<int>
 ''');
   }
 
   test_getters() async {
     var library = await checkLibrary('int get x => null; get y => null;');
     checkElementText(library, r'''
-int get x {}
-dynamic get y {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+      synthetic static y @-1
+        type: dynamic
+    accessors
+      get x @8
+        returnType: int
+      get y @23
+        returnType: dynamic
 ''');
   }
 
@@ -8575,13 +17854,51 @@ class C {
 const x = C.named(42);
 ''');
     checkElementText(library, r'''
-class C {
-  final Object x;
-  const C.named(final Object this.x);
-}
-const C x =
-        C/*location: test.dart;C*/.
-        named/*location: test.dart;C;named*/(42);
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @25
+            type: Object
+        constructors
+          const named @38
+            periodOffset: 37
+            nameEnd: 43
+            parameters
+              requiredPositional final this.x @49
+                type: Object
+        accessors
+          synthetic get x @25
+            returnType: Object
+    topLevelVariables
+      static const x @61
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 42 @73
+                  staticType: int
+              leftParenthesis: ( @72
+              rightParenthesis: ) @75
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: self::@class::C::@constructor::named
+                staticType: null
+                token: named @67
+              staticElement: self::@class::C::@constructor::named
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @65
+                type: C
+            staticType: C
+    accessors
+      synthetic static get x @61
+        returnType: C
 ''');
   }
 
@@ -8589,8 +17906,19 @@ const C x =
     var library =
         await checkLibrary('int get x => 0; void set x(int value) {}');
     checkElementText(library, r'''
-int get x {}
-void set x(int value) {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      get x @8
+        returnType: int
+      set x @25
+        parameters
+          requiredPositional value @31
+            type: int
+        returnType: void
 ''');
   }
 
@@ -8598,8 +17926,19 @@ void set x(int value) {}
     var library =
         await checkLibrary('void set x(int value) {} int get x => 0;');
     checkElementText(library, r'''
-void set x(int value) {}
-int get x {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      set x @9
+        parameters
+          requiredPositional value @15
+            type: int
+        returnType: void
+      get x @33
+        returnType: int
 ''');
   }
 
@@ -8618,9 +17957,15 @@ import 'foo.dart'
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'foo.dart';
-class B extends A {
-}
+library
+  imports
+    foo.dart
+  definingUnit
+    classes
+      class B @104
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -8642,9 +17987,15 @@ import 'foo.dart'
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'foo_io.dart';
-class B extends A {
-}
+library
+  imports
+    foo_io.dart
+  definingUnit
+    classes
+      class B @104
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -8666,9 +18017,15 @@ import 'foo.dart'
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'foo_io.dart';
-class B extends A {
-}
+library
+  imports
+    foo_io.dart
+  definingUnit
+    classes
+      class B @124
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -8690,9 +18047,15 @@ import 'foo.dart'
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'foo_html.dart';
-class B extends A {
-}
+library
+  imports
+    foo_html.dart
+  definingUnit
+    classes
+      class B @104
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -8714,9 +18077,15 @@ import 'foo.dart'
 class B extends A {}
 ''');
     checkElementText(library, r'''
-import 'foo_html.dart';
-class B extends A {
-}
+library
+  imports
+    foo_html.dart
+  definingUnit
+    classes
+      class B @124
+        supertype: A
+        constructors
+          synthetic @-1
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -8727,31 +18096,38 @@ class B extends A {
 import 'dart:core';
 import 'dart:math';
 ''');
-    expect(library.imports, hasLength(2));
-    expect(library.imports[0].uri, 'dart:core');
-    expect(library.imports[1].uri, 'dart:math');
+    checkElementText(library, r'''
+library
+  imports
+    dart:core
+    dart:math
+  definingUnit
+''');
   }
 
   test_import_dartCore_implicit() async {
     var library = await checkLibrary('''
 import 'dart:math';
 ''');
-    expect(library.imports, hasLength(2));
-    expect(library.imports[0].uri, 'dart:math');
-    expect(library.imports[1].uri, 'dart:core');
+    checkElementText(library, r'''
+library
+  imports
+    dart:math
+  definingUnit
+''');
   }
 
   test_import_deferred() async {
-    addLibrarySource('/a.dart', 'f() {}');
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', 'f() {}');
     var library = await checkLibrary('''
 import 'a.dart' deferred as p;
-main() {
-  p.f();
-  }
 ''');
     checkElementText(library, r'''
-import 'a.dart' deferred as p;
-dynamic main() {}
+library
+  imports
+    package:test/a.dart deferred as p @28
+  definingUnit
 ''');
   }
 
@@ -8766,12 +18142,16 @@ import 'dart:async' as i3;
 export 'dart:math';
 ''');
     checkElementText(library, r'''
-import 'dart:async' as i1;
-import 'dart:async' as i2;
-import 'dart:async' as i3;
-export 'dart:math';
-export 'dart:math';
-export 'dart:math';
+library
+  imports
+    dart:async as i1 @23
+    dart:async as i2 @70
+    dart:async as i3 @117
+  exports
+    dart:math
+    dart:math
+    dart:math
+  definingUnit
 ''');
   }
 
@@ -8781,8 +18161,23 @@ export 'dart:math';
 import 'dart:async' hide Stream, Completer; Future f;
 ''');
     checkElementText(library, r'''
-import 'dart:async' hide Stream, Completer;
-Future<dynamic> f;
+library
+  imports
+    dart:async
+      combinators
+        hide: Stream, Completer
+  definingUnit
+    topLevelVariables
+      static f @51
+        type: Future<dynamic>
+    accessors
+      synthetic static get f @51
+        returnType: Future<dynamic>
+      synthetic static set f @51
+        parameters
+          requiredPositional _f @51
+            type: Future<dynamic>
+        returnType: void
 ''');
   }
 
@@ -8792,9 +18187,26 @@ Future<dynamic> f;
 import 'ht:';
 ''');
     checkElementText(library, r'''
-@
-        foo/*location: null*/
-import '<unresolved>';
+library
+  metadata
+    Annotation
+      atSign.offset: 0
+      element: <null>
+      name: SimpleIdentifier
+        staticElement: <null>
+        staticType: null
+        token: foo @-1
+  imports
+    <unresolved>
+      metadata
+        Annotation
+          atSign.offset: 0
+          element: <null>
+          name: SimpleIdentifier
+            staticElement: <null>
+            staticType: null
+            token: foo @-1
+  definingUnit
 ''');
   }
 
@@ -8805,8 +18217,24 @@ import "dart:async" hide Stream show Future;
 Future f;
 ''');
     checkElementText(library, r'''
-import 'dart:async' hide Stream show Future;
-Future<dynamic> f;
+library
+  imports
+    dart:async
+      combinators
+        hide: Stream
+        show: Future
+  definingUnit
+    topLevelVariables
+      static f @52
+        type: Future<dynamic>
+    accessors
+      synthetic static get f @52
+        returnType: Future<dynamic>
+      synthetic static set f @52
+        parameters
+          requiredPositional _f @52
+            type: Future<dynamic>
+        returnType: void
 ''');
   }
 
@@ -8818,8 +18246,21 @@ Future<dynamic> f;
     expect(library.imports[0].prefix!.nameLength, 1);
 
     checkElementText(library, r'''
-import 'a.dart' as a;
-C c;
+library
+  imports
+    a.dart as a @19
+  definingUnit
+    topLevelVariables
+      static c @26
+        type: C
+    accessors
+      synthetic static get c @26
+        returnType: C
+      synthetic static set c @26
+        parameters
+          requiredPositional _c @26
+            type: C
+        returnType: void
 ''');
   }
 
@@ -8833,11 +18274,18 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(library.imports[0].importedLibrary!.location, library.location);
     expect(library.imports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
-import 'test.dart' as p;
-class C {
-}
-class D extends C {
-}
+library
+  imports
+    test.dart as p @22
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
+      class D @42
+        supertype: C
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -8849,8 +18297,21 @@ class D extends C {
     addLibrarySource(destinationPath, 'class C {}');
     var library = await checkLibrary('import "/a.dart"; C c;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @20
+        type: C
+    accessors
+      synthetic static get c @20
+        returnType: C
+      synthetic static set c @20
+        parameters
+          requiredPositional _c @20
+            type: C
+        returnType: void
 ''');
   }
 
@@ -8862,9 +18323,32 @@ Future f;
 Stream s;
 ''');
     checkElementText(library, r'''
-import 'dart:async' show Future, Stream;
-Future<dynamic> f;
-Stream<dynamic> s;
+library
+  imports
+    dart:async
+      combinators
+        show: Future, Stream
+  definingUnit
+    topLevelVariables
+      static f @48
+        type: Future<dynamic>
+      static s @58
+        type: Stream<dynamic>
+    accessors
+      synthetic static get f @48
+        returnType: Future<dynamic>
+      synthetic static set f @48
+        parameters
+          requiredPositional _f @48
+            type: Future<dynamic>
+        returnType: void
+      synthetic static get s @58
+        returnType: Stream<dynamic>
+      synthetic static set s @58
+        parameters
+          requiredPositional _s @58
+            type: Stream<dynamic>
+        returnType: void
 ''');
   }
 
@@ -8891,10 +18375,31 @@ import 'foo.dart';
     var library =
         await checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
     checkElementText(library, r'''
-import 'a.dart';
-import 'b.dart';
-C c;
-D d;
+library
+  imports
+    a.dart
+    b.dart
+  definingUnit
+    topLevelVariables
+      static c @36
+        type: C
+      static d @41
+        type: D
+    accessors
+      synthetic static get c @36
+        returnType: C
+      synthetic static set c @36
+        parameters
+          requiredPositional _c @36
+            type: C
+        returnType: void
+      synthetic static get d @41
+        returnType: D
+      synthetic static set d @41
+        parameters
+          requiredPositional _d @41
+            type: D
+        returnType: void
 ''');
   }
 
@@ -8908,17 +18413,73 @@ class D<T,U> {}
 D<int,U> f<U>() => null;
 const x = const C(f);
 ''');
-    checkElementText(library, '''
-typedef F<T> = D<T, U> Function<U>();
-class C<V> {
-  const C(D<V, U> Function<U>() f);
-}
-class D<T, U> {
-}
-const C<int> x = const
-        C/*location: test.dart;C*/(
-        f/*location: test.dart;f*/);
-D<int, U> f<U>() {}
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @43
+        typeParameters
+          covariant V @45
+            defaultType: dynamic
+        constructors
+          const @58
+            parameters
+              requiredPositional f @65
+                type: D<V, U> Function<U>()
+                  aliasElement: self::@typeAlias::F
+                  aliasArguments
+                    V
+      class D @77
+        typeParameters
+          covariant T @79
+            defaultType: dynamic
+          covariant U @81
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: D<T, U> Function<U>()
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant U @-1
+          returnType: D<T, U>
+    topLevelVariables
+      static const x @118
+        type: C<int>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                SimpleIdentifier
+                  staticElement: self::@function::f
+                  staticType: D<int, U> Function<U>()
+                  token: f @130
+              leftParenthesis: ( @129
+              rightParenthesis: ) @131
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::•
+                substitution: {V: int}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @128
+                type: C<int>
+            keyword: const @122
+            staticType: C<int>
+    accessors
+      synthetic static get x @118
+        returnType: C<int>
+    functions
+      f @96
+        typeParameters
+          covariant U @98
+        returnType: D<int, U>
 ''');
   }
 
@@ -8932,17 +18493,61 @@ class D<T> {}
 D<T> f<T>() => null;
 const x = const C(f);
 ''');
-    checkElementText(library, '''
-typedef F = D<T> Function<T>();
-class C {
-  const C(D<T> Function<T>() f);
-}
-class D<T> {
-}
-const C x = const
-        C/*location: test.dart;C*/(
-        f/*location: test.dart;f*/);
-D<T> f<T>() {}
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @38
+        constructors
+          const @50
+            parameters
+              requiredPositional f @54
+                type: D<T> Function<T>()
+                  aliasElement: self::@typeAlias::F
+      class D @66
+        typeParameters
+          covariant T @68
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        aliasedType: D<T> Function<T>()
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant T @-1
+          returnType: D<T>
+    topLevelVariables
+      static const x @101
+        type: C
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              arguments
+                SimpleIdentifier
+                  staticElement: self::@function::f
+                  staticType: D<T> Function<T>()
+                  token: f @113
+              leftParenthesis: ( @112
+              rightParenthesis: ) @114
+            constructorName: ConstructorName
+              staticElement: self::@class::C::@constructor::•
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::C
+                  staticType: null
+                  token: C @111
+                type: C
+            keyword: const @105
+            staticType: C
+    accessors
+      synthetic static get x @101
+        returnType: C
+    functions
+      f @79
+        typeParameters
+          covariant T @81
+        returnType: D<T>
 ''');
   }
 
@@ -8958,15 +18563,38 @@ class S<T extends A> {
 
 var s = new S(new B());
 ''');
-    checkElementText(library, '''
-class A {
-}
-class B extends A {
-}
-class S<T extends A = A> {
-  S(T _);
-}
-S<B> s;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @18
+        supertype: A
+        constructors
+          synthetic @-1
+      class S @40
+        typeParameters
+          covariant T @42
+            bound: A
+            defaultType: A
+        constructors
+          @59
+            parameters
+              requiredPositional _ @63
+                type: T
+    topLevelVariables
+      static s @74
+        type: S<B>
+    accessors
+      synthetic static get s @74
+        returnType: S<B>
+      synthetic static set s @74
+        parameters
+          requiredPositional _s @74
+            type: S<B>
+        returnType: void
 ''');
   }
 
@@ -8984,20 +18612,65 @@ class D extends C {}
 var a = new A();
 var x = a.b.c ??= new D();
 ''');
-    checkElementText(library, '''
-class A {
-  B b;
-}
-class B {
-  C get c {}
-  void set c(C value) {}
-}
-class C {
-}
-class D extends C {
-}
-A a;
-C x;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          b @14
+            type: B
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get b @14
+            returnType: B
+          synthetic set b @14
+            parameters
+              requiredPositional _b @14
+                type: B
+            returnType: void
+      class B @25
+        fields
+          synthetic c @-1
+            type: C
+        constructors
+          synthetic @-1
+        accessors
+          get c @37
+            returnType: C
+          set c @59
+            parameters
+              requiredPositional value @63
+                type: C
+            returnType: void
+      class C @81
+        constructors
+          synthetic @-1
+      class D @92
+        supertype: C
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static a @111
+        type: A
+      static x @128
+        type: C
+    accessors
+      synthetic static get a @111
+        returnType: A
+      synthetic static set a @111
+        parameters
+          requiredPositional _a @111
+            type: A
+        returnType: void
+      synthetic static get x @128
+        returnType: C
+      synthetic static set x @128
+        parameters
+          requiredPositional _x @128
+            type: C
+        returnType: void
 ''');
   }
 
@@ -9008,10 +18681,38 @@ var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
 ''');
-    checkElementText(library, '''
-Iterable<String> x;
-List<int> y;
-List<String> z;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: Iterable<String>
+      static y @40
+        type: List<int>
+      static z @53
+        type: List<String>
+    accessors
+      synthetic static get x @4
+        returnType: Iterable<String>
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: Iterable<String>
+        returnType: void
+      synthetic static get y @40
+        returnType: List<int>
+      synthetic static set y @40
+        parameters
+          requiredPositional _y @40
+            type: List<int>
+        returnType: void
+      synthetic static get z @53
+        returnType: List<String>
+      synthetic static set z @53
+        parameters
+          requiredPositional _z @53
+            type: List<String>
+        returnType: void
 ''');
   }
 
@@ -9023,12 +18724,44 @@ class C {
 var x = <C>[];
 var y = x.map((c) => c.p);
 ''');
-    checkElementText(library, '''
-class C {
-  int p;
-}
-List<C> x;
-Iterable<int> y;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          p @16
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get p @16
+            returnType: int
+          synthetic set p @16
+            parameters
+              requiredPositional _p @16
+                type: int
+            returnType: void
+    topLevelVariables
+      static x @25
+        type: List<C>
+      static y @40
+        type: Iterable<int>
+    accessors
+      synthetic static get x @25
+        returnType: List<C>
+      synthetic static set x @25
+        parameters
+          requiredPositional _x @25
+            type: List<C>
+        returnType: void
+      synthetic static get y @40
+        returnType: Iterable<int>
+      synthetic static set y @40
+        parameters
+          requiredPositional _y @40
+            type: Iterable<int>
+        returnType: void
 ''');
   }
 
@@ -9041,7 +18774,14 @@ f<U, V>() {
 }
 ''');
     checkElementText(library, r'''
-dynamic f<U, V>() {}
+library
+  definingUnit
+    functions
+      f @0
+        typeParameters
+          covariant U @2
+          covariant V @5
+        returnType: dynamic
 ''');
   }
 
@@ -9055,10 +18795,23 @@ class C<U, V> {
 }
 ''');
     checkElementText(library, r'''
-class C<U, V> {
-  final dynamic x;
-  C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant U @8
+            defaultType: dynamic
+          covariant V @11
+            defaultType: dynamic
+        fields
+          final x @24
+            type: dynamic
+        constructors
+          @29
+        accessors
+          synthetic get x @24
+            returnType: dynamic
 ''');
   }
 
@@ -9071,9 +18824,23 @@ class C<U, V> {
 }
 ''');
     checkElementText(library, r'''
-class C<U, V> {
-  dynamic get x {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant U @8
+            defaultType: dynamic
+          covariant V @11
+            defaultType: dynamic
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          get x @22
+            returnType: dynamic
 ''');
   }
 
@@ -9089,9 +18856,21 @@ class C<T> {
 }
 ''');
     checkElementText(library, r'''
-class C<T> {
-  dynamic f<U, V>() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          f @15
+            typeParameters
+              covariant U @17
+              covariant V @20
+            returnType: dynamic
 ''');
   }
 
@@ -9106,9 +18885,26 @@ class C<U, V> {
 }
 ''');
     checkElementText(library, r'''
-class C<U, V> {
-  void set x(dynamic value) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant U @8
+            defaultType: dynamic
+          covariant V @11
+            defaultType: dynamic
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @27
+            parameters
+              requiredPositional value @29
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -9121,7 +18917,13 @@ f<T>() {
 }
 ''');
     checkElementText(library, r'''
-dynamic f<T>() {}
+library
+  definingUnit
+    functions
+      f @0
+        typeParameters
+          covariant T @2
+        returnType: dynamic
 ''');
   }
 
@@ -9134,7 +18936,13 @@ f<T>() {
 }
 ''');
     checkElementText(library, r'''
-dynamic f<T>() {}
+library
+  definingUnit
+    functions
+      f @0
+        typeParameters
+          covariant T @2
+        returnType: dynamic
 ''');
   }
 
@@ -9148,11 +18956,25 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  static final int foo;
-  static final int Function(double) bar;
-  static int Function(double) baz() {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          static final foo @25
+            type: int
+          static final bar @56
+            type: int Function(double)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get foo @25
+            returnType: int
+          synthetic static get bar @56
+            returnType: int Function(double)
+        methods
+          static baz @100
+            returnType: int Function(double)
 ''');
   }
 
@@ -9164,10 +18986,49 @@ var c = a + 3;
 var d = 4;
 ''');
     checkElementText(library, r'''
-dynamic a/*error: dependencyCycle*/;
-dynamic b/*error: dependencyCycle*/;
-dynamic c/*error: dependencyCycle*/;
-int d;
+library
+  definingUnit
+    topLevelVariables
+      static a @4
+        typeInferenceError: dependencyCycle
+        type: dynamic
+      static b @19
+        typeInferenceError: dependencyCycle
+        type: dynamic
+      static c @34
+        typeInferenceError: dependencyCycle
+        type: dynamic
+      static d @49
+        type: int
+    accessors
+      synthetic static get a @4
+        returnType: dynamic
+      synthetic static set a @4
+        parameters
+          requiredPositional _a @4
+            type: dynamic
+        returnType: void
+      synthetic static get b @19
+        returnType: dynamic
+      synthetic static set b @19
+        parameters
+          requiredPositional _b @19
+            type: dynamic
+        returnType: void
+      synthetic static get c @34
+        returnType: dynamic
+      synthetic static set c @34
+        parameters
+          requiredPositional _c @34
+            type: dynamic
+        returnType: void
+      synthetic static get d @49
+        returnType: int
+      synthetic static set d @49
+        parameters
+          requiredPositional _d @49
+            type: int
+        returnType: void
 ''');
   }
 
@@ -9176,13 +19037,46 @@ int d;
         ' class C extends D { var v; }'
         ' abstract class D { F get v; }');
     checkElementText(library, r'''
-typedef F = int Function(String s);
-class C extends D {
-  int Function(String) v;
-}
-abstract class D {
-  int Function(String) get v;
-}
+library
+  definingUnit
+    classes
+      class C @31
+        supertype: D
+        fields
+          v @49
+            type: int Function(String)
+              aliasElement: self::@typeAlias::F
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @49
+            returnType: int Function(String)
+              aliasElement: self::@typeAlias::F
+          synthetic set v @49
+            parameters
+              requiredPositional _v @49
+                type: int Function(String)
+                  aliasElement: self::@typeAlias::F
+            returnType: void
+      abstract class D @69
+        fields
+          synthetic v @-1
+            type: int Function(String)
+              aliasElement: self::@typeAlias::F
+        constructors
+          synthetic @-1
+        accessors
+          abstract get v @79
+            returnType: int Function(String)
+              aliasElement: self::@typeAlias::F
+    typeAliases
+      functionTypeAliasBased F @12
+        aliasedType: int Function(String)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional s @-1
+              type: String
+          returnType: int
 ''');
   }
 
@@ -9193,8 +19087,21 @@ import 'a.dart';
 var x = f();
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-int x;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static x @21
+        type: int
+    accessors
+      synthetic static get x @21
+        returnType: int
+      synthetic static set x @21
+        parameters
+          requiredPositional _x @21
+            type: int
+        returnType: void
 ''');
   }
 
@@ -9205,8 +19112,21 @@ import 'a.dart';
 var x = f();
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-int? x;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static x @21
+        type: int?
+    accessors
+      synthetic static get x @21
+        returnType: int?
+      synthetic static set x @21
+        parameters
+          requiredPositional _x @21
+            type: int?
+        returnType: void
 ''');
   }
 
@@ -9217,8 +19137,21 @@ import 'a.dart';
 var x = f();
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-void Function() x;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static x @21
+        type: void Function()
+    accessors
+      synthetic static get x @21
+        returnType: void Function()
+      synthetic static set x @21
+        parameters
+          requiredPositional _x @21
+            type: void Function()
+        returnType: void
 ''');
   }
 
@@ -9229,8 +19162,21 @@ import 'a.dart';
 var x = f();
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-void Function()? x;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static x @21
+        type: void Function()?
+    accessors
+      synthetic static get x @21
+        returnType: void Function()?
+      synthetic static set x @21
+        parameters
+          requiredPositional _x @21
+            type: void Function()?
+        returnType: void
 ''');
   }
 
@@ -9244,12 +19190,41 @@ abstract class D<U, V> {
 }
 ''');
     checkElementText(library, r'''
-class C<T> extends D<int, T> {
-  Map<T, int> v;
-}
-abstract class D<U, V> {
-  Map<V, U> get v;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        supertype: D<int, T>
+        fields
+          v @37
+            type: Map<T, int>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @37
+            returnType: Map<T, int>
+          synthetic set v @37
+            parameters
+              requiredPositional _v @37
+                type: Map<T, int>
+            returnType: void
+      abstract class D @57
+        typeParameters
+          covariant U @59
+            defaultType: dynamic
+          covariant V @62
+            defaultType: dynamic
+        fields
+          synthetic v @-1
+            type: Map<V, U>
+        constructors
+          synthetic @-1
+        accessors
+          abstract get v @83
+            returnType: Map<V, U>
 ''');
   }
 
@@ -9260,9 +19235,37 @@ h(F f) => null;
 var v = h((y) {});
 ''');
     checkElementText(library, r'''
-typedef F = void Function(int Function(String) g/*(String s)*/);
-dynamic v;
-dynamic h(void Function(int Function(String)) f) {}
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        aliasedType: void Function(int Function(String))
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional g @-1
+              type: int Function(String)
+              parameters
+                requiredPositional s @-1
+                  type: String
+          returnType: void
+    topLevelVariables
+      static v @53
+        type: dynamic
+    accessors
+      synthetic static get v @53
+        returnType: dynamic
+      synthetic static set v @53
+        parameters
+          requiredPositional _v @53
+            type: dynamic
+        returnType: void
+    functions
+      h @33
+        parameters
+          requiredPositional f @37
+            type: void Function(int Function(String))
+              aliasElement: self::@typeAlias::F
+        returnType: dynamic
 ''');
   }
 
@@ -9275,12 +19278,45 @@ abstract class D<V, W> {
   void f(int x, W g(V s));
 }''');
     checkElementText(library, r'''
-class C<T, U> extends D<U, int> {
-  void f(int x, int Function(U) g) {}
-}
-abstract class D<V, W> {
-  void f(int x, W Function(V) g/*(V s)*/);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        supertype: D<U, int>
+        constructors
+          synthetic @-1
+        methods
+          f @41
+            parameters
+              requiredPositional x @47
+                type: int
+              requiredPositional g @50
+                type: int Function(U)
+            returnType: void
+      abstract class D @73
+        typeParameters
+          covariant V @75
+            defaultType: dynamic
+          covariant W @78
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          abstract f @90
+            parameters
+              requiredPositional x @96
+                type: int
+              requiredPositional g @101
+                type: W Function(V)
+                parameters
+                  requiredPositional s @105
+                    type: V
+            returnType: void
 ''');
   }
 
@@ -9301,10 +19337,23 @@ class C extends D {
 }
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-class C extends D {
-  void f(int x, int Function(String) g) {}
-}
+library
+  imports
+    a.dart
+  definingUnit
+    classes
+      class C @23
+        supertype: D
+        constructors
+          synthetic @-1
+        methods
+          f @44
+            parameters
+              requiredPositional x @50
+                type: int
+              requiredPositional g @53
+                type: int Function(String)
+            returnType: void
 ''');
   }
 
@@ -9312,12 +19361,35 @@ class C extends D {
     var library = await checkLibrary('class C extends D { void f(int x, g) {} }'
         ' abstract class D { void f(int x, int g(String s)); }');
     checkElementText(library, r'''
-class C extends D {
-  void f(int x, int Function(String) g) {}
-}
-abstract class D {
-  void f(int x, int Function(String) g/*(String s)*/);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        constructors
+          synthetic @-1
+        methods
+          f @25
+            parameters
+              requiredPositional x @31
+                type: int
+              requiredPositional g @34
+                type: int Function(String)
+            returnType: void
+      abstract class D @57
+        constructors
+          synthetic @-1
+        methods
+          abstract f @66
+            parameters
+              requiredPositional x @72
+                type: int
+              requiredPositional g @79
+                type: int Function(String)
+                parameters
+                  requiredPositional s @88
+                    type: String
+            returnType: void
 ''');
   }
 
@@ -9327,8 +19399,30 @@ f(void g(int x, void h())) => null;
 var v = f((x, y) {});
 ''');
     checkElementText(library, r'''
-dynamic v;
-dynamic f(void Function(int, void Function()) g/*(int x, void Function() h)*/) {}
+library
+  definingUnit
+    topLevelVariables
+      static v @40
+        type: dynamic
+    accessors
+      synthetic static get v @40
+        returnType: dynamic
+      synthetic static set v @40
+        parameters
+          requiredPositional _v @40
+            type: dynamic
+        returnType: void
+    functions
+      f @0
+        parameters
+          requiredPositional g @7
+            type: void Function(int, void Function())
+            parameters
+              requiredPositional x @13
+                type: int
+              requiredPositional h @21
+                type: void Function()
+        returnType: dynamic
 ''');
   }
 
@@ -9338,8 +19432,30 @@ f({void g(int x, void h())}) => null;
 var v = f(g: (x, y) {});
 ''');
     checkElementText(library, r'''
-dynamic v;
-dynamic f({void Function(int, void Function()) g/*(int x, void Function() h)*/}) {}
+library
+  definingUnit
+    topLevelVariables
+      static v @42
+        type: dynamic
+    accessors
+      synthetic static get v @42
+        returnType: dynamic
+      synthetic static set v @42
+        parameters
+          requiredPositional _v @42
+            type: dynamic
+        returnType: void
+    functions
+      f @0
+        parameters
+          optionalNamed g @8
+            type: void Function(int, void Function())
+            parameters
+              requiredPositional x @14
+                type: int
+              requiredPositional h @22
+                type: void Function()
+        returnType: dynamic
 ''');
   }
 
@@ -9347,12 +19463,37 @@ dynamic f({void Function(int, void Function()) g/*(int x, void Function() h)*/})
     var library = await checkLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');
     checkElementText(library, r'''
-class C extends D {
-  void set f(int Function(String) g) {}
-}
-abstract class D {
-  void set f(int Function(String) g/*(String s)*/);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        fields
+          synthetic f @-1
+            type: int Function(String)
+        constructors
+          synthetic @-1
+        accessors
+          set f @29
+            parameters
+              requiredPositional g @31
+                type: int Function(String)
+            returnType: void
+      abstract class D @54
+        fields
+          synthetic f @-1
+            type: int Function(String)
+        constructors
+          synthetic @-1
+        accessors
+          abstract set f @67
+            parameters
+              requiredPositional g @73
+                type: int Function(String)
+                parameters
+                  requiredPositional s @82
+                    type: String
+            returnType: void
 ''');
   }
 
@@ -9370,10 +19511,21 @@ class B extends A {
 }
   ''');
     checkElementText(library, r'''
-import 'a.dart';
-class B extends A {
-  dynamic m(Stream<dynamic> p) {}
-}
+library
+  imports
+    a.dart
+  definingUnit
+    classes
+      class B @23
+        supertype: A
+        constructors
+          synthetic @-1
+        methods
+          m @39
+            parameters
+              requiredPositional p @41
+                type: Stream<dynamic>
+            returnType: dynamic
 ''');
     ClassElement b = library.definingCompilationUnit.classes[0];
     ParameterElement p = b.methods[0].parameters[0];
@@ -9396,12 +19548,35 @@ var a1 = A();
 var a2 = A.named();
 ''');
     checkElementText(library, r'''
-class A {
-  A();
-  A.named();
-}
-A a1;
-A a2;
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+          named @21
+            periodOffset: 20
+            nameEnd: 26
+    topLevelVariables
+      static a1 @36
+        type: A
+      static a2 @50
+        type: A
+    accessors
+      synthetic static get a1 @36
+        returnType: A
+      synthetic static set a1 @36
+        parameters
+          requiredPositional _a1 @36
+            type: A
+        returnType: void
+      synthetic static get a2 @50
+        returnType: A
+      synthetic static set a2 @50
+        parameters
+          requiredPositional _a2 @50
+            type: A
+        returnType: void
 ''');
   }
 
@@ -9418,9 +19593,30 @@ var a1 = foo.A();
 var a2 = foo.A.named();
 ''');
     checkElementText(library, r'''
-import 'foo.dart' as foo;
-A a1;
-A a2;
+library
+  imports
+    foo.dart as foo @21
+  definingUnit
+    topLevelVariables
+      static a1 @30
+        type: A
+      static a2 @48
+        type: A
+    accessors
+      synthetic static get a1 @30
+        returnType: A
+      synthetic static set a1 @30
+        parameters
+          requiredPositional _a1 @30
+            type: A
+        returnType: void
+      synthetic static get a2 @48
+        returnType: A
+      synthetic static set a2 @48
+        parameters
+          requiredPositional _a2 @48
+            type: A
+        returnType: void
 ''');
   }
 
@@ -9433,9 +19629,36 @@ String g(int x(String y)) => null;
 var v = [f, g];
 ''');
     checkElementText(library, r'''
-List<Object Function(int Function(String))> v;
-int f(int Function(String) x/*(String y)*/) {}
-String g(int Function(String) x/*(String y)*/) {}
+library
+  definingUnit
+    topLevelVariables
+      static v @71
+        type: List<Object Function(int Function(String))>
+    accessors
+      synthetic static get v @71
+        returnType: List<Object Function(int Function(String))>
+      synthetic static set v @71
+        parameters
+          requiredPositional _v @71
+            type: List<Object Function(int Function(String))>
+        returnType: void
+    functions
+      f @4
+        parameters
+          requiredPositional x @10
+            type: int Function(String)
+            parameters
+              requiredPositional y @19
+                type: String
+        returnType: int
+      g @39
+        parameters
+          requiredPositional x @45
+            type: int Function(String)
+            parameters
+              requiredPositional y @54
+                type: String
+        returnType: String
 ''');
   }
 
@@ -9456,31 +19679,80 @@ abstract class D extends C {
 }
 ''');
     checkElementText(library, r'''
-abstract class A {
-  int m();
-}
-abstract class B {
-  String m();
-}
-abstract class C implements A, B {
-}
-abstract class D extends C {
-  dynamic f;
-}
+library
+  definingUnit
+    classes
+      abstract class A @15
+        constructors
+          synthetic @-1
+        methods
+          abstract m @25
+            returnType: int
+      abstract class B @48
+        constructors
+          synthetic @-1
+        methods
+          abstract m @61
+            returnType: String
+      abstract class C @84
+        interfaces
+          A
+          B
+        constructors
+          synthetic @-1
+      abstract class D @121
+        supertype: C
+        fields
+          f @141
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @141
+            returnType: dynamic
+          synthetic set f @141
+            parameters
+              requiredPositional _f @141
+                type: dynamic
+            returnType: void
 ''');
   }
 
   test_initializer_executable_with_return_type_from_closure() async {
     var library = await checkLibrary('var v = () => 0;');
     checkElementText(library, r'''
-int Function() v;
+library
+  definingUnit
+    topLevelVariables
+      static v @4
+        type: int Function()
+    accessors
+      synthetic static get v @4
+        returnType: int Function()
+      synthetic static set v @4
+        parameters
+          requiredPositional _v @4
+            type: int Function()
+        returnType: void
 ''');
   }
 
   test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
     var library = await checkLibrary('var v = (f) async => await f;');
     checkElementText(library, r'''
-Future<dynamic> Function(dynamic) v;
+library
+  definingUnit
+    topLevelVariables
+      static v @4
+        type: Future<dynamic> Function(dynamic)
+    accessors
+      synthetic static get v @4
+        returnType: Future<dynamic> Function(dynamic)
+      synthetic static set v @4
+        parameters
+          requiredPositional _v @4
+            type: Future<dynamic> Function(dynamic)
+        returnType: void
 ''');
   }
 
@@ -9491,8 +19763,21 @@ var v = (Future<Future<Future<int>>> f) async => await f;
 ''');
     // The analyzer type system over-flattens - see dartbug.com/31887
     checkElementText(library, r'''
-import 'dart:async';
-Future<int> Function(Future<Future<Future<int>>>) v;
+library
+  imports
+    dart:async
+  definingUnit
+    topLevelVariables
+      static v @25
+        type: Future<int> Function(Future<Future<Future<int>>>)
+    accessors
+      synthetic static get v @25
+        returnType: Future<int> Function(Future<Future<Future<int>>>)
+      synthetic static set v @25
+        parameters
+          requiredPositional _v @25
+            type: Future<int> Function(Future<Future<Future<int>>>)
+        returnType: void
 ''');
   }
 
@@ -9502,8 +19787,21 @@ import 'dart:async';
 var v = (Future<int> f) async => await f;
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-Future<int> Function(Future<int>) v;
+library
+  imports
+    dart:async
+  definingUnit
+    topLevelVariables
+      static v @25
+        type: Future<int> Function(Future<int>)
+    accessors
+      synthetic static get v @25
+        returnType: Future<int> Function(Future<int>)
+      synthetic static set v @25
+        parameters
+          requiredPositional _v @25
+            type: Future<int> Function(Future<int>)
+        returnType: void
 ''');
   }
 
@@ -9513,8 +19811,21 @@ import 'dart:async';
 var v = (Future f) async => await f;
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-Future<dynamic> Function(Future<dynamic>) v;
+library
+  imports
+    dart:async
+  definingUnit
+    topLevelVariables
+      static v @25
+        type: Future<dynamic> Function(Future<dynamic>)
+    accessors
+      synthetic static get v @25
+        returnType: Future<dynamic> Function(Future<dynamic>)
+      synthetic static set v @25
+        parameters
+          requiredPositional _v @25
+            type: Future<dynamic> Function(Future<dynamic>)
+        returnType: void
 ''');
   }
 
@@ -9525,9 +19836,23 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  int Function() v;
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          v @16
+            type: int Function()
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @16
+            returnType: int Function()
+          synthetic set v @16
+            parameters
+              requiredPositional _v @16
+                type: int Function()
+            returnType: void
 ''');
   }
 
@@ -9539,7 +19864,11 @@ void f() {
 }
 ''');
     checkElementText(library, r'''
-void f() {}
+library
+  definingUnit
+    functions
+      f @5
+        returnType: void
 ''');
   }
 
@@ -9570,16 +19899,41 @@ class X3 extends LegacyInt {
 }
 ''');
     checkElementText(library, r'''
-import 'legacy.dart';
-class X1 extends LegacyDefault* {
-  bool* ==(dynamic other) {}
-}
-class X2 extends LegacyObject* {
-  bool* ==(Object* other) {}
-}
-class X3 extends LegacyInt* {
-  bool* ==(int* other) {}
-}
+library
+  imports
+    legacy.dart
+  definingUnit
+    classes
+      class X1 @28
+        supertype: LegacyDefault*
+        constructors
+          synthetic @-1
+        methods
+          == @71
+            parameters
+              requiredPositional other @74
+                type: dynamic
+            returnType: bool*
+      class X2 @99
+        supertype: LegacyObject*
+        constructors
+          synthetic @-1
+        methods
+          == @140
+            parameters
+              requiredPositional other @143
+                type: Object*
+            returnType: bool*
+      class X3 @168
+        supertype: LegacyInt*
+        constructors
+          synthetic @-1
+        methods
+          == @206
+            parameters
+              requiredPositional other @209
+                type: int*
+            returnType: bool*
 ''');
   }
 
@@ -9622,17 +19976,48 @@ class X3 extends LegacyInt implements NullSafeInt {
 }
 ''');
     checkElementText(library, r'''
-import 'legacy.dart';
-import 'nullSafe.dart';
-class X1 extends LegacyDefault* implements NullSafeDefault* {
-  bool* ==(dynamic other) {}
-}
-class X2 extends LegacyObject* implements NullSafeObject* {
-  bool* ==(Object* other) {}
-}
-class X3 extends LegacyInt* implements NullSafeInt* {
-  bool* ==(int* other) {}
-}
+library
+  imports
+    legacy.dart
+    nullSafe.dart
+  definingUnit
+    classes
+      class X1 @67
+        supertype: LegacyDefault*
+        interfaces
+          NullSafeDefault*
+        constructors
+          synthetic @-1
+        methods
+          == @136
+            parameters
+              requiredPositional other @139
+                type: dynamic
+            returnType: bool*
+      class X2 @164
+        supertype: LegacyObject*
+        interfaces
+          NullSafeObject*
+        constructors
+          synthetic @-1
+        methods
+          == @231
+            parameters
+              requiredPositional other @234
+                type: Object*
+            returnType: bool*
+      class X3 @259
+        supertype: LegacyInt*
+        interfaces
+          NullSafeInt*
+        constructors
+          synthetic @-1
+        methods
+          == @320
+            parameters
+              requiredPositional other @323
+                type: int*
+            returnType: bool*
 ''');
   }
 
@@ -9661,16 +20046,41 @@ class X3 extends NullSafeInt {
 }
 ''');
     checkElementText(library, r'''
-import 'nullSafe.dart';
-class X1 extends NullSafeDefault {
-  bool ==(Object other) {}
-}
-class X2 extends NullSafeObject {
-  bool ==(Object other) {}
-}
-class X3 extends NullSafeInt {
-  bool ==(int other) {}
-}
+library
+  imports
+    nullSafe.dart
+  definingUnit
+    classes
+      class X1 @30
+        supertype: NullSafeDefault
+        constructors
+          synthetic @-1
+        methods
+          == @74
+            parameters
+              requiredPositional other @77
+                type: Object
+            returnType: bool
+      class X2 @102
+        supertype: NullSafeObject
+        constructors
+          synthetic @-1
+        methods
+          == @145
+            parameters
+              requiredPositional other @148
+                type: Object
+            returnType: bool
+      class X3 @173
+        supertype: NullSafeInt
+        constructors
+          synthetic @-1
+        methods
+          == @213
+            parameters
+              requiredPositional other @216
+                type: int
+            returnType: bool
 ''');
   }
 
@@ -9680,9 +20090,30 @@ class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<S extends num = num, T extends C<S, T> = C<num, dynamic>> {
-}
-C<num, C<num, dynamic>> c;
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant S @8
+            bound: num
+            defaultType: num
+          covariant T @23
+            bound: C<S, T>
+            defaultType: C<num, dynamic>
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @47
+        type: C<num, C<num, dynamic>>
+    accessors
+      synthetic static get c @47
+        returnType: C<num, C<num, dynamic>>
+      synthetic static set c @47
+        parameters
+          requiredPositional _c @47
+            type: C<num, C<num, dynamic>>
+        returnType: void
 ''');
   }
 
@@ -9696,13 +20127,50 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<T> = C<dynamic>> {
-}
-class B {
-  C<C<Object?>> c3;
-}
-C<C<dynamic>> c;
-C<C<Object?>> c2;
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: C<T>
+            defaultType: C<dynamic>
+        constructors
+          synthetic @-1
+      class B @56
+        fields
+          c3 @66
+            type: C<C<Object?>>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get c3 @66
+            returnType: C<C<Object?>>
+          synthetic set c3 @66
+            parameters
+              requiredPositional _c3 @66
+                type: C<C<Object?>>
+            returnType: void
+    topLevelVariables
+      static c @29
+        type: C<C<dynamic>>
+      static c2 @36
+        type: C<C<Object?>>
+    accessors
+      synthetic static get c @29
+        returnType: C<C<dynamic>>
+      synthetic static set c @29
+        parameters
+          requiredPositional _c @29
+            type: C<C<dynamic>>
+        returnType: void
+      synthetic static get c2 @36
+        returnType: C<C<Object?>>
+      synthetic static set c2 @36
+        parameters
+          requiredPositional _c2 @36
+            type: C<C<Object?>>
+        returnType: void
 ''');
   }
 
@@ -9717,13 +20185,50 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<T*>* = C<dynamic>*> {
-}
-class B {
-  C<C<dynamic>*>* c3;
-}
-C<C<dynamic>*>* c;
-C<C<dynamic>*>* c2;
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: C<T*>*
+            defaultType: C<dynamic>*
+        constructors
+          synthetic @-1
+      class B @56
+        fields
+          c3 @66
+            type: C<C<dynamic>*>*
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get c3 @66
+            returnType: C<C<dynamic>*>*
+          synthetic set c3 @66
+            parameters
+              requiredPositional _c3 @66
+                type: C<C<dynamic>*>*
+            returnType: void
+    topLevelVariables
+      static c @29
+        type: C<C<dynamic>*>*
+      static c2 @36
+        type: C<C<dynamic>*>*
+    accessors
+      synthetic static get c @29
+        returnType: C<C<dynamic>*>*
+      synthetic static set c @29
+        parameters
+          requiredPositional _c @29
+            type: C<C<dynamic>*>*
+        returnType: void
+      synthetic static get c2 @36
+        returnType: C<C<dynamic>*>*
+      synthetic static set c2 @36
+        parameters
+          requiredPositional _c2 @36
+            type: C<C<dynamic>*>*
+        returnType: void
 ''');
   }
 
@@ -9733,9 +20238,30 @@ class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<T, U> = C<dynamic, num>, U extends num = num> {
-}
-C<C<dynamic, num>, num> c;
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: C<T, U>
+            defaultType: C<dynamic, num>
+          covariant U @27
+            bound: num
+            defaultType: num
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @47
+        type: C<C<dynamic, num>, num>
+    accessors
+      synthetic static get c @47
+        returnType: C<C<dynamic, num>, num>
+      synthetic static set c @47
+        parameters
+          requiredPositional _c @47
+            type: C<C<dynamic, num>, num>
+        returnType: void
 ''');
   }
 
@@ -9754,10 +20280,20 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'b.dart';
-class C {
-  O Function(O) f() {}
-}
+library
+  imports
+    b.dart
+  definingUnit
+    classes
+      class C @23
+        constructors
+          synthetic @-1
+        methods
+          f @31
+            returnType: O Function(O)
+              aliasElement: a.dart::@typeAlias::F
+              aliasArguments
+                O
 ''');
   }
 
@@ -9767,8 +20303,40 @@ typedef F<T extends num>(T p);
 F f;
 ''');
     checkElementText(library, r'''
-typedef F<T extends num = num> = dynamic Function(T p);
-dynamic Function(num) f;
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        typeParameters
+          contravariant T @10
+            bound: num
+            defaultType: num
+        aliasedType: dynamic Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional p @-1
+              type: T
+          returnType: dynamic
+    topLevelVariables
+      static f @33
+        type: dynamic Function(num)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            num
+    accessors
+      synthetic static get f @33
+        returnType: dynamic Function(num)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            num
+      synthetic static set f @33
+        parameters
+          requiredPositional _f @33
+            type: dynamic Function(num)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                num
+        returnType: void
 ''');
   }
 
@@ -9779,11 +20347,36 @@ class B<T extends int Function(), U extends A<T>> {}
 B b;
 ''');
     checkElementText(library, r'''
-class A<T> {
-}
-notSimplyBounded class B<T extends int Function() = int Function(), U extends A<T> = A<int Function()>> {
-}
-B<int Function(), A<int Function()>> b;
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      notSimplyBounded class B @20
+        typeParameters
+          covariant T @22
+            bound: int Function()
+            defaultType: int Function()
+          covariant U @48
+            bound: A<T>
+            defaultType: A<int Function()>
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static b @69
+        type: B<int Function(), A<int Function()>>
+    accessors
+      synthetic static get b @69
+        returnType: B<int Function(), A<int Function()>>
+      synthetic static set b @69
+        parameters
+          requiredPositional _b @69
+            type: B<int Function(), A<int Function()>>
+        returnType: void
 ''');
   }
 
@@ -9793,8 +20386,42 @@ typedef F<T extends num> = S Function<S>(T p);
 F f;
 ''');
     checkElementText(library, r'''
-typedef F<T extends num = num> = S Function<S>(T p);
-S Function<S>(num) f;
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          contravariant T @10
+            bound: num
+            defaultType: num
+        aliasedType: S Function<S>(T)
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant S @-1
+          parameters
+            requiredPositional p @-1
+              type: T
+          returnType: S
+    topLevelVariables
+      static f @49
+        type: S Function<S>(num)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            num
+    accessors
+      synthetic static get f @49
+        returnType: S Function<S>(num)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            num
+      synthetic static set f @49
+        parameters
+          requiredPositional _f @49
+            type: S Function<S>(num)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                num
+        returnType: void
 ''');
   }
 
@@ -9806,11 +20433,29 @@ class A<R extends B> {
 class B<T extends num> {}
 ''');
     checkElementText(library, r'''
-class A<R extends B<num> = B<num>> {
-  final List<B<num>> values;
-}
-class B<T extends num = num> {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant R @8
+            bound: B<num>
+            defaultType: B<num>
+        fields
+          final values @31
+            type: List<B<num>>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get values @31
+            returnType: List<B<num>>
+      class B @55
+        typeParameters
+          covariant T @57
+            bound: num
+            defaultType: num
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -9820,9 +20465,27 @@ class C<T extends num> {}
 C c;
 ''');
     checkElementText(library, r'''
-class C<T extends num = num> {
-}
-C<num> c;
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            bound: num
+            defaultType: num
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @28
+        type: C<num>
+    accessors
+      synthetic static get c @28
+        returnType: C<num>
+      synthetic static set c @28
+        parameters
+          requiredPositional _c @28
+            type: C<num>
+        returnType: void
 ''');
   }
 
@@ -9838,33 +20501,36 @@ import "a.dart" as a;
 @a.A.named
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/a.dart' as a;
-class C {
-}
-  metadata
-    Annotation
-      constructorName: SimpleIdentifier
-        staticElement: package:test/a.dart::@class::A::@constructor::named
-        staticType: null
-        token: named
-      element: package:test/a.dart::@class::A::@constructor::named
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-          token: A
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::a
-          staticType: null
-          token: a
-        staticElement: package:test/a.dart::@class::A
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart as a @19
+  definingUnit
+    classes
+      class C @39
+        metadata
+          Annotation
+            atSign.offset: 22
+            constructorName: SimpleIdentifier
+              staticElement: package:test/a.dart::@class::A::@constructor::named
+              staticType: null
+              token: named @27
+            element: package:test/a.dart::@class::A::@constructor::named
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/a.dart::@class::A
+                staticType: null
+                token: A @25
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::a
+                staticType: null
+                token: a @23
+              staticElement: package:test/a.dart::@class::A
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
@@ -9879,29 +20545,32 @@ import "a.dart";
 @A.named
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/a.dart';
-class C {
-}
-  metadata
-    Annotation
-      element: package:test/a.dart::@class::A::@constructor::named
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/a.dart::@class::A::@constructor::named
-          staticType: null
-          token: named
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: package:test/a.dart::@class::A
-          staticType: null
-          token: A
-        staticElement: package:test/a.dart::@class::A::@constructor::named
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class C @32
+        metadata
+          Annotation
+            atSign.offset: 17
+            element: package:test/a.dart::@class::A::@constructor::named
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/a.dart::@class::A::@constructor::named
+                staticType: null
+                token: named @20
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: package:test/a.dart::@class::A
+                staticType: null
+                token: A @18
+              staticElement: package:test/a.dart::@class::A::@constructor::named
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_invalid_importPrefix_asTypeArgument() async {
@@ -9912,10 +20581,25 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'dart:async' as ppp;
-class C {
-  List<dynamic> v;
-}
+library
+  imports
+    dart:async as ppp @23
+  definingUnit
+    classes
+      class C @34
+        fields
+          v @50
+            type: List<dynamic>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @50
+            returnType: List<dynamic>
+          synthetic set v @50
+            parameters
+              requiredPositional _v @50
+                type: List<dynamic>
+            returnType: void
 ''');
   }
 
@@ -9928,10 +20612,22 @@ import 'b.dart';
 foo([p = V]) {}
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-import 'b.dart';
-dynamic foo([dynamic p =
-        V/*location: null*/]) {}
+library
+  imports
+    a.dart
+    b.dart
+  definingUnit
+    functions
+      foo @34
+        parameters
+          optionalPositional p @39
+            type: dynamic
+            constantInitializer
+              SimpleIdentifier
+                staticElement: <null>
+                staticType: dynamic
+                token: V @-1
+        returnType: dynamic
 ''');
   }
 
@@ -9947,9 +20643,21 @@ import 'c.dart';
 foo([p = V]) {}
 ''');
     checkElementText(library, r'''
-import 'c.dart';
-dynamic foo([dynamic p =
-        V/*location: a.dart;V*/]) {}
+library
+  imports
+    c.dart
+  definingUnit
+    functions
+      foo @17
+        parameters
+          optionalPositional p @22
+            type: dynamic
+            constantInitializer
+              SimpleIdentifier
+                staticElement: a.dart::@function::V
+                staticType: dynamic Function()
+                token: V @-1
+        returnType: dynamic
 ''');
   }
 
@@ -9960,10 +20668,32 @@ V() {}
 var V;
 ''');
     checkElementText(library, r'''
-dynamic V;
-dynamic foo([dynamic p =
-        V/*location: test.dart;V?*/]) {}
-dynamic V() {}
+library
+  definingUnit
+    topLevelVariables
+      static V @27
+        type: dynamic
+    accessors
+      synthetic static get V @27
+        returnType: dynamic
+      synthetic static set V @27
+        parameters
+          requiredPositional _V @27
+            type: dynamic
+        returnType: void
+    functions
+      foo @0
+        parameters
+          optionalPositional p @5
+            type: dynamic
+            constantInitializer
+              SimpleIdentifier
+                staticElement: self::@getter::V
+                staticType: dynamic
+                token: V @-1
+        returnType: dynamic
+      V @16
+        returnType: dynamic
 ''');
   }
 
@@ -9975,10 +20705,30 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  int foo;
-  void set bar(final dynamic this.foo) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+          synthetic bar @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @16
+            returnType: int
+          synthetic set foo @16
+            parameters
+              requiredPositional _foo @16
+                type: int
+            returnType: void
+          set bar @32
+            parameters
+              requiredPositional final this.foo @41
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -9989,9 +20739,21 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  void set x(final dynamic this.x) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set x @16
+            parameters
+              requiredPositional final this.x @23
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -10014,26 +20776,30 @@ part 'a3.dart';
 part ':[invaliduri]';
 ''');
     checkElementText(library, r'''
-import '<unresolved>';
-import '<unresolved>';
-import 'a1.dart';
-import '<unresolved>';
-import '<unresolved>';
-export '<unresolved>';
-export '<unresolved>';
-export 'a2.dart';
-export '<unresolved>';
-export '<unresolved>';
-part 'a3.dart';
---------------------
-unit: a3.dart
-
+library
+  imports
+    <unresolved>
+    <unresolved>
+    a1.dart
+    <unresolved>
+    <unresolved>
+  exports
+    <unresolved>
+    <unresolved>
+    a2.dart
+    <unresolved>
+    <unresolved>
+  definingUnit
+  parts
+    a3.dart
 ''');
   }
 
   test_library() async {
     var library = await checkLibrary('');
     checkElementText(library, r'''
+library
+  definingUnit
 ''');
   }
 
@@ -10044,9 +20810,11 @@ unit: a3.dart
 library test;
 ''');
     checkElementText(library, r'''
-/// aaa
-/// bbb
-library test;
+library
+  name: test
+  nameOffset: 24
+  documentationComment: /// aaa\n/// bbb
+  definingUnit
 ''');
   }
 
@@ -10058,25 +20826,31 @@ library test;
  */
 library test;''');
     checkElementText(library, r'''
-/**
- * aaa
- * bbb
- */
-library test;
+library
+  name: test
+  nameOffset: 30
+  documentationComment: /**\n * aaa\n * bbb\n */
+  definingUnit
 ''');
   }
 
   test_library_name_with_spaces() async {
     var library = await checkLibrary('library foo . bar ;');
     checkElementText(library, r'''
-library foo.bar;
+library
+  name: foo.bar
+  nameOffset: 8
+  definingUnit
 ''');
   }
 
   test_library_named() async {
     var library = await checkLibrary('library foo.bar;');
     checkElementText(library, r'''
-library foo.bar;
+library
+  name: foo.bar
+  nameOffset: 8
+  definingUnit
 ''');
   }
 
@@ -10090,7 +20864,11 @@ f() {
 }
 ''');
     checkElementText(library, r'''
-dynamic f() {}
+library
+  definingUnit
+    functions
+      f @0
+        returnType: dynamic
 ''');
   }
 
@@ -10103,9 +20881,12 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @12
 ''');
   }
 
@@ -10118,9 +20899,15 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  dynamic m() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          m @12
+            returnType: dynamic
 ''');
   }
 
@@ -10131,7 +20918,14 @@ get g {
 }
 ''');
     checkElementText(library, r'''
-dynamic get g {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static g @-1
+        type: dynamic
+    accessors
+      get g @4
+        returnType: dynamic
 ''');
   }
 
@@ -10148,9 +20942,12 @@ class C {
 }
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C {
-  C();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @12
 ''');
   }
 
@@ -10167,9 +20964,15 @@ class C {
 }
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C {
-  dynamic m() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          m @12
+            returnType: dynamic
 ''');
   }
 
@@ -10184,15 +20987,23 @@ main() {
 }
 ''', allowErrors: true);
     checkElementText(library, r'''
-dynamic main() {}
+library
+  definingUnit
+    functions
+      main @0
+        returnType: dynamic
 ''');
   }
 
   test_main_class() async {
     var library = await checkLibrary('class main {}');
     checkElementText(library, r'''
-class main {
-}
+library
+  definingUnit
+    classes
+      class main @6
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -10200,13 +21011,27 @@ class main {
     var library =
         await checkLibrary('class main = C with D; class C {} class D {}');
     checkElementText(library, r'''
-class alias main extends C with D {
-  synthetic main() : super();
-}
-class C {
-}
-class D {
-}
+library
+  definingUnit
+    classes
+      class alias main @6
+        supertype: C
+        mixins
+          D
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::C::@constructor::•
+      class C @29
+        constructors
+          synthetic @-1
+      class D @40
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -10214,7 +21039,10 @@ class D {
     addLibrarySource('/a.dart', 'class main = C with D; class C {} class D {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
-export 'a.dart';
+library
+  exports
+    a.dart
+  definingUnit
 ''');
   }
 
@@ -10222,14 +21050,24 @@ export 'a.dart';
     addLibrarySource('/a.dart', 'class main {}');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
-export 'a.dart';
+library
+  exports
+    a.dart
+  definingUnit
 ''');
   }
 
   test_main_getter() async {
     var library = await checkLibrary('get main => null;');
     checkElementText(library, r'''
-dynamic get main {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static main @-1
+        type: dynamic
+    accessors
+      get main @4
+        returnType: dynamic
 ''');
   }
 
@@ -10237,14 +21075,23 @@ dynamic get main {}
     addLibrarySource('/a.dart', 'get main => null;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
-export 'a.dart';
+library
+  exports
+    a.dart
+  definingUnit
 ''');
   }
 
   test_main_typedef() async {
     var library = await checkLibrary('typedef main();');
     checkElementText(library, r'''
-typedef main = dynamic Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased main @8
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
 ''');
   }
 
@@ -10252,14 +21099,29 @@ typedef main = dynamic Function();
     addLibrarySource('/a.dart', 'typedef main();');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
-export 'a.dart';
+library
+  exports
+    a.dart
+  definingUnit
 ''');
   }
 
   test_main_variable() async {
     var library = await checkLibrary('var main;');
     checkElementText(library, r'''
-dynamic main;
+library
+  definingUnit
+    topLevelVariables
+      static main @4
+        type: dynamic
+    accessors
+      synthetic static get main @4
+        returnType: dynamic
+      synthetic static set main @4
+        parameters
+          requiredPositional _main @4
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -10267,7 +21129,10 @@ dynamic main;
     addLibrarySource('/a.dart', 'var main;');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
-export 'a.dart';
+library
+  exports
+    a.dart
+  definingUnit
 ''');
   }
 
@@ -10279,10 +21144,17 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-class C {
-  Future<dynamic> f() async {}
-}
+library
+  imports
+    dart:async
+  definingUnit
+    classes
+      class C @27
+        constructors
+          synthetic @-1
+        methods
+          f @40 async
+            returnType: Future<dynamic>
 ''');
   }
 
@@ -10294,10 +21166,17 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-import 'dart:async';
-class C {
-  Stream<dynamic> f() async* {}
-}
+library
+  imports
+    dart:async
+  definingUnit
+    classes
+      class C @27
+        constructors
+          synthetic @-1
+        methods
+          f @40 async*
+            returnType: Stream<dynamic>
 ''');
   }
 
@@ -10310,9 +21189,15 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  Iterable<int> f() sync* {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @26 sync*
+            returnType: Iterable<int>
 ''');
   }
 
@@ -10329,26 +21214,43 @@ class C {
         as FieldElement;
     expect(x.metadata, hasLength(1));
     // Check details.
-    checkElementText(
-        library,
-        r'''
-class C {
-  int x;
-    metadata
-      Annotation
-        element: self::@getter::a
-        name: SimpleIdentifier
-          staticElement: self::@getter::a
-          staticType: null
-          token: a
-}
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @19
+        fields
+          x @34
+            metadata
+              Annotation
+                atSign.offset: 25
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @26
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @34
+            returnType: int
+          synthetic set x @34
+            parameters
+              requiredPositional _x @34
+                type: int
+            returnType: void
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_metadata_class_scope() async {
@@ -10362,49 +21264,64 @@ class C<@foo T> {
   void bar() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class C {
-  static const int foo;
-    constantInitializer
-      IntegerLiteral
-        literal: 1
-        staticType: int
-  void bar() {}
-    metadata
-      Annotation
-        element: self::@class::C::@getter::foo
-        name: SimpleIdentifier
-          staticElement: self::@class::C::@getter::foo
-          staticType: null
-          token: foo
-}
-  metadata
-    Annotation
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-      metadata
-        Annotation
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @27
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          covariant T @34
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 29
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @30
+        fields
+          static const foo @54
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @60
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get foo @54
+            returnType: int
+        methods
+          bar @77
+            metadata
+              Annotation
+                atSign.offset: 65
+                element: self::@class::C::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@class::C::@getter::foo
+                  staticType: null
+                  token: foo @66
+            returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_classDeclaration() async {
@@ -10415,14 +21332,45 @@ const b = null;
 @b
 class C {}''');
     checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
-@
-        b/*location: test.dart;b?*/
-class C {
-}
-const dynamic a = null;
-const dynamic b = null;
+library
+  definingUnit
+    classes
+      class C @44
+        metadata
+          Annotation
+            atSign.offset: 32
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @33
+          Annotation
+            atSign.offset: 35
+            element: self::@getter::b
+            name: SimpleIdentifier
+              staticElement: self::@getter::b
+              staticType: null
+              token: b @36
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      static const b @22
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      synthetic static get b @22
+        returnType: dynamic
 ''');
   }
 
@@ -10430,16 +21378,45 @@ const dynamic b = null;
     var library = await checkLibrary(
         'const a = null; @a class C = D with E; class D {} class E {}');
     checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
-class alias C extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class alias C @25
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @17
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @45
+        constructors
+          synthetic @-1
+      class E @56
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -10452,36 +21429,45 @@ class A {
 @A.named(0)
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A.named(int _);
-}
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      element: self::@class::A::@constructor::named
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: self::@class::A::@constructor::named
-          staticType: null
-          token: named
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@class::A
-          staticType: null
-          token: A
-        staticElement: self::@class::A::@constructor::named
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const named @20
+            periodOffset: 19
+            nameEnd: 25
+            parameters
+              requiredPositional _ @30
+                type: int
+      class C @54
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @45
+                  staticType: int
+              leftParenthesis: ( @44
+              rightParenthesis: ) @46
+            atSign.offset: 36
+            element: self::@class::A::@constructor::named
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: self::@class::A::@constructor::named
+                staticType: null
+                token: named @39
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@class::A
+                staticType: null
+                token: A @37
+              staticElement: self::@class::A::@constructor::named
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_named_generic_inference() async {
@@ -10494,46 +21480,54 @@ class A<T> {
 @A.named(0)
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A.named(T _);
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      element: ConstructorMember
-        base: self::@class::A::@constructor::named
-        substitution: {T: int}
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: ConstructorMember
-            base: self::@class::A::@constructor::named
-            substitution: {T: int}
-          staticType: null
-          token: named
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@class::A
-          staticType: null
-          token: A
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::named
-          substitution: {T: int}
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const named @23
+            periodOffset: 22
+            nameEnd: 28
+            parameters
+              requiredPositional _ @31
+                type: T
+      class C @56
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @47
+                  staticType: int
+              leftParenthesis: ( @46
+              rightParenthesis: ) @48
+            atSign.offset: 38
+            element: ConstructorMember
+              base: self::@class::A::@constructor::named
+              substitution: {T: int}
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: ConstructorMember
+                  base: self::@class::A::@constructor::named
+                  substitution: {T: int}
+                staticType: null
+                token: named @41
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@class::A
+                staticType: null
+                token: A @39
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::named
+                substitution: {T: int}
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_named_generic_typeArguments() async {
@@ -10546,44 +21540,51 @@ class A<T> {
 @A<int>.named()
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A.named();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      constructorName: SimpleIdentifier
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::named
-          substitution: {T: int}
-        staticType: null
-        token: named
-      element: ConstructorMember
-        base: self::@class::A::@constructor::named
-        substitution: {T: int}
-      name: SimpleIdentifier
-        staticElement: self::@class::A
-        staticType: null
-        token: A
-      typeArguments: TypeArgumentList
-        arguments
-          TypeName
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::int
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const named @23
+            periodOffset: 22
+            nameEnd: 28
+      class C @57
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
+            atSign.offset: 35
+            constructorName: SimpleIdentifier
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::named
+                substitution: {T: int}
               staticType: null
-              token: int
-            type: int
-''',
-        withResolvedAst: true);
+              token: named @43
+            element: ConstructorMember
+              base: self::@class::A::@constructor::named
+              substitution: {T: int}
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @36
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @38
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_named_generic_typeArguments_disabledGenericMetadata() async {
@@ -10595,44 +21596,51 @@ class A<T> {
 @A<int>.named()
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A.named();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      constructorName: SimpleIdentifier
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::named
-          substitution: {T: dynamic}
-        staticType: null
-        token: named
-      element: ConstructorMember
-        base: self::@class::A::@constructor::named
-        substitution: {T: dynamic}
-      name: SimpleIdentifier
-        staticElement: self::@class::A
-        staticType: null
-        token: A
-      typeArguments: TypeArgumentList
-        arguments
-          TypeName
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::int
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const named @23
+            periodOffset: 22
+            nameEnd: 28
+      class C @57
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
+            atSign.offset: 35
+            constructorName: SimpleIdentifier
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::named
+                substitution: {T: dynamic}
               staticType: null
-              token: int
-            type: int
-''',
-        withResolvedAst: true);
+              token: named @43
+            element: ConstructorMember
+              base: self::@class::A::@constructor::named
+              substitution: {T: dynamic}
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @36
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @38
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_named_prefixed() async {
@@ -10647,38 +21655,43 @@ import 'foo.dart' as foo;
 @foo.A.named(0)
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/foo.dart' as foo;
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      constructorName: SimpleIdentifier
-        staticElement: package:test/foo.dart::@class::A::@constructor::named
-        staticType: null
-        token: named
-      element: package:test/foo.dart::@class::A::@constructor::named
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/foo.dart::@class::A
-          staticType: null
-          token: A
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::foo
-          staticType: null
-          token: foo
-        staticElement: package:test/foo.dart::@class::A
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/foo.dart as foo @21
+  definingUnit
+    classes
+      class C @48
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @39
+                  staticType: int
+              leftParenthesis: ( @38
+              rightParenthesis: ) @40
+            atSign.offset: 26
+            constructorName: SimpleIdentifier
+              staticElement: package:test/foo.dart::@class::A::@constructor::named
+              staticType: null
+              token: named @33
+            element: package:test/foo.dart::@class::A::@constructor::named
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+                token: A @31
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @27
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
@@ -10694,42 +21707,47 @@ import "foo.dart" as foo;
 @foo.A.named(0)
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/foo.dart' as foo;
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      constructorName: SimpleIdentifier
-        staticElement: ConstructorMember
-          base: package:test/foo.dart::@class::A::@constructor::named
-          substitution: {T: int}
-        staticType: null
-        token: named
-      element: ConstructorMember
-        base: package:test/foo.dart::@class::A::@constructor::named
-        substitution: {T: int}
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/foo.dart::@class::A
-          staticType: null
-          token: A
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::foo
-          staticType: null
-          token: foo
-        staticElement: package:test/foo.dart::@class::A
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/foo.dart as foo @21
+  definingUnit
+    classes
+      class C @48
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @39
+                  staticType: int
+              leftParenthesis: ( @38
+              rightParenthesis: ) @40
+            atSign.offset: 26
+            constructorName: SimpleIdentifier
+              staticElement: ConstructorMember
+                base: package:test/foo.dart::@class::A::@constructor::named
+                substitution: {T: int}
+              staticType: null
+              token: named @33
+            element: ConstructorMember
+              base: package:test/foo.dart::@class::A::@constructor::named
+              substitution: {T: int}
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+                token: A @31
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @27
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
@@ -10745,46 +21763,53 @@ import "foo.dart" as foo;
 @foo.A<int>.named()
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/foo.dart' as foo;
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      constructorName: SimpleIdentifier
-        staticElement: ConstructorMember
-          base: package:test/foo.dart::@class::A::@constructor::named
-          substitution: {T: int}
-        staticType: null
-        token: named
-      element: ConstructorMember
-        base: package:test/foo.dart::@class::A::@constructor::named
-        substitution: {T: int}
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/foo.dart::@class::A
-          staticType: null
-          token: A
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::foo
-          staticType: null
-          token: foo
-        staticElement: package:test/foo.dart::@class::A
-        staticType: null
-      typeArguments: TypeArgumentList
-        arguments
-          TypeName
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::int
+    checkElementText(library, r'''
+library
+  imports
+    package:test/foo.dart as foo @21
+  definingUnit
+    classes
+      class C @52
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @43
+              rightParenthesis: ) @44
+            atSign.offset: 26
+            constructorName: SimpleIdentifier
+              staticElement: ConstructorMember
+                base: package:test/foo.dart::@class::A::@constructor::named
+                substitution: {T: int}
               staticType: null
-              token: int
-            type: int
-''',
-        withResolvedAst: true);
+              token: named @38
+            element: ConstructorMember
+              base: package:test/foo.dart::@class::A::@constructor::named
+              substitution: {T: int}
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+                token: A @31
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @27
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @33
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_named_synthetic_ofClassAlias_generic() async {
@@ -10800,55 +21825,69 @@ class C<T> = A with B;
 @C.named()
 class D {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A.named();
-}
-class alias C extends A with B {
-  synthetic const C.named();
-    constantInitializers
-      SuperConstructorInvocation
-        argumentList: ArgumentList
-        constructorName: SimpleIdentifier
-          staticElement: self::@class::A::@constructor::named
-          staticType: null
-          token: named
-        staticElement: self::@class::A::@constructor::named
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class D {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      element: ConstructorMember
-        base: self::@class::C::@constructor::named
-        substitution: {T: dynamic}
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: ConstructorMember
-            base: self::@class::C::@constructor::named
-            substitution: {T: dynamic}
-          staticType: null
-          token: named
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@class::C
-          staticType: null
-          token: C
-        staticElement: ConstructorMember
-          base: self::@class::C::@constructor::named
-          substitution: {T: dynamic}
-        staticType: null
-mixin B on Object {
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const named @20
+            periodOffset: 19
+            nameEnd: 25
+      class alias C @50
+        typeParameters
+          covariant T @52
+            defaultType: dynamic
+        supertype: A
+        mixins
+          B
+        constructors
+          synthetic const named @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::A::@constructor::named
+                  staticType: null
+                  token: named @-1
+                staticElement: self::@class::A::@constructor::named
+      class D @85
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @76
+              rightParenthesis: ) @77
+            atSign.offset: 68
+            element: ConstructorMember
+              base: self::@class::C::@constructor::named
+              substitution: {T: dynamic}
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: ConstructorMember
+                  base: self::@class::C::@constructor::named
+                  substitution: {T: dynamic}
+                staticType: null
+                token: named @71
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@class::C
+                staticType: null
+                token: C @69
+              staticElement: ConstructorMember
+                base: self::@class::C::@constructor::named
+                substitution: {T: dynamic}
+              staticType: null
+        constructors
+          synthetic @-1
+    mixins
+      mixin B @38
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_unnamed() async {
@@ -10860,28 +21899,35 @@ class A {
 @A(0)
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A(int _);
-}
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      element: self::@class::A::@constructor::•
-      name: SimpleIdentifier
-        staticElement: self::@class::A
-        staticType: null
-        token: A
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional _ @24
+                type: int
+      class C @42
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @33
+                  staticType: int
+              leftParenthesis: ( @32
+              rightParenthesis: ) @34
+            atSign.offset: 30
+            element: self::@class::A::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @31
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_unnamed_generic_inference() async {
@@ -10894,34 +21940,40 @@ class A<T> {
 @A(0)
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A(T _);
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      element: ConstructorMember
-        base: self::@class::A::@constructor::•
-        substitution: {T: int}
-      name: SimpleIdentifier
-        staticElement: self::@class::A
-        staticType: null
-        token: A
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+            parameters
+              requiredPositional _ @25
+                type: T
+      class C @44
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @35
+                  staticType: int
+              leftParenthesis: ( @34
+              rightParenthesis: ) @36
+            atSign.offset: 32
+            element: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @33
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_unnamed_generic_typeArguments() async {
@@ -10934,38 +21986,43 @@ class A<T> {
 @A<int>()
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      element: ConstructorMember
-        base: self::@class::A::@constructor::•
-        substitution: {T: int}
-      name: SimpleIdentifier
-        staticElement: self::@class::A
-        staticType: null
-        token: A
-      typeArguments: TypeArgumentList
-        arguments
-          TypeName
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+      class C @45
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @36
+              rightParenthesis: ) @37
+            atSign.offset: 29
+            element: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
             name: SimpleIdentifier
-              staticElement: dart:core::@class::int
+              staticElement: self::@class::A
               staticType: null
-              token: int
-            type: int
-''',
-        withResolvedAst: true);
+              token: A @30
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @32
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_unnamed_prefixed() async {
@@ -10973,34 +22030,39 @@ class C {
     addLibrarySource('/home/test/lib/foo.dart', 'class A { const A(_); }');
     var library =
         await checkLibrary('import "foo.dart" as foo; @foo.A(0) class C {}');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/foo.dart' as foo;
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      element: package:test/foo.dart::@class::A::@constructor::•
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/foo.dart::@class::A
-          staticType: null
-          token: A
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::foo
-          staticType: null
-          token: foo
-        staticElement: package:test/foo.dart::@class::A
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/foo.dart as foo @21
+  definingUnit
+    classes
+      class C @42
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @33
+                  staticType: int
+              leftParenthesis: ( @32
+              rightParenthesis: ) @34
+            atSign.offset: 26
+            element: package:test/foo.dart::@class::A::@constructor::•
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+                token: A @31
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @27
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
@@ -11016,36 +22078,41 @@ import "foo.dart" as foo;
 @foo.A(0)
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/foo.dart' as foo;
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-        arguments
-          IntegerLiteral
-            literal: 0
-            staticType: int
-      element: ConstructorMember
-        base: package:test/foo.dart::@class::A::@constructor::•
-        substitution: {T: int}
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/foo.dart::@class::A
-          staticType: null
-          token: A
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::foo
-          staticType: null
-          token: foo
-        staticElement: package:test/foo.dart::@class::A
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/foo.dart as foo @21
+  definingUnit
+    classes
+      class C @42
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 0 @33
+                  staticType: int
+              leftParenthesis: ( @32
+              rightParenthesis: ) @34
+            atSign.offset: 26
+            element: ConstructorMember
+              base: package:test/foo.dart::@class::A::@constructor::•
+              substitution: {T: int}
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+                token: A @31
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @27
+              staticElement: package:test/foo.dart::@class::A
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
@@ -11061,40 +22128,47 @@ import "foo.dart" as foo;
 @foo.A<int>()
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/foo.dart' as foo;
-class C {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      element: ConstructorMember
-        base: package:test/foo.dart::@class::A::@constructor::•
-        substitution: {T: int}
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/foo.dart::@class::A
-          staticType: null
-          token: A
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::foo
-          staticType: null
-          token: foo
-        staticElement: package:test/foo.dart::@class::A
-        staticType: null
-      typeArguments: TypeArgumentList
-        arguments
-          TypeName
-            name: SimpleIdentifier
-              staticElement: dart:core::@class::int
+    checkElementText(library, r'''
+library
+  imports
+    package:test/foo.dart as foo @21
+  definingUnit
+    classes
+      class C @46
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @37
+              rightParenthesis: ) @38
+            atSign.offset: 26
+            element: ConstructorMember
+              base: package:test/foo.dart::@class::A::@constructor::•
+              substitution: {T: int}
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/foo.dart::@class::A
+                staticType: null
+                token: A @31
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @27
+              staticElement: package:test/foo.dart::@class::A
               staticType: null
-              token: int
-            type: int
-''',
-        withResolvedAst: true);
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @33
+                  type: int
+              leftBracket: < @0
+              rightBracket: > @0
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_unnamed_synthetic_ofClassAlias_generic() async {
@@ -11110,52 +22184,84 @@ class C<T> = A with B;
 @C()
 class D {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-class alias C extends A with B {
-  synthetic const C();
-    constantInitializers
-      SuperConstructorInvocation
-        argumentList: ArgumentList
-        staticElement: self::@class::A::@constructor::•
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-class D {
-}
-  metadata
-    Annotation
-      arguments: ArgumentList
-      element: ConstructorMember
-        base: self::@class::C::@constructor::•
-        substitution: {T: dynamic}
-      name: SimpleIdentifier
-        staticElement: self::@class::C
-        staticType: null
-        token: C
-mixin B on Object {
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+      class alias C @44
+        typeParameters
+          covariant T @46
+            defaultType: dynamic
+        supertype: A
+        mixins
+          B
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+      class D @73
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @64
+              rightParenthesis: ) @65
+            atSign.offset: 62
+            element: ConstructorMember
+              base: self::@class::C::@constructor::•
+              substitution: {T: dynamic}
+            name: SimpleIdentifier
+              staticElement: self::@class::C
+              staticType: null
+              token: C @63
+        constructors
+          synthetic @-1
+    mixins
+      mixin B @32
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_constructor_call_with_args() async {
     var library =
         await checkLibrary('class A { const A(x); } @A(null) class C {}');
     checkElementText(library, r'''
-class A {
-  const A(dynamic x);
-}
-@
-        A/*location: test.dart;A*/(null)
-class C {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @16
+            parameters
+              requiredPositional x @18
+                type: dynamic
+      class C @39
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                NullLiteral
+                  literal: null @0
+                  staticType: null
+              leftParenthesis: ( @26
+              rightParenthesis: ) @31
+            atSign.offset: 24
+            element: self::@class::A::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @25
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -11163,52 +22269,108 @@ class C {
     var library =
         await checkLibrary('const a = null; class C { @a C.named(); }');
     checkElementText(library, r'''
-class C {
-  @
-        a/*location: test.dart;a?*/
-  C.named();
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        constructors
+          named @31
+            metadata
+              Annotation
+                atSign.offset: 26
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @27
+            periodOffset: 30
+            nameEnd: 36
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
   test_metadata_constructorDeclaration_unnamed() async {
     var library = await checkLibrary('const a = null; class C { @a C(); }');
     checkElementText(library, r'''
-class C {
-  @
-        a/*location: test.dart;a?*/
-  C();
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        constructors
+          @29
+            metadata
+              Annotation
+                atSign.offset: 26
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @27
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
   test_metadata_enumConstantDeclaration() async {
     var library = await checkLibrary('const a = 42; enum E { @a v }');
-    checkElementText(
-        library,
-        r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-    metadata
-      Annotation
-        element: self::@getter::a
-        name: SimpleIdentifier
-          staticElement: self::@getter::a
-          staticType: null
-          token: a
-  String toString() {}
-}
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 42
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const v @26
+            metadata
+              Annotation
+                atSign.offset: 23
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @24
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get v @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_metadata_enumConstantDeclaration_instanceCreation() async {
@@ -11224,84 +22386,161 @@ enum E {
   @A(300) c,
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-    metadata
-      Annotation
-        arguments: ArgumentList
-          arguments
-            IntegerLiteral
-              literal: 100
-              staticType: int
-        element: self::@class::A::@constructor::•
-        name: SimpleIdentifier
-          staticElement: self::@class::A
-          staticType: null
-          token: A
-  static const E b;
-  static const E c;
-    metadata
-      Annotation
-        arguments: ArgumentList
-          arguments
-            IntegerLiteral
-              literal: 300
-              staticType: int
-        element: self::@class::A::@constructor::•
-        name: SimpleIdentifier
-          staticElement: self::@class::A
-          staticType: null
-          token: A
-  String toString() {}
-}
-class A {
-  final dynamic value;
-  const A(final dynamic this.value);
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final value @26
+            type: dynamic
+        constructors
+          const @41
+            parameters
+              requiredPositional final this.value @48
+                type: dynamic
+        accessors
+          synthetic get value @26
+            returnType: dynamic
+    enums
+      enum E @64
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @78
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 100 @73
+                      staticType: int
+                  leftParenthesis: ( @72
+                  rightParenthesis: ) @76
+                atSign.offset: 70
+                element: self::@class::A::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @71
+            type: E
+          static const b @83
+            type: E
+          static const c @96
+            metadata
+              Annotation
+                arguments: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 300 @91
+                      staticType: int
+                  leftParenthesis: ( @90
+                  rightParenthesis: ) @94
+                atSign.offset: 88
+                element: self::@class::A::@constructor::•
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @89
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+          synthetic static get c @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+''');
   }
 
   test_metadata_enumDeclaration() async {
     var library = await checkLibrary('const a = 42; @a enum E { v }');
-    checkElementText(
-        library,
-        r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
-  metadata
-    Annotation
-      element: self::@getter::a
-      name: SimpleIdentifier
-        staticElement: self::@getter::a
-        staticType: null
-        token: a
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 42
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @22
+        metadata
+          Annotation
+            atSign.offset: 14
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @15
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const v @26
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get v @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_metadata_exportDirective() async {
     addLibrarySource('/foo.dart', '');
     var library = await checkLibrary('@a export "foo.dart"; const a = null;');
     checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
-export 'foo.dart';
-const dynamic a = null;
+library
+  metadata
+    Annotation
+      atSign.offset: 0
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a @-1
+  exports
+    foo.dart
+      metadata
+        Annotation
+          atSign.offset: 0
+          element: self::@getter::a
+          name: SimpleIdentifier
+            staticElement: self::@getter::a
+            staticType: null
+            token: a @-1
+  definingUnit
+    topLevelVariables
+      static const a @28
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @28
+        returnType: dynamic
 ''');
   }
 
@@ -11316,49 +22555,62 @@ extension E<@foo T> on int {
   void bar() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-extension E on int {
-  static const int foo;
-    constantInitializer
-      IntegerLiteral
-        literal: 1
-        staticType: int
-  void bar() {}
-    metadata
-      Annotation
-        element: self::@extension::E::@getter::foo
-        name: SimpleIdentifier
-          staticElement: self::@extension::E::@getter::foo
-          staticType: null
-          token: foo
-}
-  metadata
-    Annotation
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-  typeParameters
-    T
-      bound: null
-      defaultType: null
-      metadata
-        Annotation
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @31
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          covariant T @38
+            metadata
+              Annotation
+                atSign.offset: 33
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @34
+        extendedType: int
+        fields
+          static const foo @65
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @71
+                staticType: int
+        accessors
+          synthetic static get foo @65
+            returnType: int
+        methods
+          bar @88
+            metadata
+              Annotation
+                atSign.offset: 76
+                element: self::@extension::E::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@extension::E::@getter::foo
+                  staticType: null
+                  token: foo @77
+            returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_extensionDeclaration() async {
@@ -11369,27 +22621,84 @@ class A {}
 @Object()
 extension E on A {}''');
     checkElementText(library, r'''
-class A {
-}
-@
-        a/*location: test.dart;a?*/
-@
-        Object/*location: dart:core;Object*/()
-extension E on A {
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class A @22
+        constructors
+          synthetic @-1
+    extensions
+      E @50
+        metadata
+          Annotation
+            atSign.offset: 27
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @28
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @37
+              rightParenthesis: ) @38
+            atSign.offset: 30
+            element: dart:core::@class::Object::@constructor::•
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::Object
+              staticType: null
+              token: Object @31
+        extendedType: A
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
   test_metadata_fieldDeclaration() async {
     var library = await checkLibrary('const a = null; class C { @a int x; }');
     checkElementText(library, r'''
-class C {
-  @
-        a/*location: test.dart;a?*/
-  int x;
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        fields
+          x @33
+            metadata
+              Annotation
+                atSign.offset: 26
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @27
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @33
+            returnType: int
+          synthetic set x @33
+            parameters
+              requiredPositional _x @33
+                type: int
+            returnType: void
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -11402,12 +22711,44 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C(@
-        a/*location: test.dart;a?*/ final dynamic this.x);
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        fields
+          x @32
+            type: dynamic
+        constructors
+          @37
+            parameters
+              requiredPositional final this.x @47
+                type: dynamic
+                metadata
+                  Annotation
+                    atSign.offset: 0
+                    element: self::@getter::a
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::a
+                      staticType: null
+                      token: a @-1
+        accessors
+          synthetic get x @32
+            returnType: dynamic
+          synthetic set x @32
+            parameters
+              requiredPositional _x @32
+                type: dynamic
+            returnType: void
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -11415,12 +22756,48 @@ const dynamic a = null;
     var library = await checkLibrary(
         'const a = null; class C { var x; C([@a this.x = null]); }');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C([@
-        a/*location: test.dart;a?*/ final dynamic this.x = null]);
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        fields
+          x @30
+            type: dynamic
+        constructors
+          @33
+            parameters
+              optionalPositional final this.x @44
+                type: dynamic
+                metadata
+                  Annotation
+                    atSign.offset: 0
+                    element: self::@getter::a
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::a
+                      staticType: null
+                      token: a @-1
+                constantInitializer
+                  NullLiteral
+                    literal: null @0
+                    staticType: null
+        accessors
+          synthetic get x @30
+            returnType: dynamic
+          synthetic set x @30
+            parameters
+              requiredPositional _x @30
+                type: dynamic
+            returnType: void
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -11431,58 +22808,191 @@ const a = null;
 f() {}
 ''');
     checkElementText(library, r'''
-const dynamic a = null;
-@
-        a/*location: test.dart;a?*/
-dynamic f() {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+    functions
+      f @19
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @17
+        returnType: dynamic
 ''');
   }
 
   test_metadata_functionDeclaration_getter() async {
     var library = await checkLibrary('const a = null; @a get f => null;');
     checkElementText(library, r'''
-const dynamic a = null;
-@
-        a/*location: test.dart;a?*/
-dynamic get f {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      synthetic static f @-1
+        type: dynamic
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      get f @23
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @17
+        returnType: dynamic
 ''');
   }
 
   test_metadata_functionDeclaration_setter() async {
     var library = await checkLibrary('const a = null; @a set f(value) {}');
     checkElementText(library, r'''
-const dynamic a = null;
-@
-        a/*location: test.dart;a?*/
-void set f(dynamic value) {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      synthetic static f @-1
+        type: dynamic
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      set f @23
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @17
+        parameters
+          requiredPositional value @25
+            type: dynamic
+        returnType: void
 ''');
   }
 
   test_metadata_functionTypeAlias() async {
     var library = await checkLibrary('const a = null; @a typedef F();');
     checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
-typedef F = dynamic Function();
-const dynamic a = null;
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @27
+        metadata
+          Annotation
+            atSign.offset: 0
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @-1
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
   test_metadata_functionTypedFormalParameter() async {
     var library = await checkLibrary('const a = null; f(@a g()) {}');
     checkElementText(library, r'''
-const dynamic a = null;
-dynamic f(@
-        a/*location: test.dart;a?*/ dynamic Function() g) {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+    functions
+      f @16
+        parameters
+          requiredPositional g @21
+            type: dynamic Function()
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @-1
+        returnType: dynamic
 ''');
   }
 
   test_metadata_functionTypedFormalParameter_withDefault() async {
     var library = await checkLibrary('const a = null; f([@a g() = null]) {}');
     checkElementText(library, r'''
-const dynamic a = null;
-dynamic f([@
-        a/*location: test.dart;a?*/ dynamic Function() g = null]) {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+    functions
+      f @16
+        parameters
+          optionalPositional g @22
+            type: dynamic Function()
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @-1
+            constantInitializer
+              NullLiteral
+                literal: null @0
+                staticType: null
+        returnType: dynamic
 ''');
   }
 
@@ -11494,13 +23004,46 @@ const b = null;
 @b
 typedef F = void Function();''');
     checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
-@
-        b/*location: test.dart;b?*/
-typedef F = void Function();
-const dynamic a = null;
-const dynamic b = null;
+library
+  definingUnit
+    typeAliases
+      F @46
+        metadata
+          Annotation
+            atSign.offset: 0
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @-1
+          Annotation
+            atSign.offset: 0
+            element: self::@getter::b
+            name: SimpleIdentifier
+              staticElement: self::@getter::b
+              staticType: null
+              token: b @-1
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      static const b @22
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      synthetic static get b @22
+        returnType: dynamic
 ''');
   }
 
@@ -11510,24 +23053,38 @@ const dynamic b = null;
 import "dart:math";
 const a = 0;
 ''');
-    checkElementText(
-        library,
-        '''
-import 'dart:math';
+    checkElementText(library, r'''
+library
   metadata
     Annotation
+      atSign.offset: 0
       element: self::@getter::a
       name: SimpleIdentifier
         staticElement: self::@getter::a
         staticType: null
-        token: a
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-''',
-        withResolvedAst: true);
+        token: a @-1
+  imports
+    dart:math
+      metadata
+        Annotation
+          atSign.offset: 0
+          element: self::@getter::a
+          name: SimpleIdentifier
+            staticElement: self::@getter::a
+            staticType: null
+            token: a @-1
+  definingUnit
+    topLevelVariables
+      static const a @29
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @33
+            staticType: int
+    accessors
+      synthetic static get a @29
+        returnType: int
+''');
   }
 
   test_metadata_importDirective_hasShow() async {
@@ -11537,24 +23094,40 @@ import "dart:math" show Random;
 
 const a = 0;
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'dart:math' show Random;
+    checkElementText(library, r'''
+library
   metadata
     Annotation
+      atSign.offset: 0
       element: self::@getter::a
       name: SimpleIdentifier
         staticElement: self::@getter::a
         staticType: null
-        token: a
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-''',
-        withResolvedAst: true);
+        token: a @-1
+  imports
+    dart:math
+      metadata
+        Annotation
+          atSign.offset: 0
+          element: self::@getter::a
+          name: SimpleIdentifier
+            staticElement: self::@getter::a
+            staticType: null
+            token: a @-1
+      combinators
+        show: Random
+  definingUnit
+    topLevelVariables
+      static const a @42
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @46
+            staticType: int
+    accessors
+      synthetic static get a @42
+        returnType: int
+''');
   }
 
   test_metadata_inAliasedElement_formalParameter() async {
@@ -11562,27 +23135,36 @@ const int a;
 const a = 42;
 typedef F = void Function(@a int first)
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F = void Function(int first);
-  aliasedElement
-    parameters
-      first
-        metadata
-          Annotation
-            element: self::@getter::a
-            name: SimpleIdentifier
-              staticElement: self::@getter::a
-              staticType: null
-              token: a
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 42
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @22
+        aliasedType: void Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional first @-1
+              type: int
+              metadata
+                Annotation
+                  atSign.offset: 0
+                  element: self::@getter::a
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::a
+                    staticType: null
+                    token: a @-1
+          returnType: void
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_metadata_inAliasedElement_formalParameter2() async {
@@ -11590,29 +23172,39 @@ const int a;
 const a = 42;
 typedef F = void Function(int foo(@a int bar))
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F = void Function(int Function(int) foo);
-  aliasedElement
-    parameters
-      foo
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @22
+        aliasedType: void Function(int Function(int))
+        aliasedElement: GenericFunctionTypeElement
           parameters
-            bar
-              metadata
-                Annotation
-                  element: self::@getter::a
-                  name: SimpleIdentifier
-                    staticElement: self::@getter::a
-                    staticType: null
-                    token: a
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 42
-      staticType: int
-''',
-        withResolvedAst: true);
+            requiredPositional foo @-1
+              type: int Function(int)
+              parameters
+                requiredPositional bar @-1
+                  type: int
+                  metadata
+                    Annotation
+                      atSign.offset: 0
+                      element: self::@getter::a
+                      name: SimpleIdentifier
+                        staticElement: self::@getter::a
+                        staticType: null
+                        token: a @-1
+          returnType: void
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_metadata_inAliasedElement_typeParameter() async {
@@ -11620,51 +23212,98 @@ const int a;
 const a = 42;
 typedef F = void Function<@a T>(int first)
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F = void Function(int first);
-  aliasedElement
-    typeParameters
-      T
-        bound: null
-        defaultType: null
-        metadata
-          Annotation
-            element: self::@getter::a
-            name: SimpleIdentifier
-              staticElement: self::@getter::a
-              staticType: null
-              token: a
-    parameters
-      first
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 42
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @22
+        aliasedType: void Function<T>(int)
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant T @-1
+              metadata
+                Annotation
+                  atSign.offset: 0
+                  element: self::@getter::a
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::a
+                    staticType: null
+                    token: a @-1
+          parameters
+            requiredPositional first @-1
+              type: int
+          returnType: void
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+''');
   }
 
   test_metadata_invalid_classDeclaration() async {
     var library = await checkLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
-@
-        f/*location: test.dart;f*/(42)
-class C {
-}
-dynamic f(dynamic _) {}
+library
+  definingUnit
+    classes
+      class C @21
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                IntegerLiteral
+                  literal: 42 @11
+                  staticType: int
+              leftParenthesis: ( @10
+              rightParenthesis: ) @13
+            atSign.offset: 8
+            element: self::@function::f
+            name: SimpleIdentifier
+              staticElement: self::@function::f
+              staticType: null
+              token: f @9
+        constructors
+          synthetic @-1
+    functions
+      f @0
+        parameters
+          requiredPositional _ @2
+            type: dynamic
+        returnType: dynamic
 ''');
   }
 
   test_metadata_libraryDirective() async {
     var library = await checkLibrary('@a library L; const a = null;');
     checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
-library L;
-const dynamic a = null;
+library
+  name: L
+  nameOffset: 11
+  metadata
+    Annotation
+      atSign.offset: 0
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a @-1
+  definingUnit
+    topLevelVariables
+      static const a @20
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @20
+        returnType: dynamic
 ''');
   }
 
@@ -11672,12 +23311,36 @@ const dynamic a = null;
     var library =
         await checkLibrary('const a = null; class C { @a get m => null; }');
     checkElementText(library, r'''
-class C {
-  @
-        a/*location: test.dart;a?*/
-  dynamic get m {}
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        fields
+          synthetic m @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          get m @33
+            metadata
+              Annotation
+                atSign.offset: 26
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @27
+            returnType: dynamic
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -11692,15 +23355,48 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  @
-        a/*location: test.dart;a?*/
-  @
-        b/*location: test.dart;b?*/
-  dynamic m() {}
-}
-const dynamic a = null;
-const dynamic b = null;
+library
+  definingUnit
+    classes
+      class C @38
+        constructors
+          synthetic @-1
+        methods
+          m @54
+            metadata
+              Annotation
+                atSign.offset: 44
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @45
+              Annotation
+                atSign.offset: 49
+                element: self::@getter::b
+                name: SimpleIdentifier
+                  staticElement: self::@getter::b
+                  staticType: null
+                  token: b @50
+            returnType: dynamic
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      static const b @22
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      synthetic static get b @22
+        returnType: dynamic
 ''');
   }
 
@@ -11715,15 +23411,50 @@ mixin M {
 }
 ''');
     checkElementText(library, r'''
-mixin M on Object {
-  @
-        a/*location: test.dart;a?*/
-  @
-        b/*location: test.dart;b?*/
-  dynamic m() {}
-}
-const dynamic a = null;
-const dynamic b = null;
+library
+  definingUnit
+    mixins
+      mixin M @38
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+        methods
+          m @54
+            metadata
+              Annotation
+                atSign.offset: 44
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @45
+              Annotation
+                atSign.offset: 49
+                element: self::@getter::b
+                name: SimpleIdentifier
+                  staticElement: self::@getter::b
+                  staticType: null
+                  token: b @50
+            returnType: dynamic
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      static const b @22
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      synthetic static get b @22
+        returnType: dynamic
 ''');
   }
 
@@ -11736,12 +23467,39 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  @
-        a/*location: test.dart;a?*/
-  void set m(dynamic value) {}
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        fields
+          synthetic m @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set m @37
+            metadata
+              Annotation
+                atSign.offset: 28
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @29
+            parameters
+              requiredPositional value @39
+                type: dynamic
+            returnType: void
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -11756,49 +23514,66 @@ mixin M<@foo T> {
   void bar() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-mixin M on Object {
-  static const int foo;
-    constantInitializer
-      IntegerLiteral
-        literal: 1
-        staticType: int
-  void bar() {}
-    metadata
-      Annotation
-        element: self::@mixin::M::@getter::foo
-        name: SimpleIdentifier
-          staticElement: self::@mixin::M::@getter::foo
-          staticType: null
-          token: foo
-}
-  metadata
-    Annotation
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-      metadata
-        Annotation
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @27
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          covariant T @34
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 29
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @30
+        superclassConstraints
+          Object
+        fields
+          static const foo @54
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @60
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get foo @54
+            returnType: int
+        methods
+          bar @77
+            metadata
+              Annotation
+                atSign.offset: 65
+                element: self::@mixin::M::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@mixin::M::@getter::foo
+                  staticType: null
+                  token: foo @66
+            returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_mixinDeclaration() async {
@@ -11809,14 +23584,47 @@ const b = null;
 @b
 mixin M {}''');
     checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
-@
-        b/*location: test.dart;b?*/
-mixin M on Object {
-}
-const dynamic a = null;
-const dynamic b = null;
+library
+  definingUnit
+    mixins
+      mixin M @44
+        metadata
+          Annotation
+            atSign.offset: 32
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @33
+          Annotation
+            atSign.offset: 35
+            element: self::@getter::b
+            name: SimpleIdentifier
+              staticElement: self::@getter::b
+              staticType: null
+              token: b @36
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      static const b @22
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      synthetic static get b @22
+        returnType: dynamic
 ''');
   }
 
@@ -11827,44 +23635,43 @@ const foo = 0;
 @foo
 class A<@foo T> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-}
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-      metadata
-        Annotation
-          atSign.offset: 29
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            offset: 30
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-              offset: 30
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @27
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          covariant T @34
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 29
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @30
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onClassConstructor() async {
@@ -11877,31 +23684,43 @@ class A {
 }
 ''');
     // TODO(scheglov) Enhance to show metadata on formal parameters?
-    checkElementText(
-        library,
-        r'''
-class A {
-  A(int a);
-    metadata
-      Annotation
-        atSign.offset: 28
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 29
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 29
-}
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        constructors
+          @35
+            metadata
+              Annotation
+                atSign.offset: 28
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @29
+            parameters
+              requiredPositional a @46
+                type: int
+                metadata
+                  Annotation
+                    atSign.offset: 0
+                    element: self::@getter::foo
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::foo
+                      staticType: null
+                      token: foo @-1
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onClassGetter() async {
@@ -11913,31 +23732,38 @@ class A {
   int get getter => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  int get getter {}
-    metadata
-      Annotation
-        atSign.offset: 28
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 29
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 29
-}
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        fields
+          synthetic getter @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get getter @43
+            metadata
+              Annotation
+                atSign.offset: 28
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @29
+            returnType: int
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onClassMethod() async {
@@ -11950,45 +23776,56 @@ class A {
 }
 ''');
     // TODO(scheglov) Enhance to show metadata on formal parameters?
-    checkElementText(
-        library,
-        r'''
-class A {
-  void method(int a) {}
-    typeParameters
-      T
-        bound: null
-        defaultType: null
-        metadata
-          Annotation
-            atSign.offset: 47
-            element: self::@getter::foo
-            name: SimpleIdentifier
-              offset: 48
-              staticElement: self::@getter::foo
-              staticType: null
-              token: foo
-                offset: 48
-    metadata
-      Annotation
-        atSign.offset: 28
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 29
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 29
-}
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        constructors
+          synthetic @-1
+        methods
+          method @40
+            metadata
+              Annotation
+                atSign.offset: 28
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @29
+            typeParameters
+              covariant T @52
+                metadata
+                  Annotation
+                    atSign.offset: 47
+                    element: self::@getter::foo
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::foo
+                      staticType: null
+                      token: foo @48
+            parameters
+              requiredPositional a @64
+                type: int
+                metadata
+                  Annotation
+                    atSign.offset: 0
+                    element: self::@getter::foo
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::foo
+                      staticType: null
+                      token: foo @-1
+            returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onClassSetter() async {
@@ -12001,31 +23838,49 @@ class A {
 }
 ''');
     // TODO(scheglov) Enhance to show metadata on formal parameters?
-    checkElementText(
-        library,
-        r'''
-class A {
-  void set setter(int a) {}
-    metadata
-      Annotation
-        atSign.offset: 28
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 29
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 29
-}
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        fields
+          synthetic setter @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set setter @39
+            metadata
+              Annotation
+                atSign.offset: 28
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @29
+            parameters
+              requiredPositional a @55
+                type: int
+                metadata
+                  Annotation
+                    atSign.offset: 0
+                    element: self::@getter::foo
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::foo
+                      staticType: null
+                      token: foo @-1
+            returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onClassTypeAlias() async {
@@ -12038,53 +23893,61 @@ mixin M {}
 @foo
 class B<@foo T> = A with M;
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-}
-class alias B extends A with M {
-  synthetic B();
-    constantInitializers
-      SuperConstructorInvocation
-        argumentList: ArgumentList
-        staticElement: self::@class::A::@constructor::•
-}
-  metadata
-    Annotation
-      atSign.offset: 39
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 40
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 40
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-      metadata
-        Annotation
-          atSign.offset: 52
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            offset: 53
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-              offset: 53
-mixin M on Object {
-}
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        constructors
+          synthetic @-1
+      class alias B @50
+        metadata
+          Annotation
+            atSign.offset: 39
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @40
+        typeParameters
+          covariant T @57
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 52
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @53
+        supertype: A
+        mixins
+          M
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+    mixins
+      mixin M @33
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onEnum() async {
@@ -12098,56 +23961,71 @@ enum E {
   @foo e3,
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E e1;
-    metadata
-      Annotation
-        atSign.offset: 32
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 33
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 33
-  static const E e2;
-  static const E e3;
-    metadata
-      Annotation
-        atSign.offset: 49
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 50
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 50
-  String toString() {}
-}
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @26
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const e1 @37
+            metadata
+              Annotation
+                atSign.offset: 32
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @33
+            type: E
+          static const e2 @43
+            type: E
+          static const e3 @54
+            metadata
+              Annotation
+                atSign.offset: 49
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @50
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get e1 @-1
+            returnType: E
+          synthetic static get e2 @-1
+            returnType: E
+          synthetic static get e3 @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onExtension() async {
@@ -12157,44 +24035,41 @@ const foo = 0;
 @foo
 extension E<@foo T> on List<T> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-extension E on List<T> {
-}
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-  typeParameters
-    T
-      bound: null
-      defaultType: null
-      metadata
-        Annotation
-          atSign.offset: 33
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            offset: 34
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-              offset: 34
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @31
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          covariant T @38
+            metadata
+              Annotation
+                atSign.offset: 33
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @34
+        extendedType: List<T>
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onFieldDeclaration() async {
@@ -12209,47 +24084,59 @@ class A {
   static const isConst = 2;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  static int isNotConst;
-    metadata
-      Annotation
-        atSign.offset: 28
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 29
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 29
-  static const int isConst;
-    metadata
-      Annotation
-        atSign.offset: 61
-        element: self::@getter::foo
-        name: SimpleIdentifier
-          offset: 62
-          staticElement: self::@getter::foo
-          staticType: null
-          token: foo
-            offset: 62
-    constantInitializer
-      IntegerLiteral
-        literal: 2
-          offset: 91
-        staticType: int
-}
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @22
+        fields
+          static isNotConst @42
+            metadata
+              Annotation
+                atSign.offset: 28
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @29
+            type: int
+          static const isConst @81
+            metadata
+              Annotation
+                atSign.offset: 61
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @62
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 2 @91
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get isNotConst @42
+            returnType: int
+          synthetic static set isNotConst @42
+            parameters
+              requiredPositional _isNotConst @42
+                type: int
+            returnType: void
+          synthetic static get isConst @81
+            returnType: int
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onMixin() async {
@@ -12259,44 +24146,45 @@ const foo = 0;
 @foo
 mixin A<@foo T> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-mixin A on Object {
-}
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-      metadata
-        Annotation
-          atSign.offset: 29
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            offset: 30
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-              offset: 30
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @27
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          covariant T @34
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 29
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @30
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onUnitFunction() async {
@@ -12307,43 +24195,52 @@ const foo = 0;
 void f<@foo T>(@foo int a) {}
 ''');
     // TODO(scheglov) Enhance to show metadata on formal parameters?
-    checkElementText(
-        library,
-        r'''
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-void f(int a) {}
-  typeParameters
-    T
-      bound: null
-      defaultType: null
-      metadata
-        Annotation
-          atSign.offset: 28
-          element: self::@getter::foo
-          name: SimpleIdentifier
-            offset: 29
-            staticElement: self::@getter::foo
-            staticType: null
-            token: foo
-              offset: 29
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+    functions
+      f @26
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          covariant T @33
+            metadata
+              Annotation
+                atSign.offset: 28
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @29
+        parameters
+          requiredPositional a @45
+            type: int
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @-1
+        returnType: void
+''');
   }
 
   test_metadata_offsets_onUnitGetter() async {
@@ -12353,29 +24250,32 @@ const foo = 0;
 @foo
 int get getter => 0;
 ''');
-    checkElementText(
-        library,
-        r'''
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-int get getter {}
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+      synthetic static getter @-1
+        type: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+      get getter @29
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        returnType: int
+''');
   }
 
   test_metadata_offsets_onUnitSetter() async {
@@ -12386,29 +24286,43 @@ const foo = 0;
 set setter(@foo int a) {}
 ''');
     // TODO(scheglov) Enhance to show metadata on formal parameters?
-    checkElementText(
-        library,
-        r'''
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-void set setter(int a) {}
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+      synthetic static setter @-1
+        type: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+      set setter @25
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        parameters
+          requiredPositional a @41
+            type: int
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @-1
+        returnType: void
+''');
   }
 
   test_metadata_offsets_onUnitVariable() async {
@@ -12421,45 +24335,53 @@ var isNotConst = 1;
 @foo
 const isConst = 2;
 ''');
-    checkElementText(
-        library,
-        r'''
-const int foo;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-        offset: 12
-      staticType: int
-int isNotConst;
-  metadata
-    Annotation
-      atSign.offset: 16
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 17
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 17
-const int isConst;
-  metadata
-    Annotation
-      atSign.offset: 42
-      element: self::@getter::foo
-      name: SimpleIdentifier
-        offset: 43
-        staticElement: self::@getter::foo
-        staticType: null
-        token: foo
-          offset: 43
-  constantInitializer
-    IntegerLiteral
-      literal: 2
-        offset: 63
-      staticType: int
-''',
-        withResolvedAst: true,
-        withResolvedAstOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+      static isNotConst @25
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        type: int
+      static const isConst @53
+        metadata
+          Annotation
+            atSign.offset: 42
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @43
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 2 @63
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+      synthetic static get isNotConst @25
+        returnType: int
+      synthetic static set isNotConst @25
+        parameters
+          requiredPositional _isNotConst @25
+            type: int
+        returnType: void
+      synthetic static get isConst @53
+        returnType: int
+''');
   }
 
   test_metadata_partDirective() async {
@@ -12470,14 +24392,30 @@ library L;
 part 'foo.dart';
 const a = null;''');
     checkElementText(library, r'''
-library L;
-@
-        a/*location: test.dart;a?*/
-part 'foo.dart';
-const dynamic a = null;
---------------------
-unit: foo.dart
-
+library
+  name: L
+  nameOffset: 8
+  definingUnit
+    topLevelVariables
+      static const a @37
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @37
+        returnType: dynamic
+  parts
+    foo.dart
+      metadata
+        Annotation
+          atSign.offset: 0
+          element: self::@getter::a
+          name: SimpleIdentifier
+            staticElement: self::@getter::a
+            staticType: null
+            token: a @-1
 ''');
   }
 
@@ -12502,21 +24440,62 @@ part 'b.dart';
     addLibrarySource('/a.dart', 'const b = null;');
     var library = await checkLibrary('import "a.dart" as a; @a.b class C {}');
     checkElementText(library, r'''
-import 'a.dart' as a;
-@
-        a/*location: test.dart;a*/.
-        b/*location: a.dart;b?*/
-class C {
-}
+library
+  imports
+    a.dart as a @19
+  definingUnit
+    classes
+      class C @33
+        metadata
+          Annotation
+            atSign.offset: 22
+            element: a.dart::@getter::b
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: a.dart::@getter::b
+                staticType: null
+                token: b @25
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::a
+                staticType: null
+                token: a @23
+              staticElement: a.dart::@getter::b
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_metadata_simpleFormalParameter() async {
     var library = await checkLibrary('const a = null; f(@a x) {}');
     checkElementText(library, r'''
-const dynamic a = null;
-dynamic f(@
-        a/*location: test.dart;a?*/ dynamic x) {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+    functions
+      f @16
+        parameters
+          requiredPositional x @21
+            type: dynamic
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @-1
+        returnType: dynamic
 ''');
   }
 
@@ -12529,11 +24508,36 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  dynamic m(@
-        a/*location: test.dart;a?*/ dynamic x) {}
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @23
+        constructors
+          synthetic @-1
+        methods
+          m @29
+            parameters
+              requiredPositional x @34
+                type: dynamic
+                metadata
+                  Annotation
+                    atSign.offset: 0
+                    element: self::@getter::a
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::a
+                      staticType: null
+                      token: a @-1
+            returnType: dynamic
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -12544,39 +24548,137 @@ const a = null;
 set foo(@a int x) {}
 ''');
     checkElementText(library, r'''
-const dynamic a = null;
-void set foo(@
-        a/*location: test.dart;a?*/ int x) {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      synthetic static foo @-1
+        type: int
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      set foo @21
+        parameters
+          requiredPositional x @32
+            type: int
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @-1
+        returnType: void
 ''');
   }
 
   test_metadata_simpleFormalParameter_withDefault() async {
     var library = await checkLibrary('const a = null; f([@a x = null]) {}');
     checkElementText(library, r'''
-const dynamic a = null;
-dynamic f([@
-        a/*location: test.dart;a?*/ dynamic x = null]) {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+    functions
+      f @16
+        parameters
+          optionalPositional x @22
+            type: dynamic
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @-1
+            constantInitializer
+              NullLiteral
+                literal: null @0
+                staticType: null
+        returnType: dynamic
 ''');
   }
 
   test_metadata_topLevelVariableDeclaration() async {
     var library = await checkLibrary('const a = null; @a int v;');
     checkElementText(library, r'''
-const dynamic a = null;
-@
-        a/*location: test.dart;a?*/
-int v;
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+      static v @23
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @17
+        type: int
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+      synthetic static get v @23
+        returnType: int
+      synthetic static set v @23
+        parameters
+          requiredPositional _v @23
+            type: int
+        returnType: void
 ''');
   }
 
   test_metadata_typeParameter_ofClass() async {
     var library = await checkLibrary('const a = null; class C<@a T> {}');
     checkElementText(library, r'''
-class C<@
-        a/*location: test.dart;a?*/
-T> {
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class C @22
+        typeParameters
+          covariant T @27
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 24
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @25
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -12587,36 +24689,113 @@ class C<@a T> = D with E;
 class D {}
 class E {}''');
     checkElementText(library, r'''
-class alias C<@
-        a/*location: test.dart;a?*/
-T> extends D with E {
-  synthetic C() : super();
-}
-class D {
-}
-class E {
-}
-const dynamic a = null;
+library
+  definingUnit
+    classes
+      class alias C @22
+        typeParameters
+          covariant T @27
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 24
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @25
+        supertype: D
+        mixins
+          E
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::D::@constructor::•
+      class D @48
+        constructors
+          synthetic @-1
+      class E @59
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
   test_metadata_typeParameter_ofFunction() async {
     var library = await checkLibrary('const a = null; f<@a T>() {}');
     checkElementText(library, r'''
-const dynamic a = null;
-dynamic f<@
-        a/*location: test.dart;a?*/
-T>() {}
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
+    functions
+      f @16
+        typeParameters
+          covariant T @21
+            metadata
+              Annotation
+                atSign.offset: 18
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @19
+        returnType: dynamic
 ''');
   }
 
   test_metadata_typeParameter_ofTypedef() async {
     var library = await checkLibrary('const a = null; typedef F<@a T>();');
     checkElementText(library, r'''
-typedef F<@
-        a/*location: test.dart;a?*/
-T> = dynamic Function();
-const dynamic a = null;
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @24
+        typeParameters
+          unrelated T @29
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 0
+                element: self::@getter::a
+                name: SimpleIdentifier
+                  staticElement: self::@getter::a
+                  staticType: null
+                  token: a @-1
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @0
+            staticType: null
+    accessors
+      synthetic static get a @6
+        returnType: dynamic
 ''');
   }
 
@@ -12631,24 +24810,37 @@ int x = 0;
         as TopLevelVariableElement;
     expect(x.metadata, hasLength(1));
     // Check details.
-    checkElementText(
-        library,
-        r'''
-const int a;
-  constantInitializer
-    IntegerLiteral
-      literal: 0
-      staticType: int
-int x;
-  metadata
-    Annotation
-      element: self::@getter::a
-      name: SimpleIdentifier
-        staticElement: self::@getter::a
-        staticType: null
-        token: a
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static x @20
+        metadata
+          Annotation
+            atSign.offset: 13
+            element: self::@getter::a
+            name: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: null
+              token: a @14
+        type: int
+    accessors
+      synthetic static get a @6
+        returnType: int
+      synthetic static get x @20
+        returnType: int
+      synthetic static set x @20
+        parameters
+          requiredPositional _x @20
+            type: int
+        returnType: void
+''');
   }
 
   test_metadata_value_class_staticField() async {
@@ -12660,35 +24852,43 @@ class A {
 @A.x
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  static const int x;
-    constantInitializer
-      IntegerLiteral
-        literal: 0
-        staticType: int
-}
-class C {
-}
-  metadata
-    Annotation
-      element: self::@class::A::@getter::x
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: self::@class::A::@getter::x
-          staticType: null
-          token: x
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@class::A
-          staticType: null
-          token: A
-        staticElement: self::@class::A::@getter::x
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          static const x @25
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @29
+                staticType: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic static get x @25
+            returnType: int
+      class C @45
+        metadata
+          Annotation
+            atSign.offset: 34
+            element: self::@class::A::@getter::x
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: self::@class::A::@getter::x
+                staticType: null
+                token: x @37
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@class::A
+                staticType: null
+                token: A @35
+              staticElement: self::@class::A::@getter::x
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_metadata_value_enum_constant() async {
@@ -12698,36 +24898,57 @@ enum E {a, b, c}
 @E.b
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E a;
-  static const E b;
-  static const E c;
-  String toString() {}
-}
-class C {
-}
-  metadata
-    Annotation
-      element: self::@enum::E::@getter::b
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: self::@enum::E::@getter::b
-          staticType: null
-          token: b
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@enum::E
-          staticType: null
-          token: E
-        staticElement: self::@enum::E::@getter::b
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @28
+        metadata
+          Annotation
+            atSign.offset: 17
+            element: self::@enum::E::@getter::b
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: self::@enum::E::@getter::b
+                staticType: null
+                token: b @20
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@enum::E
+                staticType: null
+                token: E @18
+              staticElement: self::@enum::E::@getter::b
+              staticType: null
+        constructors
+          synthetic @-1
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const a @8
+            type: E
+          static const b @11
+            type: E
+          static const c @14
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get a @-1
+            returnType: E
+          synthetic static get b @-1
+            returnType: E
+          synthetic static get c @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+''');
   }
 
   test_metadata_value_extension_staticField() async {
@@ -12739,35 +24960,43 @@ extension E on int {
 @E.x
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class C {
-}
-  metadata
-    Annotation
-      element: self::@extension::E::@getter::x
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: self::@extension::E::@getter::x
-          staticType: null
-          token: x
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@extension::E
-          staticType: null
-          token: E
-        staticElement: self::@extension::E::@getter::x
-        staticType: null
-extension E on int {
-  static const int x;
-    constantInitializer
-      IntegerLiteral
-        literal: 0
-        staticType: int
-}
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @56
+        metadata
+          Annotation
+            atSign.offset: 45
+            element: self::@extension::E::@getter::x
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: self::@extension::E::@getter::x
+                staticType: null
+                token: x @48
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@extension::E
+                staticType: null
+                token: E @46
+              staticElement: self::@extension::E::@getter::x
+              staticType: null
+        constructors
+          synthetic @-1
+    extensions
+      E @10
+        extendedType: int
+        fields
+          static const x @36
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @40
+                staticType: int
+        accessors
+          synthetic static get x @36
+            returnType: int
+''');
   }
 
   test_metadata_value_prefix_extension_staticField() async {
@@ -12782,33 +25011,36 @@ import 'foo.dart' as foo;
 @foo.E.x
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'package:test/foo.dart' as foo;
-class C {
-}
-  metadata
-    Annotation
-      constructorName: SimpleIdentifier
-        staticElement: package:test/foo.dart::@extension::E::@getter::x
-        staticType: null
-        token: x
-      element: package:test/foo.dart::@extension::E::@getter::x
-      name: PrefixedIdentifier
-        identifier: SimpleIdentifier
-          staticElement: package:test/foo.dart::@extension::E
-          staticType: null
-          token: E
-        period: .
-        prefix: SimpleIdentifier
-          staticElement: self::@prefix::foo
-          staticType: null
-          token: foo
-        staticElement: package:test/foo.dart::@extension::E
-        staticType: null
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    package:test/foo.dart as foo @21
+  definingUnit
+    classes
+      class C @41
+        metadata
+          Annotation
+            atSign.offset: 26
+            constructorName: SimpleIdentifier
+              staticElement: package:test/foo.dart::@extension::E::@getter::x
+              staticType: null
+              token: x @33
+            element: package:test/foo.dart::@extension::E::@getter::x
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: package:test/foo.dart::@extension::E
+                staticType: null
+                token: E @31
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @27
+              staticElement: package:test/foo.dart::@extension::E
+              staticType: null
+        constructors
+          synthetic @-1
+''');
   }
 
   test_method_documented() async {
@@ -12820,12 +25052,16 @@ class C {
   f() {}
 }''');
     checkElementText(library, r'''
-class C {
-  /**
-   * Docs
-   */
-  dynamic f() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @34
+            documentationComment: /**\n   * Docs\n   */
+            returnType: dynamic
 ''');
   }
 
@@ -12855,12 +25091,28 @@ class C {
     var library = await checkLibrary('class C extends D { void f(value) {} }'
         ' abstract class D { void f(int value); }');
     checkElementText(library, r'''
-class C extends D {
-  void f(int value) {}
-}
-abstract class D {
-  void f(int value);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        constructors
+          synthetic @-1
+        methods
+          f @25
+            parameters
+              requiredPositional value @27
+                type: int
+            returnType: void
+      abstract class D @54
+        constructors
+          synthetic @-1
+        methods
+          abstract f @63
+            parameters
+              requiredPositional value @69
+                type: int
+            returnType: void
 ''');
   }
 
@@ -12874,21 +25126,43 @@ abstract class D {
 }
 ''');
     checkElementText(library, r'''
-class C extends D {
-  int f() {}
-}
-abstract class D {
-  int f();
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        constructors
+          synthetic @-1
+        methods
+          f @22
+            returnType: int
+      abstract class D @52
+        constructors
+          synthetic @-1
+        methods
+          abstract f @62
+            returnType: int
 ''');
   }
 
   test_method_type_parameter() async {
     var library = await checkLibrary('class C { T f<T, U>(U u) => null; }');
     checkElementText(library, r'''
-class C {
-  T f<T, U>(U u) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @12
+            typeParameters
+              covariant T @14
+              covariant U @17
+            parameters
+              requiredPositional u @22
+                type: U
+            returnType: T
 ''');
   }
 
@@ -12899,18 +25173,54 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-class C<T, U> {
-  V f<V, W>(T t, U u, W w) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          f @20
+            typeParameters
+              covariant V @22
+              covariant W @25
+            parameters
+              requiredPositional t @30
+                type: T
+              requiredPositional u @35
+                type: U
+              requiredPositional w @40
+                type: W
+            returnType: V
 ''');
   }
 
   test_method_type_parameter_with_function_typed_parameter() async {
     var library = await checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
     checkElementText(library, r'''
-class C {
-  void f<T, U>(T Function(U) x/*(U u)*/) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @15
+            typeParameters
+              covariant T @17
+              covariant U @20
+            parameters
+              requiredPositional x @25
+                type: T Function(U)
+                parameters
+                  requiredPositional u @29
+                    type: U
+            returnType: void
 ''');
   }
 
@@ -12925,13 +25235,40 @@ class B {
 var c = new B().a();
 ''');
     checkElementText(library, r'''
-class A {
-  double call() {}
-}
-class B {
-  A a;
-}
-double c;
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          call @19
+            returnType: double
+      class B @42
+        fields
+          a @50
+            type: A
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get a @50
+            returnType: A
+          synthetic set a @50
+            parameters
+              requiredPositional _a @50
+                type: A
+            returnType: void
+    topLevelVariables
+      static c @59
+        type: double
+    accessors
+      synthetic static get c @59
+        returnType: double
+      synthetic static set c @59
+        parameters
+          requiredPositional _c @59
+            type: double
+        returnType: void
 ''');
   }
 
@@ -12950,20 +25287,65 @@ mixin M<T extends num, U> on A, B implements C, D {
 }
 ''');
     checkElementText(library, r'''
-class A {
-}
-class B {
-}
-class C {
-}
-class D {
-}
-mixin M<T extends num = num, U> on A, B implements C, D {
-  T f;
-  U get g {}
-  void set s(int v) {}
-  int m(double v) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @17
+        constructors
+          synthetic @-1
+      class C @28
+        constructors
+          synthetic @-1
+      class D @39
+        constructors
+          synthetic @-1
+    mixins
+      mixin M @51
+        typeParameters
+          covariant T @53
+            bound: num
+            defaultType: num
+          covariant U @68
+            defaultType: dynamic
+        superclassConstraints
+          A
+          B
+        interfaces
+          C
+          D
+        fields
+          synthetic g @-1
+            type: U
+          synthetic s @-1
+            type: int
+          f @101
+            type: T
+        constructors
+          synthetic @-1
+        accessors
+          get g @112
+            returnType: U
+          set s @126
+            parameters
+              requiredPositional v @132
+                type: int
+            returnType: void
+          synthetic get f @101
+            returnType: T
+          synthetic set f @101
+            parameters
+              requiredPositional _f @101
+                type: T
+            returnType: void
+        methods
+          m @144
+            parameters
+              requiredPositional v @153
+                type: double
+            returnType: int
 ''');
   }
 
@@ -12973,9 +25355,20 @@ mixin M {
   final x = 0;
 }''');
     checkElementText(library, r'''
-mixin M on Object {
-  final int x;
-}
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          final x @18
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @18
+            returnType: int
 ''');
   }
 
@@ -12996,8 +25389,14 @@ mixin M {}
 mixin M {}
 ''');
     checkElementText(library, r'''
-mixin M on Object {
-}
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -13009,13 +25408,30 @@ mixin M<U> on A<U> {}
 class B extends A<int> with M {}
 ''');
     checkElementText(library, r'''
-class A<T> {
-}
-class B extends A<int*>* with M<int*>* {
-  synthetic B();
-}
-mixin M<U> on A<U*>* {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @42
+        supertype: A<int*>*
+        mixins
+          M<int*>*
+        constructors
+          synthetic @-1
+    mixins
+      mixin M @20
+        typeParameters
+          covariant U @22
+            defaultType: dynamic
+        superclassConstraints
+          A<U*>*
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -13026,13 +25442,30 @@ mixin M<U> on A<U> {}
 class B extends A<int> with M {}
 ''');
     checkElementText(library, r'''
-class A<T> {
-}
-class B extends A<int> with M<int> {
-  synthetic B();
-}
-mixin M<U> on A<U> {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @42
+        supertype: A<int>
+        mixins
+          M<int>
+        constructors
+          synthetic @-1
+    mixins
+      mixin M @20
+        typeParameters
+          covariant U @22
+            defaultType: dynamic
+        superclassConstraints
+          A<U>
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -13050,10 +25483,18 @@ import 'a.dart';
 class D extends A<int> with B<int>, C {}
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-class D extends A<int*>* with B<int*>*, C<int*>* {
-  synthetic D();
-}
+library
+  imports
+    a.dart
+  definingUnit
+    classes
+      class D @37
+        supertype: A<int*>*
+        mixins
+          B<int*>*
+          C<int*>*
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -13068,10 +25509,17 @@ import 'a.dart';
 class B extends A<int> with M {}
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-class B extends A<int*>* with M<int*>* {
-  synthetic B();
-}
+library
+  imports
+    a.dart
+  definingUnit
+    classes
+      class B @38
+        supertype: A<int*>*
+        mixins
+          M<int*>*
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -13103,56 +25551,94 @@ mixin B on A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-}
-mixin B on A {
-  void A() {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+    mixins
+      mixin B @17
+        superclassConstraints
+          A
+        constructors
+          synthetic @-1
+        methods
+          A @33
+            returnType: void
 ''');
   }
 
   test_mixin_typeParameters_variance_contravariant() async {
     var library = await checkLibrary('mixin M<in T> {}');
-    checkElementText(
-        library,
-        r'''
-mixin M<contravariant T> on Object {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        typeParameters
+          contravariant T @11
+            defaultType: dynamic
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
   }
 
   test_mixin_typeParameters_variance_covariant() async {
     var library = await checkLibrary('mixin M<out T> {}');
-    checkElementText(
-        library,
-        r'''
-mixin M<covariant T> on Object {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @12
+            defaultType: dynamic
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
   }
 
   test_mixin_typeParameters_variance_invariant() async {
     var library = await checkLibrary('mixin M<inout T> {}');
-    checkElementText(
-        library,
-        r'''
-mixin M<invariant T> on Object {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        typeParameters
+          invariant T @14
+            defaultType: dynamic
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
   }
 
   test_mixin_typeParameters_variance_multiple() async {
     var library = await checkLibrary('mixin M<inout T, in U, out V> {}');
-    checkElementText(
-        library,
-        r'''
-mixin M<invariant T, contravariant U, covariant V> on Object {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        typeParameters
+          invariant T @14
+            defaultType: dynamic
+          contravariant U @20
+            defaultType: dynamic
+          covariant V @27
+            defaultType: dynamic
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
   }
 
   test_nameConflict_exportedAndLocal() async {
@@ -13166,8 +25652,21 @@ import 'c.dart';
 C v = null;
 ''');
     checkElementText(library, r'''
-import 'c.dart';
-C v;
+library
+  imports
+    c.dart
+  definingUnit
+    topLevelVariables
+      static v @19
+        type: C
+    accessors
+      synthetic static get v @19
+        returnType: C
+      synthetic static set v @19
+        parameters
+          requiredPositional _v @19
+            type: C
+        returnType: void
 ''');
   }
 
@@ -13183,8 +25682,21 @@ import 'd.dart';
 C v = null;
 ''');
     checkElementText(library, r'''
-import 'd.dart';
-C v;
+library
+  imports
+    d.dart
+  definingUnit
+    topLevelVariables
+      static v @19
+        type: C
+    accessors
+      synthetic static get v @19
+        returnType: C
+      synthetic static set v @19
+        parameters
+          requiredPositional _v @19
+            type: C
+        returnType: void
 ''');
   }
 
@@ -13204,8 +25716,21 @@ import 'c.dart';
 C v = null;
 ''');
     checkElementText(library, r'''
-import 'c.dart';
-C v;
+library
+  imports
+    c.dart
+  definingUnit
+    topLevelVariables
+      static v @19
+        type: C
+    accessors
+      synthetic static get v @19
+        returnType: C
+      synthetic static set v @19
+        parameters
+          requiredPositional _v @19
+            type: C
+        returnType: void
 ''');
   }
 
@@ -13222,9 +25747,22 @@ import 'b.dart';
 A v = null;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-import 'b.dart';
-A v;
+library
+  imports
+    a.dart
+    b.dart
+  definingUnit
+    topLevelVariables
+      static v @36
+        type: A
+    accessors
+      synthetic static get v @36
+        returnType: A
+      synthetic static set v @36
+        parameters
+          requiredPositional _v @36
+            type: A
+        returnType: void
 ''');
   }
 
@@ -13235,15 +25773,17 @@ class A {
   A.named();
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A@6 {
-  A[nameOffset: 12]();
-  A.named[periodOffset: 20][nameOffset: 21][nameEnd: 26]();
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+          named @21
+            periodOffset: 20
+            nameEnd: 26
+''');
   }
 
   test_nameOffset_class_constructor_parameter() async {
@@ -13252,14 +25792,17 @@ class A {
   A(int a);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A@6 {
-  A[nameOffset: 12](int a@18);
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @18
+                type: int
+''');
   }
 
   test_nameOffset_class_field() async {
@@ -13268,17 +25811,25 @@ class A {
   int foo = 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A@6 {
-  int foo@16;
-  synthetic int get foo@16 {}
-  synthetic void set foo@16(int _foo@16) {}
-}
-''',
-        withOffsets: true,
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          foo @16
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @16
+            returnType: int
+          synthetic set foo @16
+            parameters
+              requiredPositional _foo @16
+                type: int
+            returnType: void
+''');
   }
 
   test_nameOffset_class_getter() async {
@@ -13287,14 +25838,20 @@ class A {
   int get foo => 0;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A@6 {
-  int get foo@20 {}
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get foo @20
+            returnType: int
+''');
   }
 
   test_nameOffset_class_method() async {
@@ -13303,14 +25860,22 @@ class A {
   void foo<T>(int a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A@6 {
-  void foo@17<T@21>(int a@28) {}
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @17
+            typeParameters
+              covariant T @21
+            parameters
+              requiredPositional a @28
+                type: int
+            returnType: void
+''');
   }
 
   test_nameOffset_class_setter() async {
@@ -13319,125 +25884,183 @@ class A {
   set foo(int x) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
-class A@6 {
-  void set foo@16(int x@24) {}
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set foo @16
+            parameters
+              requiredPositional x @24
+                type: int
+            returnType: void
+''');
   }
 
   test_nameOffset_class_typeParameter() async {
     var library = await checkLibrary(r'''
 class A<T> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-class A@6<T@8> {
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+''');
   }
 
   test_nameOffset_extension_typeParameter() async {
     var library = await checkLibrary(r'''
 extension E<T> on int {}
 ''');
-    checkElementText(
-        library,
-        r'''
-extension E@10<T@12> on int {
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      E @10
+        typeParameters
+          covariant T @12
+        extendedType: int
+''');
   }
 
   test_nameOffset_function_functionTypedFormal_parameter() async {
     var library = await checkLibrary(r'''
 void f(void f<U>(int a)) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-void f@5(void Function<U>(int) f@12/*<U@14>*//*(int a@21)*/) {}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional f @12
+            type: void Function<U>(int)
+            typeParameters
+              covariant U @14
+            parameters
+              requiredPositional a @21
+                type: int
+        returnType: void
+''');
   }
 
   test_nameOffset_function_functionTypedFormal_parameter2() async {
     var library = await checkLibrary(r'''
 void f({required void f<U>(int a)}) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-void f@5({void Function<U>(int) f@22/*<U@24>*//*(int a@31)*/}) {}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredName f @22
+            type: void Function<U>(int)
+            typeParameters
+              covariant U @24
+            parameters
+              requiredPositional a @31
+                type: int
+        returnType: void
+''');
   }
 
   test_nameOffset_function_typeParameter() async {
     var library = await checkLibrary(r'''
 void f<T>() {}
 ''');
-    checkElementText(
-        library,
-        r'''
-void f@5<T@7>() {}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+        returnType: void
+''');
   }
 
   test_nameOffset_functionTypeAlias_typeParameter() async {
     var library = await checkLibrary(r'''
 typedef void F<T>();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F@13<T@15> = void Function();
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        typeParameters
+          unrelated T @15
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
+''');
   }
 
   test_nameOffset_genericTypeAlias_typeParameter() async {
     var library = await checkLibrary(r'''
 typedef F<T> = void Function();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F@8<T@10> = void Function();
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          unrelated T @10
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
+''');
   }
 
   test_nameOffset_mixin_typeParameter() async {
     var library = await checkLibrary(r'''
 mixin M<T> {}
 ''');
-    checkElementText(
-        library,
-        r'''
-mixin M@6<T@8> on Object {
-}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
   }
 
   test_nameOffset_unit_getter() async {
     var library = await checkLibrary(r'''
 int get foo => 0;
 ''');
-    checkElementText(
-        library,
-        r'''
-int get foo@8 {}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: int
+    accessors
+      get foo @8
+        returnType: int
+''');
   }
 
   test_nested_generic_functions_in_generic_class_with_function_typed_params() async {
@@ -13450,9 +26073,23 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-class C<T, U> {
-  void g<V, W>() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          g @23
+            typeParameters
+              covariant V @25
+              covariant W @28
+            returnType: void
 ''');
   }
 
@@ -13472,9 +26109,23 @@ class C<T, U> {
 }
 ''');
     checkElementText(library, r'''
-class C<T, U> {
-  void g<V, W>() {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          g @23
+            typeParameters
+              covariant V @25
+              covariant W @28
+            returnType: void
 ''');
   }
 
@@ -13488,7 +26139,14 @@ void f<T, U>() {
 }
 ''');
     checkElementText(library, r'''
-void f<T, U>() {}
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+          covariant U @10
+        returnType: void
 ''');
   }
 
@@ -13508,7 +26166,14 @@ void f<T, U>() {
 }
 ''');
     checkElementText(library, r'''
-void f<T, U>() {}
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+          covariant U @10
+        returnType: void
 ''');
   }
 
@@ -13518,8 +26183,17 @@ typedef F = G Function();
 typedef G = F Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function() Function();
-notSimplyBounded typedef G = dynamic Function() Function();
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: dynamic Function() Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic Function()
+      notSimplyBounded G @34
+        aliasedType: dynamic Function() Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic Function()
 ''');
   }
 
@@ -13528,7 +26202,13 @@ notSimplyBounded typedef G = dynamic Function() Function();
 typedef F = List<F> Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = List<dynamic Function()> Function();
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: List<dynamic Function()> Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: List<dynamic Function()>
 ''');
   }
 
@@ -13537,7 +26217,17 @@ notSimplyBounded typedef F = List<dynamic Function()> Function();
 typedef F<T extends F> = void Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        typeParameters
+          unrelated T @10
+            bound: dynamic Function()
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
@@ -13546,7 +26236,16 @@ notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
 typedef F<T> = void Function();
 ''');
     checkElementText(library, r'''
-typedef F<T> = void Function();
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          unrelated T @10
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
@@ -13555,7 +26254,13 @@ typedef F<T> = void Function();
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
-typedef F = void Function();
+library
+  definingUnit
+    typeAliases
+      F @8
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
@@ -13565,7 +26270,15 @@ typedef F = void Function();
 typedef F<T extends F> = List<int>;
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends dynamic> = List<int>;
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        typeParameters
+          unrelated T @10
+            bound: dynamic
+            defaultType: dynamic
+        aliasedType: List<int>
 ''');
   }
 
@@ -13575,7 +26288,11 @@ notSimplyBounded typedef F<T extends dynamic> = List<int>;
 typedef F = List<F>;
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = List<dynamic>;
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: List<dynamic>
 ''');
   }
 
@@ -13584,7 +26301,17 @@ notSimplyBounded typedef F = List<dynamic>;
 typedef void F<T extends F>();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @13
+        typeParameters
+          unrelated T @15
+            bound: dynamic Function()
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
@@ -13593,14 +26320,29 @@ notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
 typedef void F();
 ''');
     checkElementText(library, r'''
-typedef F = void Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
   test_old_typedef_notSimplyBounded_simple_no_bounds() async {
     var library = await checkLibrary('typedef void F<T>();');
     checkElementText(library, r'''
-typedef F<T> = void Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        typeParameters
+          unrelated T @15
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
@@ -13608,9 +26350,18 @@ typedef F<T> = void Function();
     var library =
         await checkLibrary('class C { C operator+(C other) => null; }');
     checkElementText(library, r'''
-class C {
-  C +(C other) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          + @20
+            parameters
+              requiredPositional other @24
+                type: C
+            returnType: C
 ''');
   }
 
@@ -13621,9 +26372,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  bool ==(Object other) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          == @25
+            parameters
+              requiredPositional other @35
+                type: Object
+            returnType: bool
 ''');
   }
 
@@ -13631,9 +26391,18 @@ class C {
     var library =
         await checkLibrary('class C { external C operator+(C other); }');
     checkElementText(library, r'''
-class C {
-  external C +(C other) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          external + @29
+            parameters
+              requiredPositional other @33
+                type: C
+            returnType: C
 ''');
   }
 
@@ -13644,9 +26413,18 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  bool >=(C other) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          >= @25
+            parameters
+              requiredPositional other @30
+                type: C
+            returnType: bool
 ''');
   }
 
@@ -13654,9 +26432,18 @@ class C {
     var library =
         await checkLibrary('class C { bool operator[](int i) => null; }');
     checkElementText(library, r'''
-class C {
-  bool [](int i) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          [] @23
+            parameters
+              requiredPositional i @30
+                type: int
+            returnType: bool
 ''');
   }
 
@@ -13667,9 +26454,20 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  void []=(int i, bool v) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          []= @25
+            parameters
+              requiredPositional i @33
+                type: int
+              requiredPositional v @41
+                type: bool
+            returnType: void
 ''');
   }
 
@@ -13680,20 +26478,33 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  bool <=(C other) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          <= @25
+            parameters
+              requiredPositional other @30
+                type: C
+            returnType: bool
 ''');
   }
 
   test_parameter() async {
     var library = await checkLibrary('void main(int p) {}');
-    checkElementText(
-        library,
-        r'''
-void main@5(int p@14) {}
-''',
-        withOffsets: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      main @5
+        parameters
+          requiredPositional p @14
+            type: int
+        returnType: void
+''');
   }
 
   test_parameter_covariant_explicit_named() async {
@@ -13703,9 +26514,18 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  void m({covariant A a}) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          m @17
+            parameters
+              optionalNamed covariant a @32
+                type: A
+            returnType: void
 ''');
   }
 
@@ -13716,9 +26536,18 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  void m([covariant A a]) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          m @17
+            parameters
+              optionalPositional covariant a @32
+                type: A
+            returnType: void
 ''');
   }
 
@@ -13729,9 +26558,18 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  void m(covariant A a) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          m @17
+            parameters
+              requiredPositional covariant a @31
+                type: A
+            returnType: void
 ''');
   }
 
@@ -13745,12 +26583,34 @@ class B<T> extends A<T> {
 }
 ''');
     checkElementText(library, r'''
-class A<T> {
-  void f(covariant T t) {}
-}
-class B<T> extends A<T> {
-  void f(covariant T t) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          f @20
+            parameters
+              requiredPositional covariant t @34
+                type: T
+            returnType: void
+      class B @48
+        typeParameters
+          covariant T @50
+            defaultType: dynamic
+        supertype: A<T>
+        constructors
+          synthetic @-1
+        methods
+          f @75
+            parameters
+              requiredPositional covariant t @79
+                type: T
+            returnType: void
 ''');
   }
 
@@ -13764,48 +26624,113 @@ class B extends A {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  void m({covariant A a}) {}
-}
-class B extends A {
-  void m({covariant B a}) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          m @17
+            parameters
+              optionalNamed covariant a @32
+                type: A
+            returnType: void
+      class B @47
+        supertype: A
+        constructors
+          synthetic @-1
+        methods
+          m @68
+            parameters
+              optionalNamed covariant a @73
+                type: B
+            returnType: void
 ''');
   }
 
   test_parameter_parameters() async {
     var library = await checkLibrary('class C { f(g(x, y)) {} }');
     checkElementText(library, r'''
-class C {
-  dynamic f(dynamic Function(dynamic, dynamic) g/*(dynamic x, dynamic y)*/) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @10
+            parameters
+              requiredPositional g @12
+                type: dynamic Function(dynamic, dynamic)
+                parameters
+                  requiredPositional x @14
+                    type: dynamic
+                  requiredPositional y @17
+                    type: dynamic
+            returnType: dynamic
 ''');
   }
 
   test_parameter_parameters_in_generic_class() async {
     var library = await checkLibrary('class C<A, B> { f(A g(B x)) {} }');
     checkElementText(library, r'''
-class C<A, B> {
-  dynamic f(A Function(B) g/*(B x)*/) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant A @8
+            defaultType: dynamic
+          covariant B @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          f @16
+            parameters
+              requiredPositional g @20
+                type: A Function(B)
+                parameters
+                  requiredPositional x @24
+                    type: B
+            returnType: dynamic
 ''');
   }
 
   test_parameter_return_type() async {
     var library = await checkLibrary('class C { f(int g()) {} }');
     checkElementText(library, r'''
-class C {
-  dynamic f(int Function() g) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @10
+            parameters
+              requiredPositional g @16
+                type: int Function()
+            returnType: dynamic
 ''');
   }
 
   test_parameter_return_type_void() async {
     var library = await checkLibrary('class C { f(void g()) {} }');
     checkElementText(library, r'''
-class C {
-  dynamic f(void Function() g) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          f @10
+            parameters
+              requiredPositional g @17
+                type: void Function()
+            returnType: dynamic
 ''');
   }
 
@@ -13814,7 +26739,20 @@ class C {
 void f(T a<T, U>(U u)) {}
 ''');
     checkElementText(library, r'''
-void f(T Function<T, U>(U) a/*<T, U>*//*(U u)*/) {}
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @9
+            type: T Function<T, U>(U)
+            typeParameters
+              covariant T @11
+              covariant U @14
+            parameters
+              requiredPositional u @19
+                type: U
+        returnType: void
 ''');
   }
 
@@ -13828,10 +26766,31 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  C.positional([dynamic x = 1]);
-  C.named({dynamic x: 1});
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          positional @14
+            periodOffset: 13
+            nameEnd: 24
+            parameters
+              optionalPositional x @26
+                type: dynamic
+                constantInitializer
+                  IntegerLiteral
+                    literal: 1 @0
+                    staticType: int
+          named @39
+            periodOffset: 38
+            nameEnd: 44
+            parameters
+              optionalNamed x @46
+                type: dynamic
+                constantInitializer
+                  IntegerLiteral
+                    literal: 1 @0
+                    staticType: int
 ''');
   }
 
@@ -13846,11 +26805,42 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  dynamic x;
-  C.positional([final dynamic this.x = 1]);
-  C.named({final dynamic this.x: 1});
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          x @16
+            type: dynamic
+        constructors
+          positional @23
+            periodOffset: 22
+            nameEnd: 33
+            parameters
+              optionalPositional final this.x @40
+                type: dynamic
+                constantInitializer
+                  IntegerLiteral
+                    literal: 1 @0
+                    staticType: int
+          named @53
+            periodOffset: 52
+            nameEnd: 58
+            parameters
+              optionalNamed final this.x @65
+                type: dynamic
+                constantInitializer
+                  IntegerLiteral
+                    literal: 1 @0
+                    staticType: int
+        accessors
+          synthetic get x @16
+            returnType: dynamic
+          synthetic set x @16
+            parameters
+              requiredPositional _x @16
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -13864,10 +26854,31 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  static void positional([dynamic x = 1]) {}
-  static void named({dynamic x: 1}) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          static positional @24
+            parameters
+              optionalPositional x @36
+                type: dynamic
+                constantInitializer
+                  IntegerLiteral
+                    literal: 1 @0
+                    staticType: int
+            returnType: void
+          static named @61
+            parameters
+              optionalNamed x @68
+                type: dynamic
+                constantInitializer
+                  IntegerLiteral
+                    literal: 1 @0
+                    staticType: int
+            returnType: void
 ''');
   }
 
@@ -13880,8 +26891,27 @@ void positional([x = 1]) {}
 void named({x: 1}) {}
 ''');
     checkElementText(library, r'''
-void positional([dynamic x = 1]) {}
-void named({dynamic x: 1}) {}
+library
+  definingUnit
+    functions
+      positional @5
+        parameters
+          optionalPositional x @17
+            type: dynamic
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @0
+                staticType: int
+        returnType: void
+      named @33
+        parameters
+          optionalNamed x @40
+            type: dynamic
+            constantInitializer
+              IntegerLiteral
+                literal: 1 @0
+                staticType: int
+        returnType: void
 ''');
   }
 
@@ -13891,11 +26921,18 @@ part '';
 class B extends A {}
 ''');
     checkElementText(library, r'''
-part 'test.dart';
-class B {
-}
-class B {
-}
+library
+  definingUnit
+    classes
+      class B @15
+        constructors
+          synthetic @-1
+  parts
+
+      classes
+        class B @15
+          constructors
+            synthetic @-1
 ''');
   }
 
@@ -13912,15 +26949,13 @@ part 'foo.dart';
     var library =
         await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
-library my.lib;
-part 'a.dart';
-part 'b.dart';
---------------------
-unit: a.dart
-
---------------------
-unit: b.dart
-
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+  parts
+    a.dart
+    b.dart
 ''');
   }
 
@@ -13928,11 +26963,12 @@ unit: b.dart
     addSource('/foo/bar.dart', 'part of my.lib;');
     var library = await checkLibrary('library my.lib; part "foo/";');
     checkElementText(library, r'''
-library my.lib;
-part '';
---------------------
-unit: foo
-
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+  parts
+    foo/
 ''');
   }
 
@@ -13943,7 +26979,10 @@ library my.lib;
 part "${foo}/bar.dart";
 ''');
     checkElementText(library, r'''
-library my.lib;
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
 ''');
   }
 
@@ -13955,7 +26994,11 @@ void f() {
 }
 ''');
     checkElementText(library, r'''
-void f() {}
+library
+  definingUnit
+    functions
+      f @5
+        returnType: void
 ''');
   }
 
@@ -13963,9 +27006,21 @@ void f() {}
     var library =
         await checkLibrary('class C { void set x(covariant int value); }');
     checkElementText(library, r'''
-class C {
-  void set x(covariant int value);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic x @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          abstract set x @19
+            parameters
+              requiredPositional covariant value @35
+                type: int
+            returnType: void
 ''');
   }
 
@@ -13977,17 +27032,35 @@ class C {
  */
 void set x(value) {}''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-void set x(dynamic value) {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: dynamic
+    accessors
+      set x @69
+        documentationComment: /**\n * Docs\n */
+        parameters
+          requiredPositional value @71
+            type: dynamic
+        returnType: void
 ''');
   }
 
   test_setter_external() async {
     var library = await checkLibrary('external void set x(int value);');
     checkElementText(library, r'''
-external void set x(int value);
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      external set x @18
+        parameters
+          requiredPositional value @24
+            type: int
+        returnType: void
 ''');
   }
 
@@ -14006,17 +27079,57 @@ class D extends C {
 }
 ''');
     checkElementText(library, r'''
-class A {
-  int t;
-}
-class B extends A {
-  double t;
-}
-class C extends A implements B {
-}
-class D extends C {
-  void set t(dynamic p) {}
-}
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          t @16
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get t @16
+            returnType: int
+          synthetic set t @16
+            parameters
+              requiredPositional _t @16
+                type: int
+            returnType: void
+      class B @27
+        supertype: A
+        fields
+          t @50
+            type: double
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get t @50
+            returnType: double
+          synthetic set t @50
+            parameters
+              requiredPositional _t @50
+                type: double
+            returnType: void
+      class C @61
+        supertype: A
+        interfaces
+          B
+        constructors
+          synthetic @-1
+      class D @96
+        supertype: C
+        fields
+          synthetic t @-1
+            type: dynamic
+        constructors
+          synthetic @-1
+        accessors
+          set t @121
+            parameters
+              requiredPositional p @123
+                type: dynamic
+            returnType: void
 ''');
   }
 
@@ -14025,12 +27138,34 @@ class D extends C {
         await checkLibrary('class C extends D { void set f(value) {} }'
             ' abstract class D { void set f(int value); }');
     checkElementText(library, r'''
-class C extends D {
-  void set f(int value) {}
-}
-abstract class D {
-  void set f(int value);
-}
+library
+  definingUnit
+    classes
+      class C @6
+        supertype: D
+        fields
+          synthetic f @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set f @29
+            parameters
+              requiredPositional value @31
+                type: int
+            returnType: void
+      abstract class D @58
+        fields
+          synthetic f @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          abstract set f @71
+            parameters
+              requiredPositional value @77
+                type: int
+            returnType: void
 ''');
   }
 
@@ -14041,16 +27176,38 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-class C {
-  static void set f(int value) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic static f @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          static set f @23
+            parameters
+              requiredPositional value @29
+                type: int
+            returnType: void
 ''');
   }
 
   test_setter_inferred_type_top_level_implicit_return() async {
     var library = await checkLibrary('set f(int value) {}');
     checkElementText(library, r'''
-void set f(int value) {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static f @-1
+        type: int
+    accessors
+      set f @4
+        parameters
+          requiredPositional value @10
+            type: int
+        returnType: void
 ''');
   }
 
@@ -14058,8 +27215,24 @@ void set f(int value) {}
     var library =
         await checkLibrary('void set x(int value) {} set y(value) {}');
     checkElementText(library, r'''
-void set x(int value) {}
-void set y(dynamic value) {}
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+      synthetic static y @-1
+        type: dynamic
+    accessors
+      set x @9
+        parameters
+          requiredPositional value @15
+            type: int
+        returnType: void
+      set y @29
+        parameters
+          requiredPositional value @31
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -14069,8 +27242,17 @@ final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final int Function<T>(T) v;
-bool f() {}
+library
+  definingUnit
+    topLevelVariables
+      static final v @6
+        type: int Function<T>(T)
+    accessors
+      synthetic static get v @6
+        returnType: int Function<T>(T)
+    functions
+      f @52
+        returnType: bool
 ''');
   }
 
@@ -14081,7 +27263,17 @@ void f<T, U>(bool b) {
 }
 ''');
     checkElementText(library, r'''
-void f<T, U>(bool b) {}
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+          covariant U @10
+        parameters
+          requiredPositional b @18
+            type: bool
+        returnType: void
 ''');
   }
 
@@ -14093,10 +27285,31 @@ class C<T, U> {
 bool f() => false;
 ''');
     checkElementText(library, r'''
-class C<T, U> {
-  int Function(T, U) v;
-}
-bool f() {}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        fields
+          v @22
+            type: int Function(T, U)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get v @22
+            returnType: int Function(T, U)
+          synthetic set v @22
+            parameters
+              requiredPositional _v @22
+                type: int Function(T, U)
+            returnType: void
+    functions
+      f @74
+        returnType: bool
 ''');
   }
 
@@ -14107,7 +27320,17 @@ void f<T, U>(bool b) {
 }
 ''');
     checkElementText(library, r'''
-void f<T, U>(bool b) {}
+library
+  definingUnit
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+          covariant U @10
+        parameters
+          requiredPositional b @18
+            type: bool
+        returnType: void
 ''');
   }
 
@@ -14117,8 +27340,17 @@ final v = f() ? () => 0 : () => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final int Function() v;
-bool f() {}
+library
+  definingUnit
+    topLevelVariables
+      static final v @6
+        type: int Function()
+    accessors
+      synthetic static get v @6
+        returnType: int Function()
+    functions
+      f @40
+        returnType: bool
 ''');
   }
 
@@ -14128,8 +27360,17 @@ final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final int Function(int, String) v;
-bool f() {}
+library
+  definingUnit
+    topLevelVariables
+      static final v @6
+        type: int Function(int, String)
+    accessors
+      synthetic static get v @6
+        returnType: int Function(int, String)
+    functions
+      f @70
+        returnType: bool
 ''');
   }
 
@@ -14137,50 +27378,134 @@ bool f() {}
     var library = await checkLibrary('''
 external int i;
 ''');
-    checkElementText(library, '''
-external int i;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static i @13
+        type: int
+    accessors
+      synthetic static get i @13
+        returnType: int
+      synthetic static set i @13
+        parameters
+          requiredPositional _i @13
+            type: int
+        returnType: void
 ''');
   }
 
   test_type_arguments_explicit_dynamic_dynamic() async {
     var library = await checkLibrary('Map<dynamic, dynamic> m;');
     checkElementText(library, r'''
-Map<dynamic, dynamic> m;
+library
+  definingUnit
+    topLevelVariables
+      static m @22
+        type: Map<dynamic, dynamic>
+    accessors
+      synthetic static get m @22
+        returnType: Map<dynamic, dynamic>
+      synthetic static set m @22
+        parameters
+          requiredPositional _m @22
+            type: Map<dynamic, dynamic>
+        returnType: void
 ''');
   }
 
   test_type_arguments_explicit_dynamic_int() async {
     var library = await checkLibrary('Map<dynamic, int> m;');
     checkElementText(library, r'''
-Map<dynamic, int> m;
+library
+  definingUnit
+    topLevelVariables
+      static m @18
+        type: Map<dynamic, int>
+    accessors
+      synthetic static get m @18
+        returnType: Map<dynamic, int>
+      synthetic static set m @18
+        parameters
+          requiredPositional _m @18
+            type: Map<dynamic, int>
+        returnType: void
 ''');
   }
 
   test_type_arguments_explicit_String_dynamic() async {
     var library = await checkLibrary('Map<String, dynamic> m;');
     checkElementText(library, r'''
-Map<String, dynamic> m;
+library
+  definingUnit
+    topLevelVariables
+      static m @21
+        type: Map<String, dynamic>
+    accessors
+      synthetic static get m @21
+        returnType: Map<String, dynamic>
+      synthetic static set m @21
+        parameters
+          requiredPositional _m @21
+            type: Map<String, dynamic>
+        returnType: void
 ''');
   }
 
   test_type_arguments_explicit_String_int() async {
     var library = await checkLibrary('Map<String, int> m;');
     checkElementText(library, r'''
-Map<String, int> m;
+library
+  definingUnit
+    topLevelVariables
+      static m @17
+        type: Map<String, int>
+    accessors
+      synthetic static get m @17
+        returnType: Map<String, int>
+      synthetic static set m @17
+        parameters
+          requiredPositional _m @17
+            type: Map<String, int>
+        returnType: void
 ''');
   }
 
   test_type_arguments_implicit() async {
     var library = await checkLibrary('Map m;');
     checkElementText(library, r'''
-Map<dynamic, dynamic> m;
+library
+  definingUnit
+    topLevelVariables
+      static m @4
+        type: Map<dynamic, dynamic>
+    accessors
+      synthetic static get m @4
+        returnType: Map<dynamic, dynamic>
+      synthetic static set m @4
+        parameters
+          requiredPositional _m @4
+            type: Map<dynamic, dynamic>
+        returnType: void
 ''');
   }
 
   test_type_dynamic() async {
     var library = await checkLibrary('dynamic d;');
     checkElementText(library, r'''
-dynamic d;
+library
+  definingUnit
+    topLevelVariables
+      static d @8
+        type: dynamic
+    accessors
+      synthetic static get d @8
+        returnType: dynamic
+      synthetic static set d @8
+        parameters
+          requiredPositional _d @8
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -14192,9 +27517,29 @@ var a = () {
 };
 var b = 0;
 ''');
-    checkElementText(library, '''
-int Function() a;
-int b;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static a @4
+        type: int Function()
+      static b @42
+        type: int
+    accessors
+      synthetic static get a @4
+        returnType: int Function()
+      synthetic static set a @4
+        parameters
+          requiredPositional _a @4
+            type: int Function()
+        returnType: void
+      synthetic static get b @42
+        returnType: int
+      synthetic static set b @42
+        parameters
+          requiredPositional _b @42
+            type: int
+        returnType: void
 ''');
   }
 
@@ -14204,9 +27549,22 @@ int b;
 import 'a.dart' deferred as a;
 var x = a.loadLibrary;
 ''');
-    checkElementText(library, '''
-import 'a.dart' deferred as a;
-Future<dynamic> Function() x;
+    checkElementText(library, r'''
+library
+  imports
+    a.dart deferred as a @28
+  definingUnit
+    topLevelVariables
+      static x @35
+        type: Future<dynamic> Function()
+    accessors
+      synthetic static get x @35
+        returnType: Future<dynamic> Function()
+      synthetic static set x @35
+        parameters
+          requiredPositional _x @35
+            type: Future<dynamic> Function()
+        returnType: void
 ''');
   }
 
@@ -14214,8 +27572,20 @@ Future<dynamic> Function() x;
     var library = await checkLibrary('''
 var x = (int f(String x)) => 0;
 ''');
-    checkElementText(library, '''
-int Function(int Function(String)) x;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: int Function(int Function(String))
+    accessors
+      synthetic static get x @4
+        returnType: int Function(int Function(String))
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: int Function(int Function(String))
+        returnType: void
 ''');
   }
 
@@ -14223,8 +27593,20 @@ int Function(int Function(String)) x;
     var library = await checkLibrary('''
 var x = (int Function(String) f) => 0;
 ''');
-    checkElementText(library, '''
-int Function(int Function(String)) x;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: int Function(int Function(String))
+    accessors
+      synthetic static get x @4
+        returnType: int Function(int Function(String))
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: int Function(int Function(String))
+        returnType: void
 ''');
   }
 
@@ -14235,9 +27617,22 @@ int Function(int Function(String)) x;
 import 'a.dart';
 var y = x;
 ''');
-    checkElementText(library, '''
-import 'a.dart';
-int y;
+    checkElementText(library, r'''
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static y @21
+        type: int
+    accessors
+      synthetic static get y @21
+        returnType: int
+      synthetic static set y @21
+        parameters
+          requiredPositional _y @21
+            type: int
+        returnType: void
 ''');
   }
 
@@ -14254,13 +27649,43 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-class A<T> {
-  T value;
-  A(final T this.value);
-}
-class B {
-  A<String> a;
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          value @17
+            type: T
+        constructors
+          @27
+            parameters
+              requiredPositional final this.value @34
+                type: T
+        accessors
+          synthetic get value @17
+            returnType: T
+          synthetic set value @17
+            parameters
+              requiredPositional _value @17
+                type: T
+            returnType: void
+      class B @51
+        fields
+          a @61
+            type: A<String>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get a @61
+            returnType: A<String>
+          synthetic set a @61
+            parameters
+              requiredPositional _a @61
+                type: A<String>
+            returnType: void
 ''');
   }
 
@@ -14281,19 +27706,72 @@ class C {
 mixin M {}
 ''');
     checkElementText(library, r'''
-class A<T> {
-  T value;
-  A(final T this.value);
-}
-class alias B<T> extends A<T> with M {
-  synthetic B(final T value) : super(
-        value/*location: test.dart;B;;value*/);
-}
-class C {
-  B<int> a;
-}
-mixin M on Object {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          value @17
+            type: T
+        constructors
+          @27
+            parameters
+              requiredPositional final this.value @34
+                type: T
+        accessors
+          synthetic get value @17
+            returnType: T
+          synthetic set value @17
+            parameters
+              requiredPositional _value @17
+                type: T
+            returnType: void
+      class alias B @51
+        typeParameters
+          covariant T @53
+            defaultType: dynamic
+        supertype: A<T>
+        mixins
+          M
+        constructors
+          synthetic @-1
+            parameters
+              requiredPositional final value @-1
+                type: T
+            constantInitializers
+              SuperConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    SimpleIdentifier
+                      staticElement: value@-1
+                      staticType: T
+                      token: value @-1
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+      class C @78
+        fields
+          a @88
+            type: B<int>
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get a @88
+            returnType: B<int>
+          synthetic set a @88
+            parameters
+              requiredPositional _a @88
+                type: B<int>
+            returnType: void
+    mixins
+      mixin M @112
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -14305,10 +27783,29 @@ class A<T> {
 }
 ''');
     checkElementText(library, r'''
-class A<T> {
-  int f;
-  A(final int this.f);
-}
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          f @19
+            type: int
+        constructors
+          @28
+            parameters
+              requiredPositional final this.f @35
+                type: int
+        accessors
+          synthetic get f @19
+            returnType: int
+          synthetic set f @19
+            parameters
+              requiredPositional _f @19
+                type: int
+            returnType: void
 ''');
   }
 
@@ -14322,12 +27819,36 @@ var b = A(() => a);
 ''');
     // There is no cycle with `a` and `b`, because `A` is not generic,
     // so the type of `new A(...)` does not depend on its arguments.
-    checkElementText(library, '''
-class A {
-  A(dynamic _);
-}
-A a;
-A b;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional _ @14
+                type: dynamic
+    topLevelVariables
+      static a @24
+        type: A
+      static b @44
+        type: A
+    accessors
+      synthetic static get a @24
+        returnType: A
+      synthetic static set a @24
+        parameters
+          requiredPositional _a @24
+            type: A
+        returnType: void
+      synthetic static get b @44
+        returnType: A
+      synthetic static set b @44
+        parameters
+          requiredPositional _b @44
+            type: A
+        returnType: void
 ''');
   }
 
@@ -14340,9 +27861,22 @@ import 'b.dart';
 var v = C;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-import 'b.dart';
-dynamic v;
+library
+  imports
+    a.dart
+    b.dart
+  definingUnit
+    topLevelVariables
+      static v @38
+        type: dynamic
+    accessors
+      synthetic static get v @38
+        returnType: dynamic
+      synthetic static set v @38
+        parameters
+          requiredPositional _v @38
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -14350,8 +27884,20 @@ dynamic v;
     var library = await checkLibrary('''
 var x = (t) => (u) => t + u;
 ''');
-    checkElementText(library, '''
-dynamic Function(dynamic) Function(dynamic) x;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: dynamic Function(dynamic) Function(dynamic)
+    accessors
+      synthetic static get x @4
+        returnType: dynamic Function(dynamic) Function(dynamic)
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: dynamic Function(dynamic) Function(dynamic)
+        returnType: void
 ''');
   }
 
@@ -14359,8 +27905,20 @@ dynamic Function(dynamic) Function(dynamic) x;
     var library = await checkLibrary('''
 var x = (int t) => (int u) => t + u;
 ''');
-    checkElementText(library, '''
-int Function(int) Function(int) x;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: int Function(int) Function(int)
+    accessors
+      synthetic static get x @4
+        returnType: int Function(int) Function(int)
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: int Function(int) Function(int)
+        returnType: void
 ''');
   }
 
@@ -14368,8 +27926,20 @@ int Function(int) Function(int) x;
     var library = await checkLibrary('''
 var x = ([y: 0]) => y;
 ''');
-    checkElementText(library, '''
-dynamic Function([dynamic]) x;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: dynamic Function([dynamic])
+    accessors
+      synthetic static get x @4
+        returnType: dynamic Function([dynamic])
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: dynamic Function([dynamic])
+        returnType: void
 ''');
   }
 
@@ -14388,16 +27958,42 @@ final b = B();
 final c = C(b);
 ''');
     checkElementText(library, r'''
-class A {
-}
-class B extends A {
-}
-class C<T extends A = A> {
-  final T f;
-  const C(final T this.f);
-}
-final B b;
-final C<B> c;
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @18
+        supertype: A
+        constructors
+          synthetic @-1
+      class C @40
+        typeParameters
+          covariant T @42
+            bound: A
+            defaultType: A
+        fields
+          final f @67
+            type: T
+        constructors
+          const @78
+            parameters
+              requiredPositional final this.f @85
+                type: T
+        accessors
+          synthetic get f @67
+            returnType: T
+    topLevelVariables
+      static final b @98
+        type: B
+      static final c @113
+        type: C<B>
+    accessors
+      synthetic static get b @98
+        returnType: B
+      synthetic static get c @113
+        returnType: C<B>
 ''');
   }
 
@@ -14408,11 +28004,29 @@ extension on String {
 }
 var v = 'a'.foo;
 ''');
-    checkElementText(library, '''
-extension  on String {
-  int get foo {}
-}
-int v;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      @-1
+        extendedType: String
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          get foo @32
+            returnType: int
+    topLevelVariables
+      static v @48
+        type: int
+    accessors
+      synthetic static get v @48
+        returnType: int
+      synthetic static set v @48
+        parameters
+          requiredPositional _v @48
+            type: int
+        returnType: void
 ''');
   }
 
@@ -14425,12 +28039,50 @@ V V2 = null;
 int V = 0;
 ''', allowErrors: true);
     checkElementText(library, r'''
-typedef F = dynamic Function(dynamic p);
-class C<T extends dynamic> {
-}
-dynamic V2;
-int V;
-dynamic f(dynamic p) {}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      functionTypeAliasBased F @34
+        aliasedType: dynamic Function(dynamic)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional p @-1
+              type: dynamic
+          returnType: dynamic
+    topLevelVariables
+      static V2 @56
+        type: dynamic
+      static V @71
+        type: int
+    accessors
+      synthetic static get V2 @56
+        returnType: dynamic
+      synthetic static set V2 @56
+        parameters
+          requiredPositional _V2 @56
+            type: dynamic
+        returnType: void
+      synthetic static get V @71
+        returnType: int
+      synthetic static set V @71
+        parameters
+          requiredPositional _V @71
+            type: int
+        returnType: void
+    functions
+      f @44
+        parameters
+          requiredPositional p @48
+            type: dynamic
+        returnType: dynamic
 ''');
   }
 
@@ -14440,8 +28092,28 @@ var V;
 static List<V> V2;
 ''', allowErrors: true);
     checkElementText(library, r'''
-dynamic V;
-List<dynamic> V2;
+library
+  definingUnit
+    topLevelVariables
+      static V @4
+        type: dynamic
+      static V2 @22
+        type: List<dynamic>
+    accessors
+      synthetic static get V @4
+        returnType: dynamic
+      synthetic static set V @4
+        parameters
+          requiredPositional _V @4
+            type: dynamic
+        returnType: void
+      synthetic static get V2 @22
+        returnType: List<dynamic>
+      synthetic static set V2 @22
+        parameters
+          requiredPositional _V2 @22
+            type: List<dynamic>
+        returnType: void
 ''');
   }
 
@@ -14452,9 +28124,21 @@ class C<T> {
 }
 ''', allowErrors: true);
     checkElementText(library, r'''
-class C<T> {
-  dynamic m(dynamic p) {}
-}
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          m @15
+            parameters
+              requiredPositional p @21
+                type: dynamic
+            returnType: dynamic
 ''');
   }
 
@@ -14463,7 +28147,19 @@ class C<T> {
 p.C v;
 ''', allowErrors: true);
     checkElementText(library, r'''
-dynamic v;
+library
+  definingUnit
+    topLevelVariables
+      static v @4
+        type: dynamic
+    accessors
+      synthetic static get v @4
+        returnType: dynamic
+      synthetic static set v @4
+        parameters
+          requiredPositional _v @4
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -14471,14 +28167,38 @@ dynamic v;
     featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('Never d;');
     checkElementText(library, r'''
-Null* d;
+library
+  definingUnit
+    topLevelVariables
+      static d @6
+        type: Null*
+    accessors
+      synthetic static get d @6
+        returnType: Null*
+      synthetic static set d @6
+        parameters
+          requiredPositional _d @6
+            type: Null*
+        returnType: void
 ''');
   }
 
   test_type_never_enableNnbd() async {
     var library = await checkLibrary('Never d;');
     checkElementText(library, r'''
-Never d;
+library
+  definingUnit
+    topLevelVariables
+      static d @6
+        type: Never
+    accessors
+      synthetic static get d @6
+        returnType: Never
+      synthetic static set d @6
+        parameters
+          requiredPositional _d @6
+            type: Never
+        returnType: void
 ''');
   }
 
@@ -14488,10 +28208,27 @@ class C<T> {
   T t;
 }
 ''');
-    checkElementText(library, '''
-class C<T> {
-  T t;
-}
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          t @17
+            type: T
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get t @17
+            returnType: T
+          synthetic set t @17
+            parameters
+              requiredPositional _t @17
+                type: T
+            returnType: void
 ''');
   }
 
@@ -14501,10 +28238,27 @@ class C<T> {
   T? t;
 }
 ''');
-    checkElementText(library, '''
-class C<T> {
-  T? t;
-}
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          t @18
+            type: T?
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get t @18
+            returnType: T?
+          synthetic set t @18
+            parameters
+              requiredPositional _t @18
+                type: T?
+            returnType: void
 ''');
   }
 
@@ -14515,10 +28269,27 @@ class C<T> {
   T t;
 }
 ''');
-    checkElementText(library, '''
-class C<T> {
-  T* t;
-}
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        fields
+          t @17
+            type: T*
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get t @17
+            returnType: T*
+          synthetic set t @17
+            parameters
+              requiredPositional _t @17
+                type: T*
+            returnType: void
 ''');
   }
 
@@ -14531,18 +28302,68 @@ C c;
 E e;
 F f;''');
     checkElementText(library, r'''
-typedef F = dynamic Function();
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
-class C {
-}
-C c;
-E e;
-dynamic Function() f;
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+    enums
+      enum E @16
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const v @20
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get v @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    typeAliases
+      functionTypeAliasBased F @32
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+    topLevelVariables
+      static c @39
+        type: C
+      static e @44
+        type: E
+      static f @49
+        type: dynamic Function()
+          aliasElement: self::@typeAlias::F
+    accessors
+      synthetic static get c @39
+        returnType: C
+      synthetic static set c @39
+        parameters
+          requiredPositional _c @39
+            type: C
+        returnType: void
+      synthetic static get e @44
+        returnType: E
+      synthetic static set e @44
+        parameters
+          requiredPositional _e @44
+            type: E
+        returnType: void
+      synthetic static get f @49
+        returnType: dynamic Function()
+          aliasElement: self::@typeAlias::F
+      synthetic static set f @49
+        parameters
+          requiredPositional _f @49
+            type: dynamic Function()
+              aliasElement: self::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14551,23 +28372,72 @@ dynamic Function() f;
     var library =
         await checkLibrary('library l; part "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-library l;
-part 'a.dart';
-C c;
-E e;
-dynamic Function() f;
---------------------
-unit: a.dart
-
-typedef F = dynamic Function();
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
-class C {
-}
+library
+  name: l
+  nameOffset: 8
+  definingUnit
+    topLevelVariables
+      static c @28
+        type: C
+      static e @33
+        type: E
+      static f @38
+        type: dynamic Function()
+          aliasElement: self::@typeAlias::F
+    accessors
+      synthetic static get c @28
+        returnType: C
+      synthetic static set c @28
+        parameters
+          requiredPositional _c @28
+            type: C
+        returnType: void
+      synthetic static get e @33
+        returnType: E
+      synthetic static set e @33
+        parameters
+          requiredPositional _e @33
+            type: E
+        returnType: void
+      synthetic static get f @38
+        returnType: dynamic Function()
+          aliasElement: self::@typeAlias::F
+      synthetic static set f @38
+        parameters
+          requiredPositional _f @38
+            type: dynamic Function()
+              aliasElement: self::@typeAlias::F
+        returnType: void
+  parts
+    a.dart
+      classes
+        class C @17
+          constructors
+            synthetic @-1
+      enums
+        enum E @27
+          fields
+            synthetic final index @-1
+              type: int
+            synthetic static const values @-1
+              type: List<E>
+            static const v @31
+              type: E
+          accessors
+            synthetic get index @-1
+              returnType: int
+            synthetic static get values @-1
+              returnType: List<E>
+            synthetic static get v @-1
+              returnType: E
+          methods
+            toString @-1
+              returnType: String
+      typeAliases
+        functionTypeAliasBased F @43
+          aliasedType: dynamic Function()
+          aliasedElement: GenericFunctionTypeElement
+            returnType: dynamic
 ''');
   }
 
@@ -14576,23 +28446,72 @@ class C {
     var library = await checkLibrary(
         'library l; part "a.dart"; class C {} enum E { v } typedef F();');
     checkElementText(library, r'''
-library l;
-part 'a.dart';
-typedef F = dynamic Function();
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
-class C {
-}
---------------------
-unit: a.dart
-
-C c;
-E e;
-dynamic Function() f;
+library
+  name: l
+  nameOffset: 8
+  definingUnit
+    classes
+      class C @32
+        constructors
+          synthetic @-1
+    enums
+      enum E @42
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const v @46
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get v @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    typeAliases
+      functionTypeAliasBased F @58
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+  parts
+    a.dart
+      topLevelVariables
+        static c @13
+          type: C
+        static e @18
+          type: E
+        static f @23
+          type: dynamic Function()
+            aliasElement: self::@typeAlias::F
+      accessors
+        synthetic static get c @13
+          returnType: C
+        synthetic static set c @13
+          parameters
+            requiredPositional _c @13
+              type: C
+          returnType: void
+        synthetic static get e @18
+          returnType: E
+        synthetic static set e @18
+          parameters
+            requiredPositional _e @18
+              type: E
+          returnType: void
+        synthetic static get f @23
+          returnType: dynamic Function()
+            aliasElement: self::@typeAlias::F
+        synthetic static set f @23
+          parameters
+            requiredPositional _f @23
+              type: dynamic Function()
+                aliasElement: self::@typeAlias::F
+          returnType: void
 ''');
   }
 
@@ -14602,27 +28521,73 @@ dynamic Function() f;
     var library =
         await checkLibrary('library l; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
-library l;
-part 'a.dart';
-part 'b.dart';
---------------------
-unit: a.dart
-
-typedef F = dynamic Function();
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
-class C {
-}
---------------------
-unit: b.dart
-
-C c;
-E e;
-dynamic Function() f;
+library
+  name: l
+  nameOffset: 8
+  definingUnit
+  parts
+    a.dart
+      classes
+        class C @17
+          constructors
+            synthetic @-1
+      enums
+        enum E @27
+          fields
+            synthetic final index @-1
+              type: int
+            synthetic static const values @-1
+              type: List<E>
+            static const v @31
+              type: E
+          accessors
+            synthetic get index @-1
+              returnType: int
+            synthetic static get values @-1
+              returnType: List<E>
+            synthetic static get v @-1
+              returnType: E
+          methods
+            toString @-1
+              returnType: String
+      typeAliases
+        functionTypeAliasBased F @43
+          aliasedType: dynamic Function()
+          aliasedElement: GenericFunctionTypeElement
+            returnType: dynamic
+    b.dart
+      topLevelVariables
+        static c @13
+          type: C
+        static e @18
+          type: E
+        static f @23
+          type: dynamic Function()
+            aliasElement: self::@typeAlias::F
+      accessors
+        synthetic static get c @13
+          returnType: C
+        synthetic static set c @13
+          parameters
+            requiredPositional _c @13
+              type: C
+          returnType: void
+        synthetic static get e @18
+          returnType: E
+        synthetic static set e @18
+          parameters
+            requiredPositional _e @18
+              type: E
+          returnType: void
+        synthetic static get f @23
+          returnType: dynamic Function()
+            aliasElement: self::@typeAlias::F
+        synthetic static set f @23
+          parameters
+            requiredPositional _f @23
+              type: dynamic Function()
+                aliasElement: self::@typeAlias::F
+          returnType: void
 ''');
   }
 
@@ -14631,63 +28596,189 @@ dynamic Function() f;
         'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
     var library = await checkLibrary('library l; part "a.dart";');
     checkElementText(library, r'''
-library l;
-part 'a.dart';
---------------------
-unit: a.dart
-
-typedef F = dynamic Function();
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
-class C {
-}
-C c;
-E e;
-dynamic Function() f;
+library
+  name: l
+  nameOffset: 8
+  definingUnit
+  parts
+    a.dart
+      classes
+        class C @17
+          constructors
+            synthetic @-1
+      enums
+        enum E @27
+          fields
+            synthetic final index @-1
+              type: int
+            synthetic static const values @-1
+              type: List<E>
+            static const v @31
+              type: E
+          accessors
+            synthetic get index @-1
+              returnType: int
+            synthetic static get values @-1
+              returnType: List<E>
+            synthetic static get v @-1
+              returnType: E
+          methods
+            toString @-1
+              returnType: String
+      typeAliases
+        functionTypeAliasBased F @43
+          aliasedType: dynamic Function()
+          aliasedElement: GenericFunctionTypeElement
+            returnType: dynamic
+      topLevelVariables
+        static c @50
+          type: C
+        static e @55
+          type: E
+        static f @60
+          type: dynamic Function()
+            aliasElement: self::@typeAlias::F
+      accessors
+        synthetic static get c @50
+          returnType: C
+        synthetic static set c @50
+          parameters
+            requiredPositional _c @50
+              type: C
+          returnType: void
+        synthetic static get e @55
+          returnType: E
+        synthetic static set e @55
+          parameters
+            requiredPositional _e @55
+              type: E
+          returnType: void
+        synthetic static get f @60
+          returnType: dynamic Function()
+            aliasElement: self::@typeAlias::F
+        synthetic static set f @60
+          parameters
+            requiredPositional _f @60
+              type: dynamic Function()
+                aliasElement: self::@typeAlias::F
+          returnType: void
 ''');
   }
 
   test_type_reference_to_class() async {
     var library = await checkLibrary('class C {} C c;');
     checkElementText(library, r'''
-class C {
-}
-C c;
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @13
+        type: C
+    accessors
+      synthetic static get c @13
+        returnType: C
+      synthetic static set c @13
+        parameters
+          requiredPositional _c @13
+            type: C
+        returnType: void
 ''');
   }
 
   test_type_reference_to_class_with_type_arguments() async {
     var library = await checkLibrary('class C<T, U> {} C<int, String> c;');
     checkElementText(library, r'''
-class C<T, U> {
-}
-C<int, String> c;
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @32
+        type: C<int, String>
+    accessors
+      synthetic static get c @32
+        returnType: C<int, String>
+      synthetic static set c @32
+        parameters
+          requiredPositional _c @32
+            type: C<int, String>
+        returnType: void
 ''');
   }
 
   test_type_reference_to_class_with_type_arguments_implicit() async {
     var library = await checkLibrary('class C<T, U> {} C c;');
     checkElementText(library, r'''
-class C<T, U> {
-}
-C<dynamic, dynamic> c;
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    topLevelVariables
+      static c @19
+        type: C<dynamic, dynamic>
+    accessors
+      synthetic static get c @19
+        returnType: C<dynamic, dynamic>
+      synthetic static set c @19
+        parameters
+          requiredPositional _c @19
+            type: C<dynamic, dynamic>
+        returnType: void
 ''');
   }
 
   test_type_reference_to_enum() async {
     var library = await checkLibrary('enum E { v } E e;');
     checkElementText(library, r'''
-enum E {
-  synthetic final int index;
-  synthetic static const List<E> values;
-  static const E v;
-  String toString() {}
-}
-E e;
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E>
+          static const v @9
+            type: E
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic static get v @-1
+            returnType: E
+        methods
+          toString @-1
+            returnType: String
+    topLevelVariables
+      static e @15
+        type: E
+    accessors
+      synthetic static get e @15
+        returnType: E
+      synthetic static set e @15
+        parameters
+          requiredPositional _e @15
+            type: E
+        returnType: void
 ''');
   }
 
@@ -14695,10 +28786,42 @@ E e;
     addLibrarySource('/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @19
+        type: C
+      static e @24
+        type: E
+      static f @29
+        type: dynamic Function()
+          aliasElement: a.dart::@typeAlias::F
+    accessors
+      synthetic static get c @19
+        returnType: C
+      synthetic static set c @19
+        parameters
+          requiredPositional _c @19
+            type: C
+        returnType: void
+      synthetic static get e @24
+        returnType: E
+      synthetic static set e @24
+        parameters
+          requiredPositional _e @24
+            type: E
+        returnType: void
+      synthetic static get f @29
+        returnType: dynamic Function()
+          aliasElement: a.dart::@typeAlias::F
+      synthetic static set f @29
+        parameters
+          requiredPositional _f @29
+            type: dynamic Function()
+              aliasElement: a.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14707,10 +28830,42 @@ dynamic Function() f;
     addLibrarySource('/b.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @19
+        type: C
+      static e @24
+        type: E
+      static f @29
+        type: dynamic Function()
+          aliasElement: b.dart::@typeAlias::F
+    accessors
+      synthetic static get c @19
+        returnType: C
+      synthetic static set c @19
+        parameters
+          requiredPositional _c @19
+            type: C
+        returnType: void
+      synthetic static get e @24
+        returnType: E
+      synthetic static set e @24
+        parameters
+          requiredPositional _e @24
+            type: E
+        returnType: void
+      synthetic static get f @29
+        returnType: dynamic Function()
+          aliasElement: b.dart::@typeAlias::F
+      synthetic static set f @29
+        parameters
+          requiredPositional _f @29
+            type: dynamic Function()
+              aliasElement: b.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14720,10 +28875,42 @@ dynamic Function() f;
     addLibrarySource('/c.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @19
+        type: C
+      static e @24
+        type: E
+      static f @29
+        type: dynamic Function()
+          aliasElement: c.dart::@typeAlias::F
+    accessors
+      synthetic static get c @19
+        returnType: C
+      synthetic static set c @19
+        parameters
+          requiredPositional _c @19
+            type: C
+        returnType: void
+      synthetic static get e @24
+        returnType: E
+      synthetic static set e @24
+        parameters
+          requiredPositional _e @24
+            type: E
+        returnType: void
+      synthetic static get f @29
+        returnType: dynamic Function()
+          aliasElement: c.dart::@typeAlias::F
+      synthetic static set f @29
+        parameters
+          requiredPositional _f @29
+            type: dynamic Function()
+              aliasElement: c.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14733,10 +28920,42 @@ dynamic Function() f;
     addLibrarySource('/a/c/c.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @21
+        type: C
+      static e @26
+        type: E
+      static f @31
+        type: dynamic Function()
+          aliasElement: c.dart::@typeAlias::F
+    accessors
+      synthetic static get c @21
+        returnType: C
+      synthetic static set c @21
+        parameters
+          requiredPositional _c @21
+            type: C
+        returnType: void
+      synthetic static get e @26
+        returnType: E
+      synthetic static set e @26
+        parameters
+          requiredPositional _e @26
+            type: E
+        returnType: void
+      synthetic static get f @31
+        returnType: dynamic Function()
+          aliasElement: c.dart::@typeAlias::F
+      synthetic static set f @31
+        parameters
+          requiredPositional _f @31
+            type: dynamic Function()
+              aliasElement: c.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14745,10 +28964,42 @@ dynamic Function() f;
     addLibrarySource('/a/b/b.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @21
+        type: C
+      static e @26
+        type: E
+      static f @31
+        type: dynamic Function()
+          aliasElement: b.dart::@typeAlias::F
+    accessors
+      synthetic static get c @21
+        returnType: C
+      synthetic static set c @21
+        parameters
+          requiredPositional _c @21
+            type: C
+        returnType: void
+      synthetic static get e @26
+        returnType: E
+      synthetic static set e @26
+        parameters
+          requiredPositional _e @26
+            type: E
+        returnType: void
+      synthetic static get f @31
+        returnType: dynamic Function()
+          aliasElement: b.dart::@typeAlias::F
+      synthetic static set f @31
+        parameters
+          requiredPositional _f @31
+            type: dynamic Function()
+              aliasElement: b.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14757,10 +29008,42 @@ dynamic Function() f;
     addSource('/b.dart', 'part of l; class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @19
+        type: C
+      static e @24
+        type: E
+      static f @29
+        type: dynamic Function()
+          aliasElement: a.dart::@typeAlias::F
+    accessors
+      synthetic static get c @19
+        returnType: C
+      synthetic static set c @19
+        parameters
+          requiredPositional _c @19
+            type: C
+        returnType: void
+      synthetic static get e @24
+        returnType: E
+      synthetic static set e @24
+        parameters
+          requiredPositional _e @24
+            type: E
+        returnType: void
+      synthetic static get f @29
+        returnType: dynamic Function()
+          aliasElement: a.dart::@typeAlias::F
+      synthetic static set f @29
+        parameters
+          requiredPositional _f @29
+            type: dynamic Function()
+              aliasElement: a.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14770,9 +29053,30 @@ dynamic Function() f;
     addSource('/p2.dart', 'part of l; class C2 {}');
     var library = await checkLibrary('import "a.dart"; C1 c1; C2 c2;');
     checkElementText(library, r'''
-import 'a.dart';
-C1 c1;
-C2 c2;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c1 @20
+        type: C1
+      static c2 @27
+        type: C2
+    accessors
+      synthetic static get c1 @20
+        returnType: C1
+      synthetic static set c1 @20
+        parameters
+          requiredPositional _c1 @20
+            type: C1
+        returnType: void
+      synthetic static get c2 @27
+        returnType: C2
+      synthetic static set c2 @27
+        parameters
+          requiredPositional _c2 @27
+            type: C2
+        returnType: void
 ''');
   }
 
@@ -14781,10 +29085,42 @@ C2 c2;
     addSource('/a/c.dart', 'part of l; class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a/b.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'b.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    b.dart
+  definingUnit
+    topLevelVariables
+      static c @21
+        type: C
+      static e @26
+        type: E
+      static f @31
+        type: dynamic Function()
+          aliasElement: b.dart::@typeAlias::F
+    accessors
+      synthetic static get c @21
+        returnType: C
+      synthetic static set c @21
+        parameters
+          requiredPositional _c @21
+            type: C
+        returnType: void
+      synthetic static get e @26
+        returnType: E
+      synthetic static set e @26
+        parameters
+          requiredPositional _e @26
+            type: E
+        returnType: void
+      synthetic static get f @31
+        returnType: dynamic Function()
+          aliasElement: b.dart::@typeAlias::F
+      synthetic static set f @31
+        parameters
+          requiredPositional _f @31
+            type: dynamic Function()
+              aliasElement: b.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14792,18 +29128,69 @@ dynamic Function() f;
     addLibrarySource('/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
-import 'a.dart';
-C c;
-E e;
-dynamic Function() f;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static c @19
+        type: C
+      static e @24
+        type: E
+      static f @29
+        type: dynamic Function()
+          aliasElement: a.dart::@typeAlias::F
+    accessors
+      synthetic static get c @19
+        returnType: C
+      synthetic static set c @19
+        parameters
+          requiredPositional _c @19
+            type: C
+        returnType: void
+      synthetic static get e @24
+        returnType: E
+      synthetic static set e @24
+        parameters
+          requiredPositional _e @24
+            type: E
+        returnType: void
+      synthetic static get f @29
+        returnType: dynamic Function()
+          aliasElement: a.dart::@typeAlias::F
+      synthetic static set f @29
+        parameters
+          requiredPositional _f @29
+            type: dynamic Function()
+              aliasElement: a.dart::@typeAlias::F
+        returnType: void
 ''');
   }
 
   test_type_reference_to_typedef() async {
     var library = await checkLibrary('typedef F(); F f;');
     checkElementText(library, r'''
-typedef F = dynamic Function();
-dynamic Function() f;
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
+    topLevelVariables
+      static f @15
+        type: dynamic Function()
+          aliasElement: self::@typeAlias::F
+    accessors
+      synthetic static get f @15
+        returnType: dynamic Function()
+          aliasElement: self::@typeAlias::F
+      synthetic static set f @15
+        parameters
+          requiredPositional _f @15
+            type: dynamic Function()
+              aliasElement: self::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -14811,23 +29198,107 @@ dynamic Function() f;
     var library =
         await checkLibrary('typedef U F<T, U>(T t); F<int, String> f;');
     checkElementText(library, r'''
-typedef F<T, U> = U Function(T t);
-String Function(int) f;
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @10
+        typeParameters
+          contravariant T @12
+            defaultType: dynamic
+          covariant U @15
+            defaultType: dynamic
+        aliasedType: U Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: U
+    topLevelVariables
+      static f @39
+        type: String Function(int)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            int
+            String
+    accessors
+      synthetic static get f @39
+        returnType: String Function(int)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            int
+            String
+      synthetic static set f @39
+        parameters
+          requiredPositional _f @39
+            type: String Function(int)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                int
+                String
+        returnType: void
 ''');
   }
 
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
     var library = await checkLibrary('typedef U F<T, U>(T t); F f;');
     checkElementText(library, r'''
-typedef F<T, U> = U Function(T t);
-dynamic Function(dynamic) f;
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @10
+        typeParameters
+          contravariant T @12
+            defaultType: dynamic
+          covariant U @15
+            defaultType: dynamic
+        aliasedType: U Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: U
+    topLevelVariables
+      static f @26
+        type: dynamic Function(dynamic)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            dynamic
+            dynamic
+    accessors
+      synthetic static get f @26
+        returnType: dynamic Function(dynamic)
+          aliasElement: self::@typeAlias::F
+          aliasArguments
+            dynamic
+            dynamic
+      synthetic static set f @26
+        parameters
+          requiredPositional _f @26
+            type: dynamic Function(dynamic)
+              aliasElement: self::@typeAlias::F
+              aliasArguments
+                dynamic
+                dynamic
+        returnType: void
 ''');
   }
 
   test_type_unresolved() async {
     var library = await checkLibrary('C c;', allowErrors: true);
     checkElementText(library, r'''
-dynamic c;
+library
+  definingUnit
+    topLevelVariables
+      static c @2
+        type: dynamic
+    accessors
+      synthetic static get c @2
+        returnType: dynamic
+      synthetic static set c @2
+        parameters
+          requiredPositional _c @2
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -14835,8 +29306,21 @@ dynamic c;
     var library = await checkLibrary('import "dart:core" as core; core.C c;',
         allowErrors: true);
     checkElementText(library, r'''
-import 'dart:core' as core;
-dynamic c;
+library
+  imports
+    dart:core as core @22
+  definingUnit
+    topLevelVariables
+      static c @35
+        type: dynamic
+    accessors
+      synthetic static get c @35
+        returnType: dynamic
+      synthetic static set c @35
+        parameters
+          requiredPositional _c @35
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -14844,24 +29328,45 @@ dynamic c;
     var library = await checkLibrary(r'''
 typedef void F(T a<T, U>(U u));
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F = void Function(T Function<T, U>(U) a/*<covariant T, covariant U>*//*(U u)*/);
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        aliasedType: void Function(T Function<T, U>(U))
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: T Function<T, U>(U)
+              typeParameters
+                covariant T @-1
+                covariant U @-1
+              parameters
+                requiredPositional u @-1
+                  type: U
+          returnType: void
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_contravariant() async {
     var library = await checkLibrary(r'''
 typedef F<T> = void Function(T);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<contravariant T> = void Function(T );
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: T
+          returnType: void
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_contravariant2() async {
@@ -14869,37 +29374,67 @@ typedef F<contravariant T> = void Function(T );
 typedef F1<T> = void Function(T);
 typedef F2<T> = F1<T> Function();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<contravariant T> = void Function(T );
-typedef F2<contravariant T> = void Function(T) Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F1 @8
+        typeParameters
+          contravariant T @11
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: T
+          returnType: void
+      F2 @42
+        typeParameters
+          contravariant T @45
+            defaultType: dynamic
+        aliasedType: void Function(T) Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void Function(T)
+            aliasElement: self::@typeAlias::F1
+            aliasArguments
+              T
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_covariant() async {
     var library = await checkLibrary(r'''
 typedef F<T> = T Function();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<covariant T> = T Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: T Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_covariant2() async {
     var library = await checkLibrary(r'''
 typedef F<T> = List<T> Function();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<covariant T> = List<T> Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: List<T> Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: List<T>
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_covariant3() async {
@@ -14907,13 +29442,28 @@ typedef F<covariant T> = List<T> Function();
 typedef F1<T> = T Function();
 typedef F2<T> = F1<T> Function();
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<covariant T> = T Function();
-typedef F2<covariant T> = T Function() Function();
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F1 @8
+        typeParameters
+          covariant T @11
+            defaultType: dynamic
+        aliasedType: T Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T
+      F2 @38
+        typeParameters
+          covariant T @41
+            defaultType: dynamic
+        aliasedType: T Function() Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T Function()
+            aliasElement: self::@typeAlias::F1
+            aliasArguments
+              T
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_covariant4() async {
@@ -14921,13 +29471,34 @@ typedef F2<covariant T> = T Function() Function();
 typedef F1<T> = void Function(T);
 typedef F2<T> = void Function(F1<T>);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<contravariant T> = void Function(T );
-typedef F2<covariant T> = void Function(void Function(T) );
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F1 @8
+        typeParameters
+          contravariant T @11
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: T
+          returnType: void
+      F2 @42
+        typeParameters
+          covariant T @45
+            defaultType: dynamic
+        aliasedType: void Function(void Function(T))
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: void Function(T)
+                aliasElement: self::@typeAlias::F1
+                aliasArguments
+                  T
+          returnType: void
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_invalid() async {
@@ -14935,14 +29506,25 @@ typedef F2<covariant T> = void Function(void Function(T) );
 class A {}
 typedef F<T> = void Function(A<int>);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<unrelated T> = void Function(A );
-class A {
-}
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+    typeAliases
+      F @19
+        typeParameters
+          unrelated T @21
+            defaultType: dynamic
+        aliasedType: void Function(A)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: A
+          returnType: void
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_invalid2() async {
@@ -14950,25 +29532,47 @@ class A {
 typedef F = void Function();
 typedef G<T> = void Function(F<int>);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F = void Function();
-typedef G<unrelated T> = void Function(void Function() );
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @8
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
+      G @37
+        typeParameters
+          unrelated T @39
+            defaultType: dynamic
+        aliasedType: void Function(void Function())
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: void Function()
+                aliasElement: self::@typeAlias::F
+          returnType: void
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_invariant() async {
     var library = await checkLibrary(r'''
 typedef F<T> = T Function(T);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<invariant T> = T Function(T );
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          invariant T @10
+            defaultType: dynamic
+        aliasedType: T Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: T
+          returnType: T
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_invariant2() async {
@@ -14976,25 +29580,52 @@ typedef F<invariant T> = T Function(T );
 typedef F1<T> = T Function();
 typedef F2<T> = F1<T> Function(T);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<covariant T> = T Function();
-typedef F2<invariant T> = T Function() Function(T );
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F1 @8
+        typeParameters
+          covariant T @11
+            defaultType: dynamic
+        aliasedType: T Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T
+      F2 @38
+        typeParameters
+          invariant T @41
+            defaultType: dynamic
+        aliasedType: T Function() Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: T
+          returnType: T Function()
+            aliasElement: self::@typeAlias::F1
+            aliasArguments
+              T
+''');
   }
 
   test_typeAlias_typeParameters_variance_function_unrelated() async {
     var library = await checkLibrary(r'''
 typedef F<T> = void Function(int);
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef F<unrelated T> = void Function(int );
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          unrelated T @10
+            defaultType: dynamic
+        aliasedType: void Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: int
+          returnType: void
+''');
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant() async {
@@ -15002,12 +29633,16 @@ typedef F<unrelated T> = void Function(int );
     var library = await checkLibrary(r'''
 typedef A<T> = List<void Function(T)>;
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef A<contravariant T> = List<void Function(T)>;
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: List<void Function(T)>
+''');
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant2() async {
@@ -15016,13 +29651,26 @@ typedef A<contravariant T> = List<void Function(T)>;
 typedef A<T> = void Function(T);
 typedef B<T> = List<A<T>>;
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef A<contravariant T> = void Function(T );
-typedef B<contravariant T> = List<void Function(T)>;
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: void Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: T
+          returnType: void
+      B @41
+        typeParameters
+          contravariant T @43
+            defaultType: dynamic
+        aliasedType: List<void Function(T)>
+''');
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant() async {
@@ -15030,12 +29678,16 @@ typedef B<contravariant T> = List<void Function(T)>;
     var library = await checkLibrary(r'''
 typedef A<T> = List<T>;
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef A<covariant T> = List<T>;
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: List<T>
+''');
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant2() async {
@@ -15044,13 +29696,21 @@ typedef A<covariant T> = List<T>;
 typedef A<T> = Map<int, T>;
 typedef B<T> = List<A<T>>;
 ''');
-    checkElementText(
-        library,
-        r'''
-typedef A<covariant T> = Map<int, T>;
-typedef B<covariant T> = List<Map<int, T>>;
-''',
-        withTypeParameterVariance: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: Map<int, T>
+      B @36
+        typeParameters
+          covariant T @38
+            defaultType: dynamic
+        aliasedType: List<Map<int, T>>
+''');
   }
 
   test_typedef_documented() async {
@@ -15061,10 +29721,14 @@ typedef B<covariant T> = List<Map<int, T>>;
  */
 typedef F();''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-typedef F = dynamic Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @68
+        documentationComment: /**\n * Docs\n */
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
 ''');
   }
 
@@ -15072,7 +29736,25 @@ typedef F = dynamic Function();
     var library = await checkLibrary(
         'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
     checkElementText(library, r'''
-typedef F<T> = int Function<S>(List<S> list, num Function<A>(A) , T );
+library
+  definingUnit
+    typeAliases
+      F @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: int Function<S>(List<S>, num Function<A>(A), T)
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant S @-1
+          parameters
+            requiredPositional list @-1
+              type: List<S>
+            requiredPositional @-1
+              type: num Function<A>(A)
+            requiredPositional @-1
+              type: T
+          returnType: int
 ''');
   }
 
@@ -15084,10 +29766,45 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-typedef Foo<S> = S Function<T>(T x);
-class A {
-  int Function<T>(T) f;
-}
+library
+  definingUnit
+    classes
+      class A @43
+        fields
+          f @58
+            type: int Function<T>(T)
+              aliasElement: self::@typeAlias::Foo
+              aliasArguments
+                int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @58
+            returnType: int Function<T>(T)
+              aliasElement: self::@typeAlias::Foo
+              aliasArguments
+                int
+          synthetic set f @58
+            parameters
+              requiredPositional _f @58
+                type: int Function<T>(T)
+                  aliasElement: self::@typeAlias::Foo
+                  aliasArguments
+                    int
+            returnType: void
+    typeAliases
+      Foo @8
+        typeParameters
+          covariant S @12
+            defaultType: dynamic
+        aliasedType: S Function<T>(T)
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant T @-1
+          parameters
+            requiredPositional x @-1
+              type: T
+          returnType: S
 ''');
   }
 
@@ -15097,8 +29814,25 @@ typedef F = int;
 F f;
 ''');
     checkElementText(library, r'''
-typedef F = dynamic Function();
-dynamic Function() f;
+library
+  definingUnit
+    typeAliases
+      F @8
+        aliasedType: dynamic Function()
+    topLevelVariables
+      static f @19
+        type: dynamic Function()
+          aliasElement: self::@typeAlias::F
+    accessors
+      synthetic static get f @19
+        returnType: dynamic Function()
+          aliasElement: self::@typeAlias::F
+      synthetic static set f @19
+        parameters
+          requiredPositional _f @19
+            type: dynamic Function()
+              aliasElement: self::@typeAlias::F
+        returnType: void
 ''');
   }
 
@@ -15113,13 +29847,10 @@ typedef A = dynamic;
 void f(A a) {}
 ''');
 
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 typedef A = dynamic;
 void f(dynamic<aliasElement: self::@typeAlias::A> a) {}
-''',
-        withAliasElementArguments: true);
+''');
   }
 
   test_typedef_nonFunction_aliasElement_functionType() async {
@@ -15131,15 +29862,37 @@ void f1(A1 a) {}
 void f2(A2<int> a) {}
 ''');
 
-    checkElementText(
-        library,
-        r'''
-typedef A1 = void Function();
-typedef A2<R> = R Function();
-void f1(void Function()<aliasElement: self::@typeAlias::A1> a) {}
-void f2(int Function()<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
-''',
-        withAliasElementArguments: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A1 @8
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
+      A2 @38
+        typeParameters
+          covariant R @41
+            defaultType: dynamic
+        aliasedType: R Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: R
+    functions
+      f1 @65
+        parameters
+          requiredPositional a @71
+            type: void Function()
+              aliasElement: self::@typeAlias::A1
+        returnType: void
+      f2 @82
+        parameters
+          requiredPositional a @93
+            type: int Function()
+              aliasElement: self::@typeAlias::A2
+              aliasArguments
+                int
+        returnType: void
+''');
   }
 
   test_typedef_nonFunction_aliasElement_interfaceType() async {
@@ -15151,15 +29904,36 @@ void f1(A1 a) {}
 void f2(A2<int, String> a) {}
 ''');
 
-    checkElementText(
-        library,
-        r'''
-typedef A1 = List<int>;
-typedef A2<T, U> = Map<T, U>;
-void f1(List<int><aliasElement: self::@typeAlias::A1> a) {}
-void f2(Map<int, String><aliasElement: self::@typeAlias::A2, aliasArguments: [int, String]> a) {}
-''',
-        withAliasElementArguments: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A1 @8
+        aliasedType: List<int>
+      A2 @32
+        typeParameters
+          covariant T @35
+            defaultType: dynamic
+          covariant U @38
+            defaultType: dynamic
+        aliasedType: Map<T, U>
+    functions
+      f1 @59
+        parameters
+          requiredPositional a @65
+            type: List<int>
+              aliasElement: self::@typeAlias::A1
+        returnType: void
+      f2 @76
+        parameters
+          requiredPositional a @95
+            type: Map<int, String>
+              aliasElement: self::@typeAlias::A2
+              aliasArguments
+                int
+                String
+        returnType: void
+''');
   }
 
   @FailingTest(
@@ -15175,15 +29949,12 @@ void f1(A1 a) {}
 void f2(A2<int> a) {}
 ''');
 
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 typedef A1 = Never;
 typedef A2<T> = Never?;
 void f1(Never<aliasElement: self::@typeAlias::A1> a) {}
 void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
-''',
-        withAliasElementArguments: true);
+''');
   }
 
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
@@ -15193,13 +29964,27 @@ typedef A<T> = T;
 void f<U>(A<U> a) {}
 ''');
 
-    checkElementText(
-        library,
-        r'''
-typedef A<T> = T;
-void f<U>(U<aliasElement: self::@typeAlias::A, aliasArguments: [U]> a) {}
-''',
-        withAliasElementArguments: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: T
+    functions
+      f @23
+        typeParameters
+          covariant U @25
+        parameters
+          requiredPositional a @33
+            type: U
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                U
+        returnType: void
+''');
   }
 
   @FailingTest(
@@ -15213,13 +29998,10 @@ typedef A = void;
 void f(A a) {}
 ''');
 
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 typedef A = void;
 void f(void<aliasElement: self::@typeAlias::A> a) {}
-''',
-        withAliasElementArguments: true);
+''');
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
@@ -15230,11 +30012,28 @@ class A<T, U> {}
 class B implements X<String> {}
 ''');
     checkElementText(library, r'''
-typedef X<T> = A<int, T>;
-class A<T, U> {
-}
-class B implements A<int, String> {
-}
+library
+  definingUnit
+    classes
+      class A @32
+        typeParameters
+          covariant T @34
+            defaultType: dynamic
+          covariant U @37
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @49
+        interfaces
+          A<int, String>
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: A<int, T>
 ''');
   }
 
@@ -15248,15 +30047,33 @@ class C {}
 class D implements B, X<int>, C {}
 ''');
     checkElementText(library, r'''
-typedef X<T> = A<T>?;
-class A<T> {
-}
-class B {
-}
-class C {
-}
-class D implements B, C {
-}
+library
+  definingUnit
+    classes
+      class A @28
+        typeParameters
+          covariant T @30
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @42
+        constructors
+          synthetic @-1
+      class C @53
+        constructors
+          synthetic @-1
+      class D @64
+        interfaces
+          B
+          C
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: A<T>?
 ''');
   }
 
@@ -15270,15 +30087,34 @@ class C {}
 class D implements B, X<int>, C {}
 ''');
     checkElementText(library, r'''
-typedef X<T> = A<T?>;
-class A<T> {
-}
-class B {
-}
-class C {
-}
-class D implements B, A<int?>, C {
-}
+library
+  definingUnit
+    classes
+      class A @28
+        typeParameters
+          covariant T @30
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @42
+        constructors
+          synthetic @-1
+      class C @53
+        constructors
+          synthetic @-1
+      class D @64
+        interfaces
+          B
+          A<int?>
+          C
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: A<T?>
 ''');
   }
 
@@ -15289,9 +30125,15 @@ typedef X = Never;
 class A implements X {}
 ''');
     checkElementText(library, r'''
-typedef X = Never;
-class A {
-}
+library
+  definingUnit
+    classes
+      class A @25
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: Never
 ''');
   }
 
@@ -15302,9 +30144,15 @@ typedef X = Null;
 class A implements X {}
 ''');
     checkElementText(library, r'''
-typedef X = Null;
-class A {
-}
+library
+  definingUnit
+    classes
+      class A @24
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: Null
 ''');
   }
 
@@ -15317,13 +30165,30 @@ class B {}
 class C<U> implements A, X<U>, B {}
 ''');
     checkElementText(library, r'''
-typedef X<T> = T;
-class A {
-}
-class B {
-}
-class C<U> implements A, B {
-}
+library
+  definingUnit
+    classes
+      class A @24
+        constructors
+          synthetic @-1
+      class B @35
+        constructors
+          synthetic @-1
+      class C @46
+        typeParameters
+          covariant U @48
+            defaultType: dynamic
+        interfaces
+          A
+          B
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: T
 ''');
   }
 
@@ -15336,13 +30201,24 @@ class B {}
 class C implements A, X, B {}
 ''');
     checkElementText(library, r'''
-typedef X = void;
-class A {
-}
-class B {
-}
-class C implements A, B {
-}
+library
+  definingUnit
+    classes
+      class A @24
+        constructors
+          synthetic @-1
+      class B @35
+        constructors
+          synthetic @-1
+      class C @46
+        interfaces
+          A
+          B
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: void
 ''');
   }
 
@@ -15354,12 +30230,24 @@ class A<T> {}
 class B with X {}
 ''');
     checkElementText(library, r'''
-typedef X = A<int>;
-class A<T> {
-}
-class B extends Object with A<int> {
-  synthetic B();
-}
+library
+  definingUnit
+    classes
+      class A @26
+        typeParameters
+          covariant T @28
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @40
+        supertype: Object
+        mixins
+          A<int>
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: A<int>
 ''');
   }
 
@@ -15373,16 +30261,36 @@ mixin M2 {}
 class B with M1, X, M2 {}
 ''');
     checkElementText(library, r'''
-typedef X = A<int>?;
-class A<T> {
-}
-class B extends Object with M1, M2 {
-  synthetic B();
-}
-mixin M1 on Object {
-}
-mixin M2 on Object {
-}
+library
+  definingUnit
+    classes
+      class A @27
+        typeParameters
+          covariant T @29
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @65
+        supertype: Object
+        mixins
+          M1
+          M2
+        constructors
+          synthetic @-1
+    mixins
+      mixin M1 @41
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+      mixin M2 @53
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: A<int>?
 ''');
   }
 
@@ -15396,16 +30304,37 @@ mixin M2 {}
 class B with M1, X, M2 {}
 ''');
     checkElementText(library, r'''
-typedef X = A<int?>;
-class A<T> {
-}
-class B extends Object with M1, A<int?>, M2 {
-  synthetic B();
-}
-mixin M1 on Object {
-}
-mixin M2 on Object {
-}
+library
+  definingUnit
+    classes
+      class A @27
+        typeParameters
+          covariant T @29
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @65
+        supertype: Object
+        mixins
+          M1
+          A<int?>
+          M2
+        constructors
+          synthetic @-1
+    mixins
+      mixin M1 @41
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+      mixin M2 @53
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: A<int?>
 ''');
   }
 
@@ -15416,9 +30345,15 @@ typedef X = Never;
 class A extends X {}
 ''');
     checkElementText(library, r'''
-typedef X = Never;
-class A {
-}
+library
+  definingUnit
+    classes
+      class A @25
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: Never
 ''');
   }
 
@@ -15430,11 +30365,22 @@ class A<T> {}
 class B extends X {}
 ''');
     checkElementText(library, r'''
-typedef X = A<int>;
-class A<T> {
-}
-class B extends A<int> {
-}
+library
+  definingUnit
+    classes
+      class A @26
+        typeParameters
+          covariant T @28
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @40
+        supertype: A<int>
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: A<int>
 ''');
   }
 
@@ -15446,11 +30392,25 @@ class A<T> {}
 class B extends X<A<int>> {}
 ''');
     checkElementText(library, r'''
-typedef X<T> = T;
-class A<T> {
-}
-class B extends A<int> {
-}
+library
+  definingUnit
+    classes
+      class A @24
+        typeParameters
+          covariant T @26
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @38
+        supertype: A<int>
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: T
 ''');
   }
 
@@ -15461,9 +30421,15 @@ typedef X = Null;
 class A extends X {}
 ''');
     checkElementText(library, r'''
-typedef X = Null;
-class A {
-}
+library
+  definingUnit
+    classes
+      class A @24
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: Null
 ''');
   }
 
@@ -15475,11 +30441,21 @@ class A<T> {}
 class D extends X {}
 ''');
     checkElementText(library, r'''
-typedef X = A<int>?;
-class A<T> {
-}
-class D {
-}
+library
+  definingUnit
+    classes
+      class A @27
+        typeParameters
+          covariant T @29
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class D @41
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: A<int>?
 ''');
   }
 
@@ -15491,11 +30467,22 @@ class A<T> {}
 class D extends X {}
 ''');
     checkElementText(library, r'''
-typedef X = A<int?>;
-class A<T> {
-}
-class D extends A<int?> {
-}
+library
+  definingUnit
+    classes
+      class A @27
+        typeParameters
+          covariant T @29
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class D @41
+        supertype: A<int?>
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: A<int?>
 ''');
   }
 
@@ -15506,9 +30493,15 @@ typedef X = Never;
 class A extends X {}
 ''');
     checkElementText(library, r'''
-typedef X = Never;
-class A {
-}
+library
+  definingUnit
+    classes
+      class A @25
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: Never
 ''');
   }
 
@@ -15519,9 +30512,15 @@ typedef X = Null;
 class A extends X {}
 ''');
     checkElementText(library, r'''
-typedef X = Null;
-class A {
-}
+library
+  definingUnit
+    classes
+      class A @24
+        constructors
+          synthetic @-1
+    typeAliases
+      X @8
+        aliasedType: Null
 ''');
   }
 
@@ -15532,8 +30531,17 @@ typedef A = dynamic;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-typedef A = dynamic;
-void f(dynamic a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: dynamic
+    functions
+      f @26
+        parameters
+          requiredPositional a @30
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -15547,8 +30555,18 @@ void f(A a) {}
     _assertTypeStr(alias.aliasedType, 'dynamic Function()');
 
     checkElementText(library, r'''
-typedef A = dynamic Function();
-void f(dynamic Function() a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: dynamic Function()
+    functions
+      f @22
+        parameters
+          requiredPositional a @26
+            type: dynamic Function()
+              aliasElement: self::@typeAlias::A
+        returnType: void
 ''');
   }
 
@@ -15559,8 +30577,18 @@ typedef A = int;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-typedef A = int;
-void f(int a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: int
+    functions
+      f @22
+        parameters
+          requiredPositional a @26
+            type: int
+              aliasElement: self::@typeAlias::A
+        returnType: void
 ''');
   }
 
@@ -15575,8 +30603,17 @@ import 'a.dart';
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-void f(List<int*>* a) {}
+library
+  imports
+    a.dart
+  definingUnit
+    functions
+      f @37
+        parameters
+          requiredPositional a @41
+            type: List<int*>*
+              aliasElement: a.dart::@typeAlias::A
+        returnType: void
 ''');
   }
 
@@ -15587,8 +30624,18 @@ typedef A = int?;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-typedef A = int?;
-void f(int? a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: int?
+    functions
+      f @23
+        parameters
+          requiredPositional a @27
+            type: int?
+              aliasElement: self::@typeAlias::A
+        returnType: void
 ''');
   }
 
@@ -15599,8 +30646,23 @@ typedef A<T> = Map<int, T>;
 void f(A<String> a) {}
 ''');
     checkElementText(library, r'''
-typedef A<T> = Map<int, T>;
-void f(Map<int, String> a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: Map<int, T>
+    functions
+      f @33
+        parameters
+          requiredPositional a @45
+            type: Map<int, String>
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                String
+        returnType: void
 ''');
   }
 
@@ -15611,8 +30673,17 @@ typedef A = Never;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-typedef A = Never;
-void f(Never a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: Never
+    functions
+      f @24
+        parameters
+          requiredPositional a @28
+            type: Never
+        returnType: void
 ''');
   }
 
@@ -15623,8 +30694,17 @@ typedef A = Never?;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-typedef A = Never?;
-void f(Never? a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: Never?
+    functions
+      f @25
+        parameters
+          requiredPositional a @29
+            type: Never?
+        returnType: void
 ''');
   }
 
@@ -15636,9 +30716,28 @@ void f1(A a) {}
 void f2(A<int> a) {}
 ''');
     checkElementText(library, r'''
-typedef A<T> = T;
-void f1(dynamic a) {}
-void f2(int a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: T
+    functions
+      f1 @23
+        parameters
+          requiredPositional a @28
+            type: dynamic
+        returnType: void
+      f2 @39
+        parameters
+          requiredPositional a @49
+            type: int
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                int
+        returnType: void
 ''');
   }
 
@@ -15650,9 +30749,28 @@ void f1(A a) {}
 void f2(A<int> a) {}
 ''');
     checkElementText(library, r'''
-typedef A<T> = T?;
-void f1(dynamic a) {}
-void f2(int? a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: T?
+    functions
+      f1 @24
+        parameters
+          requiredPositional a @29
+            type: dynamic
+        returnType: void
+      f2 @40
+        parameters
+          requiredPositional a @50
+            type: int?
+              aliasElement: self::@typeAlias::A
+              aliasArguments
+                int
+        returnType: void
 ''');
   }
 
@@ -15663,8 +30781,17 @@ typedef A = void;
 void f(A a) {}
 ''');
     checkElementText(library, r'''
-typedef A = void;
-void f(void a) {}
+library
+  definingUnit
+    typeAliases
+      A @8
+        aliasedType: void
+    functions
+      f @23
+        parameters
+          requiredPositional a @27
+            type: void
+        returnType: void
 ''');
   }
 
@@ -15676,9 +30803,24 @@ typedef F = void Function(C c);
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
-notSimplyBounded class C<T extends C<T> = C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @38
+        typeParameters
+          covariant T @40
+            bound: C<T>
+            defaultType: C<dynamic>
+        constructors
+          synthetic @-1
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: void Function(C<C<dynamic>>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional c @-1
+              type: C<C<dynamic>>
+          returnType: void
 ''');
   }
 
@@ -15690,9 +30832,24 @@ typedef F = void Function(C);
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = void Function(C<C<dynamic>> );
-notSimplyBounded class C<T extends C<T> = C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @36
+        typeParameters
+          covariant T @38
+            bound: C<T>
+            defaultType: C<dynamic>
+        constructors
+          synthetic @-1
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: void Function(C<C<dynamic>>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: C<C<dynamic>>
+          returnType: void
 ''');
   }
 
@@ -15704,9 +30861,24 @@ typedef void F(C c);
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
-notSimplyBounded class C<T extends C<T> = C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @27
+        typeParameters
+          covariant T @29
+            bound: C<T>
+            defaultType: C<dynamic>
+        constructors
+          synthetic @-1
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @13
+        aliasedType: void Function(C<C<dynamic>>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional c @-1
+              type: C<C<dynamic>>
+          returnType: void
 ''');
   }
 
@@ -15718,9 +30890,21 @@ typedef F = C Function();
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = C<C<dynamic>> Function();
-notSimplyBounded class C<T extends C<T> = C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @32
+        typeParameters
+          covariant T @34
+            bound: C<T>
+            defaultType: C<dynamic>
+        constructors
+          synthetic @-1
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: C<C<dynamic>> Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: C<C<dynamic>>
 ''');
   }
 
@@ -15732,9 +30916,21 @@ typedef C F();
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = C<C<dynamic>> Function();
-notSimplyBounded class C<T extends C<T> = C<dynamic>> {
-}
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @21
+        typeParameters
+          covariant T @23
+            bound: C<T>
+            defaultType: C<dynamic>
+        constructors
+          synthetic @-1
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @10
+        aliasedType: C<C<dynamic>> Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: C<C<dynamic>>
 ''');
   }
 
@@ -15754,84 +30950,210 @@ typedef void F(int a, b, [int c, d]);
   test_typedef_parameter_parameters() async {
     var library = await checkLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''
-typedef F = dynamic Function(dynamic Function(dynamic, dynamic) g/*(dynamic x, dynamic y)*/);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function(dynamic Function(dynamic, dynamic))
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional g @-1
+              type: dynamic Function(dynamic, dynamic)
+              parameters
+                requiredPositional x @-1
+                  type: dynamic
+                requiredPositional y @-1
+                  type: dynamic
+          returnType: dynamic
 ''');
   }
 
   test_typedef_parameter_parameters_in_generic_class() async {
     var library = await checkLibrary('typedef F<A, B>(A g(B x));');
     checkElementText(library, r'''
-typedef F<A, B> = dynamic Function(A Function(B) g/*(B x)*/);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        typeParameters
+          contravariant A @10
+            defaultType: dynamic
+          covariant B @13
+            defaultType: dynamic
+        aliasedType: dynamic Function(A Function(B))
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional g @-1
+              type: A Function(B)
+              parameters
+                requiredPositional x @-1
+                  type: B
+          returnType: dynamic
 ''');
   }
 
   test_typedef_parameter_return_type() async {
     var library = await checkLibrary('typedef F(int g());');
     checkElementText(library, r'''
-typedef F = dynamic Function(int Function() g);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function(int Function())
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional g @-1
+              type: int Function()
+          returnType: dynamic
 ''');
   }
 
   test_typedef_parameter_type() async {
     var library = await checkLibrary('typedef F(int i);');
     checkElementText(library, r'''
-typedef F = dynamic Function(int i);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional i @-1
+              type: int
+          returnType: dynamic
 ''');
   }
 
   test_typedef_parameter_type_generic() async {
     var library = await checkLibrary('typedef F<T>(T t);');
     checkElementText(library, r'''
-typedef F<T> = dynamic Function(T t);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: dynamic Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: dynamic
 ''');
   }
 
   test_typedef_parameters() async {
     var library = await checkLibrary('typedef F(x, y);');
     checkElementText(library, r'''
-typedef F = dynamic Function(dynamic x, dynamic y);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function(dynamic, dynamic)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional x @-1
+              type: dynamic
+            requiredPositional y @-1
+              type: dynamic
+          returnType: dynamic
 ''');
   }
 
   test_typedef_parameters_named() async {
     var library = await checkLibrary('typedef F({y, z, x});');
     checkElementText(library, r'''
-typedef F = dynamic Function({dynamic y}, {dynamic z}, {dynamic x});
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            optionalNamed y @-1
+              type: dynamic
+            optionalNamed z @-1
+              type: dynamic
+            optionalNamed x @-1
+              type: dynamic
+          returnType: dynamic
 ''');
   }
 
   test_typedef_return_type() async {
     var library = await checkLibrary('typedef int F();');
     checkElementText(library, r'''
-typedef F = int Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @12
+        aliasedType: int Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: int
 ''');
   }
 
   test_typedef_return_type_generic() async {
     var library = await checkLibrary('typedef T F<T>();');
     checkElementText(library, r'''
-typedef F<T> = T Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @10
+        typeParameters
+          covariant T @12
+            defaultType: dynamic
+        aliasedType: T Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: T
 ''');
   }
 
   test_typedef_return_type_implicit() async {
     var library = await checkLibrary('typedef F();');
     checkElementText(library, r'''
-typedef F = dynamic Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @8
+        aliasedType: dynamic Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: dynamic
 ''');
   }
 
   test_typedef_return_type_void() async {
     var library = await checkLibrary('typedef void F();');
     checkElementText(library, r'''
-typedef F = void Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @13
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
   test_typedef_type_parameters() async {
     var library = await checkLibrary('typedef U F<T, U>(T t);');
     checkElementText(library, r'''
-typedef F<T, U> = U Function(T t);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @10
+        typeParameters
+          contravariant T @12
+            defaultType: dynamic
+          covariant U @15
+            defaultType: dynamic
+        aliasedType: U Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: U
 ''');
   }
 
@@ -15839,9 +31161,27 @@ typedef F<T, U> = U Function(T t);
     var library = await checkLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
-typedef F<T = Object, U extends D = D> = U Function(T t);
-class D {
-}
+library
+  definingUnit
+    classes
+      class D @55
+        constructors
+          synthetic @-1
+    typeAliases
+      functionTypeAliasBased F @10
+        typeParameters
+          contravariant T @12
+            bound: Object
+            defaultType: Object
+          covariant U @30
+            bound: D
+            defaultType: D
+        aliasedType: U Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: U
 ''');
   }
 
@@ -15849,7 +31189,17 @@ class D {
     var library = await checkLibrary('typedef void F<T extends F>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @13
+        typeParameters
+          unrelated T @15
+            bound: dynamic Function()
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
@@ -15857,14 +31207,39 @@ notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<dynamic Function()>> = void Function();
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @13
+        typeParameters
+          unrelated T @15
+            bound: List<dynamic Function()>
+            defaultType: dynamic
+        aliasedType: void Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: void
 ''');
   }
 
   test_typedef_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<U> = List<Never>, U> = U Function(T t);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @10
+        typeParameters
+          contravariant T @12
+            bound: List<U>
+            defaultType: List<Never>
+          covariant U @31
+            defaultType: dynamic
+        aliasedType: U Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: U
 ''');
   }
 
@@ -15872,14 +31247,44 @@ notSimplyBounded typedef F<T extends List<U> = List<Never>, U> = U Function(T t)
     featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<U*>* = List<Null*>*, U> = U* Function(T* t);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @10
+        typeParameters
+          contravariant T @12
+            bound: List<U*>*
+            defaultType: List<Null*>*
+          covariant U @31
+            defaultType: dynamic
+        aliasedType: U* Function(T*)*
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T*
+          returnType: U*
 ''');
   }
 
   test_typedef_type_parameters_f_bound_simple() async {
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U = Never, U> = U Function(T t);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @10
+        typeParameters
+          contravariant T @12
+            bound: U
+            defaultType: Never
+          covariant U @25
+            defaultType: dynamic
+        aliasedType: U Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: U
 ''');
   }
 
@@ -15887,7 +31292,22 @@ notSimplyBounded typedef F<T extends U = Never, U> = U Function(T t);
     featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U* = Null*, U> = U* Function(T* t);
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @10
+        typeParameters
+          contravariant T @12
+            bound: U*
+            defaultType: Null*
+          covariant U @25
+            defaultType: dynamic
+        aliasedType: U* Function(T*)*
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T*
+          returnType: U*
 ''');
   }
 
@@ -15895,7 +31315,22 @@ notSimplyBounded typedef F<T extends U* = Null*, U> = U* Function(T* t);
     var library =
         await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U = Never, U> = U Function(T t);
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        typeParameters
+          contravariant T @10
+            bound: U
+            defaultType: Never
+          covariant U @23
+            defaultType: dynamic
+        aliasedType: U Function(T)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T
+          returnType: U
 ''');
   }
 
@@ -15904,15 +31339,35 @@ notSimplyBounded typedef F<T extends U = Never, U> = U Function(T t);
     var library =
         await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U* = Null*, U> = U* Function(T* t);
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        typeParameters
+          contravariant T @10
+            bound: U*
+            defaultType: Null*
+          covariant U @23
+            defaultType: dynamic
+        aliasedType: U* Function(T*)*
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional t @-1
+              type: T*
+          returnType: U*
 ''');
   }
 
   test_typedefs() async {
     var library = await checkLibrary('f() {} g() {}');
     checkElementText(library, r'''
-dynamic f() {}
-dynamic g() {}
+library
+  definingUnit
+    functions
+      f @0
+        returnType: dynamic
+      g @7
+        returnType: dynamic
 ''');
   }
 
@@ -15921,14 +31376,21 @@ dynamic g() {}
 int get x => 0;
 void set x(int value) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-synthetic int x;
-int get x {}
-void set x(int value) {}
-''',
-        withSyntheticFields: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      get x @8
+        returnType: int
+      set x @25
+        parameters
+          requiredPositional value @31
+            type: int
+        returnType: void
+''');
   }
 
   test_unit_implicitVariable_setterFirst() async {
@@ -15936,14 +31398,21 @@ void set x(int value) {}
 void set x(int value) {}
 int get x => 0;
 ''');
-    checkElementText(
-        library,
-        r'''
-synthetic int x;
-void set x(int value) {}
-int get x {}
-''',
-        withSyntheticFields: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      set x @9
+        parameters
+          requiredPositional value @15
+            type: int
+        returnType: void
+      get x @33
+        returnType: int
+''');
   }
 
   test_unit_variable_final_withSetter() async {
@@ -15951,15 +31420,21 @@ int get x {}
 final int foo = 0;
 set foo(int newValue) {}
 ''');
-    checkElementText(
-        library,
-        r'''
-final int foo;
-synthetic int get foo {}
-void set foo(int newValue) {}
-''',
-        withSyntheticFields: true,
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final foo @10
+        type: int
+    accessors
+      synthetic static get foo @10
+        returnType: int
+      set foo @10
+        parameters
+          requiredPositional newValue @31
+            type: int
+        returnType: void
+''');
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
@@ -15972,13 +31447,33 @@ class A {
 class C {}
 ''', allowErrors: true);
     checkElementText(library, r'''
-class A {
-  const A(dynamic _);
-}
-@
-        A/*location: test.dart;A*/(super)
-class C {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional _ @20
+                type: dynamic
+      class C @43
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                SuperExpression
+                  staticType: dynamic
+                  superKeyword: super @0
+              leftParenthesis: ( @29
+              rightParenthesis: ) @35
+            atSign.offset: 27
+            element: self::@class::A::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @28
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -15992,13 +31487,33 @@ class A {
 class C {}
 ''', allowErrors: true);
     checkElementText(library, r'''
-class A {
-  const A(dynamic _);
-}
-@
-        A/*location: test.dart;A*/(this)
-class C {
-}
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @18
+            parameters
+              requiredPositional _ @20
+                type: dynamic
+      class C @42
+        metadata
+          Annotation
+            arguments: ArgumentList
+              arguments
+                ThisExpression
+                  staticType: dynamic
+                  thisKeyword: this @0
+              leftParenthesis: ( @29
+              rightParenthesis: ) @34
+            atSign.offset: 27
+            element: self::@class::A::@constructor::•
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A @28
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16006,11 +31521,31 @@ class C {
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/()
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @17
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @8
+              rightParenthesis: ) @9
+            atSign.offset: 0
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: bar @5
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: foo @1
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16018,22 +31553,59 @@ class C {
     var library =
         await checkLibrary('@String.foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        String/*location: dart:core;String*/.
-        foo/*location: null*/()
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @20
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @11
+              rightParenthesis: ) @12
+            atSign.offset: 0
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: foo @8
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: dart:core::@class::String
+                staticType: null
+                token: String @1
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
     var library = await checkLibrary('@foo.bar class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @15
+        metadata
+          Annotation
+            atSign.offset: 0
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: bar @5
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: foo @1
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16042,12 +31614,30 @@ class C {
         'import "dart:async" as foo; @foo.bar class C {}',
         allowErrors: true);
     checkElementText(library, r'''
-import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        bar/*location: null*/
-class C {
-}
+library
+  imports
+    dart:async as foo @23
+  definingUnit
+    classes
+      class C @43
+        metadata
+          Annotation
+            atSign.offset: 28
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: bar @33
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @29
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16055,12 +31645,35 @@ class C {
     var library =
         await checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/.
-        baz/*location: null*/()
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @21
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @12
+              rightParenthesis: ) @13
+            atSign.offset: 0
+            constructorName: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: baz @9
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: bar @5
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: foo @1
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16069,13 +31682,37 @@ class C {
         'import "dart:async" as foo; @foo.bar.baz() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
-import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        bar/*location: null*/.
-        baz/*location: null*/()
-class C {
-}
+library
+  imports
+    dart:async as foo @23
+  definingUnit
+    classes
+      class C @49
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @40
+              rightParenthesis: ) @41
+            atSign.offset: 28
+            constructorName: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: baz @37
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: bar @33
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @29
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16084,13 +31721,37 @@ class C {
         'import "dart:async" as foo; @foo.Future.bar() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
-import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        Future/*location: dart:async;Future*/.
-        bar/*location: null*/()
-class C {
-}
+library
+  imports
+    dart:async as foo @23
+  definingUnit
+    classes
+      class C @52
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @43
+              rightParenthesis: ) @44
+            atSign.offset: 28
+            constructorName: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: bar @40
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: dart:async::@class::Future
+                staticType: null
+                token: Future @33
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @29
+              staticElement: dart:async::@class::Future
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16098,11 +31759,31 @@ class C {
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/.
-        bar/*location: null*/()
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @17
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @8
+              rightParenthesis: ) @9
+            atSign.offset: 0
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: bar @5
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: foo @1
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -16111,31 +31792,54 @@ class C {
         'import "dart:async" as foo; @foo.bar() class C {}',
         allowErrors: true);
     checkElementText(library, r'''
-import 'dart:async' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        bar/*location: null*/()
-class C {
-}
+library
+  imports
+    dart:async as foo @23
+  definingUnit
+    classes
+      class C @45
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @36
+              rightParenthesis: ) @37
+            atSign.offset: 28
+            element: <null>
+            name: PrefixedIdentifier
+              identifier: SimpleIdentifier
+                staticElement: <null>
+                staticType: null
+                token: bar @33
+              period: . @0
+              prefix: SimpleIdentifier
+                staticElement: self::@prefix::foo
+                staticType: null
+                token: foo @29
+              staticElement: <null>
+              staticType: null
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
     var library = await checkLibrary('@foo class C {}', allowErrors: true);
-    checkElementText(
-        library,
-        r'''
-class C {
-}
-  metadata
-    Annotation
-      element: <null>
-      name: SimpleIdentifier
-        staticElement: <null>
-        staticType: null
-        token: foo
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @11
+        metadata
+          Annotation
+            atSign.offset: 0
+            element: <null>
+            name: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: foo @1
+        constructors
+          synthetic @-1
+''');
   }
 
   test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
@@ -16148,38 +31852,57 @@ import 'b.dart';
 @v
 class C {}
 ''');
-    checkElementText(
-        library,
-        r'''
-import 'a.dart';
-import 'b.dart';
-class C {
-}
-  metadata
-    Annotation
-      element: <null>
-      name: SimpleIdentifier
-        staticElement: <null>
-        staticType: null
-        token: v
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  imports
+    a.dart
+    b.dart
+  definingUnit
+    classes
+      class C @44
+        metadata
+          Annotation
+            atSign.offset: 35
+            element: <null>
+            name: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: v @36
+        constructors
+          synthetic @-1
+''');
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
     var library = await checkLibrary('@foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@
-        foo/*location: null*/()
-class C {
-}
+library
+  definingUnit
+    classes
+      class C @13
+        metadata
+          Annotation
+            arguments: ArgumentList
+              leftParenthesis: ( @4
+              rightParenthesis: ) @5
+            atSign.offset: 0
+            element: <null>
+            name: SimpleIdentifier
+              staticElement: <null>
+              staticType: null
+              token: foo @1
+        constructors
+          synthetic @-1
 ''');
   }
 
   test_unresolved_export() async {
     var library = await checkLibrary("export 'foo.dart';", allowErrors: true);
     checkElementText(library, r'''
-export 'foo.dart';
+library
+  exports
+    foo.dart
+  definingUnit
 ''');
   }
 
@@ -16190,17 +31913,20 @@ export 'foo.dart';
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);
     checkElementText(library, r'''
-import 'foo.dart';
+library
+  imports
+    foo.dart
+  definingUnit
 ''');
   }
 
   test_unresolved_part() async {
     var library = await checkLibrary("part 'foo.dart';", allowErrors: true);
     checkElementText(library, r'''
-part 'foo.dart';
---------------------
-unit: foo.dart
-
+library
+  definingUnit
+  parts
+    foo.dart
 ''');
   }
 
@@ -16213,38 +31939,93 @@ C<int> c;
 var v = c.f;
 ''');
     checkElementText(library, r'''
-class C<T> {
-  void f() {}
-}
-C<int> c;
-void Function() v;
+library
+  definingUnit
+    classes
+      class C @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+        methods
+          f @20
+            returnType: void
+    topLevelVariables
+      static c @36
+        type: C<int>
+      static v @43
+        type: void Function()
+    accessors
+      synthetic static get c @36
+        returnType: C<int>
+      synthetic static set c @36
+        parameters
+          requiredPositional _c @36
+            type: C<int>
+        returnType: void
+      synthetic static get v @43
+        returnType: void Function()
+      synthetic static set v @43
+        parameters
+          requiredPositional _v @43
+            type: void Function()
+        returnType: void
 ''');
   }
 
   test_variable() async {
     var library = await checkLibrary('int x = 0;');
-    checkElementText(
-        library,
-        r'''
-int x@4;
-synthetic int get x@4 {}
-synthetic void set x@4(int _x@4) {}
-''',
-        withOffsets: true,
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: int
+    accessors
+      synthetic static get x @4
+        returnType: int
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: int
+        returnType: void
+''');
   }
 
   test_variable_const() async {
     var library = await checkLibrary('const int i = 0;');
     checkElementText(library, r'''
-const int i = 0;
+library
+  definingUnit
+    topLevelVariables
+      static const i @10
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @14
+            staticType: int
+    accessors
+      synthetic static get i @10
+        returnType: int
 ''');
   }
 
   test_variable_const_late() async {
     var library = await checkLibrary('late const int i = 0;');
     checkElementText(library, r'''
-late const int i = 0;
+library
+  definingUnit
+    topLevelVariables
+      static late const i @15
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @19
+            staticType: int
+    accessors
+      synthetic static get i @15
+        returnType: int
 ''');
   }
 
@@ -16256,17 +32037,34 @@ late const int i = 0;
  */
 var x;''');
     checkElementText(library, r'''
-/**
- * Docs
- */
-dynamic x;
+library
+  definingUnit
+    topLevelVariables
+      static x @64
+        documentationComment: /**\n * Docs\n */
+        type: dynamic
+    accessors
+      synthetic static get x @64
+        returnType: dynamic
+      synthetic static set x @64
+        parameters
+          requiredPositional _x @64
+            type: dynamic
+        returnType: void
 ''');
   }
 
   test_variable_final() async {
     var library = await checkLibrary('final int x = 0;');
     checkElementText(library, r'''
-final int x;
+library
+  definingUnit
+    topLevelVariables
+      static final x @10
+        type: int
+    accessors
+      synthetic static get x @10
+        returnType: int
 ''');
   }
 
@@ -16280,13 +32078,27 @@ library my.lib;
 part 'a.dart';
 int get x => 42;''');
     checkElementText(library, r'''
-library my.lib;
-part 'a.dart';
-int get x {}
---------------------
-unit: a.dart
-
-void set x(int _) {}
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      get x @39
+        returnType: int
+  parts
+    a.dart
+      topLevelVariables
+        synthetic static x @-1
+          type: int
+      accessors
+        set x @25
+          parameters
+            requiredPositional _ @31
+              type: int
+          returnType: void
 ''');
   }
 
@@ -16301,13 +32113,27 @@ part 'a.dart';
 void set x(int _) {}
 ''');
     checkElementText(library, r'''
-library my.lib;
-part 'a.dart';
-void set x(int _) {}
---------------------
-unit: a.dart
-
-int get x {}
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+    topLevelVariables
+      synthetic static x @-1
+        type: int
+    accessors
+      set x @40
+        parameters
+          requiredPositional _ @46
+            type: int
+        returnType: void
+  parts
+    a.dart
+      topLevelVariables
+        synthetic static x @-1
+          type: int
+      accessors
+        get x @24
+          returnType: int
 ''');
   }
 
@@ -16317,17 +32143,28 @@ int get x {}
     var library =
         await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
-library my.lib;
-part 'a.dart';
-part 'b.dart';
---------------------
-unit: a.dart
-
-int get x {}
---------------------
-unit: b.dart
-
-void set x(int _) {}
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+  parts
+    a.dart
+      topLevelVariables
+        synthetic static x @-1
+          type: int
+      accessors
+        get x @24
+          returnType: int
+    b.dart
+      topLevelVariables
+        synthetic static x @-1
+          type: int
+      accessors
+        set x @25
+          parameters
+            requiredPositional _ @31
+              type: int
+          returnType: void
 ''');
   }
 
@@ -16349,35 +32186,85 @@ void set x(int _) {}
   test_variable_implicit_type() async {
     var library = await checkLibrary('var x;');
     checkElementText(library, r'''
-dynamic x;
+library
+  definingUnit
+    topLevelVariables
+      static x @4
+        type: dynamic
+    accessors
+      synthetic static get x @4
+        returnType: dynamic
+      synthetic static set x @4
+        parameters
+          requiredPositional _x @4
+            type: dynamic
+        returnType: void
 ''');
   }
 
   test_variable_inferred_type_implicit_initialized() async {
     var library = await checkLibrary('var v = 0;');
     checkElementText(library, r'''
-int v;
+library
+  definingUnit
+    topLevelVariables
+      static v @4
+        type: int
+    accessors
+      synthetic static get v @4
+        returnType: int
+      synthetic static set v @4
+        parameters
+          requiredPositional _v @4
+            type: int
+        returnType: void
 ''');
   }
 
   test_variable_initializer() async {
     var library = await checkLibrary('int v = 0;');
     checkElementText(library, r'''
-int v;
+library
+  definingUnit
+    topLevelVariables
+      static v @4
+        type: int
+    accessors
+      synthetic static get v @4
+        returnType: int
+      synthetic static set v @4
+        parameters
+          requiredPositional _v @4
+            type: int
+        returnType: void
 ''');
   }
 
   test_variable_initializer_final() async {
     var library = await checkLibrary('final int v = 0;');
     checkElementText(library, r'''
-final int v;
+library
+  definingUnit
+    topLevelVariables
+      static final v @10
+        type: int
+    accessors
+      synthetic static get v @10
+        returnType: int
 ''');
   }
 
   test_variable_initializer_final_untyped() async {
     var library = await checkLibrary('final v = 0;');
     checkElementText(library, r'''
-final int v;
+library
+  definingUnit
+    topLevelVariables
+      static final v @6
+        type: int
+    accessors
+      synthetic static get v @6
+        returnType: int
 ''');
   }
 
@@ -16390,61 +32277,118 @@ extension E on A {
 var x = E.f();
 ''');
     checkElementText(library, r'''
-class A {
-}
-extension E on A {
-  static int f() {}
-}
-int x;
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+    extensions
+      E @21
+        extendedType: A
+        methods
+          static f @43
+            returnType: int
+    topLevelVariables
+      static x @59
+        type: int
+    accessors
+      synthetic static get x @59
+        returnType: int
+      synthetic static set x @59
+        parameters
+          requiredPositional _x @59
+            type: int
+        returnType: void
 ''');
   }
 
   test_variable_initializer_untyped() async {
     var library = await checkLibrary('var v = 0;');
     checkElementText(library, r'''
-int v;
+library
+  definingUnit
+    topLevelVariables
+      static v @4
+        type: int
+    accessors
+      synthetic static get v @4
+        returnType: int
+      synthetic static set v @4
+        parameters
+          requiredPositional _v @4
+            type: int
+        returnType: void
 ''');
   }
 
   test_variable_late() async {
     var library = await checkLibrary('late int x = 0;');
-    checkElementText(
-        library,
-        r'''
-late int x;
-synthetic int get x {}
-synthetic void set x(int _x) {}
-''',
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static late x @9
+        type: int
+    accessors
+      synthetic static get x @9
+        returnType: int
+      synthetic static set x @9
+        parameters
+          requiredPositional _x @9
+            type: int
+        returnType: void
+''');
   }
 
   test_variable_late_final() async {
     var library = await checkLibrary('late final int x;');
-    checkElementText(
-        library,
-        r'''
-late final int x;
-synthetic int get x {}
-synthetic void set x(int _x) {}
-''',
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static late final x @15
+        type: int
+    accessors
+      synthetic static get x @15
+        returnType: int
+      synthetic static set x @15
+        parameters
+          requiredPositional _x @15
+            type: int
+        returnType: void
+''');
   }
 
   test_variable_late_final_initialized() async {
     var library = await checkLibrary('late final int x = 0;');
-    checkElementText(
-        library,
-        r'''
-late final int x;
-synthetic int get x {}
-''',
-        withSyntheticAccessors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static late final x @15
+        type: int
+    accessors
+      synthetic static get x @15
+        returnType: int
+''');
   }
 
   test_variable_propagatedType_const_noDep() async {
     var library = await checkLibrary('const i = 0;');
     checkElementText(library, r'''
-const int i = 0;
+library
+  definingUnit
+    topLevelVariables
+      static const i @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+    accessors
+      synthetic static get i @6
+        returnType: int
 ''');
   }
 
@@ -16452,8 +32396,16 @@ const int i = 0;
     addLibrarySource('/a.dart', 'final a = 1;');
     var library = await checkLibrary('import "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
-import 'a.dart';
-final double b;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static final b @23
+        type: double
+    accessors
+      synthetic static get b @23
+        returnType: double
 ''');
   }
 
@@ -16462,20 +32414,38 @@ final double b;
     var library =
         await checkLibrary('library lib; part "a.dart"; final b = a / 2;');
     checkElementText(library, r'''
-library lib;
-part 'a.dart';
-final double b;
---------------------
-unit: a.dart
-
-final int a;
+library
+  name: lib
+  nameOffset: 8
+  definingUnit
+    topLevelVariables
+      static final b @34
+        type: double
+    accessors
+      synthetic static get b @34
+        returnType: double
+  parts
+    a.dart
+      topLevelVariables
+        static final a @19
+          type: int
+      accessors
+        synthetic static get a @19
+          returnType: int
 ''');
   }
 
   test_variable_propagatedType_final_noDep() async {
     var library = await checkLibrary('final i = 0;');
     checkElementText(library, r'''
-final int i;
+library
+  definingUnit
+    topLevelVariables
+      static final i @6
+        type: int
+    accessors
+      synthetic static get i @6
+        returnType: int
 ''');
   }
 
@@ -16485,8 +32455,16 @@ final int i;
     addLibrarySource('/b.dart', 'import "a.dart"; C f() => null;');
     var library = await checkLibrary('import "b.dart"; final x = f();');
     checkElementText(library, r'''
-import 'b.dart';
-final C x;
+library
+  imports
+    b.dart
+  definingUnit
+    topLevelVariables
+      static final x @23
+        type: C
+    accessors
+      synthetic static get x @23
+        returnType: C
 ''');
   }
 
@@ -16496,17 +32474,28 @@ final C x;
     var library =
         await checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
-library my.lib;
-part 'a.dart';
-part 'b.dart';
---------------------
-unit: a.dart
-
-void set x(int _) {}
---------------------
-unit: b.dart
-
-int get x {}
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+  parts
+    a.dart
+      topLevelVariables
+        synthetic static x @-1
+          type: int
+      accessors
+        set x @25
+          parameters
+            requiredPositional _ @31
+              type: int
+          returnType: void
+    b.dart
+      topLevelVariables
+        synthetic static x @-1
+          type: int
+      accessors
+        get x @24
+          returnType: int
 ''');
   }
 
@@ -16516,7 +32505,19 @@ var a = throw 42;
 ''');
 
     checkElementText(library, r'''
-Never a;
+library
+  definingUnit
+    topLevelVariables
+      static a @4
+        type: Never
+    accessors
+      synthetic static get a @4
+        returnType: Never
+      synthetic static set a @4
+        parameters
+          requiredPositional _a @4
+            type: Never
+        returnType: void
 ''');
   }
 
@@ -16526,7 +32527,19 @@ var a;
 ''');
 
     checkElementText(library, r'''
-dynamic a;
+library
+  definingUnit
+    topLevelVariables
+      static a @4
+        type: dynamic
+    accessors
+      synthetic static get a @4
+        returnType: dynamic
+      synthetic static set a @4
+        parameters
+          requiredPositional _a @4
+            type: dynamic
+        returnType: void
 ''');
   }
 
@@ -16542,8 +32555,21 @@ var b = a;
 ''');
 
     checkElementText(library, r'''
-import 'a.dart';
-int b;
+library
+  imports
+    a.dart
+  definingUnit
+    topLevelVariables
+      static b @21
+        type: int
+    accessors
+      synthetic static get b @21
+        returnType: int
+      synthetic static set b @21
+        parameters
+          requiredPositional _b @21
+            type: int
+        returnType: void
 ''');
   }
 
@@ -16554,40 +32580,66 @@ class A<T> {
 }
 const A<int> a = A();
 ''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A();
-}
-  typeParameters
-    T
-      bound: null
-      defaultType: dynamic
-const A<int> a;
-  constantInitializer
-    InstanceCreationExpression
-      argumentList: ArgumentList
-      constructorName: ConstructorName
-        staticElement: ConstructorMember
-          base: self::@class::A::@constructor::•
-          substitution: {T: int}
-        type: TypeName
-          name: SimpleIdentifier
-            staticElement: self::@class::A
-            staticType: null
-            token: A
-          type: A<int>
-      staticType: A<int>
-''',
-        withResolvedAst: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          const @21
+    topLevelVariables
+      static const a @41
+        type: A<int>
+        constantInitializer
+          InstanceCreationExpression
+            argumentList: ArgumentList
+              leftParenthesis: ( @46
+              rightParenthesis: ) @47
+            constructorName: ConstructorName
+              staticElement: ConstructorMember
+                base: self::@class::A::@constructor::•
+                substitution: {T: int}
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @45
+                type: A<int>
+            staticType: A<int>
+    accessors
+      synthetic static get a @41
+        returnType: A<int>
+''');
   }
 
   test_variables() async {
     var library = await checkLibrary('int i; int j;');
     checkElementText(library, r'''
-int i;
-int j;
+library
+  definingUnit
+    topLevelVariables
+      static i @4
+        type: int
+      static j @11
+        type: int
+    accessors
+      synthetic static get i @4
+        returnType: int
+      synthetic static set i @4
+        parameters
+          requiredPositional _i @4
+            type: int
+        returnType: void
+      synthetic static get j @11
+        returnType: int
+      synthetic static set j @11
+        parameters
+          requiredPositional _j @11
+            type: int
+        returnType: void
 ''');
   }
 
