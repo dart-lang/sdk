@@ -336,7 +336,11 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_keyword(SimpleIdentifier node) {
     var name = node.name;
     if (name == 'void') {
-      return _addRegion_node(node, HighlightRegionType.KEYWORD);
+      return _addRegion_node(
+        node,
+        HighlightRegionType.KEYWORD,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.void_},
+      );
     }
     return false;
   }

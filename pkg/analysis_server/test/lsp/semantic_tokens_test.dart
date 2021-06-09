@@ -297,13 +297,15 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.documentation]),
       _Token('@', CustomSemanticTokenTypes.annotation),
       _Token('override', SemanticTokenTypes.property),
-      _Token('void', SemanticTokenTypes.keyword),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
       _Token('myMethod', SemanticTokenTypes.method,
           [SemanticTokenModifiers.declaration]),
       _Token('/// static method docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('static', SemanticTokenTypes.keyword),
-      _Token('void', SemanticTokenTypes.keyword),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
       _Token('myStaticMethod', SemanticTokenTypes.method,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('// static method comment', SemanticTokenTypes.comment),
@@ -492,7 +494,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     ''';
 
     final expected = [
-      _Token('void', SemanticTokenTypes.keyword),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
       _Token('main', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('async', SemanticTokenTypes.keyword,
