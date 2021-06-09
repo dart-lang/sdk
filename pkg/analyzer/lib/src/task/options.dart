@@ -26,7 +26,11 @@ import 'package:yaml/yaml.dart';
 final _OptionsProcessor _processor = _OptionsProcessor();
 
 List<AnalysisError> analyzeAnalysisOptions(
-    Source source, String content, SourceFactory sourceFactory) {
+  Source source,
+  String content,
+  SourceFactory sourceFactory,
+  String contextRoot,
+) {
   List<AnalysisError> errors = <AnalysisError>[];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
@@ -70,7 +74,7 @@ List<AnalysisError> analyzeAnalysisOptions(
           initialIncludeSpan!.start.offset,
           initialIncludeSpan!.length,
           AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
-          [includeUri, source.fullName]));
+          [includeUri, source.fullName, contextRoot]));
       return;
     }
     try {

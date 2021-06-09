@@ -586,7 +586,11 @@ class EditDomainHandler extends AbstractRequestHandler {
     var session = driver.currentSession;
     var sourceFactory = driver.sourceFactory;
     var errors = analyzeAnalysisOptions(
-        optionsFile.createSource(), content, sourceFactory);
+      optionsFile.createSource(),
+      content,
+      sourceFactory,
+      driver.currentSession.analysisContext.contextRoot.root.path,
+    );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {
       return errorFixesList;
