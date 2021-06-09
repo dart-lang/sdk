@@ -16,6 +16,9 @@ regexp/pcre_test: Slow, Pass # Issue 22008
 [ $runtime != none ]
 string_runes_test: Skip # See breaking change #40674
 
+[ $runtime != vm ]
+reg_exp_receive_port_test: Skip # uses SendPort/ReceivePort
+
 [ $system == android ]
 throw_half_surrogate_pair_test/*: Skip # Issue http://dartbug.com/42094
 

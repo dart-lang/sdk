@@ -7,6 +7,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/regexp.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -1748,9 +1749,9 @@ RegExpPtr RegExp::ReadFrom(SnapshotReader* reader,
                            Snapshot::Kind kind,
                            bool as_reference) {
   ASSERT(reader != NULL);
-
   // Allocate RegExp object.
-  RegExp& regex = RegExp::ZoneHandle(reader->zone(), RegExp::New());
+  RegExp& regex =
+      RegExp::ZoneHandle(reader->zone(), RegExp::New(reader->zone()));
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Read and Set all the other fields.
@@ -1766,14 +1767,6 @@ RegExpPtr RegExp::ReadFrom(SnapshotReader* reader,
   regex.StoreNonPointer(&regex.untag()->num_two_byte_registers_,
                         reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.untag()->type_flags_, reader->Read<int8_t>());
-
-  const Function& no_function = Function::Handle(reader->zone());
-  for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
-       cid++) {
-    regex.set_function(cid, /*sticky=*/false, no_function);
-    regex.set_function(cid, /*sticky=*/true, no_function);
-  }
-
   return regex.ptr();
 }
 

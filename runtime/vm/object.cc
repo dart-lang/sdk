@@ -50,6 +50,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
+#include "vm/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
@@ -25489,7 +25490,7 @@ void RegExp::set_capture_name_map(const Array& array) const {
   untag()->set_capture_name_map(array.ptr());
 }
 
-RegExpPtr RegExp::New(Heap::Space space) {
+RegExpPtr RegExp::New(Zone* zone, Heap::Space space) {
   RegExp& result = RegExp::Handle();
   {
     ObjectPtr raw =
@@ -25502,6 +25503,21 @@ RegExpPtr RegExp::New(Heap::Space space) {
     result.set_num_bracket_expressions(-1);
     result.set_num_registers(/*is_one_byte=*/false, -1);
     result.set_num_registers(/*is_one_byte=*/true, -1);
+  }
+
+  if (!FLAG_interpret_irregexp) {
+    auto thread = Thread::Current();
+    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
+    const Class& owner =
+        Class::Handle(zone, lib.LookupClass(Symbols::RegExp()));
+
+    for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
+         cid++) {
+      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/false,
+                                owner);
+      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/true,
+                                owner);
+    }
   }
   return result.ptr();
 }

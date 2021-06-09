@@ -11427,7 +11427,7 @@ class RegExp : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedRegExp));
   }
 
-  static RegExpPtr New(Heap::Space space = Heap::kNew);
+  static RegExpPtr New(Zone* zone, Heap::Space space = Heap::kNew);
 
  private:
   void set_type(RegExType type) const {

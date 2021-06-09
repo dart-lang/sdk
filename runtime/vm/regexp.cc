@@ -5515,12 +5515,12 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
   return result;
 }
 
-static void CreateSpecializedFunction(Thread* thread,
-                                      Zone* zone,
-                                      const RegExp& regexp,
-                                      intptr_t specialization_cid,
-                                      bool sticky,
-                                      const Object& owner) {
+void CreateSpecializedFunction(Thread* thread,
+                               Zone* zone,
+                               const RegExp& regexp,
+                               intptr_t specialization_cid,
+                               bool sticky,
+                               const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
 
   const FunctionType& signature =
@@ -5569,7 +5569,7 @@ RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
                                      const String& pattern,
                                      RegExpFlags flags) {
   Zone* zone = thread->zone();
-  const RegExp& regexp = RegExp::Handle(RegExp::New());
+  const RegExp& regexp = RegExp::Handle(RegExp::New(zone));
 
   regexp.set_pattern(pattern);
   regexp.set_flags(flags);

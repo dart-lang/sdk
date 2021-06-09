@@ -56,6 +56,9 @@ bigint_test/15: SkipSlow # --no_intrinsify
 regexp/global_test: Skip # Issue 21709
 regexp/pcre_test: Slow, Pass
 
+[ $runtime != vm ]
+reg_exp_receive_port_test : Skip # uses SendPort/ReceivePort
+
 [ $hot_reload || $hot_reload_rollback ]
 bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.
 bigint_test: Skip # Issue 31659
