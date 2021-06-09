@@ -47,7 +47,6 @@ const List<ErrorCode> errorCodeValues = [
   //
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
   AnalysisOptionsErrorCode.PARSE_ERROR,
-  AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
   AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
   AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
   AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,

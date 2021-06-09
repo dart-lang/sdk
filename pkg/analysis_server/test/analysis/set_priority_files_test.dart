@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -70,7 +71,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   Future<void> test_ignoredInAnalysisOptions() async {
     var sampleFile = convertPath('$projectPath/samples/sample.dart');
-    newFile('$projectPath/.analysis_options', content: r'''
+    newFile('$projectPath/${file_paths.analysisOptionsYaml}', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -85,7 +86,8 @@ analyzer:
     newFile('$projectPath/.packages');
     newFile('$projectPath/child/.packages');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
-    newFile('$projectPath/child/.analysis_options', content: r'''
+    newFile('$projectPath/child/${file_paths.analysisOptionsYaml}',
+        content: r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -100,7 +102,7 @@ analyzer:
     newFile('$projectPath/.packages');
     newFile('$projectPath/child/.packages');
     var sampleFile = convertPath('$projectPath/child/samples/sample.dart');
-    newFile('$projectPath/.analysis_options', content: r'''
+    newFile('$projectPath/${file_paths.analysisOptionsYaml}', content: r'''
 analyzer:
   exclude:
     - 'child/samples/**'
