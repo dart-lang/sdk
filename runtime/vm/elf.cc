@@ -14,6 +14,8 @@
 
 namespace dart {
 
+#if defined(DART_PRECOMPILER)
+
 // A wrapper around BaseWriteStream that provides methods useful for
 // writing ELF files (e.g., using ELF definitions of data sizes).
 class ElfWriteStream : public ValueObject {
@@ -1573,5 +1575,7 @@ void Elf::WriteSections(ElfWriteStream* stream) {
                  section->file_offset() + section->FileSize());
   }
 }
+
+#endif  // DART_PRECOMPILER
 
 }  // namespace dart
