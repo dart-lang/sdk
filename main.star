@@ -1490,7 +1490,6 @@ dart_ci_builder(
     category = "sdk|m1",
     channels = ["try", "dev"],
     dimensions = mac(cpu = "arm64"),
-    lkgr = True,
 )
 
 dart_ci_builder(
