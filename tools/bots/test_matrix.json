@@ -2608,7 +2608,7 @@
           "arguments": [
             "-ndart2js-o0-linux-d8",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         },
         {
@@ -2616,7 +2616,7 @@
           "arguments": [
             "-ndart2js-modern-linux-d8",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         },
         {
