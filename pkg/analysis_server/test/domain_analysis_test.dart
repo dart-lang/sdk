@@ -536,7 +536,7 @@ void f(A a) {}
     assertHasErrors(testFilePath);
 
     // Write `.packages`, recreate analysis contexts.
-    newFile('$testPackageRootPath/.packages', content: '''
+    newDotPackagesFile(testPackageRootPath, content: '''
 aaa:${toUriStr(aaaLibPath)}
 ''');
 
@@ -858,7 +858,7 @@ class A {}
 ''');
 
     // Write `.packages` empty, without `package:aaa`.
-    newFile('$testPackageRootPath/.packages', content: '');
+    newDotPackagesFile(testPackageRootPath, content: '');
 
     newFile(testFilePath, content: '''
 import 'package:aaa/a.dart';
@@ -872,7 +872,7 @@ void f(A a) {}
     assertHasErrors(testFilePath);
 
     // Write `.packages`, recreate analysis contexts.
-    newFile('$testPackageRootPath/.packages', content: '''
+    newDotPackagesFile(testPackageRootPath, content: '''
 aaa:${toUriStr(aaaLibPath)}
 ''');
 
@@ -1090,7 +1090,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    newFile('$testPackageRootPath/.packages', content: '''
+    newDotPackagesFile(testPackageRootPath, content: '''
 aaa:${toUriStr(aaaLibPath)}
 ''');
 
@@ -1193,7 +1193,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    newFile('$testPackageRootPath/.packages', content: '''
+    newDotPackagesFile(testPackageRootPath, content: '''
 aaa:${toUriStr(aaaLibPath)}
 ''');
 
@@ -1671,7 +1671,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
 library lib_a;
 class A {}
 ''').path;
-    newFile('/project/.packages', content: 'pkgA:file:///packages/pkgA/lib');
+    newDotPackagesFile('/project', content: 'pkgA:file:///packages/pkgA/lib');
     //
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -1722,7 +1722,7 @@ main() {
 library lib_a;
 class A {}
 ''').path;
-    newFile('/project/.packages', content: 'pkgA:/packages/pkgA/lib');
+    newDotPackagesFile('/project', content: 'pkgA:/packages/pkgA/lib');
     //
     addTestFile('// no "pkgA" reference');
     createProject();

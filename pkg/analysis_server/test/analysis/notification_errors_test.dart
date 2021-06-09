@@ -96,7 +96,7 @@ include: package:pedantic/analysis_options.yaml
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
 
     // Write a package file that allows resolving the include.
-    newFile('$projectPath/.packages', content: '''
+    newDotPackagesFile(projectPath, content: '''
 pedantic:${pedanticFolder.toUri()}
 ''');
 

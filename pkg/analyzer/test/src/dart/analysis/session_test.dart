@@ -233,7 +233,7 @@ class AnalysisSessionImplTest with ResourceProviderMixin {
     aaaContextPath = newFolder('/home/aaa').path;
     bbbContextPath = newFolder('/home/bbb').path;
 
-    newFile('/home/test/.packages', content: r'''
+    newDotPackagesFile('/home/test', content: r'''
 test:lib/
 ''');
 

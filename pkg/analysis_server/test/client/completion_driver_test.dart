@@ -145,7 +145,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     driver.createProject(packageRoots: packageRoots);
 
     newPubspecYamlFile(projectPath, '');
-    newFile('$projectPath/.packages', content: '''
+    newDotPackagesFile(projectPath, content: '''
 project:${toUri('$projectPath/lib')}
 ''');
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions

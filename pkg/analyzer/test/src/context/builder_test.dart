@@ -266,7 +266,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   }
 
   void test_createWorkspace_hasPackagesFile_hasDartToolAndPubspec() {
-    newFile('/workspace/.packages');
+    newDotPackagesFile('/workspace');
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
     newPubspecYamlFile('/workspace', 'name: project');
     Workspace workspace = _createWorkspace('/workspace/project/lib/lib.dart');
@@ -274,14 +274,14 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   }
 
   void test_createWorkspace_hasPackagesFile_hasPubspec() {
-    newFile('/workspace/.packages');
+    newDotPackagesFile('/workspace');
     newPubspecYamlFile('/workspace', 'name: project');
     Workspace workspace = _createWorkspace('/workspace/project/lib/lib.dart');
     expect(workspace, TypeMatcher<PubWorkspace>());
   }
 
   void test_createWorkspace_hasPackagesFile_noMarkerFiles() {
-    newFile('/workspace/.packages');
+    newDotPackagesFile('/workspace');
     Workspace workspace = _createWorkspace('/workspace/project/lib/lib.dart');
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
