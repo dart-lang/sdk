@@ -5631,7 +5631,7 @@ TEST_CASE(DartAPI_SetField_CheckIsolate) {
 
 TEST_CASE(DartAPI_New) {
   const char* kScriptChars =
-      "class MyClass {\n"
+      "class MyClass implements MyExtraHop {\n"
       "  MyClass() : foo = 7 {}\n"
       "  MyClass.named(value) : foo = value {}\n"
       "  MyClass._hidden(value) : foo = -value {}\n"
@@ -5644,7 +5644,7 @@ TEST_CASE(DartAPI_New) {
       "  var foo;\n"
       "}\n"
       "\n"
-      "abstract class MyExtraHop {\n"
+      "abstract class MyExtraHop implements MyInterface {\n"
       "  factory MyExtraHop.hop(value) = MyClass.named;\n"
       "}\n"
       "\n"
@@ -5841,26 +5841,6 @@ TEST_CASE(DartAPI_New) {
   result = Dart_New(type, NewString("exception"), 1, args);
   EXPECT_ERROR(result, "ConstructorDeath");
 
-  // Invoke two-hop redirecting factory constructor.
-  result = Dart_New(intf, NewString("named"), 1, args);
-  EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
-  EXPECT(instanceOf);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(11, int_value);
-
-  // Invoke one-hop redirecting factory constructor.
-  result = Dart_New(intf, NewString("multiply"), 1, args);
-  EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
-  EXPECT(instanceOf);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(1100, int_value);
-
   // Invoke a constructor that is missing in the interface.
   result = Dart_New(intf, Dart_Null(), 0, NULL);
   EXPECT_ERROR(result, "Dart_New: could not find constructor 'MyInterface.'.");
@@ -5870,6 +5850,71 @@ TEST_CASE(DartAPI_New) {
   EXPECT_VALID(result);
   EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
   EXPECT(!instanceOf);
+}
+
+// These two cases below currently fail because of issue
+// https://github.com/dart-lang/sdk/issues/42939
+TEST_CASE(DartAPI_New_Issue42939) {
+  const char* kScriptChars =
+      "class MyClass implements MyExtraHop {\n"
+      "  MyClass() : foo = 7 {}\n"
+      "  MyClass.named(value) : foo = value {}\n"
+      "  MyClass._hidden(value) : foo = -value {}\n"
+      "  MyClass.exception(value) : foo = value {\n"
+      "    throw 'ConstructorDeath';\n"
+      "  }\n"
+      "  factory MyClass.multiply(value) {\n"
+      "    return new MyClass.named(value * 100);\n"
+      "  }\n"
+      "  var foo;\n"
+      "}\n"
+      "\n"
+      "abstract class MyExtraHop implements MyInterface {\n"
+      "  factory MyExtraHop.hop(value) = MyClass.named;\n"
+      "}\n"
+      "\n"
+      "abstract class MyInterface {\n"
+      "  factory MyInterface.named(value) = MyExtraHop.hop;\n"
+      "  factory MyInterface.multiply(value) = MyClass.multiply;\n"
+      "  MyInterface.notfound(value);\n"
+      "}\n"
+      "\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("MyClass"), 0, NULL);
+  EXPECT_VALID(type);
+  Dart_Handle intf =
+      Dart_GetNonNullableType(lib, NewString("MyInterface"), 0, NULL);
+  EXPECT_VALID(intf);
+
+  Dart_Handle args[1];
+  args[0] = Dart_NewInteger(11);
+
+  // Invoke two-hop redirecting factory constructor.
+  bool instanceOf = false;
+  Dart_Handle result = Dart_New(intf, NewString("named"), 1, args);
+  EXPECT_VALID(result);
+  if (!Dart_IsError(result)) {
+    EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
+    EXPECT(instanceOf);
+    int64_t int_value = 0;
+    Dart_Handle foo = Dart_GetField(result, NewString("foo"));
+    EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+    EXPECT_EQ(11, int_value);
+  }
+
+  // Invoke one-hop redirecting factory constructor.
+  result = Dart_New(intf, NewString("multiply"), 1, args);
+  EXPECT_VALID(result);
+  if (!Dart_IsError(result)) {
+    EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
+    EXPECT(instanceOf);
+    int64_t int_value = 0;
+    Dart_Handle foo = Dart_GetField(result, NewString("foo"));
+    EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+    EXPECT_EQ(1100, int_value);
+  }
 }
 
 TEST_CASE(DartAPI_New_Issue44205) {
