@@ -57,8 +57,6 @@ class AnalysisOptionsFixGenerator {
 //    if (errorCode == AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR) {
 //    } else if (errorCode == AnalysisOptionsErrorCode.PARSE_ERROR) {
 //    } else if (errorCode ==
-//        AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME) {
-//    } else if (errorCode ==
 //        AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED) {
 //    } else if (errorCode ==
 //        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED) {

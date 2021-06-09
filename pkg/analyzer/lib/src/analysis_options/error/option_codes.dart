@@ -46,17 +46,6 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 }
 
 class AnalysisOptionsHintCode extends ErrorCode {
-  /// An error code indicating the analysis options file name is deprecated and
-  /// the file should be renamed.
-  ///
-  /// Parameters:
-  /// 0: the uri of the file which should be renamed
-  static const AnalysisOptionsHintCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
-      AnalysisOptionsHintCode(
-          'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
-          "The name of the analysis options file {0} is deprecated;"
-              " consider renaming it to analysis_options.yaml.");
-
   /// An error code indicating that the enablePreviewDart2 setting is
   /// deprecated.
   static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =

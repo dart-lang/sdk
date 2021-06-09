@@ -42,8 +42,8 @@ import 'package:yaml/yaml.dart';
 ///    (_embedder.yaml). If one exists then it defines the SDK. If multiple such
 ///    files exist then use the first one found. Otherwise, use the default SDK.
 ///
-/// 3. Look for an analysis options file (`analysis_options.yaml` or
-///    `.analysis_options`) and process the options in the file.
+/// 3. Look for an analysis options file (`analysis_options.yaml`) and process
+///    the options in the file.
 ///
 /// 4. Create a new context. Initialize its source factory based on steps 1, 2
 ///    and 3. Initialize its analysis options from step 4.
