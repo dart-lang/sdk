@@ -6,6 +6,74 @@
 
 import "dart:math" as math;
 
+main() {
+  List<String> test = BinaryMdDillReader._getGenerics("Pair<A, B>");
+  if (test.length != 2 || test[0] != "A" || test[1] != "B") {
+    throw "Expected [A, B] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics("List<Expression>");
+  if (test.length != 1 || test[0] != "Expression") {
+    throw "Expected [Expression] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics("List<Pair<FileOffset, Expression>>");
+  if (test.length != 1 || test[0] != "Pair<FileOffset, Expression>") {
+    throw "Expected [Pair<FileOffset, Expression>] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics("RList<Pair<UInt32, UInt32>>");
+  if (test.length != 1 || test[0] != "Pair<UInt32, UInt32>") {
+    throw "Expected [Pair<UInt32, UInt32>] got $test";
+  }
+
+  test =
+      BinaryMdDillReader._getGenerics("List<Pair<FieldReference, Expression>>");
+  if (test.length != 1 || test[0] != "Pair<FieldReference, Expression>") {
+    throw "Expected [Pair<FieldReference, Expression>] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics(
+      "List<Pair<ConstantReference, ConstantReference>>");
+  if (test.length != 1 ||
+      test[0] != "Pair<ConstantReference, ConstantReference>") {
+    throw "Expected [Pair<ConstantReference, ConstantReference>] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics(
+      "List<Pair<FieldReference, ConstantReference>>");
+  if (test.length != 1 ||
+      test[0] != "Pair<FieldReference, ConstantReference>") {
+    throw "Expected [Pair<FieldReference, ConstantReference>] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics("Option<List<DartType>>");
+  if (test.length != 1 || test[0] != "List<DartType>") {
+    throw "Expected [List<DartType>] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics("Foo<Bar<Baz>>");
+  if (test.length != 1 || test[0] != "Bar<Baz>") {
+    throw "Expected [Bar<Baz>] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics("Foo<A, B<C, D>, E>");
+  if (test.length != 3 ||
+      test[0] != "A" ||
+      test[1] != "B<C, D>" ||
+      test[2] != "E") {
+    throw "Expected [A, B<C, D>, E] got $test";
+  }
+
+  test = BinaryMdDillReader._getGenerics("Foo<A, B<C, D<E<F<G>>>>, H>");
+  if (test.length != 3 ||
+      test[0] != "A" ||
+      test[1] != "B<C, D<E<F<G>>>>" ||
+      test[2] != "H") {
+    throw "Expected [A, B<C, D<E<F<G>>>>, H] got $test";
+  }
+}
+
 class BinaryMdDillReader {
   final String _binaryMdContent;
 
@@ -236,33 +304,50 @@ class BinaryMdDillReader {
     return result;
   }
 
+  static const int $COMMA = 44;
+  static const int $LT = 60;
+  static const int $GT = 62;
+
   /// Extract the generics used in an input type, e.g. turns
   ///
-  /// * "Pair<A, B>" into ["A", "B"]
-  /// * "List<Expression>" into ["Expression"]
+  /// * "Pair<A, B>" into ["A", "B"].
+  /// * "List<Expression>" into ["Expression"].
+  /// * "Foo<Bar<Baz>>" into ["Bar<Baz>"].
+  /// * "Foo<A, B<C, D>, E>" into ["A", "B<C, D>", "E"].
   ///
   /// Note that the input string *has* to use generics, i.e. have '<' and '>'
   /// in it.
-  /// Also note that nested generics isn't really supported
-  /// (e.g. Foo<Bar<Baz>>).
-  List<String> _getGenerics(String s) {
+  static List<String> _getGenerics(String s) {
     s = s.substring(s.indexOf("<") + 1, s.lastIndexOf(">"));
-    if (s.contains("<")) {
-      if (s == "Pair<FileOffset, Expression>") {
-        return ["Pair<FileOffset, Expression>"];
-      } else if (s == "Pair<UInt32, UInt32>") {
-        return ["Pair<UInt32, UInt32>"];
-      } else if (s == "Pair<FieldReference, Expression>") {
-        return ["Pair<FieldReference, Expression>"];
-      } else if (s == "Pair<ConstantReference, ConstantReference>") {
-        return ["Pair<ConstantReference, ConstantReference>"];
-      } else if (s == "Pair<FieldReference, ConstantReference>") {
-        return ["Pair<FieldReference, ConstantReference>"];
+    // Check that any '<' and '>' are balanced and split entries on comma for
+    // the outermost parameters.
+    int ltCount = 0;
+    int gtCount = 0;
+    int depth = 0;
+    int lastPos = 0;
+
+    List<int> codeUnits = s.codeUnits;
+    List<String> result = [];
+    for (int i = 0; i < codeUnits.length; i++) {
+      int codeUnit = codeUnits[i];
+      if (codeUnit == $LT) {
+        ltCount++;
+        depth++;
+      } else if (codeUnit == $GT) {
+        gtCount++;
+        depth--;
+      } else if (codeUnit == $COMMA && depth == 0) {
+        result.add(s.substring(lastPos, i).trim());
+        lastPos = i + 1;
       }
-      throw "Doesn't supported nested generics (input: $s).";
     }
 
-    return s.split(",").map((untrimmed) => untrimmed.trim()).toList();
+    if (ltCount != gtCount) {
+      throw "Unbalanced '<' and '>': $s";
+    }
+    assert(depth == 0);
+    result.add(s.substring(lastPos, codeUnits.length).trim());
+    return result;
   }
 
   /// Parses a line of binary.md content for a "current class" into the
