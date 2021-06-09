@@ -2390,10 +2390,14 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  String getDisplayString({required bool withNullability}) {
+  String getDisplayString({
+    required bool withNullability,
+    bool multiline = false,
+  }) {
     var builder = ElementDisplayStringBuilder(
       skipAllDynamicArguments: false,
       withNullability: withNullability,
+      multiline: multiline,
     );
     appendTo(builder);
     return builder.toString();
@@ -4405,7 +4409,10 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       visitor.visitMultiplyDefinedElement(this);
 
   @override
-  String getDisplayString({required bool withNullability}) {
+  String getDisplayString({
+    required bool withNullability,
+    bool multiline = false,
+  }) {
     var elementsStr = conflictingElements.map((e) {
       return e.getDisplayString(
         withNullability: withNullability,

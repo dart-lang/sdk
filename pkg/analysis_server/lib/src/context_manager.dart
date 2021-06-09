@@ -268,9 +268,11 @@ class ContextManagerImpl implements ContextManager {
       var content = _readFile(path);
       var lineInfo = _computeLineInfo(content);
       var errors = analyzeAnalysisOptions(
-          resourceProvider.getFile(path).createSource(),
-          content,
-          driver.sourceFactory);
+        resourceProvider.getFile(path).createSource(),
+        content,
+        driver.sourceFactory,
+        driver.currentSession.analysisContext.contextRoot.root.path,
+      );
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
           lineInfo: lineInfo, options: driver.analysisOptions);

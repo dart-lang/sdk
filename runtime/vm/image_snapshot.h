@@ -27,6 +27,7 @@ namespace dart {
 // Forward declarations.
 class Code;
 class Dwarf;
+class Elf;
 class Instructions;
 class Object;
 
@@ -240,9 +241,13 @@ class ImageWriter : public ValueObject {
   // Text sections contain objects (even in bare instructions mode) wrapped
   // in an Image object, and for now we also align them to the same page
   // size assumed by Elf objects.
+  static constexpr intptr_t kTextAlignment = 16 * KB;
+#if defined(DART_PRECOMPILER)
+  static_assert(kTextAlignment == Elf::kPageSize,
+                "Page alignment must be consistent with max object alignment");
   static_assert(Elf::kPageSize >= kMaxObjectAlignment,
                 "Page alignment must be consistent with max object alignment");
-  static constexpr intptr_t kTextAlignment = Elf::kPageSize;
+#endif
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;

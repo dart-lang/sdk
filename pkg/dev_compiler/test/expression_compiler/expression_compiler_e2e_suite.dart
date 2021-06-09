@@ -152,10 +152,8 @@ class TestCompiler {
       inlineSourceMap: true,
       buildSourceMap: true,
       emitDebugMetadata: true,
-      emitDebugSymbols: true,
       jsUrl: '$output',
       mapUrl: '$output.map',
-      compiler: kernel2jsCompiler,
       component: component,
     );
     metadata = code.metadata;

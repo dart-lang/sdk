@@ -35,7 +35,7 @@ abstract class ContextRoot {
   File? get optionsFile;
 
   /// The packages file that should be used when analyzing the files within this
-  /// context root, or `null` if there is no options file.
+  /// context root, or `null` if there is no packages file.
   File? get packagesFile;
 
   /// The resource provider used to access the file system.

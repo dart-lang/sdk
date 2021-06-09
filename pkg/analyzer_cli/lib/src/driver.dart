@@ -242,7 +242,11 @@ class Driver implements CommandLineStarter {
           var content = file.readAsStringSync();
           var lineInfo = LineInfo.fromContent(content);
           var errors = analyzeAnalysisOptions(
-              file.createSource(), content, analysisDriver.sourceFactory);
+            file.createSource(),
+            content,
+            analysisDriver.sourceFactory,
+            analysisDriver.currentSession.analysisContext.contextRoot.root.path,
+          );
           formatter.formatErrors([
             ErrorsResultImpl(analysisDriver.currentSession, path, null,
                 lineInfo, false, errors)

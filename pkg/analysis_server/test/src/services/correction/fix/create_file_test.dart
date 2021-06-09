@@ -20,6 +20,24 @@ class CreateFileTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_FILE;
 
+  Future<void> test_forExport() async {
+    await resolveTestCode('''
+export 'my_file.dart';
+''');
+    await assertHasFixWithoutApplying();
+    // validate change
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    var fileEdit = change.edits[0];
+    expect(fileEdit.file, convertPath('/home/test/lib/my_file.dart'));
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(
+      fileEdit.edits[0].replacement,
+      contains('// TODO Implement this library.'),
+    );
+  }
+
   Future<void> test_forImport() async {
     await resolveTestCode('''
 import 'my_file.dart';

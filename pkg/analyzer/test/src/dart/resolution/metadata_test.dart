@@ -50,6 +50,8 @@ Annotation
             IntegerLiteral
               literal: 0
               staticType: int
+          leftParenthesis: (
+          rightParenthesis: )
         constructorName: ConstructorName
           staticElement: self::@class::A::@constructor::•
           type: TypeName
@@ -59,6 +61,9 @@ Annotation
               token: A
             type: A
         staticType: A
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 80
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier
     staticElement: self::@class::A
@@ -344,6 +349,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 53
   element: self::@class::A::@constructor::named
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -382,6 +390,7 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign.offset: 42
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -420,6 +429,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 48
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier
     staticElement: self::@class::A
@@ -456,6 +468,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 54
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
@@ -506,6 +521,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 49
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -537,6 +555,7 @@ void f() {}
 
     _assertResolvedNodeText(findNode.annotation('@A'), r'''
 Annotation
+  atSign.offset: 31
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -572,6 +591,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 56
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: dynamic}
@@ -611,6 +633,7 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign.offset: 38
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -649,6 +672,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 54
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
@@ -670,6 +696,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, '''
 A<int>
@@ -701,6 +729,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 49
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -716,6 +747,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -748,6 +781,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 48
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: dynamic}
@@ -790,6 +826,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 88
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
@@ -828,6 +867,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 88
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
@@ -843,6 +885,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -958,6 +1002,7 @@ void f() {}
     var annotation = findNode.annotation('@prefix.B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign.offset: 28
   constructorName: SimpleIdentifier
     staticElement: package:test/a.dart::@class::A::@getter::foo
     staticType: null
@@ -1005,6 +1050,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 28
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::named
@@ -1063,6 +1111,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 28
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::•
     substitution: {T: int}
@@ -1115,6 +1166,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 28
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::named
@@ -1144,6 +1198,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1181,6 +1237,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 28
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::•
     substitution: {T: int}
@@ -1204,6 +1263,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1232,6 +1293,7 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign.offset: 58
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -1276,6 +1338,9 @@ Annotation
       DoubleLiteral
         literal: 1.2
         staticType: double
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 108
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
@@ -1297,6 +1362,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int, double>
@@ -1342,6 +1409,9 @@ Annotation
       DoubleLiteral
         literal: 1.2
         staticType: double
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 102
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int, U: double}
@@ -1357,6 +1427,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int, double>
@@ -1398,6 +1470,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 76
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
@@ -1451,6 +1526,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 70
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -1492,6 +1570,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 76
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
@@ -1513,6 +1594,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1547,6 +1630,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 70
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -1562,6 +1648,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1596,6 +1684,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 75
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
@@ -1649,6 +1740,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 69
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -1690,6 +1784,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 69
   element: self::@class::A::@constructor::named
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -1736,6 +1833,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign.offset: 63
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier
     staticElement: self::@typeAlias::B

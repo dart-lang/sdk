@@ -125,12 +125,23 @@ abstract class CustomSemanticTokenModifiers {
   /// of the expression would show through the simple-colorings "string" colors.
   static const interpolation = SemanticTokenModifiers('interpolation');
 
+  /// A modifier applied to the void keyword to users to color it differently
+  /// (for example as a type).
+  static const void_ = SemanticTokenModifiers('void');
+
   /// All custom semantic token modifiers, used to populate the LSP Legend.
   ///
   /// The legend must include all used modifiers. Modifiers used in the
   /// HighlightRegion mappings will be automatically included, but should still
   /// be listed here in case they are removed from mappings in the future.
-  static const values = [control, label, constructor, escape, interpolation];
+  static const values = [
+    control,
+    label,
+    constructor,
+    escape,
+    interpolation,
+    void_,
+  ];
 }
 
 abstract class CustomSemanticTokenTypes {

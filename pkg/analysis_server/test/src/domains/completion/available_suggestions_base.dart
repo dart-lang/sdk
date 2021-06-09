@@ -78,7 +78,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     testFile = convertPath('/home/test/lib/test.dart');
 
     newPubspecYamlFile('/home/test', '');
-    newFile('/home/test/.packages', content: '''
+    newDotPackagesFile('/home/test', content: '''
 test:${toUri('/home/test/lib')}
 ''');
 

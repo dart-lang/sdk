@@ -142,7 +142,7 @@ const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 const Register HEAP_BITS = R28;  // write_barrier_mask << 32 | heap_base >> 32
-const Register NULL_REG = R22;  // Caches NullObject() value.
+const Register NULL_REG = R22;   // Caches NullObject() value.
 
 // ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
@@ -433,7 +433,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How stack arguments are aligned.
-#if defined(TARGET_OS_MACOS_IOS)
+#if defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_MACOS)
   // > Function arguments may consume slots on the stack that are not multiples
   // > of 8 bytes.
   // https://developer.apple.com/documentation/xcode/writing_arm64_code_for_apple_platforms

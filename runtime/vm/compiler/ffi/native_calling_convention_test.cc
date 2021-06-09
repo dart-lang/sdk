@@ -584,6 +584,37 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress46127) {
 #endif
 }
 
+// MacOS arm64 alignment of 12-byte homogenous float structs.
+//
+// http://dartbug.com/46305
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct12bytesFloatx6) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int64_type = *new (Z) NativePrimitiveType(kInt64);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 3);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+#if defined(TARGET_ARCH_ARM64) &&                                              \
+    (defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS))
+  EXPECT_EQ(4, struct_type.AlignmentInBytesStack());
+#endif
+
+  auto& arguments = *new (Z) NativeTypes(Z, 6);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+
+  RunSignatureTest(Z, "struct12bytesFloatx6", arguments, int64_type);
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart

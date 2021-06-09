@@ -480,7 +480,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     //
     var pluginDirPath = newFolder('/plugin').path;
     var pluginFilePath = newFile('/plugin/bin/plugin.dart').path;
-    var packagesFilePath = newFile('/plugin/.packages').path;
+    var packagesFilePath = newDotPackagesFile('/plugin').path;
     //
     // Test path computation.
     //

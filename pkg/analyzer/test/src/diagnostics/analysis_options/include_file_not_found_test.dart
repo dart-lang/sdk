@@ -19,6 +19,14 @@ class IncludeFileNotFoundTest extends AbstractAnalysisOptionsTest {
     assertErrorsInCode('''
 # We don't depend on pedantic, but we should consider adding it.
 include: package:pedantic/analysis_options.yaml
-''', [error(AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND, 74, 38)]);
+''', [
+      error(
+        AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+        74,
+        38,
+        text: "The include file 'package:pedantic/analysis_options.yaml'"
+            " in '/test.dart' can't be found when analyzing '/'.",
+      )
+    ]);
   }
 }

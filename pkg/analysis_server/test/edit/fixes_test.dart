@@ -150,7 +150,7 @@ print(1)
 
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     newFolder('/aaa');
-    newFile('/aaa/.packages', content: '''
+    newDotPackagesFile('/aaa', content: '''
 aaa:${toUri('/aaa/lib')}
 bbb:${toUri('/bbb/lib')}
 ''');
@@ -160,7 +160,7 @@ dependencies:
 ''');
 
     newFolder('/bbb');
-    newFile('/bbb/.packages', content: '''
+    newDotPackagesFile('/bbb', content: '''
 bbb:${toUri('/bbb/lib')}
 ''');
     newFile('/bbb/lib/target.dart', content: 'class Foo() {}');

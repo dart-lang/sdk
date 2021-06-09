@@ -166,10 +166,10 @@ library lib_a;
 class A {}
 class B extends A {}
 ''');
-    newFile('/packages/pkgA/.packages',
+    newDotPackagesFile('/packages/pkgA',
         content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
     // reference the package from a project
-    newFile('$projectPath/.packages',
+    newDotPackagesFile(projectPath,
         content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
     addTestFile('''
 import 'package:pkgA/libA.dart';

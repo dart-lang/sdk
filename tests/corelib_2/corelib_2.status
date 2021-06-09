@@ -16,9 +16,6 @@ regexp/pcre_test: Slow, Pass # Issue 22008
 [ $runtime != none ]
 string_runes_test: Skip # See breaking change #40674
 
-[ $runtime != vm ]
-reg_exp_receive_port_test: Skip # uses SendPort/ReceivePort
-
 [ $system == android ]
 throw_half_surrogate_pair_test/*: Skip # Issue http://dartbug.com/42094
 
@@ -43,6 +40,9 @@ regexp/pcre_test: Slow, Pass # Issue 21593
 # checked mode, which is mostly Dart2-compatible.
 [ $compiler == none && !$checked && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign
+
+[ $runtime != dart_precompiled && $runtime != vm ]
+reg_exp_receive_port_test: SkipByDesign # uses SendPort/ReceivePort
 
 [ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
 int_parse_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.

@@ -15,6 +15,7 @@ import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
+import 'analysis_options/test_all.dart' as analysis_options;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'annotation_syntax_test.dart' as annotation_syntax;
 import 'argument_must_be_a_constant_test.dart' as argument_must_be_a_constant;
@@ -712,6 +713,7 @@ main() {
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
+    analysis_options.main();
     annotation_on_pointer_field.main();
     annotation_syntax.main();
     argument_must_be_a_constant.main();

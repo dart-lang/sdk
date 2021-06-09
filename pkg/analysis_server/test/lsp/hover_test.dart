@@ -174,6 +174,52 @@ print();
     expect(hover!.range, equals(rangeFromMarkers(content)));
   }
 
+  Future<void> test_signatureFormatting_multiLine() async {
+    final content = '''
+    class Foo {
+      Foo(String arg1, String arg2, [String arg3]);
+    }
+
+    main() {
+      var a = Fo^o();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    final contents = _getStringContents(hover!);
+    expect(contents, startsWith('''
+```dart
+(new) Foo Foo(
+  String arg1,
+  String arg2, [
+  String arg3,
+])
+```'''));
+  }
+
+  Future<void> test_signatureFormatting_singleLine() async {
+    final content = '''
+    class Foo {
+      Foo(String a, String b);
+    }
+
+    main() {
+      var a = Fo^o();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    final contents = _getStringContents(hover!);
+    expect(contents, startsWith('''
+```dart
+(new) Foo Foo(String a, String b)
+```'''));
+  }
+
   Future<void> test_string_noDocComment() async {
     final content = '''
     String [[a^bc]];

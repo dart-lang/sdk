@@ -13,6 +13,8 @@
 
 namespace dart {
 
+#if defined(DART_PRECOMPILER)
+
 class Dwarf;
 class ElfWriteStream;
 class Section;
@@ -148,6 +150,8 @@ class Elf : public ZoneAllocated {
   intptr_t program_table_file_offset_ = -1;
   intptr_t program_table_file_size_ = -1;
 };
+
+#endif  // DART_PRECOMPILER
 
 }  // namespace dart
 
