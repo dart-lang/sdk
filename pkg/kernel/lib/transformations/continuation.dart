@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import '../ast.dart';
 import '../core_types.dart';
+import '../type_algebra.dart' show Substitution;
 import '../type_environment.dart';
 
 import 'async.dart';
@@ -196,19 +197,28 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
 
     final syncForIterator = VariableDeclaration(
         ContinuationVariables.syncForIterator,
-        initializer: PropertyGet(
-            iterable, Name('iterator'), coreTypes.iterableGetIterator)
+        initializer: InstanceGet(InstanceAccessKind.Instance, iterable,
+            coreTypes.iterableGetIterator.name,
+            interfaceTarget: coreTypes.iterableGetIterator,
+            resultType: iteratorType)
           ..fileOffset = iterable.fileOffset,
         type: iteratorType)
       ..fileOffset = iterable.fileOffset;
 
-    final condition = MethodInvocation(VariableGet(syncForIterator),
-        Name('moveNext'), Arguments([]), coreTypes.iteratorMoveNext)
+    final condition = InstanceInvocation(
+        InstanceAccessKind.Instance,
+        VariableGet(syncForIterator),
+        coreTypes.iteratorMoveNext.name,
+        Arguments([]),
+        interfaceTarget: coreTypes.iteratorMoveNext,
+        functionType: coreTypes.iteratorMoveNext.getterType as FunctionType)
       ..fileOffset = iterable.fileOffset;
 
     final variable = stmt.variable
-      ..initializer = (PropertyGet(VariableGet(syncForIterator),
-          Name('current'), coreTypes.iteratorGetCurrent)
+      ..initializer = (InstanceGet(InstanceAccessKind.Instance,
+          VariableGet(syncForIterator), coreTypes.iteratorGetCurrent.name,
+          interfaceTarget: coreTypes.iteratorGetCurrent,
+          resultType: elementType)
         ..fileOffset = stmt.bodyOffset);
 
     final Block body = Block([variable, stmt.body]);
@@ -487,17 +497,19 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 
     var statements = <Statement>[];
     if (node.isYieldStar) {
-      statements.add(new ExpressionStatement(new PropertySet(
+      statements.add(new ExpressionStatement(new InstanceSet(
+          InstanceAccessKind.Instance,
           VariableGet(iteratorParameter),
-          new Name('_yieldEachIterable', helper.coreLibrary),
+          helper.syncIteratorYieldEachIterable.name,
           transformedExpression,
-          helper.syncIteratorYieldEachIterable)));
+          interfaceTarget: helper.syncIteratorYieldEachIterable)));
     } else {
-      statements.add(new ExpressionStatement(new PropertySet(
+      statements.add(new ExpressionStatement(new InstanceSet(
+          InstanceAccessKind.Instance,
           VariableGet(iteratorParameter),
-          new Name('_current', helper.coreLibrary),
+          helper.syncIteratorCurrent.name,
           transformedExpression,
-          helper.syncIteratorCurrent)));
+          interfaceTarget: helper.syncIteratorCurrent)));
     }
 
     statements.add(createContinuationPoint(new BoolLiteral(true))
@@ -995,21 +1007,25 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
           initializer: stmt.iterable,
           type: stmt.iterable.getStaticType(staticTypeContext));
 
+      final streamIteratorType = new InterfaceType(helper.streamIteratorClass,
+          staticTypeContext.nullable, [valueVariable.type]);
       var forIteratorVariable = VariableDeclaration(
           ContinuationVariables.forIterator,
           initializer: new ConstructorInvocation(
               helper.streamIteratorConstructor,
               new Arguments(<Expression>[new VariableGet(streamVariable)],
                   types: [valueVariable.type])),
-          type: new InterfaceType(helper.streamIteratorClass,
-              staticTypeContext.nullable, [valueVariable.type]));
+          type: streamIteratorType);
 
       // await :for-iterator.moveNext()
-      var condition = new AwaitExpression(new MethodInvocation(
+      var condition = new AwaitExpression(new InstanceInvocation(
+          InstanceAccessKind.Instance,
           VariableGet(forIteratorVariable),
-          new Name('moveNext'),
-          new Arguments(<Expression>[]),
-          helper.streamIteratorMoveNext))
+          helper.streamIteratorMoveNext.name,
+          new Arguments([]),
+          interfaceTarget: helper.streamIteratorMoveNext,
+          functionType:
+              helper.streamIteratorMoveNext.getterType as FunctionType))
         ..fileOffset = stmt.fileOffset;
 
       Expression whileCondition;
@@ -1029,10 +1045,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       }
 
       // T <variable> = :for-iterator.current;
-      valueVariable.initializer = new PropertyGet(
-          VariableGet(forIteratorVariable),
-          new Name('current'),
-          helper.streamIteratorCurrent)
+      valueVariable.initializer = new InstanceGet(InstanceAccessKind.Instance,
+          VariableGet(forIteratorVariable), helper.streamIteratorCurrent.name,
+          interfaceTarget: helper.streamIteratorCurrent,
+          resultType: valueVariable.type)
         ..fileOffset = stmt.bodyOffset;
       valueVariable.initializer!.parent = valueVariable;
 
@@ -1040,20 +1056,24 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var tryBody = new WhileStatement(whileCondition, whileBody);
 
       // if (:for-iterator._subscription != null) await :for-iterator.cancel();
+      final DartType subscriptionType =
+          Substitution.fromInterfaceType(streamIteratorType).substituteType(
+              helper.coreTypes.streamIteratorSubscription.getterType);
       var tryFinalizer = new IfStatement(
-          new Not(new MethodInvocation(
-              new PropertyGet(
-                  VariableGet(forIteratorVariable),
-                  new Name('_subscription', helper.asyncLibrary),
-                  helper.coreTypes.streamIteratorSubscription),
-              new Name('=='),
-              new Arguments([new NullLiteral()]),
-              helper.coreTypes.objectEquals)),
-          new ExpressionStatement(new AwaitExpression(new MethodInvocation(
+          new Not(new EqualsNull(new InstanceGet(
+              InstanceAccessKind.Instance,
               VariableGet(forIteratorVariable),
-              new Name('cancel'),
+              helper.coreTypes.streamIteratorSubscription.name,
+              interfaceTarget: helper.coreTypes.streamIteratorSubscription,
+              resultType: subscriptionType))),
+          new ExpressionStatement(new AwaitExpression(new InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(forIteratorVariable),
+              helper.streamIteratorCancel.name,
               new Arguments(<Expression>[]),
-              helper.streamIteratorCancel))),
+              interfaceTarget: helper.streamIteratorCancel,
+              functionType:
+                  helper.streamIteratorCancel.getterType as FunctionType))),
           null);
 
       var tryFinally = new TryFinally(tryBody, tryFinalizer);
@@ -1193,8 +1213,13 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     var completerGet = new VariableGet(controllerVariable!);
     statements.add(new ExpressionStatement(new VariableSet(
         controllerStreamVariable,
-        new PropertyGet(completerGet, new Name('stream', helper.asyncLibrary),
-            helper.asyncStarStreamControllerStream))));
+        new InstanceGet(InstanceAccessKind.Instance, completerGet,
+            helper.asyncStarStreamControllerStream.name,
+            interfaceTarget: helper.asyncStarStreamControllerStream,
+            resultType: Substitution.fromInterfaceType(
+                    controllerVariable!.type as InterfaceType)
+                .substituteType(
+                    helper.asyncStarStreamControllerStream.getterType)))));
 
     // return :controller_stream;
     var returnStatement =
@@ -1211,11 +1236,14 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     Statement body = super.buildWrappedBody();
     --currentTryDepth;
 
-    var finallyBody = new ExpressionStatement(new MethodInvocation(
+    var finallyBody = new ExpressionStatement(new InstanceInvocation(
+        InstanceAccessKind.Instance,
         new VariableGet(controllerVariable!),
-        new Name('close'),
-        new Arguments(<Expression>[]),
-        helper.asyncStarStreamControllerClose));
+        helper.asyncStarStreamControllerClose.name,
+        new Arguments([]),
+        interfaceTarget: helper.asyncStarStreamControllerClose,
+        functionType:
+            helper.asyncStarStreamControllerClose.getterType as FunctionType));
 
     var tryFinally = new TryFinally(body, new Block(<Statement>[finallyBody]));
     return tryFinally;
@@ -1223,14 +1251,17 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
 
   Statement buildCatchBody(VariableDeclaration exceptionVariable,
       VariableDeclaration stackTraceVariable) {
-    return new ExpressionStatement(new MethodInvocation(
+    return new ExpressionStatement(new InstanceInvocation(
+        InstanceAccessKind.Instance,
         new VariableGet(controllerVariable!),
-        new Name('addError'),
+        helper.asyncStarStreamControllerAddError.name,
         new Arguments(<Expression>[
           new VariableGet(exceptionVariable),
           new VariableGet(stackTraceVariable)
         ]),
-        helper.asyncStarStreamControllerAddError));
+        interfaceTarget: helper.asyncStarStreamControllerAddError,
+        functionType: helper.asyncStarStreamControllerAddError.getterType
+            as FunctionType));
   }
 
   Statement buildReturn(Statement body) {
@@ -1245,13 +1276,19 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
   TreeNode visitYieldStatement(YieldStatement stmt, TreeNode? removalSentinel) {
     Expression expr = expressionRewriter!.rewrite(stmt.expression, statements);
 
-    var addExpression = new MethodInvocation(
+    final Procedure addMethod = stmt.isYieldStar
+        ? helper.asyncStarStreamControllerAddStream
+        : helper.asyncStarStreamControllerAdd;
+    final FunctionType addMethodFunctionType = Substitution.fromInterfaceType(
+            controllerVariable!.type as InterfaceType)
+        .substituteType(addMethod.getterType) as FunctionType;
+    var addExpression = new InstanceInvocation(
+        InstanceAccessKind.Instance,
         new VariableGet(controllerVariable!),
-        new Name(stmt.isYieldStar ? 'addStream' : 'add', helper.asyncLibrary),
+        addMethod.name,
         new Arguments(<Expression>[expr]),
-        stmt.isYieldStar
-            ? helper.asyncStarStreamControllerAddStream
-            : helper.asyncStarStreamControllerAdd)
+        interfaceTarget: addMethod,
+        functionType: addMethodFunctionType)
       ..fileOffset = stmt.fileOffset;
 
     statements.add(new IfStatement(
@@ -1322,11 +1359,11 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     setupAsyncContinuations(statements);
 
     // :async_op();
-    final startStatement = ExpressionStatement(MethodInvocation(
-      VariableGet(nestedClosureVariable),
-      Name('call'),
-      Arguments([]),
-    )..fileOffset = enclosingFunction.fileOffset);
+    final startStatement = ExpressionStatement(LocalFunctionInvocation(
+        nestedClosureVariable, Arguments([]),
+        functionType: FunctionType(
+            [], const DynamicType(), staticTypeContext.nonNullable))
+      ..fileOffset = enclosingFunction.fileOffset);
     statements.add(startStatement);
 
     // :is_sync = true;
@@ -1390,11 +1427,11 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
 class HelperNodes {
   final Procedure asyncErrorWrapper;
   final Library asyncLibrary;
-  final Member asyncStarStreamControllerAdd;
-  final Member asyncStarStreamControllerAddError;
-  final Member asyncStarStreamControllerAddStream;
+  final Procedure asyncStarStreamControllerAdd;
+  final Procedure asyncStarStreamControllerAddError;
+  final Procedure asyncStarStreamControllerAddStream;
   final Class asyncStarStreamControllerClass;
-  final Member asyncStarStreamControllerClose;
+  final Procedure asyncStarStreamControllerClose;
   final Constructor asyncStarStreamControllerConstructor;
   final Member asyncStarStreamControllerStream;
   final Procedure asyncStarMoveNextHelper;
@@ -1410,11 +1447,11 @@ class HelperNodes {
   final Constructor futureImplConstructor;
   final Class iterableClass;
   final Class streamClass;
-  final Member streamIteratorCancel;
+  final Procedure streamIteratorCancel;
   final Class streamIteratorClass;
   final Constructor streamIteratorConstructor;
   final Member streamIteratorCurrent;
-  final Member streamIteratorMoveNext;
+  final Procedure streamIteratorMoveNext;
   final Constructor syncIterableConstructor;
   final Class syncIteratorClass;
   final Member syncIteratorCurrent;

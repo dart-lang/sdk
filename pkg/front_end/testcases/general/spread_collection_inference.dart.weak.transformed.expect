@@ -114,9 +114,9 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<dynamic, dynamic>* map10 = block {
     final core::Map<dynamic, dynamic>* #t3 = <dynamic, dynamic>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<dynamic, dynamic>* #t4 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<dynamic, dynamic>* #t4 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
         #t3.{core::Map::[]=}(#t4.{core::MapEntry::key}{dynamic}, #t4.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) →* void};
       }
     }
@@ -124,9 +124,9 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<dynamic, dynamic>* map10ambiguous = block {
     final core::Map<dynamic, dynamic>* #t5 = <dynamic, dynamic>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<dynamic, dynamic>* #t6 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = <dynamic, dynamic>{}.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<dynamic, dynamic>* #t6 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
         #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}{dynamic}, #t6.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) →* void};
       }
     }
@@ -141,9 +141,9 @@ static method foo(dynamic dynVar) → dynamic {
   core::Set<core::int*>* set20ambiguous = block {
     final core::Set<core::int*>* #t9 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
           final core::int* #t11 = #t10 as{TypeError} core::int*;
           #t9.{core::Set::add}(#t11){(core::int*) →* core::bool*};
@@ -154,9 +154,9 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<core::String*, core::int*>* map20 = block {
     final core::Map<core::String*, core::int*>* #t12 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::int*>* #t13 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::int*>* #t13 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         #t12.{core::Map::[]=}(#t13.{core::MapEntry::key}{core::String*}, #t13.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
@@ -165,9 +165,9 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<core::String*, core::int*>* map20ambiguous = block {
     final core::Map<core::String*, core::int*>* #t14 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::int*>* #t15 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::int*>* #t15 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         #t14.{core::Map::[]=}(#t15.{core::MapEntry::key}{core::String*}, #t15.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
@@ -182,9 +182,9 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<dynamic, dynamic>* map21 = block {
     final core::Map<dynamic, dynamic>* #t18 = <dynamic, dynamic>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = ((mapSpread as dynamic) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<dynamic, dynamic>* #t19 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<dynamic, dynamic>>* :sync-for-iterator = ((mapSpread as dynamic) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<dynamic, dynamic>* #t19 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
         #t18.{core::Map::[]=}(#t19.{core::MapEntry::key}{dynamic}, #t19.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) →* void};
       }
     }
@@ -204,9 +204,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Set<core::int*>* set22ambiguous = block {
     final core::Set<core::int*>* #t22 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t23 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t23 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
           final core::int* #t24 = #t23 as{TypeError} core::int*;
           #t22.{core::Set::add}(#t24){(core::int*) →* core::bool*};
@@ -217,9 +217,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::int*>* map22 = block {
     final core::Map<core::String*, core::int*>* #t25 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::int*>* #t26 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = <core::String*, core::int*>{}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::int*>* #t26 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         #t25.{core::Map::[]=}(#t26.{core::MapEntry::key}{core::String*}, #t26.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
@@ -234,9 +234,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Set<core::List<core::int*>*>* set23ambiguous = block {
     final core::Set<core::List<core::int*>*>* #t29 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
     {
-      core::Iterator<core::List<core::int*>*>* :sync-for-iterator = core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0)).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t30 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::List<core::int*>*>* :sync-for-iterator = core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0)).{core::Iterable::iterator}{core::Iterator<core::List<core::int*>*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t30 = :sync-for-iterator.{core::Iterator::current}{core::List<core::int*>*};
         {
           final core::List<core::int*>* #t31 = #t30 as{TypeError} core::List<core::int*>*;
           #t29.{core::Set::add}(#t31){(core::List<core::int*>*) →* core::bool*};
@@ -247,9 +247,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::List<core::int*>*>* map23 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t32 = <core::String*, core::List<core::int*>*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::List<core::int*>*>>* :sync-for-iterator = <core::String*, core::List<core::int*>*>{"baz": core::_GrowableList::•<core::int*>(0)}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::List<core::int*>*>* #t33 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::List<core::int*>*>>* :sync-for-iterator = <core::String*, core::List<core::int*>*>{"baz": core::_GrowableList::•<core::int*>(0)}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::List<core::int*>*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::List<core::int*>*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::List<core::int*>*>* #t33 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::List<core::int*>*>};
         #t32.{core::Map::[]=}(#t33.{core::MapEntry::key}{core::String*}, #t33.{core::MapEntry::value}{core::List<core::int*>*}){(core::String*, core::List<core::int*>*) →* void};
       }
     }
@@ -276,9 +276,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       ^" in ( block {
     final core::Set<core::int*>* #t39 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t40 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t40 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
           final core::int* #t41 = #t40 as{TypeError} core::int*;
           #t39.{core::Set::add}(#t41){(core::int*) →* core::bool*};
@@ -292,9 +292,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       ^" in ( block {
     final core::Map<core::String*, core::int*>* #t43 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::int*>* #t44 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::int*>* #t44 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         #t43.{core::Map::[]=}(#t44.{core::MapEntry::key}{core::String*}, #t44.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
@@ -306,9 +306,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       ^" in ( block {
     final core::Map<core::String*, core::int*>* #t46 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::int*>* #t47 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::int*>* #t47 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         #t46.{core::Map::[]=}(#t47.{core::MapEntry::key}{core::String*}, #t47.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
@@ -367,9 +367,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     ...null,
        ^"){(dynamic) →* core::bool*};
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t53 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t53 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final dynamic #t54 = #t53 as{TypeError} dynamic;
           #t52.{core::Set::add}(#t54){(dynamic) →* core::bool*};
@@ -396,9 +396,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     final core::Set<dynamic>* #t59 = new col::_CompactLinkedHashSet::•<dynamic>();
     final core::Iterable<dynamic>* #t60 = null;
     if(!(#t60 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t60.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t61 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = #t60.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t61 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final dynamic #t62 = #t61 as{TypeError} dynamic;
           #t59.{core::Set::add}(#t62){(dynamic) →* core::bool*};
@@ -406,9 +406,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t63 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t63 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final dynamic #t64 = #t63 as{TypeError} dynamic;
           #t59.{core::Set::add}(#t64){(dynamic) →* core::bool*};
@@ -420,9 +420,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     final core::Map<core::String*, core::int*>* #t65 = <core::String*, core::int*>{};
     final core::Map<core::String*, core::int*>* #t66 = null;
     if(!(#t66 == null)) {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = #t66.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::int*>* #t67 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = #t66.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::int*>* #t67 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         #t65.{core::Map::[]=}(#t67.{core::MapEntry::key}{core::String*}, #t67.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
@@ -430,9 +430,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::int*>* map90 = block {
     final core::Map<core::String*, core::int*>* #t68 = <core::String*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = self::bar<core::String*, core::int*>().{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<core::String*, core::int*>* #t69 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = self::bar<core::String*, core::int*>().{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::String*, core::int*>* #t69 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
         #t68.{core::Map::[]=}(#t69.{core::MapEntry::key}{core::String*}, #t69.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
@@ -440,9 +440,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::int*>* list100 = block {
     final core::List<core::int*>* #t70 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::num*>* :sync-for-iterator = listNum.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t71 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::num*>* :sync-for-iterator = listNum.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t71 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
           final core::int* #t72 = #t71 as{TypeError} core::int*;
           #t70.{core::List::add}(#t72){(core::int*) →* void};
@@ -453,9 +453,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::num*, core::int*>* map100 = block {
     final core::Map<core::num*, core::int*>* #t73 = <core::num*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = mapIntNum.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<dynamic, dynamic>* #t74 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = mapIntNum.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<dynamic, dynamic>* #t74 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
         {
           final core::num* #t75 = #t74.{core::MapEntry::key}{dynamic} as{TypeError} core::num*;
           final core::int* #t76 = #t74.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;
@@ -467,9 +467,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::int*>* list110 = block {
     final core::List<core::int*>* #t77 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t78 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t78 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int* #t79 = #t78 as{TypeError} core::int*;
           #t77.{core::List::add}(#t79){(core::int*) →* void};
@@ -480,9 +480,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::num*, core::int*>* map110 = block {
     final core::Map<core::num*, core::int*>* #t80 = <core::num*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<dynamic, dynamic>* #t81 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<dynamic, dynamic>* #t81 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
         {
           final core::num* #t82 = #t81.{core::MapEntry::key}{dynamic} as{TypeError} core::num*;
           final core::int* #t83 = #t81.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;

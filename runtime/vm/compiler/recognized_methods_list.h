@@ -200,7 +200,7 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \
-  V(Future, wait, FutureWait, 0xf0ce45c3)                                      \
+  V(Future, wait, FutureWait, 0xa05d5e7b)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0xa22248b6)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x438115a8)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b5ab2)                                \

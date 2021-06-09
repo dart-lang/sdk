@@ -62,16 +62,16 @@ static field core::Map<dynamic, dynamic> map1 = block {
   if (i > 0) ...nullableMap, // error
                 ^", null){(dynamic, dynamic) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool}) {
-    core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = (self::dynamicMap as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      final core::MapEntry<dynamic, dynamic> #t2 = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = (self::dynamicMap as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::MapEntry<dynamic, dynamic> #t2 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
       #t1.{core::Map::[]=}(#t2.{core::MapEntry::key}{dynamic}, #t2.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
     }
   }
   if(self::i.{core::num::>}(0){(core::num) → core::bool}) {
-    core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = self::nullableMap!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      final core::MapEntry<dynamic, dynamic> #t3 = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = self::nullableMap!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::MapEntry<dynamic, dynamic> #t3 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
       #t1.{core::Map::[]=}(#t3.{core::MapEntry::key}{dynamic}, #t3.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
     }
   }
@@ -111,16 +111,16 @@ static method testMap<X extends dynamic, Y extends core::Map<core::int, core::St
     if (i > 0) ...y, // error
                   ^", null){(dynamic, dynamic) → void};
     if(self::i.{core::num::>}(0){(core::num) → core::bool}) {
-      core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = z.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<dynamic, dynamic> #t7 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = z.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<dynamic, dynamic> #t7 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
         #t6.{core::Map::[]=}(#t7.{core::MapEntry::key}{dynamic}, #t7.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
       }
     }
     if(self::i.{core::num::>}(0){(core::num) → core::bool}) {
-      core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = y!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<dynamic, dynamic> #t8 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<dynamic, dynamic>> :sync-for-iterator = y!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<dynamic, dynamic>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<dynamic, dynamic> #t8 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<dynamic, dynamic>};
         #t6.{core::Map::[]=}(#t8.{core::MapEntry::key}{dynamic}, #t8.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
       }
     }

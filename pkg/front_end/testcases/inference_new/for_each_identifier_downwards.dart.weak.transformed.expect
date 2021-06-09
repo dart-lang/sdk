@@ -26,45 +26,45 @@ class C extends core::Object {
   method test() → void {
     self::A* aLocal;
     {
-      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final self::A* #t1 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator}{core::Iterator<self::A*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final self::A* #t1 = :sync-for-iterator.{core::Iterator::current}{self::A*};
         {
           aLocal = #t1;
         }
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final self::A* #t2 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator}{core::Iterator<self::A*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final self::A* #t2 = :sync-for-iterator.{core::Iterator::current}{self::A*};
         {
           this.{self::C::aField} = #t2;
         }
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final self::A* #t3 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator}{core::Iterator<self::A*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final self::A* #t3 = :sync-for-iterator.{core::Iterator::current}{self::A*};
         {
           this.{self::C::aSetter} = #t3;
         }
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final self::A* #t4 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator}{core::Iterator<self::A*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final self::A* #t4 = :sync-for-iterator.{core::Iterator::current}{self::A*};
         {
           self::aTopLevel = #t4;
         }
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final self::A* #t5 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator}{core::Iterator<self::A*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final self::A* #t5 = :sync-for-iterator.{core::Iterator::current}{self::A*};
         {
           self::aTopLevelSetter = #t5;
         }

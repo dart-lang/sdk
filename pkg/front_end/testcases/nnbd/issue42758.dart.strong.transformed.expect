@@ -148,9 +148,9 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
   core::Map<Never, Never> m1 = block {
     final core::Map<Never, Never> #t17 = <Never, Never>{};
     {
-      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = n1.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<Never, Never> #t18 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = n1.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<Never, Never>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<Never, Never> #t18 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<Never, Never>};
         #t17.{core::Map::[]=}(#t18.{core::MapEntry::key}{Never}, #t18.{core::MapEntry::value}{Never}){(Never, Never) → void};
       }
     }
@@ -160,9 +160,9 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::Map<Never, Never> #t19 = <Never, Never>{};
     final core::Map<Never, Never>? #t20 = n1;
     if(!(#t20 == null)) {
-      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = #t20{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<Never, Never> #t21 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = #t20{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<Never, Never>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<Never, Never> #t21 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<Never, Never>};
         #t19.{core::Map::[]=}(#t21.{core::MapEntry::key}{Never}, #t21.{core::MapEntry::value}{Never}){(Never, Never) → void};
       }
     }
@@ -175,9 +175,9 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::Map<Never, Never> #t22 = <Never, Never>{};
     final core::Map<Never, Never>? #t23 = n2;
     if(!(#t23 == null)) {
-      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = #t23{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<Never, Never> #t24 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = #t23{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<Never, Never>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<Never, Never> #t24 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<Never, Never>};
         #t22.{core::Map::[]=}(#t24.{core::MapEntry::key}{Never}, #t24.{core::MapEntry::value}{Never}){(Never, Never) → void};
       }
     }
@@ -190,9 +190,9 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::Map<Never, Never> #t25 = <Never, Never>{};
     final core::Map<Never, Never>? #t26 = n3;
     if(!(#t26 == null)) {
-      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = #t26{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<Never, Never> #t27 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<Never, Never>> :sync-for-iterator = #t26{core::Map<Never, Never>}.{core::Map::entries}{core::Iterable<core::MapEntry<Never, Never>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<Never, Never>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<Never, Never> #t27 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<Never, Never>};
         #t25.{core::Map::[]=}(#t27.{core::MapEntry::key}{Never}, #t27.{core::MapEntry::value}{Never}){(Never, Never) → void};
       }
     }
@@ -269,9 +269,9 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
   core::Map<self::test2::N1, self::test2::N1> m1 = block {
     final core::Map<self::test2::N1, self::test2::N1> #t44 = <self::test2::N1, self::test2::N1>{};
     {
-      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = n1.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<self::test2::N1, self::test2::N1> #t45 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = n1.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<self::test2::N1, self::test2::N1> #t45 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<self::test2::N1, self::test2::N1>};
         #t44.{core::Map::[]=}(#t45.{core::MapEntry::key}{self::test2::N1}, #t45.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
       }
     }
@@ -281,9 +281,9 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
     final core::Map<self::test2::N1, self::test2::N1> #t46 = <self::test2::N1, self::test2::N1>{};
     final core::Map<self::test2::N1, self::test2::N1>? #t47 = n1;
     if(!(#t47 == null)) {
-      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = #t47{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<self::test2::N1, self::test2::N1> #t48 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = #t47{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<self::test2::N1, self::test2::N1> #t48 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<self::test2::N1, self::test2::N1>};
         #t46.{core::Map::[]=}(#t48.{core::MapEntry::key}{self::test2::N1}, #t48.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
       }
     }
@@ -296,9 +296,9 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
     final core::Map<self::test2::N1, self::test2::N1> #t49 = <self::test2::N1, self::test2::N1>{};
     final core::Map<self::test2::N1, self::test2::N1>? #t50 = n2;
     if(!(#t50 == null)) {
-      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = #t50{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<self::test2::N1, self::test2::N1> #t51 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = #t50{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<self::test2::N1, self::test2::N1> #t51 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<self::test2::N1, self::test2::N1>};
         #t49.{core::Map::[]=}(#t51.{core::MapEntry::key}{self::test2::N1}, #t51.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
       }
     }
@@ -311,9 +311,9 @@ static method test2<N1 extends Never, N2 extends Never?, N3 extends Null>(self::
     final core::Map<self::test2::N1, self::test2::N1> #t52 = <self::test2::N1, self::test2::N1>{};
     final core::Map<self::test2::N1, self::test2::N1>? #t53 = n3;
     if(!(#t53 == null)) {
-      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = #t53{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::MapEntry<self::test2::N1, self::test2::N1> #t54 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>> :sync-for-iterator = #t53{core::Map<self::test2::N1, self::test2::N1>}.{core::Map::entries}{core::Iterable<core::MapEntry<self::test2::N1, self::test2::N1>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<self::test2::N1, self::test2::N1>>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<self::test2::N1, self::test2::N1> #t54 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<self::test2::N1, self::test2::N1>};
         #t52.{core::Map::[]=}(#t54.{core::MapEntry::key}{self::test2::N1}, #t54.{core::MapEntry::value}{self::test2::N1}){(self::test2::N1, self::test2::N1) → void};
       }
     }
