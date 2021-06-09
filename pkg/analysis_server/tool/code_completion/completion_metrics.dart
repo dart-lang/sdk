@@ -166,6 +166,12 @@ ArgParser createArgParser() {
             'score by pointing out the locations that are causing the biggest '
             'impact.',
         negatable: false)
+    ..addFlag(CompletionMetricsOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
+        defaultsTo: false,
+        help: 'Print detailed information every time a completion request '
+            'produces a suggestions whose name matches the expected suggestion '
+            'but that is referencing a different element',
+        negatable: false)
     ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
         defaultsTo: false,
         help: 'Print information about the completion requests that were the '
@@ -331,6 +337,14 @@ class CompletionMetrics {
   /// The completion locations for which no relevance table was available.
   final Set<String> missingCompletionLocationTables = {};
 
+  /// A map, keyed by completion location of the missed completions at those
+  /// locations.
+  Map<String, List<ExpectedCompletion>> missedCompletions = {};
+
+  /// A map, keyed by completion location of the completions at those locations
+  /// where a shadowed element was suggested rather than the visible one.
+  Map<String, List<ShadowedCompletion>> shadowedCompletions = {};
+
   final Map<CompletionGroup, List<CompletionResult>> slowestResults = {};
 
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
@@ -469,6 +483,27 @@ class CompletionMetrics {
     _recordWorstResult(result);
     _recordSlowestResult(result);
     _recordMissingInformation(listener);
+  }
+
+  /// Record an [expectedCompletion] at the [completionLocation] for which no
+  /// suggestion was produced.
+  void recordMissedCompletion(
+      String? completionLocation, ExpectedCompletion expectedCompletion) {
+    missedCompletions
+        .putIfAbsent(completionLocation ?? 'unknown', () => [])
+        .add(expectedCompletion);
+  }
+
+  /// Record an [expectedCompletion] at the [completionLocation] for which a
+  /// suggestion (the [closeMatchSuggestion]) was produced when the suggestion
+  /// was for a different element but with the same name.
+  void recordShadowedCompletion(
+      String? completionLocation,
+      ExpectedCompletion expectedCompletion,
+      protocol.CompletionSuggestion closeMatchSuggestion) {
+    shadowedCompletions
+        .putIfAbsent(completionLocation ?? 'unknown', () => [])
+        .add(ShadowedCompletion(expectedCompletion, closeMatchSuggestion));
   }
 
   Map<String, dynamic> toJson() {
@@ -721,7 +756,8 @@ class CompletionMetricsComputer {
       metrics.completionElementKindCounter
           .count(expectedCompletion.elementKind.toString());
 
-      if (options.printMissedCompletionDetails) {
+      if (options.printMissedCompletionDetails ||
+          options.printShadowedCompletionDetails) {
         protocol.CompletionSuggestion? closeMatchSuggestion;
         for (var suggestion in suggestions) {
           if (suggestion.completion == expectedCompletion.completion) {
@@ -729,15 +765,16 @@ class CompletionMetricsComputer {
           }
         }
 
-        print('missing completion (${metrics.name}):');
-        print('$expectedCompletion');
-        if (closeMatchSuggestion != null) {
-          print('    close matching completion that was in the list:');
-          print('    $closeMatchSuggestion');
+        if (closeMatchSuggestion == null &&
+            options.printMissedCompletionDetails) {
+          metrics.recordMissedCompletion(
+              completionLocation, expectedCompletion);
+        } else if (closeMatchSuggestion != null &&
+            options.printShadowedCompletionDetails) {
+          metrics.recordShadowedCompletion(
+              completionLocation, expectedCompletion, closeMatchSuggestion);
         }
-        print('');
       }
-
       return -1;
     }
   }
@@ -847,11 +884,6 @@ class CompletionMetricsComputer {
 
   void printMetrics(CompletionMetrics metrics) {
     printHeading(1, 'Completion metrics for ${metrics.name}');
-    if (options.printMissedCompletionSummary) {
-      printCounter(metrics.completionMissedTokenCounter);
-      printCounter(metrics.completionKindCounter);
-      printCounter(metrics.completionElementKindCounter);
-    }
 
     List<String> toRow(MeanReciprocalRankComputer computer) {
       return [
@@ -906,12 +938,42 @@ class CompletionMetricsComputer {
       printTable(table);
     }
     //
-    // Print information that would normally appear in the comprison when there
-    // is no comparison section.
+    // Print information that would normally appear in the comparison section
+    // when there is no comparison section.
     //
     if (targetMetrics.length == 1) {
       printOtherMetrics(metrics);
       printCompletionCounts(metrics);
+    }
+    //
+    // Print information about missed completions.
+    //
+    if (options.printMissedCompletionSummary) {
+      printCounter(metrics.completionMissedTokenCounter);
+      printCounter(metrics.completionKindCounter);
+      printCounter(metrics.completionElementKindCounter);
+    }
+    printMissedCompletionDetails(metrics);
+    printShadowedCompletionDetails(metrics);
+  }
+
+  void printMissedCompletionDetails(CompletionMetrics metrics) {
+    if (options.printMissedCompletionDetails) {
+      printHeading(2, 'Missed Completions');
+      var needsBlankLine = false;
+      var entries = metrics.missedCompletions.entries.toList()
+        ..sort((first, second) => first.key.compareTo(second.key));
+      for (var entry in entries) {
+        if (needsBlankLine) {
+          print('');
+        } else {
+          needsBlankLine = true;
+        }
+        printHeading(3, entry.key);
+        for (var expectedCompletion in entry.value) {
+          print('- $expectedCompletion');
+        }
+      }
     }
   }
 
@@ -1041,6 +1103,28 @@ class CompletionMetricsComputer {
       }
       if (options.printWorstResults) {
         printWorstResults(metrics);
+      }
+    }
+  }
+
+  void printShadowedCompletionDetails(CompletionMetrics metrics) {
+    if (options.printShadowedCompletionDetails) {
+      printHeading(2, 'Shadowed Completions');
+      var needsBlankLine = false;
+      var entries = metrics.shadowedCompletions.entries.toList()
+        ..sort((first, second) => first.key.compareTo(second.key));
+      for (var entry in entries) {
+        if (needsBlankLine) {
+          print('');
+        } else {
+          needsBlankLine = true;
+        }
+        printHeading(3, entry.key);
+        for (var shadowedCompletion in entry.value) {
+          print('- ${shadowedCompletion.expectedCompletion}');
+          print('    close matching completion that was in the list:');
+          print('    ${shadowedCompletion.closeMatchSuggestion}');
+        }
       }
     }
   }
@@ -1524,6 +1608,13 @@ class CompletionMetricsOptions {
   /// at each completion location.
   static const String PRINT_MRR_BY_LOCATION = 'print-mrr-by-location';
 
+  /// A flag that causes detailed information to be printed every time a
+  /// completion request produce a suggestions whose name matches the expected
+  /// suggestion but that is referencing a different element (one that's
+  /// shadowed by the correct element).
+  static const String PRINT_SHADOWED_COMPLETION_DETAILS =
+      'print-shadowed-completion-details';
+
   /// A flag that causes information to be printed about the completion requests
   /// that were the slowest to return suggestions.
   static const String PRINT_SLOWEST_RESULTS = 'print-slowest-results';
@@ -1554,6 +1645,11 @@ class CompletionMetricsOptions {
   /// score achieved at each completion location.
   final bool printMrrByLocation;
 
+  /// A flag indicating whether information should be printed every time a
+  /// completion request fails to produce a suggestions matching the expected
+  /// suggestion.
+  final bool printShadowedCompletionDetails;
+
   /// A flag indicating whether information should be printed about the
   /// completion requests that were the slowest to return suggestions.
   final bool printSlowestResults;
@@ -1569,6 +1665,8 @@ class CompletionMetricsOptions {
         printMissedCompletionSummary: results[PRINT_MISSED_COMPLETION_SUMMARY],
         printMissingInformation: results[PRINT_MISSING_INFORMATION],
         printMrrByLocation: results[PRINT_MRR_BY_LOCATION],
+        printShadowedCompletionDetails:
+            results[PRINT_SHADOWED_COMPLETION_DETAILS],
         printSlowestResults: results[PRINT_SLOWEST_RESULTS],
         printWorstResults: results[PRINT_WORST_RESULTS]);
   }
@@ -1579,6 +1677,7 @@ class CompletionMetricsOptions {
       required this.printMissedCompletionSummary,
       required this.printMissingInformation,
       required this.printMrrByLocation,
+      required this.printShadowedCompletionDetails,
       required this.printSlowestResults,
       required this.printWorstResults})
       : assert(overlay == OVERLAY_NONE ||
@@ -1870,6 +1969,15 @@ class RelevanceTables {
 
   /// Initialize a newly created description of a pair of relevance tables.
   RelevanceTables(this.name, this.elementKindRelevance, this.keywordRelevance);
+}
+
+/// Information about a completion suggestion that suggested a shadowed element.
+class ShadowedCompletion {
+  final ExpectedCompletion expectedCompletion;
+
+  final protocol.CompletionSuggestion closeMatchSuggestion;
+
+  ShadowedCompletion(this.expectedCompletion, this.closeMatchSuggestion);
 }
 
 /// The information being remembered about an individual suggestion.

@@ -777,6 +777,11 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     if (node.thisOrAncestorOfType<LibraryDirective>() != null) {
       return false;
     }
+    // Ignore identifiers in hide and show combinators because we don't suggest
+    // names that are already in the list.
+    if (node.parent is HideCombinator || node.parent is ShowCombinator) {
+      return false;
+    }
 
     // TODO (jwren) If there is a mode of completing at a token location where
     //  the token is removed before the completion query happens, then this
