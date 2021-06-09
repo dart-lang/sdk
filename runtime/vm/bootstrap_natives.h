@@ -190,8 +190,8 @@ namespace dart {
   V(TypedData_Float32x4Array_new, 2)                                           \
   V(TypedData_Int32x4Array_new, 2)                                             \
   V(TypedData_Float64x2Array_new, 2)                                           \
-  V(TypedData_length, 1)                                                       \
-  V(TypedData_setRange, 7)                                                     \
+  V(TypedDataBase_length, 1)                                                   \
+  V(TypedDataBase_setRange, 7)                                                 \
   V(TypedData_GetInt8, 2)                                                      \
   V(TypedData_SetInt8, 3)                                                      \
   V(TypedData_GetUint8, 2)                                                     \
@@ -233,7 +233,6 @@ namespace dart {
   V(TypedDataView_Float32x4ArrayView_new, 4)                                   \
   V(TypedDataView_Int32x4ArrayView_new, 4)                                     \
   V(TypedDataView_Float64x2ArrayView_new, 4)                                   \
-  V(TypedDataView_length, 1)                                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
   V(Float32x4_fromDoubles, 4)                                                  \

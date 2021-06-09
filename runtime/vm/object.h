@@ -9486,12 +9486,7 @@ class OneByteString : public AllStatic {
                               intptr_t other_len,
                               Heap::Space space);
 
-  static OneByteStringPtr New(const TypedData& other_typed_data,
-                              intptr_t other_start_index,
-                              intptr_t other_len,
-                              Heap::Space space = Heap::kNew);
-
-  static OneByteStringPtr New(const ExternalTypedData& other_typed_data,
+  static OneByteStringPtr New(const TypedDataBase& other_typed_data,
                               intptr_t other_start_index,
                               intptr_t other_len,
                               Heap::Space space = Heap::kNew);
@@ -9622,12 +9617,7 @@ class TwoByteString : public AllStatic {
                               Heap::Space space);
   static TwoByteStringPtr New(const String& str, Heap::Space space);
 
-  static TwoByteStringPtr New(const TypedData& other_typed_data,
-                              intptr_t other_start_index,
-                              intptr_t other_len,
-                              Heap::Space space = Heap::kNew);
-
-  static TwoByteStringPtr New(const ExternalTypedData& other_typed_data,
+  static TwoByteStringPtr New(const TypedDataBase& other_typed_data,
                               intptr_t other_start_index,
                               intptr_t other_len,
                               Heap::Space space = Heap::kNew);
@@ -10408,6 +10398,32 @@ class TypedDataBase : public PointerBase {
     return reinterpret_cast<void*>(Validate(untag()->data_) + byte_offset);
   }
 
+#define TYPED_GETTER_SETTER(name, type)                                        \
+  type Get##name(intptr_t byte_offset) const {                                 \
+    NoSafepointScope no_safepoint;                                             \
+    return LoadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+  }                                                                            \
+  void Set##name(intptr_t byte_offset, type value) const {                     \
+    NoSafepointScope no_safepoint;                                             \
+    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
+  }
+
+  TYPED_GETTER_SETTER(Int8, int8_t)
+  TYPED_GETTER_SETTER(Uint8, uint8_t)
+  TYPED_GETTER_SETTER(Int16, int16_t)
+  TYPED_GETTER_SETTER(Uint16, uint16_t)
+  TYPED_GETTER_SETTER(Int32, int32_t)
+  TYPED_GETTER_SETTER(Uint32, uint32_t)
+  TYPED_GETTER_SETTER(Int64, int64_t)
+  TYPED_GETTER_SETTER(Uint64, uint64_t)
+  TYPED_GETTER_SETTER(Float32, float)
+  TYPED_GETTER_SETTER(Float64, double)
+  TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
+
+#undef TYPED_GETTER_SETTER
+
  protected:
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
@@ -10500,10 +10516,9 @@ class TypedData : public TypedDataBase {
                           intptr_t len,
                           Heap::Space space = Heap::kNew);
 
-  template <typename DstType, typename SrcType>
-  static void Copy(const DstType& dst,
+  static void Copy(const TypedDataBase& dst,
                    intptr_t dst_offset_in_bytes,
-                   const SrcType& src,
+                   const TypedDataBase& src,
                    intptr_t src_offset_in_bytes,
                    intptr_t length_in_bytes) {
     ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
@@ -10519,10 +10534,9 @@ class TypedData : public TypedDataBase {
     }
   }
 
-  template <typename DstType, typename SrcType>
-  static void ClampedCopy(const DstType& dst,
+  static void ClampedCopy(const TypedDataBase& dst,
                           intptr_t dst_offset_in_bytes,
-                          const SrcType& src,
+                          const TypedDataBase& src,
                           intptr_t src_offset_in_bytes,
                           intptr_t length_in_bytes) {
     ASSERT(Utils::RangeCheck(src_offset_in_bytes, length_in_bytes,
@@ -10579,29 +10593,6 @@ class ExternalTypedData : public TypedDataBase {
   // Alignment of data when serializing ExternalTypedData in a clustered
   // snapshot. Should be independent of word size.
   static const int kDataSerializationAlignment = 8;
-
-#define TYPED_GETTER_SETTER(name, type)                                        \
-  type Get##name(intptr_t byte_offset) const {                                 \
-    return LoadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
-  }                                                                            \
-  void Set##name(intptr_t byte_offset, type value) const {                     \
-    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
-  }
-  TYPED_GETTER_SETTER(Int8, int8_t)
-  TYPED_GETTER_SETTER(Uint8, uint8_t)
-  TYPED_GETTER_SETTER(Int16, int16_t)
-  TYPED_GETTER_SETTER(Uint16, uint16_t)
-  TYPED_GETTER_SETTER(Int32, int32_t)
-  TYPED_GETTER_SETTER(Uint32, uint32_t)
-  TYPED_GETTER_SETTER(Int64, int64_t)
-  TYPED_GETTER_SETTER(Uint64, uint64_t)
-  TYPED_GETTER_SETTER(Float32, float)
-  TYPED_GETTER_SETTER(Float64, double)
-  TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
-
-#undef TYPED_GETTER_SETTER
 
   FinalizablePersistentHandle* AddFinalizer(void* peer,
                                             Dart_HandleFinalizer callback,
@@ -11436,7 +11427,7 @@ class RegExp : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedRegExp));
   }
 
-  static RegExpPtr New(Heap::Space space = Heap::kNew);
+  static RegExpPtr New(Zone* zone, Heap::Space space = Heap::kNew);
 
  private:
   void set_type(RegExType type) const {

@@ -139,6 +139,37 @@ main() {
     expect(testTargets[0].kind, ElementKind.LIBRARY);
   }
 
+  Future<void> test_importUri_configurations() async {
+    final ioFile = newFile(join(testFolder, 'io.dart'));
+    final htmlFile = newFile(join(testFolder, 'html.dart'));
+    addTestFile('''
+import 'foo.dart'
+  if (dart.library.io) 'io.dart'
+  if (dart.library.html) 'html.dart';
+
+main() {
+}''');
+    await waitForTasksFinished();
+
+    // Request navigations for 'io.dart'
+    await _getNavigation(testFile, 41, 9);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'io.dart'");
+    expect(testTargets, hasLength(1));
+    var target = testTargets.first;
+    expect(target.kind, ElementKind.LIBRARY);
+    expect(targetFiles[target.fileIndex], equals(ioFile.path));
+
+    // Request navigations for 'html.dart'
+    await _getNavigation(testFile, 76, 11);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'html.dart'");
+    expect(testTargets, hasLength(1));
+    target = testTargets.first;
+    expect(target.kind, ElementKind.LIBRARY);
+    expect(targetFiles[target.fileIndex], equals(htmlFile.path));
+  }
+
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = _createGetNavigationRequest('test.dart', 0, 0);
     var response = await waitResponse(request);

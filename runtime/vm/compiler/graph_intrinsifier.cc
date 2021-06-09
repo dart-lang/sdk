@@ -760,11 +760,7 @@ bool GraphIntrinsifier::Build_StringBaseLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, Slot::String_length());
 }
 
-bool GraphIntrinsifier::Build_TypedListLength(FlowGraph* flow_graph) {
-  return BuildLoadField(flow_graph, Slot::TypedDataBase_length());
-}
-
-bool GraphIntrinsifier::Build_TypedListViewLength(FlowGraph* flow_graph) {
+bool GraphIntrinsifier::Build_TypedListBaseLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, Slot::TypedDataBase_length());
 }
 

@@ -50,6 +50,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
+#include "vm/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
@@ -11103,8 +11104,7 @@ ObjectPtr Field::EvaluateInitializer() const {
 }
 
 static intptr_t GetListLength(const Object& value) {
-  if (value.IsTypedData() || value.IsTypedDataView() ||
-      value.IsExternalTypedData()) {
+  if (value.IsTypedDataBase()) {
     return TypedDataBase::Cast(value).Length();
   } else if (value.IsArray()) {
     return Array::Cast(value).Length();
@@ -23571,21 +23571,7 @@ OneByteStringPtr OneByteString::New(const String& other_one_byte_string,
   return OneByteString::raw(result);
 }
 
-OneByteStringPtr OneByteString::New(const TypedData& other_typed_data,
-                                    intptr_t other_start_index,
-                                    intptr_t other_len,
-                                    Heap::Space space) {
-  const String& result = String::Handle(OneByteString::New(other_len, space));
-  ASSERT(other_typed_data.ElementSizeInBytes() == 1);
-  if (other_len > 0) {
-    NoSafepointScope no_safepoint;
-    memmove(OneByteString::DataStart(result),
-            other_typed_data.DataAddr(other_start_index), other_len);
-  }
-  return OneByteString::raw(result);
-}
-
-OneByteStringPtr OneByteString::New(const ExternalTypedData& other_typed_data,
+OneByteStringPtr OneByteString::New(const TypedDataBase& other_typed_data,
                                     intptr_t other_start_index,
                                     intptr_t other_len,
                                     Heap::Space space) {
@@ -23765,21 +23751,7 @@ TwoByteStringPtr TwoByteString::New(const String& str, Heap::Space space) {
   return TwoByteString::raw(result);
 }
 
-TwoByteStringPtr TwoByteString::New(const TypedData& other_typed_data,
-                                    intptr_t other_start_index,
-                                    intptr_t other_len,
-                                    Heap::Space space) {
-  const String& result = String::Handle(TwoByteString::New(other_len, space));
-  if (other_len > 0) {
-    NoSafepointScope no_safepoint;
-    memmove(TwoByteString::DataStart(result),
-            other_typed_data.DataAddr(other_start_index),
-            other_len * sizeof(uint16_t));
-  }
-  return TwoByteString::raw(result);
-}
-
-TwoByteStringPtr TwoByteString::New(const ExternalTypedData& other_typed_data,
+TwoByteStringPtr TwoByteString::New(const TypedDataBase& other_typed_data,
                                     intptr_t other_start_index,
                                     intptr_t other_len,
                                     Heap::Space space) {
@@ -25049,7 +25021,7 @@ ClosurePtr Closure::New() {
 }
 
 FunctionTypePtr Closure::GetInstantiatedSignature(Zone* zone) const {
-  Function& fun = Function::Handle(zone, function());
+  const Function& fun = Function::Handle(zone, function());
   FunctionType& sig = FunctionType::Handle(zone, fun.signature());
   TypeArguments& fn_type_args =
       TypeArguments::Handle(zone, function_type_arguments());
@@ -25518,7 +25490,7 @@ void RegExp::set_capture_name_map(const Array& array) const {
   untag()->set_capture_name_map(array.ptr());
 }
 
-RegExpPtr RegExp::New(Heap::Space space) {
+RegExpPtr RegExp::New(Zone* zone, Heap::Space space) {
   RegExp& result = RegExp::Handle();
   {
     ObjectPtr raw =
@@ -25531,6 +25503,21 @@ RegExpPtr RegExp::New(Heap::Space space) {
     result.set_num_bracket_expressions(-1);
     result.set_num_registers(/*is_one_byte=*/false, -1);
     result.set_num_registers(/*is_one_byte=*/true, -1);
+  }
+
+  if (!FLAG_interpret_irregexp) {
+    auto thread = Thread::Current();
+    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
+    const Class& owner =
+        Class::Handle(zone, lib.LookupClass(Symbols::RegExp()));
+
+    for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
+         cid++) {
+      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/false,
+                                owner);
+      CreateSpecializedFunction(thread, zone, result, cid, /*sticky=*/true,
+                                owner);
+    }
   }
   return result.ptr();
 }

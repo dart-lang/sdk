@@ -1183,9 +1183,14 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
              kIfNotInRange, target);
 }
 
+static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
+  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfInRange, target);
+}
+
 static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
   RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
 }
+
 // Return type quickly for simple types (not parameterized and not signature).
 void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
                                         Label* normal_ir_body) {
@@ -1265,7 +1270,7 @@ static void EquivalentClassIds(Assembler* assembler,
                                Register cid1,
                                Register cid2,
                                Register scratch) {
-  Label different_cids, not_integer;
+  Label different_cids, not_integer, not_integer_or_string;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ cmpq(cid1, Immediate(kClosureCid));
@@ -1288,7 +1293,7 @@ static void EquivalentClassIds(Assembler* assembler,
   __ jmp(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
-  // different representations) or two integer types.
+  // different representations) or two integer types or two type types.
   __ Bind(&different_cids);
   __ cmpq(cid1, Immediate(kNumPredefinedCids));
   __ j(ABOVE_EQUAL, not_equal);
@@ -1298,19 +1303,28 @@ static void EquivalentClassIds(Assembler* assembler,
   JumpIfNotInteger(assembler, scratch, &not_integer);
 
   // First type is an integer. Check if the second is an integer too.
-  // Otherwise types are unequiv because only integers have the same runtime
-  // type as other integers.
   JumpIfInteger(assembler, cid2, equal);
+  // Integer types are only equivalent to other integer types.
   __ jmp(not_equal);
 
   __ Bind(&not_integer);
-  // Check if the first type is String. If it is not then types are not
-  // equivalent because they have different class ids and they are not strings
-  // or integers.
-  JumpIfNotString(assembler, cid1, not_equal);
-  // First type is String. Check if the second is a string too.
+  // Check if both are String types.
+  JumpIfNotString(assembler, cid1, &not_integer_or_string);
+
+  // First type is a String. Check if the second is a String too.
   JumpIfString(assembler, cid2, equal);
   // String types are only equivalent to other String types.
+  __ jmp(not_equal);
+
+  __ Bind(&not_integer_or_string);
+  // Check if the first type is a Type. If it is not then types are not
+  // equivalent because they have different class ids and they are not String
+  // or integer or Type.
+  JumpIfNotType(assembler, cid1, not_equal);
+
+  // First type is a Type. Check if the second is a Type too.
+  JumpIfType(assembler, cid2, equal);
+  // Type types are only equivalent to other Type types.
   __ jmp(not_equal);
 }
 

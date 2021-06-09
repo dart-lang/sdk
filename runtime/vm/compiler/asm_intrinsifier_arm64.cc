@@ -1340,6 +1340,14 @@ static void JumpIfNotString(Assembler* assembler,
              kIfNotInRange, target);
 }
 
+static void JumpIfType(Assembler* assembler,
+                       Register cid,
+                       Register tmp,
+                       Label* target) {
+  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfInRange,
+             target);
+}
+
 static void JumpIfNotType(Assembler* assembler,
                           Register cid,
                           Register tmp,
@@ -1418,7 +1426,7 @@ static void EquivalentClassIds(Assembler* assembler,
                                Register cid1,
                                Register cid2,
                                Register scratch) {
-  Label different_cids, not_integer;
+  Label different_cids, not_integer, not_integer_or_string;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
@@ -1442,7 +1450,7 @@ static void EquivalentClassIds(Assembler* assembler,
   __ b(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
-  // different representations) or two integer types.
+  // different representations) or two integer types or two type types.
   __ Bind(&different_cids);
   __ CompareImmediate(cid1, kNumPredefinedCids);
   __ b(not_equal, HI);
@@ -1451,20 +1459,28 @@ static void EquivalentClassIds(Assembler* assembler,
   JumpIfNotInteger(assembler, cid1, scratch, &not_integer);
 
   // First type is an integer. Check if the second is an integer too.
-  // Otherwise types are unequiv because only integers have the same runtime
-  // type as other integers.
   JumpIfInteger(assembler, cid2, scratch, equal);
+  // Integer types are only equivalent to other integer types.
   __ b(not_equal);
 
   __ Bind(&not_integer);
-  // Check if the first type is String. If it is not then types are not
-  // equivalent because they have different class ids and they are not strings
-  // or integers.
-  JumpIfNotString(assembler, cid1, scratch, not_equal);
+  // Check if both are String types.
+  JumpIfNotString(assembler, cid1, scratch, &not_integer_or_string);
+
   // First type is String. Check if the second is a string too.
   JumpIfString(assembler, cid2, scratch, equal);
   // String types are only equivalent to other String types.
-  // Fall-through to the not equal case.
+  __ b(not_equal);
+
+  __ Bind(&not_integer_or_string);
+  // Check if the first type is a Type. If it is not then types are not
+  // equivalent because they have different class ids and they are not String
+  // or integer or Type.
+  JumpIfNotType(assembler, cid1, scratch, not_equal);
+
+  // First type is a Type. Check if the second is a Type too.
+  JumpIfType(assembler, cid2, scratch, equal);
+  // Type types are only equivalent to other Type types.
   __ b(not_equal);
 }
 
