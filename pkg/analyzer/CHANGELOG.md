@@ -4,6 +4,8 @@
   and the last elements of an interpolation.
 * Deprecated `ImportElement.prefixOffset`, use `prefix.nameOffset` instead.
 * Deprecated `CompilationUnitElement.types`, use `classes` instead.
+* Added `Element.nonSynthetic`, use it to get the element that caused creation
+  of this element, e.g. the field for a synthetic getter.
 
 ## 1.7.0
 * Require `meta: ^1.4.0`.

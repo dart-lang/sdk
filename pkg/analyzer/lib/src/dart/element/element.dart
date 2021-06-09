@@ -1264,6 +1264,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   bool get hasInitializer => false;
 
   @override
+  Element get nonSynthetic => this;
+
+  @override
   InterfaceType get type =>
       ElementTypeProvider.current.getFieldType(this) as InterfaceType;
 
@@ -1350,6 +1353,9 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   set isStatic(bool isStatic) {
     assert(false);
   }
+
+  @override
+  Element get nonSynthetic => _enum;
 
   @override
   set type(DartType type) {
@@ -1458,6 +1464,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
+
+  @override
+  Element get nonSynthetic {
+    return isSynthetic ? enclosingElement : this;
+  }
 
   @override
   ConstructorElement? get redirectedConstructor {
@@ -2338,6 +2349,9 @@ abstract class ElementImpl implements Element {
   set nameOffset(int offset) {
     _nameOffset = offset;
   }
+
+  @override
+  Element get nonSynthetic => this;
 
   @override
   AnalysisSession? get session {
@@ -4093,6 +4107,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
+  Element get nonSynthetic {
+    if (isSynthetic && enclosingElement is EnumElementImpl) {
+      return enclosingElement;
+    }
+    return this;
+  }
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 }
 
@@ -4400,6 +4422,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   int get nameOffset => -1;
+
+  @override
+  Element get nonSynthetic => this;
 
   @override
   Source? get source => null;
@@ -4720,6 +4745,11 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
+  Element get nonSynthetic {
+    return setter.variable;
+  }
+
+  @override
   DartType get type => ElementTypeProvider.current.getVariableType(this);
 
   @override
@@ -4958,6 +4988,16 @@ class PropertyAccessorElementImpl_ImplicitGetter
   bool get isGetter => true;
 
   @override
+  Element get nonSynthetic {
+    if (enclosingElement is EnumElementImpl) {
+      if (name == 'index' || name == 'values') {
+        return enclosingElement;
+      }
+    }
+    return variable;
+  }
+
+  @override
   DartType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
 
@@ -5005,6 +5045,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   bool get isSetter => true;
+
+  @override
+  Element get nonSynthetic => variable;
 
   @override
   List<ParameterElement> get parameters =>
@@ -5092,6 +5135,20 @@ abstract class PropertyInducingElementImpl
   @override
   bool get isLate {
     return hasModifier(Modifier.LATE);
+  }
+
+  @override
+  Element get nonSynthetic {
+    if (isSynthetic) {
+      if (enclosingElement is EnumElementImpl) {
+        if (name == 'index' || name == 'values') {
+          return enclosingElement;
+        }
+      }
+      return (getter ?? setter)!;
+    } else {
+      return this;
+    }
   }
 
   @override
