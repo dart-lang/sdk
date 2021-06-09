@@ -62,12 +62,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   AnalysisDriver get testDiver => server.getAnalysisDriver(testFile)!;
 
-  void addAnalysisOptionsFile(String content) {
-    newFile(
-        resourceProvider.pathContext.join(projectPath, 'analysis_options.yaml'),
-        content: content);
-  }
-
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
@@ -105,7 +99,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
         buffer.writeln('    - $experiment');
       }
     }
-    addAnalysisOptionsFile(buffer.toString());
+    newAnalysisOptionsYamlFile(projectPath, content: buffer.toString());
   }
 
   AnalysisServer createAnalysisServer() {

@@ -75,7 +75,7 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
     newDotPackagesFile(projectPath, content: '''
 flutter:${flutterFolder.toUri()}
 ''');
-    newFile('$projectPath/analysis_options.yaml', content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   strong-mode: true
 ''');

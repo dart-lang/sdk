@@ -110,7 +110,7 @@ const double myDouble = 42.0;
 
   Future<void> test_excludedSource() async {
     // Add analysis options to exclude the lib directory then reanalyze
-    newFile('/project/analysis_options.yaml', content: '''
+    newAnalysisOptionsYamlFile('/project', content: '''
 analyzer:
   exclude:
     - lib/**

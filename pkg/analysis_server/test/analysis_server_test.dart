@@ -162,7 +162,7 @@ class A {}
       test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     var path = convertPath('/project/samples/sample.dart');
     newFile(path);
-    newFile('/project/analysis_options.yaml', content: r'''
+    newAnalysisOptionsYamlFile('/project', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -183,7 +183,7 @@ analyzer:
       test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     var path = convertPath('/project/samples/sample.dart');
     newFile(path);
-    newFile('/project/analysis_options.yaml', content: r'''
+    newAnalysisOptionsYamlFile('/project', content: r'''
 analyzer:
   exclude:
     - 'samples/**'

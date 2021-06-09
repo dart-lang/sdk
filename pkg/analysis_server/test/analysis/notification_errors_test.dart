@@ -116,7 +116,7 @@ pedantic:${pedanticFolder.toUri()}
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -147,7 +147,7 @@ analyzer:
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;
-    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -271,7 +271,7 @@ transforms:
   }
 
   Future<void> test_excludedFolder() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   exclude:
     - excluded/**
@@ -320,7 +320,7 @@ import 'does_not_exist.dart';
   Future<void> test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -518,8 +518,7 @@ version: 1.3.2
   }
 
   Future<void> test_pubspecFile_lint() async {
-    var optionsPath = join(projectPath, 'analysis_options.yaml');
-    newFile(optionsPath, content: '''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - sort_pub_dependencies

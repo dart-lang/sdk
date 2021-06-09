@@ -60,7 +60,7 @@ class BulkFixesTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_annotateOverrides_excludedFile() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   exclude:
     - test/**
@@ -83,7 +83,7 @@ class B extends A {
 
   Future<void> test_annotateOverrides_excludedSubProject() async {
     // Root project.
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   exclude:
     - test/data/**
@@ -147,7 +147,7 @@ class B extends A {
   }
 
   Future<void> test_details() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - annotate_overrides
@@ -181,7 +181,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - unnecessary_new
@@ -205,7 +205,7 @@ A f() => A();
     if (Platform.isWindows) {
       fail('Should not be passing on Windows, but it does');
     }
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - prefer_collection_literals
@@ -228,7 +228,7 @@ class A {
   }
 
   Future<void> test_unnecessaryNew_ignoredInOptions() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 analyzer:
   errors:
     unnecessary_new: ignore
@@ -244,7 +244,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew_ignoredInSource() async {
-    addAnalysisOptionsFile('''
+    newAnalysisOptionsYamlFile(projectPath, content: '''
 linter:
   rules:
     - unnecessary_new
