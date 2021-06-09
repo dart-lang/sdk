@@ -32,14 +32,6 @@ DEFINE_FLAG(
     false,
     "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
-DEFINE_FLAG(bool,
-            trace_timeline_analysis,
-            false,
-            "Trace timeline analysis backend");
-DEFINE_FLAG(bool,
-            timing,
-            false,
-            "Dump isolate timing information from timeline.");
 DEFINE_FLAG(charp,
             timeline_dir,
             NULL,
@@ -102,7 +94,7 @@ DEFINE_FLAG(charp,
 static TimelineEventRecorder* CreateTimelineRecorder() {
   // Some flags require that we use the endless recorder.
   const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
+      (FLAG_timeline_dir != NULL) || FLAG_complete_timeline;
 
   const bool use_startup_recorder = FLAG_startup_timeline;
   const bool use_systrace_recorder = FLAG_systrace_timeline;
@@ -190,7 +182,7 @@ static void FreeEnabledByDefaultTimelineStreams(
 
 // Returns true if |streams| contains |stream| or "all". Not case sensitive.
 static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
-  if ((FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline ||
+  if ((FLAG_timeline_dir != NULL) || FLAG_complete_timeline ||
       FLAG_startup_timeline) {
     return true;
   }

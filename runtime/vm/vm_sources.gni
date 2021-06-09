@@ -328,8 +328,6 @@ vm_sources = [
   "thread_state.h",
   "timeline.cc",
   "timeline.h",
-  "timeline_analysis.cc",
-  "timeline_analysis.h",
   "timeline_android.cc",
   "timeline_fuchsia.cc",
   "timeline_linux.cc",

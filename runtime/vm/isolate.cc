@@ -50,7 +50,6 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/timeline_analysis.h"
 #include "vm/visitor.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -61,7 +60,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
-DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
@@ -2416,19 +2414,6 @@ void Isolate::LowLevelShutdown() {
   // Fail fast if anybody tries to post any more messages to this isolate.
   delete message_handler();
   set_message_handler(nullptr);
-#if defined(SUPPORT_TIMELINE)
-  // Before analyzing the isolate's timeline blocks- reclaim all cached
-  // blocks.
-  Timeline::ReclaimCachedBlocksFromThreads();
-#endif
-
-// Dump all timing data for the isolate.
-#if defined(SUPPORT_TIMELINE) && !defined(PRODUCT)
-  if (FLAG_timing) {
-    TimelinePauseTrace tpt;
-    tpt.Print();
-  }
-#endif  // !PRODUCT
 
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
