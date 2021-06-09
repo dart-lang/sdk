@@ -23,7 +23,7 @@ class CreateFile extends CorrectionProducer {
     // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral) {
       var parent = node.parent;
-      if (parent is ImportDirective) {
+      if (parent is NamespaceDirective) {
         // TODO(brianwilkerson) Support the case where the node's parent is a
         //  Configuration.
         var source = parent.uriSource;
