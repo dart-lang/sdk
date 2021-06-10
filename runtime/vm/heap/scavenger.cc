@@ -261,6 +261,10 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
            !promoted_list_.IsEmpty();
   }
 
+  bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
+    return promoted_list_.WaitForWork(num_busy);
+  }
+
   void Finalize() {
     if (scavenger_->abort_) {
       promoted_list_.AbandonWork();
@@ -562,23 +566,7 @@ class ParallelScavengerTask : public ThreadPool::Task {
     do {
       do {
         visitor_->ProcessSurvivors();
-
-        // I can't find more work right now. If no other task is busy,
-        // then there will never be more work (NB: 1 is *before* decrement).
-        if (num_busy_->fetch_sub(1u) == 1) break;
-
-        // Wait for some work to appear.
-        // TODO(iposva): Replace busy-waiting with a solution using Monitor,
-        // and redraw the boundaries between stack/visitor/task as needed.
-        while (!visitor_->HasWork() && num_busy_->load() > 0) {
-        }
-
-        // If no tasks are busy, there will never be more work.
-        if (num_busy_->load() == 0) break;
-
-        // I saw some work; get busy and compete for it.
-        num_busy_->fetch_add(1u);
-      } while (true);
+      } while (visitor_->WaitForWork(num_busy_));
       // Wait for all scavengers to stop.
       barrier_->Sync();
 #if defined(DEBUG)

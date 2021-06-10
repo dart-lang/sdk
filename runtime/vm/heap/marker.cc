@@ -212,6 +212,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+  bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
+    return work_list_.WaitForWork(num_busy);
+  }
+
   void AbandonWork() {
     work_list_.AbandonWork();
     deferred_work_list_.AbandonWork();
@@ -552,23 +556,7 @@ class ParallelMarkTask : public ThreadPool::Task {
       do {
         do {
           visitor_->DrainMarkingStack();
-
-          // I can't find more work right now. If no other task is busy,
-          // then there will never be more work (NB: 1 is *before* decrement).
-          if (num_busy_->fetch_sub(1u) == 1) break;
-
-          // Wait for some work to appear.
-          // TODO(40695): Replace busy-waiting with a solution using Monitor,
-          // and redraw the boundaries between stack/visitor/task as needed.
-          while (marking_stack_->IsEmpty() && num_busy_->load() > 0) {
-          }
-
-          // If no tasks are busy, there will never be more work.
-          if (num_busy_->load() == 0) break;
-
-          // I saw some work; get busy and compete for it.
-          num_busy_->fetch_add(1u);
-        } while (true);
+        } while (visitor_->WaitForWork(num_busy_));
         // Wait for all markers to stop.
         barrier_->Sync();
 #if defined(DEBUG)
