@@ -10,7 +10,9 @@ import '../../../../completion_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentListCompletionTest);
+    defineReflectiveTests(AssertStatementTest);
     defineReflectiveTests(ConstructorCompletionTest);
+    defineReflectiveTests(ExpressionFunctionBodyTest);
     defineReflectiveTests(ExtensionCompletionTest);
     defineReflectiveTests(PropertyAccessorCompletionTest);
     defineReflectiveTests(RedirectedConstructorCompletionTest);
@@ -21,7 +23,23 @@ void main() {
 
 @reflectiveTest
 class ArgumentListCompletionTest extends CompletionTestCase {
-  Future<void> test_functionWithVoidReturnType() async {
+  Future<void> test_functionWithVoidReturnType_optionalNamed() async {
+    addTestFile('''
+void f(C c) {
+  c.m(handler: ^);
+}
+
+void g() {}
+
+class C {
+  void m({void Function()? handler}) {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_functionWithVoidReturnType_requiredPositional() async {
     addTestFile('''
 void f(C c) {
   c.m(^);
@@ -39,6 +57,22 @@ class C {
 }
 
 @reflectiveTest
+class AssertStatementTest extends CompletionTestCase {
+  @failingTest
+  Future<void> test_message() async {
+    addTestFile('''
+void f() {
+  assert(true, ^);
+}
+
+const c = <int>[];
+''');
+    await getSuggestions();
+    assertHasCompletion('c');
+  }
+}
+
+@reflectiveTest
 class ConstructorCompletionTest extends CompletionTestCase {
   Future<void> test_constructor_abstract() async {
     addTestFile('''
@@ -52,6 +86,45 @@ abstract class C {
 ''');
     await getSuggestions();
     assertHasNoCompletion('C.c');
+  }
+}
+
+@reflectiveTest
+class ExpressionFunctionBodyTest extends CompletionTestCase {
+  Future<void> test_voidReturn_localFunction() async {
+    addTestFile('''
+class C {
+  void m() {
+    void f() => ^;
+  }
+}
+
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidReturn_method() async {
+    addTestFile('''
+class C {
+  void m() => ^;
+}
+
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidReturn_topLevelFunction() async {
+    addTestFile('''
+void f() => ^;
+
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
   }
 }
 

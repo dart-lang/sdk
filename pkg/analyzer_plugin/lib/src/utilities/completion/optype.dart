@@ -584,8 +584,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
       var parent = node.parent;
+      DartType? type;
       if (parent is FunctionExpression) {
-        var type = parent.staticType;
+        type = parent.staticType;
         if (type is FunctionType) {
           if (type.returnType.isVoid) {
             // TODO(brianwilkerson) Determine whether the return type can ever
@@ -604,6 +605,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
               }
             }
           }
+        }
+      } else if (parent is MethodDeclaration) {
+        type = parent.declaredElement?.returnType;
+        if (type != null && type.isVoid) {
+          optype.includeVoidReturnSuggestions = true;
         }
       }
     }
@@ -1033,20 +1039,23 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
       // Check for named parameters in constructor calls.
       var grandparent = node.parent?.parent;
+      Element? element;
       if (grandparent is ConstructorReferenceNode) {
-        var element = grandparent.staticElement;
-        if (element != null) {
-          var parameters = element.parameters;
-          var parameterElement = parameters.firstWhereOrNull((e) {
-            if (e is DefaultFieldFormalParameterElementImpl) {
-              return e.field?.name == node.name.label.name;
-            }
-            return e.isNamed && e.name == node.name.label.name;
-          });
-          // Suggest tear-offs.
-          if (parameterElement?.type is FunctionType) {
-            optype.includeVoidReturnSuggestions = true;
+        element = grandparent.staticElement;
+      } else if (grandparent is MethodInvocation) {
+        element = grandparent.methodName.staticElement;
+      }
+      if (element is ExecutableElement) {
+        var parameters = element.parameters;
+        var parameterElement = parameters.firstWhereOrNull((e) {
+          if (e is DefaultFieldFormalParameterElementImpl) {
+            return e.field?.name == node.name.label.name;
           }
+          return e.isNamed && e.name == node.name.label.name;
+        });
+        // Suggest tear-offs.
+        if (parameterElement?.type is FunctionType) {
+          optype.includeVoidReturnSuggestions = true;
         }
       }
     }
