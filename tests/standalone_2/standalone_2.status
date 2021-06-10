@@ -16,6 +16,12 @@ packages_file_test/none: Skip # contains no tests.
 [ $builder_tag == asan ]
 io/process_detached_test: Slow, Pass
 
+[ $builder_tag == dwarf ]
+io/socket_connect_stacktrace_test: SkipByDesign # Assumes stacktrace can be inspected directly, without decoding
+
+[ $builder_tag != dwarf ]
+io/socket_connect_dwarf_stacktrace_test: SkipByDesign # Is set up to decode dwarf stack traces
+
 [ $builder_tag == no_ipv6 ]
 io/http_ipv6_test: SkipByDesign
 io/http_loopback_test: SkipByDesign

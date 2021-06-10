@@ -391,7 +391,6 @@ class BBB {}
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
-  @failingTest
   Future<void> test_enum_constant() async {
     addTestFile('''
 enum E { a, b }

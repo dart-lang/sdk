@@ -1014,6 +1014,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     }
     String nonce = _CryptoUtils.bytesToBase64(nonceData);
 
+    final callerStackTrace = StackTrace.current;
+
     uri = new Uri(
         scheme: uri.scheme == "wss" ? "https" : "http",
         userInfo: uri.userInfo,
@@ -1050,12 +1052,13 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
       return request.close();
     }).then((response) {
-      Never error(String message) {
+      Future<WebSocket> error(String message) {
         // Flush data.
         response.detachSocket().then((socket) {
           socket.destroy();
         });
-        throw new WebSocketException(message);
+        return Future<WebSocket>.error(
+            new WebSocketException(message), callerStackTrace);
       }
 
       var connectionHeader = response.headers[HttpHeaders.connectionHeader];
@@ -1064,22 +1067,24 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           !connectionHeader.any((value) => value.toLowerCase() == "upgrade") ||
           response.headers.value(HttpHeaders.upgradeHeader)!.toLowerCase() !=
               "websocket") {
-        error("Connection to '$uri' was not upgraded to websocket");
+        return error("Connection to '$uri' was not upgraded to websocket");
       }
       String? accept = response.headers.value("Sec-WebSocket-Accept");
       if (accept == null) {
-        error("Response did not contain a 'Sec-WebSocket-Accept' header");
+        return error(
+            "Response did not contain a 'Sec-WebSocket-Accept' header");
       }
       _SHA1 sha1 = new _SHA1();
       sha1.add("$nonce$_webSocketGUID".codeUnits);
       List<int> expectedAccept = sha1.close();
       List<int> receivedAccept = _CryptoUtils.base64StringToBytes(accept);
       if (expectedAccept.length != receivedAccept.length) {
-        error("Response header 'Sec-WebSocket-Accept' is the wrong length");
+        return error(
+            "Response header 'Sec-WebSocket-Accept' is the wrong length");
       }
       for (int i = 0; i < expectedAccept.length; i++) {
         if (expectedAccept[i] != receivedAccept[i]) {
-          error("Bad response 'Sec-WebSocket-Accept' header");
+          return error("Bad response 'Sec-WebSocket-Accept' header");
         }
       }
       var protocol = response.headers.value('Sec-WebSocket-Protocol');

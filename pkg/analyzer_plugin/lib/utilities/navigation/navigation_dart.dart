@@ -52,12 +52,7 @@ class _DartNavigationCollector {
       this.collector, this.requestedOffset, this.requestedLength);
 
   void _addRegion(int offset, int length, Element? element) {
-    if (element != null && element.isSynthetic) {
-      var parent = element.enclosingElement;
-      if (parent is EnumElementImpl) {
-        element = parent;
-      }
-    }
+    element = element?.nonSynthetic;
     if (element is FieldFormalParameterElement) {
       element = element.field;
     }
@@ -441,10 +436,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     Element? element = node.staticElement;
     if (element == null) {
       return;
-    }
-    // if a synthetic constructor, navigate to the class
-    if (element.isSynthetic) {
-      element = element.enclosingElement;
     }
     // add regions
     var typeName = node.type;
