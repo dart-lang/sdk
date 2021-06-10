@@ -3426,14 +3426,12 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       TypeParameters::Handle(Z, TypeParameters::New(type_parameter_count));
   const Type& null_bound = Type::Handle(Z);
 
-  intptr_t offset = 0;
   if (!parameterized_class.IsNull()) {
     ASSERT(parameterized_class.type_parameters() == TypeParameters::null());
     parameterized_class.set_type_parameters(type_parameters);
   } else {
     ASSERT(parameterized_signature.type_parameters() == TypeParameters::null());
     parameterized_signature.set_type_parameters(type_parameters);
-    offset = parameterized_signature.NumParentTypeArguments();
     if (!function.IsNull()) {
       function.SetNumTypeParameters(type_parameter_count);
     }
