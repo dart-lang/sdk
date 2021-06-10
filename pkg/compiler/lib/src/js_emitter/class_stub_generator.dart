@@ -228,21 +228,21 @@ List<jsAst.Statement> buildTearOffCode(
         js(r'''function() { throw "Helper 'closureFromTearOff' missing." }''');
   }
 
-  jsAst.Statement tearOffGetter;
+  jsAst.Statement instanceTearOffGetter;
   if (options.useContentSecurityPolicy) {
-    tearOffGetter = js.statement(
+    instanceTearOffGetter = js.statement(
       '''
-      function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
+      function instanceTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted, needsDirectAccess) {
         var cache = null;
         return isIntercepted
             ? function(receiver) {
                 if (cache === null) cache = #createTearOffClass(
-                    this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);
+                    funcs, applyTrampolineIndex, reflectionInfo, false, true, name, needsDirectAccess);
                 return new cache(this, funcs[0], receiver, name);
               }
             : function() {
                 if (cache === null) cache = #createTearOffClass(
-                    this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);
+                    funcs, applyTrampolineIndex, reflectionInfo, false, false, name, needsDirectAccess);
                 return new cache(this, funcs[0], null, name);
               };
       }''',
@@ -270,46 +270,40 @@ List<jsAst.Statement> buildTearOffCode(
     // create a context with the closed-over values. The closed-over values
     // include parameters, (Dart) top-level definitions, and the local `cache`
     // variable all in one context (passing `null` to initialize `cache`).
-    tearOffGetter = js.statement(
+    instanceTearOffGetter = js.statement(
       '''
-function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
-  return isIntercepted
-
-      ? new Function("funcs, applyTrampolineIndex, reflectionInfo, name, createTearOffClass, cache",
+function instanceTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted, needsDirectAccess) {
+  if (isIntercepted)
+    return new Function("funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, createTearOffClass, cache",
           "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
             "if (cache === null) cache = createTearOffClass(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, true, name);" +
+                "funcs, applyTrampolineIndex, reflectionInfo, false, true, name, needsDirectAccess);" +
                 "return new cache(this, funcs[0], receiver, name);" +
-           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #createTearOffClass, null)
-
-      : new Function("funcs, applyTrampolineIndex, reflectionInfo, name, createTearOffClass, cache",
+           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, #createTearOffClass, null);
+  else
+    return new Function("funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, createTearOffClass, cache",
           "return function tearOff_" + name + (functionCounter++)+ "() {" +
             "if (cache === null) cache = createTearOffClass(" +
-                "this, funcs, applyTrampolineIndex, reflectionInfo, false, false, name);" +
+                "funcs, applyTrampolineIndex, reflectionInfo, false, false, name, needsDirectAccess);" +
                 "return new cache(this, funcs[0], null, name);" +
-             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #createTearOffClass, null);
+             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, #createTearOffClass, null);
 }''',
       {'createTearOffClass': closureFromTearOffAccessExpression},
     );
   }
 
-  jsAst.Statement tearOff = js.statement(
+  jsAst.Statement staticTearOffGetter = js.statement(
     '''
-    function tearOff(funcs, applyTrampolineIndex,
-          reflectionInfo, isStatic, name, isIntercepted) {
-      var cache = null;
-      return isStatic
-          ? function() {
-              if (cache === null) cache = #createTearOffClass(
-                  this, funcs, applyTrampolineIndex,
-                  reflectionInfo, true, false, name).prototype;
-              return cache;
-            }
-          : tearOffGetter(funcs, applyTrampolineIndex,
-              reflectionInfo, name, isIntercepted);
-    }''',
+function staticTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name) {
+  var cache = null;
+  return function() {
+    if (cache === null) cache = #createTearOffClass(
+        funcs, applyTrampolineIndex, reflectionInfo, true, false, name).prototype;
+    return cache;
+  }
+}''',
     {'createTearOffClass': closureFromTearOffAccessExpression},
   );
 
-  return [tearOffGetter, tearOff];
+  return [instanceTearOffGetter, staticTearOffGetter];
 }

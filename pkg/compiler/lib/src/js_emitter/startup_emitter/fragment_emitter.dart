@@ -4,17 +4,6 @@
 
 part of dart2js.js_emitter.startup_emitter.model_emitter;
 
-/// The name of the property that stores the tear-off getter on a static
-/// function.
-///
-/// This property is only used when isolates are used.
-///
-/// When serializing static functions we transmit the
-/// name of the static function, but not the name of the function's getter. We
-/// store the getter-function on the static function itself, which allows us to
-/// find it easily.
-const String _tearOffPropertyName = r'$tearOff';
-
 /// The fast startup emitter's goal is to minimize the amount of work that the
 /// JavaScript engine has to do before it can start running user code.
 ///
@@ -232,7 +221,7 @@ var functionCounter = 0;
 
 // Each deferred hunk comes with its own types which are added to the end
 // of the types-array.
-// The `funTypes` passed to the `installTearOff` function below is relative to
+// The `funType` passed to the `installTearOff` function below is relative to
 // the hunk the function comes from. The `typesOffset` variable encodes the
 // offset at which the new types will be added.
 var typesOffset = 0;
@@ -253,13 +242,18 @@ var typesOffset = 0;
 // different tearOffCode?
 function installTearOff(
     container, getterName, isStatic, isIntercepted, requiredParameterCount,
-    optionalParameterDefaultValues, callNames, funsOrNames, funType, applyIndex) {
+    optionalParameterDefaultValues, callNames, funsOrNames, funType, applyIndex,
+    needsDirectAccess) {
   // A function can have several stubs (for example to fill in optional
   // arguments). We collect these functions in the `funs` array.
   var funs = [];
   for (var i = 0; i < funsOrNames.length; i++) {
     var fun = funsOrNames[i];
-    if ((typeof fun) == "string") fun = container[fun];
+    if ((typeof fun) == "string") {
+      var stubName = fun;
+      fun = container[fun];
+      fun.#stubName = stubName;
+    }
     fun.#callName = callNames[i];
     funs.push(fun);
   }
@@ -271,19 +265,18 @@ function installTearOff(
   fun[#defaultArgumentValues] = optionalParameterDefaultValues;
   var reflectionInfo = funType;
   if (typeof reflectionInfo == "number") {
-    // The reflectionInfo can either be a function, or a pointer into the types
-    // table. If it points into the types-table we need to update the index,
-    // in case the tear-off is part of a deferred hunk.
+    // The reflectionInfo can be a string type recipe or an index into the types
+    // table.  If it points into the types-table we need to update the index, in
+    // case the tear-off is part of a deferred hunk.
     reflectionInfo = reflectionInfo + typesOffset;
   }
   var name = funsOrNames[0];
-  fun.#stubName = name;
-  var getterFunction =
-      tearOff(funs, applyIndex || 0, reflectionInfo, isStatic, name, isIntercepted);
+  applyIndex = applyIndex || 0;
+  var getterFunction = isStatic
+      ? staticTearOffGetter(funs, applyIndex, reflectionInfo, name)
+      : instanceTearOffGetter(funs, applyIndex, reflectionInfo, name,
+          isIntercepted, needsDirectAccess);
   container[getterName] = getterFunction;
-  if (isStatic) {
-    fun.$_tearOffPropertyName = getterFunction;
-  }
 }
 
 function installStaticTearOff(
@@ -295,18 +288,18 @@ function installStaticTearOff(
   return installTearOff(
       container, getterName, true, false,
       requiredParameterCount, optionalParameterDefaultValues,
-      callNames, funsOrNames, funType, applyIndex);
+      callNames, funsOrNames, funType, applyIndex, false);
 }
 
 function installInstanceTearOff(
     container, getterName, isIntercepted,
     requiredParameterCount, optionalParameterDefaultValues,
-    callNames, funsOrNames, funType, applyIndex) {
+    callNames, funsOrNames, funType, applyIndex, needsDirectAccess) {
   // TODO(sra): Specialize installTearOff for instance methods.
   return installTearOff(
       container, getterName, false, isIntercepted,
       requiredParameterCount, optionalParameterDefaultValues,
-      callNames, funsOrNames, funType, applyIndex);
+      callNames, funsOrNames, funType, applyIndex, !!needsDirectAccess);
 }
 
 // Instead of setting the interceptor tags directly we use this update
@@ -359,7 +352,8 @@ var #hunkHelpers = (function(){
       return installInstanceTearOff(
           container, getterName, isIntercepted,
           requiredParameterCount, optionalParameterDefaultValues,
-          callNames, [name], funType, applyIndex);
+          callNames, [name], funType, applyIndex,
+          /*needsDirectAccess:*/ false);
     }
   },
 
@@ -1471,10 +1465,13 @@ class FragmentEmitter {
           "applyIndex": applyIndex,
         });
       } else {
+        bool tearOffNeedsDirectAccess =
+            (method as InstanceMethod).tearOffNeedsDirectAccess;
         if (requiredParameterCount <= 2 &&
             callNames.length == 1 &&
             optionalParameterDefaultValues is js.LiteralNull &&
-            method.applyIndex == 0) {
+            method.applyIndex == 0 &&
+            !tearOffNeedsDirectAccess) {
           js.Statement finish(int arity) {
             // Short form for exactly 0/1/2 arguments.
             String isInterceptedTag = isIntercepted ? 'i' : 'u';
@@ -1501,7 +1498,8 @@ class FragmentEmitter {
         return js.js.statement('''
             #install(#container, #getterName, #isIntercepted,
                      #requiredParameterCount, #optionalParameterDefaultValues,
-                     #callNames, #funsOrNames, #funType, #applyIndex)''', {
+                     #callNames, #funsOrNames, #funType, #applyIndex,
+                     #tearOffNeedsDirectAccess)''', {
           "install": install,
           "container": container,
           "getterName": js.quoteName(method.tearOffName),
@@ -1513,6 +1511,9 @@ class FragmentEmitter {
           "funsOrNames": funsOrNamesArray,
           "funType": method.functionType,
           "applyIndex": applyIndex,
+          // 'Truthy' values are ok for `tearOffNeedsDirectAccess`.
+          "tearOffNeedsDirectAccess":
+              js.number(tearOffNeedsDirectAccess ? 1 : 0),
         });
       }
     }
