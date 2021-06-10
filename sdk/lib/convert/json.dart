@@ -91,7 +91,7 @@ String jsonEncode(Object? object,
 ///
 /// Shorthand for `json.decode`. Useful if a local variable shadows the global
 /// [json] constant.
-dynamic jsonDecode(String source,
+dynamic jsonDecode(String? source,
         {Object? reviver(Object? key, Object? value)?}) =>
     json.decode(source, reviver: reviver);
 
