@@ -1831,8 +1831,7 @@ convertDartClosureToJS(closure, int arity) {
 /// Superclass for Dart closures.
 ///
 /// All static, tear-off, function declaration and function expression closures
-/// extend this class, but classes that implement Function via a `call` method
-/// do not.
+/// extend this class.
 abstract class Closure implements Function {
   // TODO(ahe): These constants must be in sync with
   // reflection_data_parser.dart.
@@ -1874,13 +1873,13 @@ abstract class Closure implements Function {
   /// Caution: this function may be called when building constants.
   /// TODO(ahe): Don't call this function when building constants.
   static fromTearOff(
-    receiver,
     List functions,
-    int? applyTrampolineIndex,
+    int applyTrampolineIndex,
     var reflectionInfo,
     bool isStatic,
     bool isIntercepted,
     String propertyName,
+    bool needsDirectAccess,
   ) {
     JS_EFFECT(() {
       // The functions are called here to model the calls from JS forms below.
@@ -1931,7 +1930,7 @@ abstract class Closure implements Function {
     // we only use the new instance to access the constructor property and use
     // Object.create to create the desired prototype.
     //
-    // TODO(sra): Perhaps cache the prototype to avoid the allocation.
+    // TODO(sra): Cache the prototype to avoid the allocation.
     var prototype = isStatic
         ? JS('StaticClosure', 'Object.create(#.constructor.prototype)',
             new StaticClosure())
@@ -1963,7 +1962,7 @@ abstract class Closure implements Function {
     // Create a closure and "monkey" patch it with call stubs.
     var trampoline = function;
     if (!isStatic) {
-      trampoline = forwardCallTo(receiver, function, isIntercepted);
+      trampoline = forwardCallTo(function, isIntercepted, needsDirectAccess);
       JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
       JS('', '#[#] = #', prototype, STATIC_FUNCTION_NAME_PROPERTY_NAME,
@@ -1982,7 +1981,9 @@ abstract class Closure implements Function {
       var stubCallName = JS('String|Null', '#[#]', stub,
           JS_GET_NAME(JsGetName.CALL_NAME_PROPERTY));
       if (stubCallName != null) {
-        stub = isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted);
+        stub = isStatic
+            ? stub
+            : forwardCallTo(stub, isIntercepted, needsDirectAccess);
         JS('', '#[#] = #', prototype, stubCallName, stub);
       }
       if (i == applyTrampolineIndex) {
@@ -2041,10 +2042,22 @@ abstract class Closure implements Function {
   }
 
   static cspForwardCall(
-      int arity, bool isSuperCall, String? stubName, function) {
+      int arity, bool needsDirectAccess, String? stubName, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-    // Handle intercepted stub-names with the default slow case.
-    if (isSuperCall) arity = -1;
+
+    // We have the target method (or an arity stub for the method) in
+    // [function]. These fixed-arity forwarding stubs could use
+    // `Function.prototype.call` on the target directly, but on some browsers it
+    // is quite a bit faster to do a property access again to get the
+    // function. Accessing the property again will fail (retrieve the wrong
+    // function) if the desired property is shadowed. This can happen, e.g.,
+    // when the tear-off was created by a super-getter call `super.method` and
+    // `method` has an override on some subclass.
+    //
+    // To handle the shadowing-of-a-method-that-has-a-super-tearoff case, we use
+    // the default slow case that uses `Function.prototype.apply`.
+    if (needsDirectAccess) arity = -1;
+
     switch (arity) {
       case 0:
         return JS(
@@ -2121,19 +2134,14 @@ abstract class Closure implements Function {
 
   static bool get isCsp => JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
 
-  static forwardCallTo(receiver, function, bool isIntercepted) {
-    if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
+  static forwardCallTo(function, bool isIntercepted, bool needsDirectAccess) {
+    if (isIntercepted)
+      return forwardInterceptedCallTo(function, needsDirectAccess);
     String? stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    var lookedUpFunction = JS('', '#[#]', receiver, stubName);
-    // The receiver[stubName] may not be equal to the function if we try to
-    // forward to a super-method. Especially when we create a bound closure
-    // of a super-call we need to make sure that we don't forward back to the
-    // dynamically looked up function.
-    bool isSuperCall = !identical(function, lookedUpFunction);
 
-    if (isCsp || isSuperCall || arity >= 27) {
-      return cspForwardCall(arity, isSuperCall, stubName, function);
+    if (isCsp || needsDirectAccess || arity >= 27) {
+      return cspForwardCall(arity, needsDirectAccess, stubName, function);
     }
 
     if (arity == 0) {
@@ -2160,11 +2168,11 @@ abstract class Closure implements Function {
   }
 
   static cspForwardInterceptedCall(
-      int arity, bool isSuperCall, String? name, function) {
+      int arity, bool needsDirectAccess, String? name, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
     // Handle intercepted stub-names with the default slow case.
-    if (isSuperCall) arity = -1;
+    if (needsDirectAccess) arity = -1;
     switch (arity) {
       case 0:
         // Intercepted functions always takes at least one argument (the
@@ -2252,21 +2260,16 @@ abstract class Closure implements Function {
     }
   }
 
-  static forwardInterceptedCallTo(receiver, function) {
+  static forwardInterceptedCallTo(function, bool needsDirectAccess) {
     String selfField = BoundClosure.selfFieldName();
     String receiverField = BoundClosure.receiverFieldName();
     String? stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     bool isCsp = JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
-    var lookedUpFunction = JS('', '#[#]', receiver, stubName);
-    // The receiver[stubName] may not be equal to the function if we try to
-    // forward to a super-method. Especially when we create a bound closure
-    // of a super-call we need to make sure that we don't forward back to the
-    // dynamically looked up function.
-    bool isSuperCall = !identical(function, lookedUpFunction);
 
-    if (isCsp || isSuperCall || arity >= 28) {
-      return cspForwardInterceptedCall(arity, isSuperCall, stubName, function);
+    if (isCsp || needsDirectAccess || arity >= 28) {
+      return cspForwardInterceptedCall(
+          arity, needsDirectAccess, stubName, function);
     }
     if (arity == 1) {
       return JS(
@@ -2310,16 +2313,17 @@ abstract class Closure implements Function {
 }
 
 /// Called from implicit method getter (aka tear-off).
-closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
-    isStatic, isIntercepted, name) {
+closureFromTearOff(functions, applyTrampolineIndex, reflectionInfo, isStatic,
+    isIntercepted, name, needsDirectAccess) {
   return Closure.fromTearOff(
-      receiver,
-      JS('JSArray', '#', functions),
-      JS('int|Null', '#', applyTrampolineIndex),
-      reflectionInfo,
-      JS('bool', '!!#', isStatic),
-      JS('bool', '!!#', isIntercepted),
-      JS('String', '#', name));
+    JS('JSArray', '#', functions),
+    JS('int', '#||0', applyTrampolineIndex),
+    reflectionInfo,
+    JS('bool', '!!#', isStatic),
+    JS('bool', '!!#', isIntercepted),
+    JS('String', '#', name),
+    JS('bool', '!!#', needsDirectAccess),
+  );
 }
 
 /// Represents an implicit closure of a function.
@@ -2337,18 +2341,18 @@ class StaticClosure extends TearOffClosure {
 /// Represents a 'tear-off' or property extraction closure of an instance
 /// method, that is an instance method bound to a specific receiver (instance).
 class BoundClosure extends TearOffClosure {
-  /// The receiver or interceptor.
-  // TODO(ahe): This could just be the interceptor, we always know if
-  // we need the interceptor when generating the call method.
+  /// The JavaScript receiver, which is the Dart receiver or the interceptor.
   final _self;
 
   /// The method.
   final _target;
 
-  /// The receiver. Null if [_self] is not an interceptor.
+  /// The Dart receiver if [_target] is an intercepted method (in which case
+  /// [_self] is the interceptor), otherwise `null`.
   final _receiver;
 
-  /// The name of the function. Only used by the mirror system.
+  /// The name of the function. Only used by `toString()`.
+  // TODO(sra): This should be part of the generated tear-off class.
   final String _name;
 
   BoundClosure(this._self, this._target, this._receiver, this._name);

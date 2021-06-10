@@ -475,6 +475,14 @@ class InstanceMethod extends DartMethod {
   /// and [aliasName].
   final js.Name aliasName;
 
+  /// `true` if the tear-off needs to access methods directly rather than rely
+  /// on JavaScript prototype lookup. This happens when a tear-off getter is
+  /// called via `super.method` and there is a shadowing definition of `method`
+  /// in some sublcass.
+  // TODO(sra): Consider instead having an alias per stub, creating tear-off
+  // trampolines that target the stubs.
+  final bool tearOffNeedsDirectAccess;
+
   /// True if this is the implicit `call` instance method of an anonymous
   /// closure. This predicate is false for explicit `call` methods and for
   /// functions that can be torn off.
@@ -486,19 +494,24 @@ class InstanceMethod extends DartMethod {
   /// Name called via the general 'catch all' path of Function.apply.
   ///final js.Name applyName;
 
-  InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
-      List<ParameterStubMethod> parameterStubs, js.Name callName,
-      {bool needsTearOff,
-      js.Name tearOffName,
-      this.aliasName,
-      bool canBeApplied,
-      int requiredParameterCount,
-      /* List | Map */ optionalParameterDefaultValues,
-      this.isClosureCallMethod,
-      this.isIntercepted,
-      js.Expression functionType,
-      int applyIndex})
-      : super(element, name, code, parameterStubs, callName,
+  InstanceMethod(
+    FunctionEntity element,
+    js.Name name,
+    js.Expression code,
+    List<ParameterStubMethod> parameterStubs,
+    js.Name callName, {
+    bool needsTearOff,
+    js.Name tearOffName,
+    this.aliasName,
+    this.tearOffNeedsDirectAccess,
+    bool canBeApplied,
+    int requiredParameterCount,
+    /* List | Map */ optionalParameterDefaultValues,
+    this.isClosureCallMethod,
+    this.isIntercepted,
+    js.Expression functionType,
+    int applyIndex,
+  }) : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,

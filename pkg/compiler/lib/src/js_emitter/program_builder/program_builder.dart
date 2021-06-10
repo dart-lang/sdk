@@ -800,6 +800,7 @@ class ProgramBuilder {
     if (code == null) return null;
 
     bool canTearOff = false;
+    bool tearOffNeedsDirectAccess = false;
     js.Name tearOffName;
     bool isClosureCallMethod = false;
     bool isNotApplyTarget =
@@ -819,9 +820,11 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _codegenWorld.hasInvokedGetter(element) ||
-            _codegenWorld.methodsNeedsSuperGetter(element);
+        bool needsSuperGetter = _codegenWorld.methodsNeedsSuperGetter(element);
+        canTearOff =
+            _codegenWorld.hasInvokedGetter(element) || needsSuperGetter;
         tearOffName = _namer.getterForElement(element);
+        tearOffNeedsDirectAccess = needsSuperGetter;
       }
     }
 
@@ -865,6 +868,7 @@ class ProgramBuilder {
         _generateParameterStubs(element, canTearOff, canBeApplied), callName,
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
+        tearOffNeedsDirectAccess: tearOffNeedsDirectAccess,
         isClosureCallMethod: isClosureCallMethod,
         isIntercepted: isIntercepted,
         aliasName: aliasName,
