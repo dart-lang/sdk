@@ -15,19 +15,17 @@
 #define FALL_THROUGH ((void)0)
 #endif
 
+#if !defined(NDEBUG) && !defined(DEBUG)
 #if defined(GOOGLE3)
 // google3 builds use NDEBUG to indicate non-debug builds which is different
 // from the way the Dart project expects it: DEBUG indicating a debug build.
-#if !defined(NDEBUG) && !defined(DEBUG)
 #define DEBUG
-#endif  // !NDEBUG && !DEBUG                                                   \
 #else
 // Since <cassert> uses NDEBUG to signify that assert() macros should be turned
 // off, we'll define it when DEBUG is _not_ set.
-#if !defined(DEBUG)
 #define NDEBUG
-#endif
 #endif  // GOOGLE3
+#endif  // !NDEBUG && !DEBUG
 
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
