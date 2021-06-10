@@ -7,7 +7,7 @@ library kernel.transformations.track_widget_constructor_locations;
 import '../ast.dart';
 import '../target/changed_structure_notifier.dart';
 
-// Parameter name used to track were widget constructor calls were made from.
+// Parameter name used to track where widget constructor calls were made from.
 //
 // The parameter name contains a randomly generated hex string to avoid
 // collision with user generated parameters.
@@ -332,8 +332,7 @@ class WidgetCreatorTracker {
       final Uri importUri = library.importUri;
       // ignore: unnecessary_null_comparison
       if (importUri != null && importUri.scheme == 'package') {
-        if (importUri.path == 'flutter/src/widgets/framework.dart' ||
-            importUri.path == 'flutter_web/src/widgets/framework.dart') {
+        if (importUri.path == 'flutter/src/widgets/framework.dart') {
           for (Class class_ in library.classes) {
             if (class_.name == 'Widget') {
               _widgetClass = class_;
@@ -341,9 +340,7 @@ class WidgetCreatorTracker {
             }
           }
         } else {
-          if (importUri.path == 'flutter/src/widgets/widget_inspector.dart' ||
-              importUri.path ==
-                  'flutter_web/src/widgets/widget_inspector.dart') {
+          if (importUri.path == 'flutter/src/widgets/widget_inspector.dart') {
             for (Class class_ in library.classes) {
               if (class_.name == '_HasCreationLocation') {
                 _hasCreationLocationClass = class_;
