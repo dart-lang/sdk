@@ -102,6 +102,7 @@ evaluate_with_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
 field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_allocation_samples_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_allocation_traces_test: SkipByDesign # Debugger is disabled in AOT mode.
+get_instances_as_array_rpc_expression_evaluation_on_internal_test: SkipByDesign # Debugger is disabled in AOT mode
 get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
