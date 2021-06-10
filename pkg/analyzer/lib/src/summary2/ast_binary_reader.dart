@@ -1079,7 +1079,7 @@ class AstBinaryReader {
     var argumentList = readNode() as ArgumentList;
     var node = astFactory.superConstructorInvocation(
       Tokens.super_(),
-      Tokens.period(),
+      constructorName != null ? Tokens.period() : null,
       constructorName,
       argumentList,
     );
