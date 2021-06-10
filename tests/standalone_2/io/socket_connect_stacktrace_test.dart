@@ -19,6 +19,7 @@ Future<void> main() async {
   try {
     await WebSocket.connect('ws://localhost.tld:0/ws');
   } catch (err, stackTrace) {
+    Expect.contains('Failed host lookup', err.toString());
     Expect.contains("main ", stackTrace.toString());
   }
 
@@ -26,6 +27,7 @@ Future<void> main() async {
   try {
     await WebSocket.connect('ws://localhost:0/ws');
   } catch (err, stackTrace) {
+    Expect.contains('was not upgraded to websocket', err.toString());
     Expect.contains("main ", stackTrace.toString());
   }
   asyncEnd();
