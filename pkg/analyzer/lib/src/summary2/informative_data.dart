@@ -1221,10 +1221,10 @@ class _InformativeDataWriter {
         // TODO(scheglov) Replace with some kind of double-iterating list.
         var declaration = node.parent!.parent as FieldDeclaration;
 
-        var collector = _OffsetsCollector();
-        declaration.metadata.accept(collector);
-        node.initializer?.accept(collector);
-        sink.writeUint30List(collector.offsets);
+        _writeOffsets(
+          metadata: declaration.metadata,
+          constantInitializer: node.initializer,
+        );
       },
     );
   }
@@ -1306,11 +1306,13 @@ class _InformativeDataWriter {
   void _writeOffsets({
     NodeList<Annotation>? metadata,
     TypeParameterList? typeParameters,
+    Expression? constantInitializer,
     List<EnumConstantDeclaration>? enumConstants,
   }) {
     var collector = _OffsetsCollector();
     metadata?.accept(collector);
     typeParameters?.typeParameters.accept(collector);
+    constantInitializer?.accept(collector);
     if (enumConstants != null) {
       for (var enumConstant in enumConstants) {
         enumConstant.metadata.accept(collector);
@@ -1329,10 +1331,10 @@ class _InformativeDataWriter {
     // TODO(scheglov) Replace with some kind of double-iterating list.
     var declaration = node.parent!.parent as TopLevelVariableDeclaration;
 
-    var collector = _OffsetsCollector();
-    declaration.metadata.accept(collector);
-    node.initializer?.accept(collector);
-    sink.writeUint30List(collector.offsets);
+    _writeOffsets(
+      metadata: declaration.metadata,
+      constantInitializer: node.initializer,
+    );
   }
 
   void _writeTypeParameters(TypeParameterList? parameterList) {
@@ -1477,7 +1479,7 @@ class _InfoUnit {
   });
 }
 
-class _OffsetsApplier extends RecursiveAstVisitor<void> {
+class _OffsetsApplier extends _OffsetsAstVisitor {
   final _SafeListIterator<int> _iterator;
 
   _OffsetsApplier(this._iterator);
@@ -1511,162 +1513,100 @@ class _OffsetsApplier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAnnotation(Annotation node) {
-    _applyToToken(node.atSign);
-    super.visitAnnotation(node);
-  }
-
-  @override
-  void visitArgumentList(ArgumentList node) {
-    _applyToToken(node.leftParenthesis);
-    _applyToToken(node.rightParenthesis);
-    super.visitArgumentList(node);
-  }
-
-  @override
-  void visitBooleanLiteral(BooleanLiteral node) {
-    _applyToToken(node.literal);
-  }
-
-  @override
-  void visitDoubleLiteral(DoubleLiteral node) {
-    _applyToToken(node.literal);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _applyToToken(node.leftBracket);
-    _applyToToken(node.rightBracket);
-    super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _applyToToken(node.keyword);
-    super.visitInstanceCreationExpression(node);
-  }
-
-  @override
-  void visitIntegerLiteral(IntegerLiteral node) {
-    _applyToToken(node.literal);
-  }
-
-  @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
-    _applyToToken(node.leftParenthesis);
-    _applyToToken(node.rightParenthesis);
-    super.visitParenthesizedExpression(node);
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _applyToToken(node.operator);
-    super.visitPrefixExpression(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _applyToToken(node.token);
-  }
-
-  @override
-  void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    _applyToToken(node.literal);
-  }
-
-  @override
-  void visitThrowExpression(ThrowExpression node) {
-    _applyToToken(node.throwKeyword);
-    super.visitThrowExpression(node);
-  }
-
-  void _applyToToken(Token? token) {
-    if (token != null) {
-      var offset = _iterator.take();
-      if (offset != null) {
-        token.offset = offset;
-      }
+  void handleToken(Token token) {
+    var offset = _iterator.take();
+    if (offset != null) {
+      token.offset = offset;
     }
   }
 }
 
-class _OffsetsCollector extends RecursiveAstVisitor<void> {
-  final List<int> offsets = [];
+abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
+  void handleToken(Token token);
 
   @override
   void visitAnnotation(Annotation node) {
-    _addToken(node.atSign);
+    _tokenOrNull(node.atSign);
     super.visitAnnotation(node);
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
-    _addToken(node.leftParenthesis);
-    _addToken(node.rightParenthesis);
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
     super.visitArgumentList(node);
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _addToken(node.literal);
+    _tokenOrNull(node.literal);
   }
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    _addToken(node.literal);
+    _tokenOrNull(node.literal);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _addToken(node.leftBracket);
-    _addToken(node.rightBracket);
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
     super.visitIndexExpression(node);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _addToken(node.keyword);
+    _tokenOrNull(node.keyword);
     super.visitInstanceCreationExpression(node);
   }
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
-    _addToken(node.literal);
+    _tokenOrNull(node.literal);
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    _addToken(node.leftParenthesis);
-    _addToken(node.rightParenthesis);
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
     super.visitParenthesizedExpression(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _addToken(node.operator);
+    _tokenOrNull(node.operator);
     super.visitPrefixExpression(node);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addToken(node.token);
+    _tokenOrNull(node.token);
   }
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    _addToken(node.literal);
+    _tokenOrNull(node.literal);
   }
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    _addToken(node.throwKeyword);
+    _tokenOrNull(node.throwKeyword);
     super.visitThrowExpression(node);
   }
 
-  void _addToken(Token? token) {
+  void _tokenOrNull(Token? token) {
     if (token != null) {
-      offsets.add(token.offset);
+      handleToken(token);
     }
+  }
+}
+
+class _OffsetsCollector extends _OffsetsAstVisitor {
+  final List<int> offsets = [];
+
+  @override
+  void handleToken(Token token) {
+    offsets.add(token.offset);
   }
 }
 

@@ -34,9 +34,9 @@ static method foldInitialSpread1() → void {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t3 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int* #t5 = #t4 as{TypeError} core::int*;
           #t3.{core::List::add}(#t5){(core::int*) →* void};
@@ -53,9 +53,9 @@ static method foldInitialSpread1() → void {
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t6 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int* #t8 = #t7 as{TypeError} core::int*;
           #t6.{core::Set::add}(#t8){(core::int*) →* core::bool*};
@@ -75,9 +75,9 @@ static method foldInitialSpread2() → void {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t9 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
           final core::int* #t11 = #t10 as{TypeError} core::int*;
           #t9.{core::List::add}(#t11){(core::int*) →* void};
@@ -94,9 +94,9 @@ static method foldInitialSpread2() → void {
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t12 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
           final core::int* #t14 = #t13 as{TypeError} core::int*;
           #t12.{core::Set::add}(#t14){(core::int*) →* core::bool*};
@@ -116,9 +116,9 @@ static method foldInitialSpread3() → void {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t15 = core::_GrowableList::•<core::int*>(0);
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t16 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
           final core::int* #t17 = #t16 as{TypeError} core::int*;
           #t15.{core::List::add}(#t17){(core::int*) →* void};
@@ -135,9 +135,9 @@ static method foldInitialSpread3() → void {
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t18 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
-      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t19 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t19 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
           final core::int* #t20 = #t19 as{TypeError} core::int*;
           #t18.{core::Set::add}(#t20){(core::int*) →* core::bool*};

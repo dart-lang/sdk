@@ -4617,7 +4617,7 @@ library
           synthetic static get ccc @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''',
         withCodeRanges: true);
@@ -9569,7 +9569,7 @@ library
           synthetic static get c @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     typeAliases
       functionTypeAliasBased F @50
@@ -11632,7 +11632,7 @@ library
           synthetic static get c @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     topLevelVariables
       static final vValue @23
@@ -11676,7 +11676,7 @@ library
           synthetic static get a @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     topLevelVariables
       static final vToString @17
@@ -14272,7 +14272,7 @@ library
           synthetic static get b @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
       enum E @19
         fields
@@ -14298,7 +14298,7 @@ library
           synthetic static get e @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -14546,7 +14546,7 @@ library
           synthetic static get v @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -14587,7 +14587,7 @@ library
           synthetic static get b @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -14649,7 +14649,7 @@ library
           synthetic static get b @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     topLevelVariables
       static const annotation @91
@@ -14690,7 +14690,7 @@ library
           synthetic static get v2 @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -14717,7 +14717,7 @@ library
           synthetic static get v1 @-1
             returnType: E1
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
       enum E2 @20
         fields
@@ -14735,7 +14735,7 @@ library
           synthetic static get v2 @-1
             returnType: E2
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -14827,7 +14827,7 @@ library
           synthetic static get c @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -22358,7 +22358,7 @@ library
           synthetic static get v @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     topLevelVariables
       static const a @6
@@ -22457,7 +22457,7 @@ library
           synthetic static get c @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -22492,7 +22492,7 @@ library
           synthetic static get v @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     topLevelVariables
       static const a @6
@@ -24013,7 +24013,7 @@ library
           synthetic static get e3 @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     topLevelVariables
       static const foo @6
@@ -24946,7 +24946,7 @@ library
           synthetic static get c @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
 ''');
   }
@@ -26294,6 +26294,408 @@ library
       notSimplyBounded F @8
         aliasedType: List<dynamic>
 ''');
+  }
+
+  test_nonSynthetic_class_field() async {
+    var library = await checkLibrary(r'''
+class C {
+  int foo = 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            nonSynthetic: self::@class::C::@field::foo
+        constructors
+          synthetic @-1
+            nonSynthetic: self::@class::C
+        accessors
+          synthetic get foo @16
+            returnType: int
+            nonSynthetic: self::@class::C::@field::foo
+          synthetic set foo @16
+            parameters
+              requiredPositional _foo @16
+                type: int
+                nonSynthetic: self::@class::C::@field::foo
+            returnType: void
+            nonSynthetic: self::@class::C::@field::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_class_getter() async {
+    var library = await checkLibrary(r'''
+class C {
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic foo @-1
+            type: int
+            nonSynthetic: self::@class::C::@getter::foo
+        constructors
+          synthetic @-1
+            nonSynthetic: self::@class::C
+        accessors
+          get foo @20
+            returnType: int
+            nonSynthetic: self::@class::C::@getter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_class_setter() async {
+    var library = await checkLibrary(r'''
+class C {
+  set foo(int value) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          synthetic foo @-1
+            type: int
+            nonSynthetic: self::@class::C::@setter::foo
+        constructors
+          synthetic @-1
+            nonSynthetic: self::@class::C
+        accessors
+          set foo @16
+            parameters
+              requiredPositional value @24
+                type: int
+                nonSynthetic: value@24
+            returnType: void
+            nonSynthetic: self::@class::C::@setter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_enum() async {
+    var library = await checkLibrary(r'''
+enum E {
+  a, b
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        fields
+          synthetic final index @-1
+            type: int
+            nonSynthetic: self::@enum::E
+          synthetic static const values @-1
+            type: List<E>
+            nonSynthetic: self::@enum::E
+          static const a @11
+            type: E
+            nonSynthetic: self::@enum::E::@constant::a
+          static const b @14
+            type: E
+            nonSynthetic: self::@enum::E::@constant::b
+        accessors
+          synthetic get index @-1
+            returnType: int
+            nonSynthetic: self::@enum::E
+          synthetic static get values @-1
+            returnType: List<E>
+            nonSynthetic: self::@enum::E
+          synthetic static get a @-1
+            returnType: E
+            nonSynthetic: self::@enum::E::@constant::a
+          synthetic static get b @-1
+            returnType: E
+            nonSynthetic: self::@enum::E::@constant::b
+        methods
+          synthetic toString @-1
+            returnType: String
+            nonSynthetic: self::@enum::E
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_extension_getter() async {
+    var library = await checkLibrary(r'''
+extension E on int {
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    extensions
+      E @10
+        extendedType: int
+        fields
+          synthetic foo @-1
+            type: int
+            nonSynthetic: self::@extension::E::@getter::foo
+        accessors
+          get foo @31
+            returnType: int
+            nonSynthetic: self::@extension::E::@getter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_extension_setter() async {
+    var library = await checkLibrary(r'''
+extension E on int {
+  set foo(int value) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    extensions
+      E @10
+        extendedType: int
+        fields
+          synthetic foo @-1
+            type: int
+            nonSynthetic: self::@extension::E::@setter::foo
+        accessors
+          set foo @27
+            parameters
+              requiredPositional value @35
+                type: int
+                nonSynthetic: value@35
+            returnType: void
+            nonSynthetic: self::@extension::E::@setter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_mixin_field() async {
+    var library = await checkLibrary(r'''
+mixin M {
+  int foo = 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          foo @16
+            type: int
+            nonSynthetic: self::@mixin::M::@field::foo
+        constructors
+          synthetic @-1
+            nonSynthetic: self::@mixin::M
+        accessors
+          synthetic get foo @16
+            returnType: int
+            nonSynthetic: self::@mixin::M::@field::foo
+          synthetic set foo @16
+            parameters
+              requiredPositional _foo @16
+                type: int
+                nonSynthetic: self::@mixin::M::@field::foo
+            returnType: void
+            nonSynthetic: self::@mixin::M::@field::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_mixin_getter() async {
+    var library = await checkLibrary(r'''
+mixin M {
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+            nonSynthetic: self::@mixin::M::@getter::foo
+        constructors
+          synthetic @-1
+            nonSynthetic: self::@mixin::M
+        accessors
+          get foo @20
+            returnType: int
+            nonSynthetic: self::@mixin::M::@getter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_mixin_setter() async {
+    var library = await checkLibrary(r'''
+mixin M {
+  set foo(int value) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+            nonSynthetic: self::@mixin::M::@setter::foo
+        constructors
+          synthetic @-1
+            nonSynthetic: self::@mixin::M
+        accessors
+          set foo @16
+            parameters
+              requiredPositional value @24
+                type: int
+                nonSynthetic: value@24
+            returnType: void
+            nonSynthetic: self::@mixin::M::@setter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_unit_getter() async {
+    var library = await checkLibrary(r'''
+int get foo => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: int
+        nonSynthetic: self::@getter::foo
+    accessors
+      get foo @8
+        returnType: int
+        nonSynthetic: self::@getter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_unit_getterSetter() async {
+    var library = await checkLibrary(r'''
+int get foo => 0;
+set foo(int value) {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: int
+        nonSynthetic: self::@getter::foo
+    accessors
+      get foo @8
+        returnType: int
+        nonSynthetic: self::@getter::foo
+      set foo @22
+        parameters
+          requiredPositional value @30
+            type: int
+            nonSynthetic: value@30
+        returnType: void
+        nonSynthetic: self::@setter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_unit_setter() async {
+    var library = await checkLibrary(r'''
+set foo(int value) {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: int
+        nonSynthetic: self::@setter::foo
+    accessors
+      set foo @4
+        parameters
+          requiredPositional value @12
+            type: int
+            nonSynthetic: value@12
+        returnType: void
+        nonSynthetic: self::@setter::foo
+''',
+        withNonSynthetic: true);
+  }
+
+  test_nonSynthetic_unit_variable() async {
+    var library = await checkLibrary(r'''
+int foo = 0;
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        nonSynthetic: self::@variable::foo
+    accessors
+      synthetic static get foo @4
+        returnType: int
+        nonSynthetic: self::@variable::foo
+      synthetic static set foo @4
+        parameters
+          requiredPositional _foo @4
+            type: int
+            nonSynthetic: self::@variable::foo
+        returnType: void
+        nonSynthetic: self::@variable::foo
+''',
+        withNonSynthetic: true);
   }
 
   test_old_typedef_notSimplyBounded_self() async {
@@ -28325,7 +28727,7 @@ library
           synthetic static get v @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     typeAliases
       functionTypeAliasBased F @32
@@ -28431,7 +28833,7 @@ library
             synthetic static get v @-1
               returnType: E
           methods
-            toString @-1
+            synthetic toString @-1
               returnType: String
       typeAliases
         functionTypeAliasBased F @43
@@ -28471,7 +28873,7 @@ library
           synthetic static get v @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     typeAliases
       functionTypeAliasBased F @58
@@ -28548,7 +28950,7 @@ library
             synthetic static get v @-1
               returnType: E
           methods
-            toString @-1
+            synthetic toString @-1
               returnType: String
       typeAliases
         functionTypeAliasBased F @43
@@ -28623,7 +29025,7 @@ library
             synthetic static get v @-1
               returnType: E
           methods
-            toString @-1
+            synthetic toString @-1
               returnType: String
       typeAliases
         functionTypeAliasBased F @43
@@ -28766,7 +29168,7 @@ library
           synthetic static get v @-1
             returnType: E
         methods
-          toString @-1
+          synthetic toString @-1
             returnType: String
     topLevelVariables
       static e @15

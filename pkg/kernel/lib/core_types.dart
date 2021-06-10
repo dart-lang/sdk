@@ -124,20 +124,20 @@ class CoreTypes {
 
   late final Library asyncLibrary = index.getLibrary('dart:async');
 
-  late final Member asyncStarStreamControllerAdd =
-      index.getMember('dart:async', '_AsyncStarStreamController', 'add');
+  late final Procedure asyncStarStreamControllerAdd =
+      index.getProcedure('dart:async', '_AsyncStarStreamController', 'add');
 
-  late final Member asyncStarStreamControllerAddError =
-      index.getMember('dart:async', '_AsyncStarStreamController', 'addError');
+  late final Procedure asyncStarStreamControllerAddError = index.getProcedure(
+      'dart:async', '_AsyncStarStreamController', 'addError');
 
-  late final Member asyncStarStreamControllerAddStream =
-      index.getMember('dart:async', '_AsyncStarStreamController', 'addStream');
+  late final Procedure asyncStarStreamControllerAddStream = index.getProcedure(
+      'dart:async', '_AsyncStarStreamController', 'addStream');
 
   late final Class asyncStarStreamControllerClass =
       index.getClass('dart:async', '_AsyncStarStreamController');
 
-  late final Member asyncStarStreamControllerClose =
-      index.getMember('dart:async', '_AsyncStarStreamController', 'close');
+  late final Procedure asyncStarStreamControllerClose =
+      index.getProcedure('dart:async', '_AsyncStarStreamController', 'close');
 
   late final Constructor asyncStarStreamControllerDefaultConstructor =
       index.getConstructor('dart:async', '_AsyncStarStreamController', '');
@@ -259,8 +259,8 @@ class CoreTypes {
   late final Member streamIteratorSubscription =
       index.getMember('dart:async', '_StreamIterator', '_subscription');
 
-  late final Member streamIteratorCancel =
-      index.getMember('dart:async', '_StreamIterator', 'cancel');
+  late final Procedure streamIteratorCancel =
+      index.getProcedure('dart:async', '_StreamIterator', 'cancel');
 
   late final Class streamIteratorClass =
       index.getClass('dart:async', '_StreamIterator');
@@ -268,8 +268,8 @@ class CoreTypes {
   late final Constructor streamIteratorDefaultConstructor =
       index.getConstructor('dart:async', '_StreamIterator', '');
 
-  late final Member streamIteratorMoveNext =
-      index.getMember('dart:async', '_StreamIterator', 'moveNext');
+  late final Procedure streamIteratorMoveNext =
+      index.getProcedure('dart:async', '_StreamIterator', 'moveNext');
 
   late final Member streamIteratorCurrent =
       index.getMember('dart:async', '_StreamIterator', 'get:current');

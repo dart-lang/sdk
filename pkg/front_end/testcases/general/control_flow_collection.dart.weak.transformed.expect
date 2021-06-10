@@ -16,16 +16,16 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t1.{core::List::add}(4){(core::int*) →* void};
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        core::int* i = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         #t1.{core::List::add}(i){(core::int*) →* void};
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        core::int* i = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         if(self::oracle() as{TypeError,ForDynamic} core::bool*)
           #t1.{core::List::add}(i){(core::int*) →* void};
       }
@@ -46,16 +46,16 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t2.{core::Set::add}(4){(core::int*) →* core::bool*};
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        core::int* i = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         #t2.{core::Set::add}(i){(core::int*) →* core::bool*};
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        core::int* i = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         if(self::oracle() as{TypeError,ForDynamic} core::bool*)
           #t2.{core::Set::add}(i){(core::int*) →* core::bool*};
       }
@@ -76,16 +76,16 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t3.{core::Map::[]=}(4, 4){(core::int*, core::int*) →* void};
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        core::int* i = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         #t3.{core::Map::[]=}(i, i){(core::int*, core::int*) →* void};
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        core::int* i = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
         if(self::oracle() as{TypeError,ForDynamic} core::bool*)
           #t3.{core::Map::[]=}(i, i){(core::int*, core::int*) →* void};
       }

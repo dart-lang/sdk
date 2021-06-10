@@ -58,7 +58,7 @@ static method main() → dynamic /* originally async */ {
             }
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          :async_op.call();
+          :async_op(){() →* dynamic};
           :is_sync = true;
           return :async_future;
         }
@@ -78,7 +78,7 @@ static method main() → dynamic /* originally async */ {
               try {
                 #L3:
                 {
-                  if(:controller.{asy::_AsyncStarStreamController::add}(42))
+                  if(:controller.{asy::_AsyncStarStreamController::add}(42){(dynamic) → core::bool})
                     return null;
                   else
                     [yield] null;
@@ -86,15 +86,15 @@ static method main() → dynamic /* originally async */ {
                 return;
               }
               on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace){(core::Object, core::StackTrace) → void};
               }
             finally {
-              :controller.{asy::_AsyncStarStreamController::close}();
+              :controller.{asy::_AsyncStarStreamController::close}(){() → dynamic};
             }
           :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
-          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<dynamic>};
           return :controller_stream;
         }
         {
@@ -104,9 +104,9 @@ static method main() → dynamic /* originally async */ {
             #L4:
             while (true) {
               dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
               if(_in::unsafeCast<core::bool>(:result)) {
-                dynamic x = :for-iterator.{asy::_StreamIterator::current};
+                dynamic x = :for-iterator.{asy::_StreamIterator::current}{dynamic};
                 {
                   core::print(x);
                 }
@@ -115,8 +115,8 @@ static method main() → dynamic /* originally async */ {
                 break #L4;
             }
           finally
-            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
-              [yield] let dynamic #t4 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null)) {
+              [yield] let dynamic #t4 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }
@@ -138,9 +138,9 @@ static method main() → dynamic /* originally async */ {
           return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
         }
         {
-          core::Iterator<dynamic>* :sync-for-iterator = ((f_sync_star(){() →* core::int*} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
-          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-            dynamic x = :sync-for-iterator.{core::Iterator::current};
+          core::Iterator<dynamic>* :sync-for-iterator = ((f_sync_star(){() →* core::int*} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+          for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+            dynamic x = :sync-for-iterator.{core::Iterator::current}{dynamic};
             {
               core::print(x);
             }
@@ -155,7 +155,7 @@ static method main() → dynamic /* originally async */ {
     }
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op.call();
+  :async_op(){() →* dynamic};
   :is_sync = true;
   return :async_future;
 }

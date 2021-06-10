@@ -39,9 +39,9 @@ class You extends self::Base {
 static method main() → dynamic {
   core::List<self::Base*>* list = core::_GrowableList::_literal2<self::Base*>(new self::Me::•(), new self::You::•());
   {
-    core::Iterator<self::Base*>* :sync-for-iterator = list.{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      self::Base* baba = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<self::Base*>* :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<self::Base*>*};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      self::Base* baba = :sync-for-iterator.{core::Iterator::current}{self::Base*};
       {
         baba.{self::Base::push} = 0;
         baba.{self::Base::float} = 1;

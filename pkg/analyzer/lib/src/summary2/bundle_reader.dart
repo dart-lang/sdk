@@ -629,7 +629,7 @@ class LibraryReader {
     for (var i = 0; i < constantCount; i++) {
       var constantName = _reader.readStringReference();
       var field = ConstFieldElementImpl_EnumValue(element, constantName, i);
-      var constantRef = containerRef.getChild(name);
+      var constantRef = containerRef.getChild(constantName);
       field.reference = constantRef;
       constantRef.element = field;
       fields.add(field);

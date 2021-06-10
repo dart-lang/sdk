@@ -29,9 +29,9 @@ static method main() → dynamic {
   for (var x, y in []) {}
        ^^^";
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: A for-in loop can't have more than one loop variable.
   for (var x, y in []) {}

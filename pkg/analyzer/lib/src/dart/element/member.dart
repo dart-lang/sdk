@@ -564,6 +564,9 @@ abstract class Member implements Element {
   int get nameOffset => _declaration.nameOffset;
 
   @override
+  Element get nonSynthetic => _declaration.nonSynthetic;
+
+  @override
   AnalysisSession? get session => _declaration.session;
 
   @override

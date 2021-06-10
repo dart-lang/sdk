@@ -11,9 +11,9 @@ static method useAddAll() → void {
   core::List<core::int> list1 = block {
     final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t3 = #t2 as{TypeError,ForNonNullableByDefault} core::int;
           #t1.{core::List::add}(#t3){(core::int) → void};
@@ -21,9 +21,9 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t5 = #t4 as{TypeError,ForNonNullableByDefault} core::int;
           #t1.{core::List::add}(#t5){(core::int) → void};
@@ -31,9 +31,9 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = (dynamicList3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = (dynamicList3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t7 = #t6 as{TypeError,ForNonNullableByDefault} core::int;
           #t1.{core::List::add}(#t7){(core::int) → void};
@@ -47,9 +47,9 @@ static method useAddAll() → void {
   core::List<core::num> list2 = block {
     final core::List<core::num> #t8 = core::_GrowableList::•<core::num>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t9 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t9 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t10 = #t9 as{TypeError,ForNonNullableByDefault} core::num;
           #t8.{core::List::add}(#t10){(core::num) → void};
@@ -57,9 +57,9 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t11 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t11 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t12 = #t11 as{TypeError,ForNonNullableByDefault} core::num;
           #t8.{core::List::add}(#t12){(core::num) → void};
@@ -67,9 +67,9 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<dynamic> :sync-for-iterator = (dynamicList3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = (dynamicList3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t14 = #t13 as{TypeError,ForNonNullableByDefault} core::num;
           #t8.{core::List::add}(#t14){(core::num) → void};
@@ -91,9 +91,9 @@ static method useAddAllNullable() → void {
     final core::List<core::int> #t15 = core::_GrowableList::•<core::int>(0);
     final core::Iterable<dynamic>? #t16 = dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!(#t16 == null)) {
-      core::Iterator<dynamic> :sync-for-iterator = #t16{core::Iterable<dynamic>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t17 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = #t16{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t17 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t18 = #t17 as{TypeError,ForNonNullableByDefault} core::int;
           #t15.{core::List::add}(#t18){(core::int) → void};
@@ -102,9 +102,9 @@ static method useAddAllNullable() → void {
     }
     final core::Iterable<dynamic>? #t19 = dynamicList2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!(#t19 == null)) {
-      core::Iterator<dynamic> :sync-for-iterator = #t19{core::Iterable<dynamic>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t20 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = #t19{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t20 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t21 = #t20 as{TypeError,ForNonNullableByDefault} core::int;
           #t15.{core::List::add}(#t21){(core::int) → void};
@@ -113,9 +113,9 @@ static method useAddAllNullable() → void {
     }
     final core::Iterable<dynamic>? #t22 = dynamicList3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!(#t22 == null)) {
-      core::Iterator<dynamic> :sync-for-iterator = #t22{core::Iterable<dynamic>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t23 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = #t22{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t23 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::int #t24 = #t23 as{TypeError,ForNonNullableByDefault} core::int;
           #t15.{core::List::add}(#t24){(core::int) → void};
@@ -134,9 +134,9 @@ static method useAddAllNullable() → void {
     final core::List<core::num> #t27 = core::_GrowableList::•<core::num>(0);
     final core::Iterable<dynamic>? #t28 = dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!(#t28 == null)) {
-      core::Iterator<dynamic> :sync-for-iterator = #t28{core::Iterable<dynamic>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t29 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = #t28{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t29 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t30 = #t29 as{TypeError,ForNonNullableByDefault} core::num;
           #t27.{core::List::add}(#t30){(core::num) → void};
@@ -145,9 +145,9 @@ static method useAddAllNullable() → void {
     }
     final core::Iterable<dynamic>? #t31 = dynamicList2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!(#t31 == null)) {
-      core::Iterator<dynamic> :sync-for-iterator = #t31{core::Iterable<dynamic>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t32 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = #t31{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t32 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t33 = #t32 as{TypeError,ForNonNullableByDefault} core::num;
           #t27.{core::List::add}(#t33){(core::num) → void};
@@ -156,9 +156,9 @@ static method useAddAllNullable() → void {
     }
     final core::Iterable<dynamic>? #t34 = dynamicList3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!(#t34 == null)) {
-      core::Iterator<dynamic> :sync-for-iterator = #t34{core::Iterable<dynamic>}.{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t35 = :sync-for-iterator.{core::Iterator::current};
+      core::Iterator<dynamic> :sync-for-iterator = #t34{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t35 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           final core::num #t36 = #t35 as{TypeError,ForNonNullableByDefault} core::num;
           #t27.{core::List::add}(#t36){(core::num) → void};

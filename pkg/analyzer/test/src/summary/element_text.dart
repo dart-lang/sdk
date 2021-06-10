@@ -47,11 +47,13 @@ void checkElementText(
   String expected, {
   bool withCodeRanges = false,
   bool withExportScope = false,
+  bool withNonSynthetic = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
     withCodeRanges: withCodeRanges,
     withExportScope: withExportScope,
+    withNonSynthetic: withNonSynthetic,
   );
   writer.writeLibraryElement(library);
 
@@ -115,14 +117,16 @@ class _ElementWriter {
   final String? selfUriStr;
   final bool withCodeRanges;
   final bool withExportScope;
+  final bool withNonSynthetic;
   final StringBuffer buffer = StringBuffer();
 
   String indent = '';
 
   _ElementWriter({
     this.selfUriStr,
-    this.withCodeRanges = false,
-    this.withExportScope = false,
+    required this.withCodeRanges,
+    required this.withExportScope,
+    required this.withNonSynthetic,
   });
 
   void writeLibraryElement(LibraryElement e) {
@@ -166,6 +170,19 @@ class _ElementWriter {
         });
       }
     });
+  }
+
+  void _assertNonSyntheticElementSelf(Element element) {
+    expect(element.isSynthetic, isFalse);
+    expect(element.nonSynthetic, same(element));
+  }
+
+  void _assertNonSyntheticElementSelfOr(Element element, Element ifSynthetic) {
+    if (element.isSynthetic) {
+      expect(element.nonSynthetic, same(ifSynthetic));
+    } else {
+      expect(element.nonSynthetic, same(element));
+    }
   }
 
   /// Assert that the [accessor] of the [property] is correctly linked to
@@ -315,6 +332,8 @@ class _ElementWriter {
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeElements('methods', e.methods, _writeMethodElement);
     });
+
+    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeCodeRange(Element e) {
@@ -371,13 +390,15 @@ class _ElementWriter {
 
       var redirectedConstructor = e.redirectedConstructor;
       if (redirectedConstructor != null) {
-        var printer = _createAstPrinter();
-        printer.writeElement('redirectedConstructor', redirectedConstructor);
+        _writeElementReference('redirectedConstructor', redirectedConstructor);
       }
+
+      _writeNonSyntheticElement(e);
     });
 
     expect(e.isAsynchronous, isFalse);
     expect(e.isGenerator, isFalse);
+    _assertNonSyntheticElementSelfOr(e, e.enclosingElement);
   }
 
   void _writeDocumentation(Element element) {
@@ -388,6 +409,11 @@ class _ElementWriter {
       str = str.replaceAll('\r', r'\r');
       _writelnWithIndent('documentationComment: $str');
     }
+  }
+
+  void _writeElementReference(String name, Element element) {
+    var printer = _createAstPrinter();
+    printer.writeElement(name, element);
   }
 
   void _writeElements<T>(String name, List<T> elements, void Function(T) f) {
@@ -410,6 +436,8 @@ class _ElementWriter {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
+
+    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeExportScope(LibraryElement e) {
@@ -440,6 +468,8 @@ class _ElementWriter {
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeElements('methods', e.methods, _writeMethodElement);
     });
+
+    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeFunctionElement(FunctionElement e) {
@@ -457,6 +487,8 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeType(e.returnType, name: 'returnType');
     });
+
+    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeIf(bool flag, String str) {
@@ -481,6 +513,8 @@ class _ElementWriter {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
+
+    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeIndentedLine(void Function() f) {
@@ -509,6 +543,7 @@ class _ElementWriter {
 
   void _writeMethodElement(MethodElement e) {
     _writeIndentedLine(() {
+      _writeIf(e.isSynthetic, 'synthetic ');
       _writeIf(e.isStatic, 'static ');
       _writeIf(e.isAbstract, 'abstract ');
       _writeIf(e.isExternal, 'external ');
@@ -526,7 +561,15 @@ class _ElementWriter {
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
       _writeType(e.returnType, name: 'returnType');
+      _writeNonSyntheticElement(e);
     });
+
+    if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
+      expect(e.name, 'toString');
+      expect(e.nonSynthetic, same(e.enclosingElement));
+    } else {
+      _assertNonSyntheticElementSelf(e);
+    }
   }
 
   void _writeName(Element e) {
@@ -559,6 +602,12 @@ class _ElementWriter {
     );
   }
 
+  void _writeNonSyntheticElement(Element e) {
+    if (withNonSynthetic) {
+      _writeElementReference('nonSynthetic', e.nonSynthetic);
+    }
+  }
+
   void _writeParameterElement(ParameterElement e) {
     _writeIndentedLine(() {
       if (e.isRequiredPositional) {
@@ -588,6 +637,7 @@ class _ElementWriter {
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
       _writeConstantInitializer(e);
+      _writeNonSyntheticElement(e);
     });
   }
 
@@ -618,6 +668,10 @@ class _ElementWriter {
       }
     }
 
+    if (!e.isSynthetic) {
+      _assertNonSyntheticElementSelf(e);
+    }
+
     _writeIndentedLine(() {
       _writeIf(e.isSynthetic, 'synthetic ');
       _writeIf(e.isStatic, 'static ');
@@ -642,6 +696,7 @@ class _ElementWriter {
       expect(e.typeParameters, isEmpty);
       _writeParameterElements(e.parameters);
       _writeType(e.returnType, name: 'returnType');
+      _writeNonSyntheticElement(e);
     });
   }
 
@@ -656,6 +711,8 @@ class _ElementWriter {
       if (e.setter != null) {
         _assertSyntheticAccessorEnclosing(e, e.setter!);
       }
+
+      _assertNonSyntheticElementSelf(e);
     }
 
     _writeIndentedLine(() {
@@ -678,6 +735,7 @@ class _ElementWriter {
       _writeTypeInferenceError(e);
       _writeType(e.type, name: 'type');
       _writeConstantInitializer(e);
+      _writeNonSyntheticElement(e);
     });
   }
 
@@ -731,6 +789,8 @@ class _ElementWriter {
         });
       }
     });
+
+    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTypeInferenceError(Element e) {
@@ -773,6 +833,8 @@ class _ElementWriter {
 
       _writeMetadata(e);
     });
+
+    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeTypeParameterElements(List<TypeParameterElement> elements) {

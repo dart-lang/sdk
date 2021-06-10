@@ -297,8 +297,8 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newFile(
-      '$testPackageRootPath/analysis_options.yaml',
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
       content: config.toContent(),
     );
   }

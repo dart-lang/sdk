@@ -406,10 +406,12 @@ class ExpressionLifter extends Transformer {
         nameIndex,
         _staticTypeContext.typeEnvironment.coreTypes
             .boolRawType(_staticTypeContext.nonNullable));
+    final objectEquals = continuationRewriter.helper.coreTypes.objectEquals;
     rightBody.addStatement(new ExpressionStatement(new VariableSet(
         result,
-        new MethodInvocation(expr.right, new Name('=='),
-            new Arguments(<Expression>[new BoolLiteral(true)])))));
+        new EqualsCall(expr.right, new BoolLiteral(true),
+            interfaceTarget: objectEquals,
+            functionType: objectEquals.getterType as FunctionType))));
     var then, otherwise;
     if (expr.operatorEnum == LogicalExpressionOperator.AND) {
       then = rightBody;
@@ -420,12 +422,13 @@ class ExpressionLifter extends Transformer {
     }
     statements.add(new IfStatement(new VariableGet(result), then, otherwise));
 
-    var test = new MethodInvocation(expr.left, new Name('=='),
-        new Arguments(<Expression>[new BoolLiteral(true)]));
+    final test = new EqualsCall(expr.left, new BoolLiteral(true),
+        interfaceTarget: objectEquals,
+        functionType: objectEquals.getterType as FunctionType);
     statements.add(new ExpressionStatement(new VariableSet(result, test)));
 
     seenAwait = false;
-    test.receiver = transform(test.receiver)..parent = test;
+    test.left = transform(test.left)..parent = test;
 
     ++nameIndex;
     seenAwait = seenAwait || rightAwait;
