@@ -16,6 +16,7 @@ eval_regression_flutter20255_test: SkipByDesign # No incremental compiler availa
 eval_test: SkipByDesign # No incremental compiler available.
 evaluate_*: SkipByDesign # No incremental compiler available.
 get_allocation_traces_test: SkipByDesign # Allocation traces aren't consistent when running from snapshot.
+get_instances_as_array_rpc_expression_evaluation_on_internal_test: SkipByDesign # No incremental compiler available.
 get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sources.
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
