@@ -160,56 +160,44 @@ void main() {
       "foo-x64-none-debug-vm-linux"
     ]);
   });
-  test("'system' is not implied by builder name", () {
-    expectFormatError(
-        r"Undefined value for 'system' in "
-        r"'-nfoo-x64-none-debug-d8-${system}'", () {
-      parseBuilders([
+  test("'system' defaults to 'linux'", () {
+    expectTestedConfigurations({
+      "builders": ["foo"],
+      "steps": [
         {
-          "builders": ["foo"],
-          "steps": [
-            {
-              "name": "foo",
-              "arguments": [r"-nfoo-x64-none-debug-d8-${system}"]
-            }
-          ],
+          "name": "foo",
+          "arguments": [r"-nfoo-x64-none-debug-d8-${system}"]
         }
-      ], configurations);
-    });
+      ],
+    }, [
+      "foo-x64-none-debug-d8-linux",
+    ]);
   });
-  test("'mode' is not implied by builder name", () {
-    expectFormatError(
-        r"Undefined value for 'mode' in "
-        r"'-nfoo-x64-none-${mode}-d8-linux'", () {
-      parseBuilders([
+  test("'mode' defaults to 'release'", () {
+    expectTestedConfigurations({
+      "builders": ["foo"],
+      "steps": [
         {
-          "builders": ["foo"],
-          "steps": [
-            {
-              "name": "foo",
-              "arguments": [r"-nfoo-x64-none-${mode}-d8-linux"]
-            }
-          ],
+          "name": "foo",
+          "arguments": [r"-nfoo-x64-none-${mode}-d8-linux"]
         }
-      ], configurations);
-    });
+      ],
+    }, [
+      "foo-x64-none-release-d8-linux",
+    ]);
   });
-  test("'arch' is not implied by builder name", () {
-    expectFormatError(
-        r"Undefined value for 'arch' in "
-        r"'-nfoo-${arch}-none-debug-d8-linux'", () {
-      parseBuilders([
+  test("'arch' defaults to 'x64'", () {
+    expectTestedConfigurations({
+      "builders": ["foo"],
+      "steps": [
         {
-          "builders": ["foo"],
-          "steps": [
-            {
-              "name": "foo",
-              "arguments": [r"-nfoo-${arch}-none-debug-d8-linux"]
-            }
-          ],
+          "name": "foo",
+          "arguments": [r"-nfoo-${arch}-none-release-d8-linux"]
         }
-      ], configurations);
-    });
+      ],
+    }, [
+      "foo-x64-none-release-d8-linux",
+    ]);
   });
   test("'runtime' is not implied by builder name", () {
     expectFormatError(

@@ -2840,7 +2840,10 @@
         },
         {
           "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py"
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [
+            "--arch=ia32,x64,arm,arm64"
+          ]
         },
         {
           "name": "build api docs",
@@ -2874,7 +2877,10 @@
         },
         {
           "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py"
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [
+            "--arch=${arch}"
+          ]
         }
       ]
     },
@@ -2898,7 +2904,10 @@
         },
         {
           "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py"
+          "script": "tools/bots/dart_sdk.py",
+          "arguments": [
+            "--arch=ia32,x64"
+          ]
         }
       ]
     },

@@ -113,9 +113,9 @@ class Builder {
   static Builder parse(String builderName, List<Map> steps,
       List<Configuration> configurations, String description) {
     var builderParts = builderName.split("-");
-    var systemName = _findPart(builderParts, System.names);
-    var modeName = _findPart(builderParts, Mode.names);
-    var archName = _findPart(builderParts, Architecture.names);
+    var systemName = _findPart(builderParts, System.names, 'linux');
+    var modeName = _findPart(builderParts, Mode.names, 'release');
+    var archName = _findPart(builderParts, Architecture.names, 'x64');
     var sanitizerName = _findPart(builderParts, Sanitizer.names);
     var runtimeName = _findPart(builderParts, Runtime.names);
     var parsedSteps = steps
@@ -178,9 +178,10 @@ T _findIfNotNull<T>(T Function(String) find, String name) {
   return name != null ? find(name) : null;
 }
 
-String _findPart(List<String> builderParts, List<String> parts) {
+String _findPart(List<String> builderParts, List<String> parts,
+    [String fallback]) {
   return builderParts.firstWhere((part) => parts.contains(part),
-      orElse: () => null);
+      orElse: () => fallback);
 }
 
 List<Builder> parseBuilders(
