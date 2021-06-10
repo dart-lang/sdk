@@ -7,7 +7,7 @@ import 'ast.dart';
 final _identifier = RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
 
 final _lowerCamelCase = RegExp(
-    r'^(_)*[?$a-z][a-z0-9?$]*(([A-Z][a-z0-9?$]*)|([_][0-9][a-z0-9?$]*))*$');
+    r'^(_)*[?$a-z][a-z0-9?$]*(([A-Z][a-z0-9?$]*)|([_][0-9][a-z0-9?$]*))*_?$');
 
 final _lowerCaseUnderScore = RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 

@@ -189,11 +189,12 @@ void main() {
       '\$foo',
       'bar\$',
       'foo\$Generated',
-      'foo\$Generated\$Bar'
+      'foo\$Generated\$Bar',
+      'foo_',
     ];
     testEach(good, isLowerCamelCase, isTrue);
 
-    var bad = ['Foo', 'foo_', 'foo_bar', '_X'];
+    var bad = ['Foo', 'foo_bar', '_X'];
     testEach(bad, isLowerCamelCase, isFalse);
   });
 
