@@ -2795,6 +2795,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
                      "%s: invalid 'targetId' parameter: "
                      "Cannot evaluate against a VM-internal object",
                      js->method());
+      return;
     }
   }
 
