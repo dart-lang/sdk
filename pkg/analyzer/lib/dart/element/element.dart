@@ -611,6 +611,10 @@ abstract class Element implements AnalysisTarget {
   bool get hasUseResult;
 
   /// Return `true` if this element has an annotation of the form
+  /// `@visibleForOverriding`.
+  bool get hasVisibleForOverriding;
+
+  /// Return `true` if this element has an annotation of the form
   /// `@visibleForTemplate`.
   bool get hasVisibleForTemplate;
 
@@ -836,6 +840,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated returned element as
   /// requiring use.
   bool get isUseResult;
+
+  /// Return `true` if this annotation marks the associated member as being
+  /// visible for overriding only.
+  bool get isVisibleForOverriding;
 
   /// Return `true` if this annotation marks the associated member as being
   /// visible for template files.

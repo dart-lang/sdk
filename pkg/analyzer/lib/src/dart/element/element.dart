@@ -1760,6 +1760,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// requiring use.
   static const String _USE_RESULT_VARIABLE_NAME = "useResult";
 
+  /// The name of the top-level variable used to mark a member as being visible
+  /// for overriding only.
+  static const String _VISIBLE_FOR_OVERRIDING_NAME = 'visibleForOverriding';
+
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
   static const String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME =
@@ -1877,6 +1881,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
       _isConstructor(
           libraryName: _META_LIB_NAME, className: _USE_RESULT_CLASS_NAME) ||
       _isPackageMetaGetter(_USE_RESULT_VARIABLE_NAME);
+
+  @override
+  bool get isVisibleForOverriding =>
+      _isPackageMetaGetter(_VISIBLE_FOR_OVERRIDING_NAME);
 
   @override
   bool get isVisibleForTemplate => _isTopGetter(
@@ -2250,6 +2258,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isUseResult) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleForOverriding {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isVisibleForOverriding) {
         return true;
       }
     }
@@ -4382,6 +4402,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasUseResult => false;
+
+  @override
+  bool get hasVisibleForOverriding => false;
 
   @override
   bool get hasVisibleForTemplate => false;
