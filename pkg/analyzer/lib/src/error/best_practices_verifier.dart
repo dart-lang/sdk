@@ -440,11 +440,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
 
         final overriddenElement = getOverriddenPropertyAccessor();
-        if (_hasNonVirtualAnnotation(overriddenElement)) {
+        if (overriddenElement != null &&
+            _hasNonVirtualAnnotation(overriddenElement)) {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
               field.name,
-              [field.name, overriddenElement!.enclosingElement.name]);
+              [field.name, overriddenElement.enclosingElement.name]);
         }
         if (!_invalidAccessVerifier._inTestDirectory) {
           _checkForAssignmentOfDoNotStore(field.initializer);
@@ -584,10 +585,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     Name name = Name(_currentLibrary.source.uri, element.name);
 
-    bool elementIsOverride() =>
-        element is ClassMemberElement && enclosingElement is ClassElement
-            ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
-            : false;
     ExecutableElement? getConcreteOverriddenElement() =>
         element is ClassMemberElement && enclosingElement is ClassElement
             ? _inheritanceManager.getMember2(enclosingElement, name,
@@ -610,21 +607,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
 
-      if (!node.isSetter && !elementIsOverride()) {
+      var elementIsOverride = element is ClassMemberElement &&
+              enclosingElement is ClassElement
+          ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
+          : false;
+
+      if (!node.isSetter && !elementIsOverride) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
-      _checkStrictInferenceInParameters(node.parameters, body: node.body);
+      if (!elementIsOverride) {
+        _checkStrictInferenceInParameters(node.parameters, body: node.body);
+      }
 
       var overriddenElement = getConcreteOverriddenElement();
       if (overriddenElement == null && (node.isSetter || node.isGetter)) {
         overriddenElement = getOverriddenPropertyAccessor();
       }
 
-      if (_hasNonVirtualAnnotation(overriddenElement)) {
+      if (overriddenElement != null &&
+          _hasNonVirtualAnnotation(overriddenElement)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             node.name,
-            [node.name, overriddenElement!.enclosingElement.name]);
+            [node.name, overriddenElement.enclosingElement.name]);
       }
 
       super.visitMethodDeclaration(node);
@@ -1739,10 +1744,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return identifier?.name ?? '';
   }
 
-  static bool _hasNonVirtualAnnotation(ExecutableElement? element) {
-    if (element == null) {
-      return false;
-    }
+  static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       return element.variable.hasNonVirtual;
     }
