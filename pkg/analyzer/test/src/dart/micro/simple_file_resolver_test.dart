@@ -835,7 +835,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').staticElement!;
-      expect(element.nameOffset, 4);
+      expect(element.nonSynthetic.nameOffset, 4);
     }
 
     // New resolver.
@@ -844,7 +844,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').staticElement!;
-      expect(element.nameOffset, 4);
+      expect(element.nonSynthetic.nameOffset, 4);
     }
   }
 

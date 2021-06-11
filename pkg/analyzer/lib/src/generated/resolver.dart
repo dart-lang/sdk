@@ -3432,7 +3432,7 @@ class _WhyNotPromotedVisitor
         filePath: property.source.fullName,
         message:
             "'$propertyName' refers to a property so it couldn't be promoted",
-        offset: property.nameOffset,
+        offset: property.nonSynthetic.nameOffset,
         length: property.nameLength,
         url: reason.documentationLink);
   }
