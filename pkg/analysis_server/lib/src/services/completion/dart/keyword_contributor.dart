@@ -435,6 +435,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (entity == node.type) {
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.VOID);
+    }
+  }
+
+  @override
   void visitIfElement(IfElement node) {
     _addCollectionElementKeywords();
     _addExpressionKeywords(node);
