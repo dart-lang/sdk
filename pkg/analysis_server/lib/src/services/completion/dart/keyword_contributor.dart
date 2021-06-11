@@ -94,6 +94,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addSuggestion(Keyword.ASYNC);
       _addSuggestion2(ASYNC_STAR);
       _addSuggestion2(SYNC_STAR);
+    } else if (identical(entity, node.type)) {
+      _addSuggestion(Keyword.DYNAMIC);
     }
   }
 

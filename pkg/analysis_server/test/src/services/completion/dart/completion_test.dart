@@ -10,6 +10,7 @@ import '../../../../completion_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentListCompletionTest);
+    defineReflectiveTests(AsExpressionTest);
     defineReflectiveTests(AssertStatementTest);
     defineReflectiveTests(ConstructorCompletionTest);
     defineReflectiveTests(ExpressionFunctionBodyTest);
@@ -53,6 +54,33 @@ class C {
 ''');
     await getSuggestions();
     assertHasCompletion('g');
+  }
+
+  Future<void> test_privateStaticField() async {
+    addTestFile('''
+extension on int {
+  static int _x = 0;
+
+  void g(String s) {
+    s.substring(^);
+  }
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('_x');
+  }
+}
+
+@reflectiveTest
+class AsExpressionTest extends CompletionTestCase {
+  Future<void> test_type_dynamic() async {
+    addTestFile('''
+void f(Object o) {
+  var x = o as ^;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('dynamic');
   }
 }
 
