@@ -21,7 +21,7 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       script_(helper->script()),
-      result_(Instance::Handle(zone_)) {}
+      result_(Object::Handle(zone_)) {}
 
 InstancePtr ConstantReader::ReadConstantInitializer() {
   Tag tag = helper_->ReadTag();  // read tag.
@@ -33,7 +33,7 @@ InstancePtr ConstantReader::ReadConstantInitializer() {
                     "Not a constant expression: unexpected kernel tag %s (%d)",
                     Reader::TagName(tag), tag);
   }
-  return result_.ptr();
+  return Instance::RawCast(result_.ptr());
 }
 
 InstancePtr ConstantReader::ReadConstantExpression() {
@@ -58,7 +58,7 @@ InstancePtr ConstantReader::ReadConstantExpression() {
                     "Not a constant expression: unexpected kernel tag %s (%d)",
                     Reader::TagName(tag), tag);
   }
-  return result_.ptr();
+  return Instance::RawCast(result_.ptr());
 }
 
 ObjectPtr ConstantReader::ReadAnnotations() {
@@ -89,7 +89,7 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
         H.thread()->isolate_group()->kernel_constants_mutex());
     const auto& constants_array = Array::Handle(Z, H.info().constants());
     ASSERT(constant_index < constants_array.Length());
-    result_ ^= constants_array.At(constant_index);
+    result_ = constants_array.At(constant_index);
   }
 
   // On miss, evaluate, and insert value.
@@ -102,7 +102,7 @@ InstancePtr ConstantReader::ReadConstant(intptr_t constant_index) {
     ASSERT(constant_index < constants_array.Length());
     constants_array.SetAt(constant_index, result_);
   }
-  return result_.ptr();
+  return Instance::RawCast(result_.ptr());
 }
 
 bool ConstantReader::IsInstanceConstant(intptr_t constant_index,

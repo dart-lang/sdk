@@ -42,6 +42,7 @@ typedef uint16_t ClassIdTagType;
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(Sentinel)                                                                  \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(MonomorphicSmiableCall)                                                    \
@@ -216,8 +217,6 @@ enum ClassId : intptr_t {
 
   kNumPredefinedCids,
 };
-
-constexpr ClassId kSentinelCid = kNeverCid;
 
 // Keep these in sync with the cid numbering above.
 const int kTypedDataCidRemainderInternal = 0;

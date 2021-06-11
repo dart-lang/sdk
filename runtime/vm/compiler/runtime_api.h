@@ -890,6 +890,12 @@ class ContextScope : public AllStatic {
   static word NextFieldOffset();
 };
 
+class Sentinel : public AllStatic {
+ public:
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
 class UnlinkedCall : public AllStatic {
  public:
   static word InstanceSize();

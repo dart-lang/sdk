@@ -910,7 +910,7 @@ void IsolateGroup::ValidateClassTable() {
 #endif  // DEBUG
 
 void IsolateGroup::RegisterStaticField(const Field& field,
-                                       const Instance& initial_value) {
+                                       const Object& initial_value) {
   ASSERT(program_lock()->IsCurrentThreadWriter());
 
   ASSERT(field.is_static());

@@ -1141,6 +1141,10 @@ word ContextScope::NextFieldOffset() {
   return -kWordSize;
 }
 
+word Sentinel::NextFieldOffset() {
+  return -kWordSize;
+}
+
 word UnlinkedCall::NextFieldOffset() {
   return -kWordSize;
 }

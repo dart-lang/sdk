@@ -379,6 +379,7 @@
   SIZEOF(RegExp, InstanceSize, UntaggedRegExp)                                 \
   SIZEOF(Script, InstanceSize, UntaggedScript)                                 \
   SIZEOF(SendPort, InstanceSize, UntaggedSendPort)                             \
+  SIZEOF(Sentinel, InstanceSize, UntaggedSentinel)                             \
   SIZEOF(SingleTargetCache, InstanceSize, UntaggedSingleTargetCache)           \
   SIZEOF(StackTrace, InstanceSize, UntaggedStackTrace)                         \
   SIZEOF(String, InstanceSize, UntaggedString)                                 \

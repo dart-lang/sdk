@@ -3669,7 +3669,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     FlowGraphInliner::ExactnessInfo* exactness) {
   COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), InlineRecognizedMethod);
 
-  if (receiver_cid == kNeverCid) {
+  if (receiver_cid == kSentinelCid) {
     // Receiver was defined in dead code and was replaced by the sentinel.
     // Original receiver cid is lost, so don't try to inline recognized
     // methods.

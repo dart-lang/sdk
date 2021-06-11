@@ -1149,7 +1149,7 @@ bool LoadStaticFieldInstr::AttributesEqual(const Instruction& other) const {
   return field().ptr() == other.AsLoadStaticField()->field().ptr();
 }
 
-bool LoadStaticFieldInstr::IsFieldInitialized(Instance* field_value) const {
+bool LoadStaticFieldInstr::IsFieldInitialized(Object* field_value) const {
   if (FLAG_fields_may_be_reset) {
     return false;
   }
@@ -1170,7 +1170,7 @@ bool LoadStaticFieldInstr::IsFieldInitialized(Instance* field_value) const {
     return false;
   }
   if (field_value == nullptr) {
-    field_value = &Instance::Handle();
+    field_value = &Object::Handle();
   }
   *field_value = only_isolate->field_table()->At(field.field_id());
   return (field_value->ptr() != Object::sentinel().ptr()) &&

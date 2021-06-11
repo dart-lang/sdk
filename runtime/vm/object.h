@@ -453,10 +453,10 @@ class Object {
   V(ExceptionHandlers, empty_exception_handlers)                               \
   V(Array, extractor_parameter_types)                                          \
   V(Array, extractor_parameter_names)                                          \
-  V(Instance, sentinel)                                                        \
-  V(Instance, transition_sentinel)                                             \
-  V(Instance, unknown_constant)                                                \
-  V(Instance, non_constant)                                                    \
+  V(Sentinel, sentinel)                                                        \
+  V(Sentinel, transition_sentinel)                                             \
+  V(Sentinel, unknown_constant)                                                \
+  V(Sentinel, non_constant)                                                    \
   V(Bool, bool_true)                                                           \
   V(Bool, bool_false)                                                          \
   V(Smi, smi_illegal_cid)                                                      \
@@ -521,6 +521,7 @@ class Object {
   static ClassPtr deopt_info_class() { return deopt_info_class_; }
   static ClassPtr context_class() { return context_class_; }
   static ClassPtr context_scope_class() { return context_scope_class_; }
+  static ClassPtr sentinel_class() { return sentinel_class_; }
   static ClassPtr api_error_class() { return api_error_class_; }
   static ClassPtr language_error_class() { return language_error_class_; }
   static ClassPtr unhandled_exception_class() {
@@ -830,6 +831,7 @@ class Object {
   static ClassPtr deopt_info_class_;            // Class of DeoptInfo.
   static ClassPtr context_class_;            // Class of the Context vm object.
   static ClassPtr context_scope_class_;      // Class of ContextScope vm object.
+  static ClassPtr sentinel_class_;           // Class of Sentinel vm object.
   static ClassPtr singletargetcache_class_;  // Class of SingleTargetCache.
   static ClassPtr unlinkedcall_class_;       // Class of UnlinkedCall.
   static ClassPtr
@@ -4024,8 +4026,8 @@ class Field : public Object {
   void SetStaticConstFieldValue(const Instance& value,
                                 bool assert_initializing_store = true) const;
 
-  inline InstancePtr StaticValue() const;
-  void SetStaticValue(const Instance& value) const;
+  inline ObjectPtr StaticValue() const;
+  void SetStaticValue(const Object& value) const;
 
   inline intptr_t field_id() const;
   inline void set_field_id(intptr_t field_id) const;
@@ -6870,6 +6872,29 @@ class ContextScope : public Object {
   friend class Object;
 };
 
+// Class of special sentinel values:
+// - Object::sentinel() is a value that cannot be produced by Dart code.
+// It can be used to mark special values, for example to distinguish
+// "uninitialized" fields.
+// - Object::transition_sentinel() is a value marking that we are transitioning
+// from sentinel, e.g., computing a field value. Used to detect circular
+// initialization of static fields.
+// - Object::unknown_constant() and Object::non_constant() are optimizing
+// compiler's constant propagation constants.
+class Sentinel : public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedSentinel));
+  }
+
+  static SentinelPtr New();
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Sentinel, Object);
+  friend class Class;
+  friend class Object;
+};
+
 class MegamorphicCache : public CallSiteData {
  public:
   static const intptr_t kInitialCapacity = 16;
@@ -8010,6 +8035,9 @@ class AbstractType : public Instance {
 
   // Check if this type represents the 'Never' type.
   bool IsNeverType() const;
+
+  // Check if this type represents the 'Sentinel' type.
+  bool IsSentinelType() const;
 
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
@@ -11638,7 +11666,7 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-InstancePtr Field::StaticValue() const {
+ObjectPtr Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
   return Isolate::Current()->field_table()->At(field_id());
 }

@@ -2364,6 +2364,11 @@ class UntaggedContextScope : public UntaggedObject {
   friend class SnapshotReader;
 };
 
+class UntaggedSentinel : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Sentinel);
+  VISIT_NOTHING();
+};
+
 class UntaggedSingleTargetCache : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
   POINTER_FIELD(CodePtr, target)

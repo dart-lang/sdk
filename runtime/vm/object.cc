@@ -167,6 +167,7 @@ ClassPtr Object::var_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::exception_handlers_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::context_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::context_scope_class_ = static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::sentinel_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::singletargetcache_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::unlinkedcall_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::monomorphicsmiablecall_class_ =
@@ -770,25 +771,20 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
+  // Allocate and initialize Sentinel class.
+  cls = Class::New<Sentinel, RTN::Sentinel>(isolate_group);
+  sentinel_class_ = cls.ptr();
+
   // Allocate and initialize the sentinel values.
   {
-    *sentinel_ ^=
-        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
-                         Instance::ContainsCompressedPointers());
-
-    *transition_sentinel_ ^=
-        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
-                         Instance::ContainsCompressedPointers());
+    *sentinel_ ^= Sentinel::New();
+    *transition_sentinel_ ^= Sentinel::New();
   }
 
   // Allocate and initialize optimizing compiler constants.
   {
-    *unknown_constant_ ^=
-        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
-                         Instance::ContainsCompressedPointers());
-    *non_constant_ ^=
-        Object::Allocate(kNeverCid, Instance::InstanceSize(), Heap::kOld,
-                         Instance::ContainsCompressedPointers());
+    *unknown_constant_ ^= Sentinel::New();
+    *non_constant_ ^= Sentinel::New();
   }
 
   // Allocate the remaining VM internal classes.
@@ -1201,13 +1197,13 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(!empty_exception_handlers_->IsSmi());
   ASSERT(empty_exception_handlers_->IsExceptionHandlers());
   ASSERT(!sentinel_->IsSmi());
-  ASSERT(sentinel_->IsInstance());
+  ASSERT(sentinel_->IsSentinel());
   ASSERT(!transition_sentinel_->IsSmi());
-  ASSERT(transition_sentinel_->IsInstance());
+  ASSERT(transition_sentinel_->IsSentinel());
   ASSERT(!unknown_constant_->IsSmi());
-  ASSERT(unknown_constant_->IsInstance());
+  ASSERT(unknown_constant_->IsSentinel());
   ASSERT(!non_constant_->IsSmi());
-  ASSERT(non_constant_->IsInstance());
+  ASSERT(non_constant_->IsSentinel());
   ASSERT(!bool_true_->IsSmi());
   ASSERT(bool_true_->IsBool());
   ASSERT(!bool_false_->IsSmi());
@@ -1379,6 +1375,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
+  SET_CLASS_NAME(sentinel, Sentinel);
   SET_CLASS_NAME(singletargetcache, SingleTargetCache);
   SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
   SET_CLASS_NAME(monomorphicsmiablecall, MonomorphicSmiableCall);
@@ -4951,6 +4948,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::Context().ToCString();
     case kContextScopeCid:
       return Symbols::ContextScope().ToCString();
+    case kSentinelCid:
+      return Symbols::Sentinel().ToCString();
     case kSingleTargetCacheCid:
       return Symbols::SingleTargetCache().ToCString();
     case kICDataCid:
@@ -10828,7 +10827,7 @@ InstancePtr Field::AccessorClosure(bool make_setter) const {
   if (!closure_field.IsNull()) {
     ASSERT(closure_field.is_static());
     const Instance& closure =
-        Instance::Handle(zone, closure_field.StaticValue());
+        Instance::Handle(zone, Instance::RawCast(closure_field.StaticValue()));
     ASSERT(!closure.IsNull());
     ASSERT(closure.IsClosure());
     return closure.ptr();
@@ -10924,7 +10923,7 @@ bool Field::IsConsistentWith(const Field& other) const {
 bool Field::IsUninitialized() const {
   Thread* thread = Thread::Current();
   const FieldTable* field_table = thread->isolate()->field_table();
-  const InstancePtr raw_value = field_table->At(field_id());
+  const ObjectPtr raw_value = field_table->At(field_id());
   ASSERT(raw_value != Object::transition_sentinel().ptr());
   return raw_value == Object::sentinel().ptr();
 }
@@ -11287,9 +11286,10 @@ static bool FindInstantiationOf(const Type& type,
   return false;  // Not found.
 }
 
-void Field::SetStaticValue(const Instance& value) const {
+void Field::SetStaticValue(const Object& value) const {
   auto thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
+  ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());
 
   ASSERT(is_static());  // Valid only for static dart fields.
   const intptr_t id = field_id();
@@ -17706,6 +17706,25 @@ const char* ContextScope::ToCString() const {
   return prev_cstr;
 }
 
+SentinelPtr Sentinel::New() {
+  return static_cast<SentinelPtr>(
+      Object::Allocate(Sentinel::kClassId, Sentinel::InstanceSize(), Heap::kOld,
+                       Sentinel::ContainsCompressedPointers()));
+}
+
+const char* Sentinel::ToCString() const {
+  if (ptr() == Object::sentinel().ptr()) {
+    return "sentinel";
+  } else if (ptr() == Object::transition_sentinel().ptr()) {
+    return "transition_sentinel";
+  } else if (ptr() == Object::unknown_constant().ptr()) {
+    return "unknown_constant";
+  } else if (ptr() == Object::non_constant().ptr()) {
+    return "non_constant";
+  }
+  return "Sentinel(unknown)";
+}
+
 ArrayPtr MegamorphicCache::buckets() const {
   return untag()->buckets();
 }
@@ -18808,13 +18827,15 @@ uint32_t Instance::CanonicalizeHash() const {
   if (hash != 0) {
     return hash;
   }
-  const Class& cls = Class::Handle(clazz());
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, clazz());
   NoSafepointScope no_safepoint(thread);
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
   hash = instance_size / kWordSize;
   uword this_addr = reinterpret_cast<uword>(this->untag());
-  Instance& member = Instance::Handle();
+  Object& obj = Object::Handle(zone);
+  Instance& instance = Instance::Handle(zone);
 
   const auto unboxed_fields_bitmap =
       thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
@@ -18833,8 +18854,13 @@ uint32_t Instance::CanonicalizeHash() const {
                              *reinterpret_cast<uint32_t*>(this_addr + offset));
       }
     } else {
-      member ^= *reinterpret_cast<ObjectPtr*>(this_addr + offset);
-      hash = CombineHashes(hash, member.CanonicalizeHash());
+      obj = *reinterpret_cast<ObjectPtr*>(this_addr + offset);
+      if (obj.IsSentinel()) {
+        hash = CombineHashes(hash, 11);
+      } else {
+        instance ^= obj.ptr();
+        hash = CombineHashes(hash, instance.CanonicalizeHash());
+      }
     }
   }
   hash = FinalizeHash(hash, String::kHashBits);
@@ -19476,14 +19502,6 @@ intptr_t Instance::DataOffsetFor(intptr_t cid) {
 const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
-  } else if (ptr() == Object::sentinel().ptr()) {
-    return "sentinel";
-  } else if (ptr() == Object::transition_sentinel().ptr()) {
-    return "transition_sentinel";
-  } else if (ptr() == Object::unknown_constant().ptr()) {
-    return "unknown_constant";
-  } else if (ptr() == Object::non_constant().ptr()) {
-    return "non_constant";
   } else if (Thread::Current()->no_safepoint_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";
@@ -19941,6 +19959,10 @@ bool AbstractType::IsNullType() const {
 
 bool AbstractType::IsNeverType() const {
   return type_class_id() == kNeverCid;
+}
+
+bool AbstractType::IsSentinelType() const {
+  return type_class_id() == kSentinelCid;
 }
 
 bool AbstractType::IsTopTypeForInstanceOf() const {
