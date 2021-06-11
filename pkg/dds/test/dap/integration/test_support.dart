@@ -26,10 +26,14 @@ void expectLines(String actual, List<String> expected) {
   expect(actual.replaceAll('\r\n', '\n'), equals(expected.join('\n')));
 }
 
+/// Returns the 1-base line in [file] that contains [searchText].
+int lineWith(File file, String searchText) =>
+    file.readAsLinesSync().indexWhere((line) => line.contains(searchText)) + 1;
+
 /// A helper function to wrap all tests in a library with setup/teardown functions
 /// to start a shared server for all tests in the library and an individual
 /// client for each test.
-testDap(FutureOr<void> Function(DapTestSession session) tests) {
+testDap(Future<void> Function(DapTestSession session) tests) {
   final session = DapTestSession();
 
   setUpAll(session.setUpAll);
@@ -59,17 +63,17 @@ class DapTestSession {
     return testFile;
   }
 
-  FutureOr<void> setUp() async {
+  Future<void> setUp() async {
     client = await _startClient(server);
   }
 
-  FutureOr<void> setUpAll() async {
+  Future<void> setUpAll() async {
     server = await _startServer();
   }
 
-  FutureOr<void> tearDown() => client.stop();
+  Future<void> tearDown() => client.stop();
 
-  FutureOr<void> tearDownAll() async {
+  Future<void> tearDownAll() async {
     await server.stop();
 
     // Clean up any temp folders created during the test runs.
@@ -77,7 +81,7 @@ class DapTestSession {
   }
 
   /// Creates and connects a new [DapTestClient] to [server].
-  FutureOr<DapTestClient> _startClient(DapTestServer server) async {
+  Future<DapTestClient> _startClient(DapTestServer server) async {
     // Since we don't get a signal from the DAP server when it's ready and we
     // just started it, add a short retry to connections.
     // Since the bots can be quite slow, it may take 6-7 seconds for the server
@@ -107,7 +111,7 @@ class DapTestSession {
   }
 
   /// Starts a DAP server that can be shared across tests.
-  FutureOr<DapTestServer> _startServer() async {
+  Future<DapTestServer> _startServer() async {
     return useInProcessDap
         ? await InProcessDapTestServer.create()
         : await OutOfProcessDapTestServer.create();

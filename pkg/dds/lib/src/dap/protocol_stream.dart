@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'exceptions.dart';
 import 'logging.dart';
 import 'protocol_generated.dart';
 import 'protocol_stream_transformers.dart';
@@ -113,7 +114,7 @@ class ByteStreamServerChannel {
 
   void _sendParseError(String data) {
     // TODO(dantup): Review LSP implementation of this when consolidating classes.
-    throw 'Message does not confirm to DAP spec: $data';
+    throw DebugAdapterException('Message does not confirm to DAP spec: $data');
   }
 
   /// Send [bytes] to [_output].

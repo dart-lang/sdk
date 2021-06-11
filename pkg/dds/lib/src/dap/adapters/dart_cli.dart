@@ -44,7 +44,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
   DartCliDebugAdapter(ByteStreamServerChannel channel, [Logger? logger])
       : super(channel, logger);
 
-  FutureOr<void> debuggerConnected(vm.VM vmInfo) {
+  Future<void> debuggerConnected(vm.VM vmInfo) async {
     if (!isAttach) {
       // Capture the PID from the VM Service so that we can terminate it when
       // cleaning up. Terminating the process might not be enough as it could be
@@ -60,7 +60,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
 
   /// Called by [disconnectRequest] to request that we forcefully shut down the
   /// app being run (or in the case of an attach, disconnect).
-  FutureOr<void> disconnectImpl() {
+  Future<void> disconnectImpl() async {
     // TODO(dantup): In Dart-Code DAP, we first try again with sigint and wait
     // for a few seconds before sending sigkill.
     pidsToTerminate.forEach(
@@ -137,7 +137,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
 
   /// Called by [terminateRequest] to request that we gracefully shut down the
   /// app being run (or in the case of an attach, disconnect).
-  FutureOr<void> terminateImpl() async {
+  Future<void> terminateImpl() async {
     pidsToTerminate.forEach(
       (pid) => Process.killPid(pid, ProcessSignal.sigint),
     );

@@ -29,15 +29,16 @@ class DapServer {
   String get host => _socket.address.host;
   int get port => _socket.port;
 
-  FutureOr<void> stop() async {
+  Future<void> stop() async {
     _channels.forEach((client) => client.close());
     await _socket.close();
   }
 
   void _acceptConnection(Socket client) {
-    _logger?.call('Accepted connection from ${client.remoteAddress}');
+    final address = client.remoteAddress;
+    _logger?.call('Accepted connection from $address');
     client.done.then((_) {
-      _logger?.call('Connection from ${client.remoteAddress} closed');
+      _logger?.call('Connection from $address closed');
     });
     _createAdapter(client.transform(Uint8ListTransformer()), client, _logger);
   }
@@ -48,7 +49,7 @@ class DapServer {
     //   ultimately need to support having a factory passed in to support
     //   tests and/or being used in flutter_tools.
     final channel = ByteStreamServerChannel(_input, _output, logger);
-    final adapter = DartCliDebugAdapter(channel);
+    final adapter = DartCliDebugAdapter(channel, logger);
     _channels.add(channel);
     _adapters.add(adapter);
     unawaited(channel.closed.then((_) {
