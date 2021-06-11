@@ -354,12 +354,16 @@ import 'invalid_use_of_internal_member_test.dart'
     as invalid_use_of_internal_member;
 import 'invalid_use_of_protected_member_test.dart'
     as invalid_use_of_protected_member;
+import 'invalid_use_of_visible_for_overriding_member_test.dart'
+    as invalid_use_of_visible_for_overriding_member;
 import 'invalid_use_of_visible_for_template_member_test.dart'
     as invalid_use_of_visible_for_template_member;
 import 'invalid_use_of_visible_for_testing_member_test.dart'
     as invalid_use_of_visible_for_testing_member;
 import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
+import 'invalid_visible_for_overriding_annotation_test.dart'
+    as invalid_visible_for_overriding_annotation;
 import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
@@ -937,9 +941,11 @@ main() {
     invalid_use_of_covariant_in_extension.main();
     invalid_use_of_internal_member.main();
     invalid_use_of_protected_member.main();
+    invalid_use_of_visible_for_overriding_member.main();
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
+    invalid_visible_for_overriding_annotation.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
     label_in_outer_scope.main();

@@ -10,6 +10,7 @@
 */*/packages/*/*: Skip
 */packages/*/*: Skip
 analyzer/test/src/task/strong/checker_test: Slow, Pass
+analyzer/test/verify_diagnostics_test.dart: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 compiler/test/analyses/analyze_test: Slow, Pass
 compiler/test/analyses/api_dynamic_test: Slow, Pass

@@ -221,7 +221,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             HintCode.INVALID_SEALED_ANNOTATION, node, [node.element!.name]);
       }
     } else if (element.isVisibleForTemplate == true ||
-        element.isVisibleForTesting == true) {
+        element.isVisibleForTesting == true ||
+        element.isVisibleForOverriding == true) {
       if (parent is Declaration) {
         void reportInvalidAnnotation(Element declaredElement) {
           _errorReporter.reportErrorForNode(
@@ -230,23 +231,49 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               [declaredElement.name, node.name.name]);
         }
 
+        void reportInvalidVisibleForOverriding(Element declaredElement) {
+          _errorReporter.reportErrorForNode(
+              HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
+              node,
+              [declaredElement.name, node.name.name]);
+        }
+
         if (parent is TopLevelVariableDeclaration) {
           for (VariableDeclaration variable in parent.variables.variables) {
-            var element = variable.declaredElement as TopLevelVariableElement;
-            if (Identifier.isPrivateName(element.name)) {
-              reportInvalidAnnotation(element);
+            var variableElement =
+                variable.declaredElement as TopLevelVariableElement;
+
+            if (Identifier.isPrivateName(variableElement.name)) {
+              reportInvalidAnnotation(variableElement);
+            }
+
+            if (element.isVisibleForOverriding == true) {
+              // Top-level variables can't be overridden.
+              reportInvalidVisibleForOverriding(variableElement);
             }
           }
         } else if (parent is FieldDeclaration) {
           for (VariableDeclaration variable in parent.fields.variables) {
-            var element = variable.declaredElement as FieldElement;
-            if (Identifier.isPrivateName(element.name)) {
-              reportInvalidAnnotation(element);
+            var fieldElement = variable.declaredElement as FieldElement;
+            if (parent.isStatic && element.isVisibleForOverriding == true) {
+              reportInvalidVisibleForOverriding(fieldElement);
+            }
+
+            if (Identifier.isPrivateName(fieldElement.name)) {
+              reportInvalidAnnotation(fieldElement);
             }
           }
-        } else if (parent.declaredElement != null &&
-            Identifier.isPrivateName(parent.declaredElement!.name!)) {
-          reportInvalidAnnotation(parent.declaredElement!);
+        } else if (parent.declaredElement != null) {
+          final declaredElement = parent.declaredElement!;
+          if (element.isVisibleForOverriding &&
+              (!declaredElement.isInstanceMember ||
+                  declaredElement.enclosingElement is ExtensionElement)) {
+            reportInvalidVisibleForOverriding(declaredElement);
+          }
+
+          if (Identifier.isPrivateName(declaredElement.name!)) {
+            reportInvalidAnnotation(declaredElement);
+          }
         }
       } else {
         // Something other than a declaration was annotated. Whatever this is,
@@ -413,11 +440,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
 
         final overriddenElement = getOverriddenPropertyAccessor();
-        if (_hasNonVirtualAnnotation(overriddenElement)) {
+        if (overriddenElement != null &&
+            _hasNonVirtualAnnotation(overriddenElement)) {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
               field.name,
-              [field.name, overriddenElement!.enclosingElement.name]);
+              [field.name, overriddenElement.enclosingElement.name]);
         }
         if (!_invalidAccessVerifier._inTestDirectory) {
           _checkForAssignmentOfDoNotStore(field.initializer);
@@ -557,10 +585,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     Name name = Name(_currentLibrary.source.uri, element.name);
 
-    bool elementIsOverride() =>
-        element is ClassMemberElement && enclosingElement is ClassElement
-            ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
-            : false;
     ExecutableElement? getConcreteOverriddenElement() =>
         element is ClassMemberElement && enclosingElement is ClassElement
             ? _inheritanceManager.getMember2(enclosingElement, name,
@@ -583,21 +607,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
 
-      if (!node.isSetter && !elementIsOverride()) {
+      var elementIsOverride = element is ClassMemberElement &&
+              enclosingElement is ClassElement
+          ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
+          : false;
+
+      if (!node.isSetter && !elementIsOverride) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
-      _checkStrictInferenceInParameters(node.parameters, body: node.body);
+      if (!elementIsOverride) {
+        _checkStrictInferenceInParameters(node.parameters, body: node.body);
+      }
 
       var overriddenElement = getConcreteOverriddenElement();
       if (overriddenElement == null && (node.isSetter || node.isGetter)) {
         overriddenElement = getOverriddenPropertyAccessor();
       }
 
-      if (_hasNonVirtualAnnotation(overriddenElement)) {
+      if (overriddenElement != null &&
+          _hasNonVirtualAnnotation(overriddenElement)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             node.name,
-            [node.name, overriddenElement!.enclosingElement.name]);
+            [node.name, overriddenElement.enclosingElement.name]);
       }
 
       super.visitMethodDeclaration(node);
@@ -1712,10 +1744,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return identifier?.name ?? '';
   }
 
-  static bool _hasNonVirtualAnnotation(ExecutableElement? element) {
-    if (element == null) {
-      return false;
-    }
+  static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       return element.variable.hasNonVirtual;
     }
@@ -1870,6 +1899,8 @@ class _InvalidAccessVerifier {
       }
     }
 
+    bool hasVisibleForOverriding = _hasVisibleForOverriding(element);
+
     // At this point, [identifier] was not cleared as protected access, nor
     // cleared as access for templates or testing. Report a violation for each
     // annotation present.
@@ -1907,6 +1938,11 @@ class _InvalidAccessVerifier {
           node,
           [name, definingClass!.source!.uri]);
     }
+
+    if (hasVisibleForOverriding) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, node, [name]);
+    }
   }
 
   bool _hasInternal(Element? element) {
@@ -1941,6 +1977,19 @@ class _InvalidAccessVerifier {
       return false;
     }
     return element.thisType.asInstanceOf(superElement) != null;
+  }
+
+  bool _hasVisibleForOverriding(Element element) {
+    if (element.hasVisibleForOverriding) {
+      return true;
+    }
+
+    if (element is PropertyAccessorElement &&
+        element.variable.hasVisibleForOverriding) {
+      return true;
+    }
+
+    return false;
   }
 
   bool _hasVisibleForTemplate(Element? element) {

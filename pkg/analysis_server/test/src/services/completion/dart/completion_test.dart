@@ -15,6 +15,7 @@ void main() {
     defineReflectiveTests(ConstructorCompletionTest);
     defineReflectiveTests(ExpressionFunctionBodyTest);
     defineReflectiveTests(ExtensionCompletionTest);
+    defineReflectiveTests(GenericTypeAliasTest);
     defineReflectiveTests(PropertyAccessorCompletionTest);
     defineReflectiveTests(RedirectedConstructorCompletionTest);
     defineReflectiveTests(RedirectingConstructorInvocationCompletionTest);
@@ -289,6 +290,17 @@ extension E on String {
 ''');
     await getSuggestions();
     assertHasCompletion('m');
+  }
+}
+
+@reflectiveTest
+class GenericTypeAliasTest extends CompletionTestCase {
+  Future<void> test_constructor_abstract() async {
+    addTestFile('''
+typedef F = ^
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
   }
 }
 

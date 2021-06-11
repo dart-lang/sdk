@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/server.dart';
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
@@ -14,7 +15,7 @@ import 'package:pedantic/pedantic.dart';
 abstract class DapTestServer {
   String get host;
   int get port;
-  FutureOr<void> stop();
+  Future<void> stop();
   List<String> get errorLogs;
 }
 
@@ -33,12 +34,12 @@ class InProcessDapTestServer extends DapTestServer {
   List<String> get errorLogs => const []; // In-proc errors just throw in-line.
 
   @override
-  FutureOr<void> stop() async {
+  Future<void> stop() async {
     await _server.stop();
   }
 
-  static Future<InProcessDapTestServer> create() async {
-    final DapServer server = await DapServer.create();
+  static Future<InProcessDapTestServer> create({Logger? logger}) async {
+    final DapServer server = await DapServer.create(logger: logger);
     return InProcessDapTestServer._(server);
   }
 }
@@ -81,7 +82,7 @@ class OutOfProcessDapTestServer extends DapTestServer {
   }
 
   @override
-  FutureOr<void> stop() async {
+  Future<void> stop() async {
     _isShuttingDown = true;
     await _process.kill();
     await _process.exitCode;

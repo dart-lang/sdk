@@ -10,11 +10,15 @@ import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
 import 'package:dds/src/dap/protocol_stream_transformers.dart';
+import 'package:test/test.dart';
 
 import 'test_server.dart';
 
 /// A helper class to simplify acting as a client for interacting with the
 /// [DapTestServer] in tests.
+///
+/// Methods on this class should map directly to protocol methods. Additional
+/// helpers are available in [DapTestClientExtension].
 class DapTestClient {
   final Socket _socket;
   final ByteStreamServerChannel _channel;
@@ -66,6 +70,13 @@ class DapTestClient {
     return outputEventsFuture;
   }
 
+  /// Sends a continue request for the given thread.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> continue_(int threadId) =>
+      sendRequest(ContinueArguments(threadId: threadId));
+
   Future<Response> disconnect() => sendRequest(DisconnectArguments());
 
   /// Returns a Future that completes with the next [event] event.
@@ -103,6 +114,7 @@ class DapTestClient {
     String? cwd,
     bool? noDebug,
     bool? debugSdkLibraries,
+    bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
   }) {
@@ -113,6 +125,7 @@ class DapTestClient {
         cwd: cwd,
         args: args,
         debugSdkLibraries: debugSdkLibraries,
+        debugExternalPackageLibraries: debugExternalPackageLibraries,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
@@ -125,6 +138,13 @@ class DapTestClient {
       overrideCommand: 'launch',
     );
   }
+
+  /// Sends a next (step over) request for the given thread.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> next(int threadId) =>
+      sendRequest(NextArguments(threadId: threadId));
 
   /// Sends an arbitrary request to the server.
   ///
@@ -142,7 +162,34 @@ class DapTestClient {
     return _logIfSlow('Request "$command"', completer.future);
   }
 
-  FutureOr<void> stop() async {
+  /// Sends a stackTrace request to the server to request the call stack for a
+  /// given thread.
+  ///
+  /// If [startFrame] and/or [numFrames] are supplied, only a slice of the
+  /// frames will be returned.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> stackTrace(int threadId,
+          {int? startFrame, int? numFrames}) =>
+      sendRequest(StackTraceArguments(
+          threadId: threadId, startFrame: startFrame, levels: numFrames));
+
+  /// Sends a stepIn request for the given thread.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> stepIn(int threadId) =>
+      sendRequest(StepInArguments(threadId: threadId));
+
+  /// Sends a stepOut request for the given thread.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> stepOut(int threadId) =>
+      sendRequest(StepOutArguments(threadId: threadId));
+
+  Future<void> stop() async {
     _channel.close();
     await _socket.close();
     await _subscription.cancel();
@@ -194,7 +241,7 @@ class DapTestClient {
 
   /// Creates a [DapTestClient] that connects the server listening on
   /// [host]:[port].
-  static FutureOr<DapTestClient> connect(
+  static Future<DapTestClient> connect(
     int port, {
     String host = 'localhost',
     bool captureVmServiceTraffic = false,
@@ -215,4 +262,72 @@ class _OutgoingRequest {
   final bool allowFailure;
 
   _OutgoingRequest(this.completer, this.name, this.allowFailure);
+}
+
+/// Additional helper method for tests to simplify interaction with [DapTestClient].
+///
+/// Unlike the methods on [DapTestClient] these methods might not map directly
+/// onto protocol methods. They may call multiple protocol methods and/or
+/// simplify assertion specific conditions/results.
+extension DapTestClientExtension on DapTestClient {
+  /// Sets a breakpoint at [line] in [file] and expects to hit it after running
+  /// the script.
+  ///
+  /// Launch options can be customised by passing a custom [launch] function that
+  /// will be used instead of calling `launch(file.path)`.
+  Future<StoppedEventBody> hitBreakpoint(File file, int line,
+      {Future<Response> Function()? launch}) async {
+    final stop = expectStop('breakpoint', file: file, line: line);
+
+    await Future.wait([
+      initialize(),
+      sendRequest(
+        SetBreakpointsArguments(
+            source: Source(path: file.path),
+            breakpoints: [SourceBreakpoint(line: line)]),
+      ),
+      launch?.call() ?? this.launch(file.path),
+    ], eagerError: true);
+
+    return stop;
+  }
+
+  /// Expects a 'stopped' event for [reason].
+  ///
+  /// If [file] or [line] are provided, they will be checked against the stop
+  /// location for the top stack frame.
+  Future<StoppedEventBody> expectStop(String reason,
+      {File? file, int? line, String? sourceName}) async {
+    final e = await event('stopped');
+    final stop = StoppedEventBody.fromJson(e.body as Map<String, Object?>);
+    expect(stop.reason, equals(reason));
+
+    final result =
+        await getValidStack(stop.threadId!, startFrame: 0, numFrames: 1);
+    expect(result.stackFrames, hasLength(1));
+    final frame = result.stackFrames[0];
+
+    if (file != null) {
+      expect(frame.source!.path, equals(file.path));
+    }
+    if (sourceName != null) {
+      expect(frame.source!.name, equals(sourceName));
+    }
+    if (line != null) {
+      expect(frame.line, equals(line));
+    }
+
+    return stop;
+  }
+
+  /// Fetches a stack trace and asserts it was a valid response.
+  Future<StackTraceResponseBody> getValidStack(int threadId,
+      {required int startFrame, required int numFrames}) async {
+    final response = await stackTrace(threadId,
+        startFrame: startFrame, numFrames: numFrames);
+    expect(response.success, isTrue);
+    expect(response.command, equals('stackTrace'));
+    return StackTraceResponseBody.fromJson(
+        response.body as Map<String, Object?>);
+  }
 }

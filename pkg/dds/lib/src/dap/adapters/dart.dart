@@ -9,8 +9,10 @@ import 'package:collection/collection.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../base_debug_adapter.dart';
+import '../exceptions.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
+import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 
@@ -56,9 +58,12 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   final _debuggerInitializedCompleter = Completer<void>();
   final _configurationDoneCompleter = Completer<void>();
 
-  /// Managers VM Isolates and their events, including fanning out any requests
+  /// Manages VM Isolates and their events, including fanning out any requests
   /// to set breakpoints etc. from the client to all Isolates.
   late IsolateManager _isolateManager;
+
+  /// A helper that handlers converting to/from DAP and VM Service types.
+  late ProtocolConverter _converter;
 
   /// All active VM Service subscriptions.
   ///
@@ -80,6 +85,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   DartDebugAdapter(ByteStreamServerChannel channel, Logger? logger)
       : super(channel, logger) {
     _isolateManager = IsolateManager(this);
+    _converter = ProtocolConverter(this);
   }
 
   /// Completes when the debugger initialization has completed. Used to delay
@@ -92,19 +98,16 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// an existing app. This will only be called once (and only one of this or
   /// launchRequest will be called).
   @override
-  FutureOr<void> attachRequest(
+  Future<void> attachRequest(
     Request request,
     T args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
   ) async {
     this.args = args;
     isAttach = true;
 
-    // Don't start launching until configurationDone.
-    if (!_configurationDoneCompleter.isCompleted) {
-      logger?.call('Waiting for configurationDone request...');
-      await _configurationDoneCompleter.future;
-    }
+    // Common setup.
+    await _prepareForLaunchOrAttach();
 
     // TODO(dantup): Implement attach support.
     throw UnimplementedError();
@@ -112,7 +115,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // Delegate to the sub-class to attach to the process.
     // await attachImpl();
     //
-    // sendResponse(null);
+    // sendResponse();
   }
 
   /// configurationDone is called by the client when it has finished sending
@@ -123,13 +126,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// been sent to ensure we're not still getting breakpoints (which are sent
   /// per-file) while we're launching and initializing over the VM Service.
   @override
-  FutureOr<void> configurationDoneRequest(
+  Future<void> configurationDoneRequest(
     Request request,
     ConfigurationDoneArguments? args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
   ) async {
     _configurationDoneCompleter.complete();
-    sendResponse(null);
+    sendResponse();
   }
 
   /// Connects to the VM Service at [uri] and initializes debugging.
@@ -219,13 +222,25 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     _debuggerInitializedCompleter.complete();
   }
 
+  /// Handles the clients "continue" ("resume") request for the thread in
+  /// [args.threadId].
+  @override
+  Future<void> continueRequest(
+    Request request,
+    ContinueArguments args,
+    void Function(ContinueResponseBody) sendResponse,
+  ) async {
+    await _isolateManager.resumeThread(args.threadId);
+    sendResponse(ContinueResponseBody(allThreadsContinued: false));
+  }
+
   /// Overridden by sub-classes to perform any additional setup after the VM
   /// Service is connected.
-  FutureOr<void> debuggerConnected(vm.VM vmInfo);
+  Future<void> debuggerConnected(vm.VM vmInfo);
 
   /// Overridden by sub-classes to handle when the client sends a
   /// `disconnectRequest` (a forceful request to shut down).
-  FutureOr<void> disconnectImpl();
+  Future<void> disconnectImpl();
 
   /// disconnectRequest is called by the client when it wants to forcefully shut
   /// us down quickly. This comes after the `terminateRequest` which is intended
@@ -237,13 +252,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ///
   /// https://microsoft.github.io/debug-adapter-protocol/overview#debug-session-end
   @override
-  FutureOr<void> disconnectRequest(
+  Future<void> disconnectRequest(
     Request request,
     DisconnectArguments? args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
   ) async {
     await disconnectImpl();
-    sendResponse(null);
+    sendResponse();
   }
 
   /// initializeRequest is the first request send by the client during
@@ -254,7 +269,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// https://microsoft.github.io/debug-adapter-protocol/overview#initialization
   /// with a summary in this classes description.
   @override
-  FutureOr<void> initializeRequest(
+  Future<void> initializeRequest(
     Request request,
     InitializeRequestArguments? args,
     void Function(Capabilities) sendResponse,
@@ -293,30 +308,39 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ///
   /// Sub-classes can use the [args] field to access the arguments provided
   /// to this request.
-  FutureOr<void> launchImpl();
+  Future<void> launchImpl();
 
   /// launchRequest is called by the client when it wants us to to start the app
   /// to be run/debug. This will only be called once (and only one of this or
   /// attachRequest will be called).
   @override
-  FutureOr<void> launchRequest(
+  Future<void> launchRequest(
     Request request,
     T args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
   ) async {
     this.args = args;
     isAttach = false;
 
-    // Don't start launching until configurationDone.
-    if (!_configurationDoneCompleter.isCompleted) {
-      logger?.call('Waiting for configurationDone request...');
-      await _configurationDoneCompleter.future;
-    }
+    // Common setup.
+    await _prepareForLaunchOrAttach();
 
     // Delegate to the sub-class to launch the process.
     await launchImpl();
 
-    sendResponse(null);
+    sendResponse();
+  }
+
+  /// Handles the clients "next" ("step over") request for the thread in
+  /// [args.threadId].
+  @override
+  Future<void> nextRequest(
+    Request request,
+    NextArguments args,
+    void Function() sendResponse,
+  ) async {
+    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
+    sendResponse();
   }
 
   /// Sends an OutputEvent (without a newline, since calls to this method
@@ -337,9 +361,160 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendOutput(category, '$prefix$indentedMessage\n');
   }
 
+  /// Handles a request from the client to set breakpoints.
+  ///
+  /// This method can be called at any time (before the app is launched or while
+  /// the app is running) and will include the new full set of breakpoints for
+  /// the file URI in [args.source.path].
+  ///
+  /// The VM requires breakpoints to be set per-isolate so these will be passed
+  /// to [_isolateManager] that will fan them out to each isolate.
+  ///
+  /// When new isolates are registered, it is [isolateManager]s responsibility
+  /// to ensure all breakpoints are given to them (and like at startup, this
+  /// must happen before they are resumed).
+  @override
+  Future<void> setBreakpointsRequest(
+    Request request,
+    SetBreakpointsArguments args,
+    void Function(SetBreakpointsResponseBody) sendResponse,
+  ) async {
+    final breakpoints = args.breakpoints ?? [];
+
+    final path = args.source.path;
+    final name = args.source.name;
+    final uri = path != null ? Uri.file(path).toString() : name!;
+
+    await _isolateManager.setBreakpoints(uri, breakpoints);
+
+    // TODO(dantup): Handle breakpoint resolution rather than pretending all
+    // breakpoints are verified immediately.
+    sendResponse(SetBreakpointsResponseBody(
+      breakpoints: breakpoints.map((e) => Breakpoint(verified: true)).toList(),
+    ));
+  }
+
+  /// Handles a request from the client for the call stack for [args.threadId].
+  ///
+  /// This is usually called after we sent a [StoppedEvent] to the client
+  /// notifying it that execution of an isolate has paused and it wants to
+  /// populate the call stack view.
+  ///
+  /// Clients may fetch the frames in batches and VS Code in particular will
+  /// send two requests initially - one for the top frame only, and then one for
+  /// the next 19 frames. For better performance, the first request is satisfied
+  /// entirely from the threads pauseEvent.topFrame so we do not need to
+  /// round-trip to the VM Service.
+  @override
+  Future<void> stackTraceRequest(
+    Request request,
+    StackTraceArguments args,
+    void Function(StackTraceResponseBody) sendResponse,
+  ) async {
+    // We prefer to provide frames in small batches. Rather than tell the client
+    // how many frames there really are (which can be expensive to compute -
+    // especially for web) we just add 20 on to the last frame we actually send,
+    // as described in the spec:
+    //
+    // "Returning monotonically increasing totalFrames values for subsequent
+    //  requests can be used to enforce paging in the client."
+    const stackFrameBatchSize = 20;
+
+    final threadId = args.threadId;
+    final thread = _isolateManager.getThread(threadId);
+    final topFrame = thread?.pauseEvent?.topFrame;
+    final startFrame = args.startFrame ?? 0;
+    final numFrames = args.levels ?? 0;
+    var totalFrames = 1;
+
+    if (thread == null) {
+      throw DebugAdapterException('No thread with threadId $threadId');
+    }
+
+    if (!thread.paused) {
+      throw DebugAdapterException('Thread $threadId is not paused');
+    }
+
+    final stackFrames = <StackFrame>[];
+    // If the request is only for the top frame, we may be able to satisfy it
+    // from the threads `pauseEvent.topFrame`.
+    if (startFrame == 0 && numFrames == 1 && topFrame != null) {
+      totalFrames = 1 + stackFrameBatchSize;
+      final dapTopFrame = await _converter.convertVmToDapStackFrame(
+        thread,
+        topFrame,
+        isTopFrame: true,
+      );
+      stackFrames.add(dapTopFrame);
+    } else {
+      // Otherwise, send the request on to the VM.
+      // The VM doesn't support fetching an arbitrary slice of frames, only a
+      // maximum limit, so if the client asks for frames 20-30 we must send a
+      // request for the first 30 and trim them ourselves.
+      final limit = startFrame + numFrames;
+      final stack = await vmService?.getStack(thread.isolate.id!, limit: limit);
+      final frames = stack?.frames;
+
+      if (stack != null && frames != null) {
+        // When the call stack is truncated, we always add [stackFrameBatchSize]
+        // to the count, indicating to the client there are more frames and
+        // the size of the batch they should request when "loading more".
+        //
+        // It's ok to send a number that runs past the actual end of the call
+        // stack and the client should handle this gracefully:
+        //
+        // "a client should be prepared to receive less frames than requested,
+        //  which is an indication that the end of the stack has been reached."
+        totalFrames = (stack.truncated ?? false)
+            ? frames.length + stackFrameBatchSize
+            : frames.length;
+
+        Future<StackFrame> convert(int index, vm.Frame frame) async {
+          return _converter.convertVmToDapStackFrame(
+            thread,
+            frame,
+            isTopFrame: startFrame == 0 && index == 0,
+          );
+        }
+
+        final frameSubset = frames.sublist(startFrame);
+        stackFrames.addAll(await Future.wait(frameSubset.mapIndexed(convert)));
+      }
+    }
+
+    sendResponse(
+      StackTraceResponseBody(
+        stackFrames: stackFrames,
+        totalFrames: totalFrames,
+      ),
+    );
+  }
+
+  /// Handles the clients "step in" request for the thread in [args.threadId].
+  @override
+  Future<void> stepInRequest(
+    Request request,
+    StepInArguments args,
+    void Function() sendResponse,
+  ) async {
+    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kInto);
+    sendResponse();
+  }
+
+  /// Handles the clients "step out" request for the thread in [args.threadId].
+  @override
+  Future<void> stepOutRequest(
+    Request request,
+    StepOutArguments args,
+    void Function() sendResponse,
+  ) async {
+    await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOut);
+    sendResponse();
+  }
+
   /// Overridden by sub-classes to handle when the client sends a
   /// `terminateRequest` (a request for a graceful shut down).
-  FutureOr<void> terminateImpl();
+  Future<void> terminateImpl();
 
   /// terminateRequest is called by the client when it wants us to gracefully
   /// shut down.
@@ -350,13 +525,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ///
   /// https://microsoft.github.io/debug-adapter-protocol/overview#debug-session-end
   @override
-  FutureOr<void> terminateRequest(
+  Future<void> terminateRequest(
     Request request,
     TerminateArguments? args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
   ) async {
-    terminateImpl();
-    sendResponse(null);
+    await terminateImpl();
+    sendResponse();
   }
 
   void _handleDebugEvent(vm.Event event) {
@@ -378,7 +553,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     /// Helper to convert to InstanceRef to a String, taking into account
     /// [vm.InstanceKind.kNull] which is the type for the unused fields of a
     /// log event.
-    FutureOr<String?> asString(vm.InstanceRef? ref) {
+    Future<String?> asString(vm.InstanceRef? ref) async {
       if (ref == null || ref.kind == vm.InstanceKind.kNull) {
         return null;
       }
@@ -405,6 +580,21 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     if (stack != null) {
       sendPrefixedOutput('stderr', prefix, '$stack\n');
     }
+  }
+
+  /// Performs some setup that is common to both [launchRequest] and
+  /// [attachRequest].
+  Future<void> _prepareForLaunchOrAttach() async {
+    // Don't start launching until configurationDone.
+    if (!_configurationDoneCompleter.isCompleted) {
+      logger?.call('Waiting for configurationDone request...');
+      await _configurationDoneCompleter.future;
+    }
+
+    // Notify IsolateManager if we'll be debugging so it knows whether to set
+    // up breakpoints etc. when isolates are registered.
+    final debug = !(args.noDebug ?? false);
+    _isolateManager.setDebugEnabled(debug);
   }
 
   /// A wrapper around the same name function from package:vm_service that
@@ -455,8 +645,37 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
   final int? vmServicePort;
   final List<String>? vmAdditionalArgs;
   final bool? enableAsserts;
+
+  /// Whether SDK libraries should be marked as debuggable.
+  ///
+  /// Treated as `false` if null, which means "step in" will not step into SDK
+  /// libraries.
   final bool? debugSdkLibraries;
+
+  /// Whether external package libraries should be marked as debuggable.
+  ///
+  /// Treated as `false` if null, which means "step in" will not step into
+  /// libraries in packages that are not either the local package or a path
+  /// dependency. This allows users to debug "just their code" and treat Pub
+  /// packages as block boxes.
+  final bool? debugExternalPackageLibraries;
+
+  /// Whether to evaluate getters in debug views like hovers and the variables
+  /// list.
+  ///
+  /// Invoking getters has a performance cost and may introduce side-effects,
+  /// although users may expected this functionality. null is treated like false
+  /// although clients may have their own defaults (for example Dart-Code sends
+  /// true by default at the time of writing).
   final bool? evaluateGettersInDebugViews;
+
+  /// Whether to call toString() on objects in debug views like hovers and the
+  /// variables list.
+  ///
+  /// Invoking toString() has a performance cost and may introduce side-effects,
+  /// although users may expected this functionality. null is treated like false
+  /// although clients may have their own defaults (for example Dart-Code sends
+  /// true by default at the time of writing).
   final bool? evaluateToStringInDebugViews;
 
   /// Whether to send debug logging to clients in a custom `dart.log` event. This
@@ -476,6 +695,7 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
     this.vmAdditionalArgs,
     this.enableAsserts,
     this.debugSdkLibraries,
+    this.debugExternalPackageLibraries,
     this.evaluateGettersInDebugViews,
     this.evaluateToStringInDebugViews,
     this.sendLogsToClient,
@@ -490,6 +710,8 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
         vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
         enableAsserts = obj['enableAsserts'] as bool?,
         debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
+        debugExternalPackageLibraries =
+            obj['debugExternalPackageLibraries'] as bool?,
         evaluateGettersInDebugViews =
             obj['evaluateGettersInDebugViews'] as bool?,
         evaluateToStringInDebugViews =
@@ -508,6 +730,8 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
         if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
+        if (debugExternalPackageLibraries != null)
+          'debugExternalPackageLibraries': debugExternalPackageLibraries,
         if (evaluateGettersInDebugViews != null)
           'evaluateGettersInDebugViews': evaluateGettersInDebugViews,
         if (evaluateToStringInDebugViews != null)
