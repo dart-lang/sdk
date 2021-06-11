@@ -383,6 +383,7 @@ class ArgumentAllocator : public ValueObject {
         payload_type, container_type, CallingConventions::kStackPointerRegister,
         stack_height_in_bytes);
     stack_height_in_bytes += size;
+    align_stack(payload_type.AlignmentInBytesStack());
     return result;
   }
 

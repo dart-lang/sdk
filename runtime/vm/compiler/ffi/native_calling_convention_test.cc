@@ -494,6 +494,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct8bytesPackedx10) {
 // See the *.expect in ./unit_tests for this behavior.
 UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_structPacked) {
   const auto& int8_type = *new (Z) NativePrimitiveType(kInt8);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
   const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
 
   auto& member_types = *new (Z) NativeTypes(Z, 2);
@@ -504,13 +505,22 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_structPacked) {
   EXPECT_EQ(9, struct_type.SizeInBytes());
   EXPECT(struct_type.ContainsUnalignedMembers());
 
-  auto& arguments = *new (Z) NativeTypes(Z, 11);
+  auto& arguments = *new (Z) NativeTypes(Z, 13);
   arguments.Add(&struct_type);
   arguments.Add(&struct_type);
-  arguments.Add(&int8_type);    // Backfilling int registers.
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&struct_type);
   arguments.Add(&double_type);  // Backfilling float registers.
+  arguments.Add(&int32_type);   // Backfilling int registers.
+  arguments.Add(&int32_type);   // Backfilling int registers.
 
-  RunSignatureTest(Z, "structPacked", arguments, struct_type);
+  RunSignatureTest(Z, "structPacked", arguments, double_type);
 }
 
 // The union is only 5 bytes because it's members are packed.

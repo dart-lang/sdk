@@ -170,8 +170,7 @@ DART_EXPORT intptr_t TakeMaxUint8x10(uint8_t a,
             << static_cast<int>(d) << ", " << static_cast<int>(e) << ", "
             << static_cast<int>(f) << ", " << static_cast<int>(g) << ", "
             << static_cast<int>(h) << ", " << static_cast<int>(i) << ", "
-            << static_cast<int>(j) << ", "
-            << ")\n";
+            << static_cast<int>(j) << ")\n";
   return (a == 0xff && b == 0xff && c == 0xff && d == 0xff && e == 0xff &&
           f == 0xff && g == 0xff && h == 0xff && i == 0xff && j == 0xff)
              ? 1

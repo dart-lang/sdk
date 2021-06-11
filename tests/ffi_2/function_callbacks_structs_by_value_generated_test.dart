@@ -297,10 +297,10 @@ final testCases = [
           passStruct8BytesPackedIntx10, 0),
       passStruct8BytesPackedIntx10AfterCallback),
   CallbackTest.withCheck(
-      "PassStruct9BytesPackedMixedx10DoubleInt32",
-      Pointer.fromFunction<PassStruct9BytesPackedMixedx10DoubleInt32Type>(
-          passStruct9BytesPackedMixedx10DoubleInt32, 0.0),
-      passStruct9BytesPackedMixedx10DoubleInt32AfterCallback),
+      "PassStruct9BytesPackedMixedx10DoubleInt32x2",
+      Pointer.fromFunction<PassStruct9BytesPackedMixedx10DoubleInt32x2Type>(
+          passStruct9BytesPackedMixedx10DoubleInt32x2, 0.0),
+      passStruct9BytesPackedMixedx10DoubleInt32x2AfterCallback),
   CallbackTest.withCheck(
       "PassStruct5BytesPackedMixed",
       Pointer.fromFunction<PassStruct5BytesPackedMixedType>(
@@ -6755,7 +6755,7 @@ void passStruct8BytesPackedIntx10AfterCallback() {
   Expect.equals(1275, result);
 }
 
-typedef PassStruct9BytesPackedMixedx10DoubleInt32Type = Double Function(
+typedef PassStruct9BytesPackedMixedx10DoubleInt32x2Type = Double Function(
     Struct9BytesPackedMixed,
     Struct9BytesPackedMixed,
     Struct9BytesPackedMixed,
@@ -6767,69 +6767,72 @@ typedef PassStruct9BytesPackedMixedx10DoubleInt32Type = Double Function(
     Struct9BytesPackedMixed,
     Struct9BytesPackedMixed,
     Double,
+    Int32,
     Int32);
 
 // Global variables to be able to test inputs after callback returned.
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a0 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a0 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a1 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a1 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a2 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a2 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a3 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a3 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a4 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a4 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a5 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a5 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a6 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a6 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a7 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a7 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a8 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a8 =
     Struct9BytesPackedMixed();
-Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a9 =
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32x2_a9 =
     Struct9BytesPackedMixed();
-double passStruct9BytesPackedMixedx10DoubleInt32_a10 = 0.0;
-int passStruct9BytesPackedMixedx10DoubleInt32_a11 = 0;
+double passStruct9BytesPackedMixedx10DoubleInt32x2_a10 = 0.0;
+int passStruct9BytesPackedMixedx10DoubleInt32x2_a11 = 0;
+int passStruct9BytesPackedMixedx10DoubleInt32x2_a12 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-double passStruct9BytesPackedMixedx10DoubleInt32Result = 0.0;
+double passStruct9BytesPackedMixedx10DoubleInt32x2Result = 0.0;
 
-double passStruct9BytesPackedMixedx10DoubleInt32CalculateResult() {
+double passStruct9BytesPackedMixedx10DoubleInt32x2CalculateResult() {
   double result = 0;
 
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a0.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a0.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a1.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a1.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a2.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a2.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a3.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a3.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a4.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a4.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a5.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a5.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a6.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a6.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a7.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a7.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a8.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a8.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a9.a0;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a9.a1;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a10;
-  result += passStruct9BytesPackedMixedx10DoubleInt32_a11;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a0.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a0.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a1.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a1.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a2.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a2.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a3.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a3.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a4.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a4.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a5.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a5.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a6.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a6.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a7.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a7.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a8.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a8.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a9.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a9.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a10;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a11;
+  result += passStruct9BytesPackedMixedx10DoubleInt32x2_a12;
 
-  passStruct9BytesPackedMixedx10DoubleInt32Result = result;
+  passStruct9BytesPackedMixedx10DoubleInt32x2Result = result;
 
   return result;
 }
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
-double passStruct9BytesPackedMixedx10DoubleInt32(
+double passStruct9BytesPackedMixedx10DoubleInt32x2(
     Struct9BytesPackedMixed a0,
     Struct9BytesPackedMixed a1,
     Struct9BytesPackedMixed a2,
@@ -6841,9 +6844,10 @@ double passStruct9BytesPackedMixedx10DoubleInt32(
     Struct9BytesPackedMixed a8,
     Struct9BytesPackedMixed a9,
     double a10,
-    int a11) {
+    int a11,
+    int a12) {
   print(
-      "passStruct9BytesPackedMixedx10DoubleInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})");
+      "passStruct9BytesPackedMixedx10DoubleInt32x2(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})");
 
   // In legacy mode, possibly return null.
   if (a0.a0 == 84) {
@@ -6855,35 +6859,36 @@ double passStruct9BytesPackedMixedx10DoubleInt32(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct9BytesPackedMixedx10DoubleInt32 throwing on purpose!");
+        "PassStruct9BytesPackedMixedx10DoubleInt32x2 throwing on purpose!");
   }
 
-  passStruct9BytesPackedMixedx10DoubleInt32_a0 = a0;
-  passStruct9BytesPackedMixedx10DoubleInt32_a1 = a1;
-  passStruct9BytesPackedMixedx10DoubleInt32_a2 = a2;
-  passStruct9BytesPackedMixedx10DoubleInt32_a3 = a3;
-  passStruct9BytesPackedMixedx10DoubleInt32_a4 = a4;
-  passStruct9BytesPackedMixedx10DoubleInt32_a5 = a5;
-  passStruct9BytesPackedMixedx10DoubleInt32_a6 = a6;
-  passStruct9BytesPackedMixedx10DoubleInt32_a7 = a7;
-  passStruct9BytesPackedMixedx10DoubleInt32_a8 = a8;
-  passStruct9BytesPackedMixedx10DoubleInt32_a9 = a9;
-  passStruct9BytesPackedMixedx10DoubleInt32_a10 = a10;
-  passStruct9BytesPackedMixedx10DoubleInt32_a11 = a11;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a0 = a0;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a1 = a1;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a2 = a2;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a3 = a3;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a4 = a4;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a5 = a5;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a6 = a6;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a7 = a7;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a8 = a8;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a9 = a9;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a10 = a10;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a11 = a11;
+  passStruct9BytesPackedMixedx10DoubleInt32x2_a12 = a12;
 
-  final result = passStruct9BytesPackedMixedx10DoubleInt32CalculateResult();
+  final result = passStruct9BytesPackedMixedx10DoubleInt32x2CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void passStruct9BytesPackedMixedx10DoubleInt32AfterCallback() {
-  final result = passStruct9BytesPackedMixedx10DoubleInt32CalculateResult();
+void passStruct9BytesPackedMixedx10DoubleInt32x2AfterCallback() {
+  final result = passStruct9BytesPackedMixedx10DoubleInt32x2CalculateResult();
 
   print("after callback result = $result");
 
-  Expect.approxEquals(211.0, result);
+  Expect.approxEquals(188.0, result);
 }
 
 typedef PassStruct5BytesPackedMixedType = Double Function(
