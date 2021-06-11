@@ -339,7 +339,7 @@ Small struct with mis-aligned member."""),
   FunctionType(List.filled(10, struct8bytesPacked), int64, """
 Struct with mis-aligned member."""),
   FunctionType(
-      [...List.filled(10, struct9bytesPacked), double_, int32],
+      [...List.filled(10, struct9bytesPacked), double_, int32, int32],
       double_,
       """
 Struct with mis-aligned member.

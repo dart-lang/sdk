@@ -74,7 +74,7 @@ void main() {
     testPassUint8Struct4BytesInlineArrayMultiDimensionalIn();
     testPassStruct3BytesPackedIntx10();
     testPassStruct8BytesPackedIntx10();
-    testPassStruct9BytesPackedMixedx10DoubleInt32();
+    testPassStruct9BytesPackedMixedx10DoubleInt32x2();
     testPassStruct5BytesPackedMixed();
     testPassStructNestedAlignmentStruct5BytesPackedMixed();
     testPassStruct6BytesInlineArrayInt();
@@ -187,7 +187,7 @@ void main() {
     testPassUint8Struct4BytesInlineArrayMultiDimensionalInLeaf();
     testPassStruct3BytesPackedIntx10Leaf();
     testPassStruct8BytesPackedIntx10Leaf();
-    testPassStruct9BytesPackedMixedx10DoubleInt32Leaf();
+    testPassStruct9BytesPackedMixedx10DoubleInt32x2Leaf();
     testPassStruct5BytesPackedMixedLeaf();
     testPassStructNestedAlignmentStruct5BytesPackedMixedLeaf();
     testPassStruct6BytesInlineArrayIntLeaf();
@@ -5894,7 +5894,7 @@ void testPassStruct8BytesPackedIntx10() {
   calloc.free(a9Pointer);
 }
 
-final passStruct9BytesPackedMixedx10DoubleInt32 =
+final passStruct9BytesPackedMixedx10DoubleInt32x2 =
     ffiTestFunctions.lookupFunction<
         Double Function(
             Struct9BytesPackedMixed,
@@ -5908,6 +5908,7 @@ final passStruct9BytesPackedMixedx10DoubleInt32 =
             Struct9BytesPackedMixed,
             Struct9BytesPackedMixed,
             Double,
+            Int32,
             Int32),
         double Function(
             Struct9BytesPackedMixed,
@@ -5921,11 +5922,12 @@ final passStruct9BytesPackedMixedx10DoubleInt32 =
             Struct9BytesPackedMixed,
             Struct9BytesPackedMixed,
             double,
-            int)>("PassStruct9BytesPackedMixedx10DoubleInt32");
+            int,
+            int)>("PassStruct9BytesPackedMixedx10DoubleInt32x2");
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
-void testPassStruct9BytesPackedMixedx10DoubleInt32() {
+void testPassStruct9BytesPackedMixedx10DoubleInt32x2() {
   final a0Pointer = calloc<Struct9BytesPackedMixed>();
   final Struct9BytesPackedMixed a0 = a0Pointer.ref;
   final a1Pointer = calloc<Struct9BytesPackedMixed>();
@@ -5948,6 +5950,7 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32() {
   final Struct9BytesPackedMixed a9 = a9Pointer.ref;
   double a10;
   int a11;
+  int a12;
 
   a0.a0 = 1;
   a0.a1 = 2.0;
@@ -5971,13 +5974,14 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32() {
   a9.a1 = 20.0;
   a10 = -21.0;
   a11 = 22;
+  a12 = -23;
 
-  final result = passStruct9BytesPackedMixedx10DoubleInt32(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  final result = passStruct9BytesPackedMixedx10DoubleInt32x2(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   print("result = $result");
 
-  Expect.approxEquals(211.0, result);
+  Expect.approxEquals(188.0, result);
 
   calloc.free(a0Pointer);
   calloc.free(a1Pointer);
@@ -13392,7 +13396,7 @@ void testPassStruct8BytesPackedIntx10Leaf() {
   calloc.free(a9Pointer);
 }
 
-final passStruct9BytesPackedMixedx10DoubleInt32Leaf =
+final passStruct9BytesPackedMixedx10DoubleInt32x2Leaf =
     ffiTestFunctions.lookupFunction<
         Double Function(
             Struct9BytesPackedMixed,
@@ -13406,6 +13410,7 @@ final passStruct9BytesPackedMixedx10DoubleInt32Leaf =
             Struct9BytesPackedMixed,
             Struct9BytesPackedMixed,
             Double,
+            Int32,
             Int32),
         double Function(
             Struct9BytesPackedMixed,
@@ -13419,11 +13424,12 @@ final passStruct9BytesPackedMixedx10DoubleInt32Leaf =
             Struct9BytesPackedMixed,
             Struct9BytesPackedMixed,
             double,
-            int)>("PassStruct9BytesPackedMixedx10DoubleInt32", isLeaf: true);
+            int,
+            int)>("PassStruct9BytesPackedMixedx10DoubleInt32x2", isLeaf: true);
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
-void testPassStruct9BytesPackedMixedx10DoubleInt32Leaf() {
+void testPassStruct9BytesPackedMixedx10DoubleInt32x2Leaf() {
   final a0Pointer = calloc<Struct9BytesPackedMixed>();
   final Struct9BytesPackedMixed a0 = a0Pointer.ref;
   final a1Pointer = calloc<Struct9BytesPackedMixed>();
@@ -13446,6 +13452,7 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32Leaf() {
   final Struct9BytesPackedMixed a9 = a9Pointer.ref;
   double a10;
   int a11;
+  int a12;
 
   a0.a0 = 1;
   a0.a1 = 2.0;
@@ -13469,13 +13476,14 @@ void testPassStruct9BytesPackedMixedx10DoubleInt32Leaf() {
   a9.a1 = 20.0;
   a10 = -21.0;
   a11 = 22;
+  a12 = -23;
 
-  final result = passStruct9BytesPackedMixedx10DoubleInt32Leaf(
-      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  final result = passStruct9BytesPackedMixedx10DoubleInt32x2Leaf(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   print("result = $result");
 
-  Expect.approxEquals(211.0, result);
+  Expect.approxEquals(188.0, result);
 
   calloc.free(a0Pointer);
   calloc.free(a1Pointer);

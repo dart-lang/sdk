@@ -856,7 +856,14 @@ const throwExceptionValue = 42;
 /// Some value between 0 and 127 (works in every native type).
 const returnNullValue = 84;
 
-const headerDartCallTest = """
+const dart2dot9 = '''
+// @dart = 2.9
+''';
+
+headerDartCallTest(bool nnbd) {
+  final dartVersion = nnbd ? '' : dart2dot9;
+
+  return """
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -869,6 +876,8 @@ const headerDartCallTest = """
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
 
+$dartVersion
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
@@ -878,11 +887,12 @@ import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 """;
+}
 
 void writeDartCallTest() {
   for (bool nnbd in [true, false]) {
     final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallTest);
+    buffer.write(headerDartCallTest(nnbd));
 
     buffer.write("""
     void main() {
@@ -909,7 +919,10 @@ String callTestPath(bool nnbd) {
       .path;
 }
 
-const headerDartCallbackTest = """
+headerDartCallbackTest(bool nnbd) {
+  final dartVersion = nnbd ? '' : dart2dot9;
+
+  return """
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -921,6 +934,8 @@ const headerDartCallbackTest = """
 // VMOptions=--deterministic --optimization-counter-threshold=10
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100
+
+$dartVersion
 
 import 'dart:ffi';
 
@@ -942,11 +957,12 @@ void main() {
 
 
 """;
+}
 
 void writeDartCallbackTest() {
   for (bool nnbd in [true, false]) {
     final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallbackTest);
+    buffer.write(headerDartCallbackTest(nnbd));
 
     buffer.write("""
   final testCases = [

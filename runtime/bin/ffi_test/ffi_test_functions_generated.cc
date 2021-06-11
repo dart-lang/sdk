@@ -4231,7 +4231,7 @@ DART_EXPORT int64_t PassStruct8BytesPackedIntx10(Struct8BytesPackedInt a0,
 // Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
-DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
+DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32x2(
     Struct9BytesPackedMixed a0,
     Struct9BytesPackedMixed a1,
     Struct9BytesPackedMixed a2,
@@ -4243,8 +4243,9 @@ DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
     Struct9BytesPackedMixed a8,
     Struct9BytesPackedMixed a9,
     double a10,
-    int32_t a11) {
-  std::cout << "PassStruct9BytesPackedMixedx10DoubleInt32"
+    int32_t a11,
+    int32_t a12) {
+  std::cout << "PassStruct9BytesPackedMixedx10DoubleInt32x2"
             << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
             << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
             << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
@@ -4255,7 +4256,7 @@ DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
             << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
             << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
             << static_cast<int>(a9.a0) << ", " << a9.a1 << "), " << a10 << ", "
-            << a11 << ")"
+            << a11 << ", " << a12 << ")"
             << "\n";
 
   double result = 0;
@@ -4282,6 +4283,7 @@ DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
   result += a9.a1;
   result += a10;
   result += a11;
+  result += a12;
 
   std::cout << "result = " << result << "\n";
 
@@ -11492,7 +11494,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesPackedIntx10(
 // Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
-DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
+DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32x2(
     // NOLINTNEXTLINE(whitespace/parens)
     double (*f)(Struct9BytesPackedMixed a0,
                 Struct9BytesPackedMixed a1,
@@ -11505,7 +11507,8 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
                 Struct9BytesPackedMixed a8,
                 Struct9BytesPackedMixed a9,
                 double a10,
-                int32_t a11)) {
+                int32_t a11,
+                int32_t a12)) {
   Struct9BytesPackedMixed a0;
   Struct9BytesPackedMixed a1;
   Struct9BytesPackedMixed a2;
@@ -11518,6 +11521,7 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
   Struct9BytesPackedMixed a9;
   double a10;
   int32_t a11;
+  int32_t a12;
 
   a0.a0 = 1;
   a0.a1 = 2.0;
@@ -11541,8 +11545,9 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
   a9.a1 = 20.0;
   a10 = -21.0;
   a11 = 22;
+  a12 = -23;
 
-  std::cout << "Calling TestPassStruct9BytesPackedMixedx10DoubleInt32("
+  std::cout << "Calling TestPassStruct9BytesPackedMixedx10DoubleInt32x2("
             << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
             << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
             << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
@@ -11553,26 +11558,26 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
             << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
             << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
             << static_cast<int>(a9.a0) << ", " << a9.a1 << "), " << a10 << ", "
-            << a11 << ")"
+            << a11 << ", " << a12 << ")"
             << ")\n";
 
-  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   std::cout << "result = " << result << "\n";
 
-  CHECK_APPROX(211.0, result);
+  CHECK_APPROX(188.0, result);
 
   // Pass argument that will make the Dart callback throw.
   a0.a0 = 42;
 
-  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   CHECK_APPROX(0.0, result);
 
   // Pass argument that will make the Dart callback return null.
   a0.a0 = 84;
 
-  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   CHECK_APPROX(0.0, result);
 
