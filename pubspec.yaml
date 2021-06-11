@@ -14,7 +14,6 @@ environment:
 dependencies:
   analyzer: ^1.7.0
   args: ^2.0.0
-  charcode: ^1.2.0
   collection: ^1.15.0
   glob: ^2.0.0
   http: ^0.13.0
