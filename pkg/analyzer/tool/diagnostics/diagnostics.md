@@ -523,22 +523,24 @@ void f(a.C c1, b.C c2) {}
 
 ### ambiguous_set_or_map_literal_both
 
-_This literal contains both 'Map' and 'Iterable' elements, which makes it
-impossible to determine whether the literal is a map or a set._
+_The literal can't be either a map or a set because it contains at least one
+literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these._
 
 #### Description
 
 Because map and set literals use the same delimiters (`{` and `}`), the
 analyzer looks at the type arguments and the elements to determine which
 kind of literal you meant. When there are no type arguments, then the
-analyzer uses the types of the elements. If all of the expressions have the
-type `Iterable`, then it's a set literal; if they all have the type `Map`,
-then it's a map literal.
+analyzer uses the types of the elements. If all of the elements are literal
+map entries and all of the spread operators are spreading a `Map` then it's
+a `Map`. If none of the elements are literal map entries and all of the
+spread operators are spreading an `Iterable`, then it's a `Set`. If neither
+of those is true then it's ambiguous.
 
-The analyzer produces this diagnostic when some of the elements have the
-type `Iterable` and others have the type `Map`, making it impossible for
-the analyzer to determine whether you are writing a map literal or a set
-literal.
+The analyzer produces this diagnostic when at least one element is a
+literal map entry or a spread operator spreading a `Map`, and at least one
+element is neither of these, making it impossible for the analyzer to
+determine whether you are writing a map literal or a set literal.
 
 #### Examples
 

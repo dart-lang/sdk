@@ -197,7 +197,7 @@ class _ElementWriter {
       //   final int foo;
       //   set foo(int newValue) {}
       // }
-      assert(accessor.isSetter, isTrue);
+      expect(accessor.isSetter, isTrue);
     }
 
     expect(accessor.variable, same(property));

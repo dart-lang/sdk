@@ -27,7 +27,7 @@
 
 namespace dart {
 
-static const intptr_t kMaxSamplesPerTick = 16;
+static const intptr_t kMaxSamplesPerTick = 4;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 

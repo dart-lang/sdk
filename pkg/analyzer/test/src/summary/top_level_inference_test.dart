@@ -3476,7 +3476,7 @@ library
                 type: int
                 constantInitializer
                   SimpleStringLiteral
-                    literal: 'hello' @0
+                    literal: 'hello' @37
         accessors
           synthetic get f @16
             returnType: int

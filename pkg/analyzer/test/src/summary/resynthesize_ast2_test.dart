@@ -27,7 +27,7 @@ import 'test_strategies.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResynthesizeAst2Test);
-    // defineReflectiveTests(ApplyCheckElementTextReplacements);
+    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
 

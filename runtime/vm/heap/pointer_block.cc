@@ -41,7 +41,7 @@ void BlockStack<BlockSize>::Cleanup() {
 }
 
 template <int BlockSize>
-BlockStack<BlockSize>::BlockStack() : mutex_() {}
+BlockStack<BlockSize>::BlockStack() : monitor_() {}
 
 template <int BlockSize>
 BlockStack<BlockSize>::~BlockStack() {
@@ -50,7 +50,7 @@ BlockStack<BlockSize>::~BlockStack() {
 
 template <int BlockSize>
 void BlockStack<BlockSize>::Reset() {
-  MutexLocker local_mutex_locker(&mutex_);
+  MonitorLocker local_mutex_locker(&monitor_);
   {
     // Empty all blocks and move them to the global cache.
     MutexLocker global_mutex_locker(global_mutex_);
@@ -70,7 +70,7 @@ void BlockStack<BlockSize>::Reset() {
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::TakeBlocks() {
-  MutexLocker ml(&mutex_);
+  MonitorLocker ml(&monitor_);
   while (!partial_.IsEmpty()) {
     full_.Push(partial_.Pop());
   }
@@ -81,15 +81,45 @@ template <int BlockSize>
 void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
   ASSERT(block->next() == NULL);  // Should be just a single block.
   if (block->IsFull()) {
-    MutexLocker ml(&mutex_);
+    MonitorLocker ml(&monitor_);
+    bool was_empty = IsEmptyLocked();
     full_.Push(block);
+    if (was_empty) ml.Notify();
   } else if (block->IsEmpty()) {
     MutexLocker ml(global_mutex_);
     global_empty_->Push(block);
     TrimGlobalEmpty();
   } else {
-    MutexLocker ml(&mutex_);
+    MonitorLocker ml(&monitor_);
+    bool was_empty = IsEmptyLocked();
     partial_.Push(block);
+    if (was_empty) ml.Notify();
+  }
+}
+
+template <int BlockSize>
+typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::WaitForWork(
+    RelaxedAtomic<uintptr_t>* num_busy) {
+  MonitorLocker ml(&monitor_);
+  if (num_busy->fetch_sub(1u) == 1 /* 1 is before subtraction */) {
+    // This is the last worker, wake the others now that we know no further work
+    // will come.
+    ml.NotifyAll();
+    return NULL;
+  }
+  for (;;) {
+    if (!full_.IsEmpty()) {
+      num_busy->fetch_add(1u);
+      return full_.Pop();
+    }
+    if (!partial_.IsEmpty()) {
+      num_busy->fetch_add(1u);
+      return partial_.Pop();
+    }
+    ml.Wait();
+    if (num_busy->load() == 0) {
+      return NULL;
+    }
   }
 }
 
@@ -103,7 +133,7 @@ void PointerBlock<Size>::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 void StoreBuffer::PushBlock(Block* block, ThresholdPolicy policy) {
   BlockStack<Block::kSize>::PushBlockImpl(block);
   if ((policy == kCheckThreshold) && Overflowed()) {
-    MutexLocker ml(&mutex_);
+    MonitorLocker ml(&monitor_);
     Thread* thread = Thread::Current();
     // Sanity check: it makes no sense to schedule the GC in another isolate
     // group.
@@ -118,7 +148,7 @@ template <int BlockSize>
 typename BlockStack<BlockSize>::Block*
 BlockStack<BlockSize>::PopNonFullBlock() {
   {
-    MutexLocker ml(&mutex_);
+    MonitorLocker ml(&monitor_);
     if (!partial_.IsEmpty()) {
       return partial_.Pop();
     }
@@ -140,7 +170,7 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::PopEmptyBlock() {
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block*
 BlockStack<BlockSize>::PopNonEmptyBlock() {
-  MutexLocker ml(&mutex_);
+  MonitorLocker ml(&monitor_);
   if (!full_.IsEmpty()) {
     return full_.Pop();
   } else if (!partial_.IsEmpty()) {
@@ -152,7 +182,12 @@ BlockStack<BlockSize>::PopNonEmptyBlock() {
 
 template <int BlockSize>
 bool BlockStack<BlockSize>::IsEmpty() {
-  MutexLocker ml(&mutex_);
+  MonitorLocker ml(&monitor_);
+  return IsEmptyLocked();
+}
+
+template <int BlockSize>
+bool BlockStack<BlockSize>::IsEmptyLocked() {
   return full_.IsEmpty() && partial_.IsEmpty();
 }
 
@@ -189,7 +224,7 @@ void BlockStack<BlockSize>::List::Push(Block* block) {
 }
 
 bool StoreBuffer::Overflowed() {
-  MutexLocker ml(&mutex_);
+  MonitorLocker ml(&monitor_);
   return (full_.length() + partial_.length()) > kMaxNonEmpty;
 }
 

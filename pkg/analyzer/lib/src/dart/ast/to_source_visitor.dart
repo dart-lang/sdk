@@ -497,6 +497,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.requiredKeyword, " ");
     safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitTokenWithSuffix(node.keyword, " ");
     safelyVisitNodeWithSuffix(node.type, " ");
@@ -638,6 +639,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.requiredKeyword, ' ');
     safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitNodeWithSuffix(node.returnType, " ");
     safelyVisitNode(node.identifier);

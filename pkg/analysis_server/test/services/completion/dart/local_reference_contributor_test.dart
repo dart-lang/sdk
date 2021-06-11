@@ -339,7 +339,6 @@ void main() {boo(){} bar(inc: ^);}''');
     assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('A');
     assertNotSuggested('Object');
-    assertNotSuggested('main');
     assertNotSuggested('baz');
     assertNotSuggested('print');
   }

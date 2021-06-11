@@ -355,9 +355,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('ConstructorName');
     _withIndent(() {
-      _writeNode('name', node.name);
-      _writeElement('staticElement', node.staticElement);
-      _writeNode('type', node.type);
+      var properties = _Properties();
+      properties.addNode('name', node.name);
+      properties.addToken('period', node.period);
+      properties.addElement('staticElement', node.staticElement);
+      properties.addNode('type', node.type);
+      _writeProperties(properties);
     });
   }
 
@@ -1143,7 +1146,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNode('argumentList', node.argumentList);
       _writeNode('constructorName', node.constructorName);
+      _writeToken('period', node.period);
       _writeElement('staticElement', node.staticElement);
+      _writeToken('thisKeyword', node.thisKeyword);
     });
   }
 
@@ -1169,6 +1174,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNodeList('elements', node.elements);
       properties.addRaw('isMap', node.isMap);
+      properties.addToken('leftBracket', node.leftBracket);
+      properties.addToken('rightBracket', node.rightBracket);
       _addTypedLiteral(properties, node);
       _writeProperties(properties);
     });
@@ -1223,7 +1230,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void visitSpreadElement(SpreadElement node) {
     _writeln('SpreadElement');
     _withIndent(() {
-      _writeNode('expressions', node.expression);
+      _writeNode('expression', node.expression);
       _writeToken('spreadOperator', node.spreadOperator);
     });
   }
@@ -1247,7 +1254,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNode('argumentList', node.argumentList);
       _writeNode('constructorName', node.constructorName);
+      _writeToken('period', node.period);
       _writeElement('staticElement', node.staticElement);
+      _writeToken('superKeyword', node.superKeyword);
     });
   }
 
@@ -1512,8 +1521,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   void _addAssertion(_Properties properties, Assertion node) {
+    properties.addToken('assertKeyword', node.assertKeyword);
     properties.addNode('condition', node.condition);
+    properties.addToken('leftParenthesis', node.leftParenthesis);
     properties.addNode('message', node.message);
+    properties.addToken('rightParenthesis', node.rightParenthesis);
     _addAstNode(properties, node);
   }
 

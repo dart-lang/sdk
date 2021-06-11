@@ -108,6 +108,8 @@ class BlockStack {
 
   bool IsEmpty();
 
+  Block* WaitForWork(RelaxedAtomic<uintptr_t>* num_busy);
+
  protected:
   class List {
    public:
@@ -126,6 +128,8 @@ class BlockStack {
     DISALLOW_COPY_AND_ASSIGN(List);
   };
 
+  bool IsEmptyLocked();
+
   // Adds and transfers ownership of the block to the buffer.
   void PushBlockImpl(Block* block);
 
@@ -134,7 +138,7 @@ class BlockStack {
 
   List full_;
   List partial_;
-  Mutex mutex_;
+  Monitor monitor_;
 
   // Note: This is shared on the basis of block size.
   static const intptr_t kMaxGlobalEmpty = 100;
@@ -189,6 +193,17 @@ class BlockWorkList : public ValueObject {
       local_output_ = stack_->PopEmptyBlock();
     }
     local_output_->Push(raw_obj);
+  }
+
+  bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
+    ASSERT(local_input_->IsEmpty());
+    Block* new_work = stack_->WaitForWork(num_busy);
+    if (new_work == NULL) {
+      return false;
+    }
+    stack_->PushBlock(local_input_);
+    local_input_ = new_work;
+    return true;
   }
 
   void Finalize() {

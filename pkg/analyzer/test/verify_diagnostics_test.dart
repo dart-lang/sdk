@@ -40,6 +40,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Has code in the example section that needs to be skipped (because it's

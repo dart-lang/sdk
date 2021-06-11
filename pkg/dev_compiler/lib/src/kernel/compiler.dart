@@ -2792,6 +2792,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // FutureOr<T?>? --> FutureOr<T?>
       return futureOr.withDeclaredNullability(Nullability.nonNullable);
     }
+    // The following is not part of the normalization spec but this is a
+    // convenient place to perform this change of nullability consistently. This
+    // only applies at compile-time and is not needed in the runtime version of
+    // the FutureOr normalization.
+    // FutureOr<T%>% --> FutureOr<T%>
+    //
+    // If the type argument has undetermined nullability the CFE propagates
+    // it to the FutureOr type as well. In this case we can represent the
+    // FutureOr type without any nullability wrappers and rely on the runtime to
+    // handle the nullability of the instantiated type appropriately.
+    if (futureOr.nullability == Nullability.undetermined &&
+        typeArgument.nullability == Nullability.undetermined) {
+      return futureOr.withDeclaredNullability(Nullability.nonNullable);
+    }
     return futureOr;
   }
 

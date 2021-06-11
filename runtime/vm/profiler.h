@@ -386,7 +386,7 @@ class Sample {
     set_metadata(cid);
   }
 
-  static constexpr int kPCArraySizeInWords = 8;
+  static constexpr int kPCArraySizeInWords = 32;
   uword* GetPCArray() { return &pc_array_[0]; }
 
   static constexpr int kStackBufferSizeInWords = 2;
