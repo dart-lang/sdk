@@ -124,6 +124,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
 class CompilationUnitElementLinkedData
     extends ElementLinkedData<CompilationUnitElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   CompilationUnitElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -136,6 +138,7 @@ class CompilationUnitElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -368,6 +371,8 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
 }
 
 class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   LibraryElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -402,6 +407,8 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     }
 
     element.entryPoint = reader.readElement() as FunctionElement?;
+
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -1762,6 +1769,8 @@ class TopLevelVariableElementLinkedData
 
 class TypeAliasElementLinkedData
     extends ElementLinkedData<TypeAliasElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   TypeAliasElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -1777,6 +1786,7 @@ class TypeAliasElementLinkedData
     _readTypeParameters(reader, element.typeParameters);
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();
+    applyConstantOffsets?.perform();
   }
 }
 

@@ -5263,14 +5263,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @79
+              rightParenthesis: ) @80
+            atSign.offset: 72
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @73
         codeOffset: 72
         codeLength: 34
         aliasedType: dynamic Function()
@@ -5281,14 +5281,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @115
+              rightParenthesis: ) @116
+            atSign.offset: 108
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @109
         codeOffset: 108
         codeLength: 72
         aliasedType: dynamic Function()
@@ -5299,14 +5299,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @219
+              rightParenthesis: ) @220
+            atSign.offset: 212
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @213
         codeOffset: 182
         codeLength: 72
         aliasedType: dynamic Function()
@@ -5317,14 +5317,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @278
+              rightParenthesis: ) @279
+            atSign.offset: 271
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @272
         codeOffset: 271
         codeLength: 59
         aliasedType: dynamic Function()
@@ -5383,14 +5383,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @101
+              rightParenthesis: ) @102
+            atSign.offset: 94
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @95
         codeOffset: 94
         codeLength: 45
         aliasedType: dynamic Function()
@@ -5401,14 +5401,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @148
+              rightParenthesis: ) @149
+            atSign.offset: 141
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @142
         codeOffset: 141
         codeLength: 83
         aliasedType: dynamic Function()
@@ -5419,14 +5419,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @263
+              rightParenthesis: ) @264
+            atSign.offset: 256
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @257
         codeOffset: 226
         codeLength: 83
         aliasedType: dynamic Function()
@@ -5437,14 +5437,14 @@ library
         metadata
           Annotation
             arguments: ArgumentList
-              leftParenthesis: ( @0
-              rightParenthesis: ) @0
-            atSign.offset: 0
+              leftParenthesis: ( @333
+              rightParenthesis: ) @334
+            atSign.offset: 326
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
               staticType: null
-              token: Object @-1
+              token: Object @327
         codeOffset: 326
         codeLength: 70
         aliasedType: dynamic Function()
@@ -23033,12 +23033,12 @@ library
       functionTypeAliasBased F @27
         metadata
           Annotation
-            atSign.offset: 0
+            atSign.offset: 16
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
               staticType: null
-              token: a @-1
+              token: a @17
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
@@ -23137,19 +23137,19 @@ library
       F @46
         metadata
           Annotation
-            atSign.offset: 0
+            atSign.offset: 32
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
               staticType: null
-              token: a @-1
+              token: a @33
           Annotation
-            atSign.offset: 0
+            atSign.offset: 35
             element: self::@getter::b
             name: SimpleIdentifier
               staticElement: self::@getter::b
               staticType: null
-              token: b @-1
+              token: b @36
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: void
@@ -23274,12 +23274,12 @@ library
               type: int
               metadata
                 Annotation
-                  atSign.offset: 0
+                  atSign.offset: 40
                   element: self::@getter::a
                   name: SimpleIdentifier
                     staticElement: self::@getter::a
                     staticType: null
-                    token: a @-1
+                    token: a @41
           returnType: void
     topLevelVariables
       static const a @6
@@ -23350,12 +23350,12 @@ library
             covariant T @-1
               metadata
                 Annotation
-                  atSign.offset: 0
+                  atSign.offset: 40
                   element: self::@getter::a
                   name: SimpleIdentifier
                     staticElement: self::@getter::a
                     staticType: null
-                    token: a @-1
+                    token: a @41
           parameters
             requiredPositional first @-1
               type: int
@@ -23419,7 +23419,7 @@ library
       name: SimpleIdentifier
         staticElement: self::@getter::a
         staticType: null
-        token: a @-1
+        token: a @1
   definingUnit
     topLevelVariables
       static const a @20
@@ -24206,10 +24206,13 @@ const foo = 0;
 
 class A {
   @foo
-  static isNotConst = 1;
+  static isStatic = 1;
 
   @foo
-  static const isConst = 2;
+  static const isStaticConst = 2;
+
+  @foo
+  var isInstance = 3;
 }
 ''');
     checkElementText(library, r'''
@@ -24218,7 +24221,7 @@ library
     classes
       class A @22
         fields
-          static isNotConst @42
+          static isStatic @42
             metadata
               Annotation
                 atSign.offset: 28
@@ -24228,32 +24231,49 @@ library
                   staticType: null
                   token: foo @29
             type: int
-          static const isConst @81
+          static const isStaticConst @79
             metadata
               Annotation
-                atSign.offset: 61
+                atSign.offset: 59
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @62
+                  token: foo @60
             type: int
             constantInitializer
               IntegerLiteral
-                literal: 2 @91
+                literal: 2 @95
                 staticType: int
+          isInstance @112
+            metadata
+              Annotation
+                atSign.offset: 101
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @102
+            type: int
         constructors
           synthetic @-1
         accessors
-          synthetic static get isNotConst @42
+          synthetic static get isStatic @42
             returnType: int
-          synthetic static set isNotConst @42
+          synthetic static set isStatic @42
             parameters
-              requiredPositional _isNotConst @42
+              requiredPositional _isStatic @42
                 type: int
             returnType: void
-          synthetic static get isConst @81
+          synthetic static get isStaticConst @79
             returnType: int
+          synthetic get isInstance @112
+            returnType: int
+          synthetic set isInstance @112
+            parameters
+              requiredPositional _isInstance @112
+                type: int
+            returnType: void
     topLevelVariables
       static const foo @6
         type: int
@@ -24263,6 +24283,41 @@ library
             staticType: int
     accessors
       synthetic static get foo @6
+        returnType: int
+''');
+  }
+
+  test_metadata_offsets_onLibrary() async {
+    var library = await checkLibrary('''
+/// Some documentation.
+@foo
+library my.lib;
+
+const foo = 0;
+''');
+    checkElementText(library, r'''
+library
+  name: my.lib
+  nameOffset: 37
+  documentationComment: /// Some documentation.
+  metadata
+    Annotation
+      atSign.offset: 24
+      element: self::@getter::foo
+      name: SimpleIdentifier
+        staticElement: self::@getter::foo
+        staticType: null
+        token: foo @25
+  definingUnit
+    topLevelVariables
+      static const foo @52
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @58
+            staticType: int
+    accessors
+      synthetic static get foo @52
         returnType: int
 ''');
   }
@@ -24312,6 +24367,189 @@ library
     accessors
       synthetic static get foo @6
         returnType: int
+''');
+  }
+
+  test_metadata_offsets_onTypeAlias_classic() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+typedef void F<@foo T>(@foo int a);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased F @34
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          unrelated T @41
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 36
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @37
+        aliasedType: void Function(int)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional a @-1
+              type: int
+              metadata
+                Annotation
+                  atSign.offset: 44
+                  element: self::@getter::foo
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::foo
+                    staticType: null
+                    token: foo @45
+          returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
+  }
+
+  test_metadata_offsets_onTypeAlias_genericFunctionType() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+typedef A<@foo T> = void Function<@foo U>(@foo int a);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @29
+        metadata
+          Annotation
+            atSign.offset: 16
+            element: self::@getter::foo
+            name: SimpleIdentifier
+              staticElement: self::@getter::foo
+              staticType: null
+              token: foo @17
+        typeParameters
+          unrelated T @36
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign.offset: 31
+                element: self::@getter::foo
+                name: SimpleIdentifier
+                  staticElement: self::@getter::foo
+                  staticType: null
+                  token: foo @32
+        aliasedType: void Function<U>(int)
+        aliasedElement: GenericFunctionTypeElement
+          typeParameters
+            covariant U @-1
+              metadata
+                Annotation
+                  atSign.offset: 55
+                  element: self::@getter::foo
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::foo
+                    staticType: null
+                    token: foo @56
+          parameters
+            requiredPositional a @-1
+              type: int
+              metadata
+                Annotation
+                  atSign.offset: 63
+                  element: self::@getter::foo
+                  name: SimpleIdentifier
+                    staticElement: self::@getter::foo
+                    staticType: null
+                    token: foo @64
+          returnType: void
+    topLevelVariables
+      static const foo @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @12
+            staticType: int
+    accessors
+      synthetic static get foo @6
+        returnType: int
+''');
+  }
+
+  test_metadata_offsets_onUnit() async {
+    addSource('/a.dart', '''
+part of my.lib;
+''');
+
+    addSource('/b.dart', '''
+part of my.lib;
+''');
+
+    var library = await checkLibrary('''
+library my.lib;
+
+@foo
+part 'a.dart';
+
+@foo
+part 'b.dart';
+
+const foo = 0;
+''');
+    checkElementText(library, r'''
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+    topLevelVariables
+      static const foo @65
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @71
+            staticType: int
+    accessors
+      synthetic static get foo @65
+        returnType: int
+  parts
+    a.dart
+      metadata
+        Annotation
+          atSign.offset: 17
+          element: self::@getter::foo
+          name: SimpleIdentifier
+            staticElement: self::@getter::foo
+            staticType: null
+            token: foo @18
+    b.dart
+      metadata
+        Annotation
+          atSign.offset: 38
+          element: self::@getter::foo
+          name: SimpleIdentifier
+            staticElement: self::@getter::foo
+            staticType: null
+            token: foo @39
 ''');
   }
 
@@ -24542,12 +24780,12 @@ library
     foo.dart
       metadata
         Annotation
-          atSign.offset: 0
+          atSign.offset: 11
           element: self::@getter::a
           name: SimpleIdentifier
             staticElement: self::@getter::a
             staticType: null
-            token: a @-1
+            token: a @12
 ''');
   }
 
@@ -24910,12 +25148,12 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 0
+                atSign.offset: 26
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @-1
+                  token: a @27
         aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
