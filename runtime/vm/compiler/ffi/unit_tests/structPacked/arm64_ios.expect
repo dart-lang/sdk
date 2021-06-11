@@ -9,7 +9,7 @@ S+48 Struct(size: 9)
 S+64 Struct(size: 9)
 S+80 Struct(size: 9)
 v0 double
-S+92 int32
 S+96 int32
+S+100 int32
 =>
 v0 double
