@@ -413,6 +413,11 @@ class InformativeDataApplier {
       element.typeParameters_unresolved,
       info.typeParameters,
     );
+
+    _setupApplyConstantOffsetsForTypeAlias(
+      element,
+      info.constantOffsets,
+    );
   }
 
   void _applyToGenericTypeAlias(
@@ -426,6 +431,11 @@ class InformativeDataApplier {
     _applyToTypeParameters(
       element.typeParameters_unresolved,
       info.typeParameters,
+    );
+
+    _setupApplyConstantOffsetsForTypeAlias(
+      element,
+      info.constantOffsets,
     );
   }
 
@@ -460,6 +470,29 @@ class InformativeDataApplier {
         element as ExportElementImpl;
         element.nameOffset = info.nameOffset;
         _applyToCombinators(element.combinators, info.combinators);
+      },
+    );
+
+    forCorrespondingPairs<CompilationUnitElement, _InfoPart>(
+      element.parts,
+      info.parts,
+      (element, info) {
+        element as CompilationUnitElementImpl;
+        var linkedData = element.linkedData as CompilationUnitElementLinkedData;
+        linkedData.applyConstantOffsets = ApplyConstantOffsets(
+          info.constantOffsets,
+          (applier) {
+            applier.applyToMetadata(element);
+          },
+        );
+      },
+    );
+
+    var linkedData = element.linkedData as LibraryElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.libraryConstantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
       },
     );
   }
@@ -559,6 +592,26 @@ class InformativeDataApplier {
         element as TypeParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
+      },
+    );
+  }
+
+  void _setupApplyConstantOffsetsForTypeAlias(
+    TypeAliasElementImpl element,
+    Uint32List constantOffsets,
+  ) {
+    var linkedData = element.linkedData as TypeAliasElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+
+        var aliasedElement = element.aliasedElement;
+        if (aliasedElement is FunctionTypedElementImpl) {
+          applier.applyToTypeParameters(aliasedElement.typeParameters);
+          applier.applyToFormalParameters(aliasedElement);
+        }
       },
     );
   }
@@ -873,6 +926,7 @@ class _InfoFunctionTypeAlias {
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
+  final Uint32List constantOffsets;
 
   factory _InfoFunctionTypeAlias(SummaryDataReader reader) {
     return _InfoFunctionTypeAlias._(
@@ -886,6 +940,7 @@ class _InfoFunctionTypeAlias {
       parameters: reader.readTypedList(
         () => _InfoFormalParameter(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -896,6 +951,7 @@ class _InfoFunctionTypeAlias {
     required this.documentationComment,
     required this.typeParameters,
     required this.parameters,
+    required this.constantOffsets,
   });
 }
 
@@ -905,6 +961,7 @@ class _InfoGenericTypeAlias {
   final int nameOffset;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
+  final Uint32List constantOffsets;
 
   factory _InfoGenericTypeAlias(SummaryDataReader reader) {
     return _InfoGenericTypeAlias._(
@@ -915,6 +972,7 @@ class _InfoGenericTypeAlias {
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
       ),
+      constantOffsets: reader.readUInt30List(),
     );
   }
 
@@ -924,6 +982,7 @@ class _InfoGenericTypeAlias {
     required this.nameOffset,
     required this.documentationComment,
     required this.typeParameters,
+    required this.constantOffsets,
   });
 }
 
@@ -1002,6 +1061,20 @@ class _InfoMethodDeclaration {
   });
 }
 
+class _InfoPart {
+  final Uint32List constantOffsets;
+
+  factory _InfoPart(SummaryDataReader reader) {
+    return _InfoPart._(
+      constantOffsets: reader.readUInt30List(),
+    );
+  }
+
+  _InfoPart._({
+    required this.constantOffsets,
+  });
+}
+
 class _InformativeDataWriter {
   final BufferedSink sink;
 
@@ -1027,6 +1100,12 @@ class _InformativeDataWriter {
     sink.writeList2<ExportDirective>(unit.directives, (directive) {
       sink.writeUInt30(directive.keyword.offset);
       _writeCombinators(directive.combinators);
+    });
+
+    sink.writeList2<PartDirective>(unit.directives, (node) {
+      _writeOffsets(
+        metadata: node.metadata,
+      );
     });
 
     sink.writeList2<ClassDeclaration>(unit.declarations, (node) {
@@ -1134,6 +1213,11 @@ class _InformativeDataWriter {
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeFormalParameters(node.parameters);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+        formalParameters: node.parameters,
+      );
     });
 
     sink.writeList2<GenericTypeAlias>(unit.declarations, (node) {
@@ -1142,6 +1226,11 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
+      _writeOffsets(
+        metadata: node.metadata,
+        typeParameters: node.typeParameters,
+        aliasedType: node.type,
+      );
     });
 
     sink.writeList2<MixinDeclaration>(unit.declarations, (node) {
@@ -1278,15 +1367,20 @@ class _InformativeDataWriter {
   void _writeLibraryName(CompilationUnit unit) {
     var nameOffset = -1;
     var nameLength = 0;
+    NodeList<Annotation>? metadata;
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         nameOffset = directive.name.offset;
         nameLength = directive.name.length;
+        metadata = directive.metadata;
         break;
       }
     }
     sink.writeUInt30(1 + nameOffset);
     sink.writeUInt30(nameLength);
+    _writeOffsets(
+      metadata: metadata,
+    );
   }
 
   void _writeMethods(List<ClassMember> members) {
@@ -1314,36 +1408,46 @@ class _InformativeDataWriter {
   void _writeOffsets({
     NodeList<Annotation>? metadata,
     TypeParameterList? typeParameters,
-    Expression? constantInitializer,
-    List<EnumConstantDeclaration>? enumConstants,
     FormalParameterList? formalParameters,
-    List<ConstructorInitializer>? constructorInitializers,
+    Expression? constantInitializer,
+    NodeList<ConstructorInitializer>? constructorInitializers,
+    NodeList<EnumConstantDeclaration>? enumConstants,
+    TypeAnnotation? aliasedType,
   }) {
     var collector = _OffsetsCollector();
-    metadata?.accept(collector);
-    if (typeParameters != null) {
-      for (var typeParameter in typeParameters.typeParameters) {
-        typeParameter.metadata.accept(collector);
+
+    void addTypeParameters(TypeParameterList? typeParameters) {
+      if (typeParameters != null) {
+        for (var typeParameter in typeParameters.typeParameters) {
+          typeParameter.metadata.accept(collector);
+        }
       }
     }
+
+    void addFormalParameters(FormalParameterList? formalParameters) {
+      if (formalParameters != null) {
+        for (var parameter in formalParameters.parameters) {
+          parameter.metadata.accept(collector);
+          if (parameter is DefaultFormalParameter) {
+            parameter.defaultValue?.accept(collector);
+          }
+        }
+      }
+    }
+
+    metadata?.accept(collector);
+    addTypeParameters(typeParameters);
+    addFormalParameters(formalParameters);
     constantInitializer?.accept(collector);
+    constructorInitializers?.accept(collector);
     if (enumConstants != null) {
       for (var enumConstant in enumConstants) {
         enumConstant.metadata.accept(collector);
       }
     }
-    if (formalParameters != null) {
-      for (var parameter in formalParameters.parameters) {
-        parameter.metadata.accept(collector);
-        if (parameter is DefaultFormalParameter) {
-          parameter.defaultValue?.accept(collector);
-        }
-      }
-    }
-    if (constructorInitializers != null) {
-      for (var constructorInitializer in constructorInitializers) {
-        constructorInitializer.accept(collector);
-      }
+    if (aliasedType is GenericFunctionType) {
+      addTypeParameters(aliasedType.typeParameters);
+      addFormalParameters(aliasedType.parameters);
     }
     sink.writeUint30List(collector.offsets);
   }
@@ -1425,9 +1529,11 @@ class _InfoUnit {
   final int codeLength;
   final List<int> lineStarts;
   final _InfoLibraryName libraryName;
+  final Uint32List libraryConstantOffsets;
   final String docComment;
   final List<_InfoImport> imports;
   final List<_InfoExport> exports;
+  final List<_InfoPart> parts;
   final List<_InfoClassDeclaration> classDeclarations;
   final List<_InfoClassTypeAlias> classTypeAliases;
   final List<_InfoEnumDeclaration> enums;
@@ -1445,12 +1551,16 @@ class _InfoUnit {
       codeLength: reader.readUInt30(),
       lineStarts: reader.readUInt30List(),
       libraryName: _InfoLibraryName(reader),
+      libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
       imports: reader.readTypedList(
         () => _InfoImport(reader),
       ),
       exports: reader.readTypedList(
         () => _InfoExport(reader),
+      ),
+      parts: reader.readTypedList(
+        () => _InfoPart(reader),
       ),
       classDeclarations: reader.readTypedList(
         () => _InfoClassDeclaration(reader),
@@ -1490,9 +1600,11 @@ class _InfoUnit {
     required this.codeLength,
     required this.lineStarts,
     required this.libraryName,
+    required this.libraryConstantOffsets,
     required this.docComment,
     required this.imports,
     required this.exports,
+    required this.parts,
     required this.classDeclarations,
     required this.classTypeAliases,
     required this.enums,
@@ -1532,7 +1644,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToFormalParameters(ExecutableElement element) {
+  void applyToFormalParameters(FunctionTypedElement element) {
     for (var parameter in element.parameters) {
       applyToMetadata(parameter);
       applyToConstantInitializer(parameter);
