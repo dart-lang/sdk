@@ -177,14 +177,6 @@ class _ElementWriter {
     expect(element.nonSynthetic, same(element));
   }
 
-  void _assertNonSyntheticElementSelfOr(Element element, Element ifSynthetic) {
-    if (element.isSynthetic) {
-      expect(element.nonSynthetic, same(ifSynthetic));
-    } else {
-      expect(element.nonSynthetic, same(element));
-    }
-  }
-
   /// Assert that the [accessor] of the [property] is correctly linked to
   /// the same enclosing element as the [property].
   void _assertSyntheticAccessorEnclosing(
@@ -398,7 +390,13 @@ class _ElementWriter {
 
     expect(e.isAsynchronous, isFalse);
     expect(e.isGenerator, isFalse);
-    _assertNonSyntheticElementSelfOr(e, e.enclosingElement);
+
+    if (e.isSynthetic) {
+      expect(e.nameOffset, -1);
+      expect(e.nonSynthetic, same(e.enclosingElement));
+    } else {
+      expect(e.nameOffset, isPositive);
+    }
   }
 
   void _writeDocumentation(Element element) {
@@ -668,7 +666,10 @@ class _ElementWriter {
       }
     }
 
-    if (!e.isSynthetic) {
+    if (e.isSynthetic) {
+      expect(e.nameOffset, -1);
+    } else {
+      expect(e.nameOffset, isPositive);
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -704,7 +705,9 @@ class _ElementWriter {
     DartType type = e.type;
     expect(type, isNotNull);
 
-    if (!e.isSynthetic) {
+    if (e.isSynthetic) {
+      expect(e.nameOffset, -1);
+    } else {
       expect(e.getter, isNotNull);
       _assertSyntheticAccessorEnclosing(e, e.getter!);
 
@@ -712,6 +715,7 @@ class _ElementWriter {
         _assertSyntheticAccessorEnclosing(e, e.setter!);
       }
 
+      expect(e.nameOffset, isPositive);
       _assertNonSyntheticElementSelf(e);
     }
 
