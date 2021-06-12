@@ -191,7 +191,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   {
     SafepointWriteRwLocker locker(thread,
                                   thread->isolate_group()->program_lock());
-    thread->isolate_group()->RegisterStaticField(field, Instance::Handle());
+    thread->isolate_group()->RegisterStaticField(field, Object::Handle());
   }
 
   FlowGraphBuilderHelper H;

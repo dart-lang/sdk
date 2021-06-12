@@ -49,7 +49,7 @@ void FieldTable::FreeOldTables() {
 }
 
 intptr_t FieldTable::FieldOffsetFor(intptr_t field_id) {
-  return field_id * sizeof(InstancePtr);  // NOLINT
+  return field_id * sizeof(ObjectPtr);  // NOLINT
 }
 
 bool FieldTable::Register(const Field& field, intptr_t expected_field_id) {
@@ -88,7 +88,7 @@ void FieldTable::Free(intptr_t field_id) {
   free_head_ = field_id;
 }
 
-void FieldTable::SetAt(intptr_t index, InstancePtr raw_instance) {
+void FieldTable::SetAt(intptr_t index, ObjectPtr raw_instance) {
   ASSERT(index < capacity_);
   table_[index] = raw_instance;
 }
@@ -99,7 +99,7 @@ void FieldTable::AllocateIndex(intptr_t index) {
     Grow(new_capacity);
   }
 
-  ASSERT(table_[index] == InstancePtr());
+  ASSERT(table_[index] == ObjectPtr());
   if (index >= top_) {
     top_ = index + 1;
   }
@@ -109,14 +109,14 @@ void FieldTable::Grow(intptr_t new_capacity) {
   ASSERT(new_capacity > capacity_);
 
   auto old_table = table_;
-  auto new_table = static_cast<InstancePtr*>(
-      malloc(new_capacity * sizeof(InstancePtr)));  // NOLINT
+  auto new_table = static_cast<ObjectPtr*>(
+      malloc(new_capacity * sizeof(ObjectPtr)));  // NOLINT
   intptr_t i;
   for (i = 0; i < top_; i++) {
     new_table[i] = old_table[i];
   }
   for (; i < new_capacity; i++) {
-    new_table[i] = InstancePtr();
+    new_table[i] = ObjectPtr();
   }
   capacity_ = new_capacity;
   old_tables_->Add(old_table);
@@ -134,9 +134,9 @@ FieldTable* FieldTable::Clone(Isolate* for_isolate) {
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
 
   FieldTable* clone = new FieldTable(for_isolate);
-  auto new_table = static_cast<InstancePtr*>(
-      malloc(capacity_ * sizeof(InstancePtr)));  // NOLINT
-  memmove(new_table, table_, capacity_ * sizeof(InstancePtr));
+  auto new_table =
+      static_cast<ObjectPtr*>(malloc(capacity_ * sizeof(ObjectPtr)));  // NOLINT
+  memmove(new_table, table_, capacity_ * sizeof(ObjectPtr));
   ASSERT(clone->table_ == nullptr);
   clone->table_ = new_table;
   clone->capacity_ = capacity_;
@@ -153,8 +153,7 @@ void FieldTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
   ASSERT(visitor != NULL);
   visitor->set_gc_root_type("static fields table");
-  visitor->VisitPointers(reinterpret_cast<ObjectPtr*>(&table_[0]),
-                         reinterpret_cast<ObjectPtr*>(&table_[top_ - 1]));
+  visitor->VisitPointers(&table_[0], &table_[top_ - 1]);
   visitor->clear_gc_root_type();
 }
 

@@ -2277,6 +2277,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
   auto& members = Array::Handle(Z);
   auto& constants = Array::Handle(Z);
   auto& retained_constants = GrowableObjectArray::Handle(Z);
+  auto& obj = Object::Handle(Z);
   auto& constant = Instance::Handle(Z);
 
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
@@ -2308,7 +2309,12 @@ void Precompiler::TraceTypesFromRetainedClasses() {
       retained_constants = GrowableObjectArray::New();
       if (!constants.IsNull()) {
         for (intptr_t j = 0; j < constants.Length(); j++) {
-          constant ^= constants.At(j);
+          obj = constants.At(j);
+          if ((obj.ptr() == HashTableBase::UnusedMarker().ptr()) ||
+              (obj.ptr() == HashTableBase::DeletedMarker().ptr())) {
+            continue;
+          }
+          constant ^= obj.ptr();
           bool retain = consts_to_retain_.HasKey(&constant);
           if (retain) {
             retained_constants.Add(constant);

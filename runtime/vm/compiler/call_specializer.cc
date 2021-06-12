@@ -140,8 +140,13 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   if (all_cids_known) {
+    const intptr_t receiver_cid = class_ids[0];
+    if (receiver_cid == kSentinelCid) {
+      // Unreachable call.
+      return false;
+    }
     const Class& receiver_class =
-        Class::Handle(Z, IG->class_table()->At(class_ids[0]));
+        Class::Handle(Z, IG->class_table()->At(receiver_cid));
     if (!receiver_class.is_finalized()) {
       // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
       // cause class finalization, since callee's receiver class may not be

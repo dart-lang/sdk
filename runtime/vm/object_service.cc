@@ -403,7 +403,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
   if (is_static()) {
-    const Instance& valueObj = Instance::Handle(StaticValue());
+    const Object& valueObj = Object::Handle(StaticValue());
     jsobj.AddProperty("staticValue", valueObj);
   }
 
@@ -932,6 +932,25 @@ void ContextScope::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void Sentinel::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // Handle certain special sentinel values.
+  if (ptr() == Object::sentinel().ptr()) {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", "Sentinel");
+    jsobj.AddProperty("kind", "NotInitialized");
+    jsobj.AddProperty("valueAsString", "<not initialized>");
+    return;
+  } else if (ptr() == Object::transition_sentinel().ptr()) {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", "Sentinel");
+    jsobj.AddProperty("kind", "BeingInitialized");
+    jsobj.AddProperty("valueAsString", "<being initialized>");
+    return;
+  }
+
+  Object::PrintJSONImpl(stream, ref);
+}
+
 void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -1074,19 +1093,6 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
 
 void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-
-  // Handle certain special instance values.
-  if (ptr() == Object::sentinel().ptr()) {
-    jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddProperty("kind", "NotInitialized");
-    jsobj.AddProperty("valueAsString", "<not initialized>");
-    return;
-  } else if (ptr() == Object::transition_sentinel().ptr()) {
-    jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddProperty("kind", "BeingInitialized");
-    jsobj.AddProperty("valueAsString", "<being initialized>");
-    return;
-  }
 
   PrintSharedInstanceJSON(&jsobj, ref);
   // TODO(regis): Wouldn't it be simpler to provide a Closure::PrintJSONImpl()?

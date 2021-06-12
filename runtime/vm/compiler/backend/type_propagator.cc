@@ -739,8 +739,8 @@ intptr_t CompileType::ToCid() {
       cid_ = kNullCid;
     }
     // Same for sentinel.
-    if ((type_ != NULL) && type_->IsNeverType()) {
-      cid_ = kNeverCid;
+    if ((type_ != NULL) && type_->IsSentinelType()) {
+      cid_ = kSentinelCid;
     }
   }
 
@@ -761,8 +761,8 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kDynamicCid;
     } else if (type_->IsNullType()) {
       cid_ = kNullCid;
-    } else if (type_->IsNeverType()) {
-      cid_ = kNeverCid;
+    } else if (type_->IsSentinelType()) {
+      cid_ = kSentinelCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
     } else if (type_->type_class_id() != kIllegalCid) {
@@ -1514,7 +1514,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());
   TraceStrongModeType(this, *abstract_type);
   ASSERT(field.is_static());
-  auto& obj = Instance::Handle();
+  auto& obj = Object::Handle();
   const bool is_initialized = IsFieldInitialized(&obj);
   if (field.is_final() && is_initialized) {
     if (!obj.IsNull()) {

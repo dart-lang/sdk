@@ -584,6 +584,7 @@ VARIABLE_COMPRESSED_VISITOR(
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
+NULL_VISITOR(Sentinel)
 VARIABLE_VISITOR(InstructionsTable, raw_obj->untag()->length_)
 NULL_VISITOR(Mint)
 NULL_VISITOR(Double)

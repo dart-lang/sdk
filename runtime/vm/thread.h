@@ -1043,7 +1043,7 @@ class Thread : public ThreadState {
   // is important for code size (although code size on X64 is not a priority).
   uword saved_stack_limit_;
   uword stack_overflow_flags_;
-  InstancePtr* field_table_values_;
+  ObjectPtr* field_table_values_;
   Heap* heap_;
   uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
@@ -1133,7 +1133,7 @@ class Thread : public ThreadState {
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
 
-  InstancePtr* field_table_values() const { return field_table_values_; }
+  ObjectPtr* field_table_values() const { return field_table_values_; }
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;

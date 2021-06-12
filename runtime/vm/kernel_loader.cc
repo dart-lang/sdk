@@ -213,7 +213,7 @@ KernelLoader::KernelLoader(Program* program,
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
-      static_field_value_(Instance::Handle(Z)),
+      static_field_value_(Object::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -483,7 +483,7 @@ KernelLoader::KernelLoader(const Script& script,
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
-      static_field_value_(Instance::Handle(Z)),
+      static_field_value_(Object::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -1628,7 +1628,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      /* is_reflectable = */ false,
                      /* is_late = */ false, klass, Object::dynamic_type(),
                      TokenPosition::kNoSource, TokenPosition::kNoSource);
-      IG->RegisterStaticField(deleted_enum_sentinel, Instance::Handle());
+      IG->RegisterStaticField(deleted_enum_sentinel, Object::Handle());
       fields_.Add(&deleted_enum_sentinel);
     }
 
@@ -2159,9 +2159,9 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   return script.ptr();
 }
 
-InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
-                                                 const Field& field,
-                                                 FieldHelper* field_helper) {
+ObjectPtr KernelLoader::GenerateFieldAccessors(const Class& klass,
+                                               const Field& field,
+                                               FieldHelper* field_helper) {
   const Tag tag = helper_.PeekTag();
   const bool has_initializer = (tag == kSomething);
 
@@ -2255,8 +2255,7 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
 
   // If static, we do need a getter that evaluates the initializer if necessary.
-  return field_helper->IsStatic() ? Instance::sentinel().ptr()
-                                  : Instance::null();
+  return field_helper->IsStatic() ? Object::sentinel().ptr() : Object::null();
 }
 
 LibraryPtr KernelLoader::LookupLibraryOrNull(NameIndex library) {

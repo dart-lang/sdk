@@ -3035,7 +3035,7 @@ static FieldPtr CreateTestField(const char* name) {
   {
     SafepointWriteRwLocker locker(thread,
                                   thread->isolate_group()->program_lock());
-    thread->isolate_group()->RegisterStaticField(field, Instance::sentinel());
+    thread->isolate_group()->RegisterStaticField(field, Object::sentinel());
   }
   return field.ptr();
 }

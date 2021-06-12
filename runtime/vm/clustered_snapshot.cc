@@ -570,11 +570,7 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
   void WriteCanonicalSetLayout(Serializer* s) {
     if (represents_canonical_set_) {
       s->WriteUnsigned(table_length_);
-      if (kAllCanonicalObjectsAreIncludedIntoSet) {
-        ASSERT(objects_.length() == gaps_.length());
-      } else {
-        s->WriteUnsigned(objects_.length() - gaps_.length());
-      }
+      s->WriteUnsigned(objects_.length() - gaps_.length());
       for (auto gap : gaps_) {
         s->WriteUnsigned(gap);
       }
@@ -608,8 +604,7 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
     }
 
     const auto table_length = d->ReadUnsigned();
-    first_element_ =
-        kAllCanonicalObjectsAreIncludedIntoSet ? 0 : d->ReadUnsigned();
+    first_element_ = d->ReadUnsigned();
     const intptr_t count = stop_index_ - (start_index_ + first_element_);
     auto table = StartDeserialization(d, table_length, count);
     for (intptr_t i = start_index_ + first_element_; i < stop_index_; i++) {

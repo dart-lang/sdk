@@ -2110,7 +2110,8 @@ class FieldInvalidator {
       : cls_(Class::Handle(zone)),
         cls_fields_(Array::Handle(zone)),
         entry_(Object::Handle(zone)),
-        value_(Instance::Handle(zone)),
+        value_(Object::Handle(zone)),
+        instance_(Instance::Handle(zone)),
         type_(AbstractType::Handle(zone)),
         cache_(SubtypeTestCache::Handle(zone)),
         entries_(Array::Handle(zone)),
@@ -2186,7 +2187,7 @@ class FieldInvalidator {
     if (field.needs_load_guard()) {
       return;  // Already guarding.
     }
-    value_ ^= instance.GetField(field);
+    value_ = instance.GetField(field);
     if (value_.ptr() == Object::sentinel().ptr()) {
       if (field.is_late()) {
         // Late fields already have lazy initialization logic.
@@ -2202,8 +2203,9 @@ class FieldInvalidator {
 
   DART_FORCE_INLINE
   void CheckValueType(bool null_safety,
-                      const Instance& value,
+                      const Object& value,
                       const Field& field) {
+    ASSERT(!value.IsSentinel());
     if (!null_safety && value.IsNull()) {
       return;
     }
@@ -2225,7 +2227,7 @@ class FieldInvalidator {
     } else {
       instance_cid_or_signature_ = Smi::New(cid);
       if (cls_.NumTypeArguments() > 0) {
-        instance_type_arguments_ = value_.GetTypeArguments();
+        instance_type_arguments_ = Instance::Cast(value).GetTypeArguments();
       } else {
         instance_type_arguments_ = TypeArguments::null();
       }
@@ -2270,8 +2272,9 @@ class FieldInvalidator {
     }
 
     if (!cache_hit) {
-      if (!value.IsAssignableTo(type_, instantiator_type_arguments_,
-                                function_type_arguments_)) {
+      instance_ ^= value.ptr();
+      if (!instance_.IsAssignableTo(type_, instantiator_type_arguments_,
+                                    function_type_arguments_)) {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {
@@ -2287,7 +2290,8 @@ class FieldInvalidator {
   Class& cls_;
   Array& cls_fields_;
   Object& entry_;
-  Instance& value_;
+  Object& value_;
+  Instance& instance_;
   AbstractType& type_;
   SubtypeTestCache& cache_;
   Array& entries_;
