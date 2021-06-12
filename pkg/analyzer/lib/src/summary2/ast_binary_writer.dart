@@ -425,6 +425,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     _writeByte(Tag.InterpolationString);
+    _writeStringReference(node.contents.lexeme);
     _writeStringReference(node.value);
   }
 
