@@ -99,9 +99,11 @@ class DapTestClient {
     final responses = await Future.wait([
       event('initialized'),
       sendRequest(InitializeRequestArguments(adapterID: 'test')),
-      // TODO(dantup): Support setting exception pause modes.
-      // sendRequest(
-      //     SetExceptionBreakpointsArguments(filters: [exceptionPauseMode])),
+      sendRequest(
+        SetExceptionBreakpointsArguments(
+          filters: [exceptionPauseMode],
+        ),
+      ),
     ]);
     await sendRequest(ConfigurationDoneArguments());
     return responses[1] as Response; // Return the initialize response.
@@ -145,6 +147,15 @@ class DapTestClient {
   /// response.
   Future<Response> next(int threadId) =>
       sendRequest(NextArguments(threadId: threadId));
+
+  /// Sends a request to the server for variables scopes available for a given
+  /// stack frame.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> scopes(int frameId) {
+    return sendRequest(ScopesArguments(frameId: frameId));
+  }
 
   /// Sends an arbitrary request to the server.
   ///
@@ -196,6 +207,27 @@ class DapTestClient {
   }
 
   Future<Response> terminate() => sendRequest(TerminateArguments());
+
+  /// Sends a request for child variables (fields/list elements/etc.) for the
+  /// variable with reference [variablesReference].
+  ///
+  /// If [start] and/or [count] are supplied, only a slice of the variables will
+  /// be returned. This is used to allow the client to page through large Lists
+  /// or Maps without needing all of the data immediately.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> variables(
+    int variablesReference, {
+    int? start,
+    int? count,
+  }) {
+    return sendRequest(VariablesArguments(
+      variablesReference: variablesReference,
+      start: start,
+      count: count,
+    ));
+  }
 
   /// Handles an incoming message from the server, completing the relevant request
   /// of raising the appropriate event.
@@ -292,6 +324,22 @@ extension DapTestClientExtension on DapTestClient {
     return stop;
   }
 
+  /// Runs a script and expects to pause at an exception in [file].
+  Future<StoppedEventBody> hitException(
+    File file, [
+    String exceptionPauseMode = 'Unhandled',
+    int? line,
+  ]) async {
+    final stop = expectStop('exception', file: file, line: line);
+
+    await Future.wait([
+      initialize(exceptionPauseMode: exceptionPauseMode),
+      launch(file.path),
+    ], eagerError: true);
+
+    return stop;
+  }
+
   /// Expects a 'stopped' event for [reason].
   ///
   /// If [file] or [line] are provided, they will be checked against the stop
@@ -329,5 +377,176 @@ extension DapTestClientExtension on DapTestClient {
     expect(response.command, equals('stackTrace'));
     return StackTraceResponseBody.fromJson(
         response.body as Map<String, Object?>);
+  }
+
+  /// A helper that fetches scopes for a frame, checks for one with the name
+  /// [expectedName] and verifies its variables.
+  Future<Scope> expectScopeVariables(
+    int frameId,
+    String expectedName,
+    String expectedVariables, {
+    bool ignorePrivate = true,
+    Set<String>? ignore,
+  }) async {
+    final scope = await getValidScope(frameId, expectedName);
+    await expectVariables(
+      scope.variablesReference,
+      expectedVariables,
+      ignorePrivate: ignorePrivate,
+      ignore: ignore,
+    );
+    return scope;
+  }
+
+  /// Requests variables scopes for a frame returns one with a specific name.
+  Future<Scope> getValidScope(int frameId, String name) async {
+    final scopes = await getValidScopes(frameId);
+    return scopes.scopes.singleWhere(
+      (s) => s.name == name,
+      orElse: () => throw 'Did not find scope with name $name',
+    );
+  }
+
+  /// A helper that finds a named variable in the Variables scope for the top
+  /// frame and asserts its child variables (fields/getters/etc) match.
+  Future<void> expectLocalVariable(
+    int threadId, {
+    required String expectedName,
+    required String expectedDisplayString,
+    required String expectedVariables,
+    int? start,
+    int? count,
+    bool ignorePrivate = true,
+    Set<String>? ignore,
+  }) async {
+    final stack = await getValidStack(
+      threadId,
+      startFrame: 0,
+      numFrames: 1,
+    );
+    final topFrame = stack.stackFrames.first;
+
+    final variablesScope = await getValidScope(topFrame.id, 'Variables');
+    final variables =
+        await getValidVariables(variablesScope.variablesReference);
+    final expectedVariable = variables.variables
+        .singleWhere((variable) => variable.name == expectedName);
+
+    // Check the display string.
+    expect(expectedVariable.value, equals(expectedDisplayString));
+
+    // Check the child fields.
+    await expectVariables(
+      expectedVariable.variablesReference,
+      expectedVariables,
+      start: start,
+      count: count,
+      ignorePrivate: ignorePrivate,
+      ignore: ignore,
+    );
+  }
+
+  /// Requests variables scopes for a frame and asserts a valid response.
+  Future<ScopesResponseBody> getValidScopes(int frameId) async {
+    final response = await scopes(frameId);
+    expect(response.success, isTrue);
+    expect(response.command, equals('scopes'));
+    return ScopesResponseBody.fromJson(response.body as Map<String, Object?>);
+  }
+
+  /// Requests variables by reference and asserts a valid response.
+  Future<VariablesResponseBody> getValidVariables(
+    int variablesReference, {
+    int? start,
+    int? count,
+  }) async {
+    final response = await variables(
+      variablesReference,
+      start: start,
+      count: count,
+    );
+    expect(response.success, isTrue);
+    expect(response.command, equals('variables'));
+    return VariablesResponseBody.fromJson(
+        response.body as Map<String, Object?>);
+  }
+
+  /// A helper that verifies the variables list matches [expectedVariables].
+  ///
+  /// [expectedVariables] is a simple text format of `name: value` for each
+  /// variable with some additional annotations to simplify writing tests.
+  Future<VariablesResponseBody> expectVariables(
+    int variablesReference,
+    String expectedVariables, {
+    int? start,
+    int? count,
+    bool ignorePrivate = true,
+    Set<String>? ignore,
+  }) async {
+    final expectedLines =
+        expectedVariables.trim().split('\n').map((l) => l.trim()).toList();
+
+    final variables = await getValidVariables(
+      variablesReference,
+      start: start,
+      count: count,
+    );
+
+    // If a variable was set to be ignored but wasn't in the list, that's
+    // likely an error in the test.
+    if (ignore != null) {
+      final variableNames = variables.variables.map((v) => v.name).toSet();
+      for (final ignored in ignore) {
+        expect(
+          variableNames.contains(ignored),
+          isTrue,
+          reason: 'Variable "$ignored" should be ignored but was '
+              'not in the results ($variableNames)',
+        );
+      }
+    }
+
+    /// Helper to format the variables into a simple text representation that's
+    /// easy to maintain in tests.
+    String toSimpleTextRepresentation(Variable v) {
+      final buffer = StringBuffer();
+      final evaluateName = v.evaluateName;
+      final indexedVariables = v.indexedVariables;
+      final namedVariables = v.namedVariables;
+      final value = v.value;
+      final type = v.type;
+      final presentationHint = v.presentationHint;
+
+      buffer.write(v.name);
+      if (evaluateName != null) {
+        buffer.write(', eval: $evaluateName');
+      }
+      if (indexedVariables != null) {
+        buffer.write(', $indexedVariables items');
+      }
+      if (namedVariables != null) {
+        buffer.write(', $namedVariables named items');
+      }
+      buffer.write(': $value');
+      if (type != null) {
+        buffer.write(' ($type)');
+      }
+      if (presentationHint != null) {
+        buffer.write(' ($presentationHint)');
+      }
+
+      return buffer.toString();
+    }
+
+    final actual = variables.variables
+        .where((v) => ignorePrivate ? !v.name.startsWith('_') : true)
+        .where((v) => !(ignore?.contains(v.name) ?? false))
+        // Always exclude hashCode because its value is not guaranteed.
+        .where((v) => v.name != 'hashCode')
+        .map(toSimpleTextRepresentation);
+
+    expect(actual.join('\n'), equals(expectedLines.join('\n')));
+
+    return variables;
   }
 }

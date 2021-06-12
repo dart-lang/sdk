@@ -139,6 +139,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     void Function() sendResponse,
   );
 
+  Future<void> scopesRequest(
+    Request request,
+    ScopesArguments args,
+    void Function(ScopesResponseBody) sendResponse,
+  );
+
   /// Sends an event, lookup up the event type based on the runtimeType of
   /// [body].
   void sendEvent(EventBody body) {
@@ -166,6 +172,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
       SetBreakpointsArguments args,
       void Function(SetBreakpointsResponseBody) sendResponse);
 
+  Future<void> setExceptionBreakpointsRequest(
+    Request request,
+    SetExceptionBreakpointsArguments args,
+    void Function(SetExceptionBreakpointsResponseBody) sendResponse,
+  );
+
   Future<void> stackTraceRequest(
     Request request,
     StackTraceArguments args,
@@ -188,6 +200,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     Request request,
     TerminateArguments? args,
     void Function() sendResponse,
+  );
+
+  Future<void> variablesRequest(
+    Request request,
+    VariablesArguments args,
+    void Function(VariablesResponseBody) sendResponse,
   );
 
   /// Wraps a fromJson handler for requests that allow null arguments.
@@ -236,6 +254,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
       );
     } else if (request.command == 'setBreakpoints') {
       handle(request, setBreakpointsRequest, SetBreakpointsArguments.fromJson);
+    } else if (request.command == 'setExceptionBreakpoints') {
+      handle(
+        request,
+        setExceptionBreakpointsRequest,
+        SetExceptionBreakpointsArguments.fromJson,
+      );
     } else if (request.command == 'continue') {
       handle(request, continueRequest, ContinueArguments.fromJson);
     } else if (request.command == 'next') {
@@ -251,6 +275,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
           StepOutArguments.fromJson);
     } else if (request.command == 'stackTrace') {
       handle(request, stackTraceRequest, StackTraceArguments.fromJson);
+    } else if (request.command == 'scopes') {
+      handle(request, scopesRequest, ScopesArguments.fromJson);
+    } else if (request.command == 'variables') {
+      handle(request, variablesRequest, VariablesArguments.fromJson);
     } else {
       final response = Response(
         success: false,

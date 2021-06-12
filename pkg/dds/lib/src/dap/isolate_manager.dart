@@ -43,6 +43,12 @@ class IsolateManager {
   final Map<String, Map<String, List<vm.Breakpoint>>>
       _vmBreakpointsByIsolateIdAndUri = {};
 
+  /// The exception pause mode last provided by the client.
+  ///
+  /// This will be sent to isolates as they are created, and to all existing
+  /// isolates at start or when changed.
+  String _exceptionPauseMode = 'None';
+
   /// An incrementing number used as the reference for [_storedData].
   var _nextStoredDataId = 1;
 
@@ -70,6 +76,12 @@ class IsolateManager {
       vm.IsolateRef isolate, vm.ObjRef object) async {
     final res = await _adapter.vmService?.getObject(isolate.id!, object.id!);
     return res as T;
+  }
+
+  /// Retrieves some basic data indexed by an integer for use in "reference"
+  /// fields that are round-tripped to the client.
+  _StoredData? getStoredData(int id) {
+    return _storedData[id];
   }
 
   ThreadInfo? getThread(int threadId) => _threadsByThreadId[threadId];
@@ -225,6 +237,17 @@ class IsolateManager {
     _debug = debug;
   }
 
+  /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
+  /// existing isolates will be updated to reflect the new setting.
+  Future<void> setExceptionPauseMode(String mode) async {
+    _exceptionPauseMode = mode;
+
+    // Send to all existing threads.
+    await Future.wait(_threadsByThreadId.values.map(
+      (isolate) => _sendExceptionPauseMode(isolate.isolate),
+    ));
+  }
+
   /// Stores some basic data indexed by an integer for use in "reference" fields
   /// that are round-tripped to the client.
   int storeData(ThreadInfo thread, Object data) {
@@ -241,8 +264,7 @@ class IsolateManager {
   Future<void> _configureIsolate(vm.IsolateRef isolate) async {
     await Future.wait([
       _sendLibraryDebuggables(isolate),
-      // TODO(dantup): Implement this...
-      // _sendExceptionPauseMode(isolate),
+      _sendExceptionPauseMode(isolate),
       _sendBreakpoints(isolate),
     ], eagerError: true);
   }
@@ -307,7 +329,12 @@ class IsolateManager {
         reason = 'exception';
       }
 
-      // TODO(dantup): Store exception.
+      // If we stopped at an exception, capture the exception instance so we
+      // can add a variables scope for it so it can be examined.
+      final exception = event.exception;
+      if (exception != null) {
+        thread.exceptionReference = thread.storeData(exception);
+      }
 
       // Notify the client.
       _adapter.sendEvent(
@@ -393,6 +420,16 @@ class IsolateManager {
         existingBreakpointsForIsolateAndUri.add(vmBp);
       });
     }
+  }
+
+  /// Sets the exception pause mode for an individual isolate.
+  Future<void> _sendExceptionPauseMode(vm.IsolateRef isolate) async {
+    final service = _adapter.vmService;
+    if (!_debug || service == null) {
+      return;
+    }
+
+    await service.setExceptionPauseMode(isolate.id!, _exceptionPauseMode);
   }
 
   /// Calls setLibraryDebuggable for all libraries in the given isolate based
