@@ -740,9 +740,10 @@ class AstBinaryReader {
   }
 
   InterpolationString _readInterpolationString() {
+    var lexeme = _readStringReference();
     var value = _readStringReference();
     return astFactory.interpolationString(
-      TokenFactory.tokenFromString(value),
+      TokenFactory.tokenFromString(lexeme),
       value,
     );
   }

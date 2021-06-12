@@ -1766,6 +1766,18 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitInterpolationExpression(node);
+  }
+
+  @override
+  void visitInterpolationString(InterpolationString node) {
+    _tokenOrNull(node.contents);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     _tokenOrNull(node.isOperator);
     super.visitIsExpression(node);

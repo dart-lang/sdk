@@ -10702,19 +10702,23 @@ library
           StringInterpolation
             elements
               InterpolationString
-                contents: aaa  @0
+                contents: 'aaa  @341
               InterpolationExpression
                 expression: BooleanLiteral
                   literal: true @348
                   staticType: bool
+                leftBracket: ${ @346
+                rightBracket: } @352
               InterpolationString
-                contents:   @0
+                contents:   @353
               InterpolationExpression
                 expression: IntegerLiteral
                   literal: 42 @356
                   staticType: int
+                leftBracket: ${ @354
+                rightBracket: } @358
               InterpolationString
-                contents:  bbb @0
+                contents:  bbb' @359
             staticType: null
             stringValue: null
       static const vSymbol @372

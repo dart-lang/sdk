@@ -854,6 +854,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addNode('expression', node.expression);
+      properties.addToken('leftBracket', node.leftBracket);
+      properties.addToken('rightBracket', node.rightBracket);
       _addInterpolationElement(properties, node);
       _writeProperties(properties);
     });
