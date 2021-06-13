@@ -311,8 +311,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _elementHolder.enclose(element);
     nameNode.staticElement = element;
 
-    node.metadata.accept(this);
-    element.metadata = _createElementAnnotations(node.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     element.isConst = node.isConst;
     element.isFinal = node.isFinal;
@@ -469,9 +468,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       nameNode.staticElement = element;
     }
 
-    element.metadata = _createElementAnnotations(node.metadata);
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementHolder(ElementHolder(element), () {
       _withNameScope(() {
@@ -513,7 +510,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       _setCodeRange(element, node);
       setElementDocumentationComment(element, node);
-      element.metadata = _createElementAnnotations(node.metadata);
 
       var body = node.functionExpression.body;
       if (node.externalKeyword != null || body is NativeFunctionBody) {
@@ -530,8 +526,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var expression = node.functionExpression;
     expression.declaredElement = element;
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     var holder = ElementHolder(element);
     _withElementHolder(holder, () {
@@ -647,8 +642,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       nameNode.staticElement = element;
     }
 
-    node.metadata.accept(this);
-    element.metadata = _createElementAnnotations(node.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
 
     var holder = ElementHolder(element);
     _withElementHolder(holder, () {
@@ -778,7 +772,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } else {
       for (var annotation in node.metadata) {
         annotation as AnnotationImpl;
-        annotation.elementAnnotation = ElementAnnotationImpl(_unitElement);
+        var elementAnnotation = ElementAnnotationImpl(_unitElement);
+        elementAnnotation.annotationAst = annotation;
+        annotation.elementAnnotation = elementAnnotation;
       }
     }
   }
@@ -887,12 +883,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.type?.accept(this);
     if (_elementWalker == null) {
-      element.metadata = _createElementAnnotations(node.metadata);
       element.type = node.type?.type ?? _dynamicType;
     }
 
-    node.metadata.accept(this);
-    _setElementAnnotations(node.metadata, element.metadata);
+    _setOrCreateMetadataElements(element, node.metadata);
   }
 
   @override
@@ -985,21 +979,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.visitChildren(this);
 
-    List<ElementAnnotation> elementAnnotations;
+    NodeList<Annotation> annotations;
     if (parent is FieldDeclaration) {
-      elementAnnotations = _createElementAnnotations(parent.metadata);
+      annotations = parent.metadata;
     } else if (parent is TopLevelVariableDeclaration) {
-      elementAnnotations = _createElementAnnotations(parent.metadata);
+      annotations = parent.metadata;
     } else {
       // Local variable declaration
-      elementAnnotations = _createElementAnnotations(node.metadata);
+      annotations = node.metadata;
     }
 
     var variables = node.variables;
     for (var i = 0; i < variables.length; i++) {
       var variable = variables[i];
       var element = variable.declaredElement as ElementImpl;
-      element.metadata = elementAnnotations;
+      _setOrCreateMetadataElements(element, annotations);
 
       var offset = (i == 0 ? node.parent! : variable).offset;
       var length = variable.end - offset;
@@ -1092,11 +1086,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = TypeParameterElementImpl(name.name, name.offset);
         _elementHolder.addTypeParameter(element);
 
-        element.metadata = _createElementAnnotations(typeParameter.metadata);
         _setCodeRange(element, typeParameter);
       }
       name.staticElement = element;
       _define(element);
+      _setOrCreateMetadataElements(element, typeParameter.metadata);
     }
   }
 
@@ -1110,6 +1104,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     return annotations.map((annotation) {
       annotation as AnnotationImpl;
       var elementAnnotation = ElementAnnotationImpl(_unitElement);
+      elementAnnotation.annotationAst = annotation;
       annotation.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
@@ -1245,6 +1240,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _setCodeRange(ElementImpl element, AstNode node) {
     element.setCodeRange(node.offset, node.length);
+  }
+
+  void _setOrCreateMetadataElements(
+    ElementImpl element,
+    NodeList<Annotation> annotations,
+  ) {
+    annotations.accept(this);
+    if (_elementWalker != null) {
+      _setElementAnnotations(annotations, element.metadata);
+    } else {
+      element.metadata = _createElementAnnotations(annotations);
+    }
   }
 
   /// Make the given [holder] be the current one while running [f].

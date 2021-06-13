@@ -52,6 +52,12 @@ extension ElementExtension on Element {
 }
 
 extension ParameterElementExtensions on ParameterElement {
+  bool get isParameterOfTopLevelFunction {
+    var enclosing = enclosingElement;
+    return enclosing is FunctionElement &&
+        enclosing.enclosingElement is CompilationUnitElement;
+  }
+
   /// Return [ParameterElement] with the specified properties replaced.
   ParameterElement copyWith({DartType? type, ParameterKind? kind}) {
     return ParameterElementImpl.synthetic(

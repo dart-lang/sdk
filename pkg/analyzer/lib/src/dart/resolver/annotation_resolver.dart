@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -43,8 +42,6 @@ class AnnotationResolver {
     if (elementAnnotationImpl == null) {
       // Analyzer ignores annotations on "part of" directives.
       assert(parent is PartDirective || parent is PartOfDirective);
-    } else if (_resolver.shouldCloneAnnotations) {
-      elementAnnotationImpl.annotationAst = _createCloner().cloneNode(node);
     }
   }
 
@@ -247,14 +244,6 @@ class AnnotationResolver {
     constructorName?.staticElement = constructorElement;
     node.element = constructorElement;
     _resolveConstructorInvocationArguments(node);
-  }
-
-  /// Return a newly created cloner that can be used to clone constant
-  /// expressions.
-  ///
-  /// TODO(scheglov) this is duplicate
-  ConstantAstCloner _createCloner() {
-    return ConstantAstCloner();
   }
 
   void _extensionGetter(

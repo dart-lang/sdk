@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -21,7 +20,7 @@ class VariableDeclarationResolver {
   VariableDeclarationResolver({
     required ResolverVisitor resolver,
     required bool strictInference,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {
@@ -66,14 +65,12 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis?.flow?.lateInitializer_end();
     }
 
-    // Note: in addition to cloning the initializers for const variables, we
-    // have to clone the initializers for non-static final fields (because if
-    // they occur in a class with a const constructor, they will be needed to
-    // evaluate the const constructor).
-    if (element is ConstVariableElement) {
-      (element as ConstVariableElement).constantInitializer =
-          ConstantAstCloner().cloneNullableNode(initializer);
+    // Initializers of top-level variables and fields are already included
+    // into elements during linking.
+    if (element is ConstLocalVariableElementImpl) {
+      element.constantInitializer = initializer;
     }
+
     _resolver.checkForInvalidAssignment(node.name, initializer,
         whyNotPromoted: whyNotPromoted);
   }
