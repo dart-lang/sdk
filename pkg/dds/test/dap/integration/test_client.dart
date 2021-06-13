@@ -79,6 +79,23 @@ class DapTestClient {
 
   Future<Response> disconnect() => sendRequest(DisconnectArguments());
 
+  /// Sends an evaluate request for the given [expression], optionally for a
+  /// specific [frameId].
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> evaluate(
+    String expression, {
+    int? frameId,
+    String? context,
+  }) {
+    return sendRequest(EvaluateArguments(
+      expression: expression,
+      frameId: frameId,
+      context: context,
+    ));
+  }
+
   /// Returns a Future that completes with the next [event] event.
   Future<Event> event(String event) => _logIfSlow(
       'Event "$event"',
@@ -548,5 +565,36 @@ extension DapTestClientExtension on DapTestClient {
     expect(actual.join('\n'), equals(expectedLines.join('\n')));
 
     return variables;
+  }
+
+  /// Evalutes [expression] in the top frame of thread [threadId] and expects a
+  /// specific [expectedResult].
+  Future<EvaluateResponseBody> expectTopFrameEvalResult(
+    int threadId,
+    String expression,
+    String expectedResult,
+  ) async {
+    final stack = await getValidStack(threadId, startFrame: 0, numFrames: 1);
+    final topFrameId = stack.stackFrames.first.id;
+
+    return expectEvalResult(topFrameId, expression, expectedResult);
+  }
+
+  /// Evalutes [expression] in frame [frameId] and expects a specific
+  /// [expectedResult].
+  Future<EvaluateResponseBody> expectEvalResult(
+    int frameId,
+    String expression,
+    String expectedResult,
+  ) async {
+    final response = await evaluate(expression, frameId: frameId);
+    expect(response.success, isTrue);
+    expect(response.command, equals('evaluate'));
+    final body =
+        EvaluateResponseBody.fromJson(response.body as Map<String, Object?>);
+
+    expect(body.result, equals(expectedResult));
+
+    return body;
   }
 }

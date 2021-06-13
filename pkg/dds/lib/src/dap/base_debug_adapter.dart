@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'exceptions.dart';
 import 'logging.dart';
 import 'protocol_common.dart';
 import 'protocol_generated.dart';
@@ -64,6 +65,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     void Function() sendResponse,
   );
 
+  Future<void> evaluateRequest(
+    Request request,
+    EvaluateArguments args,
+    void Function(EvaluateResponseBody) sendResponse,
+  );
+
   /// Calls [handler] for an incoming request, using [fromJson] to parse its
   /// arguments from the request.
   ///
@@ -114,7 +121,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
         requestSeq: request.seq,
         seq: _sequence++,
         command: request.command,
-        message: '$e',
+        message: e is DebugAdapterException ? e.message : '$e',
         body: '$s',
       );
       _channel.sendResponse(response);
@@ -279,6 +286,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
       handle(request, scopesRequest, ScopesArguments.fromJson);
     } else if (request.command == 'variables') {
       handle(request, variablesRequest, VariablesArguments.fromJson);
+    } else if (request.command == 'evaluate') {
+      handle(request, evaluateRequest, EvaluateArguments.fromJson);
     } else {
       final response = Response(
         success: false,
