@@ -338,10 +338,6 @@ class InformativeDataApplier {
         element as FieldElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
-        (element.getter as PropertyAccessorElementImpl?)?.nameOffset =
-            info.nameOffset;
-        (element.setter as PropertyAccessorElementImpl?)?.nameOffset =
-            info.nameOffset;
         element.documentationComment = info.documentationComment;
 
         var linkedData = element.linkedData as FieldElementLinkedData;
@@ -565,10 +561,6 @@ class InformativeDataApplier {
     element as TopLevelVariableElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    (element.getter as PropertyAccessorElementImpl?)?.nameOffset =
-        info.nameOffset;
-    (element.setter as PropertyAccessorElementImpl?)?.nameOffset =
-        info.nameOffset;
     element.documentationComment = info.documentationComment;
 
     var linkedData = element.linkedData as TopLevelVariableElementLinkedData;

@@ -4727,7 +4727,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   ParameterElementImpl_ofImplicitSetter(
       PropertyAccessorElementImpl_ImplicitSetter setter)
       : setter = setter,
-        super('_${setter.variable.name}', setter.variable.nameOffset) {
+        super('_${setter.variable.name}', -1) {
     enclosingElement = setter;
     isSynthetic = true;
     parameterKind = ParameterKind.REQUIRED;
@@ -4886,7 +4886,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// associated with the given [variable].
   PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable,
       {Reference? reference})
-      : super(variable.name, variable.nameOffset, reference: reference) {
+      : super(variable.name, -1, reference: reference) {
     this.variable = variable;
     isAbstract = variable is FieldElementImpl && variable.isAbstract;
     isStatic = variable.isStatic;

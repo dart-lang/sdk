@@ -16,6 +16,13 @@ import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 
+/// Maximum number of toString()s to be called when responding to variables
+/// requests from the client.
+///
+/// Setting this too high can have a performance impact, for example if the
+/// client requests 500 items in a variablesRequest for a list.
+const maxToStringsPerEvaluation = 10;
+
 /// A base DAP Debug Adapter implementation for running and debugging Dart-based
 /// applications (including Flutter and Tests).
 ///
@@ -94,7 +101,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// processed its initial paused state).
   Future<void> get debuggerInitialized => _debuggerInitializedCompleter.future;
 
-  /// attachRequest is called by the client when it wants us to to attach to
+  /// [attachRequest] is called by the client when it wants us to to attach to
   /// an existing app. This will only be called once (and only one of this or
   /// launchRequest will be called).
   @override
@@ -242,7 +249,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// `disconnectRequest` (a forceful request to shut down).
   Future<void> disconnectImpl();
 
-  /// disconnectRequest is called by the client when it wants to forcefully shut
+  /// [disconnectRequest] is called by the client when it wants to forcefully shut
   /// us down quickly. This comes after the `terminateRequest` which is intended
   /// to allow a graceful shutdown.
   ///
@@ -261,7 +268,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse();
   }
 
-  /// initializeRequest is the first request send by the client during
+  /// [initializeRequest] is the first call from the client during
   /// initialization and allows exchanging capabilities and configuration
   /// between client and server.
   ///
@@ -310,7 +317,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// to this request.
   Future<void> launchImpl();
 
-  /// launchRequest is called by the client when it wants us to to start the app
+  /// [launchRequest] is called by the client when it wants us to to start the app
   /// to be run/debug. This will only be called once (and only one of this or
   /// attachRequest will be called).
   @override
@@ -343,6 +350,40 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse();
   }
 
+  /// [scopesRequest] is called by the client to request all of the variables
+  /// scopes available for a given stack frame.
+  @override
+  Future<void> scopesRequest(
+    Request request,
+    ScopesArguments args,
+    void Function(ScopesResponseBody) sendResponse,
+  ) async {
+    final scopes = <Scope>[];
+
+    // For local variables, we can just reuse the frameId as variablesReference
+    // as variablesRequest handles stored data of type `Frame` directly.
+    scopes.add(Scope(
+      name: 'Variables',
+      presentationHint: 'locals',
+      variablesReference: args.frameId,
+      expensive: false,
+    ));
+
+    // If the top frame has an exception, add an additional section to allow
+    // that to be inspected.
+    final data = _isolateManager.getStoredData(args.frameId);
+    final exceptionReference = data?.thread.exceptionReference;
+    if (exceptionReference != null) {
+      scopes.add(Scope(
+        name: 'Exceptions',
+        variablesReference: exceptionReference,
+        expensive: false,
+      ));
+    }
+
+    sendResponse(ScopesResponseBody(scopes: scopes));
+  }
+
   /// Sends an OutputEvent (without a newline, since calls to this method
   /// may be used by buffered data).
   void sendOutput(String category, String message) {
@@ -370,7 +411,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// The VM requires breakpoints to be set per-isolate so these will be passed
   /// to [_isolateManager] that will fan them out to each isolate.
   ///
-  /// When new isolates are registered, it is [isolateManager]s responsibility
+  /// When new isolates are registered, it is [isolateManager]'s responsibility
   /// to ensure all breakpoints are given to them (and like at startup, this
   /// must happen before they are resumed).
   @override
@@ -392,6 +433,34 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse(SetBreakpointsResponseBody(
       breakpoints: breakpoints.map((e) => Breakpoint(verified: true)).toList(),
     ));
+  }
+
+  /// Handles a request from the client to set exception pause modes.
+  ///
+  /// This method can be called at any time (before the app is launched or while
+  /// the app is running).
+  ///
+  /// The VM requires exception modes to be set per-isolate so these will be
+  /// passed to [_isolateManager] that will fan them out to each isolate.
+  ///
+  /// When new isolates are registered, it is [isolateManager]'s responsibility
+  /// to ensure the pause mode is given to them (and like at startup, this
+  /// must happen before they are resumed).
+  @override
+  Future<void> setExceptionBreakpointsRequest(
+    Request request,
+    SetExceptionBreakpointsArguments args,
+    void Function(SetExceptionBreakpointsResponseBody) sendResponse,
+  ) async {
+    final mode = args.filters.contains('All')
+        ? 'All'
+        : args.filters.contains('Unhandled')
+            ? 'Unhandled'
+            : 'None';
+
+    await _isolateManager.setExceptionPauseMode(mode);
+
+    sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
   /// Handles a request from the client for the call stack for [args.threadId].
@@ -516,7 +585,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// `terminateRequest` (a request for a graceful shut down).
   Future<void> terminateImpl();
 
-  /// terminateRequest is called by the client when it wants us to gracefully
+  /// [terminateRequest] is called by the client when it wants us to gracefully
   /// shut down.
   ///
   /// It's not very obvious from the names, but `terminateRequest` is sent first
@@ -532,6 +601,86 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ) async {
     await terminateImpl();
     sendResponse();
+  }
+
+  /// [variablesRequest] is called by the client to request child variables for
+  /// a given variables variablesReference.
+  ///
+  /// The variablesReference provided by the client will be a reference the
+  /// server has previously provided, for example in response to a scopesRequest
+  /// or an evaluateRequest.
+  ///
+  /// We use the reference to look up the stored data and then create variables
+  /// based on the type of data. For a Frame, we will return the local
+  /// variables, for a List/MapAssociation we will return items from it, and for
+  /// an instance we will return the fields (and possibly getters) for that
+  /// instance.
+  @override
+  Future<void> variablesRequest(
+    Request request,
+    VariablesArguments args,
+    void Function(VariablesResponseBody) sendResponse,
+  ) async {
+    final childStart = args.start;
+    final childCount = args.count;
+    final storedData = _isolateManager.getStoredData(args.variablesReference);
+    if (storedData == null) {
+      throw StateError('variablesReference is no longer valid');
+    }
+    final thread = storedData.thread;
+    final data = storedData.data;
+    final vmData = data is vm.Response ? data : null;
+    final variables = <Variable>[];
+
+    if (vmData is vm.Frame) {
+      final vars = vmData.vars;
+      if (vars != null) {
+        Future<Variable> convert(int index, vm.BoundVariable variable) {
+          return _converter.convertVmResponseToVariable(
+            thread,
+            variable.value,
+            name: variable.name,
+            allowCallingToString: index <= maxToStringsPerEvaluation,
+          );
+        }
+
+        variables.addAll(await Future.wait(vars.mapIndexed(convert)));
+      }
+    } else if (vmData is vm.MapAssociation) {
+      // TODO(dantup): Maps
+    } else if (vmData is vm.ObjRef) {
+      final object =
+          await _isolateManager.getObject(storedData.thread.isolate, vmData);
+
+      if (object is vm.Sentinel) {
+        variables.add(Variable(
+          name: '<eval error>',
+          value: object.valueAsString.toString(),
+          variablesReference: 0,
+        ));
+      } else if (object is vm.Instance) {
+        // TODO(dantup): evaluateName
+        // should be built taking the parent into account, for ex. if
+        // args.variablesReference == thread.exceptionReference then we need to
+        // use some sythensized variable name like $e.
+        variables.addAll(await _converter.convertVmInstanceToVariablesList(
+          thread,
+          object,
+          startItem: childStart,
+          numItems: childCount,
+        ));
+      } else {
+        variables.add(Variable(
+          name: '<eval error>',
+          value: object.runtimeType.toString(),
+          variablesReference: 0,
+        ));
+      }
+    }
+
+    variables.sortBy((v) => v.name);
+
+    sendResponse(VariablesResponseBody(variables: variables));
   }
 
   void _handleDebugEvent(vm.Event event) {

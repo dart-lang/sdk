@@ -383,60 +383,60 @@ library
       static vMinusDoubleDouble @212
         type: double
     accessors
-      synthetic static get vPlusIntInt @4
+      synthetic static get vPlusIntInt @-1
         returnType: int
-      synthetic static set vPlusIntInt @4
+      synthetic static set vPlusIntInt @-1
         parameters
-          requiredPositional _vPlusIntInt @4
+          requiredPositional _vPlusIntInt @-1
             type: int
         returnType: void
-      synthetic static get vPlusIntDouble @29
+      synthetic static get vPlusIntDouble @-1
         returnType: double
-      synthetic static set vPlusIntDouble @29
+      synthetic static set vPlusIntDouble @-1
         parameters
-          requiredPositional _vPlusIntDouble @29
+          requiredPositional _vPlusIntDouble @-1
             type: double
         returnType: void
-      synthetic static get vPlusDoubleInt @59
+      synthetic static get vPlusDoubleInt @-1
         returnType: double
-      synthetic static set vPlusDoubleInt @59
+      synthetic static set vPlusDoubleInt @-1
         parameters
-          requiredPositional _vPlusDoubleInt @59
+          requiredPositional _vPlusDoubleInt @-1
             type: double
         returnType: void
-      synthetic static get vPlusDoubleDouble @89
+      synthetic static get vPlusDoubleDouble @-1
         returnType: double
-      synthetic static set vPlusDoubleDouble @89
+      synthetic static set vPlusDoubleDouble @-1
         parameters
-          requiredPositional _vPlusDoubleDouble @89
+          requiredPositional _vPlusDoubleDouble @-1
             type: double
         returnType: void
-      synthetic static get vMinusIntInt @124
+      synthetic static get vMinusIntInt @-1
         returnType: int
-      synthetic static set vMinusIntInt @124
+      synthetic static set vMinusIntInt @-1
         parameters
-          requiredPositional _vMinusIntInt @124
+          requiredPositional _vMinusIntInt @-1
             type: int
         returnType: void
-      synthetic static get vMinusIntDouble @150
+      synthetic static get vMinusIntDouble @-1
         returnType: double
-      synthetic static set vMinusIntDouble @150
+      synthetic static set vMinusIntDouble @-1
         parameters
-          requiredPositional _vMinusIntDouble @150
+          requiredPositional _vMinusIntDouble @-1
             type: double
         returnType: void
-      synthetic static get vMinusDoubleInt @181
+      synthetic static get vMinusDoubleInt @-1
         returnType: double
-      synthetic static set vMinusDoubleInt @181
+      synthetic static set vMinusDoubleInt @-1
         parameters
-          requiredPositional _vMinusDoubleInt @181
+          requiredPositional _vMinusDoubleInt @-1
             type: double
         returnType: void
-      synthetic static get vMinusDoubleDouble @212
+      synthetic static get vMinusDoubleDouble @-1
         returnType: double
-      synthetic static set vMinusDoubleDouble @212
+      synthetic static set vMinusDoubleDouble @-1
         parameters
-          requiredPositional _vMinusDoubleDouble @212
+          requiredPositional _vMinusDoubleDouble @-1
             type: double
         returnType: void
 ''');
@@ -453,11 +453,11 @@ library
       static V @4
         type: num
     accessors
-      synthetic static get V @4
+      synthetic static get V @-1
         returnType: num
-      synthetic static set V @4
+      synthetic static set V @-1
         parameters
-          requiredPositional _V @4
+          requiredPositional _V @-1
             type: num
         returnType: void
 ''');
@@ -480,25 +480,25 @@ library
       static t2 @33
         type: int
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: int
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: int
         returnType: void
-      synthetic static get t1 @15
+      synthetic static get t1 @-1
         returnType: int
-      synthetic static set t1 @15
+      synthetic static set t1 @-1
         parameters
-          requiredPositional _t1 @15
+          requiredPositional _t1 @-1
             type: int
         returnType: void
-      synthetic static get t2 @33
+      synthetic static get t2 @-1
         returnType: int
-      synthetic static set t2 @33
+      synthetic static set t2 @-1
         parameters
-          requiredPositional _t2 @33
+          requiredPositional _t2 @-1
             type: int
         returnType: void
 ''');
@@ -521,25 +521,25 @@ library
       static t2 @38
         type: int
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: List<int>
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: List<int>
         returnType: void
-      synthetic static get t1 @17
+      synthetic static get t1 @-1
         returnType: int
-      synthetic static set t1 @17
+      synthetic static set t1 @-1
         parameters
-          requiredPositional _t1 @17
+          requiredPositional _t1 @-1
             type: int
         returnType: void
-      synthetic static get t2 @38
+      synthetic static get t2 @-1
         returnType: int
-      synthetic static set t2 @38
+      synthetic static set t2 @-1
         parameters
-          requiredPositional _t2 @38
+          requiredPositional _t2 @-1
             type: int
         returnType: void
 ''');
@@ -565,11 +565,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
     topLevelVariables
@@ -580,25 +580,25 @@ library
       static t2 @62
         type: int
     accessors
-      synthetic static get a @25
+      synthetic static get a @-1
         returnType: A
-      synthetic static set a @25
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @25
+          requiredPositional _a @-1
             type: A
         returnType: void
-      synthetic static get t1 @42
+      synthetic static get t1 @-1
         returnType: int
-      synthetic static set t1 @42
+      synthetic static set t1 @-1
         parameters
-          requiredPositional _t1 @42
+          requiredPositional _t1 @-1
             type: int
         returnType: void
-      synthetic static get t2 @62
+      synthetic static get t2 @-1
         returnType: int
-      synthetic static set t2 @62
+      synthetic static set t2 @-1
         parameters
-          requiredPositional _t2 @62
+          requiredPositional _t2 @-1
             type: int
         returnType: void
 ''');
@@ -625,11 +625,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
       abstract class C @36
@@ -645,25 +645,25 @@ library
       static t2 @83
         type: int
     accessors
-      synthetic static get c @56
+      synthetic static get c @-1
         returnType: C
-      synthetic static set c @56
+      synthetic static set c @-1
         parameters
-          requiredPositional _c @56
+          requiredPositional _c @-1
             type: C
         returnType: void
-      synthetic static get t1 @63
+      synthetic static get t1 @-1
         returnType: int
-      synthetic static set t1 @63
+      synthetic static set t1 @-1
         parameters
-          requiredPositional _t1 @63
+          requiredPositional _t1 @-1
             type: int
         returnType: void
-      synthetic static get t2 @83
+      synthetic static get t2 @-1
         returnType: int
-      synthetic static set t2 @83
+      synthetic static set t2 @-1
         parameters
-          requiredPositional _t2 @83
+          requiredPositional _t2 @-1
             type: int
         returnType: void
 ''');
@@ -690,11 +690,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
       abstract class C @36
@@ -708,18 +708,18 @@ library
       static t2 @101
         type: int
     accessors
-      synthetic static get t1 @76
+      synthetic static get t1 @-1
         returnType: int
-      synthetic static set t1 @76
+      synthetic static set t1 @-1
         parameters
-          requiredPositional _t1 @76
+          requiredPositional _t1 @-1
             type: int
         returnType: void
-      synthetic static get t2 @101
+      synthetic static get t2 @-1
         returnType: int
-      synthetic static set t2 @101
+      synthetic static set t2 @-1
         parameters
-          requiredPositional _t2 @101
+          requiredPositional _t2 @-1
             type: int
         returnType: void
     functions
@@ -747,18 +747,18 @@ library
       static uFuture @121
         type: Future<int> Function()
     accessors
-      synthetic static get uValue @80
+      synthetic static get uValue @-1
         returnType: Future<int> Function()
-      synthetic static set uValue @80
+      synthetic static set uValue @-1
         parameters
-          requiredPositional _uValue @80
+          requiredPositional _uValue @-1
             type: Future<int> Function()
         returnType: void
-      synthetic static get uFuture @121
+      synthetic static get uFuture @-1
         returnType: Future<int> Function()
-      synthetic static set uFuture @121
+      synthetic static set uFuture @-1
         parameters
-          requiredPositional _uFuture @121
+          requiredPositional _uFuture @-1
             type: Future<int> Function()
         returnType: void
     functions
@@ -792,39 +792,39 @@ library
       static vBitShiftRight @94
         type: int
     accessors
-      synthetic static get vBitXor @4
+      synthetic static get vBitXor @-1
         returnType: int
-      synthetic static set vBitXor @4
+      synthetic static set vBitXor @-1
         parameters
-          requiredPositional _vBitXor @4
+          requiredPositional _vBitXor @-1
             type: int
         returnType: void
-      synthetic static get vBitAnd @25
+      synthetic static get vBitAnd @-1
         returnType: int
-      synthetic static set vBitAnd @25
+      synthetic static set vBitAnd @-1
         parameters
-          requiredPositional _vBitAnd @25
+          requiredPositional _vBitAnd @-1
             type: int
         returnType: void
-      synthetic static get vBitOr @46
+      synthetic static get vBitOr @-1
         returnType: int
-      synthetic static set vBitOr @46
+      synthetic static set vBitOr @-1
         parameters
-          requiredPositional _vBitOr @46
+          requiredPositional _vBitOr @-1
             type: int
         returnType: void
-      synthetic static get vBitShiftLeft @66
+      synthetic static get vBitShiftLeft @-1
         returnType: int
-      synthetic static set vBitShiftLeft @66
+      synthetic static set vBitShiftLeft @-1
         parameters
-          requiredPositional _vBitShiftLeft @66
+          requiredPositional _vBitShiftLeft @-1
             type: int
         returnType: void
-      synthetic static get vBitShiftRight @94
+      synthetic static get vBitShiftRight @-1
         returnType: int
-      synthetic static set vBitShiftRight @94
+      synthetic static set vBitShiftRight @-1
         parameters
-          requiredPositional _vBitShiftRight @94
+          requiredPositional _vBitShiftRight @-1
             type: int
         returnType: void
 ''');
@@ -851,11 +851,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get a @16
+          synthetic get a @-1
             returnType: int
-          synthetic set a @16
+          synthetic set a @-1
             parameters
-              requiredPositional _a @16
+              requiredPositional _a @-1
                 type: int
             returnType: void
         methods
@@ -869,25 +869,25 @@ library
       static vBoth @105
         type: A
     accessors
-      synthetic static get vSetField @39
+      synthetic static get vSetField @-1
         returnType: A
-      synthetic static set vSetField @39
+      synthetic static set vSetField @-1
         parameters
-          requiredPositional _vSetField @39
+          requiredPositional _vSetField @-1
             type: A
         returnType: void
-      synthetic static get vInvokeMethod @71
+      synthetic static get vInvokeMethod @-1
         returnType: A
-      synthetic static set vInvokeMethod @71
+      synthetic static set vInvokeMethod @-1
         parameters
-          requiredPositional _vInvokeMethod @71
+          requiredPositional _vInvokeMethod @-1
             type: A
         returnType: void
-      synthetic static get vBoth @105
+      synthetic static get vBoth @-1
         returnType: A
-      synthetic static set vBoth @105
+      synthetic static set vBoth @-1
         parameters
-          requiredPositional _vBoth @105
+          requiredPositional _vBoth @-1
             type: A
         returnType: void
 ''');
@@ -937,11 +937,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
       class B @31
@@ -951,11 +951,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get a @39
+          synthetic get a @-1
             returnType: A
-          synthetic set a @39
+          synthetic set a @-1
             parameters
-              requiredPositional _a @39
+              requiredPositional _a @-1
                 type: A
             returnType: void
       class C @50
@@ -965,11 +965,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get b @58
+          synthetic get b @-1
             returnType: B
-          synthetic set b @58
+          synthetic set b @-1
             parameters
-              requiredPositional _b @58
+              requiredPositional _b @-1
                 type: B
             returnType: void
       class X @69
@@ -1001,88 +1001,88 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get a @77
+          synthetic get a @-1
             returnType: A
-          synthetic set a @77
+          synthetic set a @-1
             parameters
-              requiredPositional _a @77
+              requiredPositional _a @-1
                 type: A
             returnType: void
-          synthetic get b @94
+          synthetic get b @-1
             returnType: B
-          synthetic set b @94
+          synthetic set b @-1
             parameters
-              requiredPositional _b @94
+              requiredPositional _b @-1
                 type: B
             returnType: void
-          synthetic get c @111
+          synthetic get c @-1
             returnType: C
-          synthetic set c @111
+          synthetic set c @-1
             parameters
-              requiredPositional _c @111
+              requiredPositional _c @-1
                 type: C
             returnType: void
-          synthetic get t01 @130
+          synthetic get t01 @-1
             returnType: int
-          synthetic set t01 @130
+          synthetic set t01 @-1
             parameters
-              requiredPositional _t01 @130
+              requiredPositional _t01 @-1
                 type: int
             returnType: void
-          synthetic get t02 @147
+          synthetic get t02 @-1
             returnType: int
-          synthetic set t02 @147
+          synthetic set t02 @-1
             parameters
-              requiredPositional _t02 @147
+              requiredPositional _t02 @-1
                 type: int
             returnType: void
-          synthetic get t03 @166
+          synthetic get t03 @-1
             returnType: int
-          synthetic set t03 @166
+          synthetic set t03 @-1
             parameters
-              requiredPositional _t03 @166
+              requiredPositional _t03 @-1
                 type: int
             returnType: void
-          synthetic get t11 @187
+          synthetic get t11 @-1
             returnType: int
-          synthetic set t11 @187
+          synthetic set t11 @-1
             parameters
-              requiredPositional _t11 @187
+              requiredPositional _t11 @-1
                 type: int
             returnType: void
-          synthetic get t12 @210
+          synthetic get t12 @-1
             returnType: int
-          synthetic set t12 @210
+          synthetic set t12 @-1
             parameters
-              requiredPositional _t12 @210
+              requiredPositional _t12 @-1
                 type: int
             returnType: void
-          synthetic get t13 @235
+          synthetic get t13 @-1
             returnType: int
-          synthetic set t13 @235
+          synthetic set t13 @-1
             parameters
-              requiredPositional _t13 @235
+              requiredPositional _t13 @-1
                 type: int
             returnType: void
-          synthetic get t21 @262
+          synthetic get t21 @-1
             returnType: int
-          synthetic set t21 @262
+          synthetic set t21 @-1
             parameters
-              requiredPositional _t21 @262
+              requiredPositional _t21 @-1
                 type: int
             returnType: void
-          synthetic get t22 @284
+          synthetic get t22 @-1
             returnType: int
-          synthetic set t22 @284
+          synthetic set t22 @-1
             parameters
-              requiredPositional _t22 @284
+              requiredPositional _t22 @-1
                 type: int
             returnType: void
-          synthetic get t23 @308
+          synthetic get t23 @-1
             returnType: int
-          synthetic set t23 @308
+          synthetic set t23 @-1
             parameters
-              requiredPositional _t23 @308
+              requiredPositional _t23 @-1
                 type: int
             returnType: void
     functions
@@ -1106,11 +1106,11 @@ library
       static V @4
         type: num
     accessors
-      synthetic static get V @4
+      synthetic static get V @-1
         returnType: num
-      synthetic static set V @4
+      synthetic static set V @-1
         parameters
-          requiredPositional _V @4
+          requiredPositional _V @-1
             type: num
         returnType: void
 ''');
@@ -1130,18 +1130,18 @@ library
       static vNotEq @22
         type: bool
     accessors
-      synthetic static get vEq @4
+      synthetic static get vEq @-1
         returnType: bool
-      synthetic static set vEq @4
+      synthetic static set vEq @-1
         parameters
-          requiredPositional _vEq @4
+          requiredPositional _vEq @-1
             type: bool
         returnType: void
-      synthetic static get vNotEq @22
+      synthetic static get vNotEq @-1
         returnType: bool
-      synthetic static set vNotEq @22
+      synthetic static set vNotEq @-1
         parameters
-          requiredPositional _vNotEq @22
+          requiredPositional _vNotEq @-1
             type: bool
         returnType: void
 ''');
@@ -1163,18 +1163,18 @@ library
         typeInferenceError: dependencyCycle
         type: dynamic
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: dynamic
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: dynamic
         returnType: void
-      synthetic static get b @21
+      synthetic static get b @-1
         returnType: dynamic
-      synthetic static set b @21
+      synthetic static set b @-1
         parameters
-          requiredPositional _b @21
+          requiredPositional _b @-1
             type: dynamic
         returnType: void
 ''');
@@ -1192,11 +1192,11 @@ library
         typeInferenceError: dependencyCycle
         type: dynamic
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: dynamic
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: dynamic
         returnType: void
 ''');
@@ -1219,25 +1219,25 @@ library
       static b1 @37
         type: num
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: List<num>
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: List<num>
         returnType: void
-      synthetic static get b0 @22
+      synthetic static get b0 @-1
         returnType: num
-      synthetic static set b0 @22
+      synthetic static set b0 @-1
         parameters
-          requiredPositional _b0 @22
+          requiredPositional _b0 @-1
             type: num
         returnType: void
-      synthetic static get b1 @37
+      synthetic static get b1 @-1
         returnType: num
-      synthetic static set b1 @37
+      synthetic static set b1 @-1
         parameters
-          requiredPositional _b1 @37
+          requiredPositional _b1 @-1
             type: num
         returnType: void
 ''');
@@ -1262,11 +1262,11 @@ library
       static x @21
         type: int
     accessors
-      synthetic static get x @21
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @21
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @21
+          requiredPositional _x @-1
             type: int
         returnType: void
 ''');
@@ -1290,22 +1290,22 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
     topLevelVariables
       static x @29
         type: int
     accessors
-      synthetic static get x @29
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @29
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @29
+          requiredPositional _x @-1
             type: int
         returnType: void
 ''');
@@ -1331,11 +1331,11 @@ library
       static x @21
         type: int
     accessors
-      synthetic static get x @21
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @21
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @21
+          requiredPositional _x @-1
             type: int
         returnType: void
 ''');
@@ -1360,11 +1360,11 @@ library
       static x @21
         type: int
     accessors
-      synthetic static get x @21
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @21
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @21
+          requiredPositional _x @-1
             type: int
         returnType: void
 ''');
@@ -1388,22 +1388,22 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
     topLevelVariables
       static x @29
         type: int
     accessors
-      synthetic static get x @29
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @29
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @29
+          requiredPositional _x @-1
             type: int
         returnType: void
 ''');
@@ -1429,11 +1429,11 @@ library
       static x @21
         type: int
     accessors
-      synthetic static get x @21
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @21
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @21
+          requiredPositional _x @-1
             type: int
         returnType: void
 ''');
@@ -1459,11 +1459,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
       class B @27
@@ -1473,11 +1473,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic static get t @44
+          synthetic static get t @-1
             returnType: int
-          synthetic static set t @44
+          synthetic static set t @-1
             parameters
-              requiredPositional _t @44
+              requiredPositional _t @-1
                 type: int
             returnType: void
 ''');
@@ -1502,11 +1502,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get b @17
+          synthetic get b @-1
             returnType: bool
-          synthetic set b @17
+          synthetic set b @-1
             parameters
-              requiredPositional _b @17
+              requiredPositional _b @-1
                 type: bool
             returnType: void
     topLevelVariables
@@ -1515,18 +1515,18 @@ library
       static x @31
         type: bool
     accessors
-      synthetic static get c @24
+      synthetic static get c @-1
         returnType: C
-      synthetic static set c @24
+      synthetic static set c @-1
         parameters
-          requiredPositional _c @24
+          requiredPositional _c @-1
             type: C
         returnType: void
-      synthetic static get x @31
+      synthetic static get x @-1
         returnType: bool
-      synthetic static set x @31
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @31
+          requiredPositional _x @-1
             type: bool
         returnType: void
 ''');
@@ -1552,11 +1552,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get b @17
+          synthetic get b @-1
             returnType: bool
-          synthetic set b @17
+          synthetic set b @-1
             parameters
-              requiredPositional _b @17
+              requiredPositional _b @-1
                 type: bool
             returnType: void
       abstract class C @37
@@ -1570,18 +1570,18 @@ library
       static x @64
         type: bool
     accessors
-      synthetic static get c @57
+      synthetic static get c @-1
         returnType: C
-      synthetic static set c @57
+      synthetic static set c @-1
         parameters
-          requiredPositional _c @57
+          requiredPositional _c @-1
             type: C
         returnType: void
-      synthetic static get x @64
+      synthetic static get x @-1
         returnType: bool
-      synthetic static set x @64
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @64
+          requiredPositional _x @-1
             type: bool
         returnType: void
 ''');
@@ -1607,11 +1607,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get b @17
+          synthetic get b @-1
             returnType: bool
-          synthetic set b @17
+          synthetic set b @-1
             parameters
-              requiredPositional _b @17
+              requiredPositional _b @-1
                 type: bool
             returnType: void
       abstract class C @37
@@ -1623,11 +1623,11 @@ library
       static x @74
         type: bool
     accessors
-      synthetic static get x @74
+      synthetic static get x @-1
         returnType: bool
-      synthetic static set x @74
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @74
+          requiredPositional _x @-1
             type: bool
         returnType: void
     functions
@@ -1670,18 +1670,18 @@ library
       static y @89
         type: int
     accessors
-      synthetic static get x @70
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @70
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @70
+          requiredPositional _x @-1
             type: int
         returnType: void
-      synthetic static get y @89
+      synthetic static get y @-1
         returnType: int
-      synthetic static set y @89
+      synthetic static set y @-1
         parameters
-          requiredPositional _y @89
+          requiredPositional _y @-1
             type: int
         returnType: void
 ''');
@@ -1716,46 +1716,46 @@ library
       static v_async_returnFuture @282
         type: Future<int> Function()
     accessors
-      synthetic static get vFuture @25
+      synthetic static get vFuture @-1
         returnType: Future<int>
-      synthetic static set vFuture @25
+      synthetic static set vFuture @-1
         parameters
-          requiredPositional _vFuture @25
+          requiredPositional _vFuture @-1
             type: Future<int>
         returnType: void
-      synthetic static get v_noParameters_inferredReturnType @60
+      synthetic static get v_noParameters_inferredReturnType @-1
         returnType: int Function()
-      synthetic static set v_noParameters_inferredReturnType @60
+      synthetic static set v_noParameters_inferredReturnType @-1
         parameters
-          requiredPositional _v_noParameters_inferredReturnType @60
+          requiredPositional _v_noParameters_inferredReturnType @-1
             type: int Function()
         returnType: void
-      synthetic static get v_hasParameter_withType_inferredReturnType @110
+      synthetic static get v_hasParameter_withType_inferredReturnType @-1
         returnType: int Function(String)
-      synthetic static set v_hasParameter_withType_inferredReturnType @110
+      synthetic static set v_hasParameter_withType_inferredReturnType @-1
         parameters
-          requiredPositional _v_hasParameter_withType_inferredReturnType @110
+          requiredPositional _v_hasParameter_withType_inferredReturnType @-1
             type: int Function(String)
         returnType: void
-      synthetic static get v_hasParameter_withType_returnParameter @177
+      synthetic static get v_hasParameter_withType_returnParameter @-1
         returnType: String Function(String)
-      synthetic static set v_hasParameter_withType_returnParameter @177
+      synthetic static set v_hasParameter_withType_returnParameter @-1
         parameters
-          requiredPositional _v_hasParameter_withType_returnParameter @177
+          requiredPositional _v_hasParameter_withType_returnParameter @-1
             type: String Function(String)
         returnType: void
-      synthetic static get v_async_returnValue @240
+      synthetic static get v_async_returnValue @-1
         returnType: Future<int> Function()
-      synthetic static set v_async_returnValue @240
+      synthetic static set v_async_returnValue @-1
         parameters
-          requiredPositional _v_async_returnValue @240
+          requiredPositional _v_async_returnValue @-1
             type: Future<int> Function()
         returnType: void
-      synthetic static get v_async_returnFuture @282
+      synthetic static get v_async_returnFuture @-1
         returnType: Future<int> Function()
-      synthetic static set v_async_returnFuture @282
+      synthetic static set v_async_returnFuture @-1
         parameters
-          requiredPositional _v_async_returnFuture @282
+          requiredPositional _v_async_returnFuture @-1
             type: Future<int> Function()
         returnType: void
 ''');
@@ -1773,11 +1773,11 @@ library
       static v @4
         type: int
     accessors
-      synthetic static get v @4
+      synthetic static get v @-1
         returnType: int
-      synthetic static set v @4
+      synthetic static set v @-1
         parameters
-          requiredPositional _v @4
+          requiredPositional _v @-1
             type: int
         returnType: void
 ''');
@@ -1798,18 +1798,18 @@ library
       static vNoTypeArgument @55
         type: dynamic
     accessors
-      synthetic static get vHasTypeArgument @22
+      synthetic static get vHasTypeArgument @-1
         returnType: int
-      synthetic static set vHasTypeArgument @22
+      synthetic static set vHasTypeArgument @-1
         parameters
-          requiredPositional _vHasTypeArgument @22
+          requiredPositional _vHasTypeArgument @-1
             type: int
         returnType: void
-      synthetic static get vNoTypeArgument @55
+      synthetic static get vNoTypeArgument @-1
         returnType: dynamic
-      synthetic static set vNoTypeArgument @55
+      synthetic static set vNoTypeArgument @-1
         parameters
-          requiredPositional _vNoTypeArgument @55
+          requiredPositional _vNoTypeArgument @-1
             type: dynamic
         returnType: void
     functions
@@ -1835,18 +1835,18 @@ library
       static vWrongArgumentType @57
         type: String
     accessors
-      synthetic static get vOkArgumentType @29
+      synthetic static get vOkArgumentType @-1
         returnType: String
-      synthetic static set vOkArgumentType @29
+      synthetic static set vOkArgumentType @-1
         parameters
-          requiredPositional _vOkArgumentType @29
+          requiredPositional _vOkArgumentType @-1
             type: String
         returnType: void
-      synthetic static get vWrongArgumentType @57
+      synthetic static get vWrongArgumentType @-1
         returnType: String
-      synthetic static set vWrongArgumentType @57
+      synthetic static set vWrongArgumentType @-1
         parameters
-          requiredPositional _vWrongArgumentType @57
+          requiredPositional _vWrongArgumentType @-1
             type: String
         returnType: void
     functions
@@ -1891,11 +1891,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic static get staticClassVariable @118
+          synthetic static get staticClassVariable @-1
             returnType: int
-          synthetic static set staticClassVariable @118
+          synthetic static set staticClassVariable @-1
             parameters
-              requiredPositional _staticClassVariable @118
+              requiredPositional _staticClassVariable @-1
                 type: int
             returnType: void
           static get staticGetter @160
@@ -1933,67 +1933,67 @@ library
       synthetic static topLevelGetter @-1
         type: int
     accessors
-      synthetic static get topLevelVariable @44
+      synthetic static get topLevelVariable @-1
         returnType: int
-      synthetic static set topLevelVariable @44
+      synthetic static set topLevelVariable @-1
         parameters
-          requiredPositional _topLevelVariable @44
+          requiredPositional _topLevelVariable @-1
             type: int
         returnType: void
-      synthetic static get r_topLevelFunction @280
+      synthetic static get r_topLevelFunction @-1
         returnType: String Function(int)
-      synthetic static set r_topLevelFunction @280
+      synthetic static set r_topLevelFunction @-1
         parameters
-          requiredPositional _r_topLevelFunction @280
+          requiredPositional _r_topLevelFunction @-1
             type: String Function(int)
         returnType: void
-      synthetic static get r_topLevelVariable @323
+      synthetic static get r_topLevelVariable @-1
         returnType: int
-      synthetic static set r_topLevelVariable @323
+      synthetic static set r_topLevelVariable @-1
         parameters
-          requiredPositional _r_topLevelVariable @323
+          requiredPositional _r_topLevelVariable @-1
             type: int
         returnType: void
-      synthetic static get r_topLevelGetter @366
+      synthetic static get r_topLevelGetter @-1
         returnType: int
-      synthetic static set r_topLevelGetter @366
+      synthetic static set r_topLevelGetter @-1
         parameters
-          requiredPositional _r_topLevelGetter @366
+          requiredPositional _r_topLevelGetter @-1
             type: int
         returnType: void
-      synthetic static get r_staticClassVariable @405
+      synthetic static get r_staticClassVariable @-1
         returnType: int
-      synthetic static set r_staticClassVariable @405
+      synthetic static set r_staticClassVariable @-1
         parameters
-          requiredPositional _r_staticClassVariable @405
+          requiredPositional _r_staticClassVariable @-1
             type: int
         returnType: void
-      synthetic static get r_staticGetter @456
+      synthetic static get r_staticGetter @-1
         returnType: int
-      synthetic static set r_staticGetter @456
+      synthetic static set r_staticGetter @-1
         parameters
-          requiredPositional _r_staticGetter @456
+          requiredPositional _r_staticGetter @-1
             type: int
         returnType: void
-      synthetic static get r_staticClassMethod @493
+      synthetic static get r_staticClassMethod @-1
         returnType: String Function(int)
-      synthetic static set r_staticClassMethod @493
+      synthetic static set r_staticClassMethod @-1
         parameters
-          requiredPositional _r_staticClassMethod @493
+          requiredPositional _r_staticClassMethod @-1
             type: String Function(int)
         returnType: void
-      synthetic static get instanceOfA @540
+      synthetic static get instanceOfA @-1
         returnType: A
-      synthetic static set instanceOfA @540
+      synthetic static set instanceOfA @-1
         parameters
-          requiredPositional _instanceOfA @540
+          requiredPositional _instanceOfA @-1
             type: A
         returnType: void
-      synthetic static get r_instanceClassMethod @567
+      synthetic static get r_instanceClassMethod @-1
         returnType: String Function(int)
-      synthetic static set r_instanceClassMethod @567
+      synthetic static set r_instanceClassMethod @-1
         parameters
-          requiredPositional _r_instanceClassMethod @567
+          requiredPositional _r_instanceClassMethod @-1
             type: String Function(int)
         returnType: void
       get topLevelGetter @74
@@ -2029,11 +2029,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic static get a @23
+          synthetic static get a @-1
             returnType: dynamic
-          synthetic static set a @23
+          synthetic static set a @-1
             parameters
-              requiredPositional _a @23
+              requiredPositional _a @-1
                 type: dynamic
             returnType: void
       class B @40
@@ -2044,22 +2044,22 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic static get b @57
+          synthetic static get b @-1
             returnType: dynamic
-          synthetic static set b @57
+          synthetic static set b @-1
             parameters
-              requiredPositional _b @57
+              requiredPositional _b @-1
                 type: dynamic
             returnType: void
     topLevelVariables
       static c @72
         type: dynamic
     accessors
-      synthetic static get c @72
+      synthetic static get c @-1
         returnType: dynamic
-      synthetic static set c @72
+      synthetic static set c @-1
         parameters
-          requiredPositional _c @72
+          requiredPositional _c @-1
             type: dynamic
         returnType: void
 ''');
@@ -2085,11 +2085,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic static get a @23
+          synthetic static get a @-1
             returnType: dynamic
-          synthetic static set a @23
+          synthetic static set a @-1
             parameters
-              requiredPositional _a @23
+              requiredPositional _a @-1
                 type: dynamic
             returnType: void
     topLevelVariables
@@ -2099,18 +2099,18 @@ library
       static c @49
         type: dynamic
     accessors
-      synthetic static get b @36
+      synthetic static get b @-1
         returnType: dynamic
-      synthetic static set b @36
+      synthetic static set b @-1
         parameters
-          requiredPositional _b @36
+          requiredPositional _b @-1
             type: dynamic
         returnType: void
-      synthetic static get c @49
+      synthetic static get c @-1
         returnType: dynamic
-      synthetic static set c @49
+      synthetic static set c @-1
         parameters
-          requiredPositional _c @49
+          requiredPositional _c @-1
             type: dynamic
         returnType: void
 ''');
@@ -2139,32 +2139,32 @@ library
       static d @37
         type: dynamic
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: dynamic
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: dynamic
         returnType: void
-      synthetic static get b @15
+      synthetic static get b @-1
         returnType: dynamic
-      synthetic static set b @15
+      synthetic static set b @-1
         parameters
-          requiredPositional _b @15
+          requiredPositional _b @-1
             type: dynamic
         returnType: void
-      synthetic static get c @26
+      synthetic static get c @-1
         returnType: dynamic
-      synthetic static set c @26
+      synthetic static set c @-1
         parameters
-          requiredPositional _c @26
+          requiredPositional _c @-1
             type: dynamic
         returnType: void
-      synthetic static get d @37
+      synthetic static get d @-1
         returnType: dynamic
-      synthetic static set d @37
+      synthetic static set d @-1
         parameters
-          requiredPositional _d @37
+          requiredPositional _d @-1
             type: dynamic
         returnType: void
 ''');
@@ -2206,11 +2206,11 @@ library
       static a @15
         type: A
     accessors
-      synthetic static get a @15
+      synthetic static get a @-1
         returnType: A
-      synthetic static set a @15
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @15
+          requiredPositional _a @-1
             type: A
         returnType: void
 ''');
@@ -2231,18 +2231,18 @@ library
       static h @49
         type: int
     accessors
-      synthetic static get s @25
+      synthetic static get s @-1
         returnType: String
-      synthetic static set s @25
+      synthetic static set s @-1
         parameters
-          requiredPositional _s @25
+          requiredPositional _s @-1
             type: String
         returnType: void
-      synthetic static get h @49
+      synthetic static get h @-1
         returnType: int
-      synthetic static set h @49
+      synthetic static set h @-1
         parameters
-          requiredPositional _h @49
+          requiredPositional _h @-1
             type: int
         returnType: void
     functions
@@ -2268,25 +2268,25 @@ library
       static h @37
         type: int
     accessors
-      synthetic static get d @8
+      synthetic static get d @-1
         returnType: dynamic
-      synthetic static set d @8
+      synthetic static set d @-1
         parameters
-          requiredPositional _d @8
+          requiredPositional _d @-1
             type: dynamic
         returnType: void
-      synthetic static get s @15
+      synthetic static get s @-1
         returnType: String
-      synthetic static set s @15
+      synthetic static set s @-1
         parameters
-          requiredPositional _s @15
+          requiredPositional _s @-1
             type: String
         returnType: void
-      synthetic static get h @37
+      synthetic static get h @-1
         returnType: int
-      synthetic static set h @37
+      synthetic static set h @-1
         parameters
-          requiredPositional _h @37
+          requiredPositional _h @-1
             type: int
         returnType: void
 ''');
@@ -2306,18 +2306,18 @@ library
       static b @17
         type: bool
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: double
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: double
         returnType: void
-      synthetic static get b @17
+      synthetic static get b @-1
         returnType: bool
-      synthetic static set b @17
+      synthetic static set b @-1
         parameters
-          requiredPositional _b @17
+          requiredPositional _b @-1
             type: bool
         returnType: void
 ''');
@@ -2371,32 +2371,32 @@ library
       static vInt @89
         type: List<int>
     accessors
-      synthetic static get vObject @4
+      synthetic static get vObject @-1
         returnType: List<Object>
-      synthetic static set vObject @4
+      synthetic static set vObject @-1
         parameters
-          requiredPositional _vObject @4
+          requiredPositional _vObject @-1
             type: List<Object>
         returnType: void
-      synthetic static get vNum @37
+      synthetic static get vNum @-1
         returnType: List<num>
-      synthetic static set vNum @37
+      synthetic static set vNum @-1
         parameters
-          requiredPositional _vNum @37
+          requiredPositional _vNum @-1
             type: List<num>
         returnType: void
-      synthetic static get vNumEmpty @64
+      synthetic static get vNumEmpty @-1
         returnType: List<num>
-      synthetic static set vNumEmpty @64
+      synthetic static set vNumEmpty @-1
         parameters
-          requiredPositional _vNumEmpty @64
+          requiredPositional _vNumEmpty @-1
             type: List<num>
         returnType: void
-      synthetic static get vInt @89
+      synthetic static get vInt @-1
         returnType: List<int>
-      synthetic static set vInt @89
+      synthetic static set vInt @-1
         parameters
-          requiredPositional _vInt @89
+          requiredPositional _vInt @-1
             type: List<int>
         returnType: void
 ''');
@@ -2419,25 +2419,25 @@ library
       static vObject @47
         type: List<Object>
     accessors
-      synthetic static get vInt @4
+      synthetic static get vInt @-1
         returnType: List<int>
-      synthetic static set vInt @4
+      synthetic static set vInt @-1
         parameters
-          requiredPositional _vInt @4
+          requiredPositional _vInt @-1
             type: List<int>
         returnType: void
-      synthetic static get vNum @26
+      synthetic static get vNum @-1
         returnType: List<num>
-      synthetic static set vNum @26
+      synthetic static set vNum @-1
         parameters
-          requiredPositional _vNum @26
+          requiredPositional _vNum @-1
             type: List<num>
         returnType: void
-      synthetic static get vObject @47
+      synthetic static get vObject @-1
         returnType: List<Object>
-      synthetic static set vObject @47
+      synthetic static set vObject @-1
         parameters
-          requiredPositional _vObject @47
+          requiredPositional _vObject @-1
             type: List<Object>
         returnType: void
 ''');
@@ -2478,39 +2478,39 @@ library
       static vIntString @188
         type: Map<int, String>
     accessors
-      synthetic static get vObjectObject @4
+      synthetic static get vObjectObject @-1
         returnType: Map<Object, Object>
-      synthetic static set vObjectObject @4
+      synthetic static set vObjectObject @-1
         parameters
-          requiredPositional _vObjectObject @4
+          requiredPositional _vObjectObject @-1
             type: Map<Object, Object>
         returnType: void
-      synthetic static get vComparableObject @50
+      synthetic static get vComparableObject @-1
         returnType: Map<Comparable<int>, Object>
-      synthetic static set vComparableObject @50
+      synthetic static set vComparableObject @-1
         parameters
-          requiredPositional _vComparableObject @50
+          requiredPositional _vComparableObject @-1
             type: Map<Comparable<int>, Object>
         returnType: void
-      synthetic static get vNumString @109
+      synthetic static get vNumString @-1
         returnType: Map<num, String>
-      synthetic static set vNumString @109
+      synthetic static set vNumString @-1
         parameters
-          requiredPositional _vNumString @109
+          requiredPositional _vNumString @-1
             type: Map<num, String>
         returnType: void
-      synthetic static get vNumStringEmpty @149
+      synthetic static get vNumStringEmpty @-1
         returnType: Map<num, String>
-      synthetic static set vNumStringEmpty @149
+      synthetic static set vNumStringEmpty @-1
         parameters
-          requiredPositional _vNumStringEmpty @149
+          requiredPositional _vNumStringEmpty @-1
             type: Map<num, String>
         returnType: void
-      synthetic static get vIntString @188
+      synthetic static get vIntString @-1
         returnType: Map<int, String>
-      synthetic static set vIntString @188
+      synthetic static set vIntString @-1
         parameters
-          requiredPositional _vIntString @188
+          requiredPositional _vIntString @-1
             type: Map<int, String>
         returnType: void
 ''');
@@ -2533,25 +2533,25 @@ library
       static vIntObject @76
         type: Map<int, Object>
     accessors
-      synthetic static get vIntString @4
+      synthetic static get vIntString @-1
         returnType: Map<int, String>
-      synthetic static set vIntString @4
+      synthetic static set vIntString @-1
         parameters
-          requiredPositional _vIntString @4
+          requiredPositional _vIntString @-1
             type: Map<int, String>
         returnType: void
-      synthetic static get vNumString @39
+      synthetic static get vNumString @-1
         returnType: Map<num, String>
-      synthetic static set vNumString @39
+      synthetic static set vNumString @-1
         parameters
-          requiredPositional _vNumString @39
+          requiredPositional _vNumString @-1
             type: Map<num, String>
         returnType: void
-      synthetic static get vIntObject @76
+      synthetic static get vIntObject @-1
         returnType: Map<int, Object>
-      synthetic static set vIntObject @76
+      synthetic static set vIntObject @-1
         parameters
-          requiredPositional _vIntObject @76
+          requiredPositional _vIntObject @-1
             type: Map<int, Object>
         returnType: void
 ''');
@@ -2592,39 +2592,39 @@ library
       static vOr @69
         type: bool
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: bool
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: bool
         returnType: void
-      synthetic static get b @18
+      synthetic static get b @-1
         returnType: bool
-      synthetic static set b @18
+      synthetic static set b @-1
         parameters
-          requiredPositional _b @18
+          requiredPositional _b @-1
             type: bool
         returnType: void
-      synthetic static get vEq @32
+      synthetic static get vEq @-1
         returnType: bool
-      synthetic static set vEq @32
+      synthetic static set vEq @-1
         parameters
-          requiredPositional _vEq @32
+          requiredPositional _vEq @-1
             type: bool
         returnType: void
-      synthetic static get vAnd @50
+      synthetic static get vAnd @-1
         returnType: bool
-      synthetic static set vAnd @50
+      synthetic static set vAnd @-1
         parameters
-          requiredPositional _vAnd @50
+          requiredPositional _vAnd @-1
             type: bool
         returnType: void
-      synthetic static get vOr @69
+      synthetic static get vOr @-1
         returnType: bool
-      synthetic static set vOr @69
+      synthetic static set vOr @-1
         parameters
-          requiredPositional _vOr @69
+          requiredPositional _vOr @-1
             type: bool
         returnType: void
 ''');
@@ -2679,25 +2679,25 @@ library
       static v2 @96
         type: String
     accessors
-      synthetic static get instanceOfA @43
+      synthetic static get instanceOfA @-1
         returnType: A
-      synthetic static set instanceOfA @43
+      synthetic static set instanceOfA @-1
         parameters
-          requiredPositional _instanceOfA @43
+          requiredPositional _instanceOfA @-1
             type: A
         returnType: void
-      synthetic static get v1 @70
+      synthetic static get v1 @-1
         returnType: String
-      synthetic static set v1 @70
+      synthetic static set v1 @-1
         parameters
-          requiredPositional _v1 @70
+          requiredPositional _v1 @-1
             type: String
         returnType: void
-      synthetic static get v2 @96
+      synthetic static get v2 @-1
         returnType: String
-      synthetic static set v2 @96
+      synthetic static set v2 @-1
         parameters
-          requiredPositional _v2 @96
+          requiredPositional _v2 @-1
             type: String
         returnType: void
 ''');
@@ -2744,81 +2744,81 @@ library
       static vFloorDivide @327
         type: int
     accessors
-      synthetic static get vModuloIntInt @4
+      synthetic static get vModuloIntInt @-1
         returnType: int
-      synthetic static set vModuloIntInt @4
+      synthetic static set vModuloIntInt @-1
         parameters
-          requiredPositional _vModuloIntInt @4
+          requiredPositional _vModuloIntInt @-1
             type: int
         returnType: void
-      synthetic static get vModuloIntDouble @31
+      synthetic static get vModuloIntDouble @-1
         returnType: double
-      synthetic static set vModuloIntDouble @31
+      synthetic static set vModuloIntDouble @-1
         parameters
-          requiredPositional _vModuloIntDouble @31
+          requiredPositional _vModuloIntDouble @-1
             type: double
         returnType: void
-      synthetic static get vMultiplyIntInt @63
+      synthetic static get vMultiplyIntInt @-1
         returnType: int
-      synthetic static set vMultiplyIntInt @63
+      synthetic static set vMultiplyIntInt @-1
         parameters
-          requiredPositional _vMultiplyIntInt @63
+          requiredPositional _vMultiplyIntInt @-1
             type: int
         returnType: void
-      synthetic static get vMultiplyIntDouble @92
+      synthetic static get vMultiplyIntDouble @-1
         returnType: double
-      synthetic static set vMultiplyIntDouble @92
+      synthetic static set vMultiplyIntDouble @-1
         parameters
-          requiredPositional _vMultiplyIntDouble @92
+          requiredPositional _vMultiplyIntDouble @-1
             type: double
         returnType: void
-      synthetic static get vMultiplyDoubleInt @126
+      synthetic static get vMultiplyDoubleInt @-1
         returnType: double
-      synthetic static set vMultiplyDoubleInt @126
+      synthetic static set vMultiplyDoubleInt @-1
         parameters
-          requiredPositional _vMultiplyDoubleInt @126
+          requiredPositional _vMultiplyDoubleInt @-1
             type: double
         returnType: void
-      synthetic static get vMultiplyDoubleDouble @160
+      synthetic static get vMultiplyDoubleDouble @-1
         returnType: double
-      synthetic static set vMultiplyDoubleDouble @160
+      synthetic static set vMultiplyDoubleDouble @-1
         parameters
-          requiredPositional _vMultiplyDoubleDouble @160
+          requiredPositional _vMultiplyDoubleDouble @-1
             type: double
         returnType: void
-      synthetic static get vDivideIntInt @199
+      synthetic static get vDivideIntInt @-1
         returnType: double
-      synthetic static set vDivideIntInt @199
+      synthetic static set vDivideIntInt @-1
         parameters
-          requiredPositional _vDivideIntInt @199
+          requiredPositional _vDivideIntInt @-1
             type: double
         returnType: void
-      synthetic static get vDivideIntDouble @226
+      synthetic static get vDivideIntDouble @-1
         returnType: double
-      synthetic static set vDivideIntDouble @226
+      synthetic static set vDivideIntDouble @-1
         parameters
-          requiredPositional _vDivideIntDouble @226
+          requiredPositional _vDivideIntDouble @-1
             type: double
         returnType: void
-      synthetic static get vDivideDoubleInt @258
+      synthetic static get vDivideDoubleInt @-1
         returnType: double
-      synthetic static set vDivideDoubleInt @258
+      synthetic static set vDivideDoubleInt @-1
         parameters
-          requiredPositional _vDivideDoubleInt @258
+          requiredPositional _vDivideDoubleInt @-1
             type: double
         returnType: void
-      synthetic static get vDivideDoubleDouble @290
+      synthetic static get vDivideDoubleDouble @-1
         returnType: double
-      synthetic static set vDivideDoubleDouble @290
+      synthetic static set vDivideDoubleDouble @-1
         parameters
-          requiredPositional _vDivideDoubleDouble @290
+          requiredPositional _vDivideDoubleDouble @-1
             type: double
         returnType: void
-      synthetic static get vFloorDivide @327
+      synthetic static get vFloorDivide @-1
         returnType: int
-      synthetic static set vFloorDivide @327
+      synthetic static set vFloorDivide @-1
         parameters
-          requiredPositional _vFloorDivide @327
+          requiredPositional _vFloorDivide @-1
             type: int
         returnType: void
 ''');
@@ -2841,25 +2841,25 @@ library
       static vNotEq @46
         type: bool
     accessors
-      synthetic static get a @4
+      synthetic static get a @-1
         returnType: int
-      synthetic static set a @4
+      synthetic static set a @-1
         parameters
-          requiredPositional _a @4
+          requiredPositional _a @-1
             type: int
         returnType: void
-      synthetic static get vEq @15
+      synthetic static get vEq @-1
         returnType: bool
-      synthetic static set vEq @15
+      synthetic static set vEq @-1
         parameters
-          requiredPositional _vEq @15
+          requiredPositional _vEq @-1
             type: bool
         returnType: void
-      synthetic static get vNotEq @46
+      synthetic static get vNotEq @-1
         returnType: bool
-      synthetic static set vNotEq @46
+      synthetic static set vNotEq @-1
         parameters
-          requiredPositional _vNotEq @46
+          requiredPositional _vNotEq @-1
             type: bool
         returnType: void
 ''');
@@ -2876,11 +2876,11 @@ library
       static V @4
         type: int
     accessors
-      synthetic static get V @4
+      synthetic static get V @-1
         returnType: int
-      synthetic static set V @4
+      synthetic static set V @-1
         parameters
-          requiredPositional _V @4
+          requiredPositional _V @-1
             type: int
         returnType: void
 ''');
@@ -2912,46 +2912,46 @@ library
       static vDecDouble @109
         type: double
     accessors
-      synthetic static get vInt @4
+      synthetic static get vInt @-1
         returnType: int
-      synthetic static set vInt @4
+      synthetic static set vInt @-1
         parameters
-          requiredPositional _vInt @4
+          requiredPositional _vInt @-1
             type: int
         returnType: void
-      synthetic static get vDouble @18
+      synthetic static get vDouble @-1
         returnType: double
-      synthetic static set vDouble @18
+      synthetic static set vDouble @-1
         parameters
-          requiredPositional _vDouble @18
+          requiredPositional _vDouble @-1
             type: double
         returnType: void
-      synthetic static get vIncInt @37
+      synthetic static get vIncInt @-1
         returnType: int
-      synthetic static set vIncInt @37
+      synthetic static set vIncInt @-1
         parameters
-          requiredPositional _vIncInt @37
+          requiredPositional _vIncInt @-1
             type: int
         returnType: void
-      synthetic static get vDecInt @59
+      synthetic static get vDecInt @-1
         returnType: int
-      synthetic static set vDecInt @59
+      synthetic static set vDecInt @-1
         parameters
-          requiredPositional _vDecInt @59
+          requiredPositional _vDecInt @-1
             type: int
         returnType: void
-      synthetic static get vIncDouble @81
+      synthetic static get vIncDouble @-1
         returnType: double
-      synthetic static set vIncDouble @81
+      synthetic static set vIncDouble @-1
         parameters
-          requiredPositional _vIncDouble @81
+          requiredPositional _vIncDouble @-1
             type: double
         returnType: void
-      synthetic static get vDecDouble @109
+      synthetic static get vDecDouble @-1
         returnType: double
-      synthetic static set vDecDouble @109
+      synthetic static set vDecDouble @-1
         parameters
-          requiredPositional _vDecDouble @109
+          requiredPositional _vDecDouble @-1
             type: double
         returnType: void
 ''');
@@ -2983,46 +2983,46 @@ library
       static vDecDouble @122
         type: double
     accessors
-      synthetic static get vInt @4
+      synthetic static get vInt @-1
         returnType: List<int>
-      synthetic static set vInt @4
+      synthetic static set vInt @-1
         parameters
-          requiredPositional _vInt @4
+          requiredPositional _vInt @-1
             type: List<int>
         returnType: void
-      synthetic static get vDouble @20
+      synthetic static get vDouble @-1
         returnType: List<double>
-      synthetic static set vDouble @20
+      synthetic static set vDouble @-1
         parameters
-          requiredPositional _vDouble @20
+          requiredPositional _vDouble @-1
             type: List<double>
         returnType: void
-      synthetic static get vIncInt @41
+      synthetic static get vIncInt @-1
         returnType: int
-      synthetic static set vIncInt @41
+      synthetic static set vIncInt @-1
         parameters
-          requiredPositional _vIncInt @41
+          requiredPositional _vIncInt @-1
             type: int
         returnType: void
-      synthetic static get vDecInt @66
+      synthetic static get vDecInt @-1
         returnType: int
-      synthetic static set vDecInt @66
+      synthetic static set vDecInt @-1
         parameters
-          requiredPositional _vDecInt @66
+          requiredPositional _vDecInt @-1
             type: int
         returnType: void
-      synthetic static get vIncDouble @91
+      synthetic static get vIncDouble @-1
         returnType: double
-      synthetic static set vIncDouble @91
+      synthetic static set vIncDouble @-1
         parameters
-          requiredPositional _vIncDouble @91
+          requiredPositional _vIncDouble @-1
             type: double
         returnType: void
-      synthetic static get vDecDouble @122
+      synthetic static get vDecDouble @-1
         returnType: double
-      synthetic static set vDecDouble @122
+      synthetic static set vDecDouble @-1
         parameters
-          requiredPositional _vDecDouble @122
+          requiredPositional _vDecDouble @-1
             type: double
         returnType: void
 ''');
@@ -3054,46 +3054,46 @@ library
       static vDecInt @109
         type: double
     accessors
-      synthetic static get vInt @4
+      synthetic static get vInt @-1
         returnType: int
-      synthetic static set vInt @4
+      synthetic static set vInt @-1
         parameters
-          requiredPositional _vInt @4
+          requiredPositional _vInt @-1
             type: int
         returnType: void
-      synthetic static get vDouble @18
+      synthetic static get vDouble @-1
         returnType: double
-      synthetic static set vDouble @18
+      synthetic static set vDouble @-1
         parameters
-          requiredPositional _vDouble @18
+          requiredPositional _vDouble @-1
             type: double
         returnType: void
-      synthetic static get vIncInt @37
+      synthetic static get vIncInt @-1
         returnType: int
-      synthetic static set vIncInt @37
+      synthetic static set vIncInt @-1
         parameters
-          requiredPositional _vIncInt @37
+          requiredPositional _vIncInt @-1
             type: int
         returnType: void
-      synthetic static get vDecInt @59
+      synthetic static get vDecInt @-1
         returnType: int
-      synthetic static set vDecInt @59
+      synthetic static set vDecInt @-1
         parameters
-          requiredPositional _vDecInt @59
+          requiredPositional _vDecInt @-1
             type: int
         returnType: void
-      synthetic static get vIncDouble @81
+      synthetic static get vIncDouble @-1
         returnType: double
-      synthetic static set vIncDouble @81
+      synthetic static set vIncDouble @-1
         parameters
-          requiredPositional _vIncDouble @81
+          requiredPositional _vIncDouble @-1
             type: double
         returnType: void
-      synthetic static get vDecInt @109
+      synthetic static get vDecInt @-1
         returnType: double
-      synthetic static set vDecInt @109
+      synthetic static set vDecInt @-1
         parameters
-          requiredPositional _vDecInt @109
+          requiredPositional _vDecInt @-1
             type: double
         returnType: void
 ''');
@@ -3143,46 +3143,46 @@ library
       static vDecInt @122
         type: double
     accessors
-      synthetic static get vInt @4
+      synthetic static get vInt @-1
         returnType: List<int>
-      synthetic static set vInt @4
+      synthetic static set vInt @-1
         parameters
-          requiredPositional _vInt @4
+          requiredPositional _vInt @-1
             type: List<int>
         returnType: void
-      synthetic static get vDouble @20
+      synthetic static get vDouble @-1
         returnType: List<double>
-      synthetic static set vDouble @20
+      synthetic static set vDouble @-1
         parameters
-          requiredPositional _vDouble @20
+          requiredPositional _vDouble @-1
             type: List<double>
         returnType: void
-      synthetic static get vIncInt @41
+      synthetic static get vIncInt @-1
         returnType: int
-      synthetic static set vIncInt @41
+      synthetic static set vIncInt @-1
         parameters
-          requiredPositional _vIncInt @41
+          requiredPositional _vIncInt @-1
             type: int
         returnType: void
-      synthetic static get vDecInt @66
+      synthetic static get vDecInt @-1
         returnType: int
-      synthetic static set vDecInt @66
+      synthetic static set vDecInt @-1
         parameters
-          requiredPositional _vDecInt @66
+          requiredPositional _vDecInt @-1
             type: int
         returnType: void
-      synthetic static get vIncDouble @91
+      synthetic static get vIncDouble @-1
         returnType: double
-      synthetic static set vIncDouble @91
+      synthetic static set vIncDouble @-1
         parameters
-          requiredPositional _vIncDouble @91
+          requiredPositional _vIncDouble @-1
             type: double
         returnType: void
-      synthetic static get vDecInt @122
+      synthetic static get vDecInt @-1
         returnType: double
-      synthetic static set vDecInt @122
+      synthetic static set vDecInt @-1
         parameters
-          requiredPositional _vDecInt @122
+          requiredPositional _vDecInt @-1
             type: double
         returnType: void
 ''');
@@ -3199,11 +3199,11 @@ library
       static vNot @4
         type: bool
     accessors
-      synthetic static get vNot @4
+      synthetic static get vNot @-1
         returnType: bool
-      synthetic static set vNot @4
+      synthetic static set vNot @-1
         parameters
-          requiredPositional _vNot @4
+          requiredPositional _vNot @-1
             type: bool
         returnType: void
 ''');
@@ -3226,25 +3226,25 @@ library
       static vComplement @51
         type: int
     accessors
-      synthetic static get vNegateInt @4
+      synthetic static get vNegateInt @-1
         returnType: int
-      synthetic static set vNegateInt @4
+      synthetic static set vNegateInt @-1
         parameters
-          requiredPositional _vNegateInt @4
+          requiredPositional _vNegateInt @-1
             type: int
         returnType: void
-      synthetic static get vNegateDouble @25
+      synthetic static get vNegateDouble @-1
         returnType: double
-      synthetic static set vNegateDouble @25
+      synthetic static set vNegateDouble @-1
         parameters
-          requiredPositional _vNegateDouble @25
+          requiredPositional _vNegateDouble @-1
             type: double
         returnType: void
-      synthetic static get vComplement @51
+      synthetic static get vComplement @-1
         returnType: int
-      synthetic static set vComplement @51
+      synthetic static set vComplement @-1
         parameters
-          requiredPositional _vComplement @51
+          requiredPositional _vComplement @-1
             type: int
         returnType: void
 ''');
@@ -3271,11 +3271,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic static get d @21
+          synthetic static get d @-1
             returnType: D
-          synthetic static set d @21
+          synthetic static set d @-1
             parameters
-              requiredPositional _d @21
+              requiredPositional _d @-1
                 type: D
             returnType: void
       class D @32
@@ -3285,18 +3285,18 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get i @42
+          synthetic get i @-1
             returnType: int
-          synthetic set i @42
+          synthetic set i @-1
             parameters
-              requiredPositional _i @42
+              requiredPositional _i @-1
                 type: int
             returnType: void
     topLevelVariables
       static final x @53
         type: int
     accessors
-      synthetic static get x @53
+      synthetic static get x @-1
         returnType: int
 ''');
   }
@@ -3331,22 +3331,22 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get i @54
+          synthetic get i @-1
             returnType: int
-          synthetic set i @54
+          synthetic set i @-1
             parameters
-              requiredPositional _i @54
+              requiredPositional _i @-1
                 type: int
             returnType: void
     topLevelVariables
       static x @63
         type: int
     accessors
-      synthetic static get x @63
+      synthetic static get x @-1
         returnType: int
-      synthetic static set x @63
+      synthetic static set x @-1
         parameters
-          requiredPositional _x @63
+          requiredPositional _x @-1
             type: int
         returnType: void
 ''');
@@ -3372,32 +3372,32 @@ library
       static vGreaterOrEqual @72
         type: bool
     accessors
-      synthetic static get vLess @4
+      synthetic static get vLess @-1
         returnType: bool
-      synthetic static set vLess @4
+      synthetic static set vLess @-1
         parameters
-          requiredPositional _vLess @4
+          requiredPositional _vLess @-1
             type: bool
         returnType: void
-      synthetic static get vLessOrEqual @23
+      synthetic static get vLessOrEqual @-1
         returnType: bool
-      synthetic static set vLessOrEqual @23
+      synthetic static set vLessOrEqual @-1
         parameters
-          requiredPositional _vLessOrEqual @23
+          requiredPositional _vLessOrEqual @-1
             type: bool
         returnType: void
-      synthetic static get vGreater @50
+      synthetic static get vGreater @-1
         returnType: bool
-      synthetic static set vGreater @50
+      synthetic static set vGreater @-1
         parameters
-          requiredPositional _vGreater @50
+          requiredPositional _vGreater @-1
             type: bool
         returnType: void
-      synthetic static get vGreaterOrEqual @72
+      synthetic static get vGreaterOrEqual @-1
         returnType: bool
-      synthetic static set vGreaterOrEqual @72
+      synthetic static set vGreaterOrEqual @-1
         parameters
-          requiredPositional _vGreaterOrEqual @72
+          requiredPositional _vGreaterOrEqual @-1
             type: bool
         returnType: void
 ''');
@@ -3433,11 +3433,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @25
+          synthetic get x @-1
             returnType: int
-          synthetic set x @25
+          synthetic set x @-1
             parameters
-              requiredPositional _x @25
+              requiredPositional _x @-1
                 type: int
             returnType: void
       class B @36
@@ -3478,11 +3478,11 @@ library
                   SimpleStringLiteral
                     literal: 'hello' @37
         accessors
-          synthetic get f @16
+          synthetic get f @-1
             returnType: int
-          synthetic set f @16
+          synthetic set f @-1
             parameters
-              requiredPositional _f @16
+              requiredPositional _f @-1
                 type: int
             returnType: void
 ''');
@@ -3516,25 +3516,25 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @25
+          synthetic get x @-1
             returnType: int
-          synthetic set x @25
+          synthetic set x @-1
             parameters
-              requiredPositional _x @25
+              requiredPositional _x @-1
                 type: int
             returnType: void
-          synthetic get y @34
+          synthetic get y @-1
             returnType: int
-          synthetic set y @34
+          synthetic set y @-1
             parameters
-              requiredPositional _y @34
+              requiredPositional _y @-1
                 type: int
             returnType: void
-          synthetic get z @43
+          synthetic get z @-1
             returnType: int
-          synthetic set z @43
+          synthetic set z @-1
             parameters
-              requiredPositional _z @43
+              requiredPositional _z @-1
                 type: int
             returnType: void
       class B @54
@@ -3550,11 +3550,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @77
+          synthetic get x @-1
             returnType: int
-          synthetic set x @77
+          synthetic set x @-1
             parameters
-              requiredPositional _x @77
+              requiredPositional _x @-1
                 type: int
             returnType: void
           get y @86
@@ -3587,11 +3587,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @29
+          synthetic get x @-1
             returnType: dynamic
-          synthetic set x @29
+          synthetic set x @-1
             parameters
-              requiredPositional _x @29
+              requiredPositional _x @-1
                 type: dynamic
             returnType: void
       class B @40
@@ -3603,11 +3603,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @63
+          synthetic get x @-1
             returnType: dynamic
-          synthetic set x @63
+          synthetic set x @-1
             parameters
-              requiredPositional _x @63
+              requiredPositional _x @-1
                 type: dynamic
             returnType: void
 ''');
@@ -3644,25 +3644,25 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @26
+          synthetic get x @-1
             returnType: E
-          synthetic set x @26
+          synthetic set x @-1
             parameters
-              requiredPositional _x @26
+              requiredPositional _x @-1
                 type: E
             returnType: void
-          synthetic get y @33
+          synthetic get y @-1
             returnType: E
-          synthetic set y @33
+          synthetic set y @-1
             parameters
-              requiredPositional _y @33
+              requiredPositional _y @-1
                 type: E
             returnType: void
-          synthetic get z @40
+          synthetic get z @-1
             returnType: E
-          synthetic set z @40
+          synthetic set z @-1
             parameters
-              requiredPositional _z @40
+              requiredPositional _z @-1
                 type: E
             returnType: void
       class B @51
@@ -3681,11 +3681,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @80
+          synthetic get x @-1
             returnType: T
-          synthetic set x @80
+          synthetic set x @-1
             parameters
-              requiredPositional _x @80
+              requiredPositional _x @-1
                 type: T
             returnType: void
           get y @89
@@ -3718,11 +3718,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @25
+          synthetic get x @-1
             returnType: dynamic
-          synthetic set x @25
+          synthetic set x @-1
             parameters
-              requiredPositional _x @25
+              requiredPositional _x @-1
                 type: dynamic
             returnType: void
       class B @36
@@ -3734,11 +3734,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @59
+          synthetic get x @-1
             returnType: dynamic
-          synthetic set x @59
+          synthetic set x @-1
             parameters
-              requiredPositional _x @59
+              requiredPositional _x @-1
                 type: dynamic
             returnType: void
 ''');
@@ -3764,11 +3764,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @25
+          synthetic get x @-1
             returnType: num
-          synthetic set x @25
+          synthetic set x @-1
             parameters
-              requiredPositional _x @25
+              requiredPositional _x @-1
                 type: num
             returnType: void
       class B @36
@@ -3780,11 +3780,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @59
+          synthetic get x @-1
             returnType: num
-          synthetic set x @59
+          synthetic set x @-1
             parameters
-              requiredPositional _x @59
+              requiredPositional _x @-1
                 type: num
             returnType: void
 ''');
@@ -3837,11 +3837,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @89
+          synthetic get x @-1
             returnType: int
-          synthetic set x @89
+          synthetic set x @-1
             parameters
-              requiredPositional _x @89
+              requiredPositional _x @-1
                 type: int
             returnType: void
           get y @98
@@ -3907,11 +3907,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @92
+          synthetic get x @-1
             returnType: T
-          synthetic set x @92
+          synthetic set x @-1
             parameters
-              requiredPositional _x @92
+              requiredPositional _x @-1
                 type: T
             returnType: void
           get y @101
@@ -4193,14 +4193,14 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @148
+          synthetic get x @-1
             returnType: dynamic
-          synthetic set x @148
+          synthetic set x @-1
             parameters
-              requiredPositional _x @148
+              requiredPositional _x @-1
                 type: dynamic
             returnType: void
-          synthetic get y @159
+          synthetic get y @-1
             returnType: int
 ''');
   }
@@ -4360,11 +4360,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @108
+          synthetic get x @-1
             returnType: int
-          synthetic set x @108
+          synthetic set x @-1
             parameters
-              requiredPositional _x @108
+              requiredPositional _x @-1
                 type: int
             returnType: void
 ''');
@@ -4533,11 +4533,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @113
+          synthetic get x @-1
             returnType: int
-          synthetic set x @113
+          synthetic set x @-1
             parameters
-              requiredPositional _x @113
+              requiredPositional _x @-1
                 type: int
             returnType: void
           get y @122
@@ -4768,11 +4768,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get x @94
+          synthetic get x @-1
             returnType: int
-          synthetic set x @94
+          synthetic set x @-1
             parameters
-              requiredPositional covariant _x @94
+              requiredPositional covariant _x @-1
                 type: int
             returnType: void
 ''');
@@ -4846,25 +4846,25 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get t1 @16
+          synthetic get t1 @-1
             returnType: int
-          synthetic set t1 @16
+          synthetic set t1 @-1
             parameters
-              requiredPositional _t1 @16
+              requiredPositional _t1 @-1
                 type: int
             returnType: void
-          synthetic get t2 @30
+          synthetic get t2 @-1
             returnType: double
-          synthetic set t2 @30
+          synthetic set t2 @-1
             parameters
-              requiredPositional _t2 @30
+              requiredPositional _t2 @-1
                 type: double
             returnType: void
-          synthetic get t3 @46
+          synthetic get t3 @-1
             returnType: dynamic
-          synthetic set t3 @46
+          synthetic set t3 @-1
             parameters
-              requiredPositional _t3 @46
+              requiredPositional _t3 @-1
                 type: dynamic
             returnType: void
 ''');
@@ -5384,11 +5384,11 @@ library
         constructors
           synthetic @-1
         accessors
-          synthetic get m @16
+          synthetic get m @-1
             returnType: int
-          synthetic set m @16
+          synthetic set m @-1
             parameters
-              requiredPositional _m @16
+              requiredPositional _m @-1
                 type: int
             returnType: void
       class B @32
