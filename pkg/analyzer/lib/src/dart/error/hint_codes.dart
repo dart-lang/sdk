@@ -2623,16 +2623,18 @@ class HintCode extends AnalyzerErrorCode {
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
   static const HintCode TYPE_CHECK_IS_NOT_NULL = HintCode(
-      'TYPE_CHECK_IS_NOT_NULL',
+      'TYPE_CHECK_WITH_NULL',
       "Tests for non-null should be done with '!= null'.",
-      correction: "Try replacing the 'is! Null' check with '!= null'.");
+      correction: "Try replacing the 'is! Null' check with '!= null'.",
+      uniqueName: 'TYPE_CHECK_IS_NOT_NULL');
 
   /**
    * Type checks of the type `x is Null` should be done with `x == null`.
    */
   static const HintCode TYPE_CHECK_IS_NULL = HintCode(
-      'TYPE_CHECK_IS_NULL', "Tests for null should be done with '== null'.",
-      correction: "Try replacing the 'is Null' check with '== null'.");
+      'TYPE_CHECK_WITH_NULL', "Tests for null should be done with '== null'.",
+      correction: "Try replacing the 'is Null' check with '== null'.",
+      uniqueName: 'TYPE_CHECK_IS_NULL');
 
   /**
    * Parameters:

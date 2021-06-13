@@ -20,6 +20,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
@@ -55,7 +56,6 @@ import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
@@ -1246,10 +1246,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     flowAnalysis!.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
 
-    var constructor = node.declaredElement as ConstructorElementImpl;
-    constructor.constantInitializers =
-        _createCloner().cloneNodeList(node.initializers);
-
     _enclosingFunction = outerFunction;
   }
 
@@ -1314,12 +1310,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement!;
 
-    // Clone the ASTs for default formal parameters, so that we can use them
-    // during constant evaluation.
-    if (element is ConstVariableElement &&
-        !_hasSerializedConstantInitializer(element)) {
-      (element as ConstVariableElement).constantInitializer =
-          _createCloner().cloneNullableNode(node.defaultValue);
+    if (element is DefaultParameterElementImpl &&
+        !element.isParameterOfTopLevelFunction) {
+      element.constantInitializer = node.defaultValue;
     }
   }
 
@@ -2160,12 +2153,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     _yieldStatementResolver.resolve(node);
   }
 
-  /// Return a newly created cloner that can be used to clone constant
-  /// expressions.
-  ConstantAstCloner _createCloner() {
-    return ConstantAstCloner();
-  }
-
   /// Creates a union of `T | Future<T>`, unless `T` is already a
   /// future-union, in which case it simply returns `T`.
   DartType _createFutureOr(DartType type) {
@@ -2173,19 +2160,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       return type;
     }
     return typeProvider.futureOrType(type);
-  }
-
-  /// Return `true` if the given [parameter] element of the AST being resolved
-  /// is resynthesized and is an API-level, not local, so has its initializer
-  /// serialized.
-  bool _hasSerializedConstantInitializer(ParameterElement parameter) {
-    var executable = parameter.enclosingElement;
-    if (executable is MethodElement ||
-        executable is FunctionElement &&
-            executable.enclosingElement is CompilationUnitElement) {
-      return true;
-    }
-    return false;
   }
 
   void _inferArgumentTypesForInstanceCreate(

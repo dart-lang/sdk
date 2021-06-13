@@ -23,6 +23,18 @@ import '../protocol_stream.dart';
 /// client requests 500 items in a variablesRequest for a list.
 const maxToStringsPerEvaluation = 10;
 
+/// An expression that evaluates to the exception for the current thread.
+///
+/// In order to support some functionality like "Copy Value" in VS Code's
+/// Scopes/Variables window, each variable must have a valid "evaluateName" (an
+/// expression that evaluates to it). Since we show exceptions in there we use
+/// this magic value as an expression that maps to it.
+///
+/// This is not intended to be used by the user directly, although if they
+/// evaluate it as an expression and the current thread has an exception, it
+/// will work.
+const threadExceptionExpression = r'$_threadException';
+
 /// A base DAP Debug Adapter implementation for running and debugging Dart-based
 /// applications (including Flutter and Tests).
 ///
@@ -266,6 +278,94 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ) async {
     await disconnectImpl();
     sendResponse();
+  }
+
+  /// evaluateRequest is called by the client to evaluate a string expression.
+  ///
+  /// This could come from the user typing into an input (for example VS Code's
+  /// Debug Console), automatic refresh of a Watch window, or called as part of
+  /// an operation like "Copy Value" for an item in the watch/variables window.
+  ///
+  /// If execution is not paused, the `frameId` will not be provided.
+  @override
+  Future<void> evaluateRequest(
+    Request request,
+    EvaluateArguments args,
+    void Function(EvaluateResponseBody) sendResponse,
+  ) async {
+    final frameId = args.frameId;
+    // TODO(dantup): Special handling for clipboard/watch (see Dart-Code DAP) to
+    // avoid wrapping strings in quotes, etc.
+
+    // If the frameId was supplied, it maps to an ID we provided from stored
+    // data so we need to look up the isolate + frame index for it.
+    ThreadInfo? thread;
+    int? frameIndex;
+    if (frameId != null) {
+      final data = _isolateManager.getStoredData(frameId);
+      if (data != null) {
+        thread = data.thread;
+        frameIndex = (data.data as vm.Frame).index;
+      }
+    }
+
+    if (thread == null || frameIndex == null) {
+      // TODO(dantup): Dart-Code evaluates these in the context of the rootLib
+      // rather than just not supporting it. Consider something similar (or
+      // better here).
+      throw UnimplementedError('Global evaluation not currently supported');
+    }
+
+    // The value in the constant `frameExceptionExpression` is used as a special
+    // expression that evaluates to the exception on the current thread. This
+    // allows us to construct evaluateNames that evaluate to the fields down the
+    // tree to support some of the debugger functionality (for example
+    // "Copy Value", which re-evaluates).
+    final expression = args.expression.trim();
+    final exceptionReference = thread.exceptionReference;
+    final isExceptionExpression = expression == threadExceptionExpression ||
+        expression.startsWith('$threadExceptionExpression.');
+
+    vm.Response? result;
+    if (exceptionReference != null && isExceptionExpression) {
+      result = await _evaluateExceptionExpression(
+        exceptionReference,
+        expression,
+        thread,
+      );
+    } else {
+      result = await vmService?.evaluateInFrame(
+        thread.isolate.id!,
+        frameIndex,
+        expression,
+        disableBreakpoints: true,
+      );
+    }
+
+    if (result is vm.ErrorRef) {
+      throw DebugAdapterException(result.message ?? '<error ref>');
+    } else if (result is vm.Sentinel) {
+      throw DebugAdapterException(result.valueAsString ?? '<collected>');
+    } else if (result is vm.InstanceRef) {
+      final resultString = await _converter.convertVmInstanceRefToDisplayString(
+        thread,
+        result,
+        allowCallingToString: true,
+      );
+      // TODO(dantup): We may need to store `expression` with this data
+      // to allow building nested evaluateNames.
+      final variablesReference =
+          _converter.isSimpleKind(result.kind) ? 0 : thread.storeData(result);
+
+      sendResponse(EvaluateResponseBody(
+        result: resultString,
+        variablesReference: variablesReference,
+      ));
+    } else {
+      throw DebugAdapterException(
+        'Unknown evaluation response type: ${result?.runtimeType}',
+      );
+    }
   }
 
   /// [initializeRequest] is the first call from the client during
@@ -662,7 +762,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         // TODO(dantup): evaluateName
         // should be built taking the parent into account, for ex. if
         // args.variablesReference == thread.exceptionReference then we need to
-        // use some sythensized variable name like $e.
+        // use some sythensized variable name like `frameExceptionExpression`.
         variables.addAll(await _converter.convertVmInstanceToVariablesList(
           thread,
           object,
@@ -681,6 +781,38 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     variables.sortBy((v) => v.name);
 
     sendResponse(VariablesResponseBody(variables: variables));
+  }
+
+  /// Handles evaluation of an expression that is (or begins with)
+  /// `threadExceptionExpression` which corresponds to the exception at the top
+  /// of [thread].
+  Future<vm.Response?> _evaluateExceptionExpression(
+    int exceptionReference,
+    String expression,
+    ThreadInfo thread,
+  ) async {
+    final exception = _isolateManager.getStoredData(exceptionReference)?.data
+        as vm.InstanceRef?;
+
+    if (exception == null) {
+      return null;
+    }
+
+    if (expression == threadExceptionExpression) {
+      return exception;
+    }
+
+    // Strip the prefix off since we'll evaluate against the exception
+    // by its ID.
+    final expressionWithoutExceptionExpression =
+        expression.substring(threadExceptionExpression.length + 1);
+
+    return vmService?.evaluate(
+      thread.isolate.id!,
+      exception.id!,
+      expressionWithoutExceptionExpression,
+      disableBreakpoints: true,
+    );
   }
 
   void _handleDebugEvent(vm.Event event) {

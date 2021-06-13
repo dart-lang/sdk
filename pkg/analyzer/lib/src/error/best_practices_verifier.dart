@@ -1383,8 +1383,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Generate a hint for `noSuchMethod` methods that do nothing except of
   /// calling another `noSuchMethod` that is not defined by `Object`.
   ///
-  /// @return `true` if and only if a hint code is generated on the passed node
-  /// See [HintCode.UNNECESSARY_NO_SUCH_METHOD].
+  /// Return `true` if and only if a hint code is generated on the passed node.
   bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
     if (node.name.name != FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
       return false;
@@ -1409,7 +1408,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
         _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_NO_SUCH_METHOD, node);
+            HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
         return true;
       }
     } else if (body is BlockFunctionBody) {
@@ -1419,7 +1418,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
           _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_NO_SUCH_METHOD, node);
+              HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
           return true;
         }
       }

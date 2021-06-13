@@ -106,7 +106,7 @@ class ProtocolConverter {
     final associations = instance.associations;
     final fields = instance.fields;
 
-    if (_isSimpleKind(instance.kind)) {
+    if (isSimpleKind(instance.kind)) {
       // For simple kinds, just return a single variable with their value.
       return [
         await convertVmResponseToVariable(
@@ -235,7 +235,7 @@ class ProtocolConverter {
       // For non-simple variables, store them and produce a new reference that
       // can be used to access their fields/items/associations.
       final variablesReference =
-          _isSimpleKind(response.kind) ? 0 : thread.storeData(response);
+          isSimpleKind(response.kind) ? 0 : thread.storeData(response);
 
       return dap.Variable(
         name: name ?? response.kind.toString(),
@@ -371,6 +371,17 @@ class ProtocolConverter {
     }
   }
 
+  /// Whether [kind] is a simple kind, and does not need to be mapped to a variable.
+  bool isSimpleKind(String? kind) {
+    return kind == 'String' ||
+        kind == 'Bool' ||
+        kind == 'Int' ||
+        kind == 'Num' ||
+        kind == 'Double' ||
+        kind == 'Null' ||
+        kind == 'Closure';
+  }
+
   /// Invokes the toString() method on a [vm.InstanceRef] and converts the
   /// response to a user-friendly display string.
   ///
@@ -433,16 +444,5 @@ class ProtocolConverter {
     }
 
     return getterNames;
-  }
-
-  /// Whether [kind] is a simple kind, and does not need to be mapped to a variable.
-  bool _isSimpleKind(String? kind) {
-    return kind == 'String' ||
-        kind == 'Bool' ||
-        kind == 'Int' ||
-        kind == 'Num' ||
-        kind == 'Double' ||
-        kind == 'Null' ||
-        kind == 'Closure';
   }
 }
