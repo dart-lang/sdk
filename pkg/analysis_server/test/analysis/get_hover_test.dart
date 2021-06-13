@@ -362,6 +362,22 @@ extension E on A {}
     expect(hover.propagatedType, isNull);
   }
 
+  Future<void> test_function_multilineElementDescription() async {
+    // Functions with at least 3 params will have element descriptions formatted
+    // across multiple lines.
+    addTestFile('''
+List<String> fff(int a, [String b = 'b', String c = 'c']) {
+}
+''');
+    var hover = await prepareHover('fff(int a');
+    expect(hover.elementDescription, '''
+List<String> fff(
+  int a, [
+  String b = 'b',
+  String c = 'c',
+])''');
+  }
+
   Future<void> test_function_topLevel_declaration() async {
     addTestFile('''
 library my.library;
