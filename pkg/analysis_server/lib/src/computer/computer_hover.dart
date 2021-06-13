@@ -20,14 +20,8 @@ class DartUnitHoverComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
   final int _offset;
-  final bool multilineElementDescriptions;
 
-  DartUnitHoverComputer(
-    this._dartdocInfo,
-    this._unit,
-    this._offset, {
-    this.multilineElementDescriptions = false,
-  });
+  DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -139,7 +133,7 @@ class DartUnitHoverComputer {
   String? _elementDisplayString(Element? element) {
     return element?.getDisplayString(
       withNullability: _unit.isNonNullableByDefault,
-      multiline: multilineElementDescriptions,
+      multiline: true,
     );
   }
 
