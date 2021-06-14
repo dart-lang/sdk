@@ -3422,7 +3422,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType superBoundedAttempt,
       DartType superBoundedAttemptInverted}) {
     List<LocatedMessage> context;
-    if (typeParameter != null && typeParameter.fileOffset != -1) {
+    // Skip reporting location for function-type type parameters as it's a
+    // limitation of Kernel.
+    if (typeParameter != null &&
+        typeParameter.fileOffset != -1 &&
+        typeParameter.location != null) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       (context ??= <LocatedMessage>[]).add(
