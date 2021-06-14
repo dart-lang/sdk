@@ -1,3 +1,14 @@
+# 1.6.0
+
+- relaxed `non_constant_identifier_names` to allow for a trailing
+  underscore
+- fixed false negative in `prefer_final_parameters` where first parameter
+  is final
+- improved `directives_ordering` sorting of directives with dot paths and 
+  dot-separated package names
+- relaxed `sort_child_properties_last` to allow for a trailing Widget in
+  instance creations
+
 # 1.5.0
 
 - (internal) migrated to `SecurityLintCode` instead of deprecated 
