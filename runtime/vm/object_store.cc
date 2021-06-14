@@ -24,12 +24,8 @@ void IsolateObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 void IsolateObjectStore::Init() {
-#define INIT_FIELD(Type, name) name##_ = Type::null();
-  ISOLATE_OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD)
-#undef INIT_FIELD
-
   for (ObjectPtr* current = from(); current <= to(); current++) {
-    ASSERT(*current == Object::null());
+    *current = Object::null();
   }
 }
 
@@ -40,12 +36,21 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
-#define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
-  value = name##_;                                                             \
-  fields.AddProperty(#name "_", value);
-    ISOLATE_OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD,
-                                    PRINT_OBJECT_STORE_FIELD);
-#undef PRINT_OBJECT_STORE_FIELD
+
+    static const char* const names[] = {
+#define EMIT_FIELD_NAME(type, name) #name "_",
+        ISOLATE_OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+    };
+    ObjectPtr* current = from();
+    intptr_t i = 0;
+    while (current <= to()) {
+      value = *current;
+      fields.AddProperty(names[i], value);
+      current++;
+      i++;
+    }
+    ASSERT(i == ARRAY_SIZE(names));
   }
 }
 #endif  // !PRODUCT
@@ -87,12 +92,8 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
 }
 
 ObjectStore::ObjectStore() {
-#define INIT_FIELD(Type, name) name##_ = Type::null();
-  OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD, INIT_FIELD, INIT_FIELD)
-#undef INIT_FIELD
-
   for (ObjectPtr* current = from(); current <= to(); current++) {
-    ASSERT(*current == Object::null());
+    *current = Object::null();
   }
 }
 
@@ -118,12 +119,21 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
-#define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
-  value = name##_;                                                             \
-  fields.AddProperty(#name "_", value);
-    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD,
-                            PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD);
-#undef PRINT_OBJECT_STORE_FIELD
+    static const char* const names[] = {
+#define EMIT_FIELD_NAME(type, name) #name "_",
+        OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+    };
+    ObjectPtr* current = from();
+    intptr_t i = 0;
+    while (current <= to()) {
+      value = *current;
+      fields.AddProperty(names[i], value);
+      current++;
+      i++;
+    }
+    ASSERT(i == ARRAY_SIZE(names));
   }
 }
 #endif  // !PRODUCT
