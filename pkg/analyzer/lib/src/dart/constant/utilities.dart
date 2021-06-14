@@ -5,132 +5,13 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
 typedef ReferenceFinderCallback = void Function(
     ConstantEvaluationTarget dependency);
-
-/// An [AstCloner] that copies the necessary information from the AST to allow
-/// constants to be evaluated.
-class ConstantAstCloner extends AstCloner {
-  ConstantAstCloner() : super(true);
-
-  @override
-  AnnotationImpl visitAnnotation(Annotation node) {
-    var annotation = super.visitAnnotation(node);
-    annotation.element = node.element;
-    return annotation;
-  }
-
-  @override
-  ConstructorNameImpl visitConstructorName(ConstructorName node) {
-    var name = super.visitConstructorName(node);
-    name.staticElement = node.staticElement;
-    return name;
-  }
-
-  @override
-  FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    var expression =
-        super.visitFunctionExpression(node) as FunctionExpressionImpl;
-    expression.declaredElement = node.declaredElement;
-    return expression;
-  }
-
-  @override
-  InstanceCreationExpressionImpl visitInstanceCreationExpression(
-      InstanceCreationExpression node) {
-    var expression = super.visitInstanceCreationExpression(node);
-    if (node.keyword == null) {
-      if (node.isConst) {
-        expression.keyword = KeywordToken(Keyword.CONST, node.offset);
-      } else {
-        expression.keyword = KeywordToken(Keyword.NEW, node.offset);
-      }
-    }
-    return expression;
-  }
-
-  @override
-  IntegerLiteralImpl visitIntegerLiteral(IntegerLiteral node) {
-    var integer = super.visitIntegerLiteral(node);
-    integer.staticType = node.staticType;
-    return integer;
-  }
-
-  @override
-  ListLiteralImpl visitListLiteral(ListLiteral node) {
-    var literal = super.visitListLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
-  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var copy = super.visitPrefixedIdentifier(node) as PrefixedIdentifierImpl;
-    copy.staticType = node.staticType;
-    return copy;
-  }
-
-  @override
-  PropertyAccess visitPropertyAccess(PropertyAccess node) {
-    var copy = super.visitPropertyAccess(node) as PropertyAccessImpl;
-    copy.staticType = node.staticType;
-    return copy;
-  }
-
-  @override
-  RedirectingConstructorInvocationImpl visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    var invocation = super.visitRedirectingConstructorInvocation(node);
-    invocation.staticElement = node.staticElement;
-    return invocation;
-  }
-
-  @override
-  SetOrMapLiteralImpl visitSetOrMapLiteral(SetOrMapLiteral node) {
-    var literal = super.visitSetOrMapLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
-  SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    var copy = super.visitSimpleIdentifier(node) as SimpleIdentifierImpl;
-    copy.staticElement = node.staticElement;
-    copy.staticType = node.staticType;
-    copy.tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
-    return copy;
-  }
-
-  @override
-  SuperConstructorInvocationImpl visitSuperConstructorInvocation(
-      SuperConstructorInvocation node) {
-    var invocation = super.visitSuperConstructorInvocation(node);
-    invocation.staticElement = node.staticElement;
-    return invocation;
-  }
-
-  @override
-  TypeNameImpl visitTypeName(TypeName node) {
-    var typeName = super.visitTypeName(node);
-    typeName.type = node.type;
-    return typeName;
-  }
-}
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build the full set of dependencies for all constant
