@@ -509,6 +509,7 @@ class PageSpace {
     return TryAllocatePromoLockedSlow(freelist, size);
   }
   uword TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size);
+  ObjectPtr AllocateSnapshot(intptr_t size);
 
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
