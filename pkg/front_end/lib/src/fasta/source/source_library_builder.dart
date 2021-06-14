@@ -3577,7 +3577,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // limitation of Kernel.
     if (typeParameter != null &&
         typeParameter.fileOffset != -1 &&
-        typeParameter.parent != null) {
+        typeParameter.location != null) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       (context ??= <LocatedMessage>[]).add(
