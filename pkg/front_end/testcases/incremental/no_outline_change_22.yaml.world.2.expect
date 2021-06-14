@@ -325,7 +325,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(dart.core::int start, dart.core::int end, [generic-covariant-impl dart.core::int? fill = #C2]) → void {
-      dart.core::int* value = let dart.core::int? #t6 = fill in #t6.==(null) ?{dart.core::int*} #t6 : #t6{dart.core::int*};
+      dart.core::int* value = let dart.core::int? #t6 = fill in #t6 == null ?{dart.core::int*} #t6 : #t6{dart.core::int*};
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length}{dart.core::int});
       for (dart.core::int i = start; i.{dart.core::num::<}(end){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
         this.{dart.core::List::[]=}(i, value){(dart.core::int, dart.core::int*) → void};

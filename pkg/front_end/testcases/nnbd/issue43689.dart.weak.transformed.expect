@@ -33,7 +33,7 @@ static method test() → dynamic {
     return invalid-expression "pkg/front_end/testcases/nnbd/issue43689.dart:10:19: Error: 'x' is already declared in this scope.
   late final int? x;
                   ^";
-  late final core::int? x = #x#initializer.call();
+  late final core::int? x = #x#initializer(){() → core::int?};
   core::int z;
   core::int? z = invalid-expression "pkg/front_end/testcases/nnbd/issue43689.dart:12:8: Error: 'z' is already declared in this scope.
   int? z;

@@ -193,12 +193,12 @@ static method fisk() → dynamic /* originally async */ {
           return invalid-expression "pkg/front_end/testcases/nnbd/later.dart:38:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest();
                    ^^^^^";
-        late core::String s1 = #s1#initializer.call();
+        late core::String s1 = #s1#initializer(){() → core::String};
         function #s2#initializer() → core::String
           return "${#C1}${invalid-expression "pkg/front_end/testcases/nnbd/later.dart:39:30: Error: `await` expressions are not supported in late local initializers.
   late String s2 = '\${fisk}\${await hest()}\${fisk}';
                              ^^^^^"}${#C1}";
-        late core::String s2 = #s2#initializer.call();
+        late core::String s2 = #s2#initializer(){() → core::String};
         function #f#initializer() → core::Function
           return () → asy::Future<dynamic> /* originally async */ {
             final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
@@ -229,7 +229,7 @@ static method fisk() → dynamic /* originally async */ {
             :is_sync = true;
             return :async_future;
           };
-        late core::Function f = #f#initializer.call();
+        late core::Function f = #f#initializer(){() → core::Function};
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;

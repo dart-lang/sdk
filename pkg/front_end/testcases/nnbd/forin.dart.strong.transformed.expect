@@ -56,7 +56,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
     core::Iterator<dynamic> :sync-for-iterator = (let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:9:17: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'Iterable' is from 'dart:core'.
   for (int x in i2) x;
-                ^" in let core::Iterable<core::int>? #t2 = i2 in #t2.==(null) ?{core::Iterable<dynamic>} #t2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t2{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                ^" in let core::Iterable<core::int>? #t2 = i2 in #t2 == null ?{core::Iterable<dynamic>} #t2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t2{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
       x;
@@ -68,7 +68,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
       core::Iterator<dynamic> :sync-for-iterator = (let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:10:18: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'Iterable' is from 'dart:core'.
   [for (int x in i2) x];
-                 ^" in let core::Iterable<core::int>? #t5 = i2 in #t5.==(null) ?{core::Iterable<dynamic>} #t5 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t5{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                 ^" in let core::Iterable<core::int>? #t5 = i2 in #t5 == null ?{core::Iterable<dynamic>} #t5 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t5{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
         #t3.{core::List::add}(x){(core::int) → void};
@@ -80,7 +80,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'List' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in l2) x;
-                ^" in let core::List<core::int>? #t7 = l2 in #t7.==(null) ?{core::Iterable<dynamic>} #t7 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t7{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                ^" in let core::List<core::int>? #t7 = l2 in #t7 == null ?{core::Iterable<dynamic>} #t7 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t7{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
       x;
@@ -93,7 +93,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'List' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   [for (int x in l2) x];
-                 ^" in let core::List<core::int>? #t10 = l2 in #t10.==(null) ?{core::Iterable<dynamic>} #t10 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t10{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                 ^" in let core::List<core::int>? #t10 = l2 in #t10 == null ?{core::Iterable<dynamic>} #t10 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t10{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
         #t8.{core::List::add}(x){(core::int) → void};

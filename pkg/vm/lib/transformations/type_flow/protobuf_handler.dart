@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'utils.dart';
 
@@ -42,6 +43,10 @@ class ProtobufHandler {
   final Field _tagNumberField;
   final Class _builderInfoClass;
   final Procedure _builderInfoAddMethod;
+
+  // Type of BuilderInfo.add<Null>().
+  FunctionType _typeOfBuilderInfoAddOfNull;
+
   final _messageClasses = <Class, _MessageClass>{};
   final _invalidatedClasses = <_MessageClass>{};
 
@@ -66,7 +71,12 @@ class ProtobufHandler {
         _builderInfoClass =
             libraryIndex.getClass(protobufLibraryUri, 'BuilderInfo'),
         _builderInfoAddMethod =
-            libraryIndex.getMember(protobufLibraryUri, 'BuilderInfo', 'add');
+            libraryIndex.getMember(protobufLibraryUri, 'BuilderInfo', 'add') {
+    final functionType = _builderInfoAddMethod.getterType as FunctionType;
+    _typeOfBuilderInfoAddOfNull = Substitution.fromPairs(
+            functionType.typeParameters, const <DartType>[NullType()])
+        .substituteType(functionType.withoutTypeParameters) as FunctionType;
+  }
 
   bool usesAnnotationClass(Class cls) => cls == _tagNumberClass;
 
@@ -191,7 +201,8 @@ class _MetadataTransformer extends Transformer {
     // removing a field.
     // Change the tag-number to 0. Otherwise the decoder will get confused.
     ++numberOfFieldsPruned;
-    return MethodInvocation(
+    return InstanceInvocation(
+        InstanceAccessKind.Instance,
         node.receiver,
         ph._builderInfoAddMethod.name,
         Arguments(
@@ -204,9 +215,10 @@ class _MetadataTransformer extends Transformer {
             NullLiteral(), // valueOf
             NullLiteral(), // enumValues
           ],
-          types: <DartType>[const NullType()],
+          types: const <DartType>[NullType()],
         ),
-        ph._builderInfoAddMethod)
+        interfaceTarget: ph._builderInfoAddMethod,
+        functionType: ph._typeOfBuilderInfoAddOfNull)
       ..fileOffset = node.fileOffset;
   }
 
@@ -221,7 +233,8 @@ class _MetadataTransformer extends Transformer {
     // removing a field.
     // Change the tag-number to 0. Otherwise the decoder will get confused.
     ++numberOfFieldsPruned;
-    return MethodInvocation(
+    return InstanceInvocation(
+        InstanceAccessKind.Instance,
         node.receiver,
         ph._builderInfoAddMethod.name,
         Arguments(
@@ -236,7 +249,8 @@ class _MetadataTransformer extends Transformer {
           ],
           types: <DartType>[const NullType()],
         ),
-        ph._builderInfoAddMethod)
+        interfaceTarget: ph._builderInfoAddMethod,
+        functionType: ph._typeOfBuilderInfoAddOfNull)
       ..fileOffset = node.fileOffset;
   }
 }

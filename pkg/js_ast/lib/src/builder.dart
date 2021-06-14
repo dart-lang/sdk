@@ -757,8 +757,8 @@ class MiniJsParser {
         if (lastToken == '=>') {
           lastCategory = ARROW;
         } else {
-          int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
-          if (binaryPrecendence == null &&
+          int binaryPrecedence = BINARY_PRECEDENCE[lastToken];
+          if (binaryPrecedence == null &&
               !UNARY_OPERATORS.contains(lastToken)) {
             error("Unknown operator");
           }

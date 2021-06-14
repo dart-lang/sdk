@@ -6,11 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math' show Random;
 
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/server.dart';
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
+
+final _random = Random();
 
 abstract class DapTestServer {
   String get host;
@@ -50,10 +53,13 @@ class InProcessDapTestServer extends DapTestServer {
 /// but will be a little more difficult to debug tests as the debugger will not
 /// be attached to the process.
 class OutOfProcessDapTestServer extends DapTestServer {
-  /// Since each test library will spawn its own server (setup/teardown are
-  /// library-scoped) we'll use a different port for each one to avoid any issues
-  /// with overlapping tests.
-  static var _nextPort = DapServer.defaultPort;
+  /// To avoid issues with port bindings if multiple test libraries are run
+  /// concurrently (in their own processes), start from a random port between
+  /// [DapServer.defaultPort] and [DapServer.defaultPort] + 5000.
+  ///
+  /// This number will then be increased should multiple libraries run within
+  /// this same process.
+  static var _nextPort = DapServer.defaultPort + _random.nextInt(5000);
 
   var _isShuttingDown = false;
   final Process _process;
