@@ -35,8 +35,7 @@ TreeNode transformAsExpression(
     return Let(
         tmp,
         ConditionalExpression(
-            MethodInvocation(
-                VariableGet(tmp), Name('=='), Arguments([NullLiteral()])),
+            EqualsNull(VariableGet(tmp)),
             AsExpression(VariableGet(tmp), dstType)
               ..flags = node.flags
               ..fileOffset = node.fileOffset,

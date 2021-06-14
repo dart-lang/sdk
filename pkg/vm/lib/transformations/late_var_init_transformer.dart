@@ -38,13 +38,14 @@ class LateVarInitTransformer {
   List<Statement> _transformVariableDeclaration(VariableDeclaration node) {
     final fnNode =
         FunctionNode(ReturnStatement(node.initializer), returnType: node.type);
+    final functionType =
+        fnNode.computeThisFunctionType(Nullability.nonNullable);
     final fn = FunctionDeclaration(
-        VariableDeclaration("#${node.name}#initializer",
-            type: fnNode.computeThisFunctionType(Nullability.legacy)),
+        VariableDeclaration("#${node.name}#initializer", type: functionType),
         fnNode);
-    node.initializer =
-        MethodInvocation(VariableGet(fn.variable), Name("call"), Arguments([]))
-          ..parent = node;
+    node.initializer = LocalFunctionInvocation(fn.variable, Arguments([]),
+        functionType: functionType)
+      ..parent = node;
 
     return [fn, node];
   }

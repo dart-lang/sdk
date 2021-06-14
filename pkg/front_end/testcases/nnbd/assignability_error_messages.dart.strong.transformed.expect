@@ -207,12 +207,12 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(x); // Error.
-             ^" in let self::B? #t2 = x in #t2.==(null) ?{self::A} #t2 as{TypeError,ForNonNullableByDefault} self::A : #t2{self::A});
+             ^" in let self::B? #t2 = x in #t2 == null ?{self::A} #t2 as{TypeError,ForNonNullableByDefault} self::A : #t2{self::A});
   self::A a = let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:28:9: Error: A value of type 'B?' can't be assigned to a variable of type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a = x; // Error.
-        ^" in let self::B? #t4 = x in #t4.==(null) ?{self::A} #t4 as{TypeError,ForNonNullableByDefault} self::A : #t4{self::A};
+        ^" in let self::B? #t4 = x in #t4 == null ?{self::A} #t4 as{TypeError,ForNonNullableByDefault} self::A : #t4{self::A};
   core::_GrowableList::_literal1<self::A>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:29:10: Error: Can't assign spread elements of type 'B?' to collection elements of type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -243,7 +243,7 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 Try changing the type of the variable.
   for (A y in l) {} // Error.
-         ^" in let self::B? #t7 = #t5 in #t7.==(null) ?{self::A} #t7 as{TypeError,ForNonNullableByDefault} self::A : #t7{self::A};
+         ^" in let self::B? #t7 = #t5 in #t7 == null ?{self::A} #t7 as{TypeError,ForNonNullableByDefault} self::A : #t7{self::A};
       }
     }
   }
@@ -253,7 +253,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'Iterable' is from 'dart:core'.
   for (A y in l2) {} // Error.
-              ^" in let core::List<self::B>? #t9 = l2 in #t9.==(null) ?{core::Iterable<dynamic>} #t9 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t9{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+              ^" in let core::List<self::B>? #t9 = l2 in #t9 == null ?{core::Iterable<dynamic>} #t9 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t9{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       self::A y = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {}
@@ -289,7 +289,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return x; // Error.
-             ^" in let self::B? #t11 = x in #t11.==(null) ?{self::A} #t11 as{TypeError,ForNonNullableByDefault} self::A : #t11{self::A};
+             ^" in let self::B? #t11 = x in #t11 == null ?{self::A} #t11 as{TypeError,ForNonNullableByDefault} self::A : #t11{self::A};
             break #L4;
           }
           else {
@@ -318,7 +318,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   return x; // Error.
-         ^" in let self::B? #t14 = x in #t14.==(null) ?{self::A} #t14 as{TypeError,ForNonNullableByDefault} self::A : #t14{self::A};
+         ^" in let self::B? #t14 = x in #t14 == null ?{self::A} #t14 as{TypeError,ForNonNullableByDefault} self::A : #t14{self::A};
 }
 static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, core::Map<core::List<self::B?>, core::List<self::B?>> m) → core::List<self::A> {
   self::barContext(let final Never #t15 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:53:14: Error: The argument type 'List<B?>' can't be assigned to the parameter type 'List<A>' because 'B?' is nullable and 'A' isn't.
@@ -381,30 +381,30 @@ static method boz(Null x) → self::A {
   self::fooContext(let final Never #t22 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:66:14: Error: The argument type 'Null' can't be assigned to the parameter type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(x); // Error.
-             ^" in let Null #t23 = x in #t23.==(null) ?{self::A} #t23 as{TypeError,ForNonNullableByDefault} self::A : #t23{self::A});
+             ^" in let Null #t23 = x in #t23 == null ?{self::A} #t23 as{TypeError,ForNonNullableByDefault} self::A : #t23{self::A});
   self::fooContext(let final Never #t24 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:67:14: Error: The value 'null' can't be assigned to the parameter type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(null); // Error.
-             ^" in let Null #t25 = null in #t25.==(null) ?{self::A} #t25 as{TypeError,ForNonNullableByDefault} self::A : #t25{self::A});
+             ^" in let Null #t25 = null in #t25 == null ?{self::A} #t25 as{TypeError,ForNonNullableByDefault} self::A : #t25{self::A});
   self::A a1 = let final Never #t26 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:68:10: Error: A value of type 'Null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a1 = x; // Error.
-         ^" in let Null #t27 = x in #t27.==(null) ?{self::A} #t27 as{TypeError,ForNonNullableByDefault} self::A : #t27{self::A};
+         ^" in let Null #t27 = x in #t27 == null ?{self::A} #t27 as{TypeError,ForNonNullableByDefault} self::A : #t27{self::A};
   self::A a2 = let final Never #t28 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:69:10: Error: The value 'null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a2 = null; // Error.
-         ^" in let Null #t29 = null in #t29.==(null) ?{self::A} #t29 as{TypeError,ForNonNullableByDefault} self::A : #t29{self::A};
+         ^" in let Null #t29 = null in #t29 == null ?{self::A} #t29 as{TypeError,ForNonNullableByDefault} self::A : #t29{self::A};
   if(true) {
     return let final Never #t30 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:71:12: Error: A value of type 'Null' can't be returned from a function with return type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
     return x; // Error.
-           ^" in let Null #t31 = x in #t31.==(null) ?{self::A} #t31 as{TypeError,ForNonNullableByDefault} self::A : #t31{self::A};
+           ^" in let Null #t31 = x in #t31 == null ?{self::A} #t31 as{TypeError,ForNonNullableByDefault} self::A : #t31{self::A};
   }
   else {
     return let final Never #t32 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:73:12: Error: The value 'null' can't be returned from a function with return type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
     return null; // Error.
-           ^" in let Null #t33 = null in #t33.==(null) ?{self::A} #t33 as{TypeError,ForNonNullableByDefault} self::A : #t33{self::A};
+           ^" in let Null #t33 = null in #t33 == null ?{self::A} #t33 as{TypeError,ForNonNullableByDefault} self::A : #t33{self::A};
   }
   function local() → FutureOr<self::A> /* originally async */ {
     final asy::_Future<self::A> :async_future = new asy::_Future::•<self::A>();
@@ -422,7 +422,7 @@ static method boz(Null x) → self::A {
             :return_value = let final Never #t34 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:77:14: Error: The value 'null' can't be returned from an async function with return type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return null; // Error.
-             ^" in let Null #t35 = null in #t35.==(null) ?{self::A} #t35 as{TypeError,ForNonNullableByDefault} self::A : #t35{self::A};
+             ^" in let Null #t35 = null in #t35 == null ?{self::A} #t35 as{TypeError,ForNonNullableByDefault} self::A : #t35{self::A};
             break #L5;
           }
           else {
@@ -454,16 +454,16 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///assignability_error_messages.dart:67:14 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///assignability_error_messages.dart:67:14 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:67:14 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:67:14 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///assignability_error_messages.dart:69:10 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///assignability_error_messages.dart:69:10 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:69:10 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:69:10 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///assignability_error_messages.dart:73:12 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///assignability_error_messages.dart:73:12 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:73:12 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:73:12 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///assignability_error_messages.dart:77:14 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///assignability_error_messages.dart:77:14 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:77:14 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///assignability_error_messages.dart:77:14 -> NullConstant(null)
 Extra constant evaluation: evaluated: 208, effectively constant: 12

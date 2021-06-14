@@ -104,7 +104,7 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   late FutureOr<core::int>local6;
   function #local7#initializer() → T%
     return value;
-  late T% local7 = #local7#initializer.call();
+  late T% local7 = #local7#initializer(){() → T%};
   let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:34:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
   ^^^^^^" in local1;
@@ -134,7 +134,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   late FutureOr<core::int>local6;
   function #local7#initializer() → T%
     return value;
-  late T% local7 = #local7#initializer.call();
+  late T% local7 = #local7#initializer(){() → T%};
   if(b) {
     local1 = value;
     local2 = value;
@@ -177,7 +177,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   late FutureOr<core::int>local6;
   function #local7#initializer() → self::methodDirect::T%
     return value;
-  late self::methodDirect::T% local7 = #local7#initializer.call();
+  late self::methodDirect::T% local7 = #local7#initializer(){() → self::methodDirect::T%};
   let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:16:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
   ^^^^^^" in local1;
@@ -207,7 +207,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   late FutureOr<core::int>local6;
   function #local7#initializer() → self::methodConditional::T%
     return value;
-  late self::methodConditional::T% local7 = #local7#initializer.call();
+  late self::methodConditional::T% local7 = #local7#initializer(){() → self::methodConditional::T%};
   if(b) {
     local1 = value;
     local2 = value;

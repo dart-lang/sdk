@@ -10,20 +10,20 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
   method returnTypeVariable() → self::Class::E% {
     function #result#initializer() → self::Class::E%
       return this.{self::Class::field}{self::Class::E%};
-    late self::Class::E% result = #result#initializer.call();
+    late self::Class::E% result = #result#initializer(){() → self::Class::E%};
     return result;
   }
 }
 static method returnNonNullable(core::int value) → core::int {
   function #result#initializer() → core::int
     return value;
-  late core::int result = #result#initializer.call();
+  late core::int result = #result#initializer(){() → core::int};
   return result;
 }
 static method returnNullable(core::int? value) → core::int? {
   function #result#initializer() → core::int?
     return value;
-  late core::int? result = #result#initializer.call();
+  late core::int? result = #result#initializer(){() → core::int?};
   return result;
 }
 static method main() → dynamic {

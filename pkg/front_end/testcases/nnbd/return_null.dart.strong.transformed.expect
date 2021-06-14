@@ -80,14 +80,14 @@ static method returnExplicit() → core::String {
   core::print("foo");
   return let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
   return null; // error
-         ^" in let Null #t3 = null in #t3.==(null) ?{core::String} #t3 as{TypeError,ForNonNullableByDefault} core::String : #t3{core::String};
+         ^" in let Null #t3 = null in #t3 == null ?{core::String} #t3 as{TypeError,ForNonNullableByDefault} core::String : #t3{core::String};
 }
 static method returnMixed(core::bool b) → core::String {
   if(b) {
     core::print("foo");
     return let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in let Null #t5 = null in #t5.==(null) ?{core::String} #t5 as{TypeError,ForNonNullableByDefault} core::String : #t5{core::String};
+           ^" in let Null #t5 = null in #t5 == null ?{core::String} #t5 as{TypeError,ForNonNullableByDefault} core::String : #t5{core::String};
   }
   return let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:16:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
 String returnMixed(bool b) /*error*/ {
@@ -348,14 +348,14 @@ static method localFunctions() → dynamic {
     core::print("foo");
     return let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in let Null #t11 = null in #t11.==(null) ?{core::String} #t11 as{TypeError,ForNonNullableByDefault} core::String : #t11{core::String};
+           ^" in let Null #t11 = null in #t11 == null ?{core::String} #t11 as{TypeError,ForNonNullableByDefault} core::String : #t11{core::String};
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
       return let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
       return null; // error
-             ^" in let Null #t13 = null in #t13.==(null) ?{core::String} #t13 as{TypeError,ForNonNullableByDefault} core::String : #t13{core::String};
+             ^" in let Null #t13 = null in #t13 == null ?{core::String} #t13 as{TypeError,ForNonNullableByDefault} core::String : #t13{core::String};
     }
     return let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnMixed(bool b) /* error */ {
@@ -630,16 +630,16 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///return_null.dart:13:10 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:13:10 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:13:10 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:13:10 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///return_null.dart:19:12 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:19:12 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:19:12 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:19:12 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///return_null.dart:69:12 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:69:12 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:69:12 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:69:12 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///return_null.dart:75:14 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:75:14 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
 Extra constant evaluation: evaluated: 380, effectively constant: 12
