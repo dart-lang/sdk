@@ -1,8 +1,10 @@
 class A {
   A.foo1() {}
   A.foo2(int x) {}
+  A() {}
 }
-
-A Function() bar1() => A.foo1;
-A Function() bar2() => A.foo2;
+A Function() test1() => A.foo1;
+A Function() test2() => A.foo2;
+A Function() test3() => A.new;
+A Function(int) test4() => A.new;
 main() {}

@@ -985,8 +985,19 @@ class _OneByteString extends _StringBase {
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
 
-  List<String> _splitWithCharCode(int charCode)
-      native "OneByteString_splitWithCharCode";
+  List<String> _splitWithCharCode(int charCode) {
+    final parts = <String>[];
+    int i = 0;
+    int start = 0;
+    for (i = 0; i < this.length; ++i) {
+      if (this.codeUnitAt(i) == charCode) {
+        parts.add(this._substringUnchecked(start, i));
+        start = i + 1;
+      }
+    }
+    parts.add(this._substringUnchecked(start, i));
+    return parts;
+  }
 
   List<String> split(Pattern pattern) {
     // TODO(vegorov) investigate if this can be rewritten as `is _OneByteString`

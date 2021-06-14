@@ -4511,7 +4511,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "vmName\":\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
         "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
         "patch\\/string_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":32310,"
-        "\"endTokenPos\":44332},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "\"endTokenPos\":44599},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":0,\"kind\":\"String\",\"id\":\"\",\"length\":2,"
         "\"valueAsString\":\"dw\"}",

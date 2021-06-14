@@ -288,4 +288,56 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_InvariantFlagInListLiterals) {
   EXPECT(call_add->entry_kind() == Code::EntryKind::kUnchecked);
 }
 
+ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
+  // This test ensures that a typed closure call (i.e. the closure being called
+  // has a real function type as static type) ends up compiling to
+  //
+  //   CheckNull()+ClosureCall()
+  //
+  // instead of
+  //
+  //   InstanceCall(dyn:call)
+  //
+  // This is a regression test for a case where JIT support uses dynamic calls
+  // instead of typed closure calls if call-site attribute metadata is missing
+  // which is the case if an incremental kernel compiler is used. The
+  // [LoadTestScript] below uses IKG compiler, so this is a regression test for:
+  //
+  //   - https://github.com/dart-lang/sdk/issues/46320
+  //   - https://github.com/dart-lang/sdk/issues/45421
+  //
+  const char* kScript = R"(
+    int callClosure(int Function(int) fun, int value) => fun(value);
+    test() => callClosure((int a) => a + 1, 10);
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "test");
+
+  const auto& callClosureFunction =
+      Function::Handle(GetFunction(root_library, "callClosure"));
+  TestPipeline pipeline(callClosureFunction, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ILMatcher cursor(flow_graph, entry, true);
+  // clang-format off
+  RELEASE_ASSERT(cursor.TryMatch({
+    kMatchAndMoveFunctionEntry,
+    kMatchAndMoveCheckStackOverflow,
+    kMoveDebugStepChecks,
+    kMatchAndMoveCheckNull,
+    kMatchAndMoveLoadField,
+    kMoveDebugStepChecks,
+    kMatchAndMoveClosureCall,
+    kMoveDebugStepChecks,
+    kMatchReturn,
+  }));
+  // clang-format on
+}
+
 }  // namespace dart

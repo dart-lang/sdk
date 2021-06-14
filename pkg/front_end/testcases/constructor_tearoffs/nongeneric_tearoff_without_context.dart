@@ -4,8 +4,13 @@
 
 class A {
   A.foo() {}
+  A() {}
 }
 
-bar() => A.foo;
+testFoo() => A.foo; // Ok.
+testNew() => A.new; // Ok.
+
+testFooExtraArgs() => A<int>.foo; // Error.
+testNewExtraArgs() => A<int>.new; // Error.
 
 main() {}

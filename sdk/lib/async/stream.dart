@@ -435,6 +435,11 @@ abstract class Stream<T> {
   /// Use the callbacks, for example, for pausing the underlying subscription
   /// while having no subscribers to prevent losing events, or canceling the
   /// subscription when there are no listeners.
+  ///
+  /// Cancelling is intended to be used when there are no current subscribers.
+  /// If the subscription passed to `onListen` or `onCancel` is cancelled,
+  /// then no further events are ever emitted by current subscriptions on
+  /// the returned broadcast stream, not even a done event.
   Stream<T> asBroadcastStream(
       {void onListen(StreamSubscription<T> subscription)?,
       void onCancel(StreamSubscription<T> subscription)?}) {

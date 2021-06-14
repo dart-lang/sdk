@@ -200,8 +200,8 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \
-  V(Future, wait, FutureWait, 0xa05d5e7b)                                      \
-  V(_RootZone, runUnary, RootZoneRunUnary, 0xa22248b6)                         \
+  V(Future, wait, FutureWait, 0x495c83cd)                                      \
+  V(_RootZone, runUnary, RootZoneRunUnary, 0xb607f8bf)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x438115a8)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b5ab2)                                \
 
@@ -438,13 +438,13 @@ namespace dart {
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, _List, ., kArrayCid, 0xd693eee6)                             \
   V(_ListFilledFactory, _List, .filled, kArrayCid, 0x7f29060d)                 \
-  V(_ListGenerateFactory, _List, .generate, kArrayCid, 0xa1e6b785)             \
+  V(_ListGenerateFactory, _List, .generate, kArrayCid, 0x95feb438)             \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
     0xc1b55e71)                                                                \
   V(_GrowableListFilledFactory, _GrowableList, .filled,                        \
     kGrowableObjectArrayCid, 0x37d0dc65)                                       \
   V(_GrowableListGenerateFactory, _GrowableList, .generate,                    \
-    kGrowableObjectArrayCid, 0xc0c5682d)                                       \
+    kGrowableObjectArrayCid, 0x52f61890)                                       \
   V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
     0xa32d060b)                                                                \
   V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x660dd888)        \

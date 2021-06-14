@@ -31,6 +31,10 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     var expression = request.dotTarget;
 
     if (expression == null) {
+      if (!request.includeIdentifiers) {
+        return;
+      }
+
       var classOrMixin = request.target.containingNode
           .thisOrAncestorOfType<ClassOrMixinDeclaration>();
       if (classOrMixin != null) {
