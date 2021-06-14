@@ -538,6 +538,23 @@ class A {
     expect(suggestions, isEmpty);
   }
 
+  Future<void> test_inDartDoc3() async {
+    addTestFile('''
+class MyClass {
+  /// ^
+  void foo() {}
+
+  void bar() {}
+}
+
+extension MyClassExtension on MyClass {
+  void baz() {}
+}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
   Future<void> test_inDartDoc_reference1() async {
     newFile('/testA.dart', content: '''
   part of libA;
@@ -562,6 +579,24 @@ class A {
   ''');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main');
+  }
+
+  Future<void> test_inDartDoc_reference3() async {
+    addTestFile('''
+class MyClass {
+  /// [^]
+  void foo() {}
+
+  void bar() {}
+}
+
+extension MyClassExtension on MyClass {
+  void baz() {}
+}
+  ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'bar');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'baz');
   }
 
   Future<void> test_inherited() {
