@@ -85,19 +85,12 @@ String updateErrorExpectations(String source, List<StaticError> errors,
 
   // Rebuild the source file a line at a time.
   var previousIndent = 0;
-  var codeLine = 1;
   var result = <String>[];
   for (var i = 0; i < lines.length; i++) {
     // Keep the code.
     if (lines[i] != null) {
       result.add(lines[i]);
       previousIndent = _countIndentation(lines[i]);
-
-      // Keep track of the resulting line number of the last line containing
-      // real code. We use this when outputting explicit line numbers instead
-      // the error's reported line to compensate for added or removed lines
-      // above the error.
-      codeLine = result.length;
     }
 
     // Add expectations for any errors reported on this line.
@@ -124,13 +117,13 @@ String updateErrorExpectations(String source, List<StaticError> errors,
               error.length != null &&
               error.length != previousLength)) {
         // If the error can't fit in a line comment, or no source location is
-        // sepcified, use an explicit location.
+        // specified, use an explicit location.
         if (error.column <= 2 || error.length == 0) {
           if (error.length == null) {
-            result.add("$comment [error line $codeLine, column "
+            result.add("$comment [error column "
                 "${error.column}]");
           } else {
-            result.add("$comment [error line $codeLine, column "
+            result.add("$comment [error column "
                 "${error.column}, length ${error.length}]");
           }
         } else {
