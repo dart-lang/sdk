@@ -85,7 +85,8 @@ class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  List<String> get incompatibleRules => const ['omit_local_variable_types'];
+  List<String> get incompatibleRules =>
+      const ['avoid_types_on_closure_parameters', 'omit_local_variable_types'];
 
   @override
   void registerNodeProcessors(
