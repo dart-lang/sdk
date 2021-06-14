@@ -89,32 +89,40 @@
 
 #### Linter
 
-Updated the Linter to `1.5.0`, which includes:
+Updated the Linter to `1.6.0`, which includes changes that
 
-- (internal) migrated to `SecurityLintCode` instead of deprecated
+- relax `non_constant_identifier_names` to allow for a trailing
+  underscore.
+- fix false negative in `prefer_final_parameters` where first parameter
+  is final.
+- improve `directives_ordering` sorting of directives with dot paths and 
+  dot-separated package names.
+- relax `sort_child_properties_last` to allow for a trailing Widget in
+  instance creations.
+- (internal) migrate to `SecurityLintCode` instead of deprecated
   `SecurityLintCodeWithUniqueName`.
-- (internal) fixed `avoid_types_as_parameter_names` to skip field formal
+- (internal) fix `avoid_types_as_parameter_names` to skip field formal
   parameters.
-- fixed false positives in `prefer_interpolation_to_compose_strings` where
+- fix false positives in `prefer_interpolation_to_compose_strings` where
   the left operand is not a String.
-- fixed false positives in `only_throw_errors` for misidentified type
+- fix false positives in `only_throw_errors` for misidentified type
   variables.
-- new lint: `depend_on_referenced_packages`.
+- add new lint: `depend_on_referenced_packages`.
 - update `avoid_returning_null_for_future` to skip checks for null-safe
   libraries.
-- new lint: `use_test_throws_matchers`.
-- relaxed `sort_child_properties_last` to accept closures after child.
-- performance improvements for `prefer_contains` and `prefer_is_empty`.
-- new lint: `noop_primitive_operations`.
-- marked `avoid_web_libraries_in_flutter` as stable.
-- new lint: `prefer_final_parameters`.
-- updated `prefer_initializing_formals` to allow assignments where identifier
+- add new lint: `use_test_throws_matchers`.
+- relax `sort_child_properties_last` to accept closures after child.
+- improve performance for `prefer_contains` and `prefer_is_empty`.
+- add new lint: `noop_primitive_operations`.
+- mark `avoid_web_libraries_in_flutter` as stable.
+- add new lint: `prefer_final_parameters`.
+- update `prefer_initializing_formals` to allow assignments where identifier
   names don't match.
-- `directives_ordering` now checks ordering of `package:` imports in code
+- update `directives_ordering` to checks ordering of `package:` imports in code
   outside pub packages.
-- simple reachability analysis added to `use_build_context_synchronously` to
+- add simple reachability analysis to `use_build_context_synchronously` to
   short-circuit await-discovery in terminating blocks.
-- `use_build_context_synchronously` updated to recognize nullable types when
+- update `use_build_context_synchronously` to recognize nullable types when
   accessed from legacy libraries.
 
 #### Pub
