@@ -257,35 +257,6 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 0, 3) {
   return OneByteString::New(receiver, start, end - start, Heap::kNew);
 }
 
-// This is high-performance code.
-DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 0, 2) {
-  const String& receiver =
-      String::CheckedHandle(zone, arguments->NativeArgAt(0));
-  ASSERT(receiver.IsOneByteString());
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
-  const intptr_t len = receiver.Length();
-  const intptr_t split_code = smi_split_code.Value();
-  const GrowableObjectArray& result = GrowableObjectArray::Handle(
-      zone, GrowableObjectArray::New(16, Heap::kNew));
-  String& str = String::Handle(zone);
-  intptr_t start = 0;
-  intptr_t i = 0;
-  for (; i < len; i++) {
-    if (split_code == OneByteString::CharAt(receiver, i)) {
-      str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
-                                              Heap::kNew);
-      result.Add(str);
-      start = i + 1;
-    }
-  }
-  str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
-                                          Heap::kNew);
-  result.Add(str);
-  result.SetTypeArguments(TypeArguments::Handle(
-      zone, isolate->group()->object_store()->type_argument_string()));
-  return result.ptr();
-}
-
 DEFINE_NATIVE_ENTRY(Internal_allocateOneByteString, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
   const int64_t length = length_obj.AsInt64Value();

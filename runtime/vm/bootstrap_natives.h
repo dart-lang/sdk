@@ -130,7 +130,6 @@ namespace dart {
   V(StringBase_joinReplaceAllResult, 4)                                        \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
-  V(OneByteString_splitWithCharCode, 2)                                        \
   V(OneByteString_allocateFromOneByteList, 3)                                  \
   V(TwoByteString_allocateFromTwoByteList, 3)                                  \
   V(String_getHashCode, 1)                                                     \
