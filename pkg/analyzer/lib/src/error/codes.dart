@@ -14542,18 +14542,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * ?? Yield: It is a compile-time error if a yield statement appears in a
    * function that is not a generator function.
+   *
+   * No parameters.
    */
   static const CompileTimeErrorCode YIELD_EACH_IN_NON_GENERATOR =
       CompileTimeErrorCode(
-          'YIELD_EACH_IN_NON_GENERATOR',
+          'YIELD_IN_NON_GENERATOR',
           "Yield-each statements must be in a generator function "
               "(one marked with either 'async*' or 'sync*').",
           correction:
-              "Try adding 'async*' or 'sync*' to the enclosing function.");
+              "Try adding 'async*' or 'sync*' to the enclosing function.",
+          uniqueName: 'YIELD_EACH_IN_NON_GENERATOR');
 
   /**
    * ?? Yield: It is a compile-time error if a yield statement appears in a
    * function that is not a generator function.
+   * 
+   * No parameters.
    */
   static const CompileTimeErrorCode YIELD_IN_NON_GENERATOR =
       CompileTimeErrorCode(
