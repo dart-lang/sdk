@@ -449,9 +449,7 @@ class SizeEstimator implements NodeVisitor {
         (newAtStatementBegin &&
             (node is NamedFunction ||
                 node is FunctionExpression ||
-                node is ObjectInitializer)) ||
-        // (() => x)()
-        (requiredPrecedence == CALL && node is ArrowFunction);
+                node is ObjectInitializer));
     if (needsParentheses) {
       inForInit = false;
       atStatementBegin = false;
@@ -1016,6 +1014,7 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitMethodDefinition(MethodDefinition node) {
+    propertyNameOut(node);
     VarCollector vars = new VarCollector();
     vars.visitMethodDefinition(node);
     methodOut(node, vars);
@@ -1023,7 +1022,6 @@ class SizeEstimator implements NodeVisitor {
 
   int methodOut(MethodDefinition node, VarCollector vars) {
     // TODO: support static, get/set, async, and generators.
-    propertyNameOut(node);
     Fun fun = node.function;
     out("(");
     if (fun.params != null) {
