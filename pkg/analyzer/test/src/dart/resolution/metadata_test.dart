@@ -27,6 +27,59 @@ class MetadataResolutionTest extends PubPackageResolutionTest {
     return findElement.importFind('package:test/a.dart');
   }
 
+  test_location_partDirective() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+part of 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+@foo
+part 'a.dart';
+const foo = 42;
+''');
+
+    var annotation = findNode.annotation('@foo');
+    assertElement2(
+      annotation,
+      declaration: findElement.topGet('foo'),
+    );
+
+    var annotationElement = annotation.elementAnnotation!;
+    _assertElementAnnotationValueText(annotationElement, r'''
+int 42
+''');
+  }
+
+  test_location_partOfDirective() async {
+    var libPath = newFile('$testPackageLibPath/lib.dart', content: r'''
+part 'part.dart';
+''').path;
+
+    var partPath = newFile('$testPackageLibPath/part.dart', content: r'''
+@foo
+part of 'lib.dart';
+const foo = 42;
+void f() {}
+''').path;
+
+    // Resolve the library, so that the part knows its library.
+    await resolveFile2(libPath);
+
+    await resolveFile2(partPath);
+    assertNoErrorsInResult();
+
+    var annotation = findNode.annotation('@foo');
+    assertElement2(
+      annotation,
+      declaration: findElement.topGet('foo'),
+    );
+
+    var annotationElement = annotation.elementAnnotation!;
+    _assertElementAnnotationValueText(annotationElement, r'''
+int 42
+''');
+  }
+
   test_onFieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {

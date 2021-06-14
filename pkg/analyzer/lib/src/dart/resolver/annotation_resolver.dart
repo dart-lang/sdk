@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -32,17 +31,8 @@ class AnnotationResolver {
 
   void resolve(AnnotationImpl node,
       List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
-    AstNode parent = node.parent;
-
     node.typeArguments?.accept(_resolver);
     _resolve(node, whyNotPromotedList);
-
-    var elementAnnotationImpl =
-        node.elementAnnotation as ElementAnnotationImpl?;
-    if (elementAnnotationImpl == null) {
-      // Analyzer ignores annotations on "part of" directives.
-      assert(parent is PartDirective || parent is PartOfDirective);
-    }
   }
 
   void _classConstructorInvocation(

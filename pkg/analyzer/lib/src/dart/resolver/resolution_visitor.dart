@@ -851,6 +851,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPartOfDirective(PartOfDirective node) {
+    _createElementAnnotations(node.metadata);
+    super.visitPartOfDirective(node);
+  }
+
+  @override
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     ParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
