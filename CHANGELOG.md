@@ -2,6 +2,14 @@
 
 ### Core libraries
 
+### `dart:html`
+
+* [#44319][]: `convertNativeToDart_Dictionary()` now converts objects
+  recursively, this fixes APIs like MediaStreamTrack.getCapabilities
+  that convert between Maps and browser Dictionaries.
+
+[44319]: (https://github.com/dart-lang/sdk/issues/44319)
+
 #### `dart:async`
 
 * The uncaught error handlers of `Zone`s are now run in the parent zone
