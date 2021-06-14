@@ -58,6 +58,9 @@ class FeatureOptions {
   FeatureOption legacyJavaScript =
       FeatureOption('legacy-javascript', isNegativeFlag: true);
 
+  /// Whether to use optimized holders.
+  FeatureOption newHolders = FeatureOption('new-holders');
+
   /// [FeatureOption]s which default to enabled.
   List<FeatureOption> shipping;
 
@@ -67,7 +70,7 @@ class FeatureOptions {
   // Initialize feature lists.
   FeatureOptions() {
     shipping = [];
-    canary = [legacyJavaScript];
+    canary = [legacyJavaScript, newHolders];
   }
 
   void parse(List<String> options) {

@@ -65,7 +65,9 @@ import '../../js_backend/deferred_holder_expression.dart'
         DeferredHolderExpressionFinalizerImpl,
         DeferredHolderParameter,
         DeferredHolderResource,
-        DeferredHolderResourceKind;
+        DeferredHolderResourceKind,
+        LegacyDeferredHolderExpressionFinalizerImpl,
+        mainResourceName;
 import '../../js_backend/type_reference.dart'
     show
         TypeReferenceFinalizer,
@@ -218,8 +220,8 @@ class ModelEmitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value);
     }
-    return js.js(
-        '#.#', [_namer.globalObjectForConstants(), _namer.constantName(value)]);
+    return js.js('#.#',
+        [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
   }
 
   bool get shouldMergeFragments => _options.mergeFragmentsThreshold != null;

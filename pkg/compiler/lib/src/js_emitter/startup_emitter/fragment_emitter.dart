@@ -610,8 +610,10 @@ class FragmentEmitter {
       this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld)
-      : _holderFinalizer =
-            DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements) {
+      : _holderFinalizer = _options.features.newHolders.isEnabled
+            ? DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements)
+            : LegacyDeferredHolderExpressionFinalizerImpl(
+                _closedWorld.commonElements) {
     _recipeEncoder = RecipeEncoderImpl(
         _closedWorld,
         _options.disableRtiOptimization
@@ -673,6 +675,7 @@ class FragmentEmitter {
       size = estimator.charCount;
     }
     var emittedOutputUnit = EmittedOutputUnit(
+        fragment,
         fragment.outputUnit,
         fragment.libraries,
         classPrototypes,
@@ -698,9 +701,10 @@ class FragmentEmitter {
     // Emit holder code.
     var holderCode = emitHolderCode(fragment.libraries);
     var holderDeclaration = DeferredHolderResource(
-        DeferredHolderResourceKind.declaration,
-        holderCode: holderCode,
-        initializeEmptyHolders: true);
+        DeferredHolderResourceKind.mainFragment,
+        mainResourceName,
+        [fragment],
+        holderCode);
     js.Statement mainCode = js.js.statement(_mainBoilerplate, {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
@@ -752,7 +756,7 @@ class FragmentEmitter {
       'call2selector': js.quoteName(call2Name)
     });
     // We assume emitMainFragment will be the last piece of code we emit.
-    finalizeCode(mainCode, holderCode, finalizeHolders: true);
+    finalizeCode(mainResourceName, mainCode, holderCode, finalizeHolders: true);
     return mainCode;
   }
 
@@ -772,9 +776,12 @@ class FragmentEmitter {
       return null;
     }
 
+    var resourceName = fragment.canonicalOutputUnit.name;
     var updateHolders = DeferredHolderResource(
-        DeferredHolderResourceKind.update,
-        holderCode: holderCode);
+        DeferredHolderResourceKind.deferredFragment,
+        resourceName,
+        fragment.fragments,
+        holderCode);
     js.Expression code = js.js(_deferredBoilerplate, {
       // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': new js.Parameter('init'),
@@ -800,7 +807,7 @@ class FragmentEmitter {
     if (_options.experimentStartupFunctions) {
       code = js.Parentheses(code);
     }
-    finalizeCode(code, holderCode);
+    finalizeCode(resourceName, code, holderCode);
     return code;
   }
 
@@ -817,7 +824,8 @@ class FragmentEmitter {
 
   /// Finalizes the code for a fragment, and optionally finalizes holders.
   /// Finalizing holders must be the last step of the emitter.
-  void finalizeCode(js.Node code, Map<Entity, List<js.Property>> holderCode,
+  void finalizeCode(String resourceName, js.Node code,
+      Map<Entity, List<js.Property>> holderCode,
       {bool finalizeHolders: false}) {
     StringReferenceFinalizer stringFinalizer =
         StringReferenceFinalizerImpl(_options.enableMinification);
@@ -835,7 +843,11 @@ class FragmentEmitter {
     // per output unit, the holderFinalizer is a whole-program finalizer,
     // which collects deferred [Node]s from each call to `finalizeCode`
     // before begin finalized once for the last (main) unit.
-    addCodeToFinalizer(_holderFinalizer.addCode, code, holderCode);
+    void _addCode(js.Node code) {
+      _holderFinalizer.addCode(resourceName, code);
+    }
+
+    addCodeToFinalizer(_addCode, code, holderCode);
     if (finalizeHolders) {
       _holderFinalizer.finalize();
     }
@@ -1570,7 +1582,7 @@ class FragmentEmitter {
       // TODO(25230): We only need to name constants that are used from function
       // bodies or from other constants in a different part.
       var assignment = js.js.statement('#.# = #', [
-        _namer.globalObjectForConstants(),
+        _namer.globalObjectForConstant(constant.value),
         constant.name,
         _constantEmitter.generate(constant.value)
       ]);
