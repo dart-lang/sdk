@@ -192,7 +192,7 @@ namespace bin {
 
 IO_NATIVE_LIST(DECLARE_FUNCTION);
 
-static struct NativeEntries {
+static const struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
@@ -209,7 +209,7 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
   *auto_setup_scope = true;
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
-    struct NativeEntries* entry = &(IOEntries[i]);
+    const struct NativeEntries* entry = &(IOEntries[i]);
     if ((strcmp(function_name, entry->name_) == 0) &&
         (entry->argument_count_ == argument_count)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
@@ -221,7 +221,7 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
 const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
-    struct NativeEntries* entry = &(IOEntries[i]);
+    const struct NativeEntries* entry = &(IOEntries[i]);
     if (reinterpret_cast<Dart_NativeFunction>(entry->function_) == nf) {
       return reinterpret_cast<const uint8_t*>(entry->name_);
     }

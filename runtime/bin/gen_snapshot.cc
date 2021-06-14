@@ -89,7 +89,7 @@ enum SnapshotKind {
 static SnapshotKind snapshot_kind = kCore;
 
 // The ordering of this list must match the SnapshotKind enum above.
-static const char* kSnapshotKindNames[] = {
+static const char* const kSnapshotKindNames[] = {
     // clang-format off
     "core",
     "core-jit",

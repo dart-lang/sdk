@@ -22,7 +22,7 @@ namespace dart {
 StringPtr Symbols::predefined_[Symbols::kNumberOfOneCharCodeSymbols];
 String* Symbols::symbol_handles_[Symbols::kMaxPredefinedId];
 
-static const char* names[] = {
+static const char* const names[] = {
     // clang-format off
   NULL,
 #define DEFINE_SYMBOL_LITERAL(symbol, literal) literal,

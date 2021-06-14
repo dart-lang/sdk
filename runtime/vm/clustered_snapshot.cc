@@ -5838,7 +5838,7 @@ class VMDeserializationRoots : public DeserializationRoots {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static const char* kObjectStoreFieldNames[] = {
+static const char* const kObjectStoreFieldNames[] = {
 #define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
     OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,

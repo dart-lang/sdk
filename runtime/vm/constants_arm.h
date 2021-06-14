@@ -291,10 +291,10 @@ const FpuRegister FpuTMP = QTMP;
 const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 
-extern const char* cpu_reg_names[kNumberOfCpuRegisters];
-extern const char* fpu_reg_names[kNumberOfFpuRegisters];
-extern const char* fpu_s_reg_names[kNumberOfSRegisters];
-extern const char* fpu_d_reg_names[kNumberOfDRegisters];
+extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const fpu_reg_names[kNumberOfFpuRegisters];
+extern const char* const fpu_s_reg_names[kNumberOfSRegisters];
+extern const char* const fpu_d_reg_names[kNumberOfDRegisters];
 
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.

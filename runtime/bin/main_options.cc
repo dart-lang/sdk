@@ -28,7 +28,7 @@ namespace dart {
 namespace bin {
 
 // These strings must match the enum SnapshotKind in main_options.h.
-static const char* kSnapshotKindNames[] = {
+static const char* const kSnapshotKindNames[] = {
     "none",
     "kernel",
     "app-jit",
@@ -36,7 +36,7 @@ static const char* kSnapshotKindNames[] = {
 };
 
 // These strings must match the enum VerbosityLevel in main_options.h.
-static const char* kVerbosityLevelNames[] = {
+static const char* const kVerbosityLevelNames[] = {
     "error", "warning", "info", "all", nullptr,
 };
 
