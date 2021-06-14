@@ -409,6 +409,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPartOfDirective(PartOfDirective node) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;

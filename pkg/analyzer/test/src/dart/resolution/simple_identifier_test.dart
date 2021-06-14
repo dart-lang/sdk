@@ -10,13 +10,59 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
-    defineReflectiveTests(SimpleIdentifierResolutionWithNullSafetyTest);
+    defineReflectiveTests(SimpleIdentifierResolutionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with SimpleIdentifierResolutionTestCases {
+  test_functionReference() async {
+    await assertErrorsInCode('''
+// @dart = 2.7
+import 'dart:math';
+
+class A {
+  const A(_);
+}
+
+@A([min])
+main() {}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
+    ]);
+
+    var identifier = findNode.simple('min]');
+    assertElement(
+      identifier,
+      elementMatcher(
+        findElement.importFind('dart:math').topFunction('min'),
+        isLegacy: true,
+      ),
+    );
+    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
+  }
+
+  test_implicitCall_tearOff_nullable() async {
+    await assertErrorsInCode('''
+class A {
+  int call() => 0;
+}
+
+int Function() foo(A? a) {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1),
+    ]);
+
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.parameter('a'));
+    assertType(identifier, 'A?');
+  }
+}
+
+mixin SimpleIdentifierResolutionTestCases on PubPackageResolutionTest {
   test_dynamic_explicitCore() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core';
@@ -141,49 +187,6 @@ class A {
 }
 
 @reflectiveTest
-class SimpleIdentifierResolutionWithNullSafetyTest
-    extends SimpleIdentifierResolutionTest with WithNullSafetyMixin {
-  test_functionReference() async {
-    await assertErrorsInCode('''
-// @dart = 2.7
-import 'dart:math';
-
-class A {
-  const A(_);
-}
-
-@A([min])
-main() {}
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
-    ]);
-
-    var identifier = findNode.simple('min]');
-    assertElement(
-      identifier,
-      elementMatcher(
-        findElement.importFind('dart:math').topFunction('min'),
-        isLegacy: true,
-      ),
-    );
-    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
-  }
-
-  test_implicitCall_tearOff_nullable() async {
-    await assertErrorsInCode('''
-class A {
-  int call() => 0;
-}
-
-int Function() foo(A? a) {
-  return a;
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1),
-    ]);
-
-    var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.parameter('a'));
-    assertType(identifier, 'A?');
-  }
-}
+class SimpleIdentifierResolutionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with SimpleIdentifierResolutionTestCases, WithoutNullSafetyMixin {}
