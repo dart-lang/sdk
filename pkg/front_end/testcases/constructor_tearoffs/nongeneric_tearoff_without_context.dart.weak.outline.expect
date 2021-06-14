@@ -5,8 +5,16 @@ import "dart:core" as core;
 class A extends core::Object {
   constructor foo() → self::A
     ;
+  constructor •() → self::A
+    ;
 }
-static method bar() → dynamic
+static method testFoo() → dynamic
+  ;
+static method testNew() → dynamic
+  ;
+static method testFooExtraArgs() → dynamic
+  ;
+static method testNewExtraArgs() → dynamic
   ;
 static method main() → dynamic
   ;

@@ -4,8 +4,15 @@
 
 class A<X> {
   A.foo() {}
+  A() {}
 }
 
-bar() => A.foo;
+testFoo() => A.foo; // Ok.
+testFooArgs() => A<int>.foo; // Ok.
+testNew() => A.new; // Ok.
+testNewArgs() => A<int>.new; // Ok.
+
+testFooExtraArgs() => A<int, String>.foo; // Error.
+testNewExtraArgs() => A<int, String>.new; // Error.
 
 main() {}

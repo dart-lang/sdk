@@ -5,12 +5,24 @@ import "dart:core" as core;
 class A<X extends core::num> extends core::Object {
   constructor foo(self::A::X x) → self::A<self::A::X>
     ;
+  constructor •(self::A::X x) → self::A<self::A::X>
+    ;
 }
-static method bar1() → (core::num) → self::A<core::num>
+static method test1() → (core::num) → self::A<core::num>
   ;
-static method bar2() → (core::int) → self::A<core::int>
+static method test2() → (core::int) → self::A<core::int>
   ;
-static method bar3() → (core::String) → self::A<dynamic>
+static method test3() → (core::num) → self::A<core::num>
+  ;
+static method test4() → (core::int) → self::A<core::int>
+  ;
+static method test5() → (core::String) → self::A<dynamic>
+  ;
+static method test6() → (core::String) → self::A<dynamic>
+  ;
+static method test7() → (core::num) → self::A<dynamic>
+  ;
+static method test8() → (core::num) → self::A<dynamic>
   ;
 static method main() → dynamic
   ;

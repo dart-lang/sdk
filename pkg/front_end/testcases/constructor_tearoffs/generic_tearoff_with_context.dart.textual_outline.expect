@@ -1,8 +1,15 @@
 class A<X> {
   A.foo1(X x) {}
   A.foo2(X x, int y) {}
+  A();
 }
-
-A<X> Function<X>(X) bar1() => A.foo1;
-A<X> Function<X>(X) bar2() => A.foo2;
+A<X> Function<X>(X) test1() => A.foo1;
+A<X> Function<X>(X) test2() => A.foo2;
+A<X> Function<X>(X) test3() => A.new;
+A<X> Function<X>(X) test4() => A<int>.new;
+A<X> Function<X>(X) test5() => A<int, String>.new;
+A<X> Function<X>(X) test6() => A<int>.foo1;
+A<X> Function<X>(X) test7() => A<int, String>.foo1;
+A<X> Function<X>(X) test8() => A<int>.foo2;
+A<X> Function<X>(X) test9() => A<int, String>.foo2;
 main() {}

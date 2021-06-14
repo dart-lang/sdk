@@ -1,6 +1,11 @@
 class A<X> {
   A.foo() {}
+  A() {}
 }
-
-bar() => A.foo;
+testFoo() => A.foo;
+testFooArgs() => A<int>.foo;
+testNew() => A.new;
+testNewArgs() => A<int>.new;
+testFooExtraArgs() => A<int, String>.foo;
+testNewExtraArgs() => A<int, String>.new;
 main() {}

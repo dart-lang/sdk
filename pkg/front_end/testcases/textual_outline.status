@@ -23,6 +23,11 @@ regress/utf_16_le_content.crash: EmptyOutput
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash
 const_functions/const_functions_const_factory: FormatterCrash
+constructor_tearoffs/generic_tearoff_with_context: FormatterCrash
+constructor_tearoffs/generic_tearoff_without_context: FormatterCrash
+constructor_tearoffs/instantiation: FormatterCrash
+constructor_tearoffs/nongeneric_tearoff_with_context: FormatterCrash
+constructor_tearoffs/nongeneric_tearoff_without_context: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
 extensions/extension_constructor: FormatterCrash
