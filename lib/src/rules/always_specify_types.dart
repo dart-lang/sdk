@@ -136,7 +136,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  // Future kernel API.
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral literal) {
     checkLiteral(literal);
