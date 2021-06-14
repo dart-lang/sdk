@@ -1027,6 +1027,7 @@ nightly_builder(
 dart_vm_extra_builder(
     "app-kernel-linux-debug-x64",
     category = "vm|app-kernel|d64",
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
 dart_vm_nightly_builder(
     "app-kernel-linux-product-x64",
