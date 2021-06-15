@@ -146,6 +146,9 @@ class SuiteConfiguration {
   final String configurationName;
   final String testFilter;
 
+  final int shard;
+  final int shards;
+
   final String flutterDir;
   final String flutterPlatformDir;
 
@@ -157,7 +160,9 @@ class SuiteConfiguration {
       this.configurationName,
       this.testFilter,
       this.flutterDir,
-      this.flutterPlatformDir);
+      this.flutterPlatformDir,
+      this.shard,
+      this.shards);
 }
 
 void runSuite(SuiteConfiguration configuration) async {
@@ -168,6 +173,8 @@ void runSuite(SuiteConfiguration configuration) async {
       configuration.flutterPlatformDir,
       logger,
       filter: configuration.testFilter,
+      shard: configuration.shard,
+      shards: configuration.shards,
     );
   } catch (e) {
     logger.logUnexpectedResult("startup");
@@ -188,50 +195,58 @@ main([List<String> arguments = const <String>[]]) async {
     ..listen((logEntry) => logs.add(logEntry));
   String filter = options.testFilter;
 
-  // Start the test suite in a new isolate.
-  ReceivePort exitPort = new ReceivePort();
-  ReceivePort errorPort = new ReceivePort();
-  SuiteConfiguration configuration = new SuiteConfiguration(
-    resultsPort.sendPort,
-    logsPort.sendPort,
-    options.verbose,
-    options.printFailureLog,
-    options.configurationName,
-    filter,
-    options.flutterDir,
-    options.flutterPlatformDir,
-  );
-  Future<bool> future = Future<bool>(() async {
-    Stopwatch stopwatch = Stopwatch()..start();
-    print("Running suite");
-    Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
-        runSuite, configuration,
-        onExit: exitPort.sendPort, onError: errorPort.sendPort);
-    bool gotError = false;
-    StreamSubscription errorSubscription = errorPort.listen((message) {
-      print("Got error: $message!");
-      gotError = true;
-      logs.add("$message");
+  const int shards = 4;
+  List<Future<bool>> futures = [];
+  for (int shard = 0; shard < shards; shard++) {
+    // Start the test suite in a new isolate.
+    ReceivePort exitPort = new ReceivePort();
+    ReceivePort errorPort = new ReceivePort();
+    SuiteConfiguration configuration = new SuiteConfiguration(
+      resultsPort.sendPort,
+      logsPort.sendPort,
+      options.verbose,
+      options.printFailureLog,
+      options.configurationName,
+      filter,
+      options.flutterDir,
+      options.flutterPlatformDir,
+      shard,
+      shards,
+    );
+    Future<bool> future = Future<bool>(() async {
+      Stopwatch stopwatch = Stopwatch()..start();
+      print("Running suite shard $shard of $shards");
+      Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
+          runSuite, configuration,
+          onExit: exitPort.sendPort, onError: errorPort.sendPort);
+      bool gotError = false;
+      StreamSubscription errorSubscription = errorPort.listen((message) {
+        print("Got error: $message!");
+        gotError = true;
+        logs.add("$message");
+      });
+      bool timedOut = false;
+      Timer timer = Timer(timeoutDuration, () {
+        timedOut = true;
+        print("Suite timed out after "
+            "${timeoutDuration.inMilliseconds}ms");
+        isolate.kill(priority: Isolate.immediate);
+      });
+      await exitPort.first;
+      errorSubscription.cancel();
+      timer.cancel();
+      if (!timedOut && !gotError) {
+        int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
+        print("Suite finished (shard #$shard) (took ${seconds} seconds)");
+      }
+      return timedOut || gotError;
     });
-    bool timedOut = false;
-    Timer timer = Timer(timeoutDuration, () {
-      timedOut = true;
-      print("Suite timed out after "
-          "${timeoutDuration.inMilliseconds}ms");
-      isolate.kill(priority: Isolate.immediate);
-    });
-    await exitPort.first;
-    errorSubscription.cancel();
-    timer.cancel();
-    if (!timedOut && !gotError) {
-      int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
-      print("Suite finished (took ${seconds} seconds)");
-    }
-    return timedOut || gotError;
-  });
+    futures.add(future);
+  }
 
   // Wait for isolate to terminate and clean up.
-  bool timeoutOrCrash = await future;
+  Iterable<bool> timeoutsOrCrashes = await Future.wait(futures);
+  bool timeoutOrCrash = timeoutsOrCrashes.any((timeout) => timeout);
   resultsPort.close();
   logsPort.close();
 
