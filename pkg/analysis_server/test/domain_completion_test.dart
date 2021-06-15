@@ -263,6 +263,22 @@ class A {
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
   }
 
+  Future<void> test_extension() async {
+    addTestFile('''
+class MyClass {
+  void foo() {
+    ba^
+  }
+}
+
+extension MyClassExtension on MyClass {
+  void bar() {}
+}
+''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'bar');
+  }
+
   Future<void> test_html() {
     //
     // We no longer support the analysis of non-dart files.
@@ -596,7 +612,7 @@ extension MyClassExtension on MyClass {
   ''');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'bar');
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'baz');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'baz');
   }
 
   Future<void> test_inherited() {
