@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -209,15 +210,28 @@ class _ConstructorInferenceNode extends _InferenceNode {
     // Update types of a mixin application constructor formal parameters.
     var baseConstructor = _baseConstructor;
     if (baseConstructor != null) {
+      var constructor = _constructor as ConstructorElementImpl;
       var substitution = Substitution.fromInterfaceType(
         baseConstructor.superType,
       );
       forCorrespondingPairs<ParameterElement, ParameterElement>(
-        _constructor.parameters,
+        constructor.parameters,
         baseConstructor.element.parameters,
         (parameter, baseParameter) {
           var type = substitution.substituteType(baseParameter.type);
           (parameter as ParameterElementImpl).type = type;
+        },
+      );
+      // Update arguments of `SuperConstructorInvocation` to have the types
+      // (which we have just set) of the corresponding formal parameters.
+      // MixinApp(x, y) : super(x, y);
+      var initializers = constructor.constantInitializers;
+      var initializer = initializers.single as SuperConstructorInvocation;
+      forCorrespondingPairs<ParameterElement, Expression>(
+        constructor.parameters,
+        initializer.argumentList.arguments,
+        (parameter, argument) {
+          (argument as SimpleIdentifierImpl).staticType = parameter.type;
         },
       );
     }

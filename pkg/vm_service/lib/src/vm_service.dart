@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.46.0';
+const String vmServiceVersion = '3.47.0';
 
 /// @optional
 const String optional = 'optional';
@@ -5765,11 +5765,21 @@ class LibraryDependency {
   /// The library being imported or exported.
   LibraryRef? target;
 
+  /// The list of symbols made visible from this dependency.
+  @optional
+  List<String>? shows;
+
+  /// The list of symbols hidden from this dependency.
+  @optional
+  List<String>? hides;
+
   LibraryDependency({
     required this.isImport,
     required this.isDeferred,
     required this.prefix,
     required this.target,
+    this.shows,
+    this.hides,
   });
 
   LibraryDependency._fromJson(Map<String, dynamic> json) {
@@ -5778,6 +5788,8 @@ class LibraryDependency {
     prefix = json['prefix'] ?? '';
     target = createServiceObject(json['target'], const ['LibraryRef'])
         as LibraryRef?;
+    shows = json['shows'] == null ? null : List<String>.from(json['shows']);
+    hides = json['hides'] == null ? null : List<String>.from(json['hides']);
   }
 
   Map<String, dynamic> toJson() {
@@ -5788,6 +5800,8 @@ class LibraryDependency {
       'prefix': prefix,
       'target': target?.toJson(),
     });
+    _setIfNotNull(json, 'shows', shows?.map((f) => f).toList());
+    _setIfNotNull(json, 'hides', hides?.map((f) => f).toList());
     return json;
   }
 

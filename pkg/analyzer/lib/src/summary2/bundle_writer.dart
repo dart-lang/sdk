@@ -307,12 +307,12 @@ class BundleWriter {
       _resolutionSink._writeTypeList(element.interfaces);
 
       _writeList(
-        element.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
-      _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),
         _writeFieldElement,
+      );
+      _writeList(
+        element.accessors.where((e) => !e.isSynthetic).toList(),
+        _writePropertyAccessorElement,
       );
       _writeList(element.constructors, _writeConstructorElement);
       _writeList(element.methods, _writeMethodElement);
