@@ -287,6 +287,7 @@ class AstBinaryReader {
       rightOperand,
     );
     node.staticElement = _reader.readElement() as MethodElement?;
+    node.staticInvokeType = _reader.readOptionalFunctionType();
     _readExpressionResolution(node);
     return node;
   }
@@ -856,9 +857,11 @@ class AstBinaryReader {
   }
 
   NullLiteral _readNullLiteral() {
-    return astFactory.nullLiteral(
+    var node = astFactory.nullLiteral(
       Tokens.null_(),
     );
+    _readExpressionResolution(node);
+    return node;
   }
 
   AstNode? _readOptionalNode() {

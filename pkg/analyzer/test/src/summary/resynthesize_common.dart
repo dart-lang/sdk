@@ -6516,7 +6516,7 @@ library
                   staticInvokeType: int Function()
                   staticType: int
                 staticElement: dart:core::@class::num::@method::+
-                staticInvokeType: null
+                staticInvokeType: num Function(num)
                 staticType: int
         constructors
           synthetic @-1
@@ -6593,7 +6593,7 @@ library
               staticInvokeType: int Function()
               staticType: int
             staticElement: dart:core::@class::num::@method::+
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
     accessors
       synthetic static get v @-1
@@ -6632,7 +6632,7 @@ library
               literal: 5 @36
               staticType: int
             staticElement: dart:core::@class::num::@method::+
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
     accessors
       synthetic static get a @-1
@@ -8722,7 +8722,7 @@ library
                       literal: 2 @44
                       staticType: int
                     staticElement: dart:core::@class::num::@method::+
-                    staticInvokeType: null
+                    staticInvokeType: num Function(num)
                     staticType: int
         accessors
           synthetic get x @-1
@@ -8760,7 +8760,7 @@ library
                       literal: 2 @45
                       staticType: int
                     staticElement: dart:core::@class::num::@method::+
-                    staticInvokeType: null
+                    staticInvokeType: num Function(num)
                     staticType: int
         accessors
           synthetic get x @-1
@@ -8801,7 +8801,7 @@ library
                       literal: 2 @40
                       staticType: int
                     staticElement: dart:core::@class::num::@method::+
-                    staticInvokeType: null
+                    staticInvokeType: num Function(num)
                     staticType: int
           const named @55
             periodOffset: 54
@@ -8819,7 +8819,7 @@ library
                       literal: 2 @69
                       staticType: int
                     staticElement: dart:core::@class::num::@method::+
-                    staticInvokeType: null
+                    staticInvokeType: num Function(num)
                     staticType: int
         methods
           methodPositional @81
@@ -8836,7 +8836,7 @@ library
                       literal: 2 @107
                       staticType: int
                     staticElement: dart:core::@class::num::@method::+
-                    staticInvokeType: null
+                    staticInvokeType: num Function(num)
                     staticType: int
             returnType: void
           methodPositionalWithoutDefault @121
@@ -8858,7 +8858,7 @@ library
                       literal: 2 @187
                       staticType: int
                     staticElement: dart:core::@class::num::@method::+
-                    staticInvokeType: null
+                    staticInvokeType: num Function(num)
                     staticType: int
             returnType: void
           methodNamedWithoutDefault @201
@@ -9489,7 +9489,7 @@ library
               literal: 2 @27
               staticType: int
             staticElement: dart:core::@class::num::@method::+
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
     accessors
       synthetic static get A @-1
@@ -9526,7 +9526,7 @@ library
               literal: 2 @31
               staticType: int
             staticElement: dart:core::@class::num::@method::+
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
     accessors
       synthetic static get B @-1
@@ -9569,7 +9569,7 @@ library
               literal: 2 @38
               staticType: int
             staticElement: dart:core::@class::num::@method::+
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
     accessors
       synthetic static get B @-1
@@ -10210,7 +10210,7 @@ library
               literal: 2 @20
               staticType: int
             staticElement: dart:core::@class::num::@method::==
-            staticInvokeType: null
+            staticInvokeType: bool Function(Object)
             staticType: bool
       static const vAnd @29
         type: bool
@@ -10252,7 +10252,7 @@ library
               literal: 2 @98
               staticType: int
             staticElement: dart:core::@class::int::@method::^
-            staticInvokeType: null
+            staticInvokeType: int Function(int)
             staticType: int
       static const vBitAnd @107
         type: int
@@ -10266,7 +10266,7 @@ library
               literal: 2 @121
               staticType: int
             staticElement: dart:core::@class::int::@method::&
-            staticInvokeType: null
+            staticInvokeType: int Function(int)
             staticType: int
       static const vBitOr @130
         type: int
@@ -10280,7 +10280,7 @@ library
               literal: 2 @143
               staticType: int
             staticElement: dart:core::@class::int::@method::|
-            staticInvokeType: null
+            staticInvokeType: int Function(int)
             staticType: int
       static const vBitShiftLeft @152
         type: int
@@ -10294,7 +10294,7 @@ library
               literal: 2 @173
               staticType: int
             staticElement: dart:core::@class::int::@method::<<
-            staticInvokeType: null
+            staticInvokeType: int Function(int)
             staticType: int
       static const vBitShiftRight @182
         type: int
@@ -10308,7 +10308,7 @@ library
               literal: 2 @204
               staticType: int
             staticElement: dart:core::@class::int::@method::>>
-            staticInvokeType: null
+            staticInvokeType: int Function(int)
             staticType: int
       static const vAdd @213
         type: int
@@ -10322,7 +10322,7 @@ library
               literal: 2 @224
               staticType: int
             staticElement: dart:core::@class::num::@method::+
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
       static const vSubtract @233
         type: int
@@ -10336,7 +10336,7 @@ library
               literal: 2 @249
               staticType: int
             staticElement: dart:core::@class::num::@method::-
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
       static const vMiltiply @258
         type: int
@@ -10350,7 +10350,7 @@ library
               literal: 2 @274
               staticType: int
             staticElement: dart:core::@class::num::@method::*
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
       static const vDivide @283
         type: double
@@ -10364,7 +10364,7 @@ library
               literal: 2 @297
               staticType: int
             staticElement: dart:core::@class::num::@method::/
-            staticInvokeType: null
+            staticInvokeType: double Function(num)
             staticType: double
       static const vFloorDivide @306
         type: int
@@ -10378,7 +10378,7 @@ library
               literal: 2 @326
               staticType: int
             staticElement: dart:core::@class::num::@method::~/
-            staticInvokeType: null
+            staticInvokeType: int Function(num)
             staticType: int
       static const vModulo @335
         type: int
@@ -10392,7 +10392,7 @@ library
               literal: 2 @349
               staticType: int
             staticElement: dart:core::@class::num::@method::%
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
       static const vGreater @358
         type: bool
@@ -10406,7 +10406,7 @@ library
               literal: 2 @373
               staticType: int
             staticElement: dart:core::@class::num::@method::>
-            staticInvokeType: null
+            staticInvokeType: bool Function(num)
             staticType: bool
       static const vGreaterEqual @382
         type: bool
@@ -10420,7 +10420,7 @@ library
               literal: 2 @403
               staticType: int
             staticElement: dart:core::@class::num::@method::>=
-            staticInvokeType: null
+            staticInvokeType: bool Function(num)
             staticType: bool
       static const vLess @412
         type: bool
@@ -10434,7 +10434,7 @@ library
               literal: 2 @424
               staticType: int
             staticElement: dart:core::@class::num::@method::<
-            staticInvokeType: null
+            staticInvokeType: bool Function(num)
             staticType: bool
       static const vLessEqual @433
         type: bool
@@ -10448,7 +10448,7 @@ library
               literal: 2 @451
               staticType: int
             staticElement: dart:core::@class::num::@method::<=
-            staticInvokeType: null
+            staticInvokeType: bool Function(num)
             staticType: bool
     accessors
       synthetic static get vEqual @-1
@@ -10513,7 +10513,7 @@ library
                   literal: 2 @27
                   staticType: int
                 staticElement: dart:core::@class::num::@method::==
-                staticInvokeType: null
+                staticInvokeType: bool Function(Object)
                 staticType: bool
               leftParenthesis: ( @21
               rightParenthesis: ) @28
@@ -10555,7 +10555,7 @@ library
                   literal: 2 @25
                   staticType: int
                 staticElement: dart:core::@class::num::@method::==
-                staticInvokeType: null
+                staticInvokeType: bool Function(Object)
                 staticType: bool
               leftParenthesis: ( @19
               rightParenthesis: ) @26
@@ -10627,7 +10627,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @14
-            staticType: null
+            staticType: Null
       static const vBoolFalse @26
         type: bool
         constantInitializer
@@ -10831,7 +10831,7 @@ library
                   literal: 2 @20
                   staticType: int
                 staticElement: dart:core::@class::num::@method::+
-                staticInvokeType: null
+                staticInvokeType: num Function(num)
                 staticType: int
               leftParenthesis: ( @15
               rightParenthesis: ) @21
@@ -10841,7 +10841,7 @@ library
               literal: 3 @25
               staticType: int
             staticElement: dart:core::@class::num::@method::*
-            staticInvokeType: null
+            staticInvokeType: num Function(num)
             staticType: int
       static const v2 @38
         type: int
@@ -10857,7 +10857,7 @@ library
                   literal: 2 @49
                   staticType: int
                 staticElement: dart:core::@class::num::@method::+
-                staticInvokeType: null
+                staticInvokeType: num Function(num)
                 staticType: int
               leftParenthesis: ( @44
               rightParenthesis: ) @50
@@ -10883,7 +10883,7 @@ library
                 rightOperand: SimpleStringLiteral
                   literal: 'bbb' @77
                 staticElement: dart:core::@class::String::@method::+
-                staticInvokeType: null
+                staticInvokeType: String Function(String)
                 staticType: String
               leftParenthesis: ( @68
               rightParenthesis: ) @82
@@ -10921,7 +10921,7 @@ library
               literal: 2 @23
               staticType: int
             staticElement: dart:core::@class::num::@method::==
-            staticInvokeType: null
+            staticInvokeType: bool Function(Object)
             staticType: bool
       static const vNot @32
         type: bool
@@ -11806,7 +11806,7 @@ library
             constantInitializer
               NullLiteral
                 literal: null @51
-                staticType: null
+                staticType: Null
         constructors
           synthetic @-1
         accessors
@@ -11896,7 +11896,7 @@ library
                     literal: 42 @41
                     staticType: int
                   staticElement: dart:core::@class::num::@method::>=
-                  staticInvokeType: null
+                  staticInvokeType: bool Function(num)
                   staticType: bool
                 leftParenthesis: ( @35
                 rightParenthesis: ) @43
@@ -11932,7 +11932,7 @@ library
                     literal: 42 @41
                     staticType: int
                   staticElement: dart:core::@class::num::@method::>=
-                  staticInvokeType: null
+                  staticInvokeType: bool Function(num)
                   staticType: bool
                 leftParenthesis: ( @35
                 message: SimpleStringLiteral
@@ -12093,7 +12093,7 @@ library
                     staticType: int
                     token: p @48
                   staticElement: dart:core::@class::num::@method::+
-                  staticInvokeType: null
+                  staticInvokeType: num Function(num)
                   staticType: int
                 fieldName: SimpleIdentifier
                   staticElement: self::@class::C::@field::x
@@ -21486,13 +21486,13 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       static const b @22
         type: dynamic
         constantInitializer
           NullLiteral
             literal: null @26
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -21541,7 +21541,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22382,7 +22382,7 @@ library
               arguments
                 NullLiteral
                   literal: null @27
-                  staticType: null
+                  staticType: Null
               leftParenthesis: ( @26
               rightParenthesis: ) @31
             atSign.offset: 24
@@ -22422,7 +22422,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22452,7 +22452,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22668,7 +22668,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @32
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22785,7 +22785,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22826,7 +22826,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22876,7 +22876,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22910,7 +22910,7 @@ library
                 constantInitializer
                   NullLiteral
                     literal: null @48
-                    staticType: null
+                    staticType: Null
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -22925,7 +22925,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22947,7 +22947,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -22976,7 +22976,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       synthetic static f @-1
         type: dynamic
     accessors
@@ -23006,7 +23006,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       synthetic static f @-1
         type: dynamic
     accessors
@@ -23052,7 +23052,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23070,7 +23070,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23102,7 +23102,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23163,13 +23163,13 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       static const b @22
         type: dynamic
         constantInitializer
           NullLiteral
             literal: null @26
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23431,7 +23431,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @24
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23468,7 +23468,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23516,13 +23516,13 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       static const b @22
         type: dynamic
         constantInitializer
           NullLiteral
             literal: null @26
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23574,13 +23574,13 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       static const b @22
         type: dynamic
         constantInitializer
           NullLiteral
             literal: null @26
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23627,7 +23627,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -23744,13 +23744,13 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       static const b @22
         type: dynamic
         constantInitializer
           NullLiteral
             literal: null @26
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -24776,7 +24776,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @41
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -24852,7 +24852,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -24908,7 +24908,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -24930,7 +24930,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       synthetic static foo @-1
         type: int
     accessors
@@ -24963,7 +24963,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -24983,7 +24983,7 @@ library
             constantInitializer
               NullLiteral
                 literal: null @26
-                staticType: null
+                staticType: Null
         returnType: dynamic
 ''');
   }
@@ -24999,7 +24999,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
       static v @23
         metadata
           Annotation
@@ -25049,7 +25049,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -25102,7 +25102,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -25120,7 +25120,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -25167,7 +25167,7 @@ library
         constantInitializer
           NullLiteral
             literal: null @10
-            staticType: null
+            staticType: Null
     accessors
       synthetic static get a @-1
         returnType: dynamic

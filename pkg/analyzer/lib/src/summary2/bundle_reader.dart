@@ -1378,6 +1378,11 @@ class ResolutionReader {
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
+  FunctionType? readOptionalFunctionType() {
+    var type = readType();
+    return type is FunctionType ? type : null;
+  }
+
   List<DartType>? readOptionalTypeList() {
     if (_reader.readBool()) {
       return _readTypeList();

@@ -114,6 +114,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(binaryToken.index);
 
     _sink.writeElement(node.staticElement);
+    _sink.writeType(node.staticInvokeType);
     _storeExpression(node);
   }
 
@@ -493,6 +494,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitNullLiteral(NullLiteral node) {
     _writeByte(Tag.NullLiteral);
+    _storeExpression(node);
   }
 
   @override
