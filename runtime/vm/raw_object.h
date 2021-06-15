@@ -1697,6 +1697,8 @@ class UntaggedLibrary : public UntaggedObject {
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
+  Dart_FfiNativeResolver ffi_native_resolver_;
+
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.

@@ -9293,6 +9293,76 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
   EXPECT(result == Dart_True());
 }
 
+static intptr_t EchoInt(double x) {
+  return x;
+}
+
+static void* FfiNativeResolver(const char* name) {
+  ASSERT(strcmp(name, "EchoInt") == 0);
+  return reinterpret_cast<void*>(EchoInt);
+}
+
+TEST_CASE(Dart_SetFfiNativeResolver) {
+  const char* kScriptChars = R"(
+    import 'dart:ffi';
+    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    external int echoInt(double x);
+    main() => echoInt(7.0);
+    )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_SetFfiNativeResolver(lib, &FfiNativeResolver);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  EXPECT_VALID(result);
+
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(7, value);
+}
+
+TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
+  const char* kScriptChars = R"(
+    import 'dart:ffi';
+    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    external int echoInt(double x);
+    main() => echoInt(7.0);
+    )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  EXPECT_ERROR(
+      result,
+      "Invalid argument(s): Library has no handler: 'file:///test-lib'.");
+}
+
+static void* NopResolver(const char* name) {
+  return nullptr;
+}
+
+TEST_CASE(Dart_SetFfiNativeResolver_DoesNotResolve) {
+  const char* kScriptChars = R"(
+    import 'dart:ffi';
+    @FfiNative<Void Function()>('DoesNotResolve')
+    external void doesNotResolve();
+    main() => doesNotResolve();
+    )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_SetFfiNativeResolver(lib, &NopResolver);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  EXPECT_ERROR(
+      result,
+      "Invalid argument(s): Couldn't resolve function: 'DoesNotResolve'");
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

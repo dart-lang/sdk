@@ -4766,6 +4766,17 @@ class Library : public Object {
         &untag()->native_entry_symbol_resolver_, native_symbol_resolver);
   }
 
+  // Resolver for FFI native function pointers.
+  Dart_FfiNativeResolver ffi_native_resolver() const {
+    return LoadNonPointer<Dart_FfiNativeResolver, std::memory_order_relaxed>(
+        &untag()->ffi_native_resolver_);
+  }
+  void set_ffi_native_resolver(Dart_FfiNativeResolver value) const {
+    StoreNonPointer<Dart_FfiNativeResolver, Dart_FfiNativeResolver,
+                    std::memory_order_relaxed>(&untag()->ffi_native_resolver_,
+                                               value);
+  }
+
   bool is_in_fullsnapshot() const {
     return UntaggedLibrary::InFullSnapshotBit::decode(untag()->flags_);
   }

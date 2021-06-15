@@ -801,3 +801,33 @@ abstract class NativeApi {
   /// symbols in `dart_api_dl.h`.
   external static Pointer<Void> get initializeApiDLData;
 }
+
+/// Annotation to be used for marking an external function as FFI native.
+///
+/// Example:
+///```dart
+/// @FfiNative<Int64 Function(Int64, Int64)>("FfiNative_Sum")
+/// external int sum(int a, int b);
+///```
+/// Calling such functions will throw an exception if no resolver
+/// was set on the library or the resolver failed to resolve the name.
+///
+/// See `Dart_SetFfiNativeResolver` in `dart_api.h`
+///
+/// NOTE: This is an experimental feature and may change in the future.
+class FfiNative<T> {
+  final String nativeName;
+  const FfiNative(this.nativeName);
+}
+
+// Bootstrapping native for getting the FFI native C function pointer to look
+// up the FFI resolver.
+Pointer<NativeFunction<IntPtr Function(Handle, Handle)>>
+    _get_ffi_native_resolver<
+        T extends NativeFunction>() native "Ffi_GetFfiNativeResolver";
+
+// Resolver for FFI Native C function pointers.
+@pragma('vm:entry-point')
+final _ffi_resolver =
+    _get_ffi_native_resolver<NativeFunction<IntPtr Function(Handle, Handle)>>()
+        .asFunction<int Function(Object, Object)>();
