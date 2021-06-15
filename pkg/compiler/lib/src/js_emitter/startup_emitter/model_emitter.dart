@@ -25,6 +25,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         NATIVE_SUPERCLASS_TAG_NAME,
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
+        TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 

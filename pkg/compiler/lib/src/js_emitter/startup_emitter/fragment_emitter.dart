@@ -226,80 +226,73 @@ var functionCounter = 0;
 // offset at which the new types will be added.
 var typesOffset = 0;
 
-// Adapts the stored data, so it's suitable for a tearOff call.
-//
-// Stores the tear-off getter-function in the [container]'s [getterName]
-// property.
-//
-// The [container] is either a class (that is, its prototype), or the holder for
-// static functions.
-//
-// The argument [funsOrNames] is an array of strings or functions. If it is a
-// name, then the function should be fetched from the container. The first
-// entry in that array *must* be a string.
-//
-// TODO(floitsch): Change tearOffCode to accept the data directly, or create a
-// different tearOffCode?
-function installTearOff(
-    container, getterName, isStatic, isIntercepted, requiredParameterCount,
-    optionalParameterDefaultValues, callNames, funsOrNames, funType, applyIndex,
-    needsDirectAccess) {
-  // A function can have several stubs (for example to fill in optional
-  // arguments). We collect these functions in the `funs` array.
-  var funs = [];
-  for (var i = 0; i < funsOrNames.length; i++) {
-    var fun = funsOrNames[i];
-    if ((typeof fun) == "string") {
-      var stubName = fun;
-      fun = container[fun];
-      fun.#stubName = stubName;
-    }
-    fun.#callName = callNames[i];
-    funs.push(fun);
-  }
-
-  // The main function to which all stubs redirect.
-  var fun = funs[0];
-
-  fun[#argumentCount] = requiredParameterCount;
-  fun[#defaultArgumentValues] = optionalParameterDefaultValues;
-  var reflectionInfo = funType;
-  if (typeof reflectionInfo == "number") {
-    // The reflectionInfo can be a string type recipe or an index into the types
-    // table.  If it points into the types-table we need to update the index, in
-    // case the tear-off is part of a deferred hunk.
-    reflectionInfo = reflectionInfo + typesOffset;
-  }
-  var name = funsOrNames[0];
-  applyIndex = applyIndex || 0;
-  var getterFunction = isStatic
-      ? staticTearOffGetter(funs, applyIndex, reflectionInfo, name)
-      : instanceTearOffGetter(funs, applyIndex, reflectionInfo, name,
-          isIntercepted, needsDirectAccess);
-  container[getterName] = getterFunction;
-}
-
-function installStaticTearOff(
-    container, getterName,
-    requiredParameterCount, optionalParameterDefaultValues,
-    callNames, funsOrNames, funType, applyIndex) {
-  // TODO(sra): Specialize installTearOff for static methods. It might be
-  // possible to handle some very common simple cases directly.
-  return installTearOff(
-      container, getterName, true, false,
-      requiredParameterCount, optionalParameterDefaultValues,
-      callNames, funsOrNames, funType, applyIndex, false);
-}
-
-function installInstanceTearOff(
-    container, getterName, isIntercepted,
+/// Collect and canonicalize tear-off parameters.
+///
+/// [container] is either the `prototype` of a class constructor, or the holder
+/// for static functions.
+///
+/// [funsOrNames] is an array of strings or functions. If it is a
+/// name, then the function should be fetched from the container. The first
+/// entry in that array *must* be a string.
+// TODO(sra): It might be more readable to manually inline and simplify at the
+// two calls. It would need to be assessed as it would likely make the object
+// references polymorphic.
+function tearOffParameters(
+    container, isStatic, isIntercepted,
     requiredParameterCount, optionalParameterDefaultValues,
     callNames, funsOrNames, funType, applyIndex, needsDirectAccess) {
-  // TODO(sra): Specialize installTearOff for instance methods.
-  return installTearOff(
-      container, getterName, false, isIntercepted,
+  if (typeof funType == "number") {
+    // The [funType] can be a string type recipe or an index into the types
+    // table.  If it points into the types-table we need to update the index, in
+    // case the tear-off is part of a deferred hunk.
+    funType += typesOffset;
+  }
+  return {
+    #tpContainer: container,
+    #tpIsStatic: isStatic,
+    #tpIsIntercepted: isIntercepted,
+    #tpRequiredParameterCount: requiredParameterCount,
+    #tpOptionalParamaterDefaultValues: optionalParameterDefaultValues,
+    #tpCallNames: callNames,
+    #tpFunctionsOrNames: funsOrNames,
+    #tpFunctionType: funType,
+    #tpApplyIndex: applyIndex || 0,
+    #tpNeedsDirectAccess: needsDirectAccess,
+  }
+}
+
+/// Stores the static tear-off getter-function in the [holder]'s [getterName]
+/// property.
+function installStaticTearOff(
+    holder, getterName,
+    requiredParameterCount, optionalParameterDefaultValues,
+    callNames, funsOrNames, funType, applyIndex) {
+  // TODO(sra): Specialize for very common simple cases.
+  var parameters = tearOffParameters(
+      holder, true, false,
+      requiredParameterCount, optionalParameterDefaultValues,
+      callNames, funsOrNames, funType, applyIndex, false);
+  var getterFunction = staticTearOffGetter(parameters);
+  // TODO(sra): Returning [getterFunction] would be more versatile. We might
+  // want to store the static tearoff getter in a different holder, or in no
+  // holder if it is immediately called from the constant pool and otherwise
+  // unreferenced.
+  holder[getterName] = getterFunction;
+}
+
+/// Stores the instance tear-off getter-function in the [prototype]'s
+/// [getterName] property.
+function installInstanceTearOff(
+    prototype, getterName, isIntercepted,
+    requiredParameterCount, optionalParameterDefaultValues,
+    callNames, funsOrNames, funType, applyIndex, needsDirectAccess) {
+  isIntercepted = !!isIntercepted; // force to Boolean.
+  var parameters = tearOffParameters(
+      prototype, false, isIntercepted,
       requiredParameterCount, optionalParameterDefaultValues,
       callNames, funsOrNames, funType, applyIndex, !!needsDirectAccess);
+  var getterFunction = instanceTearOffGetter(isIntercepted, parameters);
+  prototype[getterName] = getterFunction;
 }
 
 // Instead of setting the interceptor tags directly we use this update
@@ -724,10 +717,28 @@ class FragmentEmitter {
       'staticStateDeclaration': DeferredHolderParameter(),
       'staticState': DeferredHolderParameter(),
       'holders': holderDeclaration,
-      'callName': js.string(_namer.fixedNames.callNameField),
-      'stubName': js.string(_namer.stubNameField),
-      'argumentCount': js.string(_namer.fixedNames.requiredParameterField),
-      'defaultArgumentValues': js.string(_namer.fixedNames.defaultValuesField),
+
+      // Tearoff parameters:
+      'tpContainer': js.string(TearOffParametersPropertyNames.container),
+      'tpIsStatic': js.string(TearOffParametersPropertyNames.isStatic),
+      'tpIsIntercepted':
+          js.string(TearOffParametersPropertyNames.isIntercepted),
+      'tpRequiredParameterCount':
+          js.string(TearOffParametersPropertyNames.requiredParameterCount),
+      'tpOptionalParamaterDefaultValues': js.string(
+          TearOffParametersPropertyNames.optionalParameterDefaultValues),
+      'tpCallNames': js.string(TearOffParametersPropertyNames.callNames),
+      'tpFunctionsOrNames':
+          js.string(TearOffParametersPropertyNames.funsOrNames),
+      'tpFunctionType': js.string(TearOffParametersPropertyNames.funType),
+      'tpApplyIndex': js.string(TearOffParametersPropertyNames.applyIndex),
+      'tpNeedsDirectAccess':
+          js.string(TearOffParametersPropertyNames.needsDirectAccess),
+
+      //'callName': js.string(_namer.fixedNames.callNameField),
+      //'stubName': js.string(_namer.stubNameField),
+      //'argumentCount': js.string(_namer.fixedNames.requiredParameterField),
+      //'defaultArgumentValues': js.string(_namer.fixedNames.defaultValuesField),
       'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
       'isTrackingAllocations': _options.experimentalTrackAllocations,
       'prototypes': emitPrototypes(fragment),

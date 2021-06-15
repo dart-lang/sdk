@@ -275,3 +275,22 @@ class RtiUniverseFieldNames {
   static String typeParameterVariances = 'tPV';
   static String sharedEmptyArray = 'sEA';
 }
+
+/// Names of fields of collected tear-off parameters object.
+///
+/// Tear-off getters are created before the Dart classes are initialized, so a
+/// plain JavaScript object is used to group the parameters. The object has a
+/// fixed shape, with the following properties. The names are short since there
+/// is no minifier for these property names.
+class TearOffParametersPropertyNames {
+  static const String container = 'co';
+  static const String isStatic = 'iS';
+  static const String isIntercepted = 'iI';
+  static const String requiredParameterCount = 'rC';
+  static const String optionalParameterDefaultValues = 'dV';
+  static const String callNames = 'cs';
+  static const String funsOrNames = 'fs';
+  static const String funType = 'fT';
+  static const String applyIndex = 'aI';
+  static const String needsDirectAccess = 'nDA';
+}

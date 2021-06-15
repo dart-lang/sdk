@@ -4,6 +4,9 @@
 
 library dart2js.js_emitter.class_stub_generator;
 
+import 'package:js_runtime/shared/embedded_names.dart'
+    show TearOffParametersPropertyNames;
+
 import '../common/names.dart' show Identifiers, Selectors;
 import '../common_elements.dart' show CommonElements;
 import '../constants/values.dart';
@@ -292,18 +295,16 @@ List<jsAst.Statement> buildTearOffCode(
   if (options.useContentSecurityPolicy) {
     instanceTearOffGetter = js.statement(
       '''
-      function instanceTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted, needsDirectAccess) {
+      function instanceTearOffGetter(isIntercepted, parameters) {
         var cache = null;
         return isIntercepted
             ? function(receiver) {
-                if (cache === null) cache = #createTearOffClass(
-                    funcs, applyTrampolineIndex, reflectionInfo, false, true, name, needsDirectAccess);
-                return new cache(this, funcs[0], receiver, name);
+                if (cache === null) cache = #createTearOffClass(parameters);
+                return new cache(this, receiver);
               }
             : function() {
-                if (cache === null) cache = #createTearOffClass(
-                    funcs, applyTrampolineIndex, reflectionInfo, false, false, name, needsDirectAccess);
-                return new cache(this, funcs[0], null, name);
+                if (cache === null) cache = #createTearOffClass(parameters);
+                return new cache(this, null);
               };
       }''',
       {'createTearOffClass': closureFromTearOffAccessExpression},
@@ -332,33 +333,35 @@ List<jsAst.Statement> buildTearOffCode(
     // variable all in one context (passing `null` to initialize `cache`).
     instanceTearOffGetter = js.statement(
       '''
-function instanceTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted, needsDirectAccess) {
+function instanceTearOffGetter(isIntercepted, parameters) {
+  var name = parameters.#tpFunctionsOrNames[0];
   if (isIntercepted)
-    return new Function("funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, createTearOffClass, cache",
-          "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
-            "if (cache === null) cache = createTearOffClass(" +
-                "funcs, applyTrampolineIndex, reflectionInfo, false, true, name, needsDirectAccess);" +
-                "return new cache(this, funcs[0], receiver, name);" +
-           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, #createTearOffClass, null);
+    return new Function("parameters, createTearOffClass, cache",
+        "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
+          "if (cache === null) cache = createTearOffClass(parameters);" +
+            "return new cache(this, receiver);" +
+        "}")(parameters, #createTearOffClass, null);
   else
-    return new Function("funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, createTearOffClass, cache",
-          "return function tearOff_" + name + (functionCounter++)+ "() {" +
-            "if (cache === null) cache = createTearOffClass(" +
-                "funcs, applyTrampolineIndex, reflectionInfo, false, false, name, needsDirectAccess);" +
-                "return new cache(this, funcs[0], null, name);" +
-             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, #createTearOffClass, null);
+    return new Function("parameters, createTearOffClass, cache",
+        "return function tearOff_" + name + (functionCounter++)+ "() {" +
+          "if (cache === null) cache = createTearOffClass(parameters);" +
+            "return new cache(this, null);" +
+        "}")(parameters, #createTearOffClass, null);
 }''',
-      {'createTearOffClass': closureFromTearOffAccessExpression},
+      {
+        'tpFunctionsOrNames':
+            js.string(TearOffParametersPropertyNames.funsOrNames),
+        'createTearOffClass': closureFromTearOffAccessExpression
+      },
     );
   }
 
   jsAst.Statement staticTearOffGetter = js.statement(
     '''
-function staticTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name) {
+function staticTearOffGetter(parameters) {
   var cache = null;
   return function() {
-    if (cache === null) cache = #createTearOffClass(
-        funcs, applyTrampolineIndex, reflectionInfo, true, false, name).prototype;
+    if (cache === null) cache = #createTearOffClass(parameters).prototype;
     return cache;
   }
 }''',
