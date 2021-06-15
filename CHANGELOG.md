@@ -1,3 +1,8 @@
+# 1.6.1
+
+- reverted relaxation of `sort_child_properties_last` to allow for a 
+  trailing Widget in instance creations
+
 # 1.6.0
 
 - relaxed `non_constant_identifier_names` to allow for a trailing
