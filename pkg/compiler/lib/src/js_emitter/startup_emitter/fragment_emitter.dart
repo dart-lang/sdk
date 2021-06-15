@@ -1028,7 +1028,7 @@ class FragmentEmitter {
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
-    Iterable<Method> gettersSetters = generateGettersSetters(cls);
+    Iterable<Method> gettersSetters = cls.gettersSetters;
     Iterable<Method> allMethods = [
       ...methods,
       ...checkedSetters,
@@ -1082,75 +1082,6 @@ class FragmentEmitter {
     }
 
     return new js.ObjectInitializer(properties);
-  }
-
-  /// Generates a getter for the given [field].
-  Method generateGetter(Field field) {
-    assert(field.needsGetter);
-
-    js.Expression code;
-    if (field.isElided) {
-      ConstantValue constantValue = field.constantValue;
-      assert(
-          constantValue != null, "No constant value for elided field: $field");
-      if (constantValue == null) {
-        // This should never occur because codegen member usage is now limited
-        // by closed world member usage. In the case we've missed a spot we
-        // cautiously generate a null constant.
-        constantValue = new NullConstantValue();
-      }
-      code = js.js(
-          "function() { return #; }", generateConstantReference(constantValue));
-    } else {
-      String template;
-      if (field.needsInterceptedGetterOnReceiver) {
-        template = "function(receiver) { return receiver[#]; }";
-      } else if (field.needsInterceptedGetterOnThis) {
-        template = "function(receiver) { return this[#]; }";
-      } else {
-        assert(!field.needsInterceptedGetter);
-        template = "function() { return this[#]; }";
-      }
-      js.Expression fieldName = js.quoteName(field.name);
-      code = js.js(template, fieldName);
-    }
-    js.Name getterName = _namer.deriveGetterName(field.accessorName);
-    return new StubMethod(getterName, code);
-  }
-
-  /// Generates a setter for the given [field].
-  Method generateSetter(Field field) {
-    assert(field.needsUncheckedSetter);
-
-    String template;
-    js.Expression code;
-    if (field.isElided) {
-      code = js.js("function() { }");
-    } else {
-      if (field.needsInterceptedSetterOnReceiver) {
-        template = "function(receiver, val) { return receiver[#] = val; }";
-      } else if (field.needsInterceptedSetterOnThis) {
-        template = "function(receiver, val) { return this[#] = val; }";
-      } else {
-        assert(!field.needsInterceptedSetter);
-        template = "function(val) { return this[#] = val; }";
-      }
-      js.Expression fieldName = js.quoteName(field.name);
-      code = js.js(template, fieldName);
-    }
-
-    js.Name setterName = _namer.deriveSetterName(field.accessorName);
-    return new StubMethod(setterName, code);
-  }
-
-  /// Generates all getters and setters the given class [cls] needs.
-  Iterable<Method> generateGettersSetters(Class cls) {
-    return [
-      for (Field field in cls.fields)
-        if (field.needsGetter) generateGetter(field),
-      for (Field field in cls.fields)
-        if (field.needsUncheckedSetter) generateSetter(field),
-    ];
   }
 
   /// Emits the given instance [method].

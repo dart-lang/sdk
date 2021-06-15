@@ -560,7 +560,7 @@ class ProgramBuilder {
     bool isClosureBaseClass = cls == _commonElements.closureClass;
 
     List<Method> methods = [];
-    List<StubMethod> callStubs = <StubMethod>[];
+    List<StubMethod> callStubs = [];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
         _task.emitter, _commonElements, _namer, _codegenWorld, _closedWorld,
@@ -652,6 +652,16 @@ class ProgramBuilder {
         ? const []
         : _buildFields(cls: cls, isHolderInterceptedClass: isInterceptedClass);
 
+    List<StubMethod> gettersSetters = onlyForConstructorOrRti
+        ? const []
+        : [
+            for (Field field in instanceFields)
+              if (field.needsGetter) classStubGenerator.generateGetter(field),
+            for (Field field in instanceFields)
+              if (field.needsUncheckedSetter)
+                classStubGenerator.generateSetter(field),
+          ];
+
     TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(
         cls, _generatedCode,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
@@ -704,7 +714,7 @@ class ProgramBuilder {
       assert(!isClosureBaseClass);
 
       result = MixinApplication(cls, typeData, name, instanceFields, callStubs,
-          checkedSetters, isChecks, typeTests.functionTypeIndex,
+          checkedSetters, gettersSetters, isChecks, typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
@@ -719,6 +729,7 @@ class ProgramBuilder {
           callStubs,
           noSuchMethodStubs,
           checkedSetters,
+          gettersSetters,
           isChecks,
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
