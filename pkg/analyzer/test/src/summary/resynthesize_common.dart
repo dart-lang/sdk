@@ -2627,7 +2627,7 @@ library
         aliasedType: dynamic Function(C<dynamic Function()>)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional value @-1
+            requiredPositional value @36
               type: C<dynamic Function()>
           returnType: dynamic
 ''');
@@ -2909,14 +2909,14 @@ library
         aliasedType: dynamic Function(dynamic Function())
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional value @-1
+            requiredPositional value @36
               type: dynamic Function()
           returnType: dynamic
       functionTypeAliasBased notSimplyBounded G @52
         aliasedType: dynamic Function(dynamic Function())
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional value @-1
+            requiredPositional value @56
               type: dynamic Function()
           returnType: dynamic
 ''');
@@ -9636,9 +9636,9 @@ library
         aliasedType: dynamic Function(int, String)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @56
               type: int
-            requiredPositional b @-1
+            requiredPositional b @66
               type: String
           returnType: dynamic
     topLevelVariables
@@ -11336,7 +11336,7 @@ library
         aliasedType: int Function(String)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional id @-1
+            requiredPositional id @21
               type: String
           returnType: int
     topLevelVariables
@@ -12160,7 +12160,7 @@ library
                                   parameters
                                   returnType: dynamic
                                   type: dynamic Function()
-                                functionKeyword: Function @0
+                                functionKeyword: Function @86
                                 parameters: FormalParameterList
                                 type: dynamic Function()
                             leftBracket: < @85
@@ -13621,7 +13621,7 @@ library
         aliasedType: void Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional v @-1
+            requiredPositional v @20
               type: T
           returnType: void
     functions
@@ -13684,7 +13684,7 @@ library
                                 parameters
                                 returnType: dynamic
                                 type: dynamic Function()
-                              functionKeyword: Function @0
+                              functionKeyword: Function @61
                               parameters: FormalParameterList
                               type: dynamic Function()
                           leftBracket: < @60
@@ -14521,16 +14521,16 @@ library
         aliasedType: void Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @37
               type: int
           returnType: void
       functionTypeAliasBased F @54
         aliasedType: void Function([int, double])
         aliasedElement: GenericFunctionTypeElement
           parameters
-            optionalPositional b @-1
+            optionalPositional b @61
               type: int
-            optionalPositional c @-1
+            optionalPositional c @71
               type: double
           returnType: void
 ''');
@@ -14969,7 +14969,7 @@ library
         aliasedType: dynamic Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional p @-1
+            requiredPositional p @14
               type: int
           returnType: dynamic
     functions
@@ -15663,14 +15663,14 @@ library
                                 type: double
                             returnType: int
                             type: int Function(double)
-                          functionKeyword: Function @0
+                          functionKeyword: Function @62
                           parameters: FormalParameterList
                             parameters
                               SimpleFormalParameter
-                                declaredElement: a@-1
+                                declaredElement: a@78
                                 declaredElementType: double
                                 identifier: SimpleIdentifier
-                                  staticElement: <null>
+                                  staticElement: a@78
                                   staticType: null
                                   token: a @78
                                 type: TypeName
@@ -16668,7 +16668,7 @@ library
         aliasedType: void Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @20
               type: T
           returnType: void
 ''');
@@ -16690,7 +16690,7 @@ library
         aliasedType: void Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @21
               type: T
           returnType: void
       functionTypeAliasBased F2 @39
@@ -16732,7 +16732,7 @@ library
         aliasedType: void Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @44
               type: T
           returnType: void
 ''');
@@ -16819,7 +16819,7 @@ library
         aliasedType: void Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @21
               type: T
           returnType: void
       functionTypeAliasBased F2 @38
@@ -16829,7 +16829,7 @@ library
         aliasedType: void Function(void Function(T))
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @50
               type: void Function(T)
                 aliasElement: self::@typeAlias::F1
                 aliasArguments
@@ -16853,7 +16853,7 @@ library
         aliasedType: T Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @17
               type: T
           returnType: T
 ''');
@@ -16882,7 +16882,7 @@ library
         aliasedType: T Function() Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @41
               type: T
           returnType: T Function()
             aliasElement: self::@typeAlias::F1
@@ -16906,7 +16906,7 @@ library
         aliasedType: void Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @22
               type: int
           returnType: void
 ''');
@@ -17152,7 +17152,7 @@ library
         aliasedType: void Function(String) Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional b @-1
+            requiredPositional b @49
               type: int
           returnType: void Function(String)
 ''');
@@ -17257,14 +17257,14 @@ library
                         type: String
                     returnType: int
                     type: int Function(String)
-                  functionKeyword: Function @0
+                  functionKeyword: Function @36
                   parameters: FormalParameterList
                     parameters
                       SimpleFormalParameter
-                        declaredElement: a@-1
+                        declaredElement: a@52
                         declaredElementType: String
                         identifier: SimpleIdentifier
-                          staticElement: <null>
+                          staticElement: a@52
                           staticType: null
                           token: a @52
                         type: TypeName
@@ -17331,14 +17331,14 @@ library
                         type: String
                     returnType: int
                     type: int Function(String)
-                  functionKeyword: Function @0
+                  functionKeyword: Function @36
                   parameters: FormalParameterList
                     parameters
                       SimpleFormalParameter
-                        declaredElement: a@-1
+                        declaredElement: a@52
                         declaredElementType: String
                         identifier: SimpleIdentifier
-                          staticElement: <null>
+                          staticElement: a@52
                           staticType: null
                           token: a @52
                         type: TypeName
@@ -17414,21 +17414,21 @@ library
                             type: int?
                         returnType: String
                         type: String Function({int? a})
-                      functionKeyword: Function @0
+                      functionKeyword: Function @48
                       parameters: FormalParameterList
                         parameters
                           DefaultFormalParameter
-                            declaredElement: a@-1
+                            declaredElement: a@63
                             declaredElementType: int?
                             identifier: SimpleIdentifier
-                              staticElement: <null>
+                              staticElement: a@63
                               staticType: null
                               token: a @63
                             parameter: SimpleFormalParameter
-                              declaredElement: a@-1
+                              declaredElement: a@63
                               declaredElementType: int?
                               identifier: SimpleIdentifier
-                                staticElement: <null>
+                                staticElement: a@63
                                 staticType: null
                                 token: a @63
                               type: TypeName
@@ -17499,21 +17499,21 @@ library
                             type: int?
                         returnType: String
                         type: String Function([int?])
-                      functionKeyword: Function @0
+                      functionKeyword: Function @48
                       parameters: FormalParameterList
                         parameters
                           DefaultFormalParameter
-                            declaredElement: a@-1
+                            declaredElement: a@63
                             declaredElementType: int?
                             identifier: SimpleIdentifier
-                              staticElement: <null>
+                              staticElement: a@63
                               staticType: null
                               token: a @63
                             parameter: SimpleFormalParameter
-                              declaredElement: a@-1
+                              declaredElement: a@63
                               declaredElementType: int?
                               identifier: SimpleIdentifier
-                                staticElement: <null>
+                                staticElement: a@63
                                 staticType: null
                                 token: a @63
                               type: TypeName
@@ -17584,21 +17584,21 @@ library
                             type: int
                         returnType: String
                         type: String Function({required int a})
-                      functionKeyword: Function @0
+                      functionKeyword: Function @48
                       parameters: FormalParameterList
                         parameters
                           DefaultFormalParameter
-                            declaredElement: a@-1
+                            declaredElement: a@71
                             declaredElementType: int
                             identifier: SimpleIdentifier
-                              staticElement: <null>
+                              staticElement: a@71
                               staticType: null
                               token: a @71
                             parameter: SimpleFormalParameter
-                              declaredElement: a@-1
+                              declaredElement: a@71
                               declaredElementType: int
                               identifier: SimpleIdentifier
-                                staticElement: <null>
+                                staticElement: a@71
                                 staticType: null
                                 token: a @71
                               requiredKeyword: required @0
@@ -17670,14 +17670,14 @@ library
                             type: int
                         returnType: String
                         type: String Function(int)
-                      functionKeyword: Function @0
+                      functionKeyword: Function @48
                       parameters: FormalParameterList
                         parameters
                           SimpleFormalParameter
-                            declaredElement: a@-1
+                            declaredElement: a@61
                             declaredElementType: int
                             identifier: SimpleIdentifier
-                              staticElement: <null>
+                              staticElement: a@61
                               staticType: null
                               token: a @61
                             type: TypeName
@@ -17773,7 +17773,7 @@ library
         aliasedType: dynamic Function<V1>(V1 Function())
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant V1 @-1
+            covariant V1 @22
           parameters
             requiredPositional @-1
               type: V1 Function()
@@ -18571,7 +18571,7 @@ library
         aliasedType: D<T, U> Function<U>()
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant U @-1
+            covariant U @31
           returnType: D<T, U>
     topLevelVariables
       static const x @118
@@ -18641,7 +18641,7 @@ library
         aliasedType: D<T> Function<T>()
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant T @-1
+            covariant T @26
           returnType: D<T>
     topLevelVariables
       static const x @101
@@ -19200,7 +19200,7 @@ library
         aliasedType: int Function(String)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional s @-1
+            requiredPositional s @21
               type: String
           returnType: int
 ''');
@@ -19368,10 +19368,10 @@ library
         aliasedType: void Function(int Function(String))
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional g @-1
+            requiredPositional g @19
               type: int Function(String)
               parameters
-                requiredPositional s @-1
+                requiredPositional s @28
                   type: String
           returnType: void
     topLevelVariables
@@ -20440,7 +20440,7 @@ library
         aliasedType: dynamic Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional p @-1
+            requiredPositional p @27
               type: T
           returnType: dynamic
     topLevelVariables
@@ -20523,9 +20523,9 @@ library
         aliasedType: S Function<S>(T)
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant S @-1
+            covariant S @38
           parameters
-            requiredPositional p @-1
+            requiredPositional p @43
               type: T
           returnType: S
     topLevelVariables
@@ -23274,7 +23274,7 @@ library
         aliasedType: void Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional first @-1
+            requiredPositional first @47
               type: int
               metadata
                 Annotation
@@ -23311,10 +23311,10 @@ library
         aliasedType: void Function(int Function(int))
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional foo @-1
+            requiredPositional foo @44
               type: int Function(int)
               parameters
-                requiredPositional bar @-1
+                requiredPositional bar @55
                   type: int
                   metadata
                     Annotation
@@ -23351,7 +23351,7 @@ library
         aliasedType: void Function<T>(int)
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant T @-1
+            covariant T @43
               metadata
                 Annotation
                   atSign.offset: 40
@@ -23361,7 +23361,7 @@ library
                     staticType: null
                     token: a @41
           parameters
-            requiredPositional first @-1
+            requiredPositional first @50
               type: int
           returnType: void
     topLevelVariables
@@ -24408,7 +24408,7 @@ library
         aliasedType: void Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @53
               type: int
               metadata
                 Annotation
@@ -24466,7 +24466,7 @@ library
         aliasedType: void Function<U>(int)
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant U @-1
+            covariant U @60
               metadata
                 Annotation
                   atSign.offset: 55
@@ -24476,7 +24476,7 @@ library
                     staticType: null
                     token: foo @56
           parameters
-            requiredPositional a @-1
+            requiredPositional a @72
               type: int
               metadata
                 Annotation
@@ -28832,7 +28832,7 @@ library
         aliasedType: dynamic Function(dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional p @-1
+            requiredPositional p @38
               type: dynamic
           returnType: dynamic
     topLevelVariables
@@ -29988,7 +29988,7 @@ library
         aliasedType: U Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @20
               type: T
           returnType: U
     topLevelVariables
@@ -30032,7 +30032,7 @@ library
         aliasedType: U Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @20
               type: T
           returnType: U
     topLevelVariables
@@ -30114,13 +30114,13 @@ library
         aliasedType: void Function(T Function<T, U>(U))
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional a @-1
+            requiredPositional a @17
               type: T Function<T, U>(U)
               typeParameters
-                covariant T @-1
-                covariant U @-1
+                covariant T @19
+                covariant U @22
               parameters
-                requiredPositional u @-1
+                requiredPositional u @27
                   type: U
           returnType: void
 ''');
@@ -30524,9 +30524,9 @@ library
         aliasedType: int Function<S>(List<S>, num Function<A>(A), T)
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant S @-1
+            covariant S @28
           parameters
-            requiredPositional list @-1
+            requiredPositional list @39
               type: List<S>
             requiredPositional @-1
               type: num Function<A>(A)
@@ -30578,9 +30578,9 @@ library
         aliasedType: S Function<T>(T)
         aliasedElement: GenericFunctionTypeElement
           typeParameters
-            covariant T @-1
+            covariant T @28
           parameters
-            requiredPositional x @-1
+            requiredPositional x @33
               type: T
           returnType: S
 ''');
@@ -31596,7 +31596,7 @@ library
         aliasedType: void Function(C<C<dynamic>>)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional c @-1
+            requiredPositional c @28
               type: C<C<dynamic>>
           returnType: void
 ''');
@@ -31654,7 +31654,7 @@ library
         aliasedType: void Function(C<C<dynamic>>)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional c @-1
+            requiredPositional c @17
               type: C<C<dynamic>>
           returnType: void
 ''');
@@ -31735,12 +31735,12 @@ library
         aliasedType: dynamic Function(dynamic Function(dynamic, dynamic))
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional g @-1
+            requiredPositional g @10
               type: dynamic Function(dynamic, dynamic)
               parameters
-                requiredPositional x @-1
+                requiredPositional x @12
                   type: dynamic
-                requiredPositional y @-1
+                requiredPositional y @15
                   type: dynamic
           returnType: dynamic
 ''');
@@ -31761,10 +31761,10 @@ library
         aliasedType: dynamic Function(A Function(B))
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional g @-1
+            requiredPositional g @18
               type: A Function(B)
               parameters
-                requiredPositional x @-1
+                requiredPositional x @22
                   type: B
           returnType: dynamic
 ''');
@@ -31780,7 +31780,7 @@ library
         aliasedType: dynamic Function(int Function())
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional g @-1
+            requiredPositional g @14
               type: int Function()
           returnType: dynamic
 ''');
@@ -31796,7 +31796,7 @@ library
         aliasedType: dynamic Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional i @-1
+            requiredPositional i @14
               type: int
           returnType: dynamic
 ''');
@@ -31815,7 +31815,7 @@ library
         aliasedType: dynamic Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @15
               type: T
           returnType: dynamic
 ''');
@@ -31831,9 +31831,9 @@ library
         aliasedType: dynamic Function(dynamic, dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional x @-1
+            requiredPositional x @10
               type: dynamic
-            requiredPositional y @-1
+            requiredPositional y @13
               type: dynamic
           returnType: dynamic
 ''');
@@ -31849,11 +31849,11 @@ library
         aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
         aliasedElement: GenericFunctionTypeElement
           parameters
-            optionalNamed y @-1
+            optionalNamed y @11
               type: dynamic
-            optionalNamed z @-1
+            optionalNamed z @14
               type: dynamic
-            optionalNamed x @-1
+            optionalNamed x @17
               type: dynamic
           returnType: dynamic
 ''');
@@ -31929,7 +31929,7 @@ library
         aliasedType: U Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @20
               type: T
           returnType: U
 ''');
@@ -31957,7 +31957,7 @@ library
         aliasedType: U Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @45
               type: T
           returnType: U
 ''');
@@ -32015,7 +32015,7 @@ library
         aliasedType: U Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @36
               type: T
           returnType: U
 ''');
@@ -32038,7 +32038,7 @@ library
         aliasedType: U* Function(T*)*
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @36
               type: T*
           returnType: U*
 ''');
@@ -32060,7 +32060,7 @@ library
         aliasedType: U Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @30
               type: T
           returnType: U
 ''');
@@ -32083,7 +32083,7 @@ library
         aliasedType: U* Function(T*)*
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @30
               type: T*
           returnType: U*
 ''');
@@ -32106,7 +32106,7 @@ library
         aliasedType: U Function(T)
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @41
               type: T
           returnType: U
 ''');
@@ -32130,7 +32130,7 @@ library
         aliasedType: U* Function(T*)*
         aliasedElement: GenericFunctionTypeElement
           parameters
-            requiredPositional t @-1
+            requiredPositional t @41
               type: T*
           returnType: U*
 ''');

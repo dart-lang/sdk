@@ -352,12 +352,11 @@ class AstBinaryReader {
     return node;
   }
 
-  SimpleIdentifier _readDeclarationName() {
+  SimpleIdentifierImpl _readDeclarationName() {
     var name = _reader.readStringReference();
-    var node = astFactory.simpleIdentifier(
+    return astFactory.simpleIdentifier(
       StringToken(TokenType.STRING, name, -1),
     );
-    return node;
   }
 
   DeclaredIdentifier _readDeclaredIdentifier() {
@@ -413,6 +412,7 @@ class AstBinaryReader {
     if (parameter is SimpleFormalParameterImpl) {
       parameter.declaredElement = element;
     }
+    node.identifier?.staticElement = element;
     element.type = nonDefaultElement.type;
 
     return node;
@@ -1031,6 +1031,7 @@ class AstBinaryReader {
     element.parameterKind = node.kind;
     element.type = actualType;
     node.declaredElement = element;
+    identifier?.staticElement = element;
 
     return node;
   }
