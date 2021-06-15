@@ -2600,8 +2600,10 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * When "strict-raw-types" is enabled, raw types must be inferred via the
-   * context type, or have type arguments.
+   * When "strict-raw-types" is enabled, "raw types" must have type arguments.
+   *
+   * A "raw type" is a type name that does not use inference to fill in missing
+   * type arguments; instead, each type argument is instantiated to its bound.
    */
   static const HintCode STRICT_RAW_TYPE = HintCode('STRICT_RAW_TYPE',
       "The generic type '{0}' should have explicit type arguments but doesn't.",
