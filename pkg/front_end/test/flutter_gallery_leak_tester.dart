@@ -155,13 +155,19 @@ main(List<String> args) async {
 
   List<helper.Interest> interests = <helper.Interest>[];
   interests.add(new helper.Interest(
-      Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
+    Uri.parse("package:kernel/ast.dart"),
+    "Library",
+    ["fileUri"],
+  ));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
     interests: interests,
     prettyPrints: [
-      new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
-          ["fileUri", "_libraryIdString"]),
+      new helper.Interest(
+        Uri.parse("package:kernel/ast.dart"),
+        "Library",
+        ["fileUri", "libraryIdForTesting"],
+      ),
     ],
     throwOnPossibleLeak: true,
   );

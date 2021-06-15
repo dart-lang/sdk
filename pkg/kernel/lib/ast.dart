@@ -592,6 +592,7 @@ class Library extends NamedNode
 
   static int _libraryIdCounter = 0;
   int _libraryId = ++_libraryIdCounter;
+  int get libraryIdForTesting => _libraryId;
 
   @override
   int compareTo(Library other) => _libraryId - other._libraryId;
