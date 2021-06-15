@@ -92,6 +92,10 @@ extension ExpressionExtension on Expression {
 }
 
 extension FormalParameterExtension on FormalParameter {
+  bool get isOfLocalFunction {
+    return thisOrAncestorOfType<FunctionBody>() != null;
+  }
+
   FormalParameter get notDefault {
     var self = this;
     if (self is DefaultFormalParameter) {

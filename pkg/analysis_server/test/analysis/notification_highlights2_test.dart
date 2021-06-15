@@ -538,6 +538,33 @@ part 'part.dart';
     assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part 'part.dart';");
   }
 
+  Future<void> test_DIRECTIVE_configuration() async {
+    addTestFile('''
+import 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';
+export 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';
+''');
+    await prepareHighlights();
+
+    assertHasStringRegion(HighlightRegionType.DIRECTIVE, '''
+import 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';''');
+
+    assertHasStringRegion(HighlightRegionType.DIRECTIVE, '''
+export 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';''');
+
+    assertHasStringRegion(HighlightRegionType.BUILT_IN, 'if');
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:math'");
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:io'");
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:html'");
+  }
+
   Future<void> test_DIRECTIVE_partOf() async {
     addTestFile('''
 part of lib;

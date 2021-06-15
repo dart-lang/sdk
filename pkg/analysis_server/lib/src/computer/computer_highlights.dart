@@ -674,6 +674,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    _addRegions_configurations(node.configurations);
     super.visitExportDirective(node);
   }
 
@@ -821,6 +822,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.deferredKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.asKeyword, HighlightRegionType.BUILT_IN);
+    _addRegions_configurations(node.configurations);
     super.visitImportDirective(node);
   }
 
@@ -1106,6 +1108,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitYieldStatement(node);
+  }
+
+  void _addRegions_configurations(List<Configuration> configurations) {
+    for (final configuration in configurations) {
+      computer._addRegion_token(
+          configuration.ifKeyword, HighlightRegionType.BUILT_IN,
+          semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+    }
   }
 
   void _addRegions_functionBody(FunctionBody node) {

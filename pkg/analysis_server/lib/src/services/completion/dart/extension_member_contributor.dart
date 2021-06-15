@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
@@ -27,6 +29,10 @@ class ExtensionMemberContributor extends DartCompletionContributor {
 
     memberBuilder = MemberSuggestionBuilder(request, builder);
 
+    var defaultKind = request.target.isFunctionalArgument()
+        ? CompletionSuggestionKind.IDENTIFIER
+        : request.opType.suggestKind;
+
     // Recompute the target because resolution might have changed it.
     var expression = request.dotTarget;
 
@@ -40,7 +46,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       if (classOrMixin != null) {
         var type = classOrMixin.declaredElement?.thisType;
         if (type != null) {
-          _addExtensionMembers(containingLibrary, type);
+          _addExtensionMembers(containingLibrary, defaultKind, type);
         }
       } else {
         var extension = request.target.containingNode
@@ -53,9 +59,9 @@ class ExtensionMemberContributor extends DartCompletionContributor {
               var inheritanceDistance = memberBuilder.request.featureComputer
                   .inheritanceDistanceFeature(
                       extendedType.element, type.element);
-              _addTypeMembers(type, inheritanceDistance);
+              _addTypeMembers(type, defaultKind, inheritanceDistance);
             }
-            _addExtensionMembers(containingLibrary, extendedType);
+            _addExtensionMembers(containingLibrary, defaultKind, extendedType);
           }
         }
       }
@@ -81,7 +87,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     if (expression is ExtensionOverride) {
       var staticElement = expression.staticElement;
       if (staticElement != null) {
-        _addInstanceMembers(staticElement, 0.0);
+        _addInstanceMembers(staticElement, defaultKind, 0.0);
       }
     } else {
       var type = expression.staticType;
@@ -99,12 +105,13 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         // invoked on a non-null value.
         type = containingLibrary.typeSystem.promoteToNonNull(type);
       }
-      _addExtensionMembers(containingLibrary, type);
+      _addExtensionMembers(containingLibrary, defaultKind, type);
       expression.staticType;
     }
   }
 
-  void _addExtensionMembers(LibraryElement containingLibrary, DartType type) {
+  void _addExtensionMembers(LibraryElement containingLibrary,
+      CompletionSuggestionKind? kind, DartType type) {
     var typeSystem = containingLibrary.typeSystem;
     var nameScope = containingLibrary.scope;
     for (var extension in nameScope.extensions) {
@@ -118,17 +125,19 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         }
         // TODO(brianwilkerson) We might want to apply the substitution to the
         //  members of the extension for display purposes.
-        _addInstanceMembers(extension, inheritanceDistance);
+        _addInstanceMembers(extension, kind, inheritanceDistance);
       }
     }
   }
 
-  void _addInstanceMembers(
-      ExtensionElement extension, double inheritanceDistance) {
+  void _addInstanceMembers(ExtensionElement extension,
+      CompletionSuggestionKind? kind, double inheritanceDistance) {
     for (var method in extension.methods) {
       if (!method.isStatic) {
         memberBuilder.addSuggestionForMethod(
-            method: method, inheritanceDistance: inheritanceDistance);
+            method: method,
+            kind: kind,
+            inheritanceDistance: inheritanceDistance);
       }
     }
     for (var accessor in extension.accessors) {
@@ -139,10 +148,11 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     }
   }
 
-  void _addTypeMembers(InterfaceType type, double inheritanceDistance) {
+  void _addTypeMembers(InterfaceType type, CompletionSuggestionKind? kind,
+      double inheritanceDistance) {
     for (var method in type.methods) {
       memberBuilder.addSuggestionForMethod(
-          method: method, inheritanceDistance: inheritanceDistance);
+          method: method, kind: kind, inheritanceDistance: inheritanceDistance);
     }
     for (var accessor in type.accessors) {
       memberBuilder.addSuggestionForAccessor(

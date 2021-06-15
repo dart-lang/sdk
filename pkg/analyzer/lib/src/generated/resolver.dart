@@ -20,7 +20,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
@@ -1310,8 +1309,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement!;
 
-    if (element is DefaultParameterElementImpl &&
-        !element.isParameterOfTopLevelFunction) {
+    if (element is DefaultParameterElementImpl && node.isOfLocalFunction) {
       element.constantInitializer = node.defaultValue;
     }
   }

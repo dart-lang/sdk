@@ -380,7 +380,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final content = '''
     import 'package:flutter/material.dart';
     export 'package:flutter/widgets.dart';
-    import '../file.dart';
+    import '../file.dart'
+      if (dart.library.io) 'file_io.dart'
+      if (dart.library.html) 'file_html.dart';
 
     library foo;
     ''';
@@ -392,6 +394,12 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token("'package:flutter/widgets.dart'", SemanticTokenTypes.string),
       _Token('import', SemanticTokenTypes.keyword),
       _Token("'../file.dart'", SemanticTokenTypes.string),
+      _Token('if', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token("'file_io.dart'", SemanticTokenTypes.string),
+      _Token('if', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token("'file_html.dart'", SemanticTokenTypes.string),
       _Token('library', SemanticTokenTypes.keyword),
       _Token('foo', SemanticTokenTypes.namespace),
     ];
