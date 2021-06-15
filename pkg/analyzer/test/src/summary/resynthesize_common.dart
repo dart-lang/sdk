@@ -12668,6 +12668,10 @@ library
           covariant U @96
             defaultType: dynamic
         supertype: C<U, T>
+          aliasElement: self::@typeAlias::A
+          aliasArguments
+            U
+            T
         constructors
           named @121
             periodOffset: 120
@@ -30804,6 +30808,9 @@ library
       class B @49
         interfaces
           A<int, String>
+            aliasElement: self::@typeAlias::X
+            aliasArguments
+              String
         constructors
           synthetic @-1
     typeAliases
@@ -30884,6 +30891,9 @@ library
         interfaces
           B
           A<int?>
+            aliasElement: self::@typeAlias::X
+            aliasArguments
+              int
           C
         constructors
           synthetic @-1
@@ -31021,6 +31031,7 @@ library
         supertype: Object
         mixins
           A<int>
+            aliasElement: self::@typeAlias::X
         constructors
           synthetic @-1
     typeAliases
@@ -31096,6 +31107,7 @@ library
         mixins
           M1
           A<int?>
+            aliasElement: self::@typeAlias::X
           M2
         constructors
           synthetic @-1
@@ -31154,6 +31166,7 @@ library
           synthetic @-1
       class B @40
         supertype: A<int>
+          aliasElement: self::@typeAlias::X
         constructors
           synthetic @-1
     typeAliases
@@ -31181,6 +31194,9 @@ library
           synthetic @-1
       class B @38
         supertype: A<int>
+          aliasElement: self::@typeAlias::X
+          aliasArguments
+            A<int>
         constructors
           synthetic @-1
     typeAliases
@@ -31256,6 +31272,7 @@ library
           synthetic @-1
       class D @41
         supertype: A<int?>
+          aliasElement: self::@typeAlias::X
         constructors
           synthetic @-1
     typeAliases

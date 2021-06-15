@@ -132,9 +132,9 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeOptionalInterfaceType(element.supertype);
-      _resolutionSink._writeInterfaceTypeList(element.mixins);
-      _resolutionSink._writeInterfaceTypeList(element.interfaces);
+      _resolutionSink.writeType(element.supertype);
+      _resolutionSink._writeTypeList(element.mixins);
+      _resolutionSink._writeTypeList(element.interfaces);
 
       if (!element.isMixinApplication) {
         var membersOffset = _sink.offset;
@@ -303,8 +303,8 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink._writeInterfaceTypeList(element.superclassConstraints);
-      _resolutionSink._writeInterfaceTypeList(element.interfaces);
+      _resolutionSink._writeTypeList(element.superclassConstraints);
+      _resolutionSink._writeTypeList(element.interfaces);
 
       _writeList(
         element.accessors.where((e) => !e.isSynthetic).toList(),
@@ -528,25 +528,6 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void writeInterfaceType(InterfaceType type) {
-    _writeElement(type.element);
-    var typeArguments = type.typeArguments;
-    writeUInt30(typeArguments.length);
-    for (var i = 0; i < typeArguments.length; ++i) {
-      writeType(typeArguments[i]);
-    }
-    _writeNullabilitySuffix(type.nullabilitySuffix);
-  }
-
-  void writeOptionalInterfaceType(InterfaceType? type) {
-    if (type != null) {
-      writeByte(1);
-      writeInterfaceType(type);
-    } else {
-      writeByte(0);
-    }
-  }
-
   void writeOptionalTypeList(List<DartType>? types) {
     if (types != null) {
       writeBool(true);
@@ -692,13 +673,6 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeFormalParameters(type.parameters, withAnnotations: false);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
-  }
-
-  void _writeInterfaceTypeList(List<InterfaceType> types) {
-    writeUInt30(types.length);
-    for (var type in types) {
-      writeInterfaceType(type);
-    }
   }
 
   void _writeNode(AstNode node) {
