@@ -830,6 +830,7 @@ waits
 walt
 warmup
 week
+weekly
 wherever
 whiskers
 wins

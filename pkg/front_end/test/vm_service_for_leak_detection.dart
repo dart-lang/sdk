@@ -52,6 +52,12 @@ main(List<String> args) async {
       "--fast",
       "--experimental",
     ]);
+  } else if (args.length > 0 && args[0] == "--weekly") {
+    heapHelper.start([
+      "--enable-asserts",
+      Platform.script.resolve("incremental_suite.dart").toString(),
+      "-DaddDebugBreaks=true",
+    ]);
   } else {
     heapHelper.start([
       "--enable-asserts",
