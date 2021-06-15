@@ -24,20 +24,20 @@ main(List<String> args) async {
       Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
-          interests,
-          [
-            new helper.Interest(
-                Uri.parse(
-                    "package:front_end/src/fasta/source/source_extension_builder.dart"),
-                "SourceExtensionBuilder",
-                ["_extension"]),
-            new helper.Interest(Uri.parse("package:kernel/ast.dart"),
-                "Extension", ["name", "fileUri"]),
-            new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
-                ["fileUri", "_libraryIdString"]),
-          ],
-          true,
-          true);
+    interests: interests,
+    prettyPrints: [
+      new helper.Interest(
+          Uri.parse(
+              "package:front_end/src/fasta/source/source_extension_builder.dart"),
+          "SourceExtensionBuilder",
+          ["_extension"]),
+      new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Extension",
+          ["name", "fileUri"]),
+      new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
+          ["fileUri", "_libraryIdString"]),
+    ],
+    throwOnPossibleLeak: true,
+  );
 
   if (args.length > 0 && args[0] == "--dart2js") {
     heapHelper.start([
