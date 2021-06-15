@@ -86,7 +86,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Helper for resolving properties on types.
   final TypePropertyResolver _typePropertyResolver;
 
-  late final MethodInvocationResolver _methodInvocationResolver;
+  final MethodInvocationResolver _methodInvocationResolver;
 
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
@@ -94,13 +94,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
       {MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
-        _typePropertyResolver = _resolver.typePropertyResolver {
-    _methodInvocationResolver = MethodInvocationResolver(
-      _resolver,
-      migratableAstInfoProvider,
-      inferenceHelper: _resolver.inferenceHelper,
-    );
-  }
+        _typePropertyResolver = _resolver.typePropertyResolver,
+        _methodInvocationResolver = MethodInvocationResolver(
+          _resolver,
+          migratableAstInfoProvider,
+          inferenceHelper: _resolver.inferenceHelper,
+        );
 
   /// Return `true` iff the current enclosing function is a constant constructor
   /// declaration.

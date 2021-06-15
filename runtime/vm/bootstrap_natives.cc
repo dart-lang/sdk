@@ -21,7 +21,7 @@ namespace dart {
 // List all native functions implemented in the vm or core bootstrap dart
 // libraries so that we can resolve the native function to it's entry
 // point.
-static struct NativeEntries {
+static const struct NativeEntries {
   const char* name_;
   BootstrapNativeFunction function_;
   int argument_count_;
@@ -46,7 +46,7 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
   ASSERT(function_name != NULL);
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
-    struct NativeEntries* entry = &(BootStrapEntries[i]);
+    const struct NativeEntries* entry = &(BootStrapEntries[i]);
     if ((strcmp(function_name, entry->name_) == 0) &&
         (entry->argument_count_ == argument_count)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
@@ -58,7 +58,7 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
 const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
-    struct NativeEntries* entry = &(BootStrapEntries[i]);
+    const struct NativeEntries* entry = &(BootStrapEntries[i]);
     if (reinterpret_cast<Dart_NativeFunction>(entry->function_) == nf) {
       return reinterpret_cast<const uint8_t*>(entry->name_);
     }

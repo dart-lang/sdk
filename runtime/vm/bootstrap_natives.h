@@ -404,6 +404,7 @@ namespace dart {
   V(Ffi_asExternalTypedData, 2)                                                \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
+  V(Ffi_GetFfiNativeResolver, 0)                                               \
   V(DartApiDLInitializeData, 0)                                                \
   V(DartApiDLMajorVersion, 0)                                                  \
   V(DartApiDLMinorVersion, 0)                                                  \

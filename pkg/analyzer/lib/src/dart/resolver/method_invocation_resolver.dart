@@ -68,7 +68,7 @@ class MethodInvocationResolver {
     this._resolver,
     this._migratableAstInfoProvider, {
     required InvocationInferenceHelper inferenceHelper,
-  })   : _typeType = _resolver.typeProvider.typeType,
+  })  : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
@@ -183,6 +183,24 @@ class MethodInvocationResolver {
   bool _isCoreFunction(DartType type) {
     // TODO(scheglov) Can we optimize this?
     return type is InterfaceType && type.isDartCoreFunction;
+  }
+
+  /// Record that the static type of the given node is the given type.
+  ///
+  /// @param expression the node whose type is to be recorded
+  /// @param type the static type of the node
+  ///
+  /// TODO(scheglov) this is duplicate
+  void _recordStaticType(ExpressionImpl expression, DartType type) {
+    var hooks = _resolver.migrationResolutionHooks;
+    if (hooks != null) {
+      type = hooks.modifyExpressionType(expression, type);
+    }
+
+    expression.staticType = type;
+    if (_resolver.typeSystem.isBottom(type)) {
+      _resolver.flowAnalysis?.flow?.handleExit();
+    }
   }
 
   void _reportInstanceAccessToStaticMember(
@@ -786,7 +804,7 @@ class MethodInvocationResolver {
     DartType getterReturnType,
   ) {
     var targetType = _resolveTypeParameter(getterReturnType);
-    node.methodName.staticType = targetType;
+    _recordStaticType(node.methodName, targetType);
 
     ExpressionImpl functionExpression;
     var target = node.target;

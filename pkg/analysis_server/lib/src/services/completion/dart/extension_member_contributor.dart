@@ -92,6 +92,13 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         // to ensure that we can return the suggestions from other providers.
         return;
       }
+      var containingNode = request.target.containingNode;
+      if (containingNode is PropertyAccess &&
+          containingNode.operator.lexeme == '?.') {
+        // After a null-safe operator we know that the member will only be
+        // invoked on a non-null value.
+        type = containingLibrary.typeSystem.promoteToNonNull(type);
+      }
       _addExtensionMembers(containingLibrary, type);
       expression.staticType;
     }

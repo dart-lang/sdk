@@ -1378,6 +1378,11 @@ class ResolutionReader {
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
+  FunctionType? readOptionalFunctionType() {
+    var type = readType();
+    return type is FunctionType ? type : null;
+  }
+
   List<DartType>? readOptionalTypeList() {
     if (_reader.readBool()) {
       return _readTypeList();
@@ -1632,15 +1637,7 @@ class ResolutionReader {
   }
 
   InterfaceType _readInterfaceType() {
-    var element = _readRawElement() as ClassElement;
-    var typeArguments = _readTypeList();
-    var nullability = _readNullability();
-    var type = InterfaceTypeImpl(
-      element: element,
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullability,
-    );
-    return type;
+    return readType() as InterfaceType;
   }
 
   List<InterfaceType> _readInterfaceTypeList() {
@@ -1670,10 +1667,7 @@ class ResolutionReader {
   }
 
   InterfaceType? _readOptionalInterfaceType() {
-    var hasSuperType = _reader.readByte() != 0;
-    if (hasSuperType) {
-      return _readInterfaceType();
-    }
+    return readType() as InterfaceType?;
   }
 
   Element? _readRawElement() {

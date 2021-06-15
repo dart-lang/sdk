@@ -10,13 +10,13 @@
 
 namespace dart {
 
-const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+const char* const cpu_reg_names[kNumberOfCpuRegisters] = {
     "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",  "r10",
     "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
     "nr",  "r23", "r24", "ip0", "ip1", "pp",  "r28", "fp",  "lr",  "r31",
 };
 
-const char* fpu_reg_names[kNumberOfFpuRegisters] = {
+const char* const fpu_reg_names[kNumberOfFpuRegisters] = {
     "v0",  "v1",  "v2",  "v3",  "v4",  "v5",  "v6",  "v7",  "v8",  "v9",  "v10",
     "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21",
     "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",

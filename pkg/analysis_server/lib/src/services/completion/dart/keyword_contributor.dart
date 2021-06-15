@@ -725,6 +725,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    var variables = node.variables;
+    if (variables.isNotEmpty && entity == variables[0] && node.type == null) {
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.VOID);
+    }
+  }
+
   void _addClassBodyKeywords() {
     _addSuggestions([
       Keyword.CONST,

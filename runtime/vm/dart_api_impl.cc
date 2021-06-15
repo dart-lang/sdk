@@ -5999,6 +5999,18 @@ DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
   return Api::Success();
 }
 
+DART_EXPORT Dart_Handle
+Dart_SetFfiNativeResolver(Dart_Handle library,
+                          Dart_FfiNativeResolver resolver) {
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  lib.set_ffi_native_resolver(resolver);
+  return Api::Success();
+}
+
 // --- Peer support ---
 
 DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {

@@ -787,7 +787,7 @@ void DoubleTestOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
-static const char* simd_op_kind_string[] = {
+static const char* const simd_op_kind_string[] = {
 #define CASE(Arity, Mask, Name, ...) #Name,
     SIMD_OP_LIST(CASE, CASE)
 #undef CASE

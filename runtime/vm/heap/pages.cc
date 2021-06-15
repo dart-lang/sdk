@@ -1413,6 +1413,15 @@ uword PageSpace::TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size) {
   return TryAllocateDataBumpLocked(freelist, size);
 }
 
+ObjectPtr PageSpace::AllocateSnapshot(intptr_t size) {
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  uword address = TryAllocateDataBumpLocked(size);
+  if (address == 0) {
+    OUT_OF_MEMORY();
+  }
+  return UntaggedObject::FromAddr(address);
+}
+
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // Setup a OldPage so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). OldPage

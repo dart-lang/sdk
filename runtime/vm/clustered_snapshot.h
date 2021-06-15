@@ -161,6 +161,8 @@ class DeserializationCluster : public ZoneAllocated {
   bool is_canonical() const { return is_canonical_; }
 
  protected:
+  void ReadAllocFixedSize(Deserializer* deserializer, intptr_t instance_size);
+
   const char* const name_;
   const bool is_canonical_;
   // The range of the ref array that belongs to this cluster.
@@ -382,6 +384,11 @@ class Serializer : public ThreadStackResource {
   void WriteFromTo(T obj, P&&... args) {
     auto* from = obj->untag()->from();
     auto* to = obj->untag()->to_snapshot(kind(), args...);
+    WriteRange(obj, from, to);
+  }
+
+  template <typename T>
+  DART_NOINLINE void WriteRange(ObjectPtr obj, T from, T to) {
     for (auto* p = from; p <= to; p++) {
       WriteOffsetRef(
           p->Decompress(obj->heap_base()),
@@ -393,6 +400,11 @@ class Serializer : public ThreadStackResource {
   void PushFromTo(T obj, P&&... args) {
     auto* from = obj->untag()->from();
     auto* to = obj->untag()->to_snapshot(kind(), args...);
+    PushRange(obj, from, to);
+  }
+
+  template <typename T>
+  DART_NOINLINE void PushRange(ObjectPtr obj, T from, T to) {
     for (auto* p = from; p <= to; p++) {
       Push(p->Decompress(obj->heap_base()));
     }

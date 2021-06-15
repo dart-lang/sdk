@@ -413,6 +413,7 @@ class InformativeDataApplier {
     _setupApplyConstantOffsetsForTypeAlias(
       element,
       info.constantOffsets,
+      aliasedFormalParameters: info.parameters,
     );
   }
 
@@ -432,6 +433,8 @@ class InformativeDataApplier {
     _setupApplyConstantOffsetsForTypeAlias(
       element,
       info.constantOffsets,
+      aliasedFormalParameters: info.aliasedFormalParameters,
+      aliasedTypeParameters: info.aliasedTypeParameters,
     );
   }
 
@@ -590,8 +593,10 @@ class InformativeDataApplier {
 
   void _setupApplyConstantOffsetsForTypeAlias(
     TypeAliasElementImpl element,
-    Uint32List constantOffsets,
-  ) {
+    Uint32List constantOffsets, {
+    List<_InfoFormalParameter>? aliasedFormalParameters,
+    List<_InfoTypeParameter>? aliasedTypeParameters,
+  }) {
     var linkedData = element.linkedData as TypeAliasElementLinkedData;
     linkedData.applyConstantOffsets = ApplyConstantOffsets(
       constantOffsets,
@@ -603,6 +608,18 @@ class InformativeDataApplier {
         if (aliasedElement is FunctionTypedElementImpl) {
           applier.applyToTypeParameters(aliasedElement.typeParameters);
           applier.applyToFormalParameters(aliasedElement);
+          if (aliasedTypeParameters != null) {
+            _applyToTypeParameters(
+              aliasedElement.typeParameters,
+              aliasedTypeParameters,
+            );
+          }
+          if (aliasedFormalParameters != null) {
+            _applyToFormalParameters(
+              aliasedElement.parameters,
+              aliasedFormalParameters,
+            );
+          }
         }
       },
     );
@@ -953,6 +970,8 @@ class _InfoGenericTypeAlias {
   final int nameOffset;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
+  final List<_InfoTypeParameter> aliasedTypeParameters;
+  final List<_InfoFormalParameter> aliasedFormalParameters;
   final Uint32List constantOffsets;
 
   factory _InfoGenericTypeAlias(SummaryDataReader reader) {
@@ -964,6 +983,12 @@ class _InfoGenericTypeAlias {
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
       ),
+      aliasedTypeParameters: reader.readTypedList(
+        () => _InfoTypeParameter(reader),
+      ),
+      aliasedFormalParameters: reader.readTypedList(
+        () => _InfoFormalParameter(reader),
+      ),
       constantOffsets: reader.readUInt30List(),
     );
   }
@@ -974,6 +999,8 @@ class _InfoGenericTypeAlias {
     required this.nameOffset,
     required this.documentationComment,
     required this.typeParameters,
+    required this.aliasedTypeParameters,
+    required this.aliasedFormalParameters,
     required this.constantOffsets,
   });
 }
@@ -1213,11 +1240,19 @@ class _InformativeDataWriter {
     });
 
     sink.writeList2<GenericTypeAlias>(unit.declarations, (node) {
+      var aliasedType = node.type;
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
+      if (aliasedType is GenericFunctionType) {
+        _writeTypeParameters(aliasedType.typeParameters);
+        _writeFormalParameters(aliasedType.parameters);
+      } else {
+        _writeTypeParameters(null);
+        _writeFormalParameters(null);
+      }
       _writeOffsets(
         metadata: node.metadata,
         typeParameters: node.typeParameters,
@@ -1663,6 +1698,17 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
       token.offset = offset;
     }
   }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    super.visitSimpleFormalParameter(node);
+
+    var element = node.declaredElement;
+    var identifier = node.identifier;
+    if (element is ParameterElementImpl && identifier != null) {
+      element.nameOffset = identifier.offset;
+    }
+  }
 }
 
 abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
@@ -1736,6 +1782,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _tokenOrNull(node.literal);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    _tokenOrNull(node.functionKeyword);
+    super.visitGenericFunctionType(node);
   }
 
   @override

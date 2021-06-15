@@ -234,7 +234,7 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
    OFFSET_OF(Untagged##class_name, field_name)},
 
 // clang-format off
-OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
+const OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
     COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
     NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)

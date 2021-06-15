@@ -13095,6 +13095,7 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.untag()->set_loaded_scripts(Array::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
+  result.set_ffi_native_resolver(nullptr);
   result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
   result.set_is_nnbd(false);

@@ -3041,6 +3041,13 @@ typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
  */
 typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
 
+/**
+ * FFI Native C function pointer resolver callback.
+ *
+ * See Dart_SetFfiNativeResolver.
+ */
+typedef void* (*Dart_FfiNativeResolver)(const char* name);
+
 /*
  * ===========
  * Environment
@@ -3102,6 +3109,22 @@ Dart_GetNativeResolver(Dart_Handle library, Dart_NativeEntryResolver* resolver);
  */
 DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
                                              Dart_NativeEntrySymbol* resolver);
+
+/**
+ * Sets the callback used to resolve FFI native functions for a library.
+ * The resolved functions are expected to be a C function pointer of the
+ * correct signature (as specified in the `@FfiNative<NFT>()` function
+ * annotation in Dart code).
+ *
+ * NOTE: This is an experimental feature and might change in the future.
+ *
+ * \param library A library.
+ * \param resolver A native function resolver.
+ *
+ * \return A valid handle if the native resolver was set successfully.
+ */
+DART_EXPORT Dart_Handle
+Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 
 /*
  * =====================

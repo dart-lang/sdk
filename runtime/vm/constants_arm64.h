@@ -126,8 +126,8 @@ const FpuRegister FpuTMP = VTMP;
 const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
-extern const char* cpu_reg_names[kNumberOfCpuRegisters];
-extern const char* fpu_reg_names[kNumberOfFpuRegisters];
+extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const fpu_reg_names[kNumberOfFpuRegisters];
 
 // Register aliases.
 const Register TMP = R16;  // Used as scratch register by assembler.

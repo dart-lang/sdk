@@ -7612,9 +7612,6 @@ void main() {
     _assertArgumentToParameter(arguments[2], fElement.parameters[2]);
   }
 
-  @FailingTest(
-    reason: 'No nameOffset for formal parameters',
-  )
   test_top_functionTypeAlias() async {
     String content = r'''
 typedef int F<T>(bool a, T b);

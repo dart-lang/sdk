@@ -145,7 +145,7 @@ vars = {
   "pub_rev": "3c14d86a67db7207bbc9f654ac49ee60e08e5240",
   "pub_semver_rev": "f50d80ef10c4b2fa5f4c8878036a4d9342c0cc82",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
-  "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
+  "root_certificates_rev": "ef7b563890e219a93579b61584f9ffa64c7c8d9c",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_static_rev": "fa30419055279a00c9e428439b1abe362d18f25d",
   "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",

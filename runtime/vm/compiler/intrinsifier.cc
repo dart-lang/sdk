@@ -157,37 +157,37 @@ struct IntrinsicDesc {
 
 struct LibraryInstrinsicsDesc {
   Library& library;
-  IntrinsicDesc* intrinsics;
+  const IntrinsicDesc* intrinsics;
 };
 
 #define DEFINE_INTRINSIC(class_name, function_name, destination, fp)           \
   {#class_name, #function_name},
 
 // clang-format off
-static IntrinsicDesc core_intrinsics[] = {
+static const IntrinsicDesc core_intrinsics[] = {
   CORE_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   CORE_INTEGER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   GRAPH_CORE_INTRINSICS_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
 
-static IntrinsicDesc math_intrinsics[] = {
+static const IntrinsicDesc math_intrinsics[] = {
   MATH_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   GRAPH_MATH_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
 
-static IntrinsicDesc typed_data_intrinsics[] = {
+static const IntrinsicDesc typed_data_intrinsics[] = {
   GRAPH_TYPED_DATA_INTRINSICS_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
 
-static IntrinsicDesc developer_intrinsics[] = {
+static const IntrinsicDesc developer_intrinsics[] = {
   DEVELOPER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
 
-static IntrinsicDesc internal_intrinsics[] = {
+static const IntrinsicDesc internal_intrinsics[] = {
   INTERNAL_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
@@ -204,7 +204,7 @@ void Intrinsifier::InitializeState() {
   Error& error = Error::Handle(zone);
 
   static const intptr_t kNumLibs = 5;
-  LibraryInstrinsicsDesc intrinsics[kNumLibs] = {
+  const LibraryInstrinsicsDesc intrinsics[kNumLibs] = {
       {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
       {Library::Handle(zone, Library::MathLibrary()), math_intrinsics},
       {Library::Handle(zone, Library::TypedDataLibrary()),
@@ -216,7 +216,7 @@ void Intrinsifier::InitializeState() {
 
   for (intptr_t i = 0; i < kNumLibs; i++) {
     lib = intrinsics[i].library.ptr();
-    for (IntrinsicDesc* intrinsic = intrinsics[i].intrinsics;
+    for (const IntrinsicDesc* intrinsic = intrinsics[i].intrinsics;
          intrinsic->class_name != nullptr; intrinsic++) {
       func = Function::null();
       if (strcmp(intrinsic->class_name, "::") == 0) {
