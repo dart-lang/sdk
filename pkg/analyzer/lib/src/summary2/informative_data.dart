@@ -164,6 +164,7 @@ class InformativeDataApplier {
             (applier) {
               applier.applyToMetadata(element);
               applier.applyToTypeParameters(element.typeParameters);
+              applier.applyToFormalParameters(element.parameters);
             },
           );
         }
@@ -263,7 +264,7 @@ class InformativeDataApplier {
           info.constantOffsets,
           (applier) {
             applier.applyToMetadata(element);
-            applier.applyToFormalParameters(element);
+            applier.applyToFormalParameters(element.parameters);
             applier.applyToConstructorInitializers(element);
           },
         );
@@ -392,7 +393,7 @@ class InformativeDataApplier {
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element);
+        applier.applyToFormalParameters(element.parameters);
       },
     );
   }
@@ -492,6 +493,8 @@ class InformativeDataApplier {
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
+        applier.applyToDirectives(element.imports);
+        applier.applyToDirectives(element.exports);
       },
     );
   }
@@ -523,7 +526,7 @@ class InformativeDataApplier {
           (applier) {
             applier.applyToMetadata(element);
             applier.applyToTypeParameters(element.typeParameters);
-            applier.applyToFormalParameters(element);
+            applier.applyToFormalParameters(element.parameters);
           },
         );
       },
@@ -607,7 +610,7 @@ class InformativeDataApplier {
         var aliasedElement = element.aliasedElement;
         if (aliasedElement is FunctionTypedElementImpl) {
           applier.applyToTypeParameters(aliasedElement.typeParameters);
-          applier.applyToFormalParameters(aliasedElement);
+          applier.applyToFormalParameters(aliasedElement.parameters);
           if (aliasedTypeParameters != null) {
             _applyToTypeParameters(
               aliasedElement.typeParameters,
@@ -1203,6 +1206,7 @@ class _InformativeDataWriter {
         _writeOffsets(
           metadata: node.metadata,
           typeParameters: node.functionExpression.typeParameters,
+          formalParameters: node.functionExpression.parameters,
         );
       },
     );
@@ -1360,7 +1364,10 @@ class _InformativeDataWriter {
       sink.writeUInt30(1 + (node.identifier?.offset ?? -1));
 
       var notDefault = node.notDefault;
-      if (notDefault is FunctionTypedFormalParameter) {
+      if (notDefault is FieldFormalParameter) {
+        _writeTypeParameters(notDefault.typeParameters);
+        _writeFormalParameters(notDefault.parameters);
+      } else if (notDefault is FunctionTypedFormalParameter) {
         _writeTypeParameters(notDefault.typeParameters);
         _writeFormalParameters(notDefault.parameters);
       } else {
@@ -1386,27 +1393,30 @@ class _InformativeDataWriter {
         _writeOffsets(
           metadata: node.metadata,
           typeParameters: node.typeParameters,
+          formalParameters: node.parameters,
         );
       },
     );
   }
 
   void _writeLibraryName(CompilationUnit unit) {
+    Directive? firstDirective;
     var nameOffset = -1;
     var nameLength = 0;
-    NodeList<Annotation>? metadata;
     for (var directive in unit.directives) {
+      firstDirective ??= directive;
       if (directive is LibraryDirective) {
         nameOffset = directive.name.offset;
         nameLength = directive.name.length;
-        metadata = directive.metadata;
         break;
       }
     }
     sink.writeUInt30(1 + nameOffset);
     sink.writeUInt30(nameLength);
     _writeOffsets(
-      metadata: metadata,
+      metadata: firstDirective?.metadata,
+      importDirectives: unit.directives.whereType<ImportDirective>(),
+      exportDirectives: unit.directives.whereType<ExportDirective>(),
     );
   }
 
@@ -1434,6 +1444,8 @@ class _InformativeDataWriter {
 
   void _writeOffsets({
     NodeList<Annotation>? metadata,
+    Iterable<ImportDirective>? importDirectives,
+    Iterable<ExportDirective>? exportDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
     Expression? constantInitializer,
@@ -1442,6 +1454,14 @@ class _InformativeDataWriter {
     TypeAnnotation? aliasedType,
   }) {
     var collector = _OffsetsCollector();
+
+    void addDirectives(Iterable<Directive>? directives) {
+      if (directives != null) {
+        for (var directive in directives) {
+          directive.metadata.accept(collector);
+        }
+      }
+    }
 
     void addTypeParameters(TypeParameterList? typeParameters) {
       if (typeParameters != null) {
@@ -1455,6 +1475,11 @@ class _InformativeDataWriter {
       if (formalParameters != null) {
         for (var parameter in formalParameters.parameters) {
           parameter.metadata.accept(collector);
+          addFormalParameters(
+            parameter is FunctionTypedFormalParameter
+                ? parameter.parameters
+                : null,
+          );
           if (parameter is DefaultFormalParameter) {
             parameter.defaultValue?.accept(collector);
           }
@@ -1463,6 +1488,8 @@ class _InformativeDataWriter {
     }
 
     metadata?.accept(collector);
+    addDirectives(importDirectives);
+    addDirectives(exportDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
     constantInitializer?.accept(collector);
@@ -1665,15 +1692,22 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
+  void applyToDirectives(List<UriReferencedElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
+    }
+  }
+
   void applyToEnumConstants(List<FieldElement> constants) {
     for (var constant in constants) {
       applyToMetadata(constant);
     }
   }
 
-  void applyToFormalParameters(FunctionTypedElement element) {
-    for (var parameter in element.parameters) {
+  void applyToFormalParameters(List<ParameterElement> formalParameters) {
+    for (var parameter in formalParameters) {
       applyToMetadata(parameter);
+      applyToFormalParameters(parameter.parameters);
       applyToConstantInitializer(parameter);
     }
   }
@@ -1896,6 +1930,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    _tokenOrNull(node.requiredKeyword);
+    super.visitSimpleFormalParameter(node);
   }
 
   @override

@@ -1066,7 +1066,7 @@ library
               requiredPositional final this.x @28
                 type: dynamic Function(double)
                 parameters
-                  requiredPositional b @-1
+                  requiredPositional b @37
                     type: double
         accessors
           synthetic get x @-1
@@ -1100,7 +1100,7 @@ library
               requiredPositional final this.x @32
                 type: int Function(double)
                 parameters
-                  requiredPositional b @-1
+                  requiredPositional b @41
                     type: double
         accessors
           synthetic get x @-1
@@ -1134,10 +1134,10 @@ library
               requiredPositional final this.f @43
                 type: List<U> Function<T, U>(T)
                 typeParameters
-                  covariant T @-1
-                  covariant U @-1
+                  covariant T @45
+                  covariant U @48
                 parameters
-                  requiredPositional t @-1
+                  requiredPositional t @53
                     type: T
         accessors
           synthetic get f @-1
@@ -13717,15 +13717,15 @@ library
                 constantInitializer
                   IsExpression
                     expression: IntegerLiteral
-                      literal: 0 @0
+                      literal: 0 @14
                       staticType: int
-                    isOperator: is @0
+                    isOperator: is @16
                     staticType: bool
                     type: TypeName
                       name: SimpleIdentifier
                         staticElement: dart:core::@class::int
                         staticType: null
-                        token: int @-1
+                        token: int @19
                       type: int
         returnType: void
 ''');
@@ -16394,7 +16394,7 @@ library
           requiredPositional final this.a @16
             type: int Function(int)
             parameters
-              requiredPositional b @-1
+              requiredPositional b @22
                 type: int
         returnType: void
 ''');
@@ -17605,7 +17605,7 @@ library
                                 staticElement: a@71
                                 staticType: null
                                 token: a @71
-                              requiredKeyword: required @0
+                              requiredKeyword: required @58
                               type: TypeName
                                 name: SimpleIdentifier
                                   staticElement: dart:core::@class::int
@@ -18325,7 +18325,7 @@ library
       name: SimpleIdentifier
         staticElement: <null>
         staticType: null
-        token: foo @-1
+        token: foo @1
   imports
     <unresolved>
       metadata
@@ -18335,7 +18335,7 @@ library
           name: SimpleIdentifier
             staticElement: <null>
             staticType: null
-            token: foo @-1
+            token: foo @1
   definingUnit
 ''');
   }
@@ -22654,7 +22654,7 @@ library
       name: SimpleIdentifier
         staticElement: self::@getter::a
         staticType: null
-        token: a @-1
+        token: a @1
   exports
     foo.dart
       metadata
@@ -22664,7 +22664,7 @@ library
           name: SimpleIdentifier
             staticElement: self::@getter::a
             staticType: null
-            token: a @-1
+            token: a @1
   definingUnit
     topLevelVariables
       static const a @28
@@ -23197,7 +23197,7 @@ library
       name: SimpleIdentifier
         staticElement: self::@getter::a
         staticType: null
-        token: a @-1
+        token: a @1
   imports
     dart:math
       metadata
@@ -23207,7 +23207,7 @@ library
           name: SimpleIdentifier
             staticElement: self::@getter::a
             staticType: null
-            token: a @-1
+            token: a @1
   definingUnit
     topLevelVariables
       static const a @29
@@ -23238,7 +23238,7 @@ library
       name: SimpleIdentifier
         staticElement: self::@getter::a
         staticType: null
-        token: a @-1
+        token: a @1
   imports
     dart:math
       metadata
@@ -23248,7 +23248,7 @@ library
           name: SimpleIdentifier
             staticElement: self::@getter::a
             staticType: null
-            token: a @-1
+            token: a @1
       combinators
         show: Random
   definingUnit
@@ -23322,12 +23322,12 @@ library
                   type: int
                   metadata
                     Annotation
-                      atSign.offset: 0
+                      atSign.offset: 48
                       element: self::@getter::a
                       name: SimpleIdentifier
                         staticElement: self::@getter::a
                         staticType: null
-                        token: a @-1
+                        token: a @49
           returnType: void
     topLevelVariables
       static const a @6
@@ -23998,12 +23998,12 @@ library
                 type: int
                 metadata
                   Annotation
-                    atSign.offset: 0
+                    atSign.offset: 46
                     element: self::@getter::foo
                     name: SimpleIdentifier
                       staticElement: self::@getter::foo
                       staticType: null
-                      token: foo @-1
+                      token: foo @47
             returnType: void
     topLevelVariables
       static const foo @6
@@ -24693,12 +24693,12 @@ library
             type: int
             metadata
               Annotation
-                atSign.offset: 0
+                atSign.offset: 32
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
                   staticType: null
-                  token: foo @-1
+                  token: foo @33
         returnType: void
 ''');
   }
@@ -24946,12 +24946,12 @@ library
             type: int
             metadata
               Annotation
-                atSign.offset: 0
+                atSign.offset: 25
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
                   staticType: null
-                  token: a @-1
+                  token: a @26
         returnType: void
 ''');
   }
