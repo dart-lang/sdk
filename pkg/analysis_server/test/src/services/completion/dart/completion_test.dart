@@ -10,13 +10,13 @@ import '../../../../completion_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentListCompletionTest);
-    defineReflectiveTests(AsExpressionTest);
-    defineReflectiveTests(AssertStatementTest);
+    defineReflectiveTests(AsExpressionCompletionTest);
+    defineReflectiveTests(AssertStatementCompletionTest);
     defineReflectiveTests(ConstructorCompletionTest);
-    defineReflectiveTests(ExpressionFunctionBodyTest);
+    defineReflectiveTests(ExpressionFunctionBodyCompletionTest);
     defineReflectiveTests(ExtensionCompletionTest);
-    defineReflectiveTests(GenericTypeAliasTest);
-    defineReflectiveTests(PropertyAccessorCompletionTest);
+    defineReflectiveTests(GenericTypeAliasCompletionTest);
+    defineReflectiveTests(PropertyAccessCompletionTest);
     defineReflectiveTests(RedirectedConstructorCompletionTest);
     defineReflectiveTests(RedirectingConstructorInvocationCompletionTest);
     defineReflectiveTests(SuperConstructorInvocationCompletionTest);
@@ -73,7 +73,7 @@ extension on int {
 }
 
 @reflectiveTest
-class AsExpressionTest extends CompletionTestCase {
+class AsExpressionCompletionTest extends CompletionTestCase {
   Future<void> test_type_dynamic() async {
     addTestFile('''
 void f(Object o) {
@@ -86,7 +86,7 @@ void f(Object o) {
 }
 
 @reflectiveTest
-class AssertStatementTest extends CompletionTestCase {
+class AssertStatementCompletionTest extends CompletionTestCase {
   @failingTest
   Future<void> test_message() async {
     addTestFile('''
@@ -119,7 +119,7 @@ abstract class C {
 }
 
 @reflectiveTest
-class ExpressionFunctionBodyTest extends CompletionTestCase {
+class ExpressionFunctionBodyCompletionTest extends CompletionTestCase {
   Future<void> test_voidReturn_localFunction() async {
     addTestFile('''
 class C {
@@ -294,8 +294,8 @@ extension E on String {
 }
 
 @reflectiveTest
-class GenericTypeAliasTest extends CompletionTestCase {
-  Future<void> test_constructor_abstract() async {
+class GenericTypeAliasCompletionTest extends CompletionTestCase {
+  Future<void> test_returnType_void() async {
     addTestFile('''
 typedef F = ^
 ''');
@@ -305,7 +305,23 @@ typedef F = ^
 }
 
 @reflectiveTest
-class PropertyAccessorCompletionTest extends CompletionTestCase {
+class PropertyAccessCompletionTest extends CompletionTestCase {
+  Future<void> test_nullSafe_extension() async {
+    addTestFile('''
+void f(C c) {
+  c.a?.^;
+}
+class C {
+  C? get a => null;
+}
+extension on C {
+  int get b => 0;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('b');
+  }
+
   Future<void> test_setter_deprecated() async {
     addTestFile('''
 void f(C c) {
