@@ -158,9 +158,12 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
           .getLocation(entity.offset)
           .columnNumber;
 
+      bool isKeyword() => kind == protocol.CompletionSuggestionKind.KEYWORD;
+
       // Some special cases in the if and if-else blocks, 'import' from the
       // DAS is "import '';" which we want to be sure to match.
-      if (entity.toString() == 'async') {
+      var lexeme = entity.toString();
+      if (lexeme == 'async') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -169,7 +172,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             ASYNC_STAR,
             kind,
             elementKind));
-      } else if (entity.toString() == 'default') {
+      } else if (lexeme == 'default') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -178,7 +181,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             DEFAULT_COLON,
             kind,
             elementKind));
-      } else if (entity.toString() == 'deferred') {
+      } else if (lexeme == 'deferred') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -187,7 +190,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             DEFERRED_AS,
             kind,
             elementKind));
-      } else if (entity.toString() == 'export') {
+      } else if (lexeme == 'export' && isKeyword()) {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -196,7 +199,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             EXPORT_STATEMENT,
             kind,
             elementKind));
-      } else if (entity.toString() == 'import') {
+      } else if (lexeme == 'import' && isKeyword()) {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -205,7 +208,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             IMPORT_STATEMENT,
             kind,
             elementKind));
-      } else if (entity.toString() == 'part') {
+      } else if (lexeme == 'part' && isKeyword()) {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -214,7 +217,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             PART_STATEMENT,
             kind,
             elementKind));
-      } else if (entity.toString() == 'sync') {
+      } else if (lexeme == 'sync') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
@@ -223,7 +226,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             SYNC_STAR,
             kind,
             elementKind));
-      } else if (entity.toString() == 'yield') {
+      } else if (lexeme == 'yield') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
