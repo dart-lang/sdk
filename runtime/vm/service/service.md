@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.46
+# Dart VM Service Protocol 3.47
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.46_ of the Dart VM Service Protocol. This
+This document describes of _version 3.47_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -3155,6 +3155,12 @@ class LibraryDependency {
 
   // The library being imported or exported.
   @Library target;
+
+  // The list of symbols made visible from this dependency.
+  string[] shows [optional];
+
+  // The list of symbols hidden from this dependency.
+  string[] hides [optional];
 }
 ```
 
@@ -4051,5 +4057,6 @@ version | comments
 3.44 | Added `identityHashCode` property to `@Instance` and `Instance`.
 3.45 | Added `setBreakpointState` RPC and `BreakpointUpdated` event kind.
 3.46 | Moved `sourceLocation` property into reference types for `Class`, `Field`, and `Function`.
+3.47 | Added `shows` and `hides` properties to `LibraryDependency`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

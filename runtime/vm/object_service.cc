@@ -488,6 +488,27 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+static void PrintShowHideNamesToJSON(JSONObject* jsobj, const Namespace& ns) {
+  Array& arr = Array::Handle();
+  String& name = String::Handle();
+  arr ^= ns.show_names();
+  if (!arr.IsNull()) {
+    JSONArray jsarr(jsobj, "shows");
+    for (intptr_t i = 0; i < arr.Length(); ++i) {
+      name ^= arr.At(i);
+      jsarr.AddValue(name.ToCString());
+    }
+  }
+  arr ^= ns.hide_names();
+  if (!arr.IsNull()) {
+    JSONArray jsarr(jsobj, "hides");
+    for (intptr_t i = 0; i < arr.Length(); ++i) {
+      name ^= arr.At(i);
+      jsarr.AddValue(name.ToCString());
+    }
+  }
+}
+
 void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& id = String::Handle(private_key());
   JSONObject jsobj(stream);
@@ -529,6 +550,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       jsdep.AddProperty("isImport", true);
       target = ns.target();
       jsdep.AddProperty("target", target);
+      PrintShowHideNamesToJSON(&jsdep, ns);
     }
 
     // Exports.
@@ -543,6 +565,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       jsdep.AddProperty("isImport", false);
       target = ns.target();
       jsdep.AddProperty("target", target);
+      PrintShowHideNamesToJSON(&jsdep, ns);
     }
 
     // Prefixed imports.
@@ -569,6 +592,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
             jsdep.AddProperty("prefix", prefix_name.ToCString());
             target = ns.target();
             jsdep.AddProperty("target", target);
+            PrintShowHideNamesToJSON(&jsdep, ns);
           }
         }
       }

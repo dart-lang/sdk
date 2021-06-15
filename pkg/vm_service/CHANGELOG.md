@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.1.1
+- Update to version `3.47` of the spec.
+- Added `shows` and `hides` properties to `LibraryDependency`.
+
 ## 7.1.0
 - Update to version `3.46` of the spec.
 - Move `sourcePosition` properties into `ClassRef`, `FieldRef`, and `FuncRef`.
