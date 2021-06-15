@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
 
 /// Returns its argument.
 ///
@@ -17,7 +17,6 @@ getValueNonOptimized(x) {
 
 main() {
   // TODO(terry): Should check:
-  //   - const map is immutable
   //   - simple expressions are const e.g., 2 + 3, true && !false, etc.
   //   - const with final and/or static with same const attributes
   //     Additionally new class instances with a static const same identity
@@ -32,9 +31,65 @@ main() {
   // Make sure that const maps use the == operator and not object identity. The
   // specification does not explicitly require it, otherwise ints and Strings
   // wouldn't make much sense as keys.
-  var m = const {1: 42, "foo": 499, 2: "bar"};
-  Expect.equals(42, m[getValueNonOptimized(1.0)]);
+  final map = const {1: 42, 'foo': 499, 2: 'bar'};
+  Expect.equals(42, map[getValueNonOptimized(1.0)]);
   Expect.equals(
-      499, m[getValueNonOptimized(new String.fromCharCodes("foo".runes))]);
-  Expect.equals('bar', m[getValueNonOptimized(2)]);
+      499, map[getValueNonOptimized(new String.fromCharCodes('foo'.runes))]);
+  Expect.equals('bar', map[getValueNonOptimized(2)]);
+
+  void testThrowsNoModification(void Function() f) {
+    Expect.throws(f, (e) {
+      return e is UnsupportedError;
+    });
+
+    Expect.equals(42, map[getValueNonOptimized(1.0)]);
+    Expect.equals(
+        499, map[getValueNonOptimized(new String.fromCharCodes('foo'.runes))]);
+    Expect.equals('bar', map[getValueNonOptimized(2)]);
+    Expect.isNull(map[1024]);
+  }
+
+  testThrowsNoModification(() {
+    map[1024] = 'something';
+  });
+
+  testThrowsNoModification(() {
+    map.addAll({1024: 'something'});
+  });
+
+  testThrowsNoModification(() {
+    map.putIfAbsent(1024, () => 'something');
+  });
+
+  testThrowsNoModification(() {
+    map.putIfAbsent(1, () => 1024);
+  });
+
+  testThrowsNoModification(() {
+    map.clear();
+  });
+
+  testThrowsNoModification(() {
+    map.remove(1024);
+  });
+
+  testThrowsNoModification(() {
+    map.remove(1);
+  });
+
+  testThrowsNoModification(() {
+    map.addEntries([MapEntry(1024, 'something')]);
+  });
+
+  testThrowsNoModification(() {
+    map.update(2, (Object value) => 42);
+  });
+
+  testThrowsNoModification(() {
+    map.updateAll((Object key, Object value) => '123');
+  });
+
+  testThrowsNoModification(() {
+    map.removeWhere((Object key, Object value) => true);
+  });
 }
