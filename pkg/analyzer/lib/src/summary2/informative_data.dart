@@ -1967,6 +1967,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSymbolLiteral(SymbolLiteral node) {
+    _tokenOrNull(node.poundSign);
+    node.components.forEach(_tokenOrNull);
+  }
+
+  @override
   void visitThisExpression(ThisExpression node) {
     _tokenOrNull(node.thisKeyword);
   }

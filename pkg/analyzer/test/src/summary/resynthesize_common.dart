@@ -10660,19 +10660,19 @@ library
         type: int
         constantInitializer
           IntegerLiteral
-            literal: 9223372036854775807 @137
+            literal: 0x7FFFFFFFFFFFFFFF @137
             staticType: int
       static const vIntLong2 @163
         type: int
         constantInitializer
           IntegerLiteral
-            literal: -1 @175
+            literal: 0xFFFFFFFFFFFFFFFF @175
             staticType: int
       static const vIntLong3 @201
         type: int
         constantInitializer
           IntegerLiteral
-            literal: -9223372036854775808 @213
+            literal: 0x8000000000000000 @213
             staticType: int
       static const vDouble @239
         type: double
@@ -10689,7 +10689,7 @@ library
         type: String
         constantInitializer
           AdjacentStrings
-            staticType: null
+            staticType: String
             stringValue: aaabbb
             strings
               SimpleStringLiteral
@@ -10719,7 +10719,7 @@ library
                 rightBracket: } @358
               InterpolationString
                 contents:  bbb' @359
-            staticType: null
+            staticType: String
             stringValue: null
       static const vSymbol @372
         type: Symbol
@@ -10727,12 +10727,12 @@ library
           SymbolLiteral
             components
               components: aaa
-                offset: 0
+                offset: 383
               components: bbb
-                offset: 0
+                offset: 387
               components: ccc
-                offset: 0
-            poundSign: # @0
+                offset: 391
+            poundSign: # @382
     accessors
       synthetic static get vNull @-1
         returnType: dynamic
