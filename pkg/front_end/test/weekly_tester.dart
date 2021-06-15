@@ -28,8 +28,13 @@ main(List<String> args) async {
     } else {
       // The tools/bots/flutter/compile_flutter.sh script passes `--path`
       // --- we'll just pass everything along.
-      startedProcesses
-          .add(await run([leakTester.toString(), ...args], "leak test"));
+      startedProcesses.add(await run(
+        [
+          leakTester.toString(),
+          ...args,
+        ],
+        "leak test",
+      ));
     }
   }
   {
@@ -55,8 +60,13 @@ main(List<String> args) async {
         // The tools/bots/flutter/compile_flutter.sh script passes `--path`
         // --- we'll just pass everything along.
         startedProcesses.add(await run(
-            [leakTester.toString(), ...args, "--alternativeInvalidation"],
-            "leak test alternative invalidation"));
+          [
+            leakTester.toString(),
+            ...args,
+            "--alternativeInvalidation",
+          ],
+          "leak test alternative invalidation",
+        ));
       }();
     }
   }
@@ -68,8 +78,13 @@ main(List<String> args) async {
       exitCode = 1;
       print("Couldn't find $weakSuite");
     } else {
-      startedProcesses.add(
-          await run([weakSuite.toString(), "-DsemiFuzz=true"], "weak suite"));
+      startedProcesses.add(await run(
+        [
+          weakSuite.toString(),
+          "-DsemiFuzz=true",
+        ],
+        "weak suite",
+      ));
     }
   }
 
@@ -81,7 +96,27 @@ main(List<String> args) async {
       print("Couldn't find $strongSuite");
     } else {
       startedProcesses.add(await run(
-          [strongSuite.toString(), "-DsemiFuzz=true"], "strong suite"));
+        [
+          strongSuite.toString(),
+          "-DsemiFuzz=true",
+        ],
+        "strong suite",
+      ));
+    }
+  }
+
+  {
+    // Leak tests of incremental suite tests.
+    Uri incrementalLeakTest =
+        Platform.script.resolve("vm_service_for_leak_detection.dart");
+    if (!new File.fromUri(incrementalLeakTest).existsSync()) {
+      exitCode = 1;
+      print("Couldn't find $incrementalLeakTest");
+    } else {
+      startedProcesses.add(await run([
+        incrementalLeakTest.toString(),
+        "--weekly",
+      ], "incremental leak test"));
     }
   }
 
@@ -103,6 +138,7 @@ main(List<String> args) async {
 List<String> observatoryLines = [];
 
 Future<WrappedProcess> run(List<String> args, String id) async {
+  Stopwatch stopwatch = new Stopwatch()..start();
   Process process = await Process.start(
       Platform.resolvedExecutable, ["--enable-asserts", ...args]);
   process.stderr
@@ -122,6 +158,11 @@ Future<WrappedProcess> run(List<String> args, String id) async {
     if (line.contains("Observatory listening on")) {
       observatoryLines.add(line);
     }
+  });
+  // ignore: unawaited_futures
+  process.exitCode.then((int exitCode) {
+    stopwatch.stop();
+    print("$id finished in ${stopwatch.elapsed.toString()}");
   });
   return new WrappedProcess(process, id);
 }

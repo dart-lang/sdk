@@ -1064,6 +1064,11 @@ class NewWorldTest {
       component = null;
       component2 = null;
       component3 = null;
+      // Dummy tree nodes can (currently) leak though the parent pointer.
+      // To avoid that (here) (for leak testing) we'll null them out.
+      for (TreeNode treeNode in dummyTreeNodes) {
+        treeNode.parent = null;
+      }
 
       if (context.breakBetween) {
         debugger();

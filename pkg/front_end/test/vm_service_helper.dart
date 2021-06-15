@@ -156,7 +156,7 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
   bool _started = false;
 
   void start(List<String> scriptAndArgs,
-      {void stdinReceiver(String line),
+      {void stdoutReceiver(String line),
       void stderrReceiver(String line)}) async {
     if (_started) throw "Already started";
     _started = true;
@@ -180,8 +180,8 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
           throw e;
         });
       }
-      if (stdinReceiver != null) {
-        stdinReceiver(line);
+      if (stdoutReceiver != null) {
+        stdoutReceiver(line);
       } else {
         stdout.writeln("> $line");
       }

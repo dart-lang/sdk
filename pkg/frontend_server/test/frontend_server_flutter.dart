@@ -43,17 +43,26 @@ Future<NnbdMode> _getNNBDMode(Uri script, Uri packagesFileUri) async {
 }
 
 Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
-    {String filter}) async {
+    {String filter, int shards: 1, int shard: 0}) async {
   if (flutterDir == null || !(new Directory(flutterDir).existsSync())) {
     throw "Didn't get a valid flutter directory to work with.";
   }
-  Directory flutterDirectory = new Directory(flutterDir);
+  if (shards < 1) {
+    throw "Shards must be >= 1";
+  }
+  if (shard < 0) {
+    throw "Shard must be >= 0";
+  }
+  if (shard >= shards) {
+    throw "Shard must be < shards";
+  }
   // Ensure the path ends in a slash.
-  flutterDirectory = new Directory.fromUri(flutterDirectory.uri);
+  final Directory flutterDirectory =
+      new Directory.fromUri(new Directory(flutterDir).uri);
 
   List<FileSystemEntity> allFlutterFiles =
       flutterDirectory.listSync(recursive: true, followLinks: false);
-  Directory flutterPlatformDirectory;
+  Directory flutterPlatformDirectoryTmp;
 
   if (flutterPlatformDir == null) {
     List<File> platformFiles = new List<File>.from(allFlutterFiles.where((f) =>
@@ -63,16 +72,16 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
     if (platformFiles.length < 1) {
       throw "Expected to find a flutter platform file but didn't.";
     }
-    flutterPlatformDirectory = platformFiles.first.parent;
+    flutterPlatformDirectoryTmp = platformFiles.first.parent;
   } else {
-    flutterPlatformDirectory = Directory(flutterPlatformDir);
+    flutterPlatformDirectoryTmp = Directory(flutterPlatformDir);
   }
-  if (!flutterPlatformDirectory.existsSync()) {
-    throw "$flutterPlatformDirectory doesn't exist.";
+  if (!flutterPlatformDirectoryTmp.existsSync()) {
+    throw "$flutterPlatformDirectoryTmp doesn't exist.";
   }
   // Ensure the path ends in a slash.
-  flutterPlatformDirectory =
-      new Directory.fromUri(flutterPlatformDirectory.uri);
+  final Directory flutterPlatformDirectory =
+      new Directory.fromUri(flutterPlatformDirectoryTmp.uri);
 
   if (!new File.fromUri(
           flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
@@ -87,9 +96,11 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
       f.uri.toString().endsWith("/.packages")));
 
   List<String> allCompilationErrors = [];
-  for (File dotPackage in dotPackagesFiles) {
-    Directory systemTempDir = Directory.systemTemp;
-    Directory tempDir;
+  final Directory systemTempDir = Directory.systemTemp;
+  List<_QueueEntry> queue = [];
+  int totalFiles = 0;
+  for (int i = 0; i < dotPackagesFiles.length; i++) {
+    File dotPackage = dotPackagesFiles[i];
     Directory testDir =
         new Directory.fromUri(dotPackage.parent.uri.resolve("test/"));
     if (!testDir.existsSync()) continue;
@@ -98,7 +109,6 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
       // in a setup that can handle that.
       continue;
     }
-    logger.notice("Go for $testDir");
     List<File> testFiles =
         new List<File>.from(testDir.listSync(recursive: true).where((f) {
       if (!f.path.endsWith("_test.dart")) return false;
@@ -126,32 +136,90 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
     }
     for (List<File> files in [weak, strong]) {
       if (files.isEmpty) continue;
-      tempDir = systemTempDir.createTempSync('flutter_frontend_test');
-      try {
-        List<String> compilationErrors = await attemptStuff(
-            files,
-            tempDir,
-            flutterPlatformDirectory,
-            dotPackage,
-            testDir,
-            flutterDirectory,
-            logger,
-            filter);
-        if (compilationErrors.isNotEmpty) {
-          logger.notice("Notice that we had ${compilationErrors.length} "
-              "compilation errors for $testDir");
-          allCompilationErrors.addAll(compilationErrors);
-        }
-      } finally {
-        tempDir.delete(recursive: true);
-      }
+      queue.add(new _QueueEntry(files, dotPackage, testDir));
+      totalFiles += files.length;
     }
   }
+
+  // Process queue, taking shards into account.
+  // This involves ignoring some queue entries and cutting others up to
+  // process exactly the files assigned to this shard.
+  int shardChunkSize = (totalFiles + shards - 1) ~/ shards;
+  int chunkStart = shard * shardChunkSize;
+  int chunkEnd = (shard + 1) * shardChunkSize;
+  int processedFiles = 0;
+
+  for (_QueueEntry queueEntry in queue) {
+    if (processedFiles < chunkEnd &&
+        processedFiles + queueEntry.files.length >= chunkStart) {
+      List<File> chunk = [];
+      for (File file in queueEntry.files) {
+        if (processedFiles >= chunkStart && processedFiles < chunkEnd) {
+          chunk.add(file);
+        }
+        processedFiles++;
+      }
+
+      await _processFiles(
+          systemTempDir,
+          chunk,
+          flutterPlatformDirectory,
+          queueEntry.dotPackage,
+          queueEntry.testDir,
+          flutterDirectory,
+          logger,
+          filter,
+          allCompilationErrors);
+    } else {
+      // None of these files are part of the chunk.
+      processedFiles += queueEntry.files.length;
+    }
+  }
+
   if (allCompilationErrors.isNotEmpty) {
     logger.notice(
         "Had a total of ${allCompilationErrors.length} compilation errors:");
     allCompilationErrors.forEach(logger.notice);
     exitCode = 1;
+  }
+}
+
+class _QueueEntry {
+  final List<File> files;
+  final File dotPackage;
+  final Directory testDir;
+
+  _QueueEntry(this.files, this.dotPackage, this.testDir);
+}
+
+Future<void> _processFiles(
+    Directory systemTempDir,
+    List<File> files,
+    Directory flutterPlatformDirectory,
+    File dotPackage,
+    Directory testDir,
+    Directory flutterDirectory,
+    Logger logger,
+    String filter,
+    List<String> allCompilationErrors) async {
+  Directory tempDir = systemTempDir.createTempSync('flutter_frontend_test');
+  try {
+    List<String> compilationErrors = await attemptStuff(
+        files,
+        tempDir,
+        flutterPlatformDirectory,
+        dotPackage,
+        testDir,
+        flutterDirectory,
+        logger,
+        filter);
+    if (compilationErrors.isNotEmpty) {
+      logger.notice("Notice that we had ${compilationErrors.length} "
+          "compilation errors for $testDir");
+      allCompilationErrors.addAll(compilationErrors);
+    }
+  } finally {
+    tempDir.delete(recursive: true);
   }
 }
 

@@ -1156,6 +1156,7 @@ stdlib
 stdout
 sticky
 stmt
+stopgap
 stopped
 storage
 str

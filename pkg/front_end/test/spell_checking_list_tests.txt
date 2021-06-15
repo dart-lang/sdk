@@ -220,6 +220,7 @@ diagnosticable
 dictionaries
 dictionary
 differences
+differentiate
 differs
 dijkstra
 dijkstras
@@ -393,6 +394,7 @@ illustrate
 image
 images
 implementor
+implementors
 imprecision
 in1
 in2
@@ -585,6 +587,7 @@ person
 phrase
 pink
 placement
+planned
 plug
 pointed
 policy
@@ -796,6 +799,7 @@ unconverted
 uncover
 uncovers
 underline
+undocumented
 unpacked
 unpatched
 unpaused
@@ -826,6 +830,7 @@ waits
 walt
 warmup
 week
+weekly
 wherever
 whiskers
 wins
