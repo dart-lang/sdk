@@ -14015,6 +14015,39 @@ final Catch dummyCatch = new Catch(null, dummyStatement);
 /// constructor.
 final Constant dummyConstant = new NullConstant();
 
+/// Of the dummy nodes, some are tree nodes. `TreeNode`s has a parent pointer
+/// and that can be set when the dummy is used. This means that we can leak
+/// through them. This list will (at least as a stopgap) allow us to null-out
+/// the parent pointer when/if needed.
+///
+/// This should manually be kept up to date.
+final List<TreeNode> dummyTreeNodes = [
+  dummyLibrary,
+  dummyLibraryDependency,
+  dummyCombinator,
+  dummyLibraryPart,
+  dummyClass,
+  dummyConstructor,
+  dummyExtension,
+  dummyMember,
+  dummyProcedure,
+  dummyField,
+  dummyRedirectingFactoryConstructor,
+  dummyTypedef,
+  dummyInitializer,
+  dummyFunctionNode,
+  dummyStatement,
+  dummyExpression,
+  dummyNamedExpression,
+  dummyVariableDeclaration,
+  dummyTypeParameter,
+  dummyMapLiteralEntry,
+  dummyArguments,
+  dummyAssertStatement,
+  dummySwitchCase,
+  dummyCatch,
+];
+
 /// Sentinel value used to signal that a node cannot be removed through the
 /// [RemovingTransformer].
 const Null cannotRemoveSentinel = null;
