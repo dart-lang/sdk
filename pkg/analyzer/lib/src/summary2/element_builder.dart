@@ -884,7 +884,21 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(element.reference!, element,
         hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
-      members.accept(this);
+      // When loading from bytes, we read fields first.
+      // There is no particular reason for this - we just have to store
+      // either non-synthetic fields first, or non-synthetic property
+      // accessors first. And we arbitrary decided to store fields first.
+      for (var member in members) {
+        if (member is FieldDeclaration) {
+          member.accept(this);
+        }
+      }
+      // ...then we load non-synthetic accessors.
+      for (var member in members) {
+        if (member is! FieldDeclaration) {
+          member.accept(this);
+        }
+      }
     });
     return holder;
   }

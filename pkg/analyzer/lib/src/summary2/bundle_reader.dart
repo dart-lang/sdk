@@ -887,13 +887,13 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElement>[];
     var fields = <FieldElement>[];
+    var accessors = <PropertyAccessorElement>[];
+    _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
-    _readFields(unitElement, element, reference, accessors, fields);
-    element.accessors = accessors;
     element.fields = fields;
+    element.accessors = accessors;
 
     element.constructors = _readConstructors(unitElement, element, reference);
     element.methods = _readMethods(unitElement, element, reference);

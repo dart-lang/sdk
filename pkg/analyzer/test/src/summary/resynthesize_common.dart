@@ -25696,28 +25696,28 @@ library
           C
           D
         fields
+          f @101
+            type: T
           synthetic g @-1
             type: U
           synthetic s @-1
             type: int
-          f @101
-            type: T
         constructors
           synthetic @-1
         accessors
-          get g @112
-            returnType: U
-          set s @126
-            parameters
-              requiredPositional v @132
-                type: int
-            returnType: void
           synthetic get f @-1
             returnType: T
           synthetic set f @-1
             parameters
               requiredPositional _f @-1
                 type: T
+            returnType: void
+          get g @112
+            returnType: U
+          set s @126
+            parameters
+              requiredPositional v @132
+                type: int
             returnType: void
         methods
           m @144
