@@ -20,6 +20,7 @@ void main() {
     defineReflectiveTests(RedirectedConstructorCompletionTest);
     defineReflectiveTests(RedirectingConstructorInvocationCompletionTest);
     defineReflectiveTests(SuperConstructorInvocationCompletionTest);
+    defineReflectiveTests(VariableDeclarationListCompletionTest);
   });
 }
 
@@ -558,5 +559,18 @@ class B extends A {
 ''');
     await getSuggestions();
     assertHasNoCompletion('');
+  }
+}
+
+@reflectiveTest
+class VariableDeclarationListCompletionTest extends CompletionTestCase {
+  Future<void> test_type_voidAfterFinal() async {
+    addTestFile('''
+class C {
+  final ^
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
   }
 }
