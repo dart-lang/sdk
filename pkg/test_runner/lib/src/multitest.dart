@@ -5,9 +5,6 @@
 /// Multitests are Dart test scripts containing lines of the form
 /// " [some dart code] //# [key]: [error type]"
 ///
-/// To support legacy multi tests we also handle lines of the form
-/// " [some dart code] /// [key]: [error type]"
-///
 /// For each key in the file, a new test file is made containing all the normal
 /// lines of the file, and all of the multitest lines containing that key, in
 /// the same order as in the source file. The new test is expected to pass if
