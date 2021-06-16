@@ -228,6 +228,7 @@ class Class {
   final List<Field> fields;
   final List<StubMethod> isChecks;
   final List<StubMethod> checkedSetters;
+  final List<StubMethod> gettersSetters;
 
   /// Stub methods for this class that are call stubs for getters.
   final List<StubMethod> callStubs;
@@ -269,6 +270,7 @@ class Class {
       this.callStubs,
       this.noSuchMethodStubs,
       this.checkedSetters,
+      this.gettersSetters,
       this.isChecks,
       this.functionTypeIndex,
       {this.hasRtiField,
@@ -313,6 +315,7 @@ class MixinApplication extends Class {
       List<Field> instanceFields,
       List<StubMethod> callStubs,
       List<StubMethod> checkedSetters,
+      List<StubMethod> gettersSetters,
       List<StubMethod> isChecks,
       js.Expression functionTypeIndex,
       {bool hasRtiField,
@@ -328,6 +331,7 @@ class MixinApplication extends Class {
             callStubs,
             const <StubMethod>[],
             checkedSetters,
+            gettersSetters,
             isChecks,
             functionTypeIndex,
             hasRtiField: hasRtiField,

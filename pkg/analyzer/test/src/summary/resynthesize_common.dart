@@ -1735,7 +1735,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @39
               rightParenthesis: ) @40
-            atSign.offset: 28
+            atSign: @ @28
             element: self::@class::Annotation::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::Annotation
@@ -1750,7 +1750,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @108
               rightParenthesis: ) @109
-            atSign.offset: 91
+            atSign: @ @91
             element: self::@class::Annotation::@constructor::named
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -1773,7 +1773,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            atSign.offset: 137
+            atSign: @ @137
             element: self::@class::Annotation::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::Annotation
@@ -1788,7 +1788,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @224
               rightParenthesis: ) @225
-            atSign.offset: 213
+            atSign: @ @213
             element: self::@class::Annotation::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::Annotation
@@ -1803,7 +1803,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @290
               rightParenthesis: ) @291
-            atSign.offset: 279
+            atSign: @ @279
             element: self::@class::Annotation::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::Annotation
@@ -4100,7 +4100,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @75
               rightParenthesis: ) @76
-            atSign.offset: 68
+            atSign: @ @68
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4117,7 +4117,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @109
               rightParenthesis: ) @110
-            atSign.offset: 102
+            atSign: @ @102
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4134,7 +4134,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @211
               rightParenthesis: ) @212
-            atSign.offset: 204
+            atSign: @ @204
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4151,7 +4151,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @268
               rightParenthesis: ) @269
-            atSign.offset: 261
+            atSign: @ @261
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4250,7 +4250,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @133
               rightParenthesis: ) @134
-            atSign.offset: 126
+            atSign: @ @126
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4278,7 +4278,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @184
               rightParenthesis: ) @185
-            atSign.offset: 177
+            atSign: @ @177
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4306,7 +4306,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @303
               rightParenthesis: ) @304
-            atSign.offset: 296
+            atSign: @ @296
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4334,7 +4334,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @377
               rightParenthesis: ) @378
-            atSign.offset: 370
+            atSign: @ @370
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4419,7 +4419,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @99
                   rightParenthesis: ) @100
-                atSign.offset: 92
+                atSign: @ @92
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4436,7 +4436,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @135
                   rightParenthesis: ) @136
-                atSign.offset: 128
+                atSign: @ @128
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4453,7 +4453,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @247
                   rightParenthesis: ) @248
-                atSign.offset: 240
+                atSign: @ @240
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4470,7 +4470,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @308
                   rightParenthesis: ) @309
-                atSign.offset: 301
+                atSign: @ @301
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4544,7 +4544,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @152
                   rightParenthesis: ) @153
-                atSign.offset: 145
+                atSign: @ @145
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4561,7 +4561,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @205
                   rightParenthesis: ) @206
-                atSign.offset: 198
+                atSign: @ @198
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4578,7 +4578,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @334
                   rightParenthesis: ) @335
-                atSign.offset: 327
+                atSign: @ @327
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4595,7 +4595,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @412
                   rightParenthesis: ) @413
-                atSign.offset: 405
+                atSign: @ @405
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4714,7 +4714,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @105
               rightParenthesis: ) @106
-            atSign.offset: 98
+            atSign: @ @98
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4730,7 +4730,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            atSign.offset: 141
+            atSign: @ @141
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4746,7 +4746,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @259
               rightParenthesis: ) @260
-            atSign.offset: 252
+            atSign: @ @252
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4762,7 +4762,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @325
               rightParenthesis: ) @326
-            atSign.offset: 318
+            atSign: @ @318
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -4909,7 +4909,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                atSign.offset: 84
+                atSign: @ @84
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4924,7 +4924,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                atSign.offset: 84
+                atSign: @ @84
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4940,7 +4940,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                atSign.offset: 134
+                atSign: @ @134
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4956,7 +4956,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                atSign.offset: 134
+                atSign: @ @134
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4972,7 +4972,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                atSign.offset: 268
+                atSign: @ @268
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -4988,7 +4988,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                atSign.offset: 268
+                atSign: @ @268
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5004,7 +5004,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                atSign.offset: 351
+                atSign: @ @351
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5020,7 +5020,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                atSign.offset: 351
+                atSign: @ @351
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5153,7 +5153,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @77
               rightParenthesis: ) @78
-            atSign.offset: 70
+            atSign: @ @70
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5169,7 +5169,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @112
               rightParenthesis: ) @113
-            atSign.offset: 105
+            atSign: @ @105
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5185,7 +5185,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @215
               rightParenthesis: ) @216
-            atSign.offset: 208
+            atSign: @ @208
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5201,7 +5201,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @273
               rightParenthesis: ) @274
-            atSign.offset: 266
+            atSign: @ @266
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5265,7 +5265,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @79
               rightParenthesis: ) @80
-            atSign.offset: 72
+            atSign: @ @72
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5283,7 +5283,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @115
               rightParenthesis: ) @116
-            atSign.offset: 108
+            atSign: @ @108
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5301,7 +5301,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @219
               rightParenthesis: ) @220
-            atSign.offset: 212
+            atSign: @ @212
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5319,7 +5319,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @278
               rightParenthesis: ) @279
-            atSign.offset: 271
+            atSign: @ @271
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5385,7 +5385,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @101
               rightParenthesis: ) @102
-            atSign.offset: 94
+            atSign: @ @94
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5403,7 +5403,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            atSign.offset: 141
+            atSign: @ @141
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5421,7 +5421,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @263
               rightParenthesis: ) @264
-            atSign.offset: 256
+            atSign: @ @256
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5439,7 +5439,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @333
               rightParenthesis: ) @334
-            atSign.offset: 326
+            atSign: @ @326
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5509,7 +5509,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @97
                   rightParenthesis: ) @98
-                atSign.offset: 90
+                atSign: @ @90
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5525,7 +5525,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @136
                   rightParenthesis: ) @137
-                atSign.offset: 129
+                atSign: @ @129
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5541,7 +5541,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @251
                   rightParenthesis: ) @252
-                atSign.offset: 244
+                atSign: @ @244
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5557,7 +5557,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @315
                   rightParenthesis: ) @316
-                atSign.offset: 308
+                atSign: @ @308
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5615,7 +5615,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @12
                   rightParenthesis: ) @13
-                atSign.offset: 5
+                atSign: @ @5
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5630,7 +5630,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @36
                   rightParenthesis: ) @37
-                atSign.offset: 29
+                atSign: @ @29
                 element: dart:core::@class::Object::@constructor::•
                 name: SimpleIdentifier
                   staticElement: dart:core::@class::Object
@@ -5760,7 +5760,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            atSign.offset: 66
+            atSign: @ @66
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5775,7 +5775,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            atSign.offset: 66
+            atSign: @ @66
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5791,7 +5791,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            atSign.offset: 112
+            atSign: @ @112
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5807,7 +5807,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            atSign.offset: 112
+            atSign: @ @112
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5823,7 +5823,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            atSign.offset: 234
+            atSign: @ @234
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5839,7 +5839,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            atSign.offset: 234
+            atSign: @ @234
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5855,7 +5855,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            atSign.offset: 311
+            atSign: @ @311
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -5871,7 +5871,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            atSign.offset: 311
+            atSign: @ @311
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -10660,19 +10660,19 @@ library
         type: int
         constantInitializer
           IntegerLiteral
-            literal: 9223372036854775807 @137
+            literal: 0x7FFFFFFFFFFFFFFF @137
             staticType: int
       static const vIntLong2 @163
         type: int
         constantInitializer
           IntegerLiteral
-            literal: -1 @175
+            literal: 0xFFFFFFFFFFFFFFFF @175
             staticType: int
       static const vIntLong3 @201
         type: int
         constantInitializer
           IntegerLiteral
-            literal: -9223372036854775808 @213
+            literal: 0x8000000000000000 @213
             staticType: int
       static const vDouble @239
         type: double
@@ -10689,7 +10689,7 @@ library
         type: String
         constantInitializer
           AdjacentStrings
-            staticType: null
+            staticType: String
             stringValue: aaabbb
             strings
               SimpleStringLiteral
@@ -10719,7 +10719,7 @@ library
                 rightBracket: } @358
               InterpolationString
                 contents:  bbb' @359
-            staticType: null
+            staticType: String
             stringValue: null
       static const vSymbol @372
         type: Symbol
@@ -10727,12 +10727,12 @@ library
           SymbolLiteral
             components
               components: aaa
-                offset: 0
+                offset: 383
               components: bbb
-                offset: 0
+                offset: 387
               components: ccc
-                offset: 0
-            poundSign: # @0
+                offset: 391
+            poundSign: # @382
     accessors
       synthetic static get vNull @-1
         returnType: dynamic
@@ -14748,7 +14748,7 @@ library
             documentationComment: /**\n   * aaa\n   */
             metadata
               Annotation
-                atSign.offset: 32
+                atSign: @ @32
                 element: self::@getter::annotation
                 name: SimpleIdentifier
                   staticElement: self::@getter::annotation
@@ -14759,7 +14759,7 @@ library
             documentationComment: /// bbb
             metadata
               Annotation
-                atSign.offset: 61
+                atSign: @ @61
                 element: self::@getter::annotation
                 name: SimpleIdentifier
                   staticElement: self::@getter::annotation
@@ -17243,7 +17243,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @55
               rightParenthesis: ) @56
-            atSign.offset: 29
+            atSign: @ @29
             element: ConstructorMember
               base: self::@class::A::@constructor::•
               substitution: {T: dynamic}
@@ -17317,7 +17317,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @55
               rightParenthesis: ) @56
-            atSign.offset: 29
+            atSign: @ @29
             element: ConstructorMember
               base: self::@class::A::@constructor::•
               substitution: {T: dynamic}
@@ -18320,7 +18320,7 @@ import 'ht:';
 library
   metadata
     Annotation
-      atSign.offset: 0
+      atSign: @ @0
       element: <null>
       name: SimpleIdentifier
         staticElement: <null>
@@ -18330,7 +18330,7 @@ library
     <unresolved>
       metadata
         Annotation
-          atSign.offset: 0
+          atSign: @ @0
           element: <null>
           name: SimpleIdentifier
             staticElement: <null>
@@ -20640,7 +20640,7 @@ library
       class C @39
         metadata
           Annotation
-            atSign.offset: 22
+            atSign: @ @22
             constructorName: SimpleIdentifier
               staticElement: package:test/a.dart::@class::A::@constructor::named
               staticType: null
@@ -20684,7 +20684,7 @@ library
       class C @32
         metadata
           Annotation
-            atSign.offset: 17
+            atSign: @ @17
             element: package:test/a.dart::@class::A::@constructor::named
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -21354,7 +21354,7 @@ library
           x @34
             metadata
               Annotation
-                atSign.offset: 25
+                atSign: @ @25
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -21402,7 +21402,7 @@ library
       class C @27
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -21413,7 +21413,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 29
+                atSign: @ @29
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -21435,7 +21435,7 @@ library
           bar @77
             metadata
               Annotation
-                atSign.offset: 65
+                atSign: @ @65
                 element: self::@class::C::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@class::C::@getter::foo
@@ -21469,14 +21469,14 @@ library
       class C @44
         metadata
           Annotation
-            atSign.offset: 32
+            atSign: @ @32
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
               staticType: null
               token: a @33
           Annotation
-            atSign.offset: 35
+            atSign: @ @35
             element: self::@getter::b
             name: SimpleIdentifier
               staticElement: self::@getter::b
@@ -21515,7 +21515,7 @@ library
       class alias C @25
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -21583,7 +21583,7 @@ library
                   staticType: int
               leftParenthesis: ( @44
               rightParenthesis: ) @46
-            atSign.offset: 36
+            atSign: @ @36
             element: self::@class::A::@constructor::named
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -21637,7 +21637,7 @@ library
                   staticType: int
               leftParenthesis: ( @46
               rightParenthesis: ) @48
-            atSign.offset: 38
+            atSign: @ @38
             element: ConstructorMember
               base: self::@class::A::@constructor::named
               substitution: {T: int}
@@ -21690,7 +21690,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @48
               rightParenthesis: ) @49
-            atSign.offset: 35
+            atSign: @ @35
             constructorName: SimpleIdentifier
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::named
@@ -21746,7 +21746,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @48
               rightParenthesis: ) @49
-            atSign.offset: 35
+            atSign: @ @35
             constructorName: SimpleIdentifier
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::named
@@ -21803,7 +21803,7 @@ library
                   staticType: int
               leftParenthesis: ( @38
               rightParenthesis: ) @40
-            atSign.offset: 26
+            atSign: @ @26
             constructorName: SimpleIdentifier
               staticElement: package:test/foo.dart::@class::A::@constructor::named
               staticType: null
@@ -21855,7 +21855,7 @@ library
                   staticType: int
               leftParenthesis: ( @38
               rightParenthesis: ) @40
-            atSign.offset: 26
+            atSign: @ @26
             constructorName: SimpleIdentifier
               staticElement: ConstructorMember
                 base: package:test/foo.dart::@class::A::@constructor::named
@@ -21907,7 +21907,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @43
               rightParenthesis: ) @44
-            atSign.offset: 26
+            atSign: @ @26
             constructorName: SimpleIdentifier
               staticElement: ConstructorMember
                 base: package:test/foo.dart::@class::A::@constructor::named
@@ -21993,7 +21993,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @76
               rightParenthesis: ) @77
-            atSign.offset: 68
+            atSign: @ @68
             element: ConstructorMember
               base: self::@class::C::@constructor::named
               substitution: {T: dynamic}
@@ -22053,7 +22053,7 @@ library
                   staticType: int
               leftParenthesis: ( @32
               rightParenthesis: ) @34
-            atSign.offset: 30
+            atSign: @ @30
             element: self::@class::A::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::A
@@ -22097,7 +22097,7 @@ library
                   staticType: int
               leftParenthesis: ( @34
               rightParenthesis: ) @36
-            atSign.offset: 32
+            atSign: @ @32
             element: ConstructorMember
               base: self::@class::A::@constructor::•
               substitution: {T: int}
@@ -22136,7 +22136,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @36
               rightParenthesis: ) @37
-            atSign.offset: 29
+            atSign: @ @29
             element: ConstructorMember
               base: self::@class::A::@constructor::•
               substitution: {T: int}
@@ -22180,7 +22180,7 @@ library
                   staticType: int
               leftParenthesis: ( @32
               rightParenthesis: ) @34
-            atSign.offset: 26
+            atSign: @ @26
             element: package:test/foo.dart::@class::A::@constructor::•
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -22228,7 +22228,7 @@ library
                   staticType: int
               leftParenthesis: ( @32
               rightParenthesis: ) @34
-            atSign.offset: 26
+            atSign: @ @26
             element: ConstructorMember
               base: package:test/foo.dart::@class::A::@constructor::•
               substitution: {T: int}
@@ -22274,7 +22274,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @37
               rightParenthesis: ) @38
-            atSign.offset: 26
+            atSign: @ @26
             element: ConstructorMember
               base: package:test/foo.dart::@class::A::@constructor::•
               substitution: {T: int}
@@ -22347,7 +22347,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @64
               rightParenthesis: ) @65
-            atSign.offset: 62
+            atSign: @ @62
             element: ConstructorMember
               base: self::@class::C::@constructor::•
               substitution: {T: dynamic}
@@ -22389,7 +22389,7 @@ library
                   staticType: Null
               leftParenthesis: ( @26
               rightParenthesis: ) @31
-            atSign.offset: 24
+            atSign: @ @24
             element: self::@class::A::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::A
@@ -22412,7 +22412,7 @@ library
           named @31
             metadata
               Annotation
-                atSign.offset: 26
+                atSign: @ @26
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -22444,7 +22444,7 @@ library
           @29
             metadata
               Annotation
-                atSign.offset: 26
+                atSign: @ @26
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -22478,7 +22478,7 @@ library
           static const v @26
             metadata
               Annotation
-                atSign.offset: 23
+                atSign: @ @23
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -22554,7 +22554,7 @@ library
                       staticType: int
                   leftParenthesis: ( @72
                   rightParenthesis: ) @76
-                atSign.offset: 70
+                atSign: @ @70
                 element: self::@class::A::@constructor::•
                 name: SimpleIdentifier
                   staticElement: self::@class::A
@@ -22573,7 +22573,7 @@ library
                       staticType: int
                   leftParenthesis: ( @90
                   rightParenthesis: ) @94
-                atSign.offset: 88
+                atSign: @ @88
                 element: self::@class::A::@constructor::•
                 name: SimpleIdentifier
                   staticElement: self::@class::A
@@ -22606,7 +22606,7 @@ library
       enum E @22
         metadata
           Annotation
-            atSign.offset: 14
+            atSign: @ @14
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -22649,7 +22649,7 @@ library
 library
   metadata
     Annotation
-      atSign.offset: 0
+      atSign: @ @0
       element: self::@getter::a
       name: SimpleIdentifier
         staticElement: self::@getter::a
@@ -22659,7 +22659,7 @@ library
     foo.dart
       metadata
         Annotation
-          atSign.offset: 0
+          atSign: @ @0
           element: self::@getter::a
           name: SimpleIdentifier
             staticElement: self::@getter::a
@@ -22697,7 +22697,7 @@ library
       E @31
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -22707,7 +22707,7 @@ library
           covariant T @38
             metadata
               Annotation
-                atSign.offset: 33
+                atSign: @ @33
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -22728,7 +22728,7 @@ library
           bar @88
             metadata
               Annotation
-                atSign.offset: 76
+                atSign: @ @76
                 element: self::@extension::E::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@extension::E::@getter::foo
@@ -22766,7 +22766,7 @@ library
       E @50
         metadata
           Annotation
-            atSign.offset: 27
+            atSign: @ @27
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -22776,7 +22776,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @37
               rightParenthesis: ) @38
-            atSign.offset: 30
+            atSign: @ @30
             element: dart:core::@class::Object::@constructor::•
             name: SimpleIdentifier
               staticElement: dart:core::@class::Object
@@ -22807,7 +22807,7 @@ library
           x @33
             metadata
               Annotation
-                atSign.offset: 26
+                atSign: @ @26
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -22860,7 +22860,7 @@ library
                 type: dynamic
                 metadata
                   Annotation
-                    atSign.offset: 39
+                    atSign: @ @39
                     element: self::@getter::a
                     name: SimpleIdentifier
                       staticElement: self::@getter::a
@@ -22905,7 +22905,7 @@ library
                 type: dynamic
                 metadata
                   Annotation
-                    atSign.offset: 36
+                    atSign: @ @36
                     element: self::@getter::a
                     name: SimpleIdentifier
                       staticElement: self::@getter::a
@@ -22959,7 +22959,7 @@ library
       f @19
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -22989,7 +22989,7 @@ library
       get f @23
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -23019,7 +23019,7 @@ library
       set f @23
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -23041,7 +23041,7 @@ library
       functionTypeAliasBased F @27
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -23085,7 +23085,7 @@ library
             type: dynamic Function()
             metadata
               Annotation
-                atSign.offset: 18
+                atSign: @ @18
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -23117,7 +23117,7 @@ library
             type: dynamic Function()
             metadata
               Annotation
-                atSign.offset: 19
+                atSign: @ @19
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -23145,14 +23145,14 @@ library
       F @46
         metadata
           Annotation
-            atSign.offset: 32
+            atSign: @ @32
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
               staticType: null
               token: a @33
           Annotation
-            atSign.offset: 35
+            atSign: @ @35
             element: self::@getter::b
             name: SimpleIdentifier
               staticElement: self::@getter::b
@@ -23192,7 +23192,7 @@ const a = 0;
 library
   metadata
     Annotation
-      atSign.offset: 0
+      atSign: @ @0
       element: self::@getter::a
       name: SimpleIdentifier
         staticElement: self::@getter::a
@@ -23202,7 +23202,7 @@ library
     dart:math
       metadata
         Annotation
-          atSign.offset: 0
+          atSign: @ @0
           element: self::@getter::a
           name: SimpleIdentifier
             staticElement: self::@getter::a
@@ -23233,7 +23233,7 @@ const a = 0;
 library
   metadata
     Annotation
-      atSign.offset: 0
+      atSign: @ @0
       element: self::@getter::a
       name: SimpleIdentifier
         staticElement: self::@getter::a
@@ -23243,7 +23243,7 @@ library
     dart:math
       metadata
         Annotation
-          atSign.offset: 0
+          atSign: @ @0
           element: self::@getter::a
           name: SimpleIdentifier
             staticElement: self::@getter::a
@@ -23282,7 +23282,7 @@ library
               type: int
               metadata
                 Annotation
-                  atSign.offset: 40
+                  atSign: @ @40
                   element: self::@getter::a
                   name: SimpleIdentifier
                     staticElement: self::@getter::a
@@ -23322,7 +23322,7 @@ library
                   type: int
                   metadata
                     Annotation
-                      atSign.offset: 48
+                      atSign: @ @48
                       element: self::@getter::a
                       name: SimpleIdentifier
                         staticElement: self::@getter::a
@@ -23358,7 +23358,7 @@ library
             covariant T @43
               metadata
                 Annotation
-                  atSign.offset: 40
+                  atSign: @ @40
                   element: self::@getter::a
                   name: SimpleIdentifier
                     staticElement: self::@getter::a
@@ -23397,7 +23397,7 @@ library
                   staticType: int
               leftParenthesis: ( @10
               rightParenthesis: ) @13
-            atSign.offset: 8
+            atSign: @ @8
             element: self::@function::f
             name: SimpleIdentifier
               staticElement: self::@function::f
@@ -23422,7 +23422,7 @@ library
   nameOffset: 11
   metadata
     Annotation
-      atSign.offset: 0
+      atSign: @ @0
       element: self::@getter::a
       name: SimpleIdentifier
         staticElement: self::@getter::a
@@ -23459,7 +23459,7 @@ library
           get m @33
             metadata
               Annotation
-                atSign.offset: 26
+                atSign: @ @26
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -23500,14 +23500,14 @@ library
           m @54
             metadata
               Annotation
-                atSign.offset: 44
+                atSign: @ @44
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
                   staticType: null
                   token: a @45
               Annotation
-                atSign.offset: 49
+                atSign: @ @49
                 element: self::@getter::b
                 name: SimpleIdentifier
                   staticElement: self::@getter::b
@@ -23558,14 +23558,14 @@ library
           m @54
             metadata
               Annotation
-                atSign.offset: 44
+                atSign: @ @44
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
                   staticType: null
                   token: a @45
               Annotation
-                atSign.offset: 49
+                atSign: @ @49
                 element: self::@getter::b
                 name: SimpleIdentifier
                   staticElement: self::@getter::b
@@ -23615,7 +23615,7 @@ library
           set m @37
             metadata
               Annotation
-                atSign.offset: 28
+                atSign: @ @28
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -23656,7 +23656,7 @@ library
       mixin M @27
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -23667,7 +23667,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 29
+                atSign: @ @29
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -23691,7 +23691,7 @@ library
           bar @77
             metadata
               Annotation
-                atSign.offset: 65
+                atSign: @ @65
                 element: self::@mixin::M::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@mixin::M::@getter::foo
@@ -23725,14 +23725,14 @@ library
       mixin M @44
         metadata
           Annotation
-            atSign.offset: 32
+            atSign: @ @32
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
               staticType: null
               token: a @33
           Annotation
-            atSign.offset: 35
+            atSign: @ @35
             element: self::@getter::b
             name: SimpleIdentifier
               staticElement: self::@getter::b
@@ -23777,7 +23777,7 @@ library
       class A @27
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -23788,7 +23788,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 29
+                atSign: @ @29
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -23828,7 +23828,7 @@ library
           @35
             metadata
               Annotation
-                atSign.offset: 28
+                atSign: @ @28
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -23839,7 +23839,7 @@ library
                 type: int
                 metadata
                   Annotation
-                    atSign.offset: 37
+                    atSign: @ @37
                     element: self::@getter::foo
                     name: SimpleIdentifier
                       staticElement: self::@getter::foo
@@ -23881,7 +23881,7 @@ library
           get getter @43
             metadata
               Annotation
-                atSign.offset: 28
+                atSign: @ @28
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -23922,7 +23922,7 @@ library
           method @40
             metadata
               Annotation
-                atSign.offset: 28
+                atSign: @ @28
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -23932,7 +23932,7 @@ library
               covariant T @52
                 metadata
                   Annotation
-                    atSign.offset: 47
+                    atSign: @ @47
                     element: self::@getter::foo
                     name: SimpleIdentifier
                       staticElement: self::@getter::foo
@@ -23943,7 +23943,7 @@ library
                 type: int
                 metadata
                   Annotation
-                    atSign.offset: 55
+                    atSign: @ @55
                     element: self::@getter::foo
                     name: SimpleIdentifier
                       staticElement: self::@getter::foo
@@ -23987,7 +23987,7 @@ library
           set setter @39
             metadata
               Annotation
-                atSign.offset: 28
+                atSign: @ @28
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -23998,7 +23998,7 @@ library
                 type: int
                 metadata
                   Annotation
-                    atSign.offset: 46
+                    atSign: @ @46
                     element: self::@getter::foo
                     name: SimpleIdentifier
                       staticElement: self::@getter::foo
@@ -24038,7 +24038,7 @@ library
       class alias B @50
         metadata
           Annotation
-            atSign.offset: 39
+            atSign: @ @39
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24049,7 +24049,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 52
+                atSign: @ @52
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24104,7 +24104,7 @@ library
       enum E @26
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24118,7 +24118,7 @@ library
           static const e1 @37
             metadata
               Annotation
-                atSign.offset: 32
+                atSign: @ @32
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24130,7 +24130,7 @@ library
           static const e3 @54
             metadata
               Annotation
-                atSign.offset: 49
+                atSign: @ @49
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24178,7 +24178,7 @@ library
       E @31
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24188,7 +24188,7 @@ library
           covariant T @38
             metadata
               Annotation
-                atSign.offset: 33
+                atSign: @ @33
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24232,7 +24232,7 @@ library
           static isStatic @42
             metadata
               Annotation
-                atSign.offset: 28
+                atSign: @ @28
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24242,7 +24242,7 @@ library
           static const isStaticConst @79
             metadata
               Annotation
-                atSign.offset: 59
+                atSign: @ @59
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24256,7 +24256,7 @@ library
           isInstance @112
             metadata
               Annotation
-                atSign.offset: 101
+                atSign: @ @101
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24310,7 +24310,7 @@ library
   documentationComment: /// Some documentation.
   metadata
     Annotation
-      atSign.offset: 24
+      atSign: @ @24
       element: self::@getter::foo
       name: SimpleIdentifier
         staticElement: self::@getter::foo
@@ -24344,7 +24344,7 @@ library
       mixin A @27
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24355,7 +24355,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 29
+                atSign: @ @29
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24392,7 +24392,7 @@ library
       functionTypeAliasBased F @34
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24403,7 +24403,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 36
+                atSign: @ @36
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24416,7 +24416,7 @@ library
               type: int
               metadata
                 Annotation
-                  atSign.offset: 44
+                  atSign: @ @44
                   element: self::@getter::foo
                   name: SimpleIdentifier
                     staticElement: self::@getter::foo
@@ -24450,7 +24450,7 @@ library
       A @29
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24461,7 +24461,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 31
+                atSign: @ @31
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24473,7 +24473,7 @@ library
             covariant U @60
               metadata
                 Annotation
-                  atSign.offset: 55
+                  atSign: @ @55
                   element: self::@getter::foo
                   name: SimpleIdentifier
                     staticElement: self::@getter::foo
@@ -24484,7 +24484,7 @@ library
               type: int
               metadata
                 Annotation
-                  atSign.offset: 63
+                  atSign: @ @63
                   element: self::@getter::foo
                   name: SimpleIdentifier
                     staticElement: self::@getter::foo
@@ -24543,7 +24543,7 @@ library
     a.dart
       metadata
         Annotation
-          atSign.offset: 17
+          atSign: @ @17
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
@@ -24552,7 +24552,7 @@ library
     b.dart
       metadata
         Annotation
-          atSign.offset: 38
+          atSign: @ @38
           element: self::@getter::foo
           name: SimpleIdentifier
             staticElement: self::@getter::foo
@@ -24586,7 +24586,7 @@ library
       f @26
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24596,7 +24596,7 @@ library
           covariant T @33
             metadata
               Annotation
-                atSign.offset: 28
+                atSign: @ @28
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24607,7 +24607,7 @@ library
             type: int?
             metadata
               Annotation
-                atSign.offset: 37
+                atSign: @ @37
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24646,7 +24646,7 @@ library
       get getter @29
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24682,7 +24682,7 @@ library
       set setter @25
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24693,7 +24693,7 @@ library
             type: int
             metadata
               Annotation
-                atSign.offset: 32
+                atSign: @ @32
                 element: self::@getter::foo
                 name: SimpleIdentifier
                   staticElement: self::@getter::foo
@@ -24726,7 +24726,7 @@ library
       static isNotConst @25
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24736,7 +24736,7 @@ library
       static const isConst @53
         metadata
           Annotation
-            atSign.offset: 42
+            atSign: @ @42
             element: self::@getter::foo
             name: SimpleIdentifier
               staticElement: self::@getter::foo
@@ -24788,7 +24788,7 @@ library
     foo.dart
       metadata
         Annotation
-          atSign.offset: 11
+          atSign: @ @11
           element: self::@getter::a
           name: SimpleIdentifier
             staticElement: self::@getter::a
@@ -24826,7 +24826,7 @@ library
       class C @33
         metadata
           Annotation
-            atSign.offset: 22
+            atSign: @ @22
             element: a.dart::@getter::b
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -24867,7 +24867,7 @@ library
             type: dynamic
             metadata
               Annotation
-                atSign.offset: 18
+                atSign: @ @18
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -24899,7 +24899,7 @@ library
                 type: dynamic
                 metadata
                   Annotation
-                    atSign.offset: 31
+                    atSign: @ @31
                     element: self::@getter::a
                     name: SimpleIdentifier
                       staticElement: self::@getter::a
@@ -24946,7 +24946,7 @@ library
             type: int
             metadata
               Annotation
-                atSign.offset: 25
+                atSign: @ @25
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -24978,7 +24978,7 @@ library
             type: dynamic
             metadata
               Annotation
-                atSign.offset: 19
+                atSign: @ @19
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -25007,7 +25007,7 @@ library
       static v @23
         metadata
           Annotation
-            atSign.offset: 16
+            atSign: @ @16
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -25039,7 +25039,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 24
+                atSign: @ @24
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -25076,7 +25076,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 24
+                atSign: @ @24
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -25134,7 +25134,7 @@ library
           covariant T @21
             metadata
               Annotation
-                atSign.offset: 18
+                atSign: @ @18
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -25156,7 +25156,7 @@ library
             defaultType: dynamic
             metadata
               Annotation
-                atSign.offset: 26
+                atSign: @ @26
                 element: self::@getter::a
                 name: SimpleIdentifier
                   staticElement: self::@getter::a
@@ -25202,7 +25202,7 @@ library
       static x @20
         metadata
           Annotation
-            atSign.offset: 13
+            atSign: @ @13
             element: self::@getter::a
             name: SimpleIdentifier
               staticElement: self::@getter::a
@@ -25251,7 +25251,7 @@ library
       class C @45
         metadata
           Annotation
-            atSign.offset: 34
+            atSign: @ @34
             element: self::@class::A::@getter::x
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -25284,7 +25284,7 @@ library
       class C @28
         metadata
           Annotation
-            atSign.offset: 17
+            atSign: @ @17
             element: self::@enum::E::@getter::b
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -25346,7 +25346,7 @@ library
       class C @56
         metadata
           Annotation
-            atSign.offset: 45
+            atSign: @ @45
             element: self::@extension::E::@getter::x
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -25399,7 +25399,7 @@ library
       class C @41
         metadata
           Annotation
-            atSign.offset: 26
+            atSign: @ @26
             constructorName: SimpleIdentifier
               staticElement: package:test/foo.dart::@extension::E::@getter::x
               staticType: null
@@ -32261,7 +32261,7 @@ library
                   superKeyword: super @30
               leftParenthesis: ( @29
               rightParenthesis: ) @35
-            atSign.offset: 27
+            atSign: @ @27
             element: self::@class::A::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::A
@@ -32301,7 +32301,7 @@ library
                   thisKeyword: this @30
               leftParenthesis: ( @29
               rightParenthesis: ) @34
-            atSign.offset: 27
+            atSign: @ @27
             element: self::@class::A::@constructor::•
             name: SimpleIdentifier
               staticElement: self::@class::A
@@ -32325,7 +32325,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @8
               rightParenthesis: ) @9
-            atSign.offset: 0
+            atSign: @ @0
             element: <null>
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -32357,7 +32357,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @11
               rightParenthesis: ) @12
-            atSign.offset: 0
+            atSign: @ @0
             element: <null>
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -32385,7 +32385,7 @@ library
       class C @15
         metadata
           Annotation
-            atSign.offset: 0
+            atSign: @ @0
             element: <null>
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -32417,7 +32417,7 @@ library
       class C @43
         metadata
           Annotation
-            atSign.offset: 28
+            atSign: @ @28
             element: <null>
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -32449,7 +32449,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @12
               rightParenthesis: ) @13
-            atSign.offset: 0
+            atSign: @ @0
             constructorName: SimpleIdentifier
               staticElement: <null>
               staticType: null
@@ -32488,7 +32488,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @40
               rightParenthesis: ) @41
-            atSign.offset: 28
+            atSign: @ @28
             constructorName: SimpleIdentifier
               staticElement: <null>
               staticType: null
@@ -32527,7 +32527,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @43
               rightParenthesis: ) @44
-            atSign.offset: 28
+            atSign: @ @28
             constructorName: SimpleIdentifier
               staticElement: <null>
               staticType: null
@@ -32563,7 +32563,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @8
               rightParenthesis: ) @9
-            atSign.offset: 0
+            atSign: @ @0
             element: <null>
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -32598,7 +32598,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @36
               rightParenthesis: ) @37
-            atSign.offset: 28
+            atSign: @ @28
             element: <null>
             name: PrefixedIdentifier
               identifier: SimpleIdentifier
@@ -32626,7 +32626,7 @@ library
       class C @11
         metadata
           Annotation
-            atSign.offset: 0
+            atSign: @ @0
             element: <null>
             name: SimpleIdentifier
               staticElement: <null>
@@ -32657,7 +32657,7 @@ library
       class C @44
         metadata
           Annotation
-            atSign.offset: 35
+            atSign: @ @35
             element: <null>
             name: SimpleIdentifier
               staticElement: <null>
@@ -32680,7 +32680,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @4
               rightParenthesis: ) @5
-            atSign.offset: 0
+            atSign: @ @0
             element: <null>
             name: SimpleIdentifier
               staticElement: <null>

@@ -17,6 +17,11 @@ abstract class Workspace {
   /// Return true iff this [Workspace] is a [BazelWorkspace].
   bool get isBazel => false;
 
+  /// Return `true` if the read state of configuration files is consistent
+  /// with their current state on the file system.
+  @internal
+  bool get isConsistentWithFileSystem => true;
+
   /// The [UriResolver] that can resolve `package` URIs.
   UriResolver get packageUriResolver;
 

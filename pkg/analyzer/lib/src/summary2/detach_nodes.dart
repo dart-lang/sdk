@@ -56,6 +56,7 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       element.typeInference = null;
     }
     _detachConstVariable(element);
+    super.visitPropertyInducingElement(element);
   }
 
   void _detachConstVariable(Element element) {

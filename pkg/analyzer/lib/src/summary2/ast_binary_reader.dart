@@ -173,10 +173,9 @@ class AstBinaryReader {
     }
   }
 
-  IntegerLiteral _createIntegerLiteral(int value) {
-    // TODO(scheglov) Write token?
+  IntegerLiteral _createIntegerLiteral(String lexeme, int value) {
     var node = astFactory.integerLiteral(
-      TokenFactory.tokenFromTypeAndString(TokenType.INT, '$value'),
+      TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
       value,
     );
     _readExpressionResolution(node);
@@ -203,7 +202,9 @@ class AstBinaryReader {
 
   AdjacentStrings _readAdjacentStrings() {
     var components = _readNodeList<StringLiteral>();
-    return astFactory.adjacentStrings(components);
+    var node = astFactory.adjacentStrings(components);
+    _readExpressionResolution(node);
+    return node;
   }
 
   Annotation _readAnnotation() {
@@ -698,13 +699,15 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _readIntegerLiteralNegative() {
+    var lexeme = _readStringReference();
     var value = (_readUInt32() << 32) | _readUInt32();
-    return _createIntegerLiteral(-value);
+    return _createIntegerLiteral(lexeme, -value);
   }
 
   IntegerLiteral _readIntegerLiteralNegative1() {
+    var lexeme = _readStringReference();
     var value = _readByte();
-    return _createIntegerLiteral(-value);
+    return _createIntegerLiteral(lexeme, -value);
   }
 
   IntegerLiteral _readIntegerLiteralNull() {
@@ -718,13 +721,15 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _readIntegerLiteralPositive() {
+    var lexeme = _readStringReference();
     var value = (_readUInt32() << 32) | _readUInt32();
-    return _createIntegerLiteral(value);
+    return _createIntegerLiteral(lexeme, value);
   }
 
   IntegerLiteral _readIntegerLiteralPositive1() {
+    var lexeme = _readStringReference();
     var value = _readByte();
-    return _createIntegerLiteral(value);
+    return _createIntegerLiteral(lexeme, value);
   }
 
   InterpolationExpression _readInterpolationExpression() {
@@ -1053,10 +1058,12 @@ class AstBinaryReader {
     var lexeme = _readStringReference();
     var value = _readStringReference();
 
-    return astFactory.simpleStringLiteral(
+    var node = astFactory.simpleStringLiteral(
       TokenFactory.tokenFromString(lexeme),
       value,
     );
+    _readExpressionResolution(node);
+    return node;
   }
 
   SpreadElement _readSpreadElement() {
@@ -1072,7 +1079,9 @@ class AstBinaryReader {
 
   StringInterpolation _readStringInterpolation() {
     var elements = _readNodeList<InterpolationElement>();
-    return astFactory.stringInterpolation(elements);
+    var node = astFactory.stringInterpolation(elements);
+    _readExpressionResolution(node);
+    return node;
   }
 
   String _readStringReference() {

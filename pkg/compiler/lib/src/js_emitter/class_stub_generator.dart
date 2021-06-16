@@ -4,8 +4,12 @@
 
 library dart2js.js_emitter.class_stub_generator;
 
+import 'package:js_runtime/shared/embedded_names.dart'
+    show TearOffParametersPropertyNames;
+
 import '../common/names.dart' show Identifiers, Selectors;
 import '../common_elements.dart' show CommonElements;
+import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -197,6 +201,65 @@ class ClassStubGenerator {
     }
     return new StubMethod(name, function);
   }
+
+  /// Generates a getter for the given [field].
+  Method generateGetter(Field field) {
+    assert(field.needsGetter);
+
+    jsAst.Expression code;
+    if (field.isElided) {
+      ConstantValue constantValue = field.constantValue;
+      assert(
+          constantValue != null, "No constant value for elided field: $field");
+      if (constantValue == null) {
+        // This should never occur because codegen member usage is now limited
+        // by closed world member usage. In the case we've missed a spot we
+        // cautiously generate a null constant.
+        constantValue = NullConstantValue();
+      }
+      code = js("function() { return #; }",
+          _emitter.constantReference(constantValue));
+    } else {
+      String template;
+      if (field.needsInterceptedGetterOnReceiver) {
+        template = "function(receiver) { return receiver[#]; }";
+      } else if (field.needsInterceptedGetterOnThis) {
+        template = "function(receiver) { return this[#]; }";
+      } else {
+        assert(!field.needsInterceptedGetter);
+        template = "function() { return this[#]; }";
+      }
+      jsAst.Expression fieldName = js.quoteName(field.name);
+      code = js(template, fieldName);
+    }
+    jsAst.Name getterName = _namer.deriveGetterName(field.accessorName);
+    return StubMethod(getterName, code);
+  }
+
+  /// Generates a setter for the given [field].
+  Method generateSetter(Field field) {
+    assert(field.needsUncheckedSetter);
+
+    String template;
+    jsAst.Expression code;
+    if (field.isElided) {
+      code = js("function() { }");
+    } else {
+      if (field.needsInterceptedSetterOnReceiver) {
+        template = "function(receiver, val) { return receiver[#] = val; }";
+      } else if (field.needsInterceptedSetterOnThis) {
+        template = "function(receiver, val) { return this[#] = val; }";
+      } else {
+        assert(!field.needsInterceptedSetter);
+        template = "function(val) { return this[#] = val; }";
+      }
+      jsAst.Expression fieldName = js.quoteName(field.name);
+      code = js(template, fieldName);
+    }
+
+    jsAst.Name setterName = _namer.deriveSetterName(field.accessorName);
+    return StubMethod(setterName, code);
+  }
 }
 
 /// Creates two JavaScript functions: `tearOffGetter` and `tearOff`.
@@ -232,18 +295,16 @@ List<jsAst.Statement> buildTearOffCode(
   if (options.useContentSecurityPolicy) {
     instanceTearOffGetter = js.statement(
       '''
-      function instanceTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted, needsDirectAccess) {
+      function instanceTearOffGetter(isIntercepted, parameters) {
         var cache = null;
         return isIntercepted
             ? function(receiver) {
-                if (cache === null) cache = #createTearOffClass(
-                    funcs, applyTrampolineIndex, reflectionInfo, false, true, name, needsDirectAccess);
-                return new cache(this, funcs[0], receiver, name);
+                if (cache === null) cache = #createTearOffClass(parameters);
+                return new cache(this, receiver);
               }
             : function() {
-                if (cache === null) cache = #createTearOffClass(
-                    funcs, applyTrampolineIndex, reflectionInfo, false, false, name, needsDirectAccess);
-                return new cache(this, funcs[0], null, name);
+                if (cache === null) cache = #createTearOffClass(parameters);
+                return new cache(this, null);
               };
       }''',
       {'createTearOffClass': closureFromTearOffAccessExpression},
@@ -272,33 +333,35 @@ List<jsAst.Statement> buildTearOffCode(
     // variable all in one context (passing `null` to initialize `cache`).
     instanceTearOffGetter = js.statement(
       '''
-function instanceTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted, needsDirectAccess) {
+function instanceTearOffGetter(isIntercepted, parameters) {
+  var name = parameters.#tpFunctionsOrNames[0];
   if (isIntercepted)
-    return new Function("funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, createTearOffClass, cache",
-          "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
-            "if (cache === null) cache = createTearOffClass(" +
-                "funcs, applyTrampolineIndex, reflectionInfo, false, true, name, needsDirectAccess);" +
-                "return new cache(this, funcs[0], receiver, name);" +
-           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, #createTearOffClass, null);
+    return new Function("parameters, createTearOffClass, cache",
+        "return function tearOff_" + name + (functionCounter++) + "(receiver) {" +
+          "if (cache === null) cache = createTearOffClass(parameters);" +
+            "return new cache(this, receiver);" +
+        "}")(parameters, #createTearOffClass, null);
   else
-    return new Function("funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, createTearOffClass, cache",
-          "return function tearOff_" + name + (functionCounter++)+ "() {" +
-            "if (cache === null) cache = createTearOffClass(" +
-                "funcs, applyTrampolineIndex, reflectionInfo, false, false, name, needsDirectAccess);" +
-                "return new cache(this, funcs[0], null, name);" +
-             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, needsDirectAccess, #createTearOffClass, null);
+    return new Function("parameters, createTearOffClass, cache",
+        "return function tearOff_" + name + (functionCounter++)+ "() {" +
+          "if (cache === null) cache = createTearOffClass(parameters);" +
+            "return new cache(this, null);" +
+        "}")(parameters, #createTearOffClass, null);
 }''',
-      {'createTearOffClass': closureFromTearOffAccessExpression},
+      {
+        'tpFunctionsOrNames':
+            js.string(TearOffParametersPropertyNames.funsOrNames),
+        'createTearOffClass': closureFromTearOffAccessExpression
+      },
     );
   }
 
   jsAst.Statement staticTearOffGetter = js.statement(
     '''
-function staticTearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name) {
+function staticTearOffGetter(parameters) {
   var cache = null;
   return function() {
-    if (cache === null) cache = #createTearOffClass(
-        funcs, applyTrampolineIndex, reflectionInfo, true, false, name).prototype;
+    if (cache === null) cache = #createTearOffClass(parameters).prototype;
     return cache;
   }
 }''',

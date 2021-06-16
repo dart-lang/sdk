@@ -73,7 +73,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('Annotation');
     _withIndent(() {
       _writeNode('arguments', node.arguments);
-      _writeOffset('atSign.offset', node.atSign.offset);
+      _writeToken('atSign', node.atSign);
       _writeNode('constructorName', node.constructorName);
       _writeElement('element', node.element);
       _writeNode('name', node.name);
@@ -1925,6 +1925,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  /// TODO(scheglov) maybe inline?
   void _writeTokenList(String name, List<Token> tokens) {
     if (tokens.isNotEmpty) {
       _writelnWithIndent(name);

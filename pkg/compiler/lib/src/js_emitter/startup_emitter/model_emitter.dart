@@ -25,6 +25,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         NATIVE_SUPERCLASS_TAG_NAME,
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
+        TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
@@ -34,11 +35,7 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../common/tasks.dart';
 import '../../constants/values.dart'
-    show
-        ConstantValue,
-        FunctionConstantValue,
-        LateSentinelConstantValue,
-        NullConstantValue;
+    show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
