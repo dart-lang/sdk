@@ -44,6 +44,11 @@ static intptr_t Create(const RawAddr& addr) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
+  // Don't raise SIGPIPE when attempting to write to a connection which has
+  // already closed.
+  int optval = 1;
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &optval, sizeof(optval)));
   return fd;
 }
 
