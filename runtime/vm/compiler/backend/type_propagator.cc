@@ -917,7 +917,8 @@ static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
     // Comparable<int>).
     if (type.IsFutureOrType() ||
         type.type_class() == CompilerState::Current().ComparableClass().ptr()) {
-      const auto& args = TypeArguments::Handle(Type::Cast(type).arguments());
+      // Type may be a TypeRef.
+      const auto& args = TypeArguments::Handle(type.arguments());
       const auto& arg0 = AbstractType::Handle(args.TypeAt(0));
       return !recurse || CanPotentiallyBeSmi(arg0, /*recurse=*/true);
     }
